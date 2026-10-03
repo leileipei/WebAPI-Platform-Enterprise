@@ -63,6 +63,18 @@ public sealed class ApiFixture : IAsyncDisposable
         var token=await CsrfAsync();using var request=new HttpRequestMessage(method,path) {Content=body is null?null:JsonContent.Create(body)};
         request.Headers.Add("X-CSRF-Token",token);if(etag is not null) request.Headers.Add("If-Match",etag);return await Client.SendAsync(request);
     }
+    public Api Api { get; } = new() {Code="ORDERS",Name="订单",LifecycleStatus="Draft"};
+    public ApiVersion Version { get; } = new() {Version="1.0.0",Status="Draft",ChangeType="compatible"};
+    public UpstreamCluster Cluster { get; } = new() {Name="OrdersBackend",LoadBalancingPolicy="RoundRobin",HealthCheckPath="/health",HealthCheckIntervalSec=30};
+    public UpstreamDestination Destination { get; } = new() {Name="backend",Address="http://test-backend:8080/",Weight=1};
+    public async Task SeedCatalogAsync()
+    {
+        await SeedScopeAsync();await using var db=Context();Api.OrganizationId=Organization.Id;Api.ProjectId=Project.Id;Api.OwnerUserId=User.Id;Version.ApiId=Api.Id;Version.CreatedBy=User.Id;Cluster.ProjectId=Project.Id;Cluster.EnvironmentId=Environment.Id;Destination.ClusterId=Cluster.Id;db.AddRange(Api,Version,Cluster,Destination);
+        var roleId=await db.Set<UserRole>().Where(x=>x.UserId==User.Id).Select(x=>x.RoleId).SingleAsync();
+        string[] codes=["api.read","api.create","api.edit","api.version.read","api.version.write","api.schema.read","api.schema.write","route.read","route.write","cluster.read","cluster.write"];
+        foreach(var code in codes) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code};db.Add(p);db.Add(new RolePermission {RoleId=roleId,PermissionId=p.Id});}await db.SaveChangesAsync();
+    }
+    public object RouteBody(string path,string method="GET",Guid? cluster=null,Guid? id=null)=>new {id,apiVersionId=Version.Id,routeName="Orders",path,methods=new[]{method},clusterId=cluster??Cluster.Id,priority=100,enabled=true,timeoutMs=30000};
     public async ValueTask DisposeAsync()
     {
         Client?.Dispose(); if(app is not null) {await app.StopAsync(); await app.DisposeAsync();} await Database.DisposeAsync();

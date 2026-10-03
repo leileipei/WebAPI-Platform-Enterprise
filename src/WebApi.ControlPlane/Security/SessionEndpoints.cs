@@ -13,7 +13,7 @@ public static class SessionEndpoints
     public static ActorContext Actor(this HttpContext context) => new(Guid.Parse(context.User.FindFirstValue(ClaimTypes.NameIdentifier)!),context.TraceIdentifier);
     public static void MapSessions(this WebApplication app)
     {
-        var group=app.MapGroup("/api/v1/auth");
+        var group=app.MapGroup("/api/v1/auth").AddEndpointFilter<RequestValidationFilter>();
         group.MapGet("/csrf",(HttpContext ctx,IAntiforgery antiforgery)=> {ctx.Response.Headers.CacheControl="no-store";return Results.Ok(new { token=antiforgery.GetAndStoreTokens(ctx).RequestToken });}).AllowAnonymous();
         group.MapPost("/login",async (LoginRequest request,HttpContext ctx,AccountService accounts,WebApiDbContext db,Microsoft.AspNetCore.Identity.IPasswordHasher<UserRecord> hasher,CancellationToken ct)=> {
             var user=await accounts.AuthenticateAsync(request,ct);

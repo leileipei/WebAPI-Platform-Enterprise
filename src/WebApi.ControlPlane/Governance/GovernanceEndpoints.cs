@@ -8,7 +8,7 @@ public static class GovernanceEndpoints
     public static IResult Command<T>(HttpContext ctx,CommandResult<T> value) {ctx.Response.Headers.ETag=value.ETag;return Results.Ok(value.Value);}
     public static void MapGovernance(this WebApplication app)
     {
-        var g=app.MapGroup("/api/v1").RequireAuthorization();
+        var g=app.MapGroup("/api/v1").RequireAuthorization().AddEndpointFilter<RequestValidationFilter>();
         g.MapGet("/scope-tree",async(HttpContext ctx,GovernanceService service,CancellationToken ct)=>Results.Ok(await service.GetScopeTreeAsync(ctx.Actor(),ct)));
         g.MapGet("/organizations",async(HttpContext ctx,GovernanceService service,int? page,int? pageSize,CancellationToken ct)=>Results.Ok(Pagination.Slice((await service.GetScopeTreeAsync(ctx.Actor(),ct)).Organizations,page,pageSize)));
         g.MapGet("/organizations/{id:guid}",async(Guid id,HttpContext ctx,GovernanceService service,CancellationToken ct)=>{var value=await service.OrganizationAsync(id,ctx.Actor(),ct);ctx.Response.Headers.ETag=RevisionTag.Format(value.Revision);return Results.Ok(value);});
