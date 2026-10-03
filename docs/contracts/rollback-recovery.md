@@ -1,0 +1,11 @@
+# 回滚、重试和运行事实
+
+回滚创建独立Draft，冻结历史配置内容，生产环境仍执行两级独立审批。Worker复用历史Snapshot的原始字节和hash，创建更高deploymentSequence；configVersion可以下降。只有全部冻结节点实例确认成功才将成功原发布标记RolledBack。失败原发布保持Failed。
+
+失败重试必须仍是环境当前desired目标，重新检查发布人权限与全部启用节点在线条件。新Building记录以RecoveryOf关联原失败发布，沿用已经审批的相同历史字节；它不修改失败记录、不复用旧ACK，也不为相同已审批内容重复审批。若需要改内容则创建普通发布。
+
+节点列表同时返回实际configVersion/sequence和环境desired configVersion/sequence。相同版本号不代表同一次下发，心跳不代替ACK。停用节点身份阻止注册、心跳和ACK，不表示已经停止该节点代理进程。停止代理需要运维停止进程。
+
+公共Snapshot接口为ManagementViewNotRuntimePayload，剔除凭证摘要，无法用作网关加载文件。受独立节点身份保护的内部desired接口才返回真实原始字节。历史回滚Review中的路由/后端/实例名称为通用历史标签，API名称为当前管理名称；真实历史路径、地址、认证窗口及Snapshot原始字节为权威运行内容。
+
+负ACK ErrorCode限定已知诊断代码，禁止将任意字符串、凭证摘要或认证材料写入公共事件。真实Worker开发宿主验证所有DI依赖并构建队列，控制面内直接调用组件不能替代宿主验证。

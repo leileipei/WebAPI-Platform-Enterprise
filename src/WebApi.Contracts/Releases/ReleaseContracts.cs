@@ -4,6 +4,7 @@ namespace WebApi.Contracts.Releases;
 public sealed record ResourceRevision(string Type,Guid Id,long Revision);
 public sealed record CreateReleaseRequest(long BaseConfigVersion,IReadOnlyList<Guid> VersionIds,IReadOnlyList<ResourceRevision> ResourceRevisions);
 public sealed record ApprovalActionRequest(string Comment="");
+public sealed record CreateRollbackRequest(long TargetConfigVersion);
 public sealed record ApprovalRule(int StepOrder,string RoleCode,int RequiredCount);
 public sealed record SaveApprovalFlowRequest(string Name,IReadOnlyList<ApprovalRule> Steps,bool Enabled=true);
 public sealed record ApprovalFlowDto(Guid Id,Guid OrganizationId,string Name,bool Enabled,long Revision,IReadOnlyList<ApprovalRule> Steps);
@@ -17,4 +18,4 @@ public sealed record FrozenApplicationView(ApplicationDto Application,IReadOnlyL
 public sealed record FrozenCandidateView(IReadOnlyList<FrozenApiVersion> Versions,IReadOnlyList<RouteDto> Routes,IReadOnlyList<ClusterDto> Clusters,IReadOnlyList<FrozenApplicationView> Applications,IReadOnlyList<ResourceRevision> ResourceRevisions);
 public sealed record ApprovalTaskDto(Guid Id,int StepOrder,string RoleCode,string Status,Guid? ActorId,string? Comment,DateTimeOffset? ActedAt);
 public sealed record ReleaseTargetDto(Guid NodeId,string InstanceId,bool Acknowledged,long? ConfigVersion,long? DeploymentSequence,string? ErrorCode);
-public sealed record ReleaseDto(Guid Id,Guid EnvironmentId,string ReleaseNo,string State,string ReleaseType,Guid RequestedBy,DateTimeOffset CreatedAt,long BaselineConfigVersion,long TargetConfigVersion,long? DeploymentSequence,Guid? RollbackOf,FrozenCandidateView? FrozenCandidate,string? CandidateHash,IReadOnlyList<ApprovalTaskDto> ApprovalSteps,IReadOnlyList<ReleaseTargetDto> Targets,IReadOnlyList<string> Errors);
+public sealed record ReleaseDto(Guid Id,Guid EnvironmentId,string ReleaseNo,string State,string ReleaseType,Guid RequestedBy,DateTimeOffset CreatedAt,long BaselineConfigVersion,long TargetConfigVersion,long? DeploymentSequence,Guid? RollbackOf,FrozenCandidateView? FrozenCandidate,string? CandidateHash,IReadOnlyList<ApprovalTaskDto> ApprovalSteps,IReadOnlyList<ReleaseTargetDto> Targets,IReadOnlyList<string> Errors,Guid? RecoveryOf=null);

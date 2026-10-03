@@ -226,6 +226,12 @@
           "WebApi.ControlPlane": "[1.0.0, )"
         }
       },
+      "webapi.worker": {
+        "type": "Project",
+        "dependencies": {
+          "WebApi.Infrastructure": "[1.0.0, )"
+        }
+      },
       "Microsoft.EntityFrameworkCore": {
         "type": "CentralTransitive",
         "requested": "[10.0.12, )",

@@ -1256,3 +1256,35 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003213457_RecoveryReference') THEN
+    ALTER TABLE release_records ADD recovery_of uuid;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003213457_RecoveryReference') THEN
+    CREATE INDEX "IX_release_records_recovery_of" ON release_records (recovery_of);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003213457_RecoveryReference') THEN
+    ALTER TABLE release_records ADD CONSTRAINT "FK_release_records_release_records_recovery_of" FOREIGN KEY (recovery_of) REFERENCES release_records (id) ON DELETE RESTRICT;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003213457_RecoveryReference') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261003213457_RecoveryReference', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;
+

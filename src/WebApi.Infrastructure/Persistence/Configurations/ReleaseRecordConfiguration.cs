@@ -19,6 +19,7 @@ public sealed class ReleaseRecordConfiguration : IEntityTypeConfiguration<Releas
         b.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamptz").IsRequired();
         b.Property(x => x.CompletedAt).HasColumnName("completed_at").HasColumnType("timestamptz");
         b.Property(x => x.RollbackOf).HasColumnName("rollback_of").HasColumnType("uuid");
+        b.Property(x => x.RecoveryOf).HasColumnName("recovery_of").HasColumnType("uuid");
         b.Property(x => x.DeploymentSequence).HasColumnName("deployment_sequence").HasColumnType("bigint").HasDefaultValue(0L);
         b.Property(x => x.BaselineConfigVersion).HasColumnName("baseline_config_version").HasColumnType("bigint").IsRequired().HasDefaultValue(0L);
         b.Property(x => x.CandidateBytes).HasColumnName("candidate_bytes").HasColumnType("bytea");

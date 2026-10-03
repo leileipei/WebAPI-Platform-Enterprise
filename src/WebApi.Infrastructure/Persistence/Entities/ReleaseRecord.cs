@@ -13,6 +13,7 @@ public sealed class ReleaseRecord
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? CompletedAt { get; set; }
     public Guid? RollbackOf { get; set; }
+    public Guid? RecoveryOf { get; set; }
     public long? DeploymentSequence { get; set; }
     public long BaselineConfigVersion { get; set; }
     public byte[]? CandidateBytes { get; set; }
