@@ -1,1 +1,1 @@
-<Project Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><ProjectReference Include="../WebApi.Contracts/WebApi.Contracts.csproj"/></ItemGroup></Project>

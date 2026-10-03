@@ -97,7 +97,10 @@
         "type": "Project"
       },
       "webapi.domain": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "WebApi.Contracts": "[1.0.0, )"
+        }
       },
       "webapi.infrastructure": {
         "type": "Project",

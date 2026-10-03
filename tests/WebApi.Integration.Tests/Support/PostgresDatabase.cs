@@ -17,6 +17,7 @@ public sealed class PostgresDatabase : IAsyncDisposable
         await using var command = new NpgsqlCommand($"CREATE DATABASE {name}", connection);
         await command.ExecuteNonQueryAsync();
     }
+    public string ConnectionString => Connection(name);
     public WebApiDbContext Context() => new(new DbContextOptionsBuilder<WebApiDbContext>().UseNpgsql(Connection(name)).Options);
     public async Task<NpgsqlConnection> OpenAsync()
     {

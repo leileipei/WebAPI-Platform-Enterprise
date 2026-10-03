@@ -181,8 +181,17 @@
       "webapi.contracts": {
         "type": "Project"
       },
+      "webapi.controlplane": {
+        "type": "Project",
+        "dependencies": {
+          "WebApi.Infrastructure": "[1.0.0, )"
+        }
+      },
       "webapi.domain": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "WebApi.Contracts": "[1.0.0, )"
+        }
       },
       "webapi.infrastructure": {
         "type": "Project",
@@ -192,6 +201,12 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": "[10.0.3, )",
           "WebApi.Contracts": "[1.0.0, )",
           "WebApi.Domain": "[1.0.0, )"
+        }
+      },
+      "webapi.migrator": {
+        "type": "Project",
+        "dependencies": {
+          "WebApi.Infrastructure": "[1.0.0, )"
         }
       },
       "Microsoft.EntityFrameworkCore": {
