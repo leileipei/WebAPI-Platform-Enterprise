@@ -45,6 +45,24 @@ public sealed class ApiFixture : IAsyncDisposable
         var token=await CsrfAsync(); using var request=new HttpRequestMessage(HttpMethod.Post,"/api/v1/auth/login") {Content=JsonContent.Create(new {username=User.Username,password=password??Password})};
         request.Headers.Add("X-CSRF-Token",token); return await Client.SendAsync(request);
     }
+    public Organization Organization { get; } = new() {Code="ORG",Name="组织"};
+    public Project Project { get; } = new() {Code="PROJECT",Name="项目"};
+    public EnvironmentRecord Environment { get; } = new() {Code="TEST",Name="测试",SortOrder=0};
+    public async Task SeedScopeAsync(string mode="read_write",bool platformAdmin=false)
+    {
+        await using var db=Context();Project.OrganizationId=Organization.Id;Environment.ProjectId=Project.Id;
+        db.AddRange(Organization,Project,Environment);
+        var role=new Role {Code=platformAdmin?"PlatformAdmin":"ProjectAdmin",Name="测试角色",IsSystem=platformAdmin,OrganizationId=platformAdmin?null:Organization.Id};db.Add(role);
+        db.Add(new UserRole {UserId=User.Id,RoleId=role.Id});
+        string[] codes=["organization.read","organization.write","project.read","project.write","environment.read","environment.write","user.manage","role.manage","scope.manage","audit.read"];
+        foreach(var code in codes) {var permission=new Permission {Code=code,Module=code.Split('.')[0],Name=code};db.Add(permission);db.Add(new RolePermission {RoleId=role.Id,PermissionId=permission.Id});}
+        db.Add(new UserProjectScope {UserId=User.Id,OrganizationId=Organization.Id,AccessMode=mode});await db.SaveChangesAsync();
+    }
+    public async Task<HttpResponseMessage> WriteAsync(HttpMethod method,string path,object? body=null,string? etag=null)
+    {
+        var token=await CsrfAsync();using var request=new HttpRequestMessage(method,path) {Content=body is null?null:JsonContent.Create(body)};
+        request.Headers.Add("X-CSRF-Token",token);if(etag is not null) request.Headers.Add("If-Match",etag);return await Client.SendAsync(request);
+    }
     public async ValueTask DisposeAsync()
     {
         Client?.Dispose(); if(app is not null) {await app.StopAsync(); await app.DisposeAsync();} await Database.DisposeAsync();

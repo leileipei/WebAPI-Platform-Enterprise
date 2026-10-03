@@ -9,3 +9,5 @@ if(args.Contains("--bootstrap",StringComparer.Ordinal))
     await BootstrapAccounts.RunAsync(db,System.Environment.GetEnvironmentVariable("WEBAPI_BOOTSTRAP_USERNAME")??"",System.Environment.GetEnvironmentVariable("WEBAPI_BOOTSTRAP_PASSWORD_FILE")??"");
     Console.WriteLine("Explicit administrator bootstrap completed.");
 }
+
+if(args.Contains("--seed-catalog",StringComparer.Ordinal)) await WebApi.Infrastructure.Governance.PermissionCatalog.SeedAsync(db);

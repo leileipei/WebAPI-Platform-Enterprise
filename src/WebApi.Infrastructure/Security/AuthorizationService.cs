@@ -25,9 +25,10 @@ public sealed class AuthorizationService(WebApiDbContext db) : IAuthorizationSer
         var read=permission.EndsWith(".read",StringComparison.Ordinal);
         if(!grants.Any(x=>ScopeMatcher.Matches(new(x.OrganizationId,x.ProjectId,x.EnvironmentId),resource.Scope) && (read || ScopeMatcher.CanWrite(x.AccessMode))))
             throw new ApiException(403,"scope_denied","数据范围不允许此操作。");
-        if(!await db.Set<Organization>().AnyAsync(x=>x.Id==resource.Scope.OrganizationId && x.Status=="Active",cancellationToken) ||
+        var governance=permission.StartsWith("organization.",StringComparison.Ordinal)||permission.StartsWith("project.",StringComparison.Ordinal)||permission.StartsWith("environment.",StringComparison.Ordinal);
+        if(!governance && (!await db.Set<Organization>().AnyAsync(x=>x.Id==resource.Scope.OrganizationId && x.Status=="Active",cancellationToken) ||
             (resource.Scope.ProjectId is Guid project && !await db.Set<Project>().AnyAsync(x=>x.Id==project && x.OrganizationId==resource.Scope.OrganizationId && x.Status=="Active",cancellationToken)) ||
-            (resource.Scope.EnvironmentId is Guid env && !await db.Set<EnvironmentRecord>().AnyAsync(x=>x.Id==env && x.ProjectId==resource.Scope.ProjectId && x.Status=="Active",cancellationToken)))
+            (resource.Scope.EnvironmentId is Guid env && !await db.Set<EnvironmentRecord>().AnyAsync(x=>x.Id==env && x.ProjectId==resource.Scope.ProjectId && x.Status=="Active",cancellationToken))))
             throw new ApiException(409,"inactive_scope","组织、项目或环境已停用。");
     }
     public async Task<bool> CanAsync(ActorContext actor,string permission,ResourceRef resource,CancellationToken ct=default)

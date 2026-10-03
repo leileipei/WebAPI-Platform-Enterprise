@@ -13,6 +13,7 @@ public static class BootstrapAccounts
             throw new InvalidOperationException("Administrator password file must be accessible only to its owner.");
         var password=(await File.ReadAllTextAsync(secretFile,ct)).TrimEnd('\r','\n');
         if(password.Length<16 || password.Length>1024) throw new InvalidOperationException("Administrator password must contain 16 to 1024 characters.");
+        await WebApi.Infrastructure.Governance.PermissionCatalog.SeedAsync(db,ct);
         await using var tx=await db.Database.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901201)",ct);
         if(await db.Set<UserRecord>().AnyAsync(x=>x.Username==username,ct)) { await tx.CommitAsync(ct); return; }

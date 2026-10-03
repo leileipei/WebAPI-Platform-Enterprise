@@ -30,4 +30,14 @@ public sealed class BootstrapTests
         }
         finally {File.Delete(path);}
     }
+    [Fact] public async Task PermissionCatalogIsExplicitAndMatchesSourceRoles()
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();await db.Database.MigrateAsync();
+        Assert.Empty(await db.Set<Role>().ToListAsync());
+        await WebApi.Infrastructure.Governance.PermissionCatalog.SeedAsync(db);await WebApi.Infrastructure.Governance.PermissionCatalog.SeedAsync(db);
+        string[] expected=["PlatformAdmin","OrganizationAdmin","ProjectAdmin","ApiDeveloper","ApiApprover","SecurityReviewer","Operator","Auditor","Viewer"];
+        Assert.Equal(expected.OrderBy(x=>x),await db.Set<Role>().OrderBy(x=>x.Code).Select(x=>x.Code).ToArrayAsync());
+        Assert.Empty(await db.Set<UserRecord>().ToListAsync());
+        Assert.True(await db.Set<Permission>().AnyAsync(x=>x.Code=="approval.act"));
+    }
 }

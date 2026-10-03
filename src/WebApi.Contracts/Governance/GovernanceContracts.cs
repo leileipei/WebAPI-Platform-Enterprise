@@ -1,0 +1,17 @@
+using WebApi.Contracts.Security;
+namespace WebApi.Contracts.Governance;
+public sealed record SaveResourceRequest(string Code,string Name,string Status="Active");
+public sealed record CreateEnvironmentRequest(string Code,string Name,bool IsProduction=false,int SortOrder=0,Guid? ReleasePolicyId=null);
+public sealed record UpdateEnvironmentRequest(string Code,string Name,string Status,bool IsProduction,int SortOrder,Guid? ReleasePolicyId);
+public sealed record OrganizationDto(Guid Id,string Code,string Name,string Status,long Revision);
+public sealed record ProjectDto(Guid Id,Guid OrganizationId,string Code,string Name,string Status,long Revision,Guid? OwnerUserId);
+public sealed record EnvironmentDto(Guid Id,Guid ProjectId,string Code,string Name,string Status,bool IsProduction,int SortOrder,Guid? ReleasePolicyId,long? DesiredConfigVersion,long DeploymentSequence,long Revision);
+public sealed record ScopeTreeDto(IReadOnlyList<OrganizationDto> Organizations,IReadOnlyList<ProjectDto> Projects,IReadOnlyList<EnvironmentDto> Environments);
+public sealed record CreateUserRequest(string Username,string DisplayName,string Password,string? Email=null);
+public sealed record UpdateUserRequest(string DisplayName,string Status,string? Email=null);
+public sealed record UserDto(Guid Id,string Username,string DisplayName,string? Email,string Status,string AuthSource,long Revision,IReadOnlyList<Guid> RoleIds);
+public sealed record AssignRolesRequest(IReadOnlyList<Guid> RoleIds);
+public sealed record SaveScopesRequest(IReadOnlyList<ScopeGrantDto> Scopes);
+public sealed record SaveRoleRequest(string Code,string Name,Guid? OrganizationId=null);
+public sealed record RoleDto(Guid Id,string Code,string Name,Guid? OrganizationId,bool IsSystem,long Revision,IReadOnlyList<string> Permissions);
+public sealed record AssignPermissionsRequest(IReadOnlyList<string> Permissions);

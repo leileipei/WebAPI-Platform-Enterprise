@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApi.ControlPlane.Security;
+using WebApi.ControlPlane.Governance;
+using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
@@ -16,6 +18,8 @@ public static class ControlPlaneApp
         var connection=builder.Configuration.GetConnectionString("WebApi")??DatabaseSettings.ConnectionString();
         builder.Services.AddDbContext<WebApiDbContext>(options=>options.UseNpgsql(connection));
         builder.Services.AddScoped<IPasswordHasher<UserRecord>,PasswordHasher<UserRecord>>();
+        builder.Services.AddHttpContextAccessor();builder.Services.AddScoped(sp=>new AuditRequestMetadata(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Connection.RemoteIpAddress));
+        builder.Services.AddScoped<GovernanceService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();
         builder.Services.AddScoped<AccountService>();builder.Services.AddScoped<AuthorizationService>();
         builder.Services.AddScoped<WebApi.Contracts.Security.IAuthorizationService>(sp=>sp.GetRequiredService<AuthorizationService>());
         var local=builder.Environment.IsDevelopment();
@@ -47,6 +51,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSessions();return app;
+        app.MapSessions();app.MapGovernance();return app;
     }
 }
