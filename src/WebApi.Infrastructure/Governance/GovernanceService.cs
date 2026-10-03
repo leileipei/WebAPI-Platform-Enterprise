@@ -151,7 +151,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         await commands.ExecuteAsync(actor,scope,"role.delete",async(_,token)=>{await Require(actor,"role.manage",scope,id,token);var role=await db.Set<Role>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,role.Revision);if(role.IsSystem||await db.Set<UserRole>().AnyAsync(x=>x.RoleId==id,token)) throw new ApiException(409,"role_in_use","系统角色或已分配角色不能删除。");db.RemoveRange(await db.Set<RolePermission>().Where(x=>x.RoleId==id).ToArrayAsync(token));db.Remove(role);return true;},ct);
     }
     public async Task<object> PermissionDictionaryAsync(ActorContext actor,CancellationToken ct=default) {await Require(actor,"role.manage",platform,Guid.Empty,ct);return await db.Set<Permission>().AsNoTracking().OrderBy(x=>x.Module).ThenBy(x=>x.Code).Select(x=>new {x.Id,x.Code,x.Module,x.Name,x.Description}).ToArrayAsync(ct);}
-    public async Task<PageResult<AuditLog>> AuditAsync(ActorContext actor,int page=1,int pageSize=50,CancellationToken ct=default)
+    public async Task<PageResult<AuditDto>> AuditAsync(ActorContext actor,int page=1,int pageSize=50,CancellationToken ct=default)
     {
         page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var query=db.Set<AuditLog>().AsNoTracking();
         if(!await auth.CanAsync(actor,"audit.read",new("audit",Guid.Empty,platform),ct))
@@ -162,6 +162,6 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
             // Build a translatable union of exact authorized ranges; organization-level entries do not leak to project-only viewers.
             IQueryable<AuditLog> filtered=query.Where(_=>false);foreach(var s in allowed) filtered=filtered.Union(query.Where(x=>x.OrganizationId==s.OrganizationId&&(s.ProjectId==null||x.ProjectId==s.ProjectId)&&(s.EnvironmentId==null||x.EnvironmentId==s.EnvironmentId)));query=filtered;
         }
-        return new(await query.OrderByDescending(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).ToArrayAsync(ct),await query.CountAsync(ct),page,pageSize);
+        return new(await query.OrderByDescending(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).Select(x=>new AuditDto(x.Id,x.OrganizationId,x.ProjectId,x.EnvironmentId,x.UserId,x.Action,x.ResourceType,x.ResourceId,x.BeforeJson,x.AfterJson,x.Ip==null?null:x.Ip.ToString(),x.TraceId,x.CreatedAt)).ToArrayAsync(ct),await query.CountAsync(ct),page,pageSize);
     }
 }

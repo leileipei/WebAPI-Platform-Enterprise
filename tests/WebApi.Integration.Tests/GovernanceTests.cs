@@ -64,4 +64,9 @@ public sealed class GovernanceTests
         using var environment=await api.WriteAsync(HttpMethod.Put,$"/api/v1/environments/{api.Environment.Id}",new {code="TEST",name="新测试",status="Active",isProduction=false,sortOrder=0,releasePolicyId=(Guid?)null},"\"1\"");Assert.Equal(HttpStatusCode.OK,environment.StatusCode);
         using var organization=await api.WriteAsync(HttpMethod.Put,$"/api/v1/organizations/{api.Organization.Id}",new {code="ORG",name="越权",status="Active"},"\"1\"");Assert.Equal(HttpStatusCode.Forbidden,organization.StatusCode);
     }
+    [Fact] public async Task AuditEndpointSerializesAddressAsSafeString()
+    {
+        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedScopeAsync(platformAdmin:true);using var login=await api.LoginAsync();
+        using var response=await api.Client.GetAsync("/api/v1/audit-logs");Assert.Equal(HttpStatusCode.OK,response.StatusCode);var json=await response.Content.ReadAsStringAsync();Assert.Contains("127.0.0.1",json);Assert.DoesNotContain(api.Password,json);Assert.DoesNotContain("scopeId",json,StringComparison.OrdinalIgnoreCase);
+    }
 }

@@ -75,6 +75,13 @@ public sealed class ApiFixture : IAsyncDisposable
         foreach(var code in codes) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code};db.Add(p);db.Add(new RolePermission {RoleId=roleId,PermissionId=p.Id});}await db.SaveChangesAsync();
     }
     public object RouteBody(string path,string method="GET",Guid? cluster=null,Guid? id=null)=>new {id,apiVersionId=Version.Id,routeName="Orders",path,methods=new[]{method},clusterId=cluster??Cluster.Id,priority=100,enabled=true,timeoutMs=30000};
+    public ApplicationRecord Application { get; } = new() {Code="CONSUMER",Name="消费方",Owner="测试所有者"};
+    public async Task SeedConsumerAsync()
+    {
+        await SeedCatalogAsync();await using var db=Context();Application.OrganizationId=Organization.Id;Application.ProjectId=Project.Id;db.Add(Application);
+        var roleId=await db.Set<UserRole>().Where(x=>x.UserId==User.Id).Select(x=>x.RoleId).SingleAsync();string[] codes=["app.read","app.write","credential.manage","app.permission.manage"];
+        foreach(var code in codes) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code};db.Add(p);db.Add(new RolePermission {RoleId=roleId,PermissionId=p.Id});}await db.SaveChangesAsync();
+    }
     public async ValueTask DisposeAsync()
     {
         Client?.Dispose(); if(app is not null) {await app.StopAsync(); await app.DisposeAsync();} await Database.DisposeAsync();

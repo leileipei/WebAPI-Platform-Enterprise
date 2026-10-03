@@ -1,0 +1,11 @@
+# OpenAPI导入与消费方
+
+服务解析OpenAPI3.x JSON，不抓取URL、不接受YAML。按所选Operation分别映射API Version；新建API、已有API的新版本或已有DraftVersion三种目标互斥。已有版本必须带revision；覆盖已有工作区Route须显式routeId及revision。提交在同一事务重新检查权限、原文、目标、Cluster和路由冲突，任意失败全部回滚，预览不是授权票据。
+
+支持Path Item、参数、Body、Response及Schema本地JSON Pointer引用，循环/外部引用明确422。Path/query/header/cookie参数与Schema持久化；Header名称忽略大小写，query名称区分大小写，Operation参数覆盖同名公共参数。Request Body及多响应/媒体类型分别保存；组件Schema解析后保存。原文精确保留在openapi_source，结构化当前Operation存于openapi_document。高级序列化、多个examples、security声明等保留原文并给出能力边界警告，callbacks及有语义合并字段的$ref相邻属性拒绝；不宣称完整OpenAPI或JSON Schema引擎。
+
+应用、凭证及授权均按实际组织/项目/环境校验；跨组织或项目授权拒绝。应用配置及凭证变化只更新工作区，发布后进入Runtime；DTO标WorkingConfiguration，并列出节点实际共同运行版本。角色和Scope仍服务端生效。
+
+凭证Secret为32个密码学随机字节的Base64Url，AccessKey独立随机生成。仅创建响应给出Secret及完整X-API-Key值；数据库只保存SHA-256与末4字符，详情/审计不含Secret或hash。校验使用固定时间比较。创建响应no-store，不提供再次读取Secret。有效期结束必须晚于开始；已撤销凭证不能再次激活。每次实际网关请求的到期校验属于网关阶段。
+
+导入持久化幂等在任务6统一执行器接入后追加回归；本阶段不声称重试幂等已交付。企业SSO、完整轮换体验与即时紧急撤销属于后续范围。

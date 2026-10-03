@@ -15,3 +15,5 @@ public sealed record SaveScopesRequest(IReadOnlyList<ScopeGrantDto> Scopes);
 public sealed record SaveRoleRequest(string Code,string Name,Guid? OrganizationId=null);
 public sealed record RoleDto(Guid Id,string Code,string Name,Guid? OrganizationId,bool IsSystem,long Revision,IReadOnlyList<string> Permissions);
 public sealed record AssignPermissionsRequest(IReadOnlyList<string> Permissions);
+
+public sealed record AuditDto(long Id,Guid? OrganizationId,Guid? ProjectId,Guid? EnvironmentId,Guid? UserId,string Action,string ResourceType,string ResourceId,string? BeforeJson,string? AfterJson,string? Ip,string? TraceId,DateTimeOffset CreatedAt);

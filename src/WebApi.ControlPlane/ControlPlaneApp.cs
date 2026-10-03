@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.ControlPlane.Security;
 using WebApi.ControlPlane.Governance;
 using WebApi.ControlPlane.Catalog;
+using WebApi.ControlPlane.Applications;
+using WebApi.Infrastructure.Applications;
 using WebApi.ControlPlane.Routing;
 using WebApi.Infrastructure.Catalog;
 using WebApi.Infrastructure.Routing;
@@ -24,6 +26,7 @@ public static class ControlPlaneApp
         builder.Services.AddDbContext<WebApiDbContext>(options=>options.UseNpgsql(connection));
         builder.Services.AddScoped<IPasswordHasher<UserRecord>,PasswordHasher<UserRecord>>();
         builder.Services.AddHttpContextAccessor();builder.Services.AddScoped(sp=>new AuditRequestMetadata(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Connection.RemoteIpAddress));
+        builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<OpenApiImportService>();
         builder.Services.AddScoped<CatalogService>();builder.Services.AddScoped<RouteService>();builder.Services.AddScoped<ClusterService>();
         var origins=builder.Configuration.GetSection("Upstream:AllowedOrigins").Get<string[]>()??["http://test-backend:8080"];
         builder.Services.AddSingleton(new UpstreamAddressPolicy(origins));
@@ -59,6 +62,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();return app;
+        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapApplications();app.MapOpenApiImport();return app;
     }
 }
