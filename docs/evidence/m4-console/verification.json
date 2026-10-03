@@ -1,0 +1,37 @@
+{
+  "scope": "current confirmed evidence",
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "checks": {
+    "loginWrongPassword": "observed 用户名或密码错误",
+    "adminLogin": "passed",
+    "emptyGovernanceShell": "passed",
+    "pageOverflow": "none at 1440px",
+    "consoleErrorsAtShell": "none",
+    "transportTests": 2,
+    "governanceApiTests": 15,
+    "catalogApiPreconditions": 21,
+    "draftPreviewApi": 1,
+    "releaseAckRollbackAuditApi": 32,
+    "integrationSuite": 90,
+    "conflict412": "real 412 retained input; read latest revision3; explicit adopt; saved revision4",
+    "createApiNavigation": "RED persisted but blocked by dirty guard; GREEN saved and navigated after fix",
+    "apiPersistence": "logout/login reads BROWSER_FIXED",
+    "invalidImport": "422 retained original JSON",
+    "sealedVersionEdit": "disabled via browser isEnabled=false",
+    "unpublishedRoute": "working /orders-draft revision2; both live /orders still A seq1",
+    "credentialOneTime": "RED refresh unmounted popup; GREEN popup count1, closed count0, reload count0; no secret values read",
+    "twoIndependentApprovals": "e2e-approver and e2e-security distinct Cookie sessions; applicant disabled + direct403",
+    "realPublish": "config1 seq1 both actual ACK, Succeeded",
+    "rollback": "independent RBK Draft linked original; submit produced two Pending steps",
+    "partialAck": "Publishing config3 seq3 1/2 then Failed ack_timeout preserves 1/2",
+    "browserErrorsAtFinalVersionDetail": []
+  },
+  "pending": [],
+  "approval": {
+    "persistentLocalTestAccounts": "auto-review rejected twice; direct human approval requested asynchronously",
+    "temporaryE2e": "auto-review approved separate disposable random project, synthetic identities, automatic volume/secret cleanup"
+  }
+}

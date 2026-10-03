@@ -1,0 +1,362 @@
+[
+  {
+    "id": 1,
+    "number": 1,
+    "name": "登录页",
+    "sourceRoute": "/login",
+    "route": "/",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 2,
+    "number": 2,
+    "name": "企业工作台",
+    "sourceRoute": "/dashboard",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 3,
+    "number": 3,
+    "name": "组织管理",
+    "sourceRoute": "/governance/organizations",
+    "route": "/organizations",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 4,
+    "number": 4,
+    "name": "项目管理",
+    "sourceRoute": "/governance/projects",
+    "route": "/projects",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 5,
+    "number": 5,
+    "name": "环境管理",
+    "sourceRoute": "/projects/{projectId}/environments",
+    "route": "/environments",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 6,
+    "number": 6,
+    "name": "API 目录",
+    "sourceRoute": "/apis",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 7,
+    "number": 7,
+    "name": "新建/编辑 API 向导",
+    "sourceRoute": "/apis/new",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 8,
+    "number": 8,
+    "name": "OpenAPI 导入",
+    "sourceRoute": "/apis/import",
+    "route": "/imports",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 9,
+    "number": 9,
+    "name": "API 详情总览",
+    "sourceRoute": "/apis/{id}",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 10,
+    "number": 10,
+    "name": "API 版本管理",
+    "sourceRoute": "/apis/{id}/versions",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 11,
+    "number": 11,
+    "name": "版本差异/Breaking Change",
+    "sourceRoute": "/apis/{id}/versions/compare",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 12,
+    "number": 12,
+    "name": "Route 管理",
+    "sourceRoute": "/apis/{id}/routes",
+    "route": "/routes",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 13,
+    "number": 13,
+    "name": "Schema 与参数",
+    "sourceRoute": "/apis/{id}/schema",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 14,
+    "number": 14,
+    "name": "Upstream Cluster 列表",
+    "sourceRoute": "/traffic/clusters",
+    "route": "/clusters",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 15,
+    "number": 15,
+    "name": "Cluster 详情与 Destination",
+    "sourceRoute": "/traffic/clusters/{id}",
+    "route": "/clusters",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 16,
+    "number": 16,
+    "name": "策略中心",
+    "sourceRoute": "/policies",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 17,
+    "number": 17,
+    "name": "策略编辑器",
+    "sourceRoute": "/policies/{id}",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 18,
+    "number": 18,
+    "name": "应用列表",
+    "sourceRoute": "/applications",
+    "route": "/applications",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 19,
+    "number": 19,
+    "name": "应用详情",
+    "sourceRoute": "/applications/{id}",
+    "route": "/applications",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 20,
+    "number": 20,
+    "name": "凭证管理",
+    "sourceRoute": "/applications/{id}/credentials",
+    "route": "/applications",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 21,
+    "number": 21,
+    "name": "API 授权矩阵",
+    "sourceRoute": "/applications/{id}/permissions",
+    "route": "/applications",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 22,
+    "number": 22,
+    "name": "发布中心",
+    "sourceRoute": "/releases",
+    "route": "/releases",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 23,
+    "number": 23,
+    "name": "发布详情与审批",
+    "sourceRoute": "/releases/{id}",
+    "route": "/releases",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 24,
+    "number": 24,
+    "name": "审批中心",
+    "sourceRoute": "/approvals",
+    "route": "/approvals",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 25,
+    "number": 25,
+    "name": "Config Snapshot",
+    "sourceRoute": "/gateway/configs",
+    "route": "/snapshots",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 26,
+    "number": 26,
+    "name": "Gateway 节点",
+    "sourceRoute": "/gateway/nodes",
+    "route": "/nodes",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 27,
+    "number": 27,
+    "name": "Gateway 节点详情",
+    "sourceRoute": "/gateway/nodes/{id}",
+    "route": "/nodes",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 28,
+    "number": 28,
+    "name": "监控总览",
+    "sourceRoute": "/observability/metrics",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 29,
+    "number": 29,
+    "name": "API 监控详情",
+    "sourceRoute": "/observability/apis/{apiId}",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 30,
+    "number": 30,
+    "name": "访问日志",
+    "sourceRoute": "/observability/logs",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 31,
+    "number": 31,
+    "name": "Trace 查询",
+    "sourceRoute": "/observability/traces",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 32,
+    "number": 32,
+    "name": "告警中心",
+    "sourceRoute": "/observability/alerts",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 33,
+    "number": 33,
+    "name": "告警规则",
+    "sourceRoute": "/observability/alert-rules",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 34,
+    "number": 34,
+    "name": "用户管理",
+    "sourceRoute": "/governance/users",
+    "route": "/users",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 35,
+    "number": 35,
+    "name": "角色管理",
+    "sourceRoute": "/governance/roles",
+    "route": "/roles",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 36,
+    "number": 36,
+    "name": "权限矩阵",
+    "sourceRoute": "/governance/roles/{id}/permissions",
+    "route": "/roles",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 37,
+    "number": 37,
+    "name": "数据范围",
+    "sourceRoute": "/governance/users/{id}/scopes",
+    "route": "/scopes",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 38,
+    "number": 38,
+    "name": "审计日志",
+    "sourceRoute": "/governance/audit",
+    "route": "/audit",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 39,
+    "number": 39,
+    "name": "SSO / OIDC 配置",
+    "sourceRoute": "/settings/sso",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  },
+  {
+    "id": 40,
+    "number": 40,
+    "name": "系统设置",
+    "sourceRoute": "/settings/system",
+    "route": null,
+    "status": "后续能力",
+    "note": "当前无真实服务能力，不提供模拟业务操作"
+  }
+]

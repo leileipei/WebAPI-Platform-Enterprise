@@ -1,0 +1,1 @@
+import {apiRequest} from './client';export const gateway={snapshot:(env:string,v:number)=>apiRequest<any>(`/environments/${env}/snapshots/${v}`),node:(id:string)=>apiRequest<any>(`/gateway-nodes/${id}`)};

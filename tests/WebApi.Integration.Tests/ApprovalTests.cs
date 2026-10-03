@@ -6,6 +6,13 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class ApprovalTests
 {
+    [Fact] public async Task DraftPreviewSupportsReviewWithoutFreezingOrLeakingCredentials()
+    {
+        await using var s=new DeploymentScenario();await s.InitializeAsync();
+        using var draft=await ApiFixture.CommandAsync(s.Api.Client,$"/api/v1/environments/{s.Api.Environment.Id}/releases",new {baseConfigVersion=0,versionIds=new[]{s.Api.Version.Id},resourceRevisions=new[]{new{type="version",id=s.Api.Version.Id,revision=1}}});draft.EnsureSuccessStatusCode();var id=(await System.Net.Http.Json.HttpContentJsonExtensions.ReadFromJsonAsync<System.Text.Json.JsonElement>(draft.Content)).GetProperty("id").GetGuid();
+        using var preview=await s.Api.Client.GetAsync($"/api/v1/releases/{id}/preview");Assert.Equal(HttpStatusCode.OK,preview.StatusCode);var json=await preview.Content.ReadAsStringAsync();Assert.Contains("/orders",json);Assert.Contains("credentials",json);Assert.DoesNotContain("secretHash",json,StringComparison.OrdinalIgnoreCase);
+        await using var db=s.Api.Context();var release=await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id);Assert.Equal("Draft",release.Status);Assert.Null(release.ApprovalPolicy);Assert.False(await db.Set<ApprovalTask>().AnyAsync());
+    }
     [Fact] public async Task ApplicantCannotApprove()
     {
         await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedReleaseAsync();using var login=await api.LoginAsync();var id=await api.CreateSubmittedReleaseAsync();

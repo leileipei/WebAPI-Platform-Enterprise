@@ -7,6 +7,20 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class GovernanceTests
 {
+    [Fact] public async Task AuditFiltersByExactTraceAndResourceWithinAuthorizedQuery()
+    {
+        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedScopeAsync(platformAdmin:true);using var login=await api.LoginAsync();
+        await using(var db=api.Context()){db.AddRange(new AuditLog{UserId=api.User.Id,Action="test.one",ResourceType="api",ResourceId="resource-one",TraceId="trace-one"},new AuditLog{UserId=api.User.Id,Action="test.two",ResourceType="api",ResourceId="resource-two",TraceId="trace-two"});await db.SaveChangesAsync();}
+        using var response=await api.Client.GetAsync("/api/v1/audit-logs?traceId=trace-one&resourceId=resource-one");response.EnsureSuccessStatusCode();using var body=System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());Assert.Equal(1,body.RootElement.GetProperty("total").GetInt32());Assert.Equal("test.one",body.RootElement.GetProperty("items")[0].GetProperty("action").GetString());
+        using var mismatch=await api.Client.GetAsync("/api/v1/audit-logs?traceId=trace-two&resourceId=resource-one");using var empty=System.Text.Json.JsonDocument.Parse(await mismatch.Content.ReadAsStringAsync());Assert.Equal(0,empty.RootElement.GetProperty("total").GetInt32());
+    }
+    [Fact] public async Task EmailUsernameCanBeCreatedAndAuthenticated()
+    {
+        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedScopeAsync(platformAdmin:true);using var login=await api.LoginAsync();
+        using var created=await api.WriteAsync(HttpMethod.Post,"/api/v1/users",new {username="reviewer@example.test",displayName="审阅人",password="ExplicitTestPassword-1234",email="reviewer@example.test"});Assert.Equal(HttpStatusCode.OK,created.StatusCode);
+        using var logout=await api.WriteAsync(HttpMethod.Post,"/api/v1/auth/logout");
+        using var actual=await api.WriteAsync(HttpMethod.Post,"/api/v1/auth/login",new {username="reviewer@example.test",password="ExplicitTestPassword-1234"});Assert.Equal(HttpStatusCode.OK,actual.StatusCode);
+    }
     [Fact] public async Task CrossOrganizationReadIsHidden()
     {
         await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedScopeAsync();using var login=await api.LoginAsync();
