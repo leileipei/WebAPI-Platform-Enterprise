@@ -1,5 +1,5 @@
 {
-  "architecture": "Linux ARM64",
+  "architecture": "Linux aarch64",
   "checks": [
     {
       "name": "NotificationLossRecoveredByPoll",

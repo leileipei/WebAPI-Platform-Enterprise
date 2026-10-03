@@ -1,6 +1,6 @@
 {
   "complete": true,
-  "architecture": "Linux ARM64",
+  "architecture": "Linux Arm64",
   "checks": [
     {
       "name": "RealApprovedReleaseChangesBothGatewayResponses",

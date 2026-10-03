@@ -14,6 +14,8 @@
 
 `complete:true` 只表示该证据文件所列检查通过。源码构建、数据库迁移、单元/集成、浏览器及真实容器分层记录，彼此不替代。最终汇总见 evidence/core-loop/verification.json；若文件缺失或 complete=false，该项尚未完成。
 
+当前全分支审查发现的3项Important已完成代码修正；9项前端自动化与完整后端回归通过。真实浏览器复验尚有待办（旧测试页确认框阻塞），见 evidence/core-loop/final-review.md；最终汇总仍为 complete=false。
+
 ## 交付与未验收范围
 
 交付包含源码、32张核心源表与补充发布/身份/幂等表、EF迁移、集中版本和锁文件、固定镜像摘要、Compose、管理前端、协议与运维说明及脱敏证据。打包排除任何密码/API Key/Secret、数据库卷、.runtime、.secrets 与依赖缓存。

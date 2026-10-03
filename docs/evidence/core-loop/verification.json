@@ -1,8 +1,8 @@
 {
   "complete": false,
   "testsComplete": true,
-  "finalCodeReview": "pending",
-  "checkedAt": "2026-10-03T23:11:51.485395+00:00",
+  "finalCodeReview": "3 Important fixes implemented; final browser recheck pending",
+  "checkedAt": "2026-10-03T23:49:39.513052+00:00",
   "architecture": {
     "verified": "Linux ARM64 Docker on macOS host",
     "amd64": "not verified"
@@ -24,7 +24,7 @@
       "skipped": 0
     },
     "consoleTransport": {
-      "passed": 2,
+      "passed": 3,
       "failed": 0
     },
     "consoleBuild": "TypeScript + Vite passed",
@@ -34,7 +34,16 @@
     },
     "containerCoreScenario": "1 test with 3 real cross-service scenarios passed",
     "containerFaults": 7,
-    "browser": "docs/evidence/m4-console/verification.json"
+    "browser": "docs/evidence/m4-console/verification.json",
+    "consolePaging": {
+      "passed": 3,
+      "failed": 0
+    },
+    "consoleNavigation": {
+      "passed": 3,
+      "failed": 0,
+      "scope": "event/history adapter; not a browser substitute"
+    }
   },
   "notVerified": [
     "AMD64 build/run",
@@ -51,5 +60,7 @@
     "bin",
     "obj",
     ".git"
-  ]
+  ],
+  "decisions": "docs/decisions.md",
+  "reviewRecord": "docs/evidence/core-loop/final-review.md"
 }

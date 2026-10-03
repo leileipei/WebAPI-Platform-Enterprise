@@ -33,5 +33,23 @@
   "approval": {
     "persistentLocalTestAccounts": "auto-review rejected twice; direct human approval requested asynchronously",
     "temporaryE2e": "auto-review approved separate disposable random project, synthetic identities, automatic volume/secret cleanup"
+  },
+  "capture": {
+    "format": "JPEG",
+    "note": "Viewport is verified DOM 1440x1024; browser screenshots may be resized by capture provider."
+  },
+  "reviewFixes": {
+    "frontendTests": 9,
+    "pagingApiOptions": 52,
+    "pagingClustersSecondPage": "observed 分页集群 050",
+    "historyUnsavedInput": "observed retained editor and typed input after Back",
+    "pending": [
+      "automatic hidden-resource 404 detail clearing",
+      "Snapshot view authority clearing",
+      "Scope second-page and user 412 latest revision",
+      "import navigation and inline discard"
+    ],
+    "blocker": "old browser confirmation in temporary tab; cancellation requested",
+    "navigationAdapterTests": 3
   }
 }

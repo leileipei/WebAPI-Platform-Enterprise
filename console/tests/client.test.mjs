@@ -10,3 +10,15 @@ test('412 exposes conflict and trace without automatic destructive retry',async(
  let count=0;globalThis.fetch=async()=>{count++;return new Response(JSON.stringify({status:412,detail:'changed',traceId:'trace-public'}),{status:412});};
  await assert.rejects(apiRequest('/organizations/id',{method:'PUT',body:{name:'retain-me'}}),e=>e instanceof ApiError&&e.status===412&&e.traceId==='trace-public');assert.equal(count,1);
 });
+
+test('resource 403 and hidden-resource 404 trigger authority refresh; 412 retains editing authority',async()=>{
+ const observed=[],previous=globalThis.dispatchEvent;
+ globalThis.dispatchEvent=event=>{observed.push(event.type);return true;};
+ try {
+  for(const status of [403,404,412]){
+   globalThis.fetch=async()=>new Response(JSON.stringify({detail:'resource denied'}),{status});
+   await assert.rejects(apiRequest('/environments/id/snapshots/1'),error=>error instanceof ApiError&&error.status===status);
+  }
+  assert.deepEqual(observed,['permission-refresh','permission-refresh']);
+ } finally {globalThis.dispatchEvent=previous;}
+});
