@@ -114,4 +114,5 @@ public sealed class ApiFixture : IAsyncDisposable
     {
         foreach(var client in extraClients) client.Dispose();Client?.Dispose(); if(app is not null) {await app.StopAsync(); await app.DisposeAsync();} await Database.DisposeAsync();
     }
+    public Task StopServerAsync() => app!.StopAsync();
 }

@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App"/><ProjectReference Include="../../src/WebApi.ControlPlane/WebApi.ControlPlane.csproj"/></ItemGroup></Project>

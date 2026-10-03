@@ -203,6 +203,13 @@
           "WebApi.Contracts": "[1.0.0, )"
         }
       },
+      "webapi.gateway": {
+        "type": "Project",
+        "dependencies": {
+          "WebApi.Infrastructure": "[1.0.0, )",
+          "Yarp.ReverseProxy": "[2.3.0, )"
+        }
+      },
       "webapi.infrastructure": {
         "type": "Project",
         "dependencies": {
@@ -214,11 +221,8 @@
           "WebApi.Domain": "[1.0.0, )"
         }
       },
-      "webapi.migrator": {
-        "type": "Project",
-        "dependencies": {
-          "WebApi.Infrastructure": "[1.0.0, )"
-        }
+      "webapi.testbackend": {
+        "type": "Project"
       },
       "webapi.testsupport": {
         "type": "Project",
@@ -270,6 +274,15 @@
           "Microsoft.Extensions.Logging.Abstractions": "10.0.5",
           "RESPite": "3.3.1",
           "System.IO.Hashing": "10.0.12"
+        }
+      },
+      "Yarp.ReverseProxy": {
+        "type": "CentralTransitive",
+        "requested": "[2.3.0, )",
+        "resolved": "2.3.0",
+        "contentHash": "gxtkN3a+9biu9V9Zd5NaTO6VZWXAnS2mhQ0R/VXmSPoTuiQNZsakKikrKpDtKxrL5nUYzbRsHtl40WNq+ZBKKg==",
+        "dependencies": {
+          "System.IO.Hashing": "8.0.0"
         }
       }
     }
