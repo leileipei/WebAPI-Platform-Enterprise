@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using WebApi.Contracts.Common;
 using WebApi.Infrastructure.Commands;
 using WebApi.Infrastructure.Governance;
+using WebApi.Infrastructure.Gateway;
 using WebApi.Infrastructure.Messaging;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Releases;
@@ -18,4 +19,4 @@ builder.Services.AddScoped<AuthorizationService>();builder.Services.AddScoped<Sc
 builder.Services.AddSingleton(new PublishSettings(AckTimeoutSeconds:int.Parse(builder.Configuration["Publish:AckTimeoutSeconds"]??"120")));
 builder.Services.AddSingleton(new UpstreamAddressPolicy(builder.Configuration.GetSection("Upstream:AllowedOrigins").Get<string[]>()??["http://test-backend:8080"]));
 builder.Services.AddSingleton(new RedisSnapshotStore(builder.Configuration["Redis:Connection"]??"redis:6379,abortConnect=false",builder.Configuration["Redis:Prefix"]??"webapi:runtime"));
-builder.Services.AddHostedService<ReleaseBuildWorker>();builder.Services.AddHostedService<OutboxWorker>();await builder.Build().RunAsync();
+builder.Services.AddScoped<ReleaseTimeoutService>();builder.Services.AddHostedService<ReleaseTimeoutWorker>();builder.Services.AddHostedService<ReleaseBuildWorker>();builder.Services.AddHostedService<OutboxWorker>();await builder.Build().RunAsync();

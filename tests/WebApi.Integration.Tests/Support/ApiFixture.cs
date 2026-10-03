@@ -22,7 +22,7 @@ public sealed class ApiFixture : IAsyncDisposable
     public HttpClient Client { get; private set; } = null!;
     public WebApiDbContext Context() => Database.Context();
     public IServiceScope Services() => app!.Services.CreateScope();
-    public async Task InitializeAsync()
+    public async Task InitializeAsync(Action<WebApplicationBuilder>? configure=null)
     {
         await Database.InitializeAsync();
         await using(var db=Context()) { await db.Database.MigrateAsync(); User.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(User,Password); db.Add(User); await db.SaveChangesAsync(); }
@@ -30,6 +30,7 @@ public sealed class ApiFixture : IAsyncDisposable
             builder.WebHost.UseUrls("http://127.0.0.1:0");
             builder.Configuration["ConnectionStrings:WebApi"]=Database.ConnectionString;
             builder.Logging.ClearProviders();
+            configure?.Invoke(builder);
         });
         await app.StartAsync();
         var url=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();

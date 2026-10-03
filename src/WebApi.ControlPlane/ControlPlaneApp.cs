@@ -13,6 +13,8 @@ using WebApi.Infrastructure.Releases;
 using WebApi.ControlPlane.Releases;
 using WebApi.Contracts.Common;
 using WebApi.ControlPlane.Routing;
+using WebApi.ControlPlane.Gateway;
+using WebApi.Infrastructure.Gateway;
 using WebApi.Infrastructure.Catalog;
 using WebApi.Infrastructure.Routing;
 using WebApi.Infrastructure.Governance;
@@ -33,6 +35,7 @@ public static class ControlPlaneApp
         builder.Services.AddScoped(sp=>new CommandRequestContext(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Request.Headers["Idempotency-Key"].ToString()??""));builder.Services.AddScoped(sp=>new AuditRequestMetadata(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Connection.RemoteIpAddress));
         builder.Services.AddScoped<ApprovalFlowService>();builder.Services.AddScoped<ReleaseService>();builder.Services.AddScoped<ReleaseCandidateBuilder>();
         builder.Services.AddScoped<PublishCoordinator>();builder.Services.AddScoped<SnapshotCompiler>();builder.Services.AddSingleton(new PublishSettings());
+        builder.Services.AddSingleton(NodeEnrollmentSettings.Read(builder.Configuration));builder.Services.AddScoped<NodeIdentityService>();builder.Services.AddScoped<NodeRegistry>();builder.Services.AddScoped<AckService>();builder.Services.AddScoped<ReleaseTimeoutService>();
         builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<OpenApiImportService>();
         builder.Services.AddScoped<CatalogService>();builder.Services.AddScoped<RouteService>();builder.Services.AddScoped<ClusterService>();
         var origins=builder.Configuration.GetSection("Upstream:AllowedOrigins").Get<string[]>()??["http://test-backend:8080"];
@@ -69,6 +72,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapApplications();app.MapOpenApiImport();app.MapReleases();return app;
+        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();return app;
     }
 }
