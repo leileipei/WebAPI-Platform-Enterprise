@@ -1,0 +1,18 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WebApi.Infrastructure.Persistence.Entities;
+namespace WebApi.Infrastructure.Persistence.Configurations;
+public sealed class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
+{
+    public void Configure(EntityTypeBuilder<Organization> b)
+    {
+        b.ToTable("organizations"); b.HasKey(x => x.Id);
+        b.Property(x => x.Id).HasColumnName("id").HasColumnType("uuid").IsRequired().HasDefaultValueSql("gen_random_uuid()");
+        b.Property(x => x.Code).HasColumnName("code").HasColumnType("varchar(64)").IsRequired();
+        b.Property(x => x.Name).HasColumnName("name").HasColumnType("varchar(128)").IsRequired();
+        b.Property(x => x.Status).HasColumnName("status").HasColumnType("varchar(24)").IsRequired();
+        b.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamptz").IsRequired();
+        b.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamptz").IsRequired();
+        b.Property(x => x.Revision).HasColumnName("revision").HasColumnType("bigint").IsRequired().IsConcurrencyToken().HasDefaultValue(1L);
+    }
+}

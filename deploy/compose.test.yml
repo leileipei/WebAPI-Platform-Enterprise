@@ -1,0 +1,36 @@
+name: webapi-enterprise-core-test
+services:
+  postgres:
+    image: postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      POSTGRES_USER: webapi
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      POSTGRES_DB: webapi
+    secrets: [postgres-password]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U webapi -d webapi']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    volumes: [pg-test:/var/lib/postgresql/data]
+  redis:
+    image: redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+    healthcheck:
+      test: ['CMD','redis-cli','ping']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  sdk:
+    image: mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317
+    working_dir: /workspace
+    volumes: ['..:/workspace', 'nuget-test:/root/.nuget/packages']
+    secrets: [postgres-password]
+    environment:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      WEBAPI_TEST_DB_HOST: postgres
+secrets:
+  postgres-password:
+    file: ../.secrets/postgres-password
+volumes:
+  pg-test:
+  nuget-test:
