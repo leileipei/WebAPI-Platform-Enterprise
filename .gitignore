@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+.superpowers/
+.runtime/
+.secrets/
+node_modules/
+**/*.user
+**/*.trx
+**/TestResults/
