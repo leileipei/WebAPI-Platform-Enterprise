@@ -61,7 +61,7 @@ public sealed class ApiFixture : IAsyncDisposable
     public async Task<HttpResponseMessage> WriteAsync(HttpMethod method,string path,object? body=null,string? etag=null)
     {
         var token=await CsrfAsync();using var request=new HttpRequestMessage(method,path) {Content=body is null?null:JsonContent.Create(body)};
-        request.Headers.Add("X-CSRF-Token",token);if(etag is not null) request.Headers.Add("If-Match",etag);return await Client.SendAsync(request);
+        request.Headers.Add("X-CSRF-Token",token);request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("N"));if(etag is not null) request.Headers.Add("If-Match",etag);return await Client.SendAsync(request);
     }
     public Api Api { get; } = new() {Code="ORDERS",Name="订单",LifecycleStatus="Draft"};
     public ApiVersion Version { get; } = new() {Version="1.0.0",Status="Draft",ChangeType="compatible"};
@@ -82,8 +82,34 @@ public sealed class ApiFixture : IAsyncDisposable
         var roleId=await db.Set<UserRole>().Where(x=>x.UserId==User.Id).Select(x=>x.RoleId).SingleAsync();string[] codes=["app.read","app.write","credential.manage","app.permission.manage"];
         foreach(var code in codes) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code};db.Add(p);db.Add(new RolePermission {RoleId=roleId,PermissionId=p.Id});}await db.SaveChangesAsync();
     }
+    public ApprovalFlow ApprovalFlow {get;}=new() {Name="生产两级审批",ScopeType="environment"};
+    private readonly List<HttpClient> extraClients=[];
+    public async Task SeedReleaseAsync()
+    {
+        await SeedConsumerAsync();await using var db=Context();ApprovalFlow.OrganizationId=Organization.Id;db.Add(ApprovalFlow);
+        db.Add(new ApprovalStep {FlowId=ApprovalFlow.Id,StepOrder=1,RoleCode="ApiApprover",RequiredCount=1});db.Add(new ApprovalStep {FlowId=ApprovalFlow.Id,StepOrder=2,RoleCode="SecurityReviewer",RequiredCount=1});
+        var env=await db.Set<EnvironmentRecord>().SingleAsync();env.IsProduction=true;env.ReleasePolicyId=ApprovalFlow.Id;
+        var roleId=await db.Set<UserRole>().Where(x=>x.UserId==User.Id).Select(x=>x.RoleId).SingleAsync();string[] codes=["release.read","release.create","release.publish","release.rollback","approval.act","api.approve"];
+        foreach(var code in codes) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code};db.Add(p);db.Add(new RolePermission {RoleId=roleId,PermissionId=p.Id});}await db.SaveChangesAsync();
+    }
+    public async Task<(UserRecord User,HttpClient Client)> NewReviewerAsync(params string[] roleCodes)
+    {
+        var user=new UserRecord {Username="reviewer_"+Guid.NewGuid().ToString("N"),DisplayName="独立审核",SecurityStamp=Guid.NewGuid().ToString("N")};var password=Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));user.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(user,password);
+        await using(var db=Context()) {db.Add(user);db.Add(new UserProjectScope {UserId=user.Id,OrganizationId=Organization.Id,AccessMode="read_write"});foreach(var code in roleCodes) {var role=await db.Set<Role>().SingleOrDefaultAsync(r=>r.Code==code&&r.OrganizationId==Organization.Id);if(role is null) {role=new Role {Code=code,Name=code,OrganizationId=Organization.Id};db.Add(role);foreach(var permission in await db.Set<Permission>().Where(p=>p.Code=="approval.act"||p.Code=="api.approve"||p.Code=="release.read").ToArrayAsync()) db.Add(new RolePermission {RoleId=role.Id,PermissionId=permission.Id});}db.Add(new UserRole {UserId=user.Id,RoleId=role.Id});}await db.SaveChangesAsync();}
+        var client=new HttpClient(new HttpClientHandler {CookieContainer=new CookieContainer(),AllowAutoRedirect=false}) {BaseAddress=Client.BaseAddress};extraClients.Add(client);
+        var csrf=await client.GetFromJsonAsync<Dictionary<string,string>>("/api/v1/auth/csrf");using var req=new HttpRequestMessage(HttpMethod.Post,"/api/v1/auth/login") {Content=JsonContent.Create(new {username=user.Username,password})};req.Headers.Add("X-CSRF-Token",csrf!["token"]);using var login=await client.SendAsync(req);login.EnsureSuccessStatusCode();return (user,client);
+    }
+    public static async Task<HttpResponseMessage> CommandAsync(HttpClient client,string path,object? body=null,string? key=null)
+    {
+        var csrf=await client.GetFromJsonAsync<Dictionary<string,string>>("/api/v1/auth/csrf");using var req=new HttpRequestMessage(HttpMethod.Post,path) {Content=body is null?JsonContent.Create(new {}):JsonContent.Create(body)};req.Headers.Add("X-CSRF-Token",csrf!["token"]);req.Headers.Add("Idempotency-Key",key??Guid.NewGuid().ToString("N"));return await client.SendAsync(req);
+    }
+    public object ReleaseRequest()=>new {baseConfigVersion=0L,versionIds=new[]{Version.Id},resourceRevisions=new[]{new {type="version",id=Version.Id,revision=1L}}};
+    public async Task<Guid> CreateSubmittedReleaseAsync()
+    {
+        using var created=await CommandAsync(Client,$"/api/v1/environments/{Environment.Id}/releases",ReleaseRequest());created.EnsureSuccessStatusCode();var value=await created.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();var id=value.GetProperty("id").GetGuid();using var submitted=await CommandAsync(Client,$"/api/v1/releases/{id}/submit");submitted.EnsureSuccessStatusCode();return id;
+    }
     public async ValueTask DisposeAsync()
     {
-        Client?.Dispose(); if(app is not null) {await app.StopAsync(); await app.DisposeAsync();} await Database.DisposeAsync();
+        foreach(var client in extraClients) client.Dispose();Client?.Dispose(); if(app is not null) {await app.StopAsync(); await app.DisposeAsync();} await Database.DisposeAsync();
     }
 }

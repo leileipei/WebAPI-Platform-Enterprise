@@ -8,8 +8,9 @@ using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
+using WebApi.Infrastructure.Commands;
 namespace WebApi.Infrastructure.Catalog;
-public sealed class OpenApiImportService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands)
+public sealed class OpenApiImportService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext)
 {
     private async Task<ScopeRef> ScopeAsync(ImportPreviewRequest request,ActorContext actor,CancellationToken ct)
     {
@@ -31,6 +32,8 @@ public sealed class OpenApiImportService(WebApiDbContext db,AuthorizationService
     {
         var scope=await scopes.EnvironmentAsync(request.Input.EnvironmentId,ct);return await commands.ExecuteAsync(actor,scope,"openapi.import",async(_,token)=>{
             scope=await ScopeAsync(request.Input,actor,token);await auth.RequireAsync(actor,"route.write",new("environment",request.Input.EnvironmentId,scope),token);
+            return await idempotency.ExecuteAsync(new(actor.UserId,scope,"openapi.import",requestContext.IdempotencyKey),CanonicalJson.Serialize(request),async inner=>{
+            token=inner;
             if(request.Targets.Count is <1 or >1000||request.Targets.Select(t=>t.OperationId).Distinct().Count()!=request.Targets.Count||request.Targets.Where(t=>t.ExistingVersionId is not null).GroupBy(t=>t.ExistingVersionId).Any(g=>g.Count()>1)) throw new ApiException(422,"invalid_import_targets","每个Operation与已有目标版本只能出现一次。");
             var parser=new OpenApiOperationParser(request.Input.Source);var operations=new List<ImportedOperationDto>();var warnings=new List<string>();var routeKeys=new HashSet<string>(StringComparer.Ordinal);
             foreach(var target in request.Targets)
@@ -66,6 +69,7 @@ public sealed class OpenApiImportService(WebApiDbContext db,AuthorizationService
                 operations.Add(new(parsed.Id,api.Id,version.Id,route.Id));
             }
             return new ImportCommitResponse(Guid.NewGuid(),operations,warnings.Distinct().ToArray());
+            },token);
         },ct);
     }
 }

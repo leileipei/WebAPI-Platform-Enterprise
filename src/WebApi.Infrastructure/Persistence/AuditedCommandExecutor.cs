@@ -8,7 +8,7 @@ namespace WebApi.Infrastructure.Persistence;
 public sealed record AuditRequestMetadata(System.Net.IPAddress? Ip);
 public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetadata? metadata=null)
 {
-    private static readonly HashSet<string> fields=["Id","Code","Name","Status","DisplayName","Revision","EnvironmentId","ProjectId","OrganizationId","Version","Path","NormalizedPath","Methods","Enabled","TimeoutMs","ApplicationId","ApiId","ConfigVersion","DeploymentSequence","ReleaseNo","RoleId","UserId","PermissionId","AccessMode","ValidFrom","ExpiresAt"];
+    private static readonly HashSet<string> fields=["Id","Code","Name","Status","DisplayName","Revision","EnvironmentId","ProjectId","OrganizationId","Version","Path","NormalizedPath","Methods","Enabled","TimeoutMs","ApplicationId","ApiId","ConfigVersion","DeploymentSequence","ReleaseNo","RoleId","UserId","PermissionId","AccessMode","ValidFrom","ExpiresAt","ReleaseId","ApiVersionId","ClusterId","CreatedBy","AssigneeUserId","StepOrder","ActedAt","Priority","Weight","OwnerUserId","LifecycleStatus","ReleaseType","FromConfigVersion","ToConfigVersion","DeadlineAt","FailureCode"];
     public async Task<T> ExecuteAsync<T>(ActorContext actor,ScopeRef scope,string action,Func<WebApiDbContext,CancellationToken,Task<T>> command,CancellationToken cancellationToken=default)
     {
         var owned=db.Database.CurrentTransaction is null?await db.Database.BeginTransactionAsync(cancellationToken):null;
@@ -21,7 +21,7 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             db.ChangeTracker.DetectChanges();
             var changes=db.ChangeTracker.Entries().Where(e=>e.Entity is not AuditLog && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted).ToArray();
             var first=changes.FirstOrDefault();
-            db.Add(new AuditLog {
+            if(changes.Length>0) db.Add(new AuditLog {
                 UserId=actor.UserId,OrganizationId=scope.OrganizationId==Guid.Empty?null:scope.OrganizationId,ProjectId=scope.ProjectId,EnvironmentId=scope.EnvironmentId,
                 Action=action,ResourceType=first?.Metadata.ClrType.Name??action.Split('.')[0],
                 ResourceId=first?.Properties.FirstOrDefault(p=>p.Metadata.IsPrimaryKey())?.CurrentValue?.ToString()??"",
