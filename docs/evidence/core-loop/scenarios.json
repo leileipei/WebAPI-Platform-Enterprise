@@ -1,0 +1,27 @@
+{
+  "complete": true,
+  "architecture": "Linux ARM64",
+  "checks": [
+    {
+      "name": "RealApprovedReleaseChangesBothGatewayResponses",
+      "firstConfig": 1,
+      "firstSequence": 1,
+      "secondConfig": 2,
+      "secondSequence": 2
+    },
+    {
+      "name": "RollbackRestoresAWithHigherSequence",
+      "firstConfig": 1,
+      "firstSequence": 3,
+      "secondConfig": 0,
+      "secondSequence": 0
+    },
+    {
+      "name": "OldRequestCompletesDuringSwap",
+      "firstConfig": 3,
+      "firstSequence": 4,
+      "secondConfig": 0,
+      "secondSequence": 0
+    }
+  ]
+}

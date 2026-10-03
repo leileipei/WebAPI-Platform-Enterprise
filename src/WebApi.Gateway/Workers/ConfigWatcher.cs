@@ -14,7 +14,7 @@ public sealed class ConfigWatcher(GatewaySettings settings,SnapshotActivation ac
         {
             try
             {
-                await nodes.RegisterAsync(ct);if(!subscribed) {try {await redis.SubscribeAsync(settings.EnvironmentId,()=>{if(changed.CurrentCount==0) changed.Release();},ct);subscribed=true;}catch(Exception e) when(e is not OperationCanceledException) {log.LogWarning("Redis subscription unavailable: {ErrorType}",e.GetType().Name);}}
+                await nodes.RegisterAsync(ct);if(settings.RedisNotifications&&!subscribed) {try {await redis.SubscribeAsync(settings.EnvironmentId,()=>{if(changed.CurrentCount==0) changed.Release();},ct);subscribed=true;}catch(Exception e) when(e is not OperationCanceledException) {log.LogWarning("Redis subscription unavailable: {ErrorType}",e.GetType().Name);}}
                 DesiredConfigResponse? desired;try {desired=await nodes.DesiredAsync(ct);}catch(HttpRequestException) {desired=await redis.GetDesiredAsync(settings.EnvironmentId,ct);}catch(TaskCanceledException) when(!ct.IsCancellationRequested) {desired=await redis.GetDesiredAsync(settings.EnvironmentId,ct);}
                 if(desired is not null) await AcceptAsync(desired,ct);
             }

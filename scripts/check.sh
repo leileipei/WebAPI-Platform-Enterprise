@@ -6,7 +6,7 @@ case "$kind" in
  integration) project=tests/WebApi.Integration.Tests/WebApi.Integration.Tests.csproj ;;
  domain) project=tests/WebApi.Domain.Tests/WebApi.Domain.Tests.csproj ;;
  gateway) project=tests/WebApi.Gateway.Tests/WebApi.Gateway.Tests.csproj ;;
- e2e) project=tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj ;;
+ e2e) exec ./scripts/e2e.sh "$@" ;;
  *) echo 'Unknown check kind' >&2; exit 2 ;;
 esac
 [ -f "$project" ] || { echo "Missing test project: $project" >&2; exit 2; }

@@ -1,0 +1,40 @@
+{
+  "architecture": "Linux ARM64",
+  "checks": [
+    {
+      "name": "NotificationLossRecoveredByPoll",
+      "result": "passed",
+      "sequence": 5
+    },
+    {
+      "name": "LostAckRetriedExactlyOncePerNodeFact",
+      "result": "passed",
+      "sequence": 6
+    },
+    {
+      "name": "ReadOnlyLkgKeepsOldTrafficAndIndependentRetryRecovers",
+      "result": "passed",
+      "failedSequence": 7,
+      "recoverySequence": 8
+    },
+    {
+      "name": "RealPublishedKeyExpiryAndCrossApiDenial",
+      "result": "passed"
+    },
+    {
+      "name": "BadHashAndForeignEnvironmentKeepOldRuntime",
+      "result": "passed"
+    },
+    {
+      "name": "ActualGatewayProcessRestartWhileControlPlaneAndRedisDownRestoresLkg",
+      "result": "passed",
+      "sequence": 9
+    },
+    {
+      "name": "ConcurrentPublishRollbackOnlyOneWinsDesired",
+      "result": "passed",
+      "sequence": 10
+    }
+  ],
+  "complete": true
+}

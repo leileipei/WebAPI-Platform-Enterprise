@@ -1,0 +1,55 @@
+{
+  "complete": false,
+  "testsComplete": true,
+  "finalCodeReview": "pending",
+  "checkedAt": "2026-10-03T23:11:51.485395+00:00",
+  "architecture": {
+    "verified": "Linux ARM64 Docker on macOS host",
+    "amd64": "not verified"
+  },
+  "checks": {
+    "domain": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0
+    },
+    "integration": {
+      "passed": 90,
+      "failed": 0,
+      "skipped": 0
+    },
+    "gateway": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "consoleTransport": {
+      "passed": 2,
+      "failed": 0
+    },
+    "consoleBuild": "TypeScript + Vite passed",
+    "lockedReleaseBuild": {
+      "warnings": 0,
+      "errors": 0
+    },
+    "containerCoreScenario": "1 test with 3 real cross-service scenarios passed",
+    "containerFaults": 7,
+    "browser": "docs/evidence/m4-console/verification.json"
+  },
+  "notVerified": [
+    "AMD64 build/run",
+    "enterprise TLS/network",
+    "production backup restore",
+    "production load/SLA",
+    "SSO and deferred modules"
+  ],
+  "deliveryExcludes": [
+    ".secrets",
+    ".runtime",
+    "database volumes",
+    "node_modules",
+    "bin",
+    "obj",
+    ".git"
+  ]
+}

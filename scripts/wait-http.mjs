@@ -1,0 +1,1 @@
+const url=process.argv[2],until=Date.now()+30000;let ready=false;while(Date.now()<until){try{const r=await fetch(url);if(r.ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,250));}if(!ready)throw new Error('Service did not become reachable: '+url);

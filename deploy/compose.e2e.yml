@@ -1,0 +1,107 @@
+name: ${WEBAPI_E2E_PROJECT:?explicit disposable project required}
+x-app: &app
+  image: mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317
+  working_dir: /workspace
+  volumes: ['..:/workspace', 'nuget:/root/.nuget/packages']
+  environment: &base-env
+    DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    ASPNETCORE_ENVIRONMENT: Development
+    ASPNETCORE_URLS: http://0.0.0.0:8080
+    WEBAPI_DB_HOST: postgres
+    WEBAPI_DB_PASSWORD_FILE: /run/secrets/postgres-password
+  secrets: [postgres-password]
+services:
+  postgres:
+    image: postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment: { POSTGRES_USER: webapi, POSTGRES_DB: webapi, POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password }
+    secrets: [postgres-password]
+    volumes: [pg:/var/lib/postgresql/data]
+    healthcheck: {test: ['CMD-SHELL','pg_isready -U webapi -d webapi'], interval: 2s, timeout: 3s, retries: 30}
+  redis:
+    image: redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+    healthcheck: {test: ['CMD','redis-cli','ping'], interval: 2s, timeout: 3s, retries: 30}
+  sdk:
+    <<: *app
+    environment:
+      <<: *base-env
+      WEBAPI_BOOTSTRAP_USERNAME: e2e-admin
+      WEBAPI_BOOTSTRAP_PASSWORD_FILE: /workspace/${WEBAPI_E2E_RELATIVE_DIR:?required}/password
+      WEBAPI_E2E_CONTEXT_FILE: /workspace/${WEBAPI_E2E_RELATIVE_DIR:?required}/context.json
+  control-plane:
+    <<: *app
+    command: ['dotnet','src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll']
+    environment:
+      <<: *base-env
+      Nodes__Enrollments__0__EnvironmentId: ${WEBAPI_ENVIRONMENT_ID:?required}
+      Nodes__Enrollments__0__NodeName: gateway-a
+      Nodes__Enrollments__0__SecretFile: /run/secrets/node-a
+      Nodes__Enrollments__1__EnvironmentId: ${WEBAPI_ENVIRONMENT_ID:?required}
+      Nodes__Enrollments__1__NodeName: gateway-b
+      Nodes__Enrollments__1__SecretFile: /run/secrets/node-b
+      Upstream__AllowedOrigins__0: http://backend-a:8080
+      Upstream__AllowedOrigins__1: http://backend-b:8080
+    secrets: [postgres-password,node-a,node-b]
+    ports: ['127.0.0.1:5092:8080']
+  worker:
+    <<: *app
+    command: ['dotnet','src/WebApi.Worker/bin/Release/net10.0/WebApi.Worker.dll']
+    environment:
+      <<: *base-env
+      Redis__Connection: redis:6379,abortConnect=false
+      Publish__AckTimeoutSeconds: '30'
+      Upstream__AllowedOrigins__0: http://backend-a:8080
+      Upstream__AllowedOrigins__1: http://backend-b:8080
+  backend-a:
+    <<: *app
+    command: ['dotnet','src/WebApi.TestBackend/bin/Release/net10.0/WebApi.TestBackend.dll']
+    environment: {ASPNETCORE_ENVIRONMENT: Development, ASPNETCORE_URLS: 'http://0.0.0.0:8080', Backend__Id: A, Backend__ControlEndpoints: 'true'}
+    secrets: []
+  backend-b:
+    <<: *app
+    command: ['dotnet','src/WebApi.TestBackend/bin/Release/net10.0/WebApi.TestBackend.dll']
+    environment: {ASPNETCORE_ENVIRONMENT: Development, ASPNETCORE_URLS: 'http://0.0.0.0:8080', Backend__Id: B}
+    secrets: []
+  gateway-a:
+    <<: *app
+    command: ['dotnet','src/WebApi.Gateway/bin/Release/net10.0/WebApi.Gateway.dll']
+    volumes: ['..:/workspace',lkg-a:/lkg]
+    secrets: [node-a]
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      Gateway__EnvironmentId: ${WEBAPI_ENVIRONMENT_ID:?required}
+      Gateway__NodeName: gateway-a
+      Gateway__SecretFile: /run/secrets/node-a
+      Gateway__LkgDirectory: /lkg
+      Gateway__ControlPlaneUrl: http://control-plane:8080
+      Redis__Connection: redis:6379,abortConnect=false,connectTimeout=1000,asyncTimeout=1000
+      Upstream__AllowedOrigins__0: http://backend-a:8080
+      Upstream__AllowedOrigins__1: http://backend-b:8080
+    ports: ['127.0.0.1:4186:8080']
+  gateway-b:
+    <<: *app
+    command: ['dotnet','src/WebApi.Gateway/bin/Release/net10.0/WebApi.Gateway.dll']
+    volumes: ['..:/workspace',lkg-b:/lkg]
+    secrets: [node-b]
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      Gateway__EnvironmentId: ${WEBAPI_ENVIRONMENT_ID:?required}
+      Gateway__RedisNotifications: 'false'
+      Gateway__NodeName: gateway-b
+      Gateway__SecretFile: /run/secrets/node-b
+      Gateway__LkgDirectory: /lkg
+      Gateway__ControlPlaneUrl: http://control-plane:8080
+      Redis__Connection: redis:6379,abortConnect=false,connectTimeout=1000,asyncTimeout=1000
+      Upstream__AllowedOrigins__0: http://backend-a:8080
+      Upstream__AllowedOrigins__1: http://backend-b:8080
+    ports: ['127.0.0.1:4187:8080']
+  console:
+    <<: *app
+    command: ['dotnet','src/WebApi.ConsoleHost/bin/Release/net10.0/WebApi.ConsoleHost.dll']
+    environment: {ASPNETCORE_URLS: 'http://0.0.0.0:8080', Console__DistDirectory: /workspace/console/dist, Console__ControlPlaneUrl: 'http://control-plane:8080'}
+    secrets: []
+    ports: ['127.0.0.1:4182:8080']
+secrets:
+  postgres-password: {file: '${WEBAPI_E2E_DIRECTORY:?required}/postgres-password'}
+  node-a: {file: '${WEBAPI_E2E_DIRECTORY:?required}/node-a'}
+  node-b: {file: '${WEBAPI_E2E_DIRECTORY:?required}/node-b'}
+volumes: {pg: {},nuget: {},lkg-a: {},lkg-b: {}}

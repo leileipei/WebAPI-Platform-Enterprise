@@ -1,0 +1,16 @@
+# Local validation overlay. Only used with compose.test.yml in the dedicated project.
+services:
+  control-plane:
+    image: mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317
+    working_dir: /workspace
+    command: ['dotnet','src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll']
+    volumes: ['..:/workspace']
+    secrets: [postgres-password]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://0.0.0.0:8080
+      WEBAPI_DB_HOST: postgres
+      WEBAPI_DB_NAME: webapi
+      Upstream__AllowedOrigins__0: http://backend-a:8080
+      Upstream__AllowedOrigins__1: http://backend-b:8080
+    ports: ['127.0.0.1:5090:8080']
