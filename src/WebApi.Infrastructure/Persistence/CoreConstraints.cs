@@ -105,6 +105,8 @@ internal static class CoreConstraints
         approval_tasks.HasOne<UserRecord>().WithMany().HasForeignKey("AssigneeUserId").HasPrincipalKey("Id").OnDelete(DeleteBehavior.Restrict);
         release_records.HasOne<EnvironmentRecord>().WithMany().HasForeignKey("EnvironmentId").HasPrincipalKey("Id").OnDelete(DeleteBehavior.Restrict);
         release_records.HasOne<UserRecord>().WithMany().HasForeignKey("RequestedBy").HasPrincipalKey("Id").OnDelete(DeleteBehavior.Restrict);
+        release_records.HasOne<UserRecord>().WithMany().HasForeignKey("PublishRequestedBy").OnDelete(DeleteBehavior.Restrict);
+        release_records.HasIndex(x => new {x.EnvironmentId,x.DeploymentSequence}).IsUnique().HasFilter("deployment_sequence > 0");
         release_records.HasOne<UserRecord>().WithMany().HasForeignKey("ApprovedBy").HasPrincipalKey("Id").OnDelete(DeleteBehavior.Restrict);
         release_records.HasOne<ReleaseRecord>().WithMany().HasForeignKey("RollbackOf").HasPrincipalKey("Id").OnDelete(DeleteBehavior.Restrict);
         release_items.HasOne<ReleaseRecord>().WithMany().HasForeignKey("ReleaseId").HasPrincipalKey("Id").OnDelete(DeleteBehavior.Restrict);

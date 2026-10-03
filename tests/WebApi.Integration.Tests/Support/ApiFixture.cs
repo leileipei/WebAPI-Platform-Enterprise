@@ -21,6 +21,7 @@ public sealed class ApiFixture : IAsyncDisposable
     private WebApplication? app;
     public HttpClient Client { get; private set; } = null!;
     public WebApiDbContext Context() => Database.Context();
+    public IServiceScope Services() => app!.Services.CreateScope();
     public async Task InitializeAsync()
     {
         await Database.InitializeAsync();

@@ -32,6 +32,7 @@ public static class ControlPlaneApp
         builder.Services.AddHttpContextAccessor();builder.Services.AddScoped<IdempotentCommandExecutor>();
         builder.Services.AddScoped(sp=>new CommandRequestContext(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Request.Headers["Idempotency-Key"].ToString()??""));builder.Services.AddScoped(sp=>new AuditRequestMetadata(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Connection.RemoteIpAddress));
         builder.Services.AddScoped<ApprovalFlowService>();builder.Services.AddScoped<ReleaseService>();builder.Services.AddScoped<ReleaseCandidateBuilder>();
+        builder.Services.AddScoped<PublishCoordinator>();builder.Services.AddScoped<SnapshotCompiler>();builder.Services.AddSingleton(new PublishSettings());
         builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<OpenApiImportService>();
         builder.Services.AddScoped<CatalogService>();builder.Services.AddScoped<RouteService>();builder.Services.AddScoped<ClusterService>();
         var origins=builder.Configuration.GetSection("Upstream:AllowedOrigins").Get<string[]>()??["http://test-backend:8080"];

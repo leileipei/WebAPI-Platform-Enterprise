@@ -19,6 +19,7 @@ public static class ReleaseEndpoints
         g.MapPost("/environments/{id:guid}/releases",async(Guid id,CreateReleaseRequest request,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.CreateAsync(id,request,ctx.Actor(),ct)));
         g.MapGet("/releases/{id:guid}",async(Guid id,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.GetAsync(id,ctx.Actor(),ct)));
         g.MapPost("/releases/{id:guid}/submit",async(Guid id,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.SubmitAsync(id,ctx.Actor(),ct)));
+        g.MapPost("/releases/{id:guid}/publish",async(Guid id,HttpContext ctx,PublishCoordinator service,CancellationToken ct)=>Results.Ok(await service.StartAsync(id,ctx.Actor(),ct)));
         g.MapPost("/releases/{id:guid}/approve",async(Guid id,ApprovalActionRequest request,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.ApproveAsync(id,request.Comment,ctx.Actor(),ct)));
         g.MapPost("/releases/{id:guid}/reject",async(Guid id,ApprovalActionRequest request,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.RejectAsync(id,request.Comment,ctx.Actor(),ct)));
         g.MapPost("/releases/{id:guid}/cancel",async(Guid id,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.CancelAsync(id,ctx.Actor(),ct)));

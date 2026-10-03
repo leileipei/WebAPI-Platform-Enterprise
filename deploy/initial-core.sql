@@ -1210,3 +1210,49 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003201632_PublishCoordinatorIdentity') THEN
+    ALTER TABLE release_records ADD publish_requested_by uuid;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003201632_PublishCoordinatorIdentity') THEN
+    ALTER TABLE release_records ADD publish_trace_id varchar(128);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003201632_PublishCoordinatorIdentity') THEN
+    CREATE UNIQUE INDEX "IX_release_records_environment_id_deployment_sequence" ON release_records (environment_id, deployment_sequence) WHERE deployment_sequence > 0;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003201632_PublishCoordinatorIdentity') THEN
+    CREATE INDEX "IX_release_records_publish_requested_by" ON release_records (publish_requested_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003201632_PublishCoordinatorIdentity') THEN
+    ALTER TABLE release_records ADD CONSTRAINT "FK_release_records_users_publish_requested_by" FOREIGN KEY (publish_requested_by) REFERENCES users (id) ON DELETE RESTRICT;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261003201632_PublishCoordinatorIdentity') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261003201632_PublishCoordinatorIdentity', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;
+

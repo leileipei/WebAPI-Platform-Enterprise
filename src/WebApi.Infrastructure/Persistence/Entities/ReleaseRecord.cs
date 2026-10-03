@@ -19,4 +19,6 @@ public sealed class ReleaseRecord
     public string? ApprovalPolicy { get; set; }
     public DateTimeOffset? DeadlineAt { get; set; }
     public string? FailureCode { get; set; }
+    public Guid? PublishRequestedBy { get; set; }
+    public string? PublishTraceId { get; set; }
 }

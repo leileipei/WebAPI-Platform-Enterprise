@@ -25,5 +25,7 @@ public sealed class ReleaseRecordConfiguration : IEntityTypeConfiguration<Releas
         b.Property(x => x.ApprovalPolicy).HasColumnName("approval_policy").HasColumnType("jsonb");
         b.Property(x => x.DeadlineAt).HasColumnName("deadline_at").HasColumnType("timestamptz");
         b.Property(x => x.FailureCode).HasColumnName("failure_code").HasColumnType("varchar(128)");
+        b.Property(x => x.PublishRequestedBy).HasColumnName("publish_requested_by").HasColumnType("uuid");
+        b.Property(x => x.PublishTraceId).HasColumnName("publish_trace_id").HasColumnType("varchar(128)");
     }
 }
