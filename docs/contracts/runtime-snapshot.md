@@ -1,0 +1,13 @@
+# Runtime Snapshot 2.0
+
+Payload字段：schemaVersion、environmentId、configVersion、generatedAt（UTC）、routes、clusters、policies、applications。Envelope字段：releaseId、deploymentSequence、configVersion、payloadHash、sizeBytes。内部传输DesiredConfigResponse的payload为原始UTF-8字节的Base64；Hash计算解码后的实际字节，不计算JSONB查询副本，也不把自身放进payload。PG bytea、Redis及LKG必须保留相同字节。
+
+Runtime Route只含业务身份、模板、方法、Cluster运行引用、matchOrder、timeoutMs、requireApiKey。Cluster运行ID由原生SourceId及实际配置内容派生，保留SourceId供治理定位；共享原生Cluster在一个Snapshot内可有多个被冻结配置。未选API保留其原运行引用，不能因另一API发布改变后端。仅保留被路由使用的Cluster。
+
+应用运行数据只有身份、状态、Credential摘要/窗口与API授权/窗口；没有Owner、revision、创建人、审批、原文或明文Secret。所有环境消费方配置取提交时冻结值；只将有运行路由的API授权编入Snapshot。未发布草稿不进入运行路由。客户端必须每次准入检查UTC窗口，不能缓存认证成功后永远放行。
+
+首期Runtime策略仅authentication（mode: ApiKey/Anonymous）与timeout（timeoutMs: 1..300000）。策略只允许定义字段，未知类型/模式/多认证绑定拒绝。Schema在编译时检查JSON及基础Schema结构，完整JSON Schema语义和Runtime请求体校验不在首期。上游按控制面部署允许列表复验，拒绝userinfo及非法地址。
+
+静态、参数、通配符依次匹配，同类型中priority高优先。环境内方法与同形模板不可重复。SchemaVersion必须2.0，Snapshot ConfigVersion必须正数；有效空路由Snapshot用于停用全部路由，不等同于未配置节点。回滚可重用较低configVersion的历史payload，节点更新顺序必须依赖更高deploymentSequence。
+
+例：Envelope targetVersion=2、deploymentSequence=8。两节点各自校验payloadHash与sizeBytes及environmentId，构建完整generation并成功持久化后才ACK。部分ACK仍Publishing，不能显示全局成功。这部分运行行为在网关任务验证，本阶段仅完成编译协议与领域校验。
