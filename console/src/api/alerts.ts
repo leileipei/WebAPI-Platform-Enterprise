@@ -1,0 +1,18 @@
+import {apiRequest} from './client';import type {Page,Scope} from './types';import {observationQuery,type ObservationScopeRequest,type MetricValue} from './observability';
+export type SaveAlertRuleRequest={organizationId:string;projectId:string|null;environmentId:string|null;name:string;metric:string;expression:string;severity:string;enabled:boolean;forSeconds:number;targetType:string;targetId:string|null;windowSeconds:number;notification:{inConsole:boolean;requestedChannels:string[]}};
+export type AlertRuleDto={id:string;definition:SaveAlertRuleRequest;revision:number;logicRevision:number;evaluationState:string;lastSuccessAt:string|null};
+export type AlertEventDto={id:string;ruleId:string;ruleRevision:number;logicRevision:number;scope:Scope;resourceKey:string;resourceType:string;resourceId:string|null;occurrenceNo:number;status:string;severity:string;message:string;ruleSummary:string;startedAt:string;conditionStartedAt:string;resolvedAt:string|null;ackedBy:string|null;ackedAt:string|null;silencedBy:string|null;silencedUntil:string|null;silenceReason:string|null;resolvedBy:string|null;resolveReason:string|null;lastObservedAt:string|null;lastValue:number|null;lastCondition:boolean|null;evaluationState:string;revision:number;transitions:{id:string;fromStatus:string|null;toStatus:string;actorId:string|null;reason:string;occurredAt:string;correlationId:string}[]};
+export type AlertAction={kind:'Ack'|'Resolve'|'Silence'|'Unsilence';reason:string|null;until?:string|null;durationSeconds?:number|null};
+export type AlertListFilter={severity?:string;source?:string;status?:string;page?:number;pageSize?:number};
+export type RuleTestDto={evaluationState:string;condition:boolean|null;matches:{key:string;name:string;values:MetricValue[]}[]};
+export type RuleScopePreviewDto={environmentIds:string[];includesFutureActiveEnvironments:boolean;policy:string};
+const scoped=(scope:ObservationScopeRequest,filter:Record<string,unknown>)=>observationQuery(scope,{start:'',end:''},filter);
+export const loadAlerts=(scope:ObservationScopeRequest,filter:AlertListFilter,signal:AbortSignal)=>apiRequest<Page<AlertEventDto>>('/observability/alerts?'+scoped(scope,filter),{signal});
+export const loadAlert=(id:string,signal?:AbortSignal)=>apiRequest<AlertEventDto>('/observability/alerts/'+id,{signal});
+export const loadRules=(scope:ObservationScopeRequest,page=1,signal?:AbortSignal)=>apiRequest<Page<AlertRuleDto>>('/observability/alert-rules?'+scoped(scope,{page,pageSize:50}),{signal});
+export const loadRule=(id:string,signal?:AbortSignal)=>apiRequest<AlertRuleDto>('/observability/alert-rules/'+id,{signal});
+export const saveRule=(id:string|null,body:SaveAlertRuleRequest,etag:string|null,idempotencyKey:string)=>apiRequest<AlertRuleDto>('/observability/alert-rules'+(id?'/'+id:''),{method:id?'PUT':'POST',body,etag:etag||undefined,idempotencyKey});
+export const testRule=(body:SaveAlertRuleRequest,signal:AbortSignal)=>apiRequest<RuleTestDto>('/observability/alert-rules/test',{method:'POST',body,signal});
+export const previewRule=(body:SaveAlertRuleRequest,signal:AbortSignal)=>apiRequest<RuleScopePreviewDto>('/observability/alert-rules/preview',{method:'POST',body,signal});
+export const toggleRule=(rule:AlertRuleDto,idempotencyKey:string)=>apiRequest<AlertRuleDto>(`/observability/alert-rules/${rule.id}/${rule.definition.enabled?'disable':'enable'}`,{method:'POST',etag:`"${rule.revision}"`,idempotencyKey});
+export const actOnAlert=(id:string,body:AlertAction,etag:string,idempotencyKey:string)=>apiRequest<AlertEventDto>(`/observability/alerts/${id}/${body.kind.toLowerCase()}`,{method:'POST',body,etag,idempotencyKey});

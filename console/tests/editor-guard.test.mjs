@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {editorMaySubmit} from '../src/editor-state.mjs';
+test('discard confirmation and other blocking states cannot submit an editor',()=>{assert.equal(editorMaySubmit({authorized:true}),true);for(const flag of ['discard','busy','invalid','conflict'])assert.equal(editorMaySubmit({authorized:true,[flag]:true}),false);assert.equal(editorMaySubmit({authorized:false}),false);});

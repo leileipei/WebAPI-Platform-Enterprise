@@ -1,0 +1,53 @@
+{
+  "task": 13,
+  "classification": "real-control-plane-postgresql-workers-with-controlled-metric-protocol",
+  "realGatewayThreeSourceE2E": false,
+  "settings": {
+    "intervalSeconds": 1,
+    "queryDelaySeconds": 0,
+    "leaseSeconds": 30
+  },
+  "checks": {
+    "frontendTests": 34,
+    "integrationTests": 173,
+    "typecheckAndBuild": true,
+    "readonlyTestBeforeSaveRows": "0 rules / 0 events / 0 evaluations",
+    "saveThenActualWorkerTriggered": true,
+    "twoSession412KeepsInputAndExplicitAdoption": true,
+    "fourEventStates": true,
+    "disableEnableChangesLogic": true,
+    "apiPrefillSavedAndTriggered": true,
+    "actualApiAndDestinationSelectors": true,
+    "unsavedSidebarBackScopeGuards": true,
+    "discardKeyboardSubmitGuard": true,
+    "linkedMetricsChangesToFrozenEnvironment": true,
+    "source503UnknownRetainsObservationFact": true,
+    "resolvedObservationLabelHistorical": true,
+    "readonlyButtonsDisabled": true,
+    "readonlyHttpWriteStatus": 403,
+    "readonlyWriteUnchangedRevisionAndStatus": true,
+    "viewport": {
+      "width": 1440,
+      "height": 1000,
+      "documentScrollWidth": 1440
+    },
+    "freshNormalSessionConsoleErrors": 0
+  },
+  "cleanup": {
+    "exactDisposableDatabasesRemaining": 0,
+    "exactContainersRemaining": 0,
+    "cookieSecretExists": false,
+    "previewStopped": true,
+    "viewportReset": true,
+    "originalAdminPermissionsExpanded": false
+  },
+  "screenshots": [
+    "32-alert-center-ui-protocol.jpg",
+    "32-alert-detail-ui-protocol.jpg",
+    "32-readonly-ui-protocol.jpg",
+    "32-source-unknown-ui-protocol.jpg",
+    "33-rule-editor-ui-protocol.jpg",
+    "33-rule-unknown-ui-protocol.jpg",
+    "33-rules-ui-protocol.jpg"
+  ]
+}

@@ -76,3 +76,7 @@ POST `/observability/alert-rules/test`和preview只读，但仍要求CSRF，不�
 四个 POST 命令为 `/observability/alerts/{id}/ack|resolve|silence|unsilence`，携带 If-Match、Idempotency-Key 和对应 Kind。Resolve / Silence 必填原因。静默推荐使用 `durationSeconds`，数据库实际写入时计算截止时间，支持900至86400秒；兼容绝对 UTC `until`，两者必须且只能提供一个。绝对截止也在实际提交时验证15分钟至24小时窗口。
 
 Silenced事件确认仍保持Silenced并记录首位确认人；解除静默或到期恢复Ack或Open。Resolved原事件不可重开。人工解决原子写入抑制状态，持续真条件不再次生成事件，只有实际解决后的有效假条件重新布防。状态、transition、幂等结果及审计同事务提交，数据库治理锁内重新核对权限。独立静默到期Worker不等待外部指标查询，多Worker竞争只产生一次系统transition及审计。
+
+事件revision是处理状态的并发版本；重复评估仅更新观测，不使用户正在填写的处理命令无故412。自动恢复、静默到期和人工处理仍推进版本。观测写入继续受规则/状态/事件锁、租约token及状态revision保护，查询响应no-store。未解决事件超过配置的两倍评估间隔未评估时返回Unknown并清空当前值及Condition，保留真实LastObservedAt；已解决事件显示历史观测，不能用其年龄判断当前健康。
+
+规则编辑412保留用户输入，显式载入最新版本后才允许重试。只读测试不清除未保存状态。放弃确认期间锁定表单提交并把键盘焦点限制在确认按钮内；跳转与环境切换受未保存保护。事件关联指标跳转先选择冻结的环境，避免全范围列表中的事件被当前Shell环境误解。API和后端选项来自真实授权目录，提交时仍由服务端验证。

@@ -49,7 +49,7 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
             if((retired&&active)||state.Phase=="Pending"){state.Phase="Inactive";state.PendingSince=null;}
             if(retired&&active)state.SuppressedAt=null;
             state.LastCondition=null;state.EvaluationState="ScopeInactive";
-            if(alert is not null){alert.EvaluationState="ScopeInactive";alert.LastCondition=null;alert.LastValue=null;alert.Revision++;}
+            if(alert is not null){alert.EvaluationState="ScopeInactive";alert.LastCondition=null;alert.LastValue=null;}
             if(retired&&active&&alert is not null)Resolve(alert,"ResourceRetired",now,correlation);
         }
         else
@@ -71,7 +71,8 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
                 alert.EvaluationState=known?"Known":"Unknown";alert.LastCondition=decision.LastCondition;
                 if(advances){alert.LastObservedAt=input.ObservedAt;alert.LastValue=input.Value;}else if(!known)alert.LastValue=null;
                 if(decision.ResolveReason is not null)Resolve(alert,decision.ResolveReason,now,correlation);
-                else alert.Revision++;
+                // The event command revision protects lifecycle facts. Observation metadata
+                // is already serialized by the rule/state/event locks and lease token.
             }
         }
         state.LastEvaluatedSlot=lease.Slot;state.LeaseOwner=null;state.LeaseUntil=null;state.Revision++;

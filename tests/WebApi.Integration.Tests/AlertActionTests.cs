@@ -92,4 +92,12 @@ public sealed class AlertActionTests
         try{await s.Handler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));await using(var db=f.Context())await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE alert_events SET silenced_until=clock_timestamp()-interval '1 second' WHERE id={s.Id}");await expire.StartAsync(default);var end=DateTimeOffset.UtcNow.AddSeconds(3);while(DateTimeOffset.UtcNow<end){await using var db=f.Context();if(await db.Set<AlertEvent>().AnyAsync(x=>x.Id==s.Id&&x.Status=="Open")){restored=true;break;}await Task.Delay(25);}Assert.False(s.Handler.Resume.Task.IsCompleted);}
         finally{s.Handler.Resume.TrySetResult(true);await evaluate.StopAsync(default);await expire.StopAsync(default);}Assert.True(restored,"Expiry must not wait for a blocked external metrics query.");await using var read=f.Context();Assert.Equal(1,await read.Set<AuditLog>().CountAsync(x=>x.Action=="alert.silence_expired"));
     }
+    [Fact] public async Task FreshObservationDoesNotInvalidateLifecycleCommandVersion()
+    {
+        var s=await Setup();await using var f=s.Fixture;Assert.True(await Evaluate(f));using var response=await Send(f,s.Id,new("Silence","human can take time to type",null,900),"\"1\"");response.EnsureSuccessStatusCode();var result=(await response.Content.ReadFromJsonAsync<AlertEventDto>())!;Assert.Equal("Silenced",result.Status);Assert.Equal(2,result.Revision);await using var db=f.Context();Assert.NotNull((await db.Set<AlertEvent>().SingleAsync()).LastObservedAt);
+    }
+    [Fact] public async Task StoppedEvaluationShowsUnknownWithoutErasingLastObservationFact()
+    {
+        var s=await Setup();await using var f=s.Fixture;Assert.True(await Evaluate(f));DateTimeOffset? observed;await using(var db=f.Context()){observed=(await db.Set<AlertEvent>().SingleAsync()).LastObservedAt;await db.Database.ExecuteSqlRawAsync("UPDATE alert_evaluation_states SET last_evaluated_slot=clock_timestamp()-interval '10 seconds'");}using var response=await f.Client.GetAsync($"/api/v1/observability/alerts/{s.Id}");response.EnsureSuccessStatusCode();var result=(await response.Content.ReadFromJsonAsync<AlertEventDto>())!;Assert.Equal("Unknown",result.EvaluationState);Assert.Null(result.LastCondition);Assert.Null(result.LastValue);Assert.Equal(observed,result.LastObservedAt);
+    }
 }

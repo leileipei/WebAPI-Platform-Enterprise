@@ -10,27 +10,34 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Alerts;
-public sealed class AlertEventService(WebApiDbContext db,AuthorizationService authorization,ObservationScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext)
+public sealed class AlertEventService(WebApiDbContext db,AuthorizationService authorization,ObservationScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings)
 {
     internal static ScopeRef Scope(AlertEvent e)=>new(e.OrganizationId,e.ProjectId,e.EnvironmentId);
-    internal static async Task<AlertEventDto> DtoAsync(WebApiDbContext db,AlertEvent e,CancellationToken ct)
+    private async Task<AlertEventDto> DtoAsync(AlertEvent e,CancellationToken ct)
     {
         var persisted=await db.Set<AlertEventTransition>().AsNoTracking().Where(x=>x.EventId==e.Id).ToArrayAsync(ct);
         var added=db.ChangeTracker.Entries<AlertEventTransition>().Where(x=>x.State==EntityState.Added&&x.Entity.EventId==e.Id).Select(x=>x.Entity);
         var transitions=persisted.Concat(added).OrderBy(x=>x.OccurredAt).ThenBy(x=>x.Id).Select(x=>new AlertTransitionDto(x.Id,x.FromStatus,x.ToStatus,x.ActorId,x.Reason,x.OccurredAt,x.CorrelationId)).ToArray();
-        return new(e.Id,e.RuleId,e.RuleRevision,e.LogicRevision,Scope(e),e.ResourceKey,e.ResourceType,e.ResourceId,e.OccurrenceNo,e.Status,e.Severity,e.Message,e.RuleSummary,e.StartedAt,e.ConditionStartedAt,e.ResolvedAt,e.AckedBy,e.AckedAt,e.SilencedBy,e.SilencedUntil,e.SilenceReason,e.ResolvedBy,e.ResolveReason,e.LastObservedAt,e.LastValue,e.LastCondition,e.EvaluationState,e.Revision,transitions);
+        var evaluation=e.EvaluationState;
+        if(e.Status!="Resolved"&&evaluation=="Known")
+        {
+            var slot=await db.Set<AlertEvaluationState>().AsNoTracking().Where(x=>x.RuleId==e.RuleId&&x.LogicRevision==e.LogicRevision&&x.EnvironmentId==e.EnvironmentId&&x.ResourceKey==e.ResourceKey).Select(x=>x.LastEvaluatedSlot).SingleOrDefaultAsync(ct);
+            var now=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct);
+            if(slot is null||slot>now||now-slot>TimeSpan.FromSeconds(settings.IntervalSeconds*2))evaluation="Unknown";
+        }
+        return new(e.Id,e.RuleId,e.RuleRevision,e.LogicRevision,Scope(e),e.ResourceKey,e.ResourceType,e.ResourceId,e.OccurrenceNo,e.Status,e.Severity,e.Message,e.RuleSummary,e.StartedAt,e.ConditionStartedAt,e.ResolvedAt,e.AckedBy,e.AckedAt,e.SilencedBy,e.SilencedUntil,e.SilenceReason,e.ResolvedBy,e.ResolveReason,e.LastObservedAt,evaluation=="Known"?e.LastValue:null,evaluation=="Known"?e.LastCondition:null,evaluation,e.Revision,transitions);
     }
     public async Task<AlertEventDto> DetailAsync(ActorContext actor,Guid id,CancellationToken ct)
     {
         var e=await db.Set<AlertEvent>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw ScopeResolver.Missing();
-        if(!await authorization.CanAsync(actor,"alert.read",new("alert",e.Id,Scope(e)),ct))throw ScopeResolver.Missing();return await DtoAsync(db,e,ct);
+        if(!await authorization.CanAsync(actor,"alert.read",new("alert",e.Id,Scope(e)),ct))throw ScopeResolver.Missing();return await DtoAsync(e,ct);
     }
     public async Task<PageResult<AlertEventDto>> ListAsync(ActorContext actor,ObservationScopeRequest scope,AlertListFilter filter,CancellationToken ct)
     {
         if(filter.Severity is not(null or "Info" or "Warning" or "Critical")||filter.Source is not(null or "Metrics")||filter.Status is not(null or "Open" or "Ack" or "Resolved" or "Silenced"))throw new ApiException(422,"invalid_alert_filter","告警级别、来源或状态筛选不合法。");
         var trusted=await scopes.ResolveAsync(actor,"alert.read",scope,null,null,null,ct);
         var rows=await db.Set<AlertEvent>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId&&trusted.EnvironmentIds.Contains(x.EnvironmentId)&&(filter.Severity==null||x.Severity==filter.Severity)&&(filter.Status==null||x.Status==filter.Status)).OrderByDescending(x=>x.StartedAt).ThenByDescending(x=>x.Id).ToArrayAsync(ct);
-        var slice=Pagination.Slice(rows,filter.Page,filter.PageSize);var data=new List<AlertEventDto>();foreach(var e in slice.Items)data.Add(await DtoAsync(db,e,ct));return new(data,slice.Total,slice.Page,slice.PageSize);
+        var slice=Pagination.Slice(rows,filter.Page,filter.PageSize);var data=new List<AlertEventDto>();foreach(var e in slice.Items)data.Add(await DtoAsync(e,ct));return new(data,slice.Total,slice.Page,slice.PageSize);
     }
     public async Task<AlertEventDto> ActAsync(ActorContext actor,Guid id,AlertAction input,string etag,CancellationToken ct)
     {
@@ -61,7 +68,7 @@ public sealed class AlertEventService(WebApiDbContext db,AuthorizationService au
                         state.Phase="SuppressedUntilRecovery";state.PendingSince=null;state.SuppressedAt=now;state.LastEventId=e.Id;state.LeaseToken++;state.LeaseOwner=null;state.LeaseUntil=null;state.Revision++;break;
                 }
                 if(changed){e.Revision++;db.Add(new AlertEventTransition{EventId=e.Id,FromStatus=from,ToStatus=e.Status,ActorId=actor.UserId,Reason=reason,OccurredAt=now,CorrelationId=actor.TraceId});}
-                return await DtoAsync(db,e,inner);
+                return await DtoAsync(e,inner);
             },token);
         },ct);
     }
