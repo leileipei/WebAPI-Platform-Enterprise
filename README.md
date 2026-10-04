@@ -6,7 +6,7 @@
 
 - [页面能力覆盖](docs/console-coverage.md)：逐一对应原 40 页；SSO、完整监控/告警、高级策略、完整 Breaking Change 引擎等仍属于后续开发。
 - [验收与证据](docs/acceptance.md)：区分浏览器操作、数据库回归、真实容器业务响应与目标部署验收。
-- [审查修正状态](docs/evidence/core-loop/final-review.md)与[实施决策](docs/decisions.md)：代码修正已实施；最终浏览器复验仍有明确待办，以汇总状态为准。
+- [审查修正状态](docs/evidence/core-loop/final-review.md)与[实施决策](docs/decisions.md)：3项Important修正与最终浏览器复验均已完成；全部实施裁定与延期范围已记录。
 - [配置与运维](docs/operations.md)：初始化、节点身份、快照、备份恢复和敏感日志处理。
 - [设计基线](docs/superpowers/specs/2026-10-04-core-loop-design.md)与[实施计划](docs/superpowers/plans/2026-10-04-core-loop-implementation.md)。
 

@@ -1,8 +1,8 @@
 {
-  "complete": false,
+  "complete": true,
   "testsComplete": true,
-  "finalCodeReview": "3 Important fixes implemented; final browser recheck pending",
-  "checkedAt": "2026-10-03T23:52:21.567024+00:00",
+  "finalCodeReview": "3 Important fixed; RED/GREEN evidence and final browser rechecks verified",
+  "checkedAt": "2026-10-04T00:59:37.691632+00:00",
   "architecture": {
     "verified": "Linux ARM64 Docker on macOS host",
     "amd64": "not verified"
@@ -43,7 +43,13 @@
       "passed": 3,
       "failed": 0,
       "scope": "event/history adapter; not a browser substitute"
-    }
+    },
+    "automatedRegressionTotal": {
+      "passed": 127,
+      "failed": 0,
+      "skipped": 0
+    },
+    "browserFinalReview": "docs/evidence/m4-console/final-review-qa.json"
   },
   "notVerified": [
     "AMD64 build/run",
@@ -66,7 +72,7 @@
   "testedSourceRevision": "f862344",
   "temporaryFixtureCleanup": {
     "complete": true,
-    "project": "webapi-enterprise-e2e-1791069487-380",
+    "project": "webapi-enterprise-e2e-1791074784-4080",
     "containersRemaining": 0,
     "volumesRemaining": 0,
     "secretFilesRemaining": 0

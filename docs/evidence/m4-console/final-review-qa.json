@@ -1,0 +1,33 @@
+{
+  "complete": true,
+  "checkedAt": "2026-10-04T00:58:30.732112+00:00",
+  "testedSourceRevision": "f862344",
+  "fixtureProject": "webapi-enterprise-e2e-1791074784-4080",
+  "checks": {
+    "ordinarySidebarNavigation": "core organizations→imports→organizations→apis passed",
+    "importUnsaved": "backend link and sidebar stayed at imports, original text retained; clearing text enabled navigation",
+    "inlineDiscard": "continue editing retained text; explicit confirm discard closed editor without browser-native confirm",
+    "historyUnsaved": "final module Back restored organizations URL, editor count1, original input retained",
+    "scopePage2": "55 users, page2 user051 accessible, Scope editor read empty grants; no grants written",
+    "userPage2Conflict": "real412 retained input; latest page2 user revision2 visible; explicit adopt saved revision3",
+    "releaseHidden404": "reader revoke, no manual refresh, organization/project/environment became inaccessible, Succeeded count0, ACK heading count0",
+    "snapshotHidden404": "management view count1→0, close-view control1→0 after scope revoke without manual refresh",
+    "browserUncaughtErrors": [],
+    "desktopViewport": {
+      "width": 1440,
+      "height": 1024,
+      "overflow": false
+    }
+  },
+  "screenshots": [
+    "review-import-guard-green.jpg",
+    "review-inline-discard-green.jpg",
+    "review-history-final-green.jpg",
+    "review-scope-page2-green.jpg",
+    "review-user-page2-conflict-green.jpg",
+    "review-404-auto-clear-green.jpg",
+    "review-snapshot-auto-clear-green.jpg",
+    "final-core-release.jpg"
+  ],
+  "boundary": "temporary synthetic fixture; no persistent permission grants, no Secret text read; screenshot provider may resize capture"
+}

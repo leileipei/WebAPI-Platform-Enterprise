@@ -1,5 +1,5 @@
 {
-  "scope": "current confirmed evidence",
+  "scope": "core console and final review fixes verified locally",
   "viewport": {
     "width": 1440,
     "height": 1024
@@ -43,13 +43,10 @@
     "pagingApiOptions": 52,
     "pagingClustersSecondPage": "observed 分页集群 050",
     "historyUnsavedInput": "observed retained editor and typed input after Back",
-    "pending": [
-      "automatic hidden-resource 404 detail clearing",
-      "Snapshot view authority clearing",
-      "Scope second-page and user 412 latest revision",
-      "import navigation and inline discard"
-    ],
-    "blocker": "old browser confirmation in temporary tab; cancellation requested",
-    "navigationAdapterTests": 3
+    "pending": [],
+    "blocker": null,
+    "navigationAdapterTests": 3,
+    "complete": true,
+    "evidence": "final-review-qa.json"
   }
 }
