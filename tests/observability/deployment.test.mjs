@@ -39,3 +39,8 @@ test('invalid published endpoint fails immediately and only loopback HTTP is all
   assert.throws(()=>validateEndpoints([endpoint]),/Invalid loopback endpoint/);
  assert.doesNotThrow(()=>validateEndpoints(['http://127.0.0.1:33600']));
 });
+test('real log contract requires normalized metadata and safe projected method/path fields',async()=>{
+ const {validateLogContract}=await import('../../scripts/observability-smoke.mjs');
+ assert.throws(()=>validateLogContract({metadataFound:false,normalizedNames:false,filterFound:false}));
+ assert.doesNotThrow(()=>validateLogContract({metadataFound:true,normalizedNames:true,filterFound:true}));
+});

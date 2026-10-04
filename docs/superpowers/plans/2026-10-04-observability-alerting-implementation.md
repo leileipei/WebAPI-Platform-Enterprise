@@ -148,11 +148,11 @@
 
 **Interfaces:** `ObservationCursorCodec.Encode(string kind, Guid actorId, TrustedObservationScope scope, TimeRange range, string filterHash, long boundaryNanoseconds, IReadOnlyList<Guid> boundaryIds) : string`；`Decode(string cursor, string kind, Guid actorId, TrustedObservationScope scope, TimeRange range, string filterHash) : CursorBoundary`校验签名 / 身份 / Scope / 过滤hash / 15分钟有效期，`CursorBoundary(long Nanoseconds, IReadOnlyList<Guid> BoundaryIds)`保留源纳秒而非从DateTimeOffset回算。`AccessLogQueryService.QueryAsync(ActorContext actor, ObservationScopeRequest scope, TimeRange range, LogFilter filter, CancellationToken ct) : Task<ObservationEnvelope<CursorPage<AccessLogDto>>>`；`DetailAsync(ActorContext actor, ObservationScopeRequest scope, TimeRange range, Guid logId, CancellationToken ct)`返回ObservationEnvelope<AccessLogDto>；`ExportAsync(ActorContext actor, ObservationScopeRequest scope, TimeRange range, LogFilter filter, Stream output, CancellationToken ct) : Task<ExportOutcome>`，`ExportOutcome(int Rows, bool Truncated)`。
 
-- [ ] 写`EqualNanosecondRowsCrossBoundaryWithoutLoss`、`ProviderCapReturnsExplicitTruncated`、`CursorCannotChangeEnvironmentOrUser`、`IpFilterIsHmacAndNeverStoredRaw`、`CsvFormulaIsNeutralized`、`RevocationStopsExportPages`。断言`Assert.Equal(expectedIds, pages.DistinctIds); Assert.True(capped.Coverage.Truncated); Assert.DoesNotContain("10.0.0.1", storedLog); Assert.StartsWith("'", dangerousCell);`。
-- [ ] 运行`./scripts/check.sh integration --filter FullyQualifiedName~ObservationLogsTests`，确认缺源适配 / 游标 / 导出行为。
-- [ ] 实现强制环境LogQL、纯文本Keyword、结构metadata映射、50 / 100限制、固定end与时间+logId顺序、投递ID去重；边界同纳秒超源能力时停止并明示truncated，不能编造页数。IP输入内存传参→HMAC；游标签名密钥SecretFile。CSV保留同一过滤与截止时间，忽略列表当前cursor，从查询首行开始 / 最多10,000行 / 公式中和，每个源分页重新授权；CSV先写入8MiB上限的服务端临时内存buffer，达到行数 / 大小限额即truncated，失败或撤权则丢弃buffer。读取结束再授权并发送已知行数 / 截断header和CSV，避免先发headers再试图补行数或将中途错误当成功文件。
-- [ ] 指定测试通过；真正LokiOTLP字段名 / 转义格式在smoke栈查询核验，外部原始JSON不返回浏览器。
-- [ ] 提交`feat: query and export scoped sanitized access logs`。
+- [x] 写`EqualNanosecondRowsCrossBoundaryWithoutLoss`、`ProviderCapReturnsExplicitTruncated`、`CursorCannotChangeEnvironmentOrUser`、`IpFilterIsHmacAndNeverStoredRaw`、`CsvFormulaIsNeutralized`、`RevocationStopsExportPages`。断言`Assert.Equal(expectedIds, pages.DistinctIds); Assert.True(capped.Coverage.Truncated); Assert.DoesNotContain("10.0.0.1", storedLog); Assert.StartsWith("'", dangerousCell);`。
+- [x] 运行`./scripts/check.sh integration --filter FullyQualifiedName~ObservationLogsTests`，确认缺源适配 / 游标 / 导出行为。
+- [x] 实现强制环境LogQL、纯文本Keyword、结构metadata映射、50 / 100限制、固定end与时间+logId顺序、投递ID去重；边界同纳秒超源能力时停止并明示truncated，不能编造页数。IP输入内存传参→HMAC；游标签名密钥SecretFile。CSV保留同一过滤与截止时间，忽略列表当前cursor，从查询首行开始 / 最多10,000行 / 公式中和，每个源分页重新授权；CSV先写入8MiB上限的服务端临时内存buffer，达到行数 / 大小限额即truncated，失败或撤权则丢弃buffer。读取结束再授权并发送已知行数 / 截断header和CSV，避免先发headers再试图补行数或将中途错误当成功文件。
+- [x] 指定测试通过；真正LokiOTLP字段名 / 转义格式在smoke栈查询核验，外部原始JSON不返回浏览器。
+- [x] 提交`feat: query and export scoped sanitized access logs`。
 
 ## Task 7: Trace查询、瀑布图数据与跨Scope裁剪
 

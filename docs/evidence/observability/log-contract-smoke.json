@@ -1,0 +1,67 @@
+{
+  "project": "webapi-obs-smoke-17653a79-f08b-420c-94e2-f9bf9f346321",
+  "startedAt": "2026-10-04T05:22:45.475Z",
+  "completedAt": "2026-10-04T05:23:03.614Z",
+  "endpoints": {
+    "collector": "http://127.0.0.1:33744",
+    "health": "http://127.0.0.1:33745",
+    "prometheus": "http://127.0.0.1:33743",
+    "loki": "http://127.0.0.1:33741",
+    "tempo": "http://127.0.0.1:33742"
+  },
+  "environmentId": "19133642-56dd-4e2f-8442-c6df91f47521",
+  "traceId": "cb5f0cf315e988ca40b291d4f8869959",
+  "marker": "webapi-smoke-14787a5d-b5d1-4520-99d6-821a976acf6a",
+  "proof": {
+    "requestCounter": 1,
+    "logMarkerFound": true,
+    "traceFound": true
+  },
+  "metricContract": {
+    "histogramCount": 1,
+    "upperBucketFound": true,
+    "nodeObservedSeconds": 1791091380.554
+  },
+  "logContract": {
+    "metadataFound": true,
+    "normalizedNames": true,
+    "filterFound": true,
+    "shape": "flattened-stream-labels",
+    "keys": [
+      "detected_level",
+      "http_request_method",
+      "http_response_status_code",
+      "observed_timestamp",
+      "scope_name",
+      "service_instance_id",
+      "service_name",
+      "severity_number",
+      "severity_text",
+      "span_id",
+      "trace_id",
+      "url_template",
+      "webapi_api_id",
+      "webapi_application_id",
+      "webapi_client_ip_masked",
+      "webapi_destination_id",
+      "webapi_duration_ms",
+      "webapi_environment_id",
+      "webapi_log_id",
+      "webapi_node_name",
+      "webapi_outcome",
+      "webapi_request_id"
+    ]
+  },
+  "cleanup": {
+    "completedAt": "2026-10-04T05:23:14.026Z",
+    "containers": 0,
+    "volumes": 0,
+    "secretFiles": 0,
+    "verified": true
+  },
+  "kind": "synthetic-otlp-protocol-only",
+  "verifiedVolumeCapacityBytes": {
+    "loki": 1073741824,
+    "tempo": 1073741824
+  }
+}

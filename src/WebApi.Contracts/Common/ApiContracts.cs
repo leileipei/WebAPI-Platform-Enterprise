@@ -1,10 +1,11 @@
 namespace WebApi.Contracts.Common;
 public sealed record PageResult<T>(IReadOnlyList<T> Items, int Total, int Page, int PageSize);
 public sealed record CommandResult<T>(T Value, string ETag);
-public sealed class ApiException(int status, string code, string message) : Exception(message)
+public sealed class ApiException(int status, string code, string message, string? sourceType=null) : Exception(message)
 {
     public int Status { get; } = status;
     public string Code { get; } = code;
+    public string? SourceType {get;} = sourceType is "metrics" or "logs" or "traces"?sourceType:null;
 }
 public static class RevisionTag
 {

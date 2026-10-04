@@ -4,6 +4,9 @@ import {pathToFileURL} from 'node:url';
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const nano=ms=>(BigInt(ms)*1_000_000n).toString();
 const attr=(key,value)=>({key,value:{stringValue:value}});
+export function validateLogContract(proof){
+ if(proof.metadataFound!==true||proof.normalizedNames!==true||proof.filterFound!==true)throw new Error("Actual normalized log metadata and structured filter are required");
+}
 export function validateMetricContract(proof){
  if(!Number.isFinite(proof.histogramCount)||proof.histogramCount<1||proof.upperBucketFound!==true||!Number.isFinite(proof.nodeObservedSeconds)||proof.nodeObservedSeconds<=0)
   throw new Error('Metric contract requires actual histogram count, named bucket and node observation gauge');
@@ -43,8 +46,9 @@ async function smoke(file,project,collector,health,prometheus,loki,tempo){
     poll(async()=>{await response(`${loki}/ready`);return true;},'Loki readiness'),
     poll(async()=>{await response(`${tempo}/ready`);return true;},'Tempo readiness')]);
   const now=Date.now(),environmentId=randomUUID(),marker=`webapi-smoke-${randomUUID()}`;
+  const logId=randomUUID(),apiId=randomUUID(),appId=randomUUID(),destinationId=randomUUID();
   const traceId=randomBytes(16).toString('hex'),spanId=randomBytes(8).toString('hex');
-  const resource={attributes:[attr('service.name','webapi-smoke'),attr('webapi.environment.id',environmentId),attr('service.instance.id','smoke-node')]};
+  const resource={attributes:[attr('service.name','webapi-gateway'),attr('webapi.environment.id',environmentId),attr('service.instance.id','smoke-node')]};
   const metric={name:'webapi_gateway_requests_total',sum:{aggregationTemporality:2,isMonotonic:true,dataPoints:[{
     startTimeUnixNano:nano(now-1000),timeUnixNano:nano(now),asInt:'1',attributes:[attr('webapi.api.id',randomUUID())]
   }]}};
@@ -57,7 +61,7 @@ async function smoke(file,project,collector,health,prometheus,loki,tempo){
     metrics:{resourceMetrics:[{resource,scopeMetrics:[{scope:{name:'webapi-smoke'},metrics:[metric,duration,observed]}]}]},
     logs:{resourceLogs:[{resource,scopeLogs:[{scope:{name:'webapi-smoke'},logRecords:[{
       timeUnixNano:nano(now),observedTimeUnixNano:nano(now),severityNumber:9,severityText:'INFO',
-      body:{stringValue:marker},traceId,spanId,attributes:[attr('webapi.log.id',randomUUID()),attr('webapi.client.ip_masked','192.0.2.xxx')]
+      body:{stringValue:marker},traceId,spanId,attributes:[attr('webapi.log.id',logId),attr('webapi.api.id',apiId),attr('webapi.application.id',appId),attr('webapi.destination.id',destinationId),attr('http.request.method','GET'),attr('url.template','/smoke'),attr('webapi.duration.ms','10'),attr('http.response.status_code','200'),attr('webapi.node.name','smoke-node'),attr('webapi.outcome','Completed'),attr('webapi.request.id','synthetic-request'),attr('webapi.client.ip_masked','192.0.2.xxx')]
     }]}]}]},
     traces:{resourceSpans:[{resource,scopeSpans:[{scope:{name:'webapi-smoke'},spans:[{
       traceId,spanId,name:marker,kind:2,startTimeUnixNano:nano(now-10),endTimeUnixNano:nano(now),status:{code:1}
@@ -83,18 +87,24 @@ async function smoke(file,project,collector,health,prometheus,loki,tempo){
   const upperBucketFound=await poll(async()=>await metricValue(`webapi_gateway_request_duration_seconds_bucket{webapi_environment_id="${environmentId}",le="0.05"}`)>=1,'Duration histogram bucket');
   const nodeObservedSeconds=await poll(()=>metricValue(`webapi_telemetry_last_observed_timestamp_seconds{webapi_environment_id="${environmentId}"}`),'Node observation gauge');
   const metricContract={histogramCount,upperBucketFound,nodeObservedSeconds};validateMetricContract(metricContract);
-  const logQuery=`{service_name="webapi-smoke",webapi_environment_id="${environmentId}"} |= "${marker}"`;
+  const logQuery=`{service_name="webapi-gateway",webapi_environment_id="${environmentId}"} |= "${marker}"`;
   const logMarkerFound=await poll(async()=>{
     const j=await(await response(`${loki}/loki/api/v1/query_range?${new URLSearchParams({query:logQuery,start:nano(now-60_000),end:nano(Date.now()),limit:'10'})}`)).json();
     return j.status==='success'&&j.data.result.some(s=>s.values.some(v=>v[1]===marker));
   },'Access log ingestion');
+  const logMetadata = await poll(async()=>{
+    const j=await(await response(`${loki}/loki/api/v1/query_range?${new URLSearchParams({query:`{service_name="webapi-gateway",webapi_environment_id="${environmentId}"} | webapi_log_id="${logId}" | http_request_method="GET"`,start:nano(now-60_000),end:nano(Date.now()),limit:'10'})}`)).json();
+    for(const stream of j.data?.result??[])for(const row of stream.values??[]){const metadata={...stream.stream,...(row[2]??{})};if(metadata.webapi_log_id===logId&&metadata.url_template==='/smoke')return {metadataFound:true,normalizedNames:metadata.http_request_method==='GET',filterFound:true,shape:row.length>=3?'row-metadata':'flattened-stream-labels',keys:Object.keys(metadata).sort()};}
+    return false;
+  },'Normalized structured log metadata');
+  validateLogContract(logMetadata);
   const traceFound=await poll(async()=>{
     const j=await(await response(`${tempo}/api/traces/${traceId}`,{headers:{Accept:'application/json'}})).json();
     const batches=j.batches??j.resourceSpans??[];
     return batches.some(b=>(b.scopeSpans??b.instrumentationLibrarySpans??[]).some(s=>(s.spans??[]).some(x=>x.name===marker)));
   },'Trace ingestion');
   const proof={requestCounter,logMarkerFound,traceFound};validateProof(proof);
-  writeFileSync(file,JSON.stringify({project,startedAt,completedAt:new Date().toISOString(),endpoints,environmentId,traceId,marker,proof,metricContract,cleanup:null,kind:'synthetic-otlp-protocol-only',verifiedVolumeCapacityBytes:{loki:1073741824,tempo:1073741824}},null,2));
+  writeFileSync(file,JSON.stringify({project,startedAt,completedAt:new Date().toISOString(),endpoints,environmentId,traceId,marker,proof,metricContract,logContract:logMetadata,cleanup:null,kind:'synthetic-otlp-protocol-only',verifiedVolumeCapacityBytes:{loki:1073741824,tempo:1073741824}},null,2));
   console.log(JSON.stringify({project,proof,kind:'synthetic-otlp-protocol-only'}));
 }
 function cleanup(file,project,result){

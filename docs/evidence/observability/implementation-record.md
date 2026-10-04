@@ -41,3 +41,11 @@ metric-contract-smoke.json记录独立真实Collector/Prometheus/Loki/Tempo栈�
 浏览器1440px检查：原两个路径RED落在覆盖页；本次正常、NoData、Partial、503、管理员空Scope、环境切换、下一GET撤权清除、API跳转和返回/刷新保留筛选均观察。正常/API详情及4种状态截图在ui/。浏览器使用真实CP/PostgreSQL随机数据库与可控provider协议响应，明确是UI与权限证据，不替代真实Gateway-Collector三源闭环。最终新浏览器会话控制台0 error/0 warning；开发热更新曾重复createRoot，已复用HMR data中的root并重新检查最终会话。临时随机DB test_080b0e20ad8f49dd93d139d3e1925980精确检查0，容器0、cookie文件删除、预览停止、浏览器临时tab关闭和视口恢复。原管理员及4180/4181/5090服务未扩权。
 
 批准spec第151行要求状态分组，而Task4白名单遗漏Status。Task5补充Status：先观察422 RED，再全量集成102/102通过。HTTP状态按真实请求计数分组，时延桶未按状态采集，因此状态行的延迟保持null。请求量及分位延迟标注采样估计。日志/Trace入口按权限检查，后续页在Task8接入；规则预填与入口在Task13接入实际规则创建，当前不暴露无效编辑操作。
+
+## Task 6：日志分页与安全导出
+
+六项计划测试先RED404，再GREEN。附加真实Loki展平metadata及纳秒差边界RED无行后修正；URL原IP原先被忽略RED200后改422；极早时间Ns溢出RED500后改422；来源安全sourceType和Retry-After、CSV采集状态header均先RED后补齐；Destination忽略RED200后补授权与二次过滤。最终真实CP/PostgreSQL全量115/115通过，0 skipped，其中日志13项；网关共享契约回归22/22通过，协议行为6/6通过。过期/篡改游标和大同时间边界补充测试验证已有防护。
+
+独立真实Collector/Prometheus/Loki/Tempo协议栈确认logContract.metadataFound / normalizedNames / filterFound=true，shape=flattened-stream-labels；三源仍有实际counter=1、日志标记及Trace结果，histogram/gauge成立。日志字段与筛选证据在log-contract-smoke.json；结束精确项目0容器/0卷/0秘密文件。此证据不替代实际Gateway→CP→浏览器链路，后者Task14验证。
+
+游标绑定身份/授权环境集合/过滤/固定范围，保留源纳秒并稳定去重；可辨识截断停止下一页。IP POST内存输入→HMAC，不入URL/DTO/CSV。CSV每源分页及提交前重验授权，8MiB/10000行有界buffer、公式中和，读取失败不发成功文件；行数、截断、采集状态在headers发出前已知。契约与决策成本见contracts/observability.md。
