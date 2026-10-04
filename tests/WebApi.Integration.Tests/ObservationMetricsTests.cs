@@ -104,6 +104,14 @@ public sealed class ObservationMetricsTests
         using var response=await s.Client.GetAsync(Url(s,source,suffix:$"&apiId={Guid.NewGuid()}").Replace("/metrics?",$"/apis/{s.Api.Id}/metrics?"));
         Assert.Equal(HttpStatusCode.UnprocessableEntity,response.StatusCode);Assert.Empty(source.Requests);
     }
+    [Fact] public async Task StatusGroupingKeepsRealCountsAndDoesNotInventLatencyByStatus()
+    {
+        var source=new MetricProtocolHandler();await using var s=await FixtureAsync(source);
+        using var response=await s.Client.GetAsync(Url(s,source,suffix:"&groupBy=Status"));response.EnsureSuccessStatusCode();
+        var body=(await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;var group=Assert.Single(body.Data!.Groups);
+        Assert.Equal("200",group.Key);Assert.Equal("HTTP 200",group.Name);Assert.Equal(200,Assert.Single(group.Values,x=>x.Metric=="request_count").Value);Assert.Null(Assert.Single(group.Values,x=>x.Metric=="latency_p95_ms").Value);
+    }
+
 }
 
 public sealed class MetricProtocolHandler : HttpMessageHandler

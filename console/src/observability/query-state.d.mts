@@ -1,0 +1,9 @@
+export type ObservationSearch={range:'1h'|'6h'|'24h'|'7d';group?:'None'|'Api'|'Application'|'Destination'|'Status';api?:string;app?:string;destination?:string;status?:string;duration?:number;trace?:string;cursor?:string;ip?:string;end?:string;page?:number;all?:boolean};
+export function parseObservationSearch(search:string):ObservationSearch;
+export function serializeObservationSearch(state:ObservationSearch):string;
+export function observationRange(state:ObservationSearch,now?:Date):{start:string;end:string};
+export type ObservationRequest={signal:AbortSignal;cursor?:string;controller:AbortController};
+export function createObservationGate():{begin(scope:string,cursor?:string):ObservationRequest;isCurrent(request:ObservationRequest):boolean;dispose():void};
+export function metricDisplay(metric:{value:number|null;unit:string;state?:string}):string;
+export function chartSegments(points:{time:string;value:number|null}[]):{time:string;value:number}[][];
+export function resetObservationScopeSearch(search:string,kind:string):string;

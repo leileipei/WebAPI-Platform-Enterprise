@@ -247,18 +247,18 @@
     "number": 28,
     "name": "监控总览",
     "sourceRoute": "/observability/metrics",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/observability/metrics",
+    "status": "监控查询已接入",
+    "note": "支持受授权环境限定的指标、趋势、分组及采集状态；三源网关闭环验收待本阶段最终验证"
   },
   {
     "id": 29,
     "number": 29,
     "name": "API 监控详情",
     "sourceRoute": "/observability/apis/{apiId}",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/observability/metrics",
+    "status": "监控查询已接入",
+    "note": "支持受授权环境限定的指标、趋势、分组及采集状态；三源网关闭环验收待本阶段最终验证"
   },
   {
     "id": 30,

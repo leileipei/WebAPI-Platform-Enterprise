@@ -33,3 +33,11 @@ Task 1验证：新增7项RED失败源为未实现校验；GREEN全量领域23通
 metric-contract-smoke.json记录独立真实Collector/Prometheus/Loki/Tempo栈：counter=1、histogram_count=1、0.05秒bucket成立、节点观察gauge为有效秒时间戳；日志与Trace可查。精确项目清理0容器/0卷/0秘密文件。合成协议验证不是Gateway E2E。
 
 决策：覆盖要求整个查询窗口有节点观察证据，新栈不会伪报完整历史；每个授权环境需采集节点，空集合不能逻辑上视作全覆盖。NodeName沿用原全局唯一约束，详情补充可选EnvironmentId明确节点所属环境，不更改核心数据库架构。API筛选显式FromQuery防止Minimal API将路径参数隐式覆盖查询冲突检查。
+
+## Task 5：监控总览及 API 监控
+
+前端新7项行为先RED后GREEN，完整前端16/16和类型检查/生产构建通过。查询参数保留Back/refresh的范围和截止时间，原导航未保存guard继续有效。Scope改变立即隔离旧结果、Abort旧请求，重置URL游标及页码；IP不入URL。KPI空值与已知0分开，SVG包含真实数据点时间/单位/窗口样本标题及同源表格，不增加图表库。
+
+浏览器1440px检查：原两个路径RED落在覆盖页；本次正常、NoData、Partial、503、管理员空Scope、环境切换、下一GET撤权清除、API跳转和返回/刷新保留筛选均观察。正常/API详情及4种状态截图在ui/。浏览器使用真实CP/PostgreSQL随机数据库与可控provider协议响应，明确是UI与权限证据，不替代真实Gateway-Collector三源闭环。最终新浏览器会话控制台0 error/0 warning；开发热更新曾重复createRoot，已复用HMR data中的root并重新检查最终会话。临时随机DB test_080b0e20ad8f49dd93d139d3e1925980精确检查0，容器0、cookie文件删除、预览停止、浏览器临时tab关闭和视口恢复。原管理员及4180/4181/5090服务未扩权。
+
+批准spec第151行要求状态分组，而Task4白名单遗漏Status。Task5补充Status：先观察422 RED，再全量集成102/102通过。HTTP状态按真实请求计数分组，时延桶未按状态采集，因此状态行的延迟保持null。请求量及分位延迟标注采样估计。日志/Trace入口按权限检查，后续页在Task8接入；规则预填与入口在Task13接入实际规则创建，当前不暴露无效编辑操作。

@@ -136,11 +136,11 @@
 
 **Interfaces:** `loadMetrics(scope: ObservationScopeRequest, range: TimeRange, filter: MetricFilter, signal: AbortSignal): Promise<ObservationEnvelope<MetricsDto>>`；`parseObservationSearch(search: string): ObservationSearch` / `serializeObservationSearch(state: ObservationSearch): string`，ObservationSearch含range(1h/6h/24h/7d) / api / app / status / duration / trace / group / cursor及可选内存ip，serialize明确忽略ip；`TrendChart({points,unit,label})`为可访问SVG与同数据表格摘要，不安装未批准图表依赖。
 
-- [ ] 写URL纯函数测试：`assert.equal(parseObservationSearch('?range=24h').range,'24h'); assert.equal(serializeObservationSearch({range:'1h',ip:'10.0.0.1'}).includes('10.0.0.1'),false);`；Scope切换重置游标和Abort旧请求。记录浏览器RED：当前两个原路径仍未接真实内容。
-- [ ] 运行`./scripts/check-console.sh`确认新测试预期失败；不把原构建通过当作新页面已完成。
-- [ ] 实现28 / 29页KPI、趋势、Top分页与App / status / Destination分组，1440px复用tokens；tooltip带时间 / 单位 / 样本量、缺数据保留null。跳转沿用API / App详情及之后日志 / Trace路径；按目标权限控制入口，规则创建预填API / 环境但需Task 13真正写入。
-- [ ] 前端检查通过；真实管理员空Scope / 新鲜指标 / NoData / Partial / 503分别浏览器验证。Back / refresh保留查询，旧请求不能覆盖新Scope，权限拒绝清除图表。保存无秘密截图和控制台错误检查。
-- [ ] 提交`feat: connect metrics overview and api monitoring pages`，O1阶段真实指标链路另在Task 14复验。
+- [x] 写URL纯函数测试：`assert.equal(parseObservationSearch('?range=24h').range,'24h'); assert.equal(serializeObservationSearch({range:'1h',ip:'10.0.0.1'}).includes('10.0.0.1'),false);`；Scope切换重置游标和Abort旧请求。记录浏览器RED：当前两个原路径仍未接真实内容。
+- [x] 运行`./scripts/check-console.sh`确认新测试预期失败；不把原构建通过当作新页面已完成。
+- [x] 实现28 / 29页KPI、趋势、Top分页与App / status / Destination分组，1440px复用tokens；tooltip带时间 / 单位 / 样本量、缺数据保留null。跳转沿用API / App详情及之后日志 / Trace路径；按目标权限控制入口，规则创建预填API / 环境但需Task 13真正写入。
+- [x] 前端检查通过；真实管理员空Scope / 新鲜指标 / NoData / Partial / 503分别浏览器验证。Back / refresh保留查询，旧请求不能覆盖新Scope，权限拒绝清除图表。保存无秘密截图和控制台错误检查。
+- [x] 提交`feat: connect metrics overview and api monitoring pages`，O1阶段真实指标链路另在Task 14复验。
 
 ## Task 6: 日志查询、稳定游标及安全导出
 

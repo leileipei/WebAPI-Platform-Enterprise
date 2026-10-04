@@ -8,7 +8,7 @@ export function navigate(path,committed=false,target=window){
 export function bindNavigation(target,onPath){
  const history=target.history;let acceptedIndex=history.state?.webapiIndex||0,acceptedUrl=target.location.href,restoring=false;
  history.replaceState({...history.state,webapiIndex:acceptedIndex},'',acceptedUrl);
- const changed=()=>{acceptedIndex=history.state?.webapiIndex||0;acceptedUrl=target.location.href;onPath(target.location.pathname);};
+ const changed=()=>{acceptedIndex=history.state?.webapiIndex||0;acceptedUrl=target.location.href;onPath(target.location.pathname,target.location.search);};
  const popped=event=>{
   if(restoring){restoring=false;return;}
   if(!allowNavigation(target)){

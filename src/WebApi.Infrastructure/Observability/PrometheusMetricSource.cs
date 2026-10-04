@@ -43,11 +43,11 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var groups=new List<MetricGroupDto>();
         if(filter.GroupBy!="None")
         {
-            var key=filter.GroupBy switch{"Api"=>"webapi_api_id","Application"=>"webapi_application_id",_=>"webapi_destination_id"};
+            var key=filter.GroupBy switch{"Api"=>"webapi_api_id","Application"=>"webapi_application_id","Status"=>"http_response_status_code",_=>"webapi_destination_id"};
             foreach(var grouping in requests.GroupBy(x=>x.Labels.GetValueOrDefault(key)??"Unknown"))
             {
-                var name=Name(scope,filter.GroupBy,grouping.Key);
-                groups.Add(new(grouping.Key,name,Values(grouping.ToArray(),histogram.Where(x=>x.Labels.GetValueOrDefault(key)==grouping.Key).ToArray(),seconds,null,missing,observed.State)));
+                var name=filter.GroupBy=="Status"?(grouping.Key=="0"?"未发送响应状态":"HTTP "+grouping.Key):Name(scope,filter.GroupBy,grouping.Key);
+                groups.Add(new(grouping.Key,name,Values(grouping.ToArray(),filter.GroupBy=="Status"?[]:histogram.Where(x=>x.Labels.GetValueOrDefault(key)==grouping.Key).ToArray(),seconds,null,missing,observed.State)));
             }
         }
         var ordered=groups.OrderByDescending(x=>x.Values.First(v=>v.Metric==filter.SortBy).Value??double.NegativeInfinity).ThenBy(x=>x.Key,StringComparer.Ordinal).ToArray();
