@@ -11,3 +11,4 @@ public sealed record RuleTestDto(string EvaluationState,IReadOnlyList<MetricGrou
 public sealed record AlertAction(string Kind,string? Reason,DateTimeOffset? Until);
 public sealed record AlertRuleExpression(string Metric,string Operator,double Threshold);
 public sealed record EvaluationInput(DateTimeOffset Slot,DateTimeOffset? ObservedAt,double? Value,bool? Condition,SourceState SourceState);
+public sealed record RuleScopePreviewDto(IReadOnlyList<Guid> EnvironmentIds,bool IncludesFutureActiveEnvironments,string Policy);

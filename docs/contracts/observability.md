@@ -47,3 +47,15 @@ CSV从相同过滤与截止时间的首行重新读取，忽略列表cursor；�
 `sampling` 显示部署配置（默认 0.1，ParentBasedTraceIdRatioBased）。404 表示当前范围未找到，可能未采样或过保留期；源故障为 503 且 sourceType=traces，两者分开。源响应后再次核验授权。
 
 固定 Tempo 3.1.0 实测返回 batches、Base64 trace/span/parent ID 和枚举字符串，受限 resource/API TraceQL search 可用。`trace-contract-smoke.json` 仅证明合成 OTLP 协议；测试中的捕获响应验证适配器投影，真实业务网关与查询 API 的端到端验收仍留待 Task 14。[Tempo API](https://grafana.com/docs/tempo/latest/api_docs/) 与 [TraceQL most_recent](https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/) 说明供应商搜索限制，不能替代平台授权。
+
+## 告警规则治理（Task 10）
+
+规则创建/编辑/启停复用Cookie、CSRF、If-Match、幂等键和治理事务锁。任何规则操作检查其完整写Scope；几个环境grant不能替代组织/项目宽grant。预览POST `/observability/alert-rules/preview`返回当前Active环境ID和未来Active环境自动纳入政策，不创建持久记录。
+
+同名唯一使用trim、NFKC和Invariant uppercase规范化，宽Scope的SQL NULL同样参与唯一约束。规则OrganizationId在创建后固定；项目/环境范围仍可修改，跨组织需要新建并停用旧规则。原因是历史事件冻结组织归属，不能随规则租户迁移。修改name/notification只增加revision；判断逻辑、目标、Scope、severity、for/window或enabled改变增加logic_revision，并同事务关闭旧活动事件、追加流转及审计。仅站内中心启用，Email/Webhook/EnterpriseIm只保存意向枚举，不允许URL或密钥。
+
+`unhealthy_destinations`目前只支持环境或具体Destination目标。健康gauge没有API依赖关系，API目标返回422；API仍支持RPS、5xx比例和P95时延。不能借用整个环境的健康值表示单API健康。
+
+POST `/observability/alert-rules/test`和preview只读，但仍要求CSRF，不要求幂等键。只读test使用规则管理权限的可信范围调用原指标源，不隐含metrics.read。缺样本、缺节点、部分/过期来源以及来源503均返回Unknown、Condition=null；故障目标的MetricValue.State=Unavailable，HTTP200不表示条件通过。结构和权限错误仍按正常Problem Details返回。测试不保存规则、事件、治理审计或通知。数据返回后重验授权及环境集合。
+
+已有规则的管理授权按其持久归属Scope判断，允许查看并修复被删除目标的规则；新提交的目标引用重新验证。宽规则只有当前每个环境的最新logic_revision目标都有Known及成功时点才显示Known，LastSuccessAt取这些时点的最小值。
