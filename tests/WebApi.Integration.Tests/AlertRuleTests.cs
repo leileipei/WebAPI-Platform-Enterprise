@@ -77,9 +77,9 @@ public sealed class AlertRuleTests
     [Fact] public async Task WideRuleDoesNotHideUnknownEnvironment()
     {
         await using var f=await Fixture();var rule=await Create(f,Definition(f) with{EnvironmentId=null});var a=DateTimeOffset.UtcNow.AddSeconds(-10);var b=a.AddSeconds(-10);Guid envId;
-        await using(var db=f.Context()){var env=new EnvironmentRecord{ProjectId=f.Project.Id,Code="SECOND",Name="Second"};envId=env.Id;db.Add(env);db.Add(new AlertEvaluationState{RuleId=rule.Id,LogicRevision=1,OrganizationId=f.Organization.Id,ProjectId=f.Project.Id,EnvironmentId=f.Environment.Id,ResourceType="Environment",ResourceKey="Environment",EvaluationState="Known",LastSuccessAt=a});await db.SaveChangesAsync();}
+        await using(var db=f.Context()){var env=new EnvironmentRecord{ProjectId=f.Project.Id,Code="SECOND",Name="Second"};envId=env.Id;db.Add(env);db.Add(new AlertEvaluationState{RuleId=rule.Id,LogicRevision=1,OrganizationId=f.Organization.Id,ProjectId=f.Project.Id,EnvironmentId=f.Environment.Id,ResourceType="Environment",ResourceKey="Environment",EvaluationState="Known",LastSuccessAt=a,LastEvaluatedSlot=DateTimeOffset.UtcNow});await db.SaveChangesAsync();}
         using(var missing=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{rule.Id}")){missing.EnsureSuccessStatusCode();var dto=(await missing.Content.ReadFromJsonAsync<AlertRuleDto>())!;Assert.Equal("Unknown",dto.EvaluationState);Assert.Null(dto.LastSuccessAt);}
-        await using(var db=f.Context()){db.Add(new AlertEvaluationState{RuleId=rule.Id,LogicRevision=1,OrganizationId=f.Organization.Id,ProjectId=f.Project.Id,EnvironmentId=envId,ResourceType="Environment",ResourceKey="Environment",EvaluationState="Known",LastSuccessAt=b});await db.SaveChangesAsync();}
+        await using(var db=f.Context()){db.Add(new AlertEvaluationState{RuleId=rule.Id,LogicRevision=1,OrganizationId=f.Organization.Id,ProjectId=f.Project.Id,EnvironmentId=envId,ResourceType="Environment",ResourceKey="Environment",EvaluationState="Known",LastSuccessAt=b,LastEvaluatedSlot=DateTimeOffset.UtcNow});await db.SaveChangesAsync();}
         using var known=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{rule.Id}");known.EnsureSuccessStatusCode();var complete=(await known.Content.ReadFromJsonAsync<AlertRuleDto>())!;Assert.Equal("Known",complete.EvaluationState);Assert.Equal(b.ToUnixTimeMilliseconds(),complete.LastSuccessAt!.Value.ToUnixTimeMilliseconds());
     }
     [Theory] [InlineData("https://secret.invalid")] [InlineData("SMS")]
@@ -122,5 +122,11 @@ public sealed class AlertRuleTests
     {
         var handler=new MetricProtocolHandler{Status=503};await using var f=await Fixture(handler);using var response=await f.WriteAsync(HttpMethod.Post,"/api/v1/observability/alert-rules/test",Definition(f));Assert.Equal(HttpStatusCode.OK,response.StatusCode);var result=(await response.Content.ReadFromJsonAsync<RuleTestDto>())!;Assert.Equal("Unknown",result.EvaluationState);Assert.Null(result.Condition);Assert.Equal(WebApi.Contracts.Observability.SourceState.Unavailable,result.Matches.Single().Values.Single().State);
         await using var db=f.Context();Assert.Equal(0,await db.Set<AlertRule>().CountAsync());Assert.Equal(0,await db.Set<AlertEvent>().CountAsync());Assert.Equal(0,await db.Set<OutboxMessage>().CountAsync());
+    }
+    [Fact] public async Task StoppedWorkerCannotLeaveRuleEvaluationFalselyKnown()
+    {
+        await using var f=await Fixture();var rule=await Create(f);
+        await using(var db=f.Context()){db.Add(new AlertEvaluationState{RuleId=rule.Id,LogicRevision=1,OrganizationId=f.Organization.Id,ProjectId=f.Project.Id,EnvironmentId=f.Environment.Id,ResourceType="Environment",ResourceKey="Environment",EvaluationState="Known",LastSuccessAt=DateTimeOffset.UtcNow.AddMinutes(-2),LastEvaluatedSlot=DateTimeOffset.UtcNow.AddMinutes(-1)});await db.SaveChangesAsync();}
+        using var get=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{rule.Id}");get.EnsureSuccessStatusCode();var value=(await get.Content.ReadFromJsonAsync<AlertRuleDto>())!;Assert.Equal("Unknown",value.EvaluationState);Assert.True(value.LastSuccessAt<DateTimeOffset.UtcNow.AddMinutes(-1));
     }
 }

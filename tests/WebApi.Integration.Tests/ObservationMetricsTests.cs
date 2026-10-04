@@ -120,7 +120,7 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
     public Guid? ForeignEnvironmentId;
     public bool MissingSecondNode,ResetWindow;
     public int Status=200;
-    public DateTimeOffset End {get;}=DateTimeOffset.UtcNow.AddSeconds(-1);
+    public DateTimeOffset End {get;set;}=DateTimeOffset.UtcNow.AddSeconds(-1);
     public DateTimeOffset Start=>End.AddHours(-1);
     public ConcurrentQueue<Uri> Requests {get;}=new();
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)

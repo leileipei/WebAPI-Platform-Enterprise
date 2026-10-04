@@ -59,3 +59,13 @@ CSV从相同过滤与截止时间的首行重新读取，忽略列表cursor；�
 POST `/observability/alert-rules/test`和preview只读，但仍要求CSRF，不要求幂等键。只读test使用规则管理权限的可信范围调用原指标源，不隐含metrics.read。缺样本、缺节点、部分/过期来源以及来源503均返回Unknown、Condition=null；故障目标的MetricValue.State=Unavailable，HTTP200不表示条件通过。结构和权限错误仍按正常Problem Details返回。测试不保存规则、事件、治理审计或通知。数据返回后重验授权及环境集合。
 
 已有规则的管理授权按其持久归属Scope判断，允许查看并修复被删除目标的规则；新提交的目标引用重新验证。宽规则只有当前每个环境的最新logic_revision目标都有Known及成功时点才显示Known，LastSuccessAt取这些时点的最小值。
+
+## 持久评估与租约（Task 11）
+
+默认 Alerts:IntervalSeconds=15、QueryDelaySeconds=30、LeaseSeconds=30、MaxConcurrentEvaluations=4。Worker每秒唤醒以继续有界批次，实际每个资源只提交一个当前PG槽位，避免追补历史。槽位、租约有效期及提交时间用clock_timestamp；CPU时钟倒退不推进或认领旧槽位。MaxConcurrentEvaluations允许1–16，批次等于该并发数，查询每个资源用独立DbContext、10秒来源超时。
+
+所有持久写按治理锁8901202、rule、evaluation、event顺序；外部来源I/O不在事务中。提交校验当前revision、logic_revision、enabled、实际Active环境/目标、单调token、真实有效期及last_evaluated_slot。重命名期间的旧修订查询不提交结果，但释放其仍有效的旧租约，保留Pending和人工抑制，允许当前修订重查。
+
+未知来源重置Pending；Firing与人工抑制保持。暂停Scope也保持Firing和SuppressedUntilRecovery，事件标ScopeInactive；真实恢复再Resolved。资源实际删除/离开目标归属才以ResourceRetired关闭，来源不再返回序列不等于删除。有效观测时间必须递增，人工解决后的恢复还必须晚于SuppressedAt。事件创建时间是实际数据库提交时间，condition_started_at来自连续有效观测起点。
+
+规则当前槽位超过两倍间隔则Unknown，LastSuccessAt保留所有当前目标已有有效观测时点的最小值；没有某个目标的成功事实时null。UI应称“最近有效观测”，显示真实年龄和当前状态。健康指标有独立gauge：节点覆盖完整且健康样本有效可在无业务请求时Known；不能把没有比例/分位样本解释成恢复。系统trigger/recovery/retirement追加transition和UserId=null审计，重复true仅更新观测事实。

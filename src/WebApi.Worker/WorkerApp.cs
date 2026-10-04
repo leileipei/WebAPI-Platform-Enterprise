@@ -1,3 +1,5 @@
+using WebApi.Infrastructure.Alerts;
+using WebApi.Infrastructure.Observability;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,6 +28,8 @@ builder.Services.AddScoped<HistoricalSnapshotService>();
 builder.Services.AddScoped<RouteService>();
 builder.Services.AddSingleton(new UpstreamAddressPolicy(builder.Configuration.GetSection("Upstream:AllowedOrigins").Get<string[]>()??["http://test-backend:8080"]));
 builder.Services.AddSingleton(new RedisSnapshotStore(builder.Configuration["Redis:Connection"]??"redis:6379,abortConnect=false",builder.Configuration["Redis:Prefix"]??"webapi:runtime"));
+builder.Services.AddSingleton(AlertEvaluationSettings.Read(builder.Configuration));builder.Services.AddScoped<AlertRuleScopeResolver>();builder.Services.AddScoped<AlertEvaluationLeaseStore>();builder.Services.AddScoped<AlertEvaluationService>();
+builder.Services.AddSingleton(ObservationSourceSettings.Read(builder.Configuration));builder.Services.AddHttpClient("observability",client=>client.Timeout=TimeSpan.FromSeconds(10)).ConfigurePrimaryHttpMessageHandler(()=>new SocketsHttpHandler{AllowAutoRedirect=false,UseCookies=false});builder.Services.AddScoped<ObservationSourceClient>();builder.Services.AddScoped<ObservationCoverageService>();builder.Services.AddScoped<PrometheusMetricSource>();builder.Services.AddHostedService<AlertEvaluationWorker>();
 builder.Services.AddScoped<ReleaseTimeoutService>();builder.Services.AddHostedService<ReleaseTimeoutWorker>();builder.Services.AddHostedService<ReleaseBuildWorker>();builder.Services.AddHostedService<OutboxWorker>();return builder.Build();
 
  }

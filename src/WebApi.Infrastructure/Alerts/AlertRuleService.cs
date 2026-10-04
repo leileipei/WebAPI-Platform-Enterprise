@@ -12,7 +12,7 @@ using WebApi.Infrastructure.Observability;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 namespace WebApi.Infrastructure.Alerts;
-public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext)
+public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings)
 {
     public static SaveAlertRuleRequest Definition(AlertRule r)=>new(r.OrganizationId,r.ProjectId,r.EnvironmentId,r.Name,r.Metric,r.Expression,r.Severity,r.Enabled,r.ForSeconds,r.TargetType,r.TargetId,r.WindowSeconds,JsonSerializer.Deserialize<NotificationIntent>(r.Notification,CanonicalJson.Options)!);
     public static string ResourceKey(SaveAlertRuleRequest r)=>r.TargetType=="Environment"?"Environment":r.TargetType+":"+r.TargetId!.Value.ToString("D");
@@ -30,8 +30,10 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
     {
         var expected=await scopes.ResolveForSystemAsync(rule,ct);var key=ResourceKey(Definition(rule));
         var states=await db.Set<AlertEvaluationState>().AsNoTracking().Where(x=>x.RuleId==rule.Id&&x.LogicRevision==rule.LogicRevision&&x.ResourceKey==key&&expected.Contains(x.EnvironmentId)).ToArrayAsync(ct);
-        var complete=expected.Count>0&&states.Length==expected.Count&&states.All(x=>x.EvaluationState=="Known"&&x.LastSuccessAt is not null);
-        return new(rule.Id,Definition(rule),rule.Revision,rule.LogicRevision,!rule.Enabled?"Disabled":expected.Count==0?"ScopeInactive":complete?"Known":"Unknown",complete?states.Min(x=>x.LastSuccessAt):null);
+        var allSuccessful=expected.Count>0&&states.Length==expected.Count&&states.All(x=>x.LastSuccessAt is not null);
+        var now=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct);
+        var complete=allSuccessful&&states.All(x=>x.EvaluationState=="Known"&&x.LastEvaluatedSlot is not null&&x.LastEvaluatedSlot<=now&&now-x.LastEvaluatedSlot<=TimeSpan.FromSeconds(settings.IntervalSeconds*2));
+        return new(rule.Id,Definition(rule),rule.Revision,rule.LogicRevision,!rule.Enabled?"Disabled":expected.Count==0?"ScopeInactive":complete?"Known":"Unknown",allSuccessful?states.Min(x=>x.LastSuccessAt):null);
     }
     public async Task<PageResult<AlertRuleDto>> ListAsync(ActorContext actor,ObservationScopeRequest scope,int page,int pageSize,CancellationToken ct)
     {
@@ -97,8 +99,8 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
                 matches.Add(new(environment.ToString(),environment.ToString(),[new(r.Metric,null,Unit(r.Metric),0,SourceState.Unavailable)]));conditions.Add(null);continue;
             }
             var metric=value.Data?.Kpis.SingleOrDefault(x=>x.Metric==r.Metric);
-            var known=value.SourceState==SourceState.Available&&value.Coverage.Complete&&metric?.Value is not null;
-            matches.Add(new(environment.ToString(),environment.ToString(),[metric is null?new(r.Metric,null,r.Metric=="latency_p95_ms"?"ms":"",0,SourceState.NoData):known?metric:metric with{Value=null,State=value.SourceState==SourceState.Available?SourceState.Partial:value.SourceState}]));conditions.Add(known?AlertExpressionParser.Compare(expression,metric!.Value):null);
+            var known=AlertEvaluationService.IsKnown(value,metric,r.Metric);
+            matches.Add(new(environment.ToString(),environment.ToString(),[metric is null?new(r.Metric,null,r.Metric=="latency_p95_ms"?"ms":"",0,SourceState.NoData):known?metric with{State=SourceState.Available}:metric with{Value=null,State=value.SourceState==SourceState.Available?SourceState.Partial:value.SourceState}]));conditions.Add(known?AlertExpressionParser.Compare(expression,metric!.Value):null);
         }
         var current=await scopes.ResolveForActorAsync(actor,r,ct);if(!environments.SequenceEqual(current))throw new ApiException(403,"scope_changed","规则范围已变化，请重新预览。");
         return new(conditions.Count==0||conditions.Any(x=>x is null)?"Unknown":"Known",matches,conditions.Count==0||conditions.Any(x=>x is null)?null:conditions.Any(x=>x==true));
