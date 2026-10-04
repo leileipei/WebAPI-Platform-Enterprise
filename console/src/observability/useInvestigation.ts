@@ -1,0 +1,17 @@
+import {useEffect,useRef,useState} from 'react';import {useWorkspace,navigate} from '../Shell';import {useSession} from '../auth/SessionProvider';import {ApiError} from '../api/client';import type {ObservationEnvelope,ObservationScopeRequest,TimeRange} from '../api/observability';import {parseObservationSearch,serializeObservationSearch,observationRange,createObservationGate,type ObservationSearch} from './query-state.mjs';import {updateInvestigationSearch,createCursorTrail} from './investigation-state.mjs';
+export function useInvestigation<T>({search,path,permission,ip='',load}:{search:string;path:string;permission:string;ip?:string;load:(scope:ObservationScopeRequest,range:TimeRange,query:ObservationSearch,signal:AbortSignal)=>Promise<ObservationEnvelope<T>>}){
+ const ws=useWorkspace(),session=useSession(),query=parseObservationSearch(search),gate=useRef(createObservationGate()),trail=useRef(createCursorTrail()),[tick,setTick]=useState(0);
+ const scope:ObservationScopeRequest={organizationId:ws.organizationId,projectId:ws.projectId,environmentId:query.all?null:ws.environmentId,allAccessibleEnvironments:!!query.all};const authority=JSON.stringify([session.user?.id,session.user?.permissions,session.user?.scopes,session.error]);
+ const allowed=!!ws.projectId&&!session.error&&!!(query.all?session.user?.permissions.includes(permission):session.can(permission,ws.scope));const identity=JSON.stringify([scope,query,ip,authority]),trailKey=JSON.stringify([scope,{...query,cursor:undefined,page:undefined},ip,authority]);
+ const[result,setResult]=useState<{identity:string;data?:ObservationEnvelope<T>;error:string;errorStatus?:number;loading:boolean}>({identity:'',error:'',loading:false});
+ useEffect(()=>{if(!query.end)navigate(path+serializeObservationSearch({...query,end:new Date().toISOString()}),true);},[search,path]);
+ useEffect(()=>{const request=gate.current.begin(JSON.stringify([scope,authority]),query.cursor);setResult({identity,error:'',loading:allowed&&!!query.end});if(!allowed||!query.end)return()=>request.controller.abort();
+  void load(scope,observationRange(query),query,request.signal).then(data=>{if(gate.current.isCurrent(request))setResult({identity,data,error:'',loading:false});}).catch(e=>{if(gate.current.isCurrent(request))setResult({identity,errorStatus:e instanceof ApiError?e.status:undefined,error:e instanceof ApiError&&[401,403,404].includes(e.status)?'数据范围或权限已失效，当前结果已清除。':(e as Error).message,loading:false});});return()=>request.controller.abort();
+ },[identity,tick,allowed]);
+ useEffect(()=>{const timer=setInterval(()=>setTick(t=>t+1),30_000);return()=>clearInterval(timer);},[]);
+ const current=result.identity===identity&&allowed?result:undefined;
+ function update(patch:Partial<ObservationSearch>){trail.current.reset();const next=serializeObservationSearch(updateInvestigationSearch(query,patch));if(next===serializeObservationSearch(query))setTick(t=>t+1);else navigate(path+next);}
+ function next(cursor:string){trail.current.record(trailKey,search);navigate(path+serializeObservationSearch({...query,cursor,page:(query.page||1)+1}));}
+ function previous(){const back=trail.current.previous(trailKey);if(back)navigate(path+back);else if(query.cursor)update({});}
+ return {ws,session,query,scope,identity,range:current?.data?.range||observationRange(query),allowed,envelope:current?.data,error:current?.error,errorStatus:current?.errorStatus,loading:current?.loading||false,reload:()=>setTick(t=>t+1),update,next,previous,hasPrevious:trail.current.hasPrevious(trailKey)||!!query.cursor};
+}

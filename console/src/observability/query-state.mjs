@@ -3,15 +3,18 @@ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function parseObservationSearch(search){
  const p=new URLSearchParams(search);const state={range:ranges.includes(p.get('range'))?p.get('range'):'1h',group:groups.includes(p.get('group'))?p.get('group'):'Api',page:Math.max(1,Math.min(1000000,Number(p.get('page'))||1))};
  for(const key of ['api','app','destination'])if(uuid.test(p.get(key)||''))state[key]=p.get(key);
- if(['2xx','4xx','5xx'].includes(p.get('status')))state.status=p.get('status');
+ if(/^(?:[1-5]xx|[1-5][0-9]{2}|ClientAborted)$/.test(p.get('status')||''))state.status=p.get('status');
  if(p.get('duration')&&Number.isFinite(Number(p.get('duration')))&&Number(p.get('duration'))>=0)state.duration=Number(p.get('duration'));
+ if(p.get('maxDuration')&&Number.isFinite(Number(p.get('maxDuration')))&&Number(p.get('maxDuration'))>=0)state.maxDuration=Number(p.get('maxDuration'));
+ if(p.get('keyword')&&p.get('keyword').length<=256&&!/[\x00-\x1f]/.test(p.get('keyword')))state.keyword=p.get('keyword');
+ if(['Success','Error'].includes(p.get('outcome')))state.outcome=p.get('outcome');
  if(/^[0-9a-f]{32}$/i.test(p.get('trace')||''))state.trace=p.get('trace');
  if((p.get('cursor')||'').length<=4096&&p.get('cursor'))state.cursor=p.get('cursor');
  if(p.get('end')&&Number.isFinite(Date.parse(p.get('end'))))state.end=new Date(p.get('end')).toISOString();
  if(p.get('all')==='true')state.all=true;return state;
 }
 export function serializeObservationSearch(state){
- const p=new URLSearchParams();for(const key of ['range','api','app','destination','status','duration','trace','group','cursor','end','page','all'])if(state[key]!==undefined&&state[key]!==null&&state[key]!=='')p.set(key,String(state[key]));
+ const p=new URLSearchParams();for(const key of ['range','api','app','destination','status','duration','maxDuration','keyword','outcome','trace','group','cursor','end','page','all'])if(state[key]!==undefined&&state[key]!==null&&state[key]!=='')p.set(key,String(state[key]));
  const clean=parseObservationSearch(p.toString());const result=new URLSearchParams();for(const [key,value]of Object.entries(clean))result.set(key,String(value));return '?'+result.toString();
 }
 export function observationRange(state,now=new Date()){

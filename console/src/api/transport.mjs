@@ -7,5 +7,6 @@ export async function apiRequest(path,options={}){
  const response=await fetch('/api/v1'+path,{method,credentials:'same-origin',cache:'no-store',headers,body:options.body===undefined?undefined:JSON.stringify(options.body),signal:options.signal});
  if(!response.ok){const problem=await response.json().catch(()=>({}));if(response.status===401&&path!='/auth/login'){token=undefined;globalThis.dispatchEvent?.(new Event('session-expired'));}if([403,404].includes(response.status))globalThis.dispatchEvent?.(new Event('permission-refresh'));throw new ApiError(response.status,problem.detail||problem.title||'服务暂不可用，请重试。',problem.traceId);}
  if(path==='/auth/login'||path==='/auth/logout'){token=undefined;if(path==='/auth/login'){const csrf=await fetch('/api/v1/auth/csrf',{credentials:'same-origin',cache:'no-store'});if(csrf.ok)token=(await csrf.json()).token;}}
+ if(options.responseType==='response')return response;
  return response.status===204?undefined:response.json();
 }

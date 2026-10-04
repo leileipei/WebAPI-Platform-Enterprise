@@ -58,3 +58,13 @@ metric-contract-smoke.json记录独立真实Collector/Prometheus/Loki/Tempo栈�
 - Provider cap 明确 truncated/noNext；非法零 ID/legacy ID 不访问源。共享签名 codec 缺配置最初误报 logs，增加链路专属用例 RED→修正为 traces。
 - 真实隔离 Collector/Prometheus/Loki/Tempo 合成协议检查验证 server/client、parent/resource/API search、安全属性，7/7 检查通过，清理后 0 containers/volumes/secret files。见 trace-contract-smoke.json；这不是业务网关/查询 API 端到端验收，Task 14 才验收后者。
 - Ruling：为避免泄漏跨 Scope root 时间，最多 200 候选重取详情，再按授权 span 时间+TraceId 签名分页；超过源候选上限明确截断无下一页。代价：忙碌环境须缩小时间窗，不能声称全量历史可翻页。
+
+## Task 8：日志与调用链调查页面
+
+日志完整筛选、固定截止时间、50条游标分页、当前查询CSV导出、详情抽屉以及链路双向跳转已接入。IP仅放内存并通过受CSRF保护的POST过滤。Trace展示真实span时间与父关系、安全标签、表格回退、采样与部分链路提示；来源错误清空旧列表与瀑布图，NoTrace和503分开。复制具备浏览器标准剪贴板失败时的临时选择回退。
+
+前端新8项行为先RED再GREEN，全部24/24通过，类型检查及生产构建通过。1440px浏览器检查分页50→5→50、固定时间、CSV55行及masked IP、跳转、真实剪贴板、瀑布图0/100与10/70百分比、键盘选择、抽屉Escape和焦点恢复、环境切换、空查询、Partial、NoTrace及503均有证据；真实PostgreSQL撤销随机账号权限后，下一GET清空两个页面旧数据。最后会话控制台0 error/0 warning，没有全页横向溢出。
+
+浏览器使用真实CP和随机PostgreSQL库、受控provider协议响应，不是业务网关三源端到端证据。截图31-source-unavailable-red.jpg保留修复前错误空表文案的RED；GREEN来源错误状态见30-source-unavailable.jpg，Trace另经页面检查验证无旧瀑布图。浏览器下载事件等待超时，但实际合成CSV文件和服务器行数headers验证55行导出；不把超时等待作为成功证据。
+
+临时数据库test_1e93b36f99ef4749accef1a8f98b2e63查询确认0，精确临时容器0、两个会话密钥文件不存在；预览停止、临时浏览器页关闭、视口恢复。原管理员权限未扩展。仅保留用户下载的合成CSV和持久QA截图。

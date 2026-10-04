@@ -265,18 +265,18 @@
     "number": 30,
     "name": "访问日志",
     "sourceRoute": "/observability/logs",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/observability/logs",
+    "status": "观测查询已接入",
+    "note": "支持受授权范围限定的查询、游标分页及日志/Trace联动；真实网关至采集源端到端验收待本阶段最终验证"
   },
   {
     "id": 31,
     "number": 31,
     "name": "Trace 查询",
     "sourceRoute": "/observability/traces",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/observability/traces",
+    "status": "观测查询已接入",
+    "note": "支持受授权范围限定的查询、游标分页及日志/Trace联动；真实网关至采集源端到端验收待本阶段最终验证"
   },
   {
     "id": 32,
