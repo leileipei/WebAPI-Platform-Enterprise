@@ -1,0 +1,266 @@
+{
+  "complete": true,
+  "projectName": "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65",
+  "sourceRevision": "ffa2d7b888ecc63046c7b8d0711a1d426d57aa4d",
+  "classification": "actual-persistent-runtime-http-three-source-restart-and-cold-restore",
+  "limitations": [
+    "Linux ARM64 only",
+    "Short windows in disposable acceptance",
+    "No seven-day elapsed retention",
+    "No enterprise upstream/production TLS/HA/SLA/external notifications"
+  ],
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  },
+  "chain": {
+    "passed": true,
+    "releaseId": "cdd630a8-f023-4091-8a40-76193b4371dc",
+    "dualAck": true,
+    "requests": 2,
+    "metricObserved": true,
+    "logTraceId": "de5e16ee5fee3ab045a49198deecd0d9",
+    "traceId": "de5e16ee5fee3ab045a49198deecd0d9",
+    "spanCount": 2,
+    "ruleId": "6ff92b69-0269-4089-b1f8-dc5fb98528a1",
+    "eventId": "ad4528bd-2604-41bf-a72f-ac5035a4390b",
+    "ackAndRecoveryAudits": 3
+  },
+  "failure": {
+    "passed": true,
+    "sourceUnavailableVerified": true,
+    "workerUnknownAndLeaseRecoveryVerified": true,
+    "redisPublishRecovered": true
+  },
+  "history": {
+    "traceId": "de5e16ee5fee3ab045a49198deecd0d9",
+    "ruleId": "6ff92b69-0269-4089-b1f8-dc5fb98528a1",
+    "eventId": "ad4528bd-2604-41bf-a72f-ac5035a4390b",
+    "fixedRange": {
+      "organizationId": "ff82c18c-f4f5-4b4e-a198-4d1a468b910d",
+      "projectId": "56175857-a9b8-4c75-ae17-60cb1cb818d3",
+      "environmentId": "de1de2e8-b9ac-4f83-8f31-9add62a4e5a4",
+      "start": "2026-10-04T13:56:18.901Z",
+      "end": "2026-10-04T13:59:40.688Z"
+    },
+    "releaseId": "cdd630a8-f023-4091-8a40-76193b4371dc"
+  },
+  "restart": {
+    "passed": true,
+    "sameCookieAfterControlPlaneRecreate": true,
+    "csrfAndForeignOriginRejected": true,
+    "newInstances": true,
+    "currentAckAfterNewApprovedRelease": true,
+    "newReleaseId": "e14922f0-88cf-4a1e-b1cd-ddd0c77c62b4",
+    "sourceHistoryRetained": true,
+    "ruleEventRetained": true
+  },
+  "backupRestore": {
+    "passed": true,
+    "hashesVerified": true,
+    "pgLogicalDumpPresent": true,
+    "coldVolumesRestored": 7,
+    "configurationRestored": true,
+    "sourceHistoryRestored": true,
+    "alertEventRestored": true,
+    "dualLkgTrafficRestored": true
+  },
+  "ui": {
+    "verified": true,
+    "method": "CUA real browser navigation, forms and visual inspection",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "consoleUrl": "http://127.0.0.1:63596",
+    "checkedAt": "2026-10-04T14:08:47.269Z",
+    "checks": [
+      "login and retained session after stack recovery",
+      "Active environment v2 sequence2",
+      "two real gateway nodes v2 sequence2",
+      "HTTP200 log filter and log detail drawer",
+      "retained historical Trace list and Server/Client waterfall",
+      "NoTrace when recent span was not received",
+      "Resolved alert filter and Open/Ack/Recovered timeline",
+      "metrics received samples and honest incomplete-window null KPIs"
+    ],
+    "screenshots": {
+      "docs/evidence/local-runtime/ui/alert-detail-1440.png": "4554924a92de6de6befdd3d45cf0d50a87436692cec559ce4fc977d4a1aeabe4",
+      "docs/evidence/local-runtime/ui/alerts-1440.png": "8324871ebe86f611e9cd537ff9247da339c9e842779f13d5ccbe451ad6e430c3",
+      "docs/evidence/local-runtime/ui/environment-1440.png": "207372b7f884351b52308f5b3cc20c539f274020d2864ba6b2e76e59cef33778",
+      "docs/evidence/local-runtime/ui/log-detail-1440.png": "d2d09ca508f969cfa70ac029cb4bbdad76101af23a850e600c3fa8ec2fad6627",
+      "docs/evidence/local-runtime/ui/logs-1440.png": "dd8476432bf0f3988342cac9bf6fc00fc77fb115d5dab449bab9ede0b83e1477",
+      "docs/evidence/local-runtime/ui/metrics-1440.png": "410c89b5db07df11f7eba99e2a5d80113c75312fb642e0e62c953b7941a8d4e1",
+      "docs/evidence/local-runtime/ui/nodes-1440.png": "7c75459b6d1a1ea5488dbea81d98cffc45bdf7a8a0596b0e96ffd4713efe5b5a",
+      "docs/evidence/local-runtime/ui/trace-1440.png": "943c1b534f0d9f84c1d377202a6361a36fd9430975a643679934cdb5ba339cca"
+    },
+    "limitations": [
+      "Synthetic isolated acceptance objects",
+      "No all-40-page re-audit in this runtime phase"
+    ]
+  },
+  "resources": {
+    "method": "Docker stats sampled every 5 seconds; observed maxima, not kernel high-water marks",
+    "sampleCount": 103,
+    "peakObservedMemoryBytes": 1752282694,
+    "peakByService": {
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-control-plane-1": 174168474,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-worker-1": 146171494,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-backend-b-1": 20845691,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-gateway-a-1": 79062630,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-backend-a-1": 36899389,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-gateway-b-1": 79146516,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-loki-1": 158649549,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-console-1": 62987960,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-tempo-1": 805306368,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-prometheus-1": 128450560,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-collector-1": 198285722,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-postgres-1": 57451479,
+      "webapi-enterprise-local-test-fbb4aa25-e664-4f9b-9c31-590223ac2d65-redis-1": 13778289
+    },
+    "errors": [
+      "Docker operation failed; inspect the owned project before retry.",
+      "Docker operation failed; inspect the owned project before retry.",
+      "Docker operation failed; inspect the owned project before retry."
+    ]
+  },
+  "preservedOldEnvironment": {
+    "unchanged": true,
+    "before": {
+      "containers": [
+        {
+          "id": "394ad3da4d8474ca7de4d45ccf51bc1e0cb49aa71e89a741a8880d687ec1f5fe",
+          "name": "/webapi-enterprise-core-test-control-plane-1",
+          "image": "sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+          "running": true,
+          "mounts": [
+            {
+              "name": null,
+              "source": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.secrets/postgres-password",
+              "destination": "/run/secrets/postgres-password"
+            },
+            {
+              "name": null,
+              "source": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise",
+              "destination": "/workspace"
+            }
+          ]
+        },
+        {
+          "id": "d12c92590db3e33c7e9ee040d15ee0e53fa1e4ef83820f3a8efc6ab5995e5d13",
+          "name": "/webapi-enterprise-core-test-postgres-1",
+          "image": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+          "running": true,
+          "mounts": [
+            {
+              "name": null,
+              "source": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.secrets/postgres-password",
+              "destination": "/run/secrets/postgres-password"
+            },
+            {
+              "name": "webapi-enterprise-core-test_pg-test",
+              "source": "/var/lib/docker/volumes/webapi-enterprise-core-test_pg-test/_data",
+              "destination": "/var/lib/postgresql/data"
+            }
+          ]
+        },
+        {
+          "id": "6223e795a8d10e2d3d2d9d9c8690e264dc20e34e58f5e1ab1f75b22606b9628f",
+          "name": "/webapi-enterprise-core-test-redis-1",
+          "image": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+          "running": true,
+          "mounts": [
+            {
+              "name": "e5b17cd8428767936c9be36967c6303d88620ece293195a2d41e75b0f8506cae",
+              "source": "/var/lib/docker/volumes/e5b17cd8428767936c9be36967c6303d88620ece293195a2d41e75b0f8506cae/_data",
+              "destination": "/data"
+            }
+          ]
+        }
+      ],
+      "endpoints": {
+        "4180": 200,
+        "4181": 200,
+        "5090": 404
+      },
+      "archives": {
+        "deliverables/WebAPI_Enterprise_可观测与告警源码及验收.zip": "e88d06501b6b995f38af12057933edbae91151cfcac1d0f11d2bc9304eb29b06",
+        "deliverables/WebAPI_Enterprise_核心闭环源码与验收.zip": "734ae0ecf78b92da08d03e352683453498067da8266df44b691ac1ad712d51d6",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1.zip": "810d55a9b09cde400524e29a2c07f032cc6a584af11c56e0aa29779a9d23a5b1",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.1.zip": "1c0ab23e44852efb6538447678b4b7ca4a3e2f2a909ebfb5a5c9fd447557d225",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.2.zip": "14b6c492d1613966de6339d813e90c8ee65abf6c11adfcb6def85f14a7ac3cda",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.3.zip": "7b6208898c6c5e0ad7acecf6182d3cdb1209aa69a2c020e5cd1cd4f4b2ce0a63",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.4.zip": "cc61148914306cca3f6dbe1bdc96d49677c7010932e1f5756c25622b8677f221"
+      }
+    },
+    "after": {
+      "containers": [
+        {
+          "id": "394ad3da4d8474ca7de4d45ccf51bc1e0cb49aa71e89a741a8880d687ec1f5fe",
+          "name": "/webapi-enterprise-core-test-control-plane-1",
+          "image": "sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+          "running": true,
+          "mounts": [
+            {
+              "name": null,
+              "source": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.secrets/postgres-password",
+              "destination": "/run/secrets/postgres-password"
+            },
+            {
+              "name": null,
+              "source": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise",
+              "destination": "/workspace"
+            }
+          ]
+        },
+        {
+          "id": "d12c92590db3e33c7e9ee040d15ee0e53fa1e4ef83820f3a8efc6ab5995e5d13",
+          "name": "/webapi-enterprise-core-test-postgres-1",
+          "image": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+          "running": true,
+          "mounts": [
+            {
+              "name": null,
+              "source": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.secrets/postgres-password",
+              "destination": "/run/secrets/postgres-password"
+            },
+            {
+              "name": "webapi-enterprise-core-test_pg-test",
+              "source": "/var/lib/docker/volumes/webapi-enterprise-core-test_pg-test/_data",
+              "destination": "/var/lib/postgresql/data"
+            }
+          ]
+        },
+        {
+          "id": "6223e795a8d10e2d3d2d9d9c8690e264dc20e34e58f5e1ab1f75b22606b9628f",
+          "name": "/webapi-enterprise-core-test-redis-1",
+          "image": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+          "running": true,
+          "mounts": [
+            {
+              "name": "e5b17cd8428767936c9be36967c6303d88620ece293195a2d41e75b0f8506cae",
+              "source": "/var/lib/docker/volumes/e5b17cd8428767936c9be36967c6303d88620ece293195a2d41e75b0f8506cae/_data",
+              "destination": "/data"
+            }
+          ]
+        }
+      ],
+      "endpoints": {
+        "4180": 200,
+        "4181": 200,
+        "5090": 404
+      },
+      "archives": {
+        "deliverables/WebAPI_Enterprise_可观测与告警源码及验收.zip": "e88d06501b6b995f38af12057933edbae91151cfcac1d0f11d2bc9304eb29b06",
+        "deliverables/WebAPI_Enterprise_核心闭环源码与验收.zip": "734ae0ecf78b92da08d03e352683453498067da8266df44b691ac1ad712d51d6",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1.zip": "810d55a9b09cde400524e29a2c07f032cc6a584af11c56e0aa29779a9d23a5b1",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.1.zip": "1c0ab23e44852efb6538447678b4b7ca4a3e2f2a909ebfb5a5c9fd447557d225",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.2.zip": "14b6c492d1613966de6339d813e90c8ee65abf6c11adfcb6def85f14a7ac3cda",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.3.zip": "7b6208898c6c5e0ad7acecf6182d3cdb1209aa69a2c020e5cd1cd4f4b2ce0a63",
+        "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.4.zip": "cc61148914306cca3f6dbe1bdc96d49677c7010932e1f5756c25622b8677f221"
+      }
+    }
+  },
+  "elapsedSeconds": 786
+}

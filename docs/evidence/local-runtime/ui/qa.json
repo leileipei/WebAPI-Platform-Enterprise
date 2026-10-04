@@ -1,0 +1,34 @@
+{
+  "verified": true,
+  "method": "CUA real browser navigation, forms and visual inspection",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "consoleUrl": "http://127.0.0.1:63596",
+  "checkedAt": "2026-10-04T14:08:47.269Z",
+  "checks": [
+    "login and retained session after stack recovery",
+    "Active environment v2 sequence2",
+    "two real gateway nodes v2 sequence2",
+    "HTTP200 log filter and log detail drawer",
+    "retained historical Trace list and Server/Client waterfall",
+    "NoTrace when recent span was not received",
+    "Resolved alert filter and Open/Ack/Recovered timeline",
+    "metrics received samples and honest incomplete-window null KPIs"
+  ],
+  "screenshots": {
+    "docs/evidence/local-runtime/ui/alert-detail-1440.png": "4554924a92de6de6befdd3d45cf0d50a87436692cec559ce4fc977d4a1aeabe4",
+    "docs/evidence/local-runtime/ui/alerts-1440.png": "8324871ebe86f611e9cd537ff9247da339c9e842779f13d5ccbe451ad6e430c3",
+    "docs/evidence/local-runtime/ui/environment-1440.png": "207372b7f884351b52308f5b3cc20c539f274020d2864ba6b2e76e59cef33778",
+    "docs/evidence/local-runtime/ui/log-detail-1440.png": "d2d09ca508f969cfa70ac029cb4bbdad76101af23a850e600c3fa8ec2fad6627",
+    "docs/evidence/local-runtime/ui/logs-1440.png": "dd8476432bf0f3988342cac9bf6fc00fc77fb115d5dab449bab9ede0b83e1477",
+    "docs/evidence/local-runtime/ui/metrics-1440.png": "410c89b5db07df11f7eba99e2a5d80113c75312fb642e0e62c953b7941a8d4e1",
+    "docs/evidence/local-runtime/ui/nodes-1440.png": "7c75459b6d1a1ea5488dbea81d98cffc45bdf7a8a0596b0e96ffd4713efe5b5a",
+    "docs/evidence/local-runtime/ui/trace-1440.png": "943c1b534f0d9f84c1d377202a6361a36fd9430975a643679934cdb5ba339cca"
+  },
+  "limitations": [
+    "Synthetic isolated acceptance objects",
+    "No all-40-page re-audit in this runtime phase"
+  ]
+}
