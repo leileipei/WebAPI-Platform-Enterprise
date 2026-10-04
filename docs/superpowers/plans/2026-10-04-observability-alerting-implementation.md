@@ -112,11 +112,11 @@
 
 **Interfaces:** `GatewayTelemetryRecorder.Record(RequestTelemetryContext context) : void`不得执行网络I/O；`TelemetrySanitizer.Path(string? routeTemplate) : string`、`Ip(IPAddress address) : (string Masked, string Hmac)`；`TelemetryDropTracker.Record(string signal, long count) : void`；`GatewayHealthObserver.Read() : IReadOnlyList<DestinationObservation>`，Observation包含EnvironmentId / NodeName / 管理ClusterId / DestinationId / ObservedAt / Health(Healthy/Unhealthy/Unknown/Disabled)。RequestTelemetryContext保留实际generation上下文、最终outcome、W3C TraceId及legacy RequestId。
 
-- [ ] 写`LateOldRequestKeepsOldSequenceAndDestination`、`InvalidCredentialUsesUnknownApp`、`Aborted200HeadersNotCountedSuccessful`、`SensitiveMarkersAbsentFromAllSignals`、`QueueFullDoesNotBlockProxy`和`HealthRequestsExcluded`。断言示例：`Assert.Equal(oldSequence, oldRequest.DeploymentSequence); Assert.Equal("ClientAborted", aborted.Outcome); Assert.DoesNotContain(secretMarker, capturedSignals); Assert.True(droppedCount > 0);`；测试后端可人为延迟及断开。
-- [ ] 运行`./scripts/check.sh gateway --filter FullyQualifiedName~GatewayTelemetryTests`，确认缺采集事实导致失败。
-- [ ] 从请求实际lease复制上下文，认证成功才附加App，负载均衡完成后附加实际Destination；finally仅记录一次且不延长准入锁。保留旧header / error.traceId，补w3cTraceId和标准传播。计数器`webapi_gateway_requests_total`、histogram`webapi_gateway_request_duration_seconds`、gauge`webapi_telemetry_last_observed_timestamp_seconds`；histogram秒bucket为0.005/0.01/0.025/0.05/0.1/0.25/0.5/1/2.5/5/10/30/60，查询转ms。runtime Cluster ID / version仅日志Trace，指标用管理UUID；健康gauge来自真实YARP状态，采集周期15秒。应用资源白名单及OTel自动属性脱敏；显式有界队列容量2048，batch≤512，丢弃计数、导出失败计数和恢复可查询。
-- [ ] 运行指定测试和原`GatewayRuntimeTests`均通过，内存Exporter明确只作组件证据；验证无监控overlay时现有代理 / LKG继续运行。Activity / LogRecord生命周期不得保存可复用已释放buffer。
-- [ ] 提交`feat: record bounded sanitized gateway telemetry`。
+- [x] 写`LateOldRequestKeepsOldSequenceAndDestination`、`InvalidCredentialUsesUnknownApp`、`Aborted200HeadersNotCountedSuccessful`、`SensitiveMarkersAbsentFromAllSignals`、`QueueFullDoesNotBlockProxy`和`HealthRequestsExcluded`。断言示例：`Assert.Equal(oldSequence, oldRequest.DeploymentSequence); Assert.Equal("ClientAborted", aborted.Outcome); Assert.DoesNotContain(secretMarker, capturedSignals); Assert.True(droppedCount > 0);`；测试后端可人为延迟及断开。
+- [x] 运行`./scripts/check.sh gateway --filter FullyQualifiedName~GatewayTelemetryTests`，确认缺采集事实导致失败。
+- [x] 从请求实际lease复制上下文，认证成功才附加App，负载均衡完成后附加实际Destination；finally仅记录一次且不延长准入锁。保留旧header / error.traceId，补w3cTraceId和标准传播。计数器`webapi_gateway_requests_total`、histogram`webapi_gateway_request_duration_seconds`、gauge`webapi_telemetry_last_observed_timestamp_seconds`；histogram秒bucket为0.005/0.01/0.025/0.05/0.1/0.25/0.5/1/2.5/5/10/30/60，查询转ms。runtime Cluster ID / version仅日志Trace，指标用管理UUID；健康gauge来自真实YARP状态，采集周期15秒。应用资源白名单及OTel自动属性脱敏；显式有界队列容量2048，batch≤512，丢弃计数、导出失败计数和恢复可查询。
+- [x] 运行指定测试和原`GatewayRuntimeTests`均通过，内存Exporter明确只作组件证据；验证无监控overlay时现有代理 / LKG继续运行。Activity / LogRecord生命周期不得保存可复用已释放buffer。
+- [x] 提交`feat: record bounded sanitized gateway telemetry`。
 
 ## Task 4: Scope限定的真实指标查询与接口
 

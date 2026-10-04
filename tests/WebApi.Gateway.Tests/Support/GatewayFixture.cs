@@ -22,12 +22,13 @@ public sealed class GatewayFixture : IAsyncDisposable
 {
     public ApiFixture Control {get;}=new();public WebApplication BackendA=null!,BackendB=null!;public WebApplication[] Gateways=new WebApplication[2];public HttpClient[] Clients=new HttpClient[2];public string Directory {get;}=Path.Combine(Path.GetTempPath(),"gateway-test-"+Guid.NewGuid());public string Credential="";public string[] BackendUrls=new string[2];public Guid RouteId;private int version=1;private readonly List<string> secrets=[];
     public Action<WebApplicationBuilder>? ConfigureGateway {get;set;}
+    public Action<WebApplication>? ConfigureBackendA {get;set;}
     private Guid credentialId;
     public static string Url(WebApplication app)=>app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
     public async Task InitializeAsync()
     {
         System.IO.Directory.CreateDirectory(Directory);
-        BackendA=TestBackendApp.Build([],b=>{b.WebHost.UseUrls("http://127.0.0.1:0");b.Configuration["Backend:Id"]="A";b.Logging.ClearProviders();});BackendB=TestBackendApp.Build([],b=>{b.WebHost.UseUrls("http://127.0.0.1:0");b.Configuration["Backend:Id"]="B";b.Logging.ClearProviders();});await BackendA.StartAsync();await BackendB.StartAsync();BackendUrls=[Url(BackendA),Url(BackendB)];
+        BackendA=TestBackendApp.Build([],b=>{b.WebHost.UseUrls("http://127.0.0.1:0");b.Configuration["Backend:Id"]="A";b.Logging.ClearProviders();});BackendB=TestBackendApp.Build([],b=>{b.WebHost.UseUrls("http://127.0.0.1:0");b.Configuration["Backend:Id"]="B";b.Logging.ClearProviders();});ConfigureBackendA?.Invoke(BackendA);await BackendA.StartAsync();await BackendB.StartAsync();BackendUrls=[Url(BackendA),Url(BackendB)];
         for(var i=0;i<2;i++) {var file=Path.Combine(Directory,"node-"+i+".secret");await File.WriteAllTextAsync(file,Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));secrets.Add(file);}
         await Control.InitializeAsync(b=>{for(var i=0;i<2;i++) {b.Configuration[$"Nodes:Enrollments:{i}:EnvironmentId"]=Control.Environment.Id.ToString();b.Configuration[$"Nodes:Enrollments:{i}:NodeName"]="gateway-"+i;b.Configuration[$"Nodes:Enrollments:{i}:SecretFile"]=secrets[i];b.Configuration[$"Upstream:AllowedOrigins:{i}"]=BackendUrls[i];}});await Control.SeedReleaseAsync();using var login=await Control.LoginAsync();login.EnsureSuccessStatusCode();
         for(var i=0;i<2;i++) {Gateways[i]=await StartGatewayAsync(i);Clients[i]=new HttpClient {BaseAddress=new Uri(Url(Gateways[i]))};}
@@ -38,7 +39,13 @@ public sealed class GatewayFixture : IAsyncDisposable
     }
     public async Task<WebApplication> StartGatewayAsync(int i,bool register=true)
     {
-        var app=GatewayApp.Build([],b=>{b.WebHost.UseUrls("http://127.0.0.1:0");b.Configuration["Gateway:EnvironmentId"]=Control.Environment.Id.ToString();b.Configuration["Gateway:NodeName"]="gateway-"+i;b.Configuration["Gateway:SecretFile"]=secrets[i];b.Configuration["Gateway:LkgDirectory"]=Path.Combine(Directory,"lkg-"+i);b.Configuration["Gateway:ControlPlaneUrl"]=Control.Client.BaseAddress!.ToString();b.Configuration["Gateway:AutomaticUpdates"]="false";for(var j=0;j<2;j++) b.Configuration[$"Upstream:AllowedOrigins:{j}"]=BackendUrls[j];b.Logging.ClearProviders();ConfigureGateway?.Invoke(b);});await app.StartAsync();if(register) await app.Services.GetRequiredService<NodeClient>().RegisterAsync();return app;
+        var app=GatewayApp.Build([],b=>{b.WebHost.UseUrls("http://127.0.0.1:0");b.Configuration["Gateway:EnvironmentId"]=Control.Environment.Id.ToString();b.Configuration["Gateway:NodeName"]="gateway-"+i;b.Configuration["Gateway:SecretFile"]=secrets[i];b.Configuration["Gateway:LkgDirectory"]=Path.Combine(Directory,"lkg-"+i);b.Configuration["Gateway:ControlPlaneUrl"]=Control.Client.BaseAddress!.ToString();b.Configuration["Gateway:AutomaticUpdates"]="false";for(var j=0;j<2;j++) b.Configuration[$"Upstream:AllowedOrigins:{j}"]=BackendUrls[j];b.Logging.ClearProviders();ConfigureGateway?.Invoke(b);
+            if(b.Configuration["Observability:Enabled"]=="true"){
+                var file=Path.Combine(Directory,"ip-hmac.secret");
+                if(!File.Exists(file)){File.WriteAllText(file,Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));if(!OperatingSystem.IsWindows())File.SetUnixFileMode(file,UnixFileMode.UserRead|UnixFileMode.UserWrite);}
+                b.Configuration["Observability:IpHmacSecretFile"]=file;
+            }
+        });await app.StartAsync();if(register) await app.Services.GetRequiredService<NodeClient>().RegisterAsync();return app;
     }
     public async Task<DesiredConfigResponse> PublishAsync(int backend=0)
     {

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using WebApi.Gateway.Observability;
 using WebApi.Gateway.Security;
 using Yarp.ReverseProxy.Model;
 namespace WebApi.Gateway.Configuration;
@@ -20,6 +22,22 @@ public sealed class WeightedDestinationMiddleware(RequestDelegate next)
             }
             feature.AvailableDestinations=selected;
         }
-        await next(ctx);
+        var telemetry=RequestTelemetryState.From(ctx);
+        if(telemetry is null){await next(ctx);return;}
+        if(feature.AvailableDestinations.Count==1&&Guid.TryParse(feature.AvailableDestinations[0].DestinationId,out var selectedId))
+            telemetry.Context=telemetry.Context with{DestinationId=selectedId};
+        var recorder=ctx.RequestServices.GetRequiredService<GatewayTelemetryRecorder>();
+        var started=Stopwatch.GetTimestamp();using var activity=recorder.Activities.StartActivity("gateway.proxy",ActivityKind.Client);
+        TelemetryAttributes.Apply(activity,telemetry.Context);
+        if(activity?.Id is { } id)ctx.Request.Headers["traceparent"]=id;
+        try{await next(ctx);}
+        finally
+        {
+            if(feature.ProxiedDestination is { } actual&&Guid.TryParse(actual.DestinationId,out var actualId))telemetry.Context=telemetry.Context with{DestinationId=actualId};
+            else telemetry.Context=telemetry.Context with{DestinationId=null};
+            var failed=ctx.Features.Get<Yarp.ReverseProxy.Forwarder.IForwarderErrorFeature>() is not null;
+            var client=telemetry.Context with{Status=ctx.Response.StatusCode,DurationSeconds=Stopwatch.GetElapsedTime(started).TotalSeconds,Outcome=ctx.RequestAborted.IsCancellationRequested?"ClientAborted":failed?"ProxyError":"Completed"};
+            TelemetryAttributes.Apply(activity,client);activity?.SetStatus(client.Success?ActivityStatusCode.Ok:ActivityStatusCode.Error);
+        }
     }
 }
