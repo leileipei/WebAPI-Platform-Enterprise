@@ -1,0 +1,39 @@
+# SDD ledger — plan: docs/superpowers/plans/2026-10-04-local-runtime-implementation.md
+
+Baseline: c874b92; design and plan approved by user. Native execution; no product changes at setup. Console baseline 35/35 passed, 0 skipped.
+Tasks: 1 state/ownership; 2 build/probe; 3 sessions/allowlist; 4 compose/secrets; 5 lifecycle; 6 binding/status; 7 real recovery; 8 review/runtime/delivery.
+Pre-flight: Task 1 state schema -> Tasks 2/5/6/7: consistent; runtime creation needs an explicit owned initialization path before loadState, implemented with initializeState.
+Pre-flight: Task 2 release manifest -> Tasks 4/5/7/8: consistent, applications share one immutable image with different entrypoint assembly paths.
+Pre-flight: Task 3 DP keys/explicit origins -> Tasks 4/5/6/7: consistent, application configs are JSON mounted read-only; prebinding requires fail-closed origin policy.
+Pre-flight: Task 4 compose/role secrets -> Tasks 5/6/7: consistent; ownership applies to all named resources, temporary bootstrap volume removed after migrator while user file retained.
+Pre-flight: Tasks 5/6 state/status -> Task 7 acceptance: test project injection must be internal and unable to use persistent project name.
+Pre-flight: Task 7 verification -> Task 8 package: final review/packaging are later gates; complete only becomes true after those gates, avoiding premature acceptance claims.
+
+Ruling: Task 8 places whole-branch review before remaining packaging code; execute packaging and proof preparation first, then perform the single review before final activation/sealing — otherwise the reviewer would miss shipped code — cost if wrong: delayed final review, no loss of data.
+
+Task 1: RED missing state/docker modules observed; first GREEN exposed a test-only FIFO assumption. Trace showed fully serialized pairs in nondeterministic arrival order; assert mutual exclusion, not queue ordering.
+Ruling: State adds initialized and bindingPhase fields for idempotent bootstrap and interrupted configure retries — required by lifecycle spec, absent from draft schema — cost if wrong: schema v1 compatibility requires future migration.
+Ruling: Continue in current feature/core-loop checkout after optional workspace question and recommendation; no new worktree created — existing workflow is in place and runtime isolation is separate — cost if wrong: feature changes share this checkout; commits remain separable.
+Task 1: complete (commits c874b92..510bc05, tests: /Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node --test tests/runtime/state.test.mjs tests/runtime/ownership.test.mjs → ℹ duration_ms 166.189542)
+Task 2: complete (commits 510bc05..32dc051, tests: /Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node --test tests/runtime/build.test.mjs → ℹ duration_ms 246.603584)
+Task 2 actual: image b9121390 built from 32dc051; SDK/cache seed read-only; static 3 files; non-root HTTP probe 200/503/302/timeout 4/4 passed.
+Task 3 RED: persistent keys directory empty and explicit empty origin incorrectly accepted, 3 failures observed.
+Task 3: complete (commits 32dc051..07ce987, tests: ./scripts/check.sh integration → Passed!  - Failed:     0, Passed:   194, Skipped:     0, Total:   194, Duration: 59 s - WebApi.Integration.Tests.dll (net10.0))
+Task 4 actual RED cleanup: Compose down without tools profile omitted bootstrap-password/secrets-migrator volumes (2 residuals). Include tools profile for disposable cleanup; all resources remain exact owner/project checked. Permission and source-restart body had passed.
+Task 4: complete (commits 07ce987..f1816f3, tests: /Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node --test tests/runtime/deployment.test.mjs → ℹ duration_ms 328.770167)
+Task 4 actual: role secret permissions and persistent source restart passed; exact cleanup 0.
+Task 5 RED missing lifecycle module observed; 7 unit behaviors GREEN. Sandboxed localhost socket bind caused Node native assertion; same test under permitted local networking passed.
+Ruling: Add context.mjs to snapshot deployment files from the application source commit, not the mutable checkout — immutable running configuration is needed alongside immutable DLLs — cost if wrong: deployment snapshots add local disk usage.
+Task 5 actual RED: fixture sent trailing password-file newline; BootstrapAccounts correctly trims CR/LF. Fixture reader adjusted to same input contract; failed project cleanup completed.
+Task 5 additional RED: invalid supplied password left partial secret directory; validate before creation.
+Ruling: Add optional per-runtime authentication/CSRF cookie names and owner-based runtime namespace — ports on the same loopback host otherwise share cookies and overwrite the old environment session — cost if wrong: custom names change only new runtime sessions; default legacy names preserved.
+Task 5: complete (commits f1816f3..ffa2d7b, tests: /Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node --test tests/runtime/lifecycle.test.mjs → ℹ duration_ms 304.347333)
+Task 5 actual: repeated init/stop/start 1/1 passed (~71s), administrator count1, secret unchanged, volumes unchanged, same session valid, cleanup0.
+Task 6 RED: new binding/status modules missing; 7 original tests GREEN; disabled old node and missing-node registered claim additionally RED then fixed.
+Ruling: Completed publish ACKs remain frozen to prior instances; restart recovery is proven by LKG/validated heartbeat, followed by a new normal approved release to prove current-instance ACK - existing business protocol forbids rewriting finished-release ACKs - cost if wrong: status stays Degraded until a new release supplies the current ACK, though recovered traffic may work.
+Task 6: complete (commits ffa2d7b..d2d6d41, tests: /Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node --test tests/runtime/configure.test.mjs tests/runtime/status.test.mjs → ℹ duration_ms 300.6385)
+Task 7 actual RED: acceptance override declared unbound gateways without image; add override gateway sections only after binding. Two failed initial fixtures cleanup0, old state unchanged.
+Task 7 actual RED: Worker interval2 but control-plane Unknown projection retains default15 (stale after30s); wait on actual Unknown rather than assuming9s. Lease token advancement additionally checked after restart. Docker inspection mount ordering is nondeterministic; preservation comparison sorts mount destinations before equality.
+Task 7 actual RED: manual Ack audit is correlated by transition correlationId, while trigger/recovery system audits target event resourceId. Assert each actual action via the respective existing audit key rather than expecting all three under resourceId; no backend change.
+Task 7 regression: runtime/console unit72/72 and real runtime integration3/3, 0skip. Disposable permission, repeat-init/start, and binding cases all cleanup0.
+Task 7: complete (commits d2d6d41..f218f5f, tests: bash -c './scripts/check-local-runtime.sh unit && "$WEBAPI_NODE" --input-type=module -e 'import fs from "node:fs/promises";import {createHash}from"node:crypto";import {validateAcceptance}from"./scripts/runtime/acceptance.mjs";import{inspectResources}from"./scripts/runtime/docker.mjs";const p=JSON.parse(await fs.readFile("docs/evidence/local-runtime/verification.json"));validateAcceptance(p);if((await inspectResources({projectName:p.projectName})).length)throw Error("Residual test resources");for(const[f,h]of Object.entries(p.ui.screenshots))if(createHash("sha256").update(await fs.readFile(f)).digest("hex")!==h)throw Error("UI evidence changed");console.log("Actual recovery, UI hashes, old environment and cleanup proof PASS");'' → Actual recovery, UI hashes, old environment and cleanup proof PASS)

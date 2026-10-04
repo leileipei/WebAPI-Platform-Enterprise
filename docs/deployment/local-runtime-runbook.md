@@ -94,3 +94,23 @@ JS
 `check-local-runtime.sh unit`运行脚本和控制台测试；`integration`串行运行真实容器测试；`e2e`（`browser`同义）运行真实发布、独立审批、两网关请求、三源收录、告警、源/Worker故障、重启、控制面重建和冷恢复。最后停在页面QA等待点，需要实际浏览器操作并写入UI证据，随后才清理随机项目和出具complete证据；无人值守运行不能冒充UI已通过。
 
 临时覆盖配置只属于验收项目；长期环境保留原采样、导出与告警间隔。内存证据为每5秒Docker stats采样的观察峰值，不能作为压力测试容量或内核精确最高值。旧环境保全证据比较容器ID、镜像、卷挂载、旧入口状态和旧ZIP哈希，不宣称逐行检查了全部旧业务数据。
+
+## 源码包重建与当前启用状态
+
+源码ZIP包含不可变提交对应的源文件、同一源码重新构建的静态文件、真实验收与页面截图、整体审查记录。它不包含Docker镜像、Git对象库、运行数据、备份或用户秘密。`SOURCE_REVISION`记录原工程提交；manifest逐文件记录哈希。验证脚本在原Git工程中比较原提交与ZIP每一字节，并重新构建静态文件。
+
+独立解压后，安装锁文件对应的前端依赖（例如`cd console && pnpm install --frozen-lockfile`），回到enterprise目录建立本机Git提交：
+
+```bash
+git init
+git add .
+git -c user.name=LocalRuntime -c user.email=local-runtime@localhost commit -m 'Import verified runtime source'
+./scripts/local-runtime.sh build --revision HEAD
+./scripts/local-runtime.sh init --admin <你指定的管理员用户名>
+```
+
+重建版本使用本机新提交ID；原交付提交以SOURCE_REVISION保留。在原工程中可直接build明确的交付提交。不得将生成的`.runtime`、秘密或备份加入Git。构建需Docker访问依赖镜像与NuGet包；离线恢复需事先保留相同镜像和原Git提交/部署快照，源码ZIP不是含所有运行依赖的离线镜像包。
+
+本轮实际验收镜像及提交见`tested-release.json`；交付提交可包含后续脚本、文档和审查修复。打包门禁要求应用/前端/部署/依赖输入与该已验镜像的提交一致，静态哈希也必须一致。长期环境的实际安装状态另行记录，不能由合成验收complete=true推断用户业务环境已绑定。
+
+当前尚待用户提供管理员用户名，长期项目未初始化。收到后执行`init --admin`，登录4190建立业务环境，再显式提供环境GUID及上游origin列表以绑定4196/4197；不会自动植入验收组织、审批人、API或告警规则。
