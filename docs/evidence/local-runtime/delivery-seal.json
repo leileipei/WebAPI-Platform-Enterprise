@@ -1,0 +1,28 @@
+{
+  "sealedAt": "2026-10-04T14:51:34.912341+00:00",
+  "sourceRevision": "3c038e7d7fdbb5ec7574944a24a70478ddd0f5ab",
+  "archive": "deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收.zip",
+  "files": 591,
+  "sha256": "87d536081e1e8611a0eea6d089b6a940487dcbe0c9fd890f6cc42bbe72858ce7",
+  "sourceAndStaticByteVerificationPassed": true,
+  "secretsExcluded": true,
+  "oldArchivesUnchanged": true,
+  "localBuildCandidate": {
+    "sourceRevision": "3c038e7d7fdbb5ec7574944a24a70478ddd0f5ab",
+    "imageId": "sha256:345e20a3a4c95bf4b33899908a8664b7599af20d6a74fe4ae54d0e31fe622673",
+    "user": "10001:10001",
+    "ociRevisionVerified": true,
+    "staticMatchesTestedImage": true,
+    "applicationDeploymentDependencyInputsUnchanged": true,
+    "fullChainTestedImageSourceRevision": "ffa2d7b888ecc63046c7b8d0711a1d426d57aa4d",
+    "candidateImageBuiltButNotActivated": true
+  },
+  "unitPassed": 85,
+  "runtimeIntegrationPassed": 5,
+  "backendIntegrationPassed": 195,
+  "gatewayPassed": 27,
+  "allSkipped": 0,
+  "persistentActivationComplete": false,
+  "pendingAdministratorUsername": true,
+  "supplementNote": "Archive source is frozen before the final sealing record; this record and final task-completion ledger are supplementary."
+}
