@@ -8,7 +8,7 @@ public sealed record AlertEventDto(Guid Id,Guid RuleId,long RuleRevision,long Lo
 public sealed record AlertTransitionDto(Guid Id,string? FromStatus,string ToStatus,Guid? ActorId,string Reason,DateTimeOffset OccurredAt,string CorrelationId);
 public sealed record AlertListFilter(string? Severity,string? Source,string? Status,int Page=1,int PageSize=50);
 public sealed record RuleTestDto(string EvaluationState,IReadOnlyList<MetricGroupDto> Matches,bool? Condition);
-public sealed record AlertAction(string Kind,string? Reason,DateTimeOffset? Until);
+public sealed record AlertAction(string Kind,string? Reason,DateTimeOffset? Until,int? DurationSeconds=null);
 public sealed record AlertRuleExpression(string Metric,string Operator,double Threshold);
 public sealed record EvaluationInput(DateTimeOffset Slot,DateTimeOffset? ObservedAt,double? Value,bool? Condition,SourceState SourceState);
 public sealed record RuleScopePreviewDto(IReadOnlyList<Guid> EnvironmentIds,bool IncludesFutureActiveEnvironments,string Policy);

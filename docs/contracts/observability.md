@@ -69,3 +69,10 @@ POST `/observability/alert-rules/test`和preview只读，但仍要求CSRF，不�
 未知来源重置Pending；Firing与人工抑制保持。暂停Scope也保持Firing和SuppressedUntilRecovery，事件标ScopeInactive；真实恢复再Resolved。资源实际删除/离开目标归属才以ResourceRetired关闭，来源不再返回序列不等于删除。有效观测时间必须递增，人工解决后的恢复还必须晚于SuppressedAt。事件创建时间是实际数据库提交时间，condition_started_at来自连续有效观测起点。
 
 规则当前槽位超过两倍间隔则Unknown，LastSuccessAt保留所有当前目标已有有效观测时点的最小值；没有某个目标的成功事实时null。UI应称“最近有效观测”，显示真实年龄和当前状态。健康指标有独立gauge：节点覆盖完整且健康样本有效可在无业务请求时Known；不能把没有比例/分位样本解释成恢复。系统trigger/recovery/retirement追加transition和UserId=null审计，重复true仅更新观测事实。
+# 告警事件命令与静默到期
+
+事件查询使用 `alert.read` 和事件冻结的实际环境范围，处理使用独立的 `alert.operate` 写权限。只读范围不能操作。列表仅支持 Metrics 来源及 Info / Warning / Critical、Open / Ack / Resolved / Silenced 筛选；无权详情返回404。
+
+四个 POST 命令为 `/observability/alerts/{id}/ack|resolve|silence|unsilence`，携带 If-Match、Idempotency-Key 和对应 Kind。Resolve / Silence 必填原因。静默推荐使用 `durationSeconds`，数据库实际写入时计算截止时间，支持900至86400秒；兼容绝对 UTC `until`，两者必须且只能提供一个。绝对截止也在实际提交时验证15分钟至24小时窗口。
+
+Silenced事件确认仍保持Silenced并记录首位确认人；解除静默或到期恢复Ack或Open。Resolved原事件不可重开。人工解决原子写入抑制状态，持续真条件不再次生成事件，只有实际解决后的有效假条件重新布防。状态、transition、幂等结果及审计同事务提交，数据库治理锁内重新核对权限。独立静默到期Worker不等待外部指标查询，多Worker竞争只产生一次系统transition及审计。

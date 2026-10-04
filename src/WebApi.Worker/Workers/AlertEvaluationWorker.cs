@@ -23,3 +23,16 @@ public sealed class AlertEvaluationWorker(IServiceScopeFactory scopes,ILogger<Al
         }
     }
 }
+public sealed class AlertSilenceExpiryWorker(IServiceScopeFactory scopes,ILogger<AlertSilenceExpiryWorker> log):BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken ct)
+    {
+        while(!ct.IsCancellationRequested)
+        {
+            try{using var scope=scopes.CreateScope();await scope.ServiceProvider.GetRequiredService<AlertSilenceExpiryService>().ExpireAsync(ct);}
+            catch(OperationCanceledException)when(ct.IsCancellationRequested){break;}
+            catch(Exception error){log.LogWarning("Alert silence expiry retry: {ErrorType}",error.GetType().Name);}
+            await Task.Delay(1000,ct);
+        }
+    }
+}
