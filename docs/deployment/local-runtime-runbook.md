@@ -13,6 +13,8 @@ export WEBAPI_NODE=/你的/Node22以上版本/bin/node
 
 控制台默认 `http://127.0.0.1:4190`；未配置环境时网关明确为未配置。初始化不会自动创建业务组织、环境、API、规则或审核账号。后续通过正常页面建立环境，再显式绑定两网关与上游白名单。默认端口若冲突，首次 init 可用 `--console-port`、`--gateway-a-port`、`--gateway-b-port` 指定三个不同端口；不会终止端口占用者。
 
+若首次端口检查失败且尚未创建任何本项目资源，可带新端口重试 init。已初始化或已创建资源后禁止改变端口；省略端口参数会沿用已保存设置。所有权检查同时发现项目标签资源与精确同名资源；即使同名卷、网络或容器没有标签，也拒绝接管。
+
 ```bash
 ./scripts/local-runtime.sh stop
 ./scripts/local-runtime.sh start
@@ -36,13 +38,15 @@ export WEBAPI_NODE=/你的/Node22以上版本/bin/node
 
 状态区分未配置、已注册、Ready、Degraded及Stopped。只有当前实例、期望版本/序列与真实ACK一致才是Ready；源异常、缺节点、停用环境或过期心跳不会显示完整正常。Gateway可从LKG恢复实际代理，但历史发布ACK冻结于先前实例；新实例不会改写旧ACK。恢复后的新发布仍走正常独立审批，再取得当前实例ACK。`acknowledged` 与节点运行版本应分别查看。
 
+配置提案先保存在 `pendingConfiguration`，已应用的 `binding` 与 `demoEnabled` 保留。重建失败时 `bindingPhase=Validated`，状态为Degraded；用相同环境ID和所需配置重试 configure，成功注册后才推广为Applied并清空提案。容器可能已部分应用提案，工具不宣称自动回滚。up/start/restart返回实际服务、源与节点状态，不因配置中存在绑定就推断Registered。
+
 新控制面使用独立Session/CSRF cookie名称，避免相同127.0.0.1主机不同端口间覆盖旧控制台登录。
 
 ## 离线完整备份与恢复演练
 
 备份包含真实业务数据、会话密钥和运行秘密。保存在本机私有目录或加密介质；源码交付包不包含这些文件。使用与备份相同的架构、PostgreSQL大版本、应用提交与依赖镜像。先保留原项目，恢复到全新的随机项目中核验，工具拒绝覆盖长期项目或已有目录。
 
-在工程根目录执行以下完整冷备份。它持有运行目录锁，校验owner/project；先停应用、网关、采集器、三源和示例后端，保留PG运行以生成逻辑dump，然后停PG/Redis并归档七个持久卷。成功后环境保持停止状态，可显式start。备份目标必须不存在，权限0700；归档/配置0600，清单逐文件SHA256。
+在工程根目录执行以下完整冷备份。它持有运行目录锁，重新读取已保存状态，校验owner/project和七个数据卷；存在待应用配置时要求先完成configure重试。只停止本部署实际声明的应用、网关、采集器、三源及示例后端，适用于未绑定、绑定未启用demo和启用demo三种状态。若环境已停止，会临时启动PG生成逻辑dump，再停PG/Redis并归档七个持久卷。成功后环境保持停止状态，可显式start。备份目标必须不存在，权限0700；归档/配置0600，清单逐文件SHA256。
 
 ```bash
 "$WEBAPI_NODE" --input-type=module <<'JS'

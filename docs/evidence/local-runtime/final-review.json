@@ -1,0 +1,19 @@
+{
+  "ready": true,
+  "reviewer": "local_runtime_final_review",
+  "model": "gpt-6-astra",
+  "reviewedRange": {
+    "base": "c874b928570a12b2d77be626dee831e764012621",
+    "head": "0f4c71a76bc8669fb139d03632edf74d839407f8"
+  },
+  "initialCritical": 1,
+  "initialImportant": 5,
+  "initialMinor": 0,
+  "remainingCritical": 0,
+  "remainingImportant": 0,
+  "deferredMinor": [],
+  "fixPassCount": 1,
+  "verification": "RED-to-GREEN and full regression by implementer; no second review",
+  "regression": "docs/evidence/local-runtime/regression.json",
+  "persistentActivationComplete": false
+}

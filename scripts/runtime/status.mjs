@@ -1,8 +1,9 @@
-import fs from'node:fs/promises';import path from'node:path';import{inspectResources,assertOwnership,docker}from'./docker.mjs';import{runtimeServices,loadRelease}from'./lifecycle.mjs';import{validGuid,RuntimeError}from'./state.mjs';
+import fs from'node:fs/promises';import path from'node:path';import{inspectResources,assertOwnership,docker}from'./docker.mjs';import{runtimeServices,loadRelease}from'./lifecycle.mjs';import{validGuid,RuntimeError,deploymentState}from'./state.mjs';
 export function deriveRuntimeStatus(state,{services,sources,nodes,storage=[],environmentStatus=null,errors=[]}){
- const base={schemaVersion:1,projectName:state.projectName,sourceRevision:state.releaseId,services,sources,nodes,storage,environmentStatus,errors};const running=services.every(s=>s.state==='Running'&&s.health!=='unhealthy');
+ const base={schemaVersion:1,projectName:state.projectName,sourceRevision:state.releaseId,bindingPhase:state.bindingPhase??null,pendingConfiguration:state.pendingConfiguration??null,services,sources,nodes,storage,environmentStatus,errors};const running=services.every(s=>s.state==='Running'&&s.health!=='unhealthy');
  if(!services.some(s=>s.state==='Running'))return{...base,phase:'Stopped'};
  if(!running||sources.some(s=>s.state!=='Available'))return{...base,phase:'Degraded'};
+ if(state.pendingConfiguration||state.bindingPhase==='Validated')return{...base,phase:'Degraded'};
  if(!state.binding)return{...base,phase:'Unconfigured'};
  if(environmentStatus!=='Active')return{...base,phase:'Degraded'};
  if(nodes.length!==2)return{...base,phase:'Degraded'};
@@ -11,7 +12,7 @@ export function deriveRuntimeStatus(state,{services,sources,nodes,storage=[],env
  return{...base,phase:ready?'Ready':'Degraded'};
 }
 export async function getRuntimeStatus(state,{directory,inspect=inspectResources,run=docker}={}){
- const resources=await inspect(state,run);assertOwnership(state,resources);const containers=resources.filter(r=>r.Kind==='container'&&r.Config?.Labels?.['com.docker.compose.oneoff']!=='True');const get=name=>containers.find(r=>r.Config?.Labels?.['com.docker.compose.service']===name);
+ state=deploymentState(state);const resources=await inspect(state,run);assertOwnership(state,resources);const containers=resources.filter(r=>r.Kind==='container'&&r.Config?.Labels?.['com.docker.compose.oneoff']!=='True');const get=name=>containers.find(r=>r.Config?.Labels?.['com.docker.compose.service']===name);
  const services=runtimeServices(state).map(name=>{const r=get(name);return{name,state:r?.State?.Running?'Running':r?.State?.Status??'Missing',health:r?.State?.Health?.Status??null};});const console=get('console'),pg=get('postgres');const errors=[];
  const sources=await Promise.all([['collector','http://collector:13133'],['prometheus','http://prometheus:9090/-/ready'],['loki','http://loki:3100/ready'],['tempo','http://tempo:3200/ready']].map(async([name,url])=>{if(!console?.State?.Running)return{name,state:'Unknown',checkedAt:new Date().toISOString(),reason:'Console diagnostic process unavailable'};try{const result=await run(['exec',console.Id,'dotnet','/app/runtime-tool/WebApi.RuntimeTool.dll','probe',url],{allowFailure:true});return{name,state:result.exitCode===0?'Available':'Unavailable',checkedAt:new Date().toISOString()};}catch{return{name,state:'Unknown',checkedAt:new Date().toISOString(),reason:'Diagnostic request failed'};}}));
  let nodes=[],environmentStatus=null;
