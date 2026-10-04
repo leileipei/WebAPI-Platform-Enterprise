@@ -4,6 +4,10 @@ import {pathToFileURL} from 'node:url';
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const nano=ms=>(BigInt(ms)*1_000_000n).toString();
 const attr=(key,value)=>({key,value:{stringValue:value}});
+export function validateMetricContract(proof){
+ if(!Number.isFinite(proof.histogramCount)||proof.histogramCount<1||proof.upperBucketFound!==true||!Number.isFinite(proof.nodeObservedSeconds)||proof.nodeObservedSeconds<=0)
+  throw new Error('Metric contract requires actual histogram count, named bucket and node observation gauge');
+}
 
 export function validateEndpoints(endpoints){
   for(const value of endpoints){
@@ -44,8 +48,13 @@ async function smoke(file,project,collector,health,prometheus,loki,tempo){
   const metric={name:'webapi_gateway_requests_total',sum:{aggregationTemporality:2,isMonotonic:true,dataPoints:[{
     startTimeUnixNano:nano(now-1000),timeUnixNano:nano(now),asInt:'1',attributes:[attr('webapi.api.id',randomUUID())]
   }]}};
+  const bounds=[0.005,0.01,0.025,0.05,0.1,0.25,0.5,1,2.5,5,10,30,60];
+  const duration={name:'webapi_gateway_request_duration_seconds',unit:'s',histogram:{aggregationTemporality:2,dataPoints:[{
+    startTimeUnixNano:nano(now-1000),timeUnixNano:nano(now),count:'1',sum:0.05,explicitBounds:bounds,bucketCounts:[...bounds.map((_,i)=>i===3?'1':'0'),'0']
+  }]}};
+  const observed={name:'webapi_telemetry_last_observed_timestamp_seconds',gauge:{dataPoints:[{timeUnixNano:nano(now),asDouble:now/1000}]}};
   const bodies={
-    metrics:{resourceMetrics:[{resource,scopeMetrics:[{scope:{name:'webapi-smoke'},metrics:[metric]}]}]},
+    metrics:{resourceMetrics:[{resource,scopeMetrics:[{scope:{name:'webapi-smoke'},metrics:[metric,duration,observed]}]}]},
     logs:{resourceLogs:[{resource,scopeLogs:[{scope:{name:'webapi-smoke'},logRecords:[{
       timeUnixNano:nano(now),observedTimeUnixNano:nano(now),severityNumber:9,severityText:'INFO',
       body:{stringValue:marker},traceId,spanId,attributes:[attr('webapi.log.id',randomUUID()),attr('webapi.client.ip_masked','192.0.2.xxx')]
@@ -65,6 +74,15 @@ async function smoke(file,project,collector,health,prometheus,loki,tempo){
     if(j.status!=='success')throw new Error('Prometheus query failed');
     const n=j.data.result.reduce((sum,r)=>sum+Number(r.value[1]),0);return n>=1?n:false;
   },'Request counter ingestion');
+  async function metricValue(query){
+    const j=await(await response(`${prometheus}/api/v1/query?${new URLSearchParams({query})}`)).json();
+    if(j.status!=='success')throw new Error('Prometheus metric contract query failed');
+    return j.data.result.length?Number(j.data.result[0].value[1]):null;
+  }
+  const histogramCount=await poll(()=>metricValue(`webapi_gateway_request_duration_seconds_count{webapi_environment_id="${environmentId}"}`),'Duration histogram count');
+  const upperBucketFound=await poll(async()=>await metricValue(`webapi_gateway_request_duration_seconds_bucket{webapi_environment_id="${environmentId}",le="0.05"}`)>=1,'Duration histogram bucket');
+  const nodeObservedSeconds=await poll(()=>metricValue(`webapi_telemetry_last_observed_timestamp_seconds{webapi_environment_id="${environmentId}"}`),'Node observation gauge');
+  const metricContract={histogramCount,upperBucketFound,nodeObservedSeconds};validateMetricContract(metricContract);
   const logQuery=`{service_name="webapi-smoke",webapi_environment_id="${environmentId}"} |= "${marker}"`;
   const logMarkerFound=await poll(async()=>{
     const j=await(await response(`${loki}/loki/api/v1/query_range?${new URLSearchParams({query:logQuery,start:nano(now-60_000),end:nano(Date.now()),limit:'10'})}`)).json();
@@ -76,7 +94,7 @@ async function smoke(file,project,collector,health,prometheus,loki,tempo){
     return batches.some(b=>(b.scopeSpans??b.instrumentationLibrarySpans??[]).some(s=>(s.spans??[]).some(x=>x.name===marker)));
   },'Trace ingestion');
   const proof={requestCounter,logMarkerFound,traceFound};validateProof(proof);
-  writeFileSync(file,JSON.stringify({project,startedAt,completedAt:new Date().toISOString(),endpoints,environmentId,traceId,marker,proof,cleanup:null,kind:'synthetic-otlp-protocol-only',verifiedVolumeCapacityBytes:{loki:1073741824,tempo:1073741824}},null,2));
+  writeFileSync(file,JSON.stringify({project,startedAt,completedAt:new Date().toISOString(),endpoints,environmentId,traceId,marker,proof,metricContract,cleanup:null,kind:'synthetic-otlp-protocol-only',verifiedVolumeCapacityBytes:{loki:1073741824,tempo:1073741824}},null,2));
   console.log(JSON.stringify({project,proof,kind:'synthetic-otlp-protocol-only'}));
 }
 function cleanup(file,project,result){

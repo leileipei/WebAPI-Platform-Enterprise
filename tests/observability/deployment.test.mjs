@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {validateProof,validateEndpoints} from '../../scripts/observability-smoke.mjs';
+import {validateProof,validateEndpoints,validateMetricContract} from '../../scripts/observability-smoke.mjs';
 const compose='deploy/compose.observability.yml';
 test('observability deployment exposes only loopback diagnostics and pins every runtime image',()=>{
  const run=spawnSync('docker',['compose','-f',compose,'config','--format','json'],{encoding:'utf8'});
@@ -12,6 +12,12 @@ test('observability deployment exposes only loopback diagnostics and pins every 
   assert.match(service.image,/@sha256:[a-f0-9]{64}$/);
   for(const p of service.ports||[])assert.equal(p.host_ip,'127.0.0.1');
  }
+});
+test('fixed metric names need actual histogram and node gauge ingestion proof',()=>{
+ assert.throws(()=>validateMetricContract({histogramCount:0,upperBucketFound:true,nodeObservedSeconds:1}),/Metric contract/);
+ assert.throws(()=>validateMetricContract({histogramCount:1,upperBucketFound:false,nodeObservedSeconds:1}),/Metric contract/);
+ assert.throws(()=>validateMetricContract({histogramCount:1,upperBucketFound:true,nodeObservedSeconds:NaN}),/Metric contract/);
+ assert.doesNotThrow(()=>validateMetricContract({histogramCount:1,upperBucketFound:true,nodeObservedSeconds:1}));
 });
 test('readiness or incomplete ingestion cannot be accepted as three-source proof',()=>{
  for(const proof of [

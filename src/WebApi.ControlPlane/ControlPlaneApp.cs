@@ -1,3 +1,5 @@
+using WebApi.ControlPlane.Observability;
+using WebApi.Infrastructure.Observability;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -46,6 +48,9 @@ public static class ControlPlaneApp
         builder.Services.AddScoped<GovernanceService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();
         builder.Services.AddScoped<AccountService>();builder.Services.AddScoped<AuthorizationService>();
         builder.Services.AddScoped<WebApi.Contracts.Security.IAuthorizationService>(sp=>sp.GetRequiredService<AuthorizationService>());
+        builder.Services.AddSingleton(ObservationSourceSettings.Read(builder.Configuration));
+        builder.Services.AddHttpClient("observability",client=>client.Timeout=TimeSpan.FromSeconds(10)).ConfigurePrimaryHttpMessageHandler(()=>new SocketsHttpHandler{AllowAutoRedirect=false,UseCookies=false});
+        builder.Services.AddScoped<ObservationScopeResolver>();builder.Services.AddScoped<ObservationSourceClient>();builder.Services.AddScoped<ObservationCoverageService>();builder.Services.AddScoped<PrometheusMetricSource>();builder.Services.AddScoped<ObservationQueryService>();
         var local=builder.Environment.IsDevelopment();
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options=>{
             options.Cookie.Name="WebApi.Session";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;
@@ -75,6 +80,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();return app;
+        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();return app;
     }
 }

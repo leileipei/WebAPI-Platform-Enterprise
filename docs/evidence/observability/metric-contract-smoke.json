@@ -1,0 +1,37 @@
+{
+  "project": "webapi-obs-smoke-24913228-5733-4829-b596-2e83957c8275",
+  "startedAt": "2026-10-04T04:38:48.289Z",
+  "completedAt": "2026-10-04T04:39:05.451Z",
+  "endpoints": {
+    "collector": "http://127.0.0.1:33681",
+    "health": "http://127.0.0.1:33682",
+    "prometheus": "http://127.0.0.1:33679",
+    "loki": "http://127.0.0.1:33680",
+    "tempo": "http://127.0.0.1:33683"
+  },
+  "environmentId": "b802fa8d-02ab-48e1-a461-183e2daa58da",
+  "traceId": "6d5094a069dd488edc46d4330664e9ff",
+  "marker": "webapi-smoke-f77d7ca3-a454-4d08-b9fc-caf80004026d",
+  "proof": {
+    "requestCounter": 1,
+    "logMarkerFound": true,
+    "traceFound": true
+  },
+  "metricContract": {
+    "histogramCount": 1,
+    "upperBucketFound": true,
+    "nodeObservedSeconds": 1791088743.386
+  },
+  "cleanup": {
+    "completedAt": "2026-10-04T04:39:15.948Z",
+    "containers": 0,
+    "volumes": 0,
+    "secretFiles": 0,
+    "verified": true
+  },
+  "kind": "synthetic-otlp-protocol-only",
+  "verifiedVolumeCapacityBytes": {
+    "loki": 1073741824,
+    "tempo": 1073741824
+  }
+}

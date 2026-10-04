@@ -7,7 +7,7 @@ public sealed record MetricValueDto(string Metric, double? Value, string Unit, l
 public sealed record MetricPointDto(DateTimeOffset Time, double? Value);
 public sealed record MetricGroupDto(string Key, string Name, IReadOnlyList<MetricValueDto> Values);
 public sealed record DestinationHealthDto(Guid ClusterId, Guid DestinationId, string Health);
-public sealed record NodeHealthDto(string NodeName, string Health, IReadOnlyList<DestinationHealthDto> Destinations);
+public sealed record NodeHealthDto(string NodeName, string Health, IReadOnlyList<DestinationHealthDto> Destinations, Guid? EnvironmentId = null);
 public sealed record MetricsDto(IReadOnlyList<MetricValueDto> Kpis,
     IReadOnlyDictionary<string, IReadOnlyList<MetricPointDto>> Trends, IReadOnlyList<MetricGroupDto> Groups,
     int TotalGroups, int Page, int PageSize, IReadOnlyList<NodeHealthDto> NodeHealth);

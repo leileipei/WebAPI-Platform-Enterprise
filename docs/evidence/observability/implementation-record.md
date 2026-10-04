@@ -25,3 +25,11 @@ Task 1验证：新增7项RED失败源为未实现校验；GREEN全量领域23通
 请求记录只做SDK计数与拥有独立存储的JSON快照入队，默认容量2048、每批最多512，I/O仅在后台。健康状态来自YARP；字段、秒histogram buckets与诊断口径见contracts/observability.md。此阶段测试使用内存sink作组件观察，未宣称网关至三源E2E或六页UI已经验收。
 
 决策：仅注册受控Gateway ActivitySource并对字段采用白名单，省去自动URL/异常/events/baggage采集；保证Gateway server到实际代理client，不包含未插桩后端内部调用。SDK指标汇总后立即复制至显式JSON队列，不保留可复用MetricPoint/Activity/LogRecord；自定义OTLP JSON适配器需后续真实Gateway闭环证明。
+
+## Task 4：受授权环境限定的指标查询
+
+六项指定指标测试及五项边界测试先RED后GREEN；完整真实CP/PostgreSQL集成101/101通过，0 skipped。测试覆盖环境grant不能读取兄弟环境、项目全部仅返回授权环境、撤销下一GET拒绝、histogram合并后算分位数、缺节点及缺采集环境保持Partial/null、来源失败503及不泄露地址、API路径与query冲突422、Destination环境归属二次校验。受控provider协议响应只作查询/权限组件证据，真实Prometheus重启计数器reset仍待Task 14。
+
+metric-contract-smoke.json记录独立真实Collector/Prometheus/Loki/Tempo栈：counter=1、histogram_count=1、0.05秒bucket成立、节点观察gauge为有效秒时间戳；日志与Trace可查。精确项目清理0容器/0卷/0秘密文件。合成协议验证不是Gateway E2E。
+
+决策：覆盖要求整个查询窗口有节点观察证据，新栈不会伪报完整历史；每个授权环境需采集节点，空集合不能逻辑上视作全覆盖。NodeName沿用原全局唯一约束，详情补充可选EnvironmentId明确节点所属环境，不更改核心数据库架构。API筛选显式FromQuery防止Minimal API将路径参数隐式覆盖查询冲突检查。
