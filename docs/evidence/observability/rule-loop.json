@@ -1,6 +1,6 @@
 {
   "complete": true,
-  "project": "webapi-enterprise-e2e-observability-911f2a53-0f3c-43b2-be90-7f60927b9d6e",
+  "project": "webapi-enterprise-e2e-observability-d44aa2da-bc13-452b-a3b0-72cc415aaddb",
   "classification": "actual-business-gateway-three-source-and-independent-workers",
   "settings": {
     "intervalSeconds": 2,
@@ -11,28 +11,46 @@
     "queueCapacity": 64
   },
   "windowSeconds": 60,
-  "elapsedSeconds": 146,
+  "elapsedSeconds": 139,
   "checks": [
     {
       "name": "Actual60SecondCompleteCoverageAndEstimatedRates",
       "status": "passed",
-      "ratio": 0.33333333333333337,
+      "ratio": 0.33040603543324887,
       "ratioAbsoluteTolerance": 0.12,
-      "p95": 462.4999999999999,
-      "samples": 292
+      "p95": 2276.9230769230767,
+      "samples": 119
     },
     {
       "name": "ThreeActualMetricRulesTriggerAckSilenceRecoverAndAudit",
       "status": "passed",
       "rules": [
         {
-          "eventId": "142b17b9-742e-48e5-9c51-8f1cb2a654e1",
-          "ruleId": "90c440d8-8a7f-4299-870a-4d6f2b5d32e4",
+          "eventId": "977a806d-ea67-48c2-bc11-70bda8d29ebd",
+          "ruleId": "d757ebaf-7387-4860-94b4-f190f0ddacdc",
+          "definition": {
+            "organizationId": "19b02dad-0d03-476c-8d56-c15af0cfc609",
+            "projectId": "5ff98016-9158-4fbf-b4b2-b1e141a1a3b2",
+            "environmentId": "58a73a7d-620b-43d7-bd34-79953bdedcb8",
+            "name": "错误率持续告警 · mutp8vsq",
+            "metric": "error_5xx_ratio",
+            "expression": "error_5xx_ratio > 0.05",
+            "severity": "Warning",
+            "enabled": true,
+            "forSeconds": 4,
+            "targetType": "Environment",
+            "targetId": null,
+            "windowSeconds": 60,
+            "notification": {
+              "inConsole": true,
+              "requestedChannels": []
+            }
+          },
           "originalForSeconds": 300,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-10-04T10:07:20.819+00:00",
-          "startedAt": "2026-10-04T10:07:32.560303+00:00",
-          "resolvedAt": "2026-10-04T10:08:44.868931+00:00",
+          "conditionStartedAt": "2026-10-04T10:49:57.398+00:00",
+          "startedAt": "2026-10-04T10:50:10.173576+00:00",
+          "resolvedAt": "2026-10-04T10:51:20.304401+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -50,13 +68,31 @@
           "auditCount": 2
         },
         {
-          "eventId": "e5b9da06-04d0-41b2-a693-c5c35afd02b4",
-          "ruleId": "d0b6a666-5280-464e-806e-0e7e100697cb",
+          "eventId": "d8b71446-43b9-4ae0-8c4b-8c322d9ac541",
+          "ruleId": "2cf04c74-13a9-4028-8e86-e8454f9037e5",
+          "definition": {
+            "organizationId": "19b02dad-0d03-476c-8d56-c15af0cfc609",
+            "projectId": "5ff98016-9158-4fbf-b4b2-b1e141a1a3b2",
+            "environmentId": "58a73a7d-620b-43d7-bd34-79953bdedcb8",
+            "name": "慢调用持续告警 · mutp8vub",
+            "metric": "latency_p95_ms",
+            "expression": "latency_p95_ms > 1000",
+            "severity": "Warning",
+            "enabled": true,
+            "forSeconds": 4,
+            "targetType": "Environment",
+            "targetId": null,
+            "windowSeconds": 60,
+            "notification": {
+              "inConsole": true,
+              "requestedChannels": []
+            }
+          },
           "originalForSeconds": 600,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-10-04T10:07:20.819+00:00",
-          "startedAt": "2026-10-04T10:07:32.504556+00:00",
-          "resolvedAt": "2026-10-04T10:08:51.038651+00:00",
+          "conditionStartedAt": "2026-10-04T10:49:57.398+00:00",
+          "startedAt": "2026-10-04T10:50:10.105441+00:00",
+          "resolvedAt": "2026-10-04T10:51:20.299967+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -74,13 +110,31 @@
           "auditCount": 2
         },
         {
-          "eventId": "2154a4d3-0e3e-467c-8dbb-f65537c04daa",
-          "ruleId": "fa2cd1fc-d473-42e0-951d-c5dbd8d7287c",
+          "eventId": "67b57f8f-aee7-4efc-b2ca-b77952aca81b",
+          "ruleId": "8c257236-5b37-46dd-ad7f-44468bd2c711",
+          "definition": {
+            "organizationId": "19b02dad-0d03-476c-8d56-c15af0cfc609",
+            "projectId": "5ff98016-9158-4fbf-b4b2-b1e141a1a3b2",
+            "environmentId": "58a73a7d-620b-43d7-bd34-79953bdedcb8",
+            "name": "后端健康持续告警 · mutp8vuo",
+            "metric": "unhealthy_destinations",
+            "expression": "unhealthy_destinations > 0",
+            "severity": "Warning",
+            "enabled": true,
+            "forSeconds": 4,
+            "targetType": "Environment",
+            "targetId": null,
+            "windowSeconds": 60,
+            "notification": {
+              "inConsole": true,
+              "requestedChannels": []
+            }
+          },
           "originalForSeconds": 120,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-10-04T10:07:36.821+00:00",
-          "startedAt": "2026-10-04T10:07:48.927251+00:00",
-          "resolvedAt": "2026-10-04T10:08:00.162014+00:00",
+          "conditionStartedAt": "2026-10-04T10:50:13.394+00:00",
+          "startedAt": "2026-10-04T10:50:26.397519+00:00",
+          "resolvedAt": "2026-10-04T10:50:34.546279+00:00",
           "transitions": [
             {
               "toStatus": "Open",

@@ -1,0 +1,260 @@
+{
+  "complete": true,
+  "project": "webapi-enterprise-e2e-observability-409d8384-a610-4406-9d65-ebf94657532b",
+  "architecture": "Linux aarch64",
+  "settings": {
+    "intervalSeconds": 2,
+    "queryDelaySeconds": 5,
+    "leaseSeconds": 30,
+    "metricExportIntervalMs": 1000,
+    "traceSampleRatio": 1,
+    "queueCapacity": 64
+  },
+  "checks": [
+    {
+      "name": "OldARequestAcrossBSwitchKeepsActualADestinationAndTelemetry",
+      "status": "passed",
+      "destinationId": "22237b2b-0a17-4d1c-9eb3-714ea33725dc",
+      "destinationBackend": "A",
+      "sequence": 2
+    },
+    {
+      "name": "ActualApprovedRollbackSurvivesObservationStack",
+      "status": "passed",
+      "sequence": 4
+    },
+    {
+      "name": "lokiStopAndRecoveryKeepProxyAndApprovedPublishing",
+      "status": "passed"
+    },
+    {
+      "name": "tempoStopAndRecoveryKeepProxyAndApprovedPublishing",
+      "status": "passed"
+    },
+    {
+      "name": "prometheusStopAndRecoveryKeepProxyAndApprovedPublishing",
+      "status": "passed"
+    },
+    {
+      "name": "CollectorOutageQueueFullProxySuccessAndRealMiddleGap",
+      "status": "passed",
+      "successfulBurstRequests": 200,
+      "windowSeconds": 68,
+      "reason": "time_window_coverage_incomplete"
+    },
+    {
+      "name": "SingleNodeCollectionExpiryAndActualProcessRecovery",
+      "status": "passed"
+    },
+    {
+      "name": "ActualWorkerKillPgLeaseExpiresSecondWorkerTakesOver",
+      "status": "passed",
+      "oldToken": 1,
+      "newToken": 2
+    },
+    {
+      "name": "ActualGatewayLkgRestartWithControlPlaneRedisOffline",
+      "status": "passed"
+    }
+  ],
+  "command": "./scripts/check-observability.sh faults",
+  "exitCode": 0,
+  "sourceRevision": "d34b6979eb353999f164b49142618ac3a01e733b",
+  "cleanup": {
+    "exitCode": 0,
+    "secretFilesRemaining": 0,
+    "containersRemaining": 0,
+    "volumesRemaining": 0
+  },
+  "loop": {
+    "complete": true,
+    "project": "webapi-enterprise-e2e-observability-409d8384-a610-4406-9d65-ebf94657532b",
+    "source": "actual-two-gateways-collector-prometheus-loki-tempo",
+    "counterDelta": 8,
+    "logCount": 8,
+    "spanCount": 16,
+    "ordinaryRequestSpanCount": 2,
+    "ordinaryRequestTraceComplete": true,
+    "environmentId": "4de649e0-9caf-4cdb-9fed-13508a7d9fa3",
+    "traceId": "07197582dd3e4c1095b882eb413ff172"
+  },
+  "rules": {
+    "complete": true,
+    "project": "webapi-enterprise-e2e-observability-409d8384-a610-4406-9d65-ebf94657532b",
+    "classification": "actual-business-gateway-three-source-and-independent-workers",
+    "settings": {
+      "intervalSeconds": 2,
+      "queryDelaySeconds": 5,
+      "leaseSeconds": 30,
+      "metricExportIntervalMs": 1000,
+      "traceSampleRatio": 1,
+      "queueCapacity": 64
+    },
+    "windowSeconds": 60,
+    "elapsedSeconds": 138,
+    "checks": [
+      {
+        "name": "Actual60SecondCompleteCoverageAndEstimatedRates",
+        "status": "passed",
+        "ratio": 0.3273602579452041,
+        "ratioAbsoluteTolerance": 0.12,
+        "p95": 2275,
+        "samples": 117
+      },
+      {
+        "name": "ThreeActualMetricRulesTriggerAckSilenceRecoverAndAudit",
+        "status": "passed",
+        "rules": [
+          {
+            "eventId": "6522e3d8-cc1a-40f0-a2b0-5f5f12414a60",
+            "ruleId": "a1eea4b7-df9b-4c93-a76b-cb43bfe6b5e2",
+            "definition": {
+              "organizationId": "68fe60a5-701d-4891-8312-74f179b8bd3b",
+              "projectId": "c1bb9cc9-b450-4254-93e3-2eb2818b4201",
+              "environmentId": "4de649e0-9caf-4cdb-9fed-13508a7d9fa3",
+              "name": "错误率持续告警 · mutoxz2n",
+              "metric": "error_5xx_ratio",
+              "expression": "error_5xx_ratio > 0.05",
+              "severity": "Warning",
+              "enabled": true,
+              "forSeconds": 4,
+              "targetType": "Environment",
+              "targetId": null,
+              "windowSeconds": 60,
+              "notification": {
+                "inConsole": true,
+                "requestedChannels": []
+              }
+            },
+            "originalForSeconds": 300,
+            "e2eForSeconds": 4,
+            "conditionStartedAt": "2026-10-04T10:41:25.531+00:00",
+            "startedAt": "2026-10-04T10:41:38.146137+00:00",
+            "resolvedAt": "2026-10-04T10:42:50.949742+00:00",
+            "transitions": [
+              {
+                "toStatus": "Open",
+                "reason": "Triggered"
+              },
+              {
+                "toStatus": "Ack",
+                "reason": "Ack"
+              },
+              {
+                "toStatus": "Resolved",
+                "reason": "Recovered"
+              }
+            ],
+            "auditCount": 2
+          },
+          {
+            "eventId": "d8e16510-c7af-4fa8-8133-51fd270a7081",
+            "ruleId": "56e84fb3-dbdc-4ef5-a6be-6c4b527bc7e6",
+            "definition": {
+              "organizationId": "68fe60a5-701d-4891-8312-74f179b8bd3b",
+              "projectId": "c1bb9cc9-b450-4254-93e3-2eb2818b4201",
+              "environmentId": "4de649e0-9caf-4cdb-9fed-13508a7d9fa3",
+              "name": "慢调用持续告警 · mutoxz47",
+              "metric": "latency_p95_ms",
+              "expression": "latency_p95_ms > 1000",
+              "severity": "Warning",
+              "enabled": true,
+              "forSeconds": 4,
+              "targetType": "Environment",
+              "targetId": null,
+              "windowSeconds": 60,
+              "notification": {
+                "inConsole": true,
+                "requestedChannels": []
+              }
+            },
+            "originalForSeconds": 600,
+            "e2eForSeconds": 4,
+            "conditionStartedAt": "2026-10-04T10:41:25.531+00:00",
+            "startedAt": "2026-10-04T10:41:38.088686+00:00",
+            "resolvedAt": "2026-10-04T10:42:50.9438+00:00",
+            "transitions": [
+              {
+                "toStatus": "Open",
+                "reason": "Triggered"
+              },
+              {
+                "toStatus": "Silenced",
+                "reason": "隔离闭环维护"
+              },
+              {
+                "toStatus": "Resolved",
+                "reason": "Recovered"
+              }
+            ],
+            "auditCount": 2
+          },
+          {
+            "eventId": "e89c7a29-e392-4914-8b75-d013452f2ee4",
+            "ruleId": "1cd8ed50-4efd-4e77-9129-4795bacb637d",
+            "definition": {
+              "organizationId": "68fe60a5-701d-4891-8312-74f179b8bd3b",
+              "projectId": "c1bb9cc9-b450-4254-93e3-2eb2818b4201",
+              "environmentId": "4de649e0-9caf-4cdb-9fed-13508a7d9fa3",
+              "name": "后端健康持续告警 · mutoxz4m",
+              "metric": "unhealthy_destinations",
+              "expression": "unhealthy_destinations > 0",
+              "severity": "Warning",
+              "enabled": true,
+              "forSeconds": 4,
+              "targetType": "Environment",
+              "targetId": null,
+              "windowSeconds": 60,
+              "notification": {
+                "inConsole": true,
+                "requestedChannels": []
+              }
+            },
+            "originalForSeconds": 120,
+            "e2eForSeconds": 4,
+            "conditionStartedAt": "2026-10-04T10:41:42.452+00:00",
+            "startedAt": "2026-10-04T10:41:54.595831+00:00",
+            "resolvedAt": "2026-10-04T10:42:04.799798+00:00",
+            "transitions": [
+              {
+                "toStatus": "Open",
+                "reason": "Triggered"
+              },
+              {
+                "toStatus": "Resolved",
+                "reason": "Recovered"
+              }
+            ],
+            "auditCount": 2
+          }
+        ]
+      },
+      {
+        "name": "ActualYarpHealthyGaugeRecovers",
+        "status": "passed",
+        "value": 0
+      }
+    ]
+  },
+  "boundaries": {
+    "complete": true,
+    "project": "webapi-enterprise-e2e-observability-409d8384-a610-4406-9d65-ebf94657532b",
+    "checks": [
+      {
+        "name": "ActualSameTraceparentTwoEnvironmentsOnlyReturnCurrentEnvironmentSpans",
+        "status": "passed",
+        "rawSpanCount": 4,
+        "ownSpanCount": 2,
+        "foreignSpanCount": 2,
+        "traceId": "3a90cbc26a914f88ae9bdc3608507519"
+      },
+      {
+        "name": "RealLokiSingleNanosecondProviderLimitExplicitlyTruncated",
+        "status": "passed",
+        "classification": "synthetic-provider-boundary-in-real-Loki-not-business-requests",
+        "pushedRows": 5001,
+        "returnedRows": 50
+      }
+    ]
+  }
+}

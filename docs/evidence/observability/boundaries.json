@@ -1,7 +1,15 @@
 {
   "complete": true,
-  "project": "webapi-enterprise-e2e-observability-66c3c63b-34d8-4271-9598-8006a429b137",
+  "project": "webapi-enterprise-e2e-observability-d44aa2da-bc13-452b-a3b0-72cc415aaddb",
   "checks": [
+    {
+      "name": "ActualSameTraceparentTwoEnvironmentsOnlyReturnCurrentEnvironmentSpans",
+      "status": "passed",
+      "rawSpanCount": 4,
+      "ownSpanCount": 2,
+      "foreignSpanCount": 2,
+      "traceId": "7b80d43a2da0449c9e0679be60887f0d"
+    },
     {
       "name": "RealLokiSingleNanosecondProviderLimitExplicitlyTruncated",
       "status": "passed",

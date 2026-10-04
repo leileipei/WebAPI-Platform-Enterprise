@@ -1,21 +1,100 @@
 {
   "complete": false,
-  "project": "webapi-enterprise-e2e-observability-409d8384-a610-4406-9d65-ebf94657532b",
-  "startedAt": "2026-10-04T10:40:23.419Z",
+  "project": "webapi-enterprise-e2e-observability-d44aa2da-bc13-452b-a3b0-72cc415aaddb",
+  "startedAt": "2026-10-04T10:48:52.385Z",
   "classification": "real-isolated-gateway-three-source",
   "mode": "e2e",
   "endpoints": {
-    "control_plane": "http://127.0.0.1:58886",
-    "collector": "http://127.0.0.1:58887",
-    "prometheus": "http://127.0.0.1:58888",
-    "loki": "http://127.0.0.1:58889",
-    "tempo": "http://127.0.0.1:58890",
-    "console": "http://127.0.0.1:58891",
-    "gateway_a": "http://127.0.0.1:58892",
-    "gateway_b": "http://127.0.0.1:58893",
-    "backend_a": "http://127.0.0.1:58894",
-    "backend_b": "http://127.0.0.1:58895"
+    "control_plane": "http://127.0.0.1:60968",
+    "collector": "http://127.0.0.1:60969",
+    "prometheus": "http://127.0.0.1:60970",
+    "loki": "http://127.0.0.1:60971",
+    "tempo": "http://127.0.0.1:60972",
+    "console": "http://127.0.0.1:60973",
+    "gateway_a": "http://127.0.0.1:60974",
+    "gateway_b": "http://127.0.0.1:60975",
+    "backend_a": "http://127.0.0.1:60976",
+    "backend_b": "http://127.0.0.1:60977"
   },
-  "checks": [],
-  "cleanup": null
+  "checks": [
+    {
+      "name": "loop",
+      "status": "passed",
+      "evidence": "loop.json"
+    },
+    {
+      "name": "rule-loop",
+      "status": "passed",
+      "evidence": "rule-loop.json"
+    },
+    {
+      "name": "boundaries",
+      "status": "passed",
+      "evidence": "boundaries.json"
+    }
+  ],
+  "cleanup": {
+    "exitCode": 0,
+    "secretFilesRemaining": 0,
+    "containersRemaining": 0,
+    "volumesRemaining": 0
+  },
+  "criticalAcceptanceComplete": true,
+  "sourceRevision": "d34b697",
+  "commands": [
+    {
+      "command": "./scripts/check-observability.sh e2e",
+      "exitCode": 0,
+      "project": "webapi-enterprise-e2e-observability-d44aa2da-bc13-452b-a3b0-72cc415aaddb"
+    },
+    {
+      "command": "./scripts/check-observability.sh faults",
+      "exitCode": 0,
+      "evidence": "fault-run.json",
+      "project": "webapi-enterprise-e2e-observability-409d8384-a610-4406-9d65-ebf94657532b"
+    }
+  ],
+  "componentChecks": {
+    "domain": {
+      "passed": 49,
+      "skipped": 0
+    },
+    "integration": {
+      "passed": 184,
+      "skipped": 0
+    },
+    "gateway": {
+      "passed": 25,
+      "skipped": 0
+    },
+    "frontend": {
+      "passed": 35,
+      "typecheck": true,
+      "productionBuild": true
+    }
+  },
+  "coreRegression": {
+    "passed": 1,
+    "actualFaultChecks": 7,
+    "exitCode": 0,
+    "project": "webapi-enterprise-e2e-1791108420-17847",
+    "cleanupZero": true
+  },
+  "browser": {
+    "evidence": "browser-qa.json",
+    "complete": true
+  },
+  "architecture": "Linux aarch64",
+  "settings": {
+    "intervalSeconds": 2,
+    "queryDelaySeconds": 5,
+    "leaseSeconds": 30,
+    "metricExportIntervalMs": 1000,
+    "traceSampleRatio": 1,
+    "queueCapacity": 64
+  },
+  "pending": [
+    "one-independent-final-review",
+    "delivery-documentation-and-immutable-package"
+  ]
 }
