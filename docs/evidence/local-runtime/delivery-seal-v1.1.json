@@ -1,0 +1,25 @@
+{
+  "sealedAt": "2026-10-04T15:15:54.077Z",
+  "archive": "deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收_V1.1.zip",
+  "sourceRevision": "3814fdfdcb26cdf7f6af78eb83419d9f02066ca9",
+  "sha256": "cd0658aaef617b6a94206fe2d325295484bb53aa8444fb450ca84085c6655ee4",
+  "files": 594,
+  "sourceAndStaticByteVerificationPassed": true,
+  "secretsExcluded": true,
+  "preservedOldDeliveryHashesVerified": true,
+  "installedReleaseSourceRevision": "3c038e7d7fdbb5ec7574944a24a70478ddd0f5ab",
+  "consoleUrl": "http://127.0.0.1:4192",
+  "managementInitialized": true,
+  "administratorLoginPreviouslyVerified": true,
+  "phase": "Unconfigured",
+  "servicesRunning": 9,
+  "observationSourcesAvailable": 4,
+  "unitPassed": 88,
+  "unitSkipped": 0,
+  "businessEnvironmentBound": false,
+  "dualGatewayComplete": false,
+  "pendingInput": [
+    "business environment GUID",
+    "explicit upstream origin list"
+  ]
+}

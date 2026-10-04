@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-04T15:07:11.989Z",
+  "checkedAt": "2026-10-04T15:15:54.077Z",
   "persistentProject": "webapi-enterprise-local",
   "initialized": true,
   "bound": false,
@@ -63,22 +63,22 @@
     {
       "name": "collector",
       "state": "Available",
-      "checkedAt": "2026-10-04T15:07:10.611Z"
+      "checkedAt": "2026-10-04T15:15:53.988Z"
     },
     {
       "name": "prometheus",
       "state": "Available",
-      "checkedAt": "2026-10-04T15:07:10.618Z"
+      "checkedAt": "2026-10-04T15:15:53.987Z"
     },
     {
       "name": "loki",
       "state": "Available",
-      "checkedAt": "2026-10-04T15:07:10.610Z"
+      "checkedAt": "2026-10-04T15:15:53.980Z"
     },
     {
       "name": "tempo",
       "state": "Available",
-      "checkedAt": "2026-10-04T15:07:10.616Z"
+      "checkedAt": "2026-10-04T15:15:53.979Z"
     }
   ],
   "persistentVolumes": [
