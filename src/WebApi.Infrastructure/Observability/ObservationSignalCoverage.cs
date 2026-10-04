@@ -1,6 +1,6 @@
 using System.Globalization;using System.Text.Json;using WebApi.Contracts.Common;using WebApi.Contracts.Observability;
 namespace WebApi.Infrastructure.Observability;
-public sealed class ObservationSignalCoverage(ObservationSourceClient client,ObservationSourceSettings settings,ObservationCoverageService coverage)
+public sealed class ObservationSignalCoverage(ObservationSourceClient client,ObservationSourceSettings settings,ObservationCoverageService coverage,CollectorSignalCoverage collector)
 {
     public async Task<ObservationCoverage> QueryAsync(TrustedObservationScope scope,TimeRange range,string signal,CancellationToken ct)
     {
@@ -16,7 +16,9 @@ public sealed class ObservationSignalCoverage(ObservationSourceClient client,Obs
             var latest=Fetch("webapi_telemetry_last_observed_timestamp_seconds"+match);var first=Fetch("min_over_time(webapi_telemetry_last_observed_timestamp_seconds"+match+"["+window+"])");
             var maxAge=Fetch("max_over_time((time() - webapi_telemetry_last_observed_timestamp_seconds"+match+")["+window+":15s])");
             var lost=Fetch("sum by (webapi_environment_id) (increase(webapi_telemetry_dropped_total"+diagnostics+"["+window+"]))");var failed=Fetch("sum by (webapi_environment_id) (increase(webapi_telemetry_export_failures_total"+diagnostics+"["+window+"]))");
-            await Task.WhenAll(latest,first,lost,failed,maxAge);var result=coverage.Evaluate(scope,range,await latest,await first,(await lost).Sum(x=>x.Value)+(await failed).Sum(x=>x.Value),await maxAge);
+            var lastLoss=Fetch("max_over_time(webapi_telemetry_last_loss_timestamp_seconds"+diagnostics+"["+window+"])");var downstream=collector.HasGapAsync(range,signal,ct);
+            await Task.WhenAll(latest,first,lost,failed,maxAge,lastLoss,downstream);var result=coverage.Evaluate(scope,range,await latest,await first,(await lost).Sum(x=>x.Value)+(await failed).Sum(x=>x.Value)+(await lastLoss).Count(x=>x.Value>=range.Start.ToUnixTimeMilliseconds()/1000d&&x.Value<range.End.ToUnixTimeMilliseconds()/1000d),await maxAge);
+            if(result.Coverage.Complete&&await downstream)result=result with{State=SourceState.Partial,Coverage=result.Coverage with{Complete=false,Reason="collector_"+signal+"_collection_gap"}};
             return result.Coverage.Reason=="known_metrics_collection_gap"?result with{Coverage=result.Coverage with{Reason="known_"+signal+"_collection_gap"}}:result;
         }catch(ApiException){return new(SourceState.Partial,null,new(false,scope.ExpectedNodes.Select(x=>x.NodeName).ToArray(),"collection_coverage_source_unavailable",false));}
         catch(Exception e)when(e is JsonException or FormatException or ArgumentException or InvalidOperationException or KeyNotFoundException){return new(SourceState.Partial,null,new(false,[],"collection_coverage_source_unavailable",false));}

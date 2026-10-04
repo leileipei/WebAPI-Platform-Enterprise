@@ -4,7 +4,7 @@
 
 ## 使用与边界
 
-- [页面能力覆盖](docs/console-coverage.md)：逐一对应原 40 页；SSO、完整监控/告警、高级策略、完整 Breaking Change 引擎等仍属于后续开发。
+- [页面能力覆盖](docs/console-coverage.md)：逐一对应原 40 页；28–33页已接入真实监控/告警；SSO、高级策略、完整 Breaking Change 引擎等仍属于后续开发。
 - [验收与证据](docs/acceptance.md)：区分浏览器操作、数据库回归、真实容器业务响应与目标部署验收。
 - [审查修正状态](docs/evidence/core-loop/final-review.md)与[实施决策](docs/decisions.md)：3项Important修正与最终浏览器复验均已完成；全部实施裁定与延期范围已记录。
 - [配置与运维](docs/operations.md)：初始化、节点身份、快照、备份恢复和敏感日志处理。
@@ -21,3 +21,9 @@
 `./scripts/package.sh` 生成源码交付压缩包；包含迁移、锁文件、配置、说明、验证证据与前端静态产物，排除密钥、测试数据库、运行目录、依赖缓存和 Git 元数据。
 
 该交付在 Linux ARM64 容器完成本地验证。AMD64、企业网络/TLS、真实数据库备份恢复和生产容量仍须在目标环境单独验收；没有 5k RPS 或生产就绪承诺。
+
+## 真实观测与告警阶段
+
+[运行手册](docs/deployment/observability-runbook.md)、[数据字典](docs/observability-data-dictionary.md)、[本阶段证据](docs/evidence/observability/verification.json)。`./scripts/check-observability.sh e2e` 验证真实三源与持续告警，`faults` 加入真实容器停机、租约接管及核心兼容检查；`browser` 保持临时环境，结束删除该项目metadata同目录的 `browser.wait` 后精确清理。所有观测E2E端口按本次项目预分配到loopback，仍禁止并发修改共享构建目录。
+
+`./scripts/package.sh observability <commit>` 从不可变提交封装本阶段源码、证据与当前已核验静态产物，输出独立ZIP及manifest-observability.json，保留首期交付。当前持久本机服务未自动重配观测端点；实际数据需要按手册启用Collector及三源。

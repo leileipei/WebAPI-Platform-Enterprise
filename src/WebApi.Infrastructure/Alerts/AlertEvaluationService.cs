@@ -78,7 +78,7 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
         state.LastEvaluatedSlot=lease.Slot;state.LeaseOwner=null;state.LeaseUntil=null;state.Revision++;
         await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);return true;
     }
-    internal static bool IsKnown(ObservationEnvelope<MetricsDto> response,MetricValueDto? metric,string metricName)=>response.Coverage.Complete&&metric?.Value is double value&&double.IsFinite(value)&&(response.SourceState==SourceState.Available||(response.SourceState==SourceState.NoData&&metricName=="unhealthy_destinations"));
+    internal static bool IsKnown(ObservationEnvelope<MetricsDto> response,MetricValueDto? metric,string metricName)=>response.Coverage.Complete&&metric?.Value is double value&&double.IsFinite(value)&&(response.SourceState==SourceState.Available||(response.SourceState==SourceState.NoData&&metricName is "unhealthy_destinations" or "request_rps"));
     internal async Task<bool> TargetExistsAsync(AlertRule rule,CancellationToken ct)
     {
         if(rule.TargetType=="Environment")return true;

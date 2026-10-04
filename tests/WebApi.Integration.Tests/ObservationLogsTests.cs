@@ -2,6 +2,13 @@ using System.Collections.Concurrent;using System.Globalization;using System.Net;
 namespace WebApi.Integration.Tests;
 public sealed class ObservationLogsTests
 {
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task FirstLossAndCollectorDownstreamFailureCannotClaimComplete(bool collector)
+    {
+        await using var f=await FixtureAsync(2);f.Source.FirstLoss=!collector;f.Source.CollectorLoss=collector;
+        using var r=await f.Api.Client.GetAsync(Url(f));r.EnsureSuccessStatusCode();var body=(await r.Content.ReadFromJsonAsync<ObservationEnvelope<CursorPage<AccessLogDto>>>())!;
+        Assert.False(body.Coverage.Complete);Assert.Equal(SourceState.Partial,body.SourceState);Assert.Equal(collector?"collector_logs_collection_gap":"known_logs_collection_gap",body.Coverage.Reason);
+    }
     [Fact] public async Task MiddleGapCannotClaimCompleteLogCoverage()
     {
         await using var s=await FixtureAsync(2);s.Source.MiddleGap=true;
@@ -103,7 +110,7 @@ public sealed class LogFixture:IAsyncDisposable
 public sealed record TestLog(Guid Id,long Nano,string Method,string Path,string Node);
 public sealed class LogProtocolHandler:HttpMessageHandler
 {
-    public Guid EnvironmentId,ApiId,ApplicationId,DestinationId;public bool Flattened,MiddleGap;public string IpHmac="";public int Status=200;public List<TestLog> Rows{get;}=[];public ConcurrentQueue<Uri> LogRequests{get;}=new();public Func<int,Task>? OnLogRequest;
+    public Guid EnvironmentId,ApiId,ApplicationId,DestinationId;public bool Flattened,MiddleGap,FirstLoss,CollectorLoss;public string IpHmac="";public int Status=200;public List<TestLog> Rows{get;}=[];public ConcurrentQueue<Uri> LogRequests{get;}=new();public Func<int,Task>? OnLogRequest;
     public DateTimeOffset End{get;}=DateTimeOffset.UtcNow.AddSeconds(-1);public DateTimeOffset Start=>End.AddHours(-1);public long Nano=DateTimeOffset.UtcNow.AddSeconds(-5).ToUnixTimeMilliseconds()*1000000+47;
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
     {
@@ -116,7 +123,7 @@ public sealed class LogProtocolHandler:HttpMessageHandler
             if(Flattened){foreach(var row in values){var labels=new Dictionary<string,string>(baseLabels);foreach(var field in (Dictionary<string,string>)row[2])labels[field.Key]=field.Value;streams.Add(new{stream=labels,values=new[]{new object[]{row[0],row[1]}}});}}else streams.Add(new{stream=baseLabels,values});
             return new(HttpStatusCode.OK){Content=JsonContent.Create(new{status="success",data=new{resultType="streams",result=streams}})};
         }
-        var q=p["query"].ToString();var time=End.ToUnixTimeMilliseconds()/1000d;var value=q.Contains("max_over_time")?MiddleGap?90:5:q.Contains("min_over_time")?Start.AddSeconds(5).ToUnixTimeMilliseconds()/1000d:q.Contains("last_observed_timestamp")?time-2:0;
+        var q=p["query"].ToString();var time=End.ToUnixTimeMilliseconds()/1000d;var value=q.Contains("otelcol_")?CollectorLoss?1:0:q.Contains("last_loss_timestamp")?FirstLoss?End.AddSeconds(-5).ToUnixTimeMilliseconds()/1000d:0:q.Contains("max_over_time")?MiddleGap?90:5:q.Contains("min_over_time")?Start.AddSeconds(5).ToUnixTimeMilliseconds()/1000d:q.Contains("last_observed_timestamp")?time-2:0;
         return new(HttpStatusCode.OK){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=new[]{new{metric=new Dictionary<string,string>{["webapi_environment_id"]=EnvironmentId.ToString(),["service_instance_id"]="logs-node"},value=new object[]{time,value.ToString(CultureInfo.InvariantCulture)}}}}})};
     }
 }

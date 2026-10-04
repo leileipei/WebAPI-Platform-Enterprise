@@ -20,6 +20,7 @@ public sealed class GatewayTelemetryRecorder : IDisposable
         meter.CreateObservableGauge("webapi_telemetry_last_observed_timestamp_seconds",()=>DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/1000d);
         meter.CreateObservableCounter("webapi_telemetry_dropped_total",()=>tracker.Drops.Select(x=>new Measurement<long>(x.Value,new KeyValuePair<string,object?>("signal",x.Key))));
         meter.CreateObservableCounter("webapi_telemetry_export_failures_total",()=>tracker.Failures.Select(x=>new Measurement<long>(x.Value,new KeyValuePair<string,object?>("signal",x.Key))));
+        meter.CreateObservableGauge("webapi_telemetry_last_loss_timestamp_seconds",()=>tracker.LastLoss.Select(x=>new Measurement<double>(x.Value,new KeyValuePair<string,object?>("signal",x.Key))));
         meter.CreateObservableGauge("webapi_telemetry_last_export_success_timestamp_seconds",()=>tracker.LastSuccess.Select(x=>new Measurement<double>(x.Value,new KeyValuePair<string,object?>("signal",x.Key))));
         meter.CreateObservableGauge("webapi_destination_health",()=>health.Read().Select(x=>new Measurement<long>(x.Health switch{"Healthy"=>1,"Unhealthy"=>0,"Disabled"=>-2,_=>-1},new[]{new KeyValuePair<string,object?>("webapi.cluster.id",x.ClusterId.ToString()),new("webapi.destination.id",x.DestinationId.ToString())})));
     }

@@ -96,5 +96,24 @@
   "pending": [
     "one-independent-final-review",
     "delivery-documentation-and-immutable-package"
-  ]
+  ],
+  "finalReview": {
+    "reviewedRevision": "7a72d30d6e6c8e85d11860e271874b0f2a04710c",
+    "independentReviews": 1,
+    "importantFixed": 5,
+    "minorDeferred": 1,
+    "fullSuite": {
+      "domain": 49,
+      "integration": 191,
+      "gateway": 27,
+      "frontend": 35,
+      "skipped": 0
+    },
+    "realLossProof": "final-loss-live.json",
+    "permissionProof": "final-permission-browser.json",
+    "pending": [
+      "final repaired revision three-source loop",
+      "immutable archive verification"
+    ]
+  }
 }

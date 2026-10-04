@@ -1,0 +1,36 @@
+{
+  "project": "webapi-enterprise-e2e-observability-e81ec684-de30-4ea4-a62a-30b43c0fe27e",
+  "actorId": "f43be703-83e5-4430-91c6-04142f6e8931",
+  "at": "2026-10-04T11:34:23.269Z",
+  "complete": true,
+  "classification": "production-assets-real-source-preview-no-hmr",
+  "red": {
+    "observedAt": "2026-10-04T11:28:58.434Z",
+    "revokedAt": "2026-10-04T11:28:06.063Z",
+    "metricsSamples": 126,
+    "apiSamples": 127,
+    "resultsRetained": true
+  },
+  "green": {
+    "metricsClearedAt": "2026-10-04T11:34:32.199Z",
+    "apiClearedAt": "2026-10-04T11:34:32.203Z",
+    "kpiCards": 0,
+    "tables": 0,
+    "fixedEnd": "2026-10-04T11:30:56.722Z",
+    "automaticRequeryMilliseconds": 30000
+  },
+  "healthFiltered": {
+    "metricState": "NotApplicable",
+    "value": null,
+    "uiLabel": "该维度暂不支持",
+    "nodeBackendCells": "—"
+  },
+  "cleanup": {
+    "exitCode": 0,
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "networksRemaining": 0,
+    "secretFilesRemaining": 0
+  },
+  "cleanupCommand": "explicit exact-project compose down; original holder session unavailable"
+}

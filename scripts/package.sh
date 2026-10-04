@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+if [ "${1:-}" = observability ]; then
+ exec python3 scripts/package-observability.py "${2:?Immutable source commit required}"
+fi
 [ -f console/dist/index.html ] || { echo 'Build console before packaging.' >&2; exit 2; }
 python3 - <<'PY'
 from pathlib import Path

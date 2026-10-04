@@ -49,3 +49,9 @@
 仓库仅有 feature/core-loop，无远程与可合并基线；保留本地提交及源码包，不虚构PR或合并结果。全部Critical/Important进入同一修正阶段，未再派独立复审。没有延期Minor。原始审查、修正验证和实施记录均在 docs/evidence/core-loop。
 
 持久验收账号授权与Secret全文读取被自动审批拒绝，未执行。另获准的随机可销毁项目只含合成数据；本轮只检查凭证控件状态而不读取Secret。
+
+## 实际观测与告警阶段
+
+28–33六页保持原设计系统和功能字段，接入真实源与PG持续告警；原40页原型和首期交付保留。采集白名单从Gateway开始执行，客户端TraceId不能证明Scope，正文断开不计成功，发布旧请求保留旧generation事实。
+
+[数据字典](observability-data-dictionary.md)、[运行手册](deployment/observability-runbook.md)、[实施判断](evidence/observability/execution-ledger.md)记录本阶段决策与成本。指标近似值、中间采集缺口、源上限、采样与人工抑制均向用户明确。独立源码包从不可变提交生成，保留首期ZIP/manifest，不推送或合并。外部通知仅意向，本机验收不等于生产TLS/HA/容量或7天留存验收。

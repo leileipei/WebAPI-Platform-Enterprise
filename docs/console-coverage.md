@@ -31,12 +31,12 @@
 |25|Snapshot|/snapshots|已接入脱敏管理视图和下载|
 |26|网关节点|/nodes|已接入实际/目标版本及sequence|
 |27|节点详情|/nodes/{id}|已接入事实事件|
-|28|监控总览|/coverage|后续外部指标接入|
-|29|API监控|/coverage|后续|
-|30|访问日志|/coverage|后续|
-|31|Trace|/coverage|后续；审计可按Trace筛选|
-|32|告警中心|/coverage|后续|
-|33|告警规则|/coverage|后续|
+|28|监控总览|/observability/metrics|已接入真实Prometheus，12项KPI/7类趋势、分组排序、节点覆盖；估计量和部分数据明确呈现|
+|29|API监控|/observability/apis/{apiId}|已接入应用/状态/后端分组，日志/Trace及预填规则按独立权限开放|
+|30|访问日志|/observability/logs|已接入真实Loki、签名游标、脱敏详情/CSV与只在POST内存使用的精确IP筛选；源上限显式截断|
+|31|Trace|/observability/traces|已接入真实Tempo、Server/Client瀑布图、安全span标签；同Trace跨环境隔离，缺失/采样/源故障分开|
+|32|告警中心|/observability/alerts|已接入PG事件、Ack/Resolve/Silence/Unsilence与流转；Unknown不当恢复，Metrics关联选择冻结环境|
+|33|告警规则|/observability/alert-rules|已接入创建/编辑/启停、范围预览、只读测试与412保护；Email/Webhook/EnterpriseIm仅意向|
 |34|用户|/users|已接入平台级用户治理|
 |35|角色|/roles|已接入系统角色只读与自定义角色|
 |36|权限矩阵|/roles|已接入角色权限选择|
@@ -44,3 +44,5 @@
 |38|审计|/audit|已接入安全变更视图/筛选|
 |39|SSO/OIDC|/coverage|后续企业身份接入|
 |40|系统设置|/coverage|后续持久设置；运行配置使用显式部署配置|
+
+28–33真实范围见 [观测验收](evidence/observability/verification.json)、[数据字典](observability-data-dictionary.md)与[运行手册](deployment/observability-runbook.md)。原40页高保真原型仍完整保留；本阶段没有把SSO、高级策略或企业通知标为已实现。

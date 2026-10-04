@@ -4,7 +4,7 @@ using WebApi.Contracts.Observability;
 namespace WebApi.Infrastructure.Observability;
 public sealed record PrometheusSeries(IReadOnlyDictionary<string,string> Labels,double Value);
 public sealed record PrometheusMatrix(IReadOnlyDictionary<string,string> Labels,IReadOnlyList<(DateTimeOffset Time,double Value)> Points);
-public sealed class PrometheusMetricSource(ObservationSourceClient client,ObservationSourceSettings settings,ObservationCoverageService coverage)
+public sealed class PrometheusMetricSource(ObservationSourceClient client,ObservationSourceSettings settings,ObservationCoverageService coverage,CollectorSignalCoverage collector)
 {
     public static readonly string[] KpiKeys=["request_count","request_rps","success_ratio","error_4xx_count","error_4xx_ratio","error_5xx_count","error_5xx_ratio","latency_p50_ms","latency_p95_ms","latency_p99_ms","unhealthy_destinations","cancelled_count"];
     private const string ResourceLabels="webapi_environment_id,webapi_api_id,webapi_application_id,webapi_destination_id";
@@ -33,15 +33,19 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var healthTask=V("webapi_destination_health"+all);
         var droppedTask=V($"sum by (webapi_environment_id) (increase(webapi_telemetry_dropped_total{Matcher(scope,null,"signal=\"metrics\"")}[{window}]))");
         var failedTask=V($"sum by (webapi_environment_id) (increase(webapi_telemetry_export_failures_total{Matcher(scope,null,"signal=\"metrics\"")}[{window}]))");
+        var lastLossTask=V($"max_over_time(webapi_telemetry_last_loss_timestamp_seconds{Matcher(scope,null,"signal=\"metrics\"")}[{window}])");
+        var collectorTask=collector.HasGapAsync(range,"metrics",ct);
         var ratesTask=M($"sum by (webapi_environment_id,http_response_status_code,webapi_outcome,webapi_success) (clamp_min(rate(webapi_gateway_requests_total{matcher}[{bucket}]),0))");
         var latencyTrendTask=M($"sum by (webapi_environment_id,le) (clamp_min(rate(webapi_gateway_request_duration_seconds_bucket{matcher}[{bucket}]),0))");
-        await Task.WhenAll(latestTask,firstTask,ageTask,requestTask,histogramTask,healthTask,droppedTask,failedTask,ratesTask,latencyTrendTask);
+        await Task.WhenAll(latestTask,firstTask,ageTask,requestTask,histogramTask,healthTask,droppedTask,failedTask,ratesTask,latencyTrendTask,lastLossTask,collectorTask);
         var requests=(await requestTask).Where(x=>ResourcesValid(x.Labels,scope)&&Matches(x.Labels,filter)).ToArray();
         var histogram=(await histogramTask).Where(x=>ResourcesValid(x.Labels,scope)&&Matches(x.Labels,filter)).ToArray();
         var health=await healthTask;
-        var observed=coverage.Evaluate(scope,range,await latestTask,await firstTask,(await droppedTask).Sum(x=>x.Value)+(await failedTask).Sum(x=>x.Value),await ageTask);
+        var observed=coverage.Evaluate(scope,range,await latestTask,await firstTask,(await droppedTask).Sum(x=>x.Value)+(await failedTask).Sum(x=>x.Value)+(await lastLossTask).Count(x=>x.Value>=range.Start.ToUnixTimeMilliseconds()/1000d&&x.Value<range.End.ToUnixTimeMilliseconds()/1000d),await ageTask);
+        if(observed.Coverage.Complete&&await collectorTask)observed=observed with{State=SourceState.Partial,Coverage=observed.Coverage with{Complete=false,Reason="collector_metrics_collection_gap"}};
         var missing=observed.State is SourceState.Partial or SourceState.Stale||scope.ExpectedNodes.Count==0;
         var values=Values(requests,histogram,seconds,Unhealthy(scope,health,filter),missing,observed.State);
+        if(filter.ApiId is not null||filter.ApplicationId is not null)values=values.Select(v=>v.Metric=="unhealthy_destinations"?v with{Value=null,State=SourceState.NotApplicable}:v).ToArray();
         var groups=new List<MetricGroupDto>();
         if(filter.GroupBy!="None")
         {
@@ -55,6 +59,8 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var ordered=groups.OrderByDescending(x=>x.Values.First(v=>v.Metric==filter.SortBy).Value??double.NegativeInfinity).ThenBy(x=>x.Key,StringComparer.Ordinal).ToArray();
         var trends=Trends(await ratesTask,await latencyTrendTask,missing);
         var nodes=NodeHealth(scope,health,observed.Coverage.MissingNodes);
+        if(filter.ApiId is not null||filter.ApplicationId is not null)nodes=nodes.Select(n=>n with{Destinations=[]}).ToArray();
+        else if(filter.DestinationId is Guid destination)nodes=nodes.Select(n=>n with{Destinations=n.Destinations.Where(d=>d.DestinationId==destination).ToArray()}).ToArray();
         var total=requests.Sum(x=>x.Value);var state=observed.State==SourceState.Available&&total==0?SourceState.NoData:observed.State;
         return new(state,range,observed.ObservedAt,observed.Coverage,new(settings.TraceSampleRatio,"ParentBasedTraceIdRatioBased"),new(values,trends,ordered.Skip((filter.Page-1)*filter.PageSize).Take(filter.PageSize).ToArray(),ordered.Length,filter.Page,filter.PageSize,nodes));
     }
@@ -98,6 +104,7 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
     }
     private static double? Unhealthy(TrustedObservationScope scope,IReadOnlyList<PrometheusSeries> health,MetricFilter filter)
     {
+        if(filter.ApiId is not null||filter.ApplicationId is not null)return null;
         var applicable=scope.Destinations.Values.Where(x=>x.Enabled&&(filter.DestinationId is null||x.Id==filter.DestinationId)).ToArray();
         var count=0;foreach(var destination in applicable)
         {

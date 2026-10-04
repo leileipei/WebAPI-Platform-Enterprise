@@ -1,0 +1,60 @@
+{
+  "complete": true,
+  "project": "webapi-enterprise-e2e-observability-e81ec684-de30-4ea4-a62a-30b43c0fe27e",
+  "classification": "real-gateway-collector-downstream-loss",
+  "checks": [
+    {
+      "signal": "logs",
+      "startedAt": "2026-10-04T11:28:12.856Z",
+      "range": {
+        "organizationId": "1508c96f-bc76-4632-a188-fe676b8ab5be",
+        "projectId": "7542f4e3-5557-40cc-addb-e33fcd34bfb5",
+        "environmentId": "0fd569e9-fee7-45a9-addd-c3785d0abf0e",
+        "start": "2026-10-04T11:27:53.032Z",
+        "end": "2026-10-04T11:28:53.032Z"
+      },
+      "downstreamFailures": 6,
+      "gatewayExportFailureDelta": 0,
+      "collectorUp": 1,
+      "sourceState": "Partial",
+      "reason": "collector_logs_collection_gap"
+    },
+    {
+      "signal": "traces",
+      "startedAt": "2026-10-04T11:29:06.676Z",
+      "range": {
+        "organizationId": "1508c96f-bc76-4632-a188-fe676b8ab5be",
+        "projectId": "7542f4e3-5557-40cc-addb-e33fcd34bfb5",
+        "environmentId": "0fd569e9-fee7-45a9-addd-c3785d0abf0e",
+        "start": "2026-10-04T11:28:56.229Z",
+        "end": "2026-10-04T11:29:56.229Z"
+      },
+      "downstreamFailures": 12,
+      "gatewayExportFailureDelta": 0,
+      "collectorUp": 1,
+      "sourceState": "Partial",
+      "reason": "collector_traces_collection_gap"
+    },
+    {
+      "signal": "logs",
+      "shortCollectorStopSeconds": 8,
+      "range": {
+        "organizationId": "1508c96f-bc76-4632-a188-fe676b8ab5be",
+        "projectId": "7542f4e3-5557-40cc-addb-e33fcd34bfb5",
+        "environmentId": "0fd569e9-fee7-45a9-addd-c3785d0abf0e",
+        "start": "2026-10-04T11:29:23.145Z",
+        "end": "2026-10-04T11:30:23.145Z"
+      },
+      "sourceState": "Partial",
+      "reason": "known_logs_collection_gap"
+    }
+  ],
+  "cleanup": {
+    "exitCode": 0,
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "networksRemaining": 0,
+    "secretFilesRemaining": 0
+  },
+  "cleanupCommand": "explicit exact-project compose down; original holder session unavailable"
+}

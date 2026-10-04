@@ -248,8 +248,8 @@
     "name": "监控总览",
     "sourceRoute": "/observability/metrics",
     "route": "/observability/metrics",
-    "status": "监控查询已接入",
-    "note": "支持受授权环境限定的指标、趋势、分组及采集状态；三源网关闭环验收待本阶段最终验证"
+    "status": "真实指标已接入",
+    "note": "12项KPI、7类趋势、API/应用排序和节点覆盖；实际三源验收通过，估计值与Partial明确呈现"
   },
   {
     "id": 29,
@@ -257,8 +257,8 @@
     "name": "API 监控详情",
     "sourceRoute": "/observability/apis/{apiId}",
     "route": "/observability/metrics",
-    "status": "监控查询已接入",
-    "note": "支持受授权环境限定的指标、趋势、分组及采集状态；三源网关闭环验收待本阶段最终验证"
+    "status": "真实API监控已接入",
+    "note": "从总览进入 /observability/apis/{apiId}；支持应用/状态/后端分组、日志/Trace与规则预填"
   },
   {
     "id": 30,
@@ -266,8 +266,8 @@
     "name": "访问日志",
     "sourceRoute": "/observability/logs",
     "route": "/observability/logs",
-    "status": "观测查询已接入",
-    "note": "支持受授权范围限定的查询、游标分页及日志/Trace联动；真实网关至采集源端到端验收待本阶段最终验证"
+    "status": "真实日志已接入",
+    "note": "真实Loki、签名游标、脱敏详情、授权CSV、IP只进POST；单纳秒源限制显式截断"
   },
   {
     "id": 31,
@@ -275,26 +275,26 @@
     "name": "Trace 查询",
     "sourceRoute": "/observability/traces",
     "route": "/observability/traces",
-    "status": "观测查询已接入",
-    "note": "支持受授权范围限定的查询、游标分页及日志/Trace联动；真实网关至采集源端到端验收待本阶段最终验证"
+    "status": "真实链路已接入",
+    "note": "真实Tempo、安全span投影与瀑布图、跨环境同Trace隔离；源恢复重新查询"
   },
   {
     "id": 32,
     "number": 32,
     "name": "告警中心",
     "sourceRoute": "/observability/alerts",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/observability/alerts",
+    "status": "真实告警已接入",
+    "note": "PG持续告警、确认/解决/静默/取消静默、历史流转、Unknown与冻结Scope"
   },
   {
     "id": 33,
     "number": 33,
     "name": "告警规则",
     "sourceRoute": "/observability/alert-rules",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/observability/alert-rules",
+    "status": "真实规则已接入",
+    "note": "创建/编辑/启停、范围预览与只读测试、412保留输入；外部通知仅保存意向"
   },
   {
     "id": 34,

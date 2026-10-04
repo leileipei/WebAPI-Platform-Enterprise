@@ -97,6 +97,19 @@ public sealed class AlertEvaluationTests
         await using var read=f.Context();Assert.Equal(2,await read.Set<AlertEvaluationState>().CountAsync(x=>x.LogicRevision==2));Assert.Equal(0,await read.Set<AlertEvent>().CountAsync());using var detail=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");var current=(await detail.Content.ReadFromJsonAsync<AlertRuleDto>())!;Assert.Equal("Unknown",current.EvaluationState);Assert.Null(current.LastSuccessAt);
     }
 
+    [Fact] public async Task ZeroRpsIsKnownAndRecoversHighThenTriggersLowTrafficRule()
+    {
+        var setup=await Setup();await using var f=setup.Fixture;
+        Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"high"))));
+        using var get=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");var rule=(await get.Content.ReadFromJsonAsync<AlertRuleDto>())!;
+        setup.Handler.HealthOnly=true;
+        using var test=await f.WriteAsync(HttpMethod.Post,"/api/v1/observability/alert-rules/test",rule.Definition);test.EnsureSuccessStatusCode();var result=(await test.Content.ReadFromJsonAsync<RuleTestDto>())!;Assert.Equal("Known",result.EvaluationState);Assert.False(result.Condition);Assert.Equal(0,result.Matches.Single().Values.Single().Value);
+        Assert.True(await Evaluate(f,await Next(f)));
+        await using(var db=f.Context()){var old=await db.Set<AlertEvent>().SingleAsync();Assert.Equal("Resolved",old.Status);Assert.Equal("Recovered",old.ResolveReason);}
+        var low=rule.Definition with{Expression="request_rps < 1"};using var update=await f.WriteAsync(HttpMethod.Put,$"/api/v1/observability/alert-rules/{setup.Rule}",low,"\"1\"");update.EnsureSuccessStatusCode();
+        Assert.True(await Evaluate(f,await Next(f)));await using(var db=f.Context()){Assert.Equal("Open",(await db.Set<AlertEvent>().SingleAsync(x=>x.LogicRevision==2)).Status);}
+        foreach(var metric in new[]{"error_5xx_ratio","latency_p95_ms"}){using var unknown=await f.WriteAsync(HttpMethod.Post,"/api/v1/observability/alert-rules/test",low with{Metric=metric,Expression=metric+" < 1"});unknown.EnsureSuccessStatusCode();Assert.Equal("Unknown",(await unknown.Content.ReadFromJsonAsync<RuleTestDto>())!.EvaluationState);}
+    }
     [Fact] public async Task HealthGaugeWithoutBusinessRequestsCanTriggerAndReadonlyTestIsKnown()
     {
         var setup=await Setup();await using var f=setup.Fixture;using var read=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");var rule=(await read.Content.ReadFromJsonAsync<AlertRuleDto>())!;var definition=rule.Definition with{Metric="unhealthy_destinations",Expression="unhealthy_destinations > 0"};using var change=await f.WriteAsync(HttpMethod.Put,$"/api/v1/observability/alert-rules/{setup.Rule}",definition,"\"1\"");change.EnsureSuccessStatusCode();setup.Handler.HealthOnly=true;

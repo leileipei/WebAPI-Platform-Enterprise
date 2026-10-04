@@ -18,6 +18,21 @@ using static WebApi.Gateway.Tests.Support.RecordingTelemetrySink;
 namespace WebApi.Gateway.Tests;
 public sealed class GatewayTelemetryTests
 {
+    [Fact] public void DiagnosticsHaveZeroBaselinesBeforeAnyLoss()
+    {
+        var tracker=new TelemetryDropTracker();
+        Assert.Equal(new[]{"logs","metrics","traces"},tracker.Drops.OrderBy(x=>x.Key).Select(x=>x.Key));
+        Assert.All(tracker.Drops,x=>Assert.Equal(0,x.Value));Assert.All(tracker.Failures,x=>Assert.Equal(0,x.Value));
+    }
+    [Fact] public async Task FirstLossHasActualTimestampEvenBeforeCounterBaseline()
+    {
+        var sink=new RecordingTelemetrySink();await using var f=Fixture(sink);await f.InitializeAsync();
+        var tracker=f.Gateways[0].Services.GetRequiredService<TelemetryDropTracker>();
+        var before=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/1000d;tracker.Failed("logs",1);var after=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/1000d;
+        await sink.WaitAsync(()=>sink.Items.Any(x=>x.Signal=="metrics"&&x.Item.GetProperty("name").GetString()=="webapi_telemetry_last_loss_timestamp_seconds"&&Attribute(x.Item.GetProperty("gauge").GetProperty("dataPoints")[0],"signal")=="logs"&&x.Item.GetProperty("gauge").GetProperty("dataPoints")[0].GetProperty("asDouble").GetDouble()>=before));
+        var point=sink.Items.First(x=>x.Signal=="metrics"&&x.Item.GetProperty("name").GetString()=="webapi_telemetry_last_loss_timestamp_seconds"&&Attribute(x.Item.GetProperty("gauge").GetProperty("dataPoints")[0],"signal")=="logs"&&x.Item.GetProperty("gauge").GetProperty("dataPoints")[0].GetProperty("asDouble").GetDouble()>=before).Item.GetProperty("gauge").GetProperty("dataPoints")[0];
+        Assert.InRange(point.GetProperty("asDouble").GetDouble(),before,after);
+    }
     [Theory][InlineData(null,true)][InlineData("00",false)][InlineData("01",true)]
     public async Task RootSamplingIgnoresUnrecordedHostingActivityButHonorsRemoteDecision(string? flags,bool expected)
     {

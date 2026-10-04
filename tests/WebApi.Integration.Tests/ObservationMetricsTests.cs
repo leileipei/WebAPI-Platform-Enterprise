@@ -44,6 +44,16 @@ public sealed class ObservationMetricsTests
         var body=(await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;Assert.Equal(200,Value(body,"request_count").Value);
         Assert.NotEmpty(source.Requests);foreach(var request in source.Requests)Assert.DoesNotContain(sibling.Id.ToString(),Uri.UnescapeDataString(request.Query));
     }
+    [Theory][InlineData("api")][InlineData("app")]
+    public async Task FilteredResourceDoesNotAttributeUnrelatedEnvironmentBackendHealth(string kind)
+    {
+        var source=new MetricProtocolHandler();await using var f=await FixtureAsync(source);
+        var other=new Api{OrganizationId=f.Organization.Id,ProjectId=f.Project.Id,Code="OTHER_HEALTH",Name="Other",OwnerUserId=f.User.Id,LifecycleStatus="Active"};var cluster=new UpstreamCluster{EnvironmentId=f.Environment.Id,ProjectId=f.Project.Id,Name="OtherBackend",LoadBalancingPolicy="RoundRobin",HealthCheckPath="/health",HealthCheckIntervalSec=2};var dest=new UpstreamDestination{ClusterId=cluster.Id,Name="Other",Address="http://backend-b:8080/",Weight=1};
+        await using(var db=f.Context()){db.AddRange(other,cluster,dest);await db.SaveChangesAsync();}source.UnhealthyDestinationId=dest.Id;source.UnhealthyClusterId=cluster.Id;
+        using(var environment=await f.Client.GetAsync(Url(f,source))){environment.EnsureSuccessStatusCode();Assert.Equal(1,Value((await environment.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!,"unhealthy_destinations").Value);}
+        using var filtered=await f.Client.GetAsync(Url(f,source,suffix:kind=="api"?$"&apiId={f.Api.Id}":$"&applicationId={f.Application.Id}"));filtered.EnsureSuccessStatusCode();var body=(await filtered.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+        Assert.Null(Value(body,"unhealthy_destinations").Value);Assert.Equal(SourceState.NotApplicable,Value(body,"unhealthy_destinations").State);Assert.All(body.Data!.NodeHealth,n=>Assert.Empty(n.Destinations));
+    }
     [Fact] public async Task HistogramBucketsMergeBeforeQuantile()
     {
         var source=new MetricProtocolHandler();await using var s=await FixtureAsync(source,2);using var response=await s.Client.GetAsync(Url(s,source));response.EnsureSuccessStatusCode();
@@ -152,7 +162,7 @@ public sealed class ObservationMetricsTests
 
 public sealed class MetricProtocolHandler : HttpMessageHandler
 {
-    public Guid EnvironmentId,ApiId,ApplicationId,DestinationId,ClusterId;
+    public Guid? UnhealthyDestinationId,UnhealthyClusterId;public Guid EnvironmentId,ApiId,ApplicationId,DestinationId,ClusterId;
     public Guid? ForeignEnvironmentId,SecondApiId;
     public bool MissingSecondNode,ResetWindow,MiddleGap;
     public int Status=200;
@@ -165,11 +175,13 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
         var rows=new List<object>();Dictionary<string,string> Labels(string? node=null)=>new(){["webapi_environment_id"]=EnvironmentId.ToString(),["service_instance_id"]=node??"node-0",["webapi_api_id"]=ApiId.ToString(),["webapi_application_id"]=ApplicationId.ToString(),["webapi_destination_id"]=DestinationId.ToString(),["webapi_cluster_id"]=ClusterId.ToString(),["http_response_status_code"]="200",["webapi_outcome"]="Completed",["webapi_success"]="true"};
         var stamp=End.ToUnixTimeMilliseconds()/1000d;
         void Add(Dictionary<string,string> labels,double value)=>rows.Add(new{metric=labels,value=new object[]{stamp,value.ToString(CultureInfo.InvariantCulture)}});
-        if(query.Contains("last_observed_timestamp",StringComparison.Ordinal))
+        if(query.Contains("otelcol_",StringComparison.Ordinal))Add(new(),0);
+        else if(query.Contains("last_loss_timestamp",StringComparison.Ordinal))Add(Labels(),0);
+        else if(query.Contains("last_observed_timestamp",StringComparison.Ordinal))
         {var time=query.Contains("min_over_time",StringComparison.Ordinal)?Start.AddSeconds(5):End.AddSeconds(-2);var value=query.Contains("max_over_time",StringComparison.Ordinal)?MiddleGap?90:5:time.ToUnixTimeMilliseconds()/1000d;Add(Labels(),value);if(!MissingSecondNode)Add(Labels("node-1"),value);}
         else if(query.Contains("_bucket",StringComparison.Ordinal))
         {foreach(var node in new[]{"node-0","node-1"})foreach(var le in new[]{"0.1","1","10","+Inf"}){var labels=Labels(node);labels["le"]=le;Add(labels,SecondApiId is null?node=="node-0"||le is "10" or "+Inf"?100:0:le is "10" or "+Inf"?100:0);if(SecondApiId is Guid second){var fast=Labels(node);fast["webapi_api_id"]=second.ToString();fast["le"]=le;Add(fast,100);}}}
-        else if(query.Contains("webapi_destination_health",StringComparison.Ordinal))Add(Labels(),1);
+        else if(query.Contains("webapi_destination_health",StringComparison.Ordinal)){Add(Labels(),1);if(UnhealthyDestinationId is Guid bad){var labels=Labels();labels["webapi_destination_id"]=bad.ToString();labels["webapi_cluster_id"]=UnhealthyClusterId.ToString()!;Add(labels,0);}}
         else if(query.Contains("dropped_total",StringComparison.Ordinal)||query.Contains("export_failures_total",StringComparison.Ordinal)){}
         else if(query.Contains("webapi_gateway_requests_total",StringComparison.Ordinal)){Add(Labels(),ResetWindow?6:200);if(SecondApiId is Guid second){var fast=Labels();fast["webapi_api_id"]=second.ToString();Add(fast,400);}if(ForeignEnvironmentId is Guid foreign){var labels=Labels();labels["webapi_environment_id"]=foreign.ToString();Add(labels,999999);}}
         if(request.RequestUri.AbsolutePath.EndsWith("query_range",StringComparison.Ordinal))
