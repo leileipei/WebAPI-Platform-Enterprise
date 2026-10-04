@@ -1,20 +1,20 @@
 {
   "complete": false,
-  "project": "webapi-enterprise-e2e-observability-d44aa2da-bc13-452b-a3b0-72cc415aaddb",
-  "startedAt": "2026-10-04T10:48:52.385Z",
+  "project": "webapi-enterprise-e2e-observability-dd68365c-2d42-4e68-8487-84df4ba36c89",
+  "startedAt": "2026-10-04T11:40:05.625Z",
   "classification": "real-isolated-gateway-three-source",
   "mode": "e2e",
   "endpoints": {
-    "control_plane": "http://127.0.0.1:60968",
-    "collector": "http://127.0.0.1:60969",
-    "prometheus": "http://127.0.0.1:60970",
-    "loki": "http://127.0.0.1:60971",
-    "tempo": "http://127.0.0.1:60972",
-    "console": "http://127.0.0.1:60973",
-    "gateway_a": "http://127.0.0.1:60974",
-    "gateway_b": "http://127.0.0.1:60975",
-    "backend_a": "http://127.0.0.1:60976",
-    "backend_b": "http://127.0.0.1:60977"
+    "control_plane": "http://127.0.0.1:57269",
+    "collector": "http://127.0.0.1:57270",
+    "prometheus": "http://127.0.0.1:57271",
+    "loki": "http://127.0.0.1:57272",
+    "tempo": "http://127.0.0.1:57273",
+    "console": "http://127.0.0.1:57274",
+    "gateway_a": "http://127.0.0.1:57275",
+    "gateway_b": "http://127.0.0.1:57276",
+    "backend_a": "http://127.0.0.1:57277",
+    "backend_b": "http://127.0.0.1:57278"
   },
   "checks": [
     {
@@ -40,68 +40,23 @@
     "volumesRemaining": 0
   },
   "criticalAcceptanceComplete": true,
-  "sourceRevision": "d34b697",
-  "commands": [
-    {
-      "command": "./scripts/check-observability.sh e2e",
-      "exitCode": 0,
-      "project": "webapi-enterprise-e2e-observability-d44aa2da-bc13-452b-a3b0-72cc415aaddb"
-    },
-    {
-      "command": "./scripts/check-observability.sh faults",
-      "exitCode": 0,
-      "evidence": "fault-run.json",
-      "project": "webapi-enterprise-e2e-observability-409d8384-a610-4406-9d65-ebf94657532b"
-    }
-  ],
-  "componentChecks": {
-    "domain": {
-      "passed": 49,
-      "skipped": 0
-    },
-    "integration": {
-      "passed": 184,
-      "skipped": 0
-    },
-    "gateway": {
-      "passed": 25,
-      "skipped": 0
-    },
-    "frontend": {
-      "passed": 35,
-      "typecheck": true,
-      "productionBuild": true
-    }
-  },
-  "coreRegression": {
-    "passed": 1,
-    "actualFaultChecks": 7,
-    "exitCode": 0,
-    "project": "webapi-enterprise-e2e-1791108420-17847",
-    "cleanupZero": true
-  },
-  "browser": {
-    "evidence": "browser-qa.json",
+  "sourceRevision": "dbfc9864828a090d34475e64f1ba0512695ce85d",
+  "architecture": "Linux aarch64",
+  "command": "./scripts/check-observability.sh e2e",
+  "exitCode": 0,
+  "baselineFaultEvidence": {
+    "file": "fault-run.json",
+    "sourceRevision": "d34b697",
+    "checks": 9,
     "complete": true
   },
-  "architecture": "Linux aarch64",
-  "settings": {
-    "intervalSeconds": 2,
-    "queryDelaySeconds": 5,
-    "leaseSeconds": 30,
-    "metricExportIntervalMs": 1000,
-    "traceSampleRatio": 1,
-    "queueCapacity": 64
-  },
-  "pending": [
-    "one-independent-final-review",
-    "delivery-documentation-and-immutable-package"
-  ],
+  "browserEvidence": "browser-qa.json",
   "finalReview": {
     "reviewedRevision": "7a72d30d6e6c8e85d11860e271874b0f2a04710c",
     "independentReviews": 1,
     "importantFixed": 5,
     "minorDeferred": 1,
+    "repairValidationComplete": true,
     "fullSuite": {
       "domain": 49,
       "integration": 191,
@@ -109,10 +64,10 @@
       "frontend": 35,
       "skipped": 0
     },
+    "typescriptAndProductionBuild": true,
     "realLossProof": "final-loss-live.json",
     "permissionProof": "final-permission-browser.json",
     "pending": [
-      "final repaired revision three-source loop",
       "immutable archive verification"
     ]
   }

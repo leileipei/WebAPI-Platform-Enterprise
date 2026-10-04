@@ -26,4 +26,4 @@
 
 [运行手册](docs/deployment/observability-runbook.md)、[数据字典](docs/observability-data-dictionary.md)、[本阶段证据](docs/evidence/observability/verification.json)。`./scripts/check-observability.sh e2e` 验证真实三源与持续告警，`faults` 加入真实容器停机、租约接管及核心兼容检查；`browser` 保持临时环境，结束删除该项目metadata同目录的 `browser.wait` 后精确清理。所有观测E2E端口按本次项目预分配到loopback，仍禁止并发修改共享构建目录。
 
-`./scripts/package.sh observability <commit>` 从不可变提交封装本阶段源码、证据与当前已核验静态产物，输出独立ZIP及manifest-observability.json，保留首期交付。当前持久本机服务未自动重配观测端点；实际数据需要按手册启用Collector及三源。
+`./scripts/package.sh observability <commit>` 从不可变提交封装本阶段源码、证据，并从同一提交重建前端静态产物，输出独立ZIP及manifest-observability.json，保留首期交付。当前持久本机服务未自动重配观测端点；实际数据需要按手册启用Collector及三源。

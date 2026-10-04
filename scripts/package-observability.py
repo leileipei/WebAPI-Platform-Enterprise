@@ -20,7 +20,10 @@ required = ['README.md', 'console/src/coverage.json', 'docs/console-coverage.md'
             'docs/evidence/observability/execution-ledger.md', 'src/WebApi.Infrastructure/Observability/CollectorSignalCoverage.cs']
 assert all(p in source for p in required), 'Required delivery material missing'
 verified = json.loads(source['docs/evidence/observability/verification.json'])
-assert verified['complete'] and verified['cleanup']['secretFilesRemaining'] == 0, 'Acceptance is not sealed'
+assert verified['cleanup']['secretFilesRemaining'] == 0
+assert verified['complete'] or (verified.get('criticalAcceptanceComplete') and
+       verified.get('finalReview', {}).get('repairValidationComplete') and
+       verified['finalReview']['pending'] == ['immutable archive verification']), 'Required acceptance is pending'
 node = os.environ.get('WEBAPI_NODE', '/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node')
 pnpm = os.environ.get('WEBAPI_PNPM', '/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback/pnpm')
 static = {}
@@ -56,7 +59,7 @@ with zipfile.ZipFile(archive) as z:
     for name, content in files.items():
         assert z.read('enterprise/' + name) == content
     assert not any(any(p in blocked for p in pathlib.PurePosixPath(n).parts) for n in z.namelist())
-manifest = {'file': archive.name, 'sourceRevision': revision, 'acceptanceComplete': True,
+manifest = {'file': archive.name, 'sourceRevision': revision, 'acceptanceComplete': verified['complete'],
             'sha256': hashlib.sha256(archive.read_bytes()).hexdigest(), 'files': len(files),
             'secretsExcluded': True, 'archiveIntegrityVerified': True,
             'consoleBuiltFromImmutableSource': True,

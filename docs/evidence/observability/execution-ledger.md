@@ -169,3 +169,4 @@ Final: fixed 零RPS导致低流量不能触发/高流量不能恢复 — ZeroRps
 Final: fixed 28/29已打开页面无周期权限重验 — 真实生产产物另一会话撤销52秒仍保留126/127样本RED→定时30秒重验、约9秒KPI0表格0GREEN，固定end不变；session.error同样门禁，suite Frontend35/35+TS/build。
 Final: fixed API/App无关全环境健康归因 — FilteredResourceDoesNotAttributeUnrelatedEnvironmentBackendHealth(api/app)2 RED→GREEN，NotApplicable/null/节点后端空，实际1440无横溢且维度标签/—可见，suite Integration191/191。
 Task 15: 完整回归Domain49/Integration191/Gateway27/Front35全部0失败0跳过。临时预览因审批额度上限第一次未执行，用户继续后正常审批重试成功，未绕过审批。原fixture holder session不可恢复，专项验收脚本exit0且独立精确project down exit0；e81ec684容器0/卷0/网络0/秘密0，原服务不变。一次修正阶段结束，最终同代码三源闭环与封包门禁尚待验证。
+Task 15: 修复源提交dbfc986实际完整e2e exit0，dd68365c原阈值三规则139秒触发/恢复/审计、实际两Span普通Trace、跨环境同Trace和5001行截断通过；结束容器0/卷0/秘密0。组件最终49/191/27/35不再重复。临时源码包先以complete=false验证封包，再封存相同产品代码的完成metadata，避免未核验ZIP时提前宣称完成。
