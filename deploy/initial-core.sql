@@ -1288,3 +1288,317 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE TABLE alert_rules (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid,
+        environment_id uuid,
+        name text NOT NULL,
+        normalized_name text NOT NULL,
+        metric text NOT NULL,
+        expression text NOT NULL,
+        severity text NOT NULL,
+        enabled boolean NOT NULL,
+        for_seconds integer NOT NULL,
+        target_type text NOT NULL,
+        target_id uuid,
+        window_seconds integer NOT NULL,
+        notification jsonb NOT NULL,
+        revision bigint NOT NULL,
+        logic_revision bigint NOT NULL,
+        created_by uuid NOT NULL,
+        updated_by uuid NOT NULL,
+        created_at timestamp with time zone NOT NULL,
+        updated_at timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_alert_rules" PRIMARY KEY (id),
+        CONSTRAINT "AK_alert_rules_id_organization_id" UNIQUE (id, organization_id),
+        CONSTRAINT ck_alert_rule_limits CHECK (for_seconds BETWEEN 0 AND 86400 AND window_seconds BETWEEN 60 AND 3600 AND revision > 0 AND logic_revision > 0 AND length(normalized_name) BETWEEN 1 AND 128),
+        CONSTRAINT ck_alert_rule_metric CHECK (metric IN ('request_rps','error_5xx_ratio','latency_p95_ms','unhealthy_destinations')),
+        CONSTRAINT ck_alert_rule_scope CHECK (environment_id IS NULL OR project_id IS NOT NULL),
+        CONSTRAINT ck_alert_rule_severity CHECK (severity IN ('Info','Warning','Critical')),
+        CONSTRAINT ck_alert_rule_target CHECK ((target_type = 'Environment' AND target_id IS NULL) OR (target_type = 'Api' AND target_id IS NOT NULL AND project_id IS NOT NULL) OR (target_type = 'Destination' AND target_id IS NOT NULL AND project_id IS NOT NULL AND environment_id IS NOT NULL)),
+        CONSTRAINT "FK_alert_rules_environments_environment_id_project_id" FOREIGN KEY (environment_id, project_id) REFERENCES environments (id, project_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_rules_organizations_organization_id" FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_rules_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_rules_users_created_by" FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_rules_users_updated_by" FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE TABLE alert_events (
+        id uuid NOT NULL,
+        rule_id uuid NOT NULL,
+        rule_revision bigint NOT NULL,
+        logic_revision bigint NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        environment_id uuid NOT NULL,
+        resource_key text NOT NULL,
+        resource_type text NOT NULL,
+        resource_id uuid,
+        occurrence_no bigint NOT NULL,
+        status text NOT NULL,
+        severity text NOT NULL,
+        message text NOT NULL,
+        rule_summary text NOT NULL,
+        started_at timestamp with time zone NOT NULL,
+        condition_started_at timestamp with time zone NOT NULL,
+        resolved_at timestamp with time zone,
+        acked_by uuid,
+        acked_at timestamp with time zone,
+        silenced_by uuid,
+        silenced_until timestamp with time zone,
+        silence_reason text,
+        resolved_by uuid,
+        resolve_reason text,
+        last_observed_at timestamp with time zone,
+        last_value double precision,
+        last_condition boolean,
+        evaluation_state text NOT NULL,
+        revision bigint NOT NULL,
+        CONSTRAINT "PK_alert_events" PRIMARY KEY (id),
+        CONSTRAINT "AK_alert_events_id_rule_id_environment_id_resource_key" UNIQUE (id, rule_id, environment_id, resource_key),
+        CONSTRAINT ck_alert_event_resource CHECK (length(resource_key) BETWEEN 1 AND 128 AND ((resource_type='Environment' AND resource_id IS NULL) OR (resource_type IN ('Api','Destination') AND resource_id IS NOT NULL))),
+        CONSTRAINT ck_alert_event_revision CHECK (revision > 0 AND rule_revision > 0 AND logic_revision > 0 AND occurrence_no > 0),
+        CONSTRAINT ck_alert_event_severity CHECK (severity IN ('Info','Warning','Critical')),
+        CONSTRAINT ck_alert_event_status CHECK (status IN ('Open','Ack','Silenced','Resolved') AND evaluation_state IN ('Known','Unknown','ScopeInactive')),
+        CONSTRAINT "FK_alert_events_alert_rules_rule_id_organization_id" FOREIGN KEY (rule_id, organization_id) REFERENCES alert_rules (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_events_environments_environment_id_project_id" FOREIGN KEY (environment_id, project_id) REFERENCES environments (id, project_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_events_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_events_users_acked_by" FOREIGN KEY (acked_by) REFERENCES users (id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_events_users_resolved_by" FOREIGN KEY (resolved_by) REFERENCES users (id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_events_users_silenced_by" FOREIGN KEY (silenced_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE TABLE alert_evaluation_states (
+        id uuid NOT NULL,
+        rule_id uuid NOT NULL,
+        logic_revision bigint NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        environment_id uuid NOT NULL,
+        resource_key text NOT NULL,
+        resource_type text NOT NULL,
+        resource_id uuid,
+        phase text NOT NULL,
+        pending_since timestamp with time zone,
+        last_evaluated_slot timestamp with time zone,
+        last_success_at timestamp with time zone,
+        last_condition boolean,
+        last_event_id uuid,
+        next_occurrence_no bigint NOT NULL,
+        evaluation_state text NOT NULL,
+        suppressed_at timestamp with time zone,
+        lease_owner text,
+        lease_until timestamp with time zone,
+        lease_token bigint NOT NULL,
+        revision bigint NOT NULL,
+        CONSTRAINT "PK_alert_evaluation_states" PRIMARY KEY (id),
+        CONSTRAINT ck_alert_evaluation_phase CHECK (phase IN ('Inactive','Pending','Firing','SuppressedUntilRecovery') AND evaluation_state IN ('Known','Unknown','ScopeInactive')),
+        CONSTRAINT ck_alert_evaluation_resource CHECK (length(resource_key) BETWEEN 1 AND 128 AND ((resource_type='Environment' AND resource_id IS NULL) OR (resource_type IN ('Api','Destination') AND resource_id IS NOT NULL))),
+        CONSTRAINT ck_alert_evaluation_revision CHECK (logic_revision > 0 AND revision > 0 AND lease_token >= 0 AND next_occurrence_no > 0),
+        CONSTRAINT "FK_alert_evaluation_states_alert_events_last_event_id_rule_id_~" FOREIGN KEY (last_event_id, rule_id, environment_id, resource_key) REFERENCES alert_events (id, rule_id, environment_id, resource_key) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_evaluation_states_alert_rules_rule_id_organization_id" FOREIGN KEY (rule_id, organization_id) REFERENCES alert_rules (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_evaluation_states_environments_environment_id_project~" FOREIGN KEY (environment_id, project_id) REFERENCES environments (id, project_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_evaluation_states_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE TABLE alert_event_transitions (
+        id uuid NOT NULL,
+        event_id uuid NOT NULL,
+        from_status text,
+        to_status text NOT NULL,
+        actor_id uuid,
+        reason text NOT NULL,
+        occurred_at timestamp with time zone NOT NULL,
+        correlation_id text NOT NULL,
+        CONSTRAINT "PK_alert_event_transitions" PRIMARY KEY (id),
+        CONSTRAINT ck_alert_transition_status CHECK ((from_status IS NULL OR from_status IN ('Open','Ack','Silenced','Resolved')) AND to_status IN ('Open','Ack','Silenced','Resolved')),
+        CONSTRAINT "FK_alert_event_transitions_alert_events_event_id" FOREIGN KEY (event_id) REFERENCES alert_events (id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_alert_event_transitions_users_actor_id" FOREIGN KEY (actor_id) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_evaluation_states_environment_id_project_id" ON alert_evaluation_states (environment_id, project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_evaluation_states_last_event_id_rule_id_environment_i~" ON alert_evaluation_states (last_event_id, rule_id, environment_id, resource_key);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_evaluation_states_lease_until_last_evaluated_slot" ON alert_evaluation_states (lease_until, last_evaluated_slot);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_evaluation_states_project_id_organization_id" ON alert_evaluation_states (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE UNIQUE INDEX "IX_alert_evaluation_states_rule_id_logic_revision_environment_~" ON alert_evaluation_states (rule_id, logic_revision, environment_id, resource_key);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_evaluation_states_rule_id_organization_id" ON alert_evaluation_states (rule_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_event_transitions_actor_id" ON alert_event_transitions (actor_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_event_transitions_event_id_occurred_at" ON alert_event_transitions (event_id, occurred_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_events_acked_by" ON alert_events (acked_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_events_environment_id_project_id" ON alert_events (environment_id, project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_events_environment_id_status_started_at" ON alert_events (environment_id, status, started_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_events_project_id_organization_id" ON alert_events (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_events_resolved_by" ON alert_events (resolved_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE UNIQUE INDEX "IX_alert_events_rule_id_environment_id_resource_key" ON alert_events (rule_id, environment_id, resource_key) WHERE status <> 'Resolved';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE UNIQUE INDEX "IX_alert_events_rule_id_logic_revision_environment_id_resource~" ON alert_events (rule_id, logic_revision, environment_id, resource_key, occurrence_no);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_events_rule_id_organization_id" ON alert_events (rule_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_events_silenced_by" ON alert_events (silenced_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_rules_created_by" ON alert_rules (created_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_rules_environment_id_project_id" ON alert_rules (environment_id, project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE UNIQUE INDEX "IX_alert_rules_organization_id_project_id_environment_id_norma~" ON alert_rules (organization_id, project_id, environment_id, normalized_name) NULLS NOT DISTINCT;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_rules_project_id_organization_id" ON alert_rules (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    CREATE INDEX "IX_alert_rules_updated_by" ON alert_rules (updated_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261004030000_ObservabilityAlerts') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261004030000_ObservabilityAlerts', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;
+

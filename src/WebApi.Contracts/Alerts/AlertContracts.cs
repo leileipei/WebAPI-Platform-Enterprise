@@ -1,0 +1,13 @@
+using WebApi.Contracts.Observability;
+using WebApi.Contracts.Security;
+namespace WebApi.Contracts.Alerts;
+public sealed record NotificationIntent(bool InConsole,IReadOnlyList<string> RequestedChannels);
+public sealed record SaveAlertRuleRequest(Guid OrganizationId,Guid? ProjectId,Guid? EnvironmentId,string Name,string Metric,string Expression,string Severity,bool Enabled,int ForSeconds,string TargetType,Guid? TargetId,int WindowSeconds,NotificationIntent Notification);
+public sealed record AlertRuleDto(Guid Id,SaveAlertRuleRequest Definition,long Revision,long LogicRevision,string EvaluationState,DateTimeOffset? LastSuccessAt);
+public sealed record AlertEventDto(Guid Id,Guid RuleId,long RuleRevision,long LogicRevision,ScopeRef Scope,string ResourceKey,string ResourceType,Guid? ResourceId,long OccurrenceNo,string Status,string Severity,string Message,string RuleSummary,DateTimeOffset StartedAt,DateTimeOffset ConditionStartedAt,DateTimeOffset? ResolvedAt,Guid? AckedBy,DateTimeOffset? AckedAt,Guid? SilencedBy,DateTimeOffset? SilencedUntil,string? SilenceReason,Guid? ResolvedBy,string? ResolveReason,DateTimeOffset? LastObservedAt,double? LastValue,bool? LastCondition,string EvaluationState,long Revision,IReadOnlyList<AlertTransitionDto> Transitions);
+public sealed record AlertTransitionDto(Guid Id,string? FromStatus,string ToStatus,Guid? ActorId,string Reason,DateTimeOffset OccurredAt,string CorrelationId);
+public sealed record AlertListFilter(string? Severity,string? Source,string? Status,int Page=1,int PageSize=50);
+public sealed record RuleTestDto(string EvaluationState,IReadOnlyList<MetricGroupDto> Matches,bool? Condition);
+public sealed record AlertAction(string Kind,string? Reason,DateTimeOffset? Until);
+public sealed record AlertRuleExpression(string Metric,string Operator,double Threshold);
+public sealed record EvaluationInput(DateTimeOffset Slot,DateTimeOffset? ObservedAt,double? Value,bool? Condition,SourceState SourceState);

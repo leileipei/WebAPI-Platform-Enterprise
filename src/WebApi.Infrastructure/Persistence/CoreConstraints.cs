@@ -143,5 +143,26 @@ internal static class CoreConstraints
         outbox_messages.HasIndex("ProcessedAt", "LeaseUntil");
         gateway_nodes.HasIndex("EnvironmentId", "Enabled");
         release_records.HasIndex("EnvironmentId", "Status");
+        var alertRules=model.Entity<AlertRule>();
+        alertRules.HasOne<Organization>().WithMany().HasForeignKey(x=>x.OrganizationId).OnDelete(DeleteBehavior.Restrict);
+        alertRules.HasOne<Project>().WithMany().HasForeignKey(x=>new{x.ProjectId,x.OrganizationId}).HasPrincipalKey(x=>new{x.Id,x.OrganizationId}).OnDelete(DeleteBehavior.Restrict);
+        alertRules.HasOne<EnvironmentRecord>().WithMany().HasForeignKey(x=>new{x.EnvironmentId,x.ProjectId}).HasPrincipalKey(x=>new{x.Id,x.ProjectId}).OnDelete(DeleteBehavior.Restrict);
+        alertRules.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.CreatedBy).OnDelete(DeleteBehavior.Restrict);
+        alertRules.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.UpdatedBy).OnDelete(DeleteBehavior.Restrict);
+        var alertEvents=model.Entity<AlertEvent>();
+        alertEvents.HasOne<AlertRule>().WithMany().HasForeignKey(x=>new{x.RuleId,x.OrganizationId}).HasPrincipalKey(x=>new{x.Id,x.OrganizationId}).OnDelete(DeleteBehavior.Restrict);
+        alertEvents.HasOne<Project>().WithMany().HasForeignKey(x=>new{x.ProjectId,x.OrganizationId}).HasPrincipalKey(x=>new{x.Id,x.OrganizationId}).OnDelete(DeleteBehavior.Restrict);
+        alertEvents.HasOne<EnvironmentRecord>().WithMany().HasForeignKey(x=>new{x.EnvironmentId,x.ProjectId}).HasPrincipalKey(x=>new{x.Id,x.ProjectId}).OnDelete(DeleteBehavior.Restrict);
+        alertEvents.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.AckedBy).OnDelete(DeleteBehavior.Restrict);
+        alertEvents.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.SilencedBy).OnDelete(DeleteBehavior.Restrict);
+        alertEvents.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ResolvedBy).OnDelete(DeleteBehavior.Restrict);
+        var alertStates=model.Entity<AlertEvaluationState>();
+        alertStates.HasOne<AlertRule>().WithMany().HasForeignKey(x=>new{x.RuleId,x.OrganizationId}).HasPrincipalKey(x=>new{x.Id,x.OrganizationId}).OnDelete(DeleteBehavior.Restrict);
+        alertStates.HasOne<Project>().WithMany().HasForeignKey(x=>new{x.ProjectId,x.OrganizationId}).HasPrincipalKey(x=>new{x.Id,x.OrganizationId}).OnDelete(DeleteBehavior.Restrict);
+        alertStates.HasOne<EnvironmentRecord>().WithMany().HasForeignKey(x=>new{x.EnvironmentId,x.ProjectId}).HasPrincipalKey(x=>new{x.Id,x.ProjectId}).OnDelete(DeleteBehavior.Restrict);
+        alertStates.HasOne<AlertEvent>().WithMany().HasForeignKey(x=>new{x.LastEventId,x.RuleId,x.EnvironmentId,x.ResourceKey}).HasPrincipalKey(x=>new{x.Id,x.RuleId,x.EnvironmentId,x.ResourceKey}).OnDelete(DeleteBehavior.Restrict);
+        var alertTransitions=model.Entity<AlertEventTransition>();
+        alertTransitions.HasOne<AlertEvent>().WithMany().HasForeignKey(x=>x.EventId).OnDelete(DeleteBehavior.Restrict);
+        alertTransitions.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ActorId).OnDelete(DeleteBehavior.Restrict);
     }
 }

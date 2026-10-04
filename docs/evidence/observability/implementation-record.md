@@ -68,3 +68,11 @@ metric-contract-smoke.json记录独立真实Collector/Prometheus/Loki/Tempo栈�
 浏览器使用真实CP和随机PostgreSQL库、受控provider协议响应，不是业务网关三源端到端证据。截图31-source-unavailable-red.jpg保留修复前错误空表文案的RED；GREEN来源错误状态见30-source-unavailable.jpg，Trace另经页面检查验证无旧瀑布图。浏览器下载事件等待超时，但实际合成CSV文件和服务器行数headers验证55行导出；不把超时等待作为成功证据。
 
 临时数据库test_1e93b36f99ef4749accef1a8f98b2e63查询确认0，精确临时容器0、两个会话密钥文件不存在；预览停止、临时浏览器页关闭、视口恢复。原管理员权限未扩展。仅保留用户下载的合成CSV和持久QA截图。
+
+## Task 9：告警领域契约与新增数据迁移
+
+四个新表保存完整规则、冻结事件、带单调租约token的评估状态及追加流转事实。Scope复合外键和目标约束、nullable资源的非空resource_key、单活动事件部分唯一索引、logic_revision occurrence唯一键和Scope规范化名称NULLS NOT DISTINCT唯一索引已建立。所有时间用timestamptz，实体并发revision为EF并发token。
+
+限制表达式只接受四指标、六操作符、三个token和有限非负数字，比例为0至1；unknown值返回null。领域缺parser RED后40/40通过；真实PG三个约束用例缺表RED后通过，两个实际事务竞争只保留一活动事件。额外验证旧核心迁移升级后原记录与Snapshot字节不变、无规则seed。全量集成曾出现部署脚本缺新迁移：128通过/1失败；重新生成幂等脚本后129/129通过，0 skipped。未修改原核心持久数据库或账号权限。
+
+事件冻结Scope按实际Project/Environment祖先关系和rule组织外键约束，不与之后可编辑的rule具体Scope作永久相等外键；规则执行服务负责在事件创建时校验当时定义。下一任务实现规则治理端点，当前不代表真实告警已触发。
