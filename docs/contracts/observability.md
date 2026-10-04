@@ -37,3 +37,13 @@ GET /api/v1/observability/logs及/logs/{logId}、GET /logs/export使用固定范
 实际Loki 3.7.8 OTLP下划线命名和metadata展平形状在log-contract-smoke.json验证；解析同时支持展平stream标签及第三个row metadata对象，二次校验环境与资源归属；不返回body或未知字段。Keyword只对允许的脱敏字段做line_format后文字匹配，不将输入当原生LogQL/正则。官方格式说明：[OTLP映射](https://grafana.com/docs/loki/latest/send-data/otel/)与[HTTP API](https://grafana.com/docs/loki/latest/reference/loki-http-api/)，实际锁定版协议证据优先。
 
 CSV从相同过滤与截止时间的首行重新读取，忽略列表cursor；最多10000行/8MiB，公式及前置空白危险字符中和。每源分页及发送前重授权，失败/撤权丢弃buffer；完成后设置已知X-WebApi-Export-Rows / X-WebApi-Export-Truncated / X-WebApi-Source-State再发CSV。Source-State包含采集覆盖缺口，行数不代表完整采集历史。日志/Trace覆盖使用已授权环境中的节点gauge和对应signal丢弃/失败诊断，不需要metrics.read，且不暴露指标内容；覆盖源失败保持Partial，不把未知当完整。整体来源503仅返回安全sourceType(metrics/logs/traces)、retryAfterSeconds=5与Retry-After:5，不返回外部源地址/错误原文。
+
+## Trace 查询（第 31 页）
+
+`GET /api/v1/observability/traces` 支持同指标范围、TraceId、API、minDurationMs、Outcome=Success/Error、limit（1–100）及签名 cursor；`GET /api/v1/observability/traces/{traceId}` 返回已授权 spans。只需独立 `trace.read`；不隐含日志或指标权限。TraceId 必须为非零 32 位 W3C hex，供应商 Base64 ID 在适配器中归一化。可信环境只从 resource attributes 读取；span 标签不能授予范围权限。原始 URL、Header、异常、events、links、baggage 及未在安全白名单中的属性不会进入 DTO。无授权父节点时清除其标识并标记 partialTrace，不补造 span。
+
+搜索元数据可能来自跨环境 root，平台只用候选 TraceId，重新取回并投影详情。汇总时间及 Success/Error 来自本范围 span，不使用供应商 root duration/name。每查询最多 200 候选，4 个并发，10 秒总预算；每详情最多 1000 span、8 MiB 源响应。候选上限或同时间超过游标 64 个 ID 上限明确 truncated，不生成不可靠下一页。未截断时按可见 Start + TraceId 倒序，以固定 range 和用户/范围/筛选绑定的签名时间游标翻页；不虚构总数。数据在采集入库期间仍可能晚到，刷新从首页重新查。
+
+`sampling` 显示部署配置（默认 0.1，ParentBasedTraceIdRatioBased）。404 表示当前范围未找到，可能未采样或过保留期；源故障为 503 且 sourceType=traces，两者分开。源响应后再次核验授权。
+
+固定 Tempo 3.1.0 实测返回 batches、Base64 trace/span/parent ID 和枚举字符串，受限 resource/API TraceQL search 可用。`trace-contract-smoke.json` 仅证明合成 OTLP 协议；测试中的捕获响应验证适配器投影，真实业务网关与查询 API 的端到端验收仍留待 Task 14。[Tempo API](https://grafana.com/docs/tempo/latest/api_docs/) 与 [TraceQL most_recent](https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/) 说明供应商搜索限制，不能替代平台授权。

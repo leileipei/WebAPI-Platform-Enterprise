@@ -4,6 +4,9 @@ import {pathToFileURL} from 'node:url';
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const nano=ms=>(BigInt(ms)*1_000_000n).toString();
 const attr=(key,value)=>({key,value:{stringValue:value}});
+export function validateTraceContract(proof){
+ for(const key of ["serverFound","clientFound","resourceScopeFound","parentFound","safeAttributes","searchFound"])if(proof[key]!==true)throw new Error("Actual trace server/client, parent, trusted resource scope, safe attributes and search are required");
+}
 export function validateLogContract(proof){
  if(proof.metadataFound!==true||proof.normalizedNames!==true||proof.filterFound!==true)throw new Error("Actual normalized log metadata and structured filter are required");
 }
@@ -47,7 +50,7 @@ async function smoke(file,project,collector,health,prometheus,loki,tempo){
     poll(async()=>{await response(`${tempo}/ready`);return true;},'Tempo readiness')]);
   const now=Date.now(),environmentId=randomUUID(),marker=`webapi-smoke-${randomUUID()}`;
   const logId=randomUUID(),apiId=randomUUID(),appId=randomUUID(),destinationId=randomUUID();
-  const traceId=randomBytes(16).toString('hex'),spanId=randomBytes(8).toString('hex');
+  const traceId=randomBytes(16).toString('hex'),spanId=randomBytes(8).toString('hex'),clientSpanId=randomBytes(8).toString('hex');
   const resource={attributes:[attr('service.name','webapi-gateway'),attr('webapi.environment.id',environmentId),attr('service.instance.id','smoke-node')]};
   const metric={name:'webapi_gateway_requests_total',sum:{aggregationTemporality:2,isMonotonic:true,dataPoints:[{
     startTimeUnixNano:nano(now-1000),timeUnixNano:nano(now),asInt:'1',attributes:[attr('webapi.api.id',randomUUID())]
@@ -64,7 +67,8 @@ async function smoke(file,project,collector,health,prometheus,loki,tempo){
       body:{stringValue:marker},traceId,spanId,attributes:[attr('webapi.log.id',logId),attr('webapi.api.id',apiId),attr('webapi.application.id',appId),attr('webapi.destination.id',destinationId),attr('http.request.method','GET'),attr('url.template','/smoke'),attr('webapi.duration.ms','10'),attr('http.response.status_code','200'),attr('webapi.node.name','smoke-node'),attr('webapi.outcome','Completed'),attr('webapi.request.id','synthetic-request'),attr('webapi.client.ip_masked','192.0.2.xxx')]
     }]}]}]},
     traces:{resourceSpans:[{resource,scopeSpans:[{scope:{name:'webapi-smoke'},spans:[{
-      traceId,spanId,name:marker,kind:2,startTimeUnixNano:nano(now-10),endTimeUnixNano:nano(now),status:{code:1}
+      traceId,spanId,name:'gateway.request',kind:2,startTimeUnixNano:nano(now-200),endTimeUnixNano:nano(now),status:{code:1},attributes:[attr('webapi.api.id',apiId),attr('webapi.outcome','Completed'),attr('url.template','/smoke')]
+    },{traceId,spanId:clientSpanId,parentSpanId:spanId,name:'gateway.proxy',kind:3,startTimeUnixNano:nano(now-180),endTimeUnixNano:nano(now-40),status:{code:1},attributes:[attr('webapi.api.id',apiId),attr('webapi.destination.id',destinationId),attr('webapi.outcome','Completed'),attr('url.template','/smoke')]
     }]}]}]}
   };
   for(const [signal,body] of Object.entries(bodies)){
@@ -98,13 +102,22 @@ async function smoke(file,project,collector,health,prometheus,loki,tempo){
     return false;
   },'Normalized structured log metadata');
   validateLogContract(logMetadata);
+  let traceContract;
+  const normalizeId=value=>/^[0-9a-f]+$/i.test(value)&&value.length===16?value.toLowerCase():Buffer.from(value??"","base64").toString("hex");
   const traceFound=await poll(async()=>{
     const j=await(await response(`${tempo}/api/traces/${traceId}`,{headers:{Accept:'application/json'}})).json();
     const batches=j.batches??j.resourceSpans??[];
-    return batches.some(b=>(b.scopeSpans??b.instrumentationLibrarySpans??[]).some(s=>(s.spans??[]).some(x=>x.name===marker)));
+    const spans=batches.flatMap(b=>(b.scopeSpans??b.instrumentationLibrarySpans??[]).flatMap(s=>s.spans??[]));
+    const server=spans.find(x=>x.name==='gateway.request'),client=spans.find(x=>x.name==='gateway.proxy');
+    if(!server||!client)return false;
+    traceContract={serverFound:server.kind===2||server.kind==='SPAN_KIND_SERVER',clientFound:client.kind===3||client.kind==='SPAN_KIND_CLIENT',resourceScopeFound:batches.every(b=>b.resource?.attributes?.some(a=>a.key==='webapi.environment.id'&&a.value.stringValue===environmentId)),parentFound:normalizeId(client.parentSpanId)===normalizeId(server.spanId),safeAttributes:spans.every(x=>(x.attributes??[]).every(a=>['webapi.api.id','webapi.destination.id','webapi.outcome','url.template'].includes(a.key))),idEncoding:/^[0-9a-f]{16}$/i.test(server.spanId)?'hex':'base64',batchShape:j.batches?'batches':'resourceSpans',searchFound:false};
+    if(process.env.WEBAPI_OBS_TRACE_PAYLOAD_FILE)writeFileSync(process.env.WEBAPI_OBS_TRACE_PAYLOAD_FILE,JSON.stringify({traceId,environmentId,apiId,destinationId,payload:j}));
+    return true;
   },'Trace ingestion');
+  traceContract.searchFound=await poll(async()=>{const q=`{ resource.webapi.environment.id = "${environmentId}" && span.webapi.api.id = "${apiId}" } with (most_recent=true)`;const j=await(await response(`${tempo}/api/search?${new URLSearchParams({q,start:String(Math.floor((now-60000)/1000)),end:String(Math.ceil(Date.now()/1000)),limit:'201'})}`)).json();return (j.traces??[]).some(x=>x.traceID===traceId);},'Resource-filtered TraceQL search');
+  validateTraceContract(traceContract);
   const proof={requestCounter,logMarkerFound,traceFound};validateProof(proof);
-  writeFileSync(file,JSON.stringify({project,startedAt,completedAt:new Date().toISOString(),endpoints,environmentId,traceId,marker,proof,metricContract,logContract:logMetadata,cleanup:null,kind:'synthetic-otlp-protocol-only',verifiedVolumeCapacityBytes:{loki:1073741824,tempo:1073741824}},null,2));
+  writeFileSync(file,JSON.stringify({project,startedAt,completedAt:new Date().toISOString(),endpoints,environmentId,traceId,marker,proof,metricContract,logContract:logMetadata,traceContract,cleanup:null,kind:'synthetic-otlp-protocol-only',verifiedVolumeCapacityBytes:{loki:1073741824,tempo:1073741824}},null,2));
   console.log(JSON.stringify({project,proof,kind:'synthetic-otlp-protocol-only'}));
 }
 function cleanup(file,project,result){

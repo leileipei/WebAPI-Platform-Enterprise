@@ -1,0 +1,77 @@
+{
+  "project": "webapi-obs-smoke-5c9f5543-68fa-4caf-b462-d92e37f1b268",
+  "startedAt": "2026-10-04T05:56:48.525Z",
+  "completedAt": "2026-10-04T05:57:34.952Z",
+  "endpoints": {
+    "collector": "http://127.0.0.1:33801",
+    "health": "http://127.0.0.1:33802",
+    "prometheus": "http://127.0.0.1:33800",
+    "loki": "http://127.0.0.1:33798",
+    "tempo": "http://127.0.0.1:33799"
+  },
+  "environmentId": "d99b9cf1-ea6d-4c69-8fc1-e6c3496dc4b6",
+  "traceId": "d98c9b3ad4cea6b3301d1ff8a3d52b02",
+  "marker": "webapi-smoke-c7984d35-846c-461d-afd4-c1edbc941cd3",
+  "proof": {
+    "requestCounter": 1,
+    "logMarkerFound": true,
+    "traceFound": true
+  },
+  "metricContract": {
+    "histogramCount": 1,
+    "upperBucketFound": true,
+    "nodeObservedSeconds": 1791093423.633
+  },
+  "logContract": {
+    "metadataFound": true,
+    "normalizedNames": true,
+    "filterFound": true,
+    "shape": "flattened-stream-labels",
+    "keys": [
+      "detected_level",
+      "http_request_method",
+      "http_response_status_code",
+      "observed_timestamp",
+      "scope_name",
+      "service_instance_id",
+      "service_name",
+      "severity_number",
+      "severity_text",
+      "span_id",
+      "trace_id",
+      "url_template",
+      "webapi_api_id",
+      "webapi_application_id",
+      "webapi_client_ip_masked",
+      "webapi_destination_id",
+      "webapi_duration_ms",
+      "webapi_environment_id",
+      "webapi_log_id",
+      "webapi_node_name",
+      "webapi_outcome",
+      "webapi_request_id"
+    ]
+  },
+  "traceContract": {
+    "serverFound": true,
+    "clientFound": true,
+    "resourceScopeFound": true,
+    "parentFound": true,
+    "safeAttributes": true,
+    "idEncoding": "base64",
+    "batchShape": "batches",
+    "searchFound": true
+  },
+  "cleanup": {
+    "completedAt": "2026-10-04T05:57:45.417Z",
+    "containers": 0,
+    "volumes": 0,
+    "secretFiles": 0,
+    "verified": true
+  },
+  "kind": "synthetic-otlp-protocol-only",
+  "verifiedVolumeCapacityBytes": {
+    "loki": 1073741824,
+    "tempo": 1073741824
+  }
+}

@@ -49,3 +49,12 @@ metric-contract-smoke.json记录独立真实Collector/Prometheus/Loki/Tempo栈�
 独立真实Collector/Prometheus/Loki/Tempo协议栈确认logContract.metadataFound / normalizedNames / filterFound=true，shape=flattened-stream-labels；三源仍有实际counter=1、日志标记及Trace结果，histogram/gauge成立。日志字段与筛选证据在log-contract-smoke.json；结束精确项目0容器/0卷/0秘密文件。此证据不替代实际Gateway→CP→浏览器链路，后者Task14验证。
 
 游标绑定身份/授权环境集合/过滤/固定范围，保留源纳秒并稳定去重；可辨识截断停止下一页。IP POST内存输入→HMAC，不入URL/DTO/CSV。CSV每源分页及提交前重验授权，8MiB/10000行有界buffer、公式中和，读取失败不发成功文件；行数、截断、采集状态在headers发出前已知。契约与决策成本见contracts/observability.md。
+
+## Task 7 — Trace 查询与跨 Scope 投影
+
+- 新增 Trace search/detail HTTP 端点，独立 trace.read、固定范围、受限 TraceQL、源超时/大小限额和响应后再授权；404 未找到与 503 源故障分开。
+- 可信 Scope 只从 Resource 环境属性解析；未知环境/span资源/缺父节点裁剪，返回 partialTrace；返回 DTO 仅安全属性白名单。汇总起止/时延/Success-Error 由授权 spans 推导，不复制跨环境 root 元数据。真实 start/parent/duration 直接来自源，不生成后端内部调用。
+- 五指定 HTTP 用例 RED 缺路由→GREEN；Base64 全零 parent 边界 RED 空 spans→GREEN。真实固定 Tempo 3.1.0 返回 batches/Base64 IDs/枚举字符串；捕获合成响应又经适配器投影得到 200ms server、140ms client、+20ms 开始偏移及真实父关联。
+- Provider cap 明确 truncated/noNext；非法零 ID/legacy ID 不访问源。共享签名 codec 缺配置最初误报 logs，增加链路专属用例 RED→修正为 traces。
+- 真实隔离 Collector/Prometheus/Loki/Tempo 合成协议检查验证 server/client、parent/resource/API search、安全属性，7/7 检查通过，清理后 0 containers/volumes/secret files。见 trace-contract-smoke.json；这不是业务网关/查询 API 端到端验收，Task 14 才验收后者。
+- Ruling：为避免泄漏跨 Scope root 时间，最多 200 候选重取详情，再按授权 span 时间+TraceId 签名分页；超过源候选上限明确截断无下一页。代价：忙碌环境须缩小时间窗，不能声称全量历史可翻页。

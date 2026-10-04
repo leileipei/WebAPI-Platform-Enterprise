@@ -50,7 +50,7 @@ public static class ControlPlaneApp
         builder.Services.AddScoped<WebApi.Contracts.Security.IAuthorizationService>(sp=>sp.GetRequiredService<AuthorizationService>());
         builder.Services.AddSingleton(ObservationSourceSettings.Read(builder.Configuration));
         builder.Services.AddHttpClient("observability",client=>client.Timeout=TimeSpan.FromSeconds(10)).ConfigurePrimaryHttpMessageHandler(()=>new SocketsHttpHandler{AllowAutoRedirect=false,UseCookies=false});
-        builder.Services.AddSingleton<ObservationCursorCodec>();builder.Services.AddScoped<ObservationSignalCoverage>();builder.Services.AddScoped<LokiLogSource>();builder.Services.AddScoped<AccessLogQueryService>();builder.Services.AddScoped<ObservationScopeResolver>();builder.Services.AddScoped<ObservationSourceClient>();builder.Services.AddScoped<ObservationCoverageService>();builder.Services.AddScoped<PrometheusMetricSource>();builder.Services.AddScoped<ObservationQueryService>();
+        builder.Services.AddScoped<TempoTraceSource>();builder.Services.AddScoped<TraceQueryService>();builder.Services.AddSingleton<ObservationCursorCodec>();builder.Services.AddScoped<ObservationSignalCoverage>();builder.Services.AddScoped<LokiLogSource>();builder.Services.AddScoped<AccessLogQueryService>();builder.Services.AddScoped<ObservationScopeResolver>();builder.Services.AddScoped<ObservationSourceClient>();builder.Services.AddScoped<ObservationCoverageService>();builder.Services.AddScoped<PrometheusMetricSource>();builder.Services.AddScoped<ObservationQueryService>();
         var local=builder.Environment.IsDevelopment();
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options=>{
             options.Cookie.Name="WebApi.Session";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;
@@ -80,6 +80,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();return app;
+        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();return app;
     }
 }

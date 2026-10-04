@@ -44,3 +44,6 @@ test('real log contract requires normalized metadata and safe projected method/p
  assert.throws(()=>validateLogContract({metadataFound:false,normalizedNames:false,filterFound:false}));
  assert.doesNotThrow(()=>validateLogContract({metadataFound:true,normalizedNames:true,filterFound:true}));
 });
+test('trace proof requires actual server/client scope, safe attributes, parent and search',async()=>{
+ const {validateTraceContract}=await import('../../scripts/observability-smoke.mjs');const valid={serverFound:true,clientFound:true,resourceScopeFound:true,parentFound:true,safeAttributes:true,searchFound:true};assert.doesNotThrow(()=>validateTraceContract(valid));for(const key of Object.keys(valid))assert.throws(()=>validateTraceContract({...valid,[key]:false}));
+});
