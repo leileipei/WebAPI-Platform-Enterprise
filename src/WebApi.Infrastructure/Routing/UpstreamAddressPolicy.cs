@@ -1,7 +1,16 @@
 using WebApi.Contracts.Common;
+using Microsoft.Extensions.Configuration;
 namespace WebApi.Infrastructure.Routing;
 public sealed class UpstreamAddressPolicy(IReadOnlyList<string> allowedOrigins)
 {
+    public static string[] ReadAllowedOrigins(IConfiguration configuration)
+    {
+        var origins=configuration.GetSection("Upstream:AllowedOrigins").Get<string[]>();
+        if(!bool.TryParse(configuration["Upstream:RequireExplicitAllowedOrigins"],out var explicitOrigins)||!explicitOrigins)return origins??["http://test-backend:8080"];
+        origins??=[];
+        foreach(var origin in origins)if(!Uri.TryCreate(origin,UriKind.Absolute,out var uri)||uri.Scheme is not("http" or "https")||uri.UserInfo.Length>0||uri.Query.Length>0||uri.Fragment.Length>0||uri.AbsolutePath!="/"||origin!=uri.GetLeftPart(UriPartial.Authority))throw new InvalidOperationException("Explicit upstream allowlist requires canonical HTTP(S) origins.");
+        return origins;
+    }
     public string Validate(string address)
     {
         if(!Uri.TryCreate(address,UriKind.Absolute,out var uri)||uri.Scheme is not ("http" or "https")||uri.UserInfo.Length>0||uri.Fragment.Length>0||uri.Query.Length>0||address.Length>2048)

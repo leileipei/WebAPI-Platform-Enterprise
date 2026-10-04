@@ -47,7 +47,7 @@ public static class ControlPlaneApp
         builder.Services.TryAddSingleton(AlertEvaluationSettings.Read(builder.Configuration));builder.Services.AddScoped<AlertRuleScopeResolver>();builder.Services.AddScoped<AlertRuleService>();builder.Services.AddScoped<AlertEventService>();builder.Services.AddScoped<AlertSilenceExpiryService>();
         builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<OpenApiImportService>();
         builder.Services.AddScoped<CatalogService>();builder.Services.AddScoped<RouteService>();builder.Services.AddScoped<ClusterService>();
-        var origins=builder.Configuration.GetSection("Upstream:AllowedOrigins").Get<string[]>()??["http://test-backend:8080"];
+        var origins=UpstreamAddressPolicy.ReadAllowedOrigins(builder.Configuration);
         builder.Services.AddSingleton(new UpstreamAddressPolicy(origins));
         builder.Services.AddScoped<GovernanceService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();
         builder.Services.AddScoped<AccountService>();builder.Services.AddScoped<AuthorizationService>();
@@ -55,6 +55,7 @@ public static class ControlPlaneApp
         builder.Services.AddSingleton(ObservationSourceSettings.Read(builder.Configuration));
         builder.Services.AddHttpClient("observability",client=>client.Timeout=TimeSpan.FromSeconds(10)).ConfigurePrimaryHttpMessageHandler(()=>new SocketsHttpHandler{AllowAutoRedirect=false,UseCookies=false});
         builder.Services.AddScoped<TempoTraceSource>();builder.Services.AddScoped<TraceQueryService>();builder.Services.AddSingleton<ObservationCursorCodec>();builder.Services.AddScoped<ObservationSignalCoverage>();builder.Services.AddScoped<LokiLogSource>();builder.Services.AddScoped<AccessLogQueryService>();builder.Services.AddScoped<ObservationScopeResolver>();builder.Services.AddScoped<ObservationSourceClient>();builder.Services.AddScoped<ObservationCoverageService>();builder.Services.AddScoped<CollectorSignalCoverage>();builder.Services.AddScoped<PrometheusMetricSource>();builder.Services.AddScoped<ObservationQueryService>();
+        PersistentDataProtection.Configure(builder.Services,builder.Configuration);
         var local=builder.Environment.IsDevelopment();
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options=>{
             options.Cookie.Name="WebApi.Session";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;
