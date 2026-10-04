@@ -25,7 +25,8 @@ assert verified['complete'] or (verified.get('criticalAcceptanceComplete') and
        verified.get('finalReview', {}).get('repairValidationComplete') and
        verified['finalReview']['pending'] == ['immutable archive verification']), 'Required acceptance is pending'
 node = os.environ.get('WEBAPI_NODE', '/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node')
-pnpm = os.environ.get('WEBAPI_PNPM', '/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback/pnpm')
+for name in ['console/package.json', 'console/pnpm-lock.yaml']:
+    assert source[name] == (root / name).read_bytes(), 'Install the archived frozen dependencies before building'
 static = {}
 with tempfile.TemporaryDirectory(prefix='webapi-observability-package-') as temporary:
     checkout = pathlib.Path(temporary)
@@ -37,8 +38,10 @@ with tempfile.TemporaryDirectory(prefix='webapi-observability-package-') as temp
     console = checkout / 'console'
     (console / 'node_modules').symlink_to(root / 'console/node_modules', target_is_directory=True)
     env = dict(os.environ, PATH=str(pathlib.Path(node).parent) + os.pathsep + os.environ['PATH'])
-    subprocess.run([pnpm, 'exec', 'tsc', '--noEmit'], cwd=console, env=env, check=True)
-    subprocess.run([pnpm, 'exec', 'vite', 'build'], cwd=console, env=env, check=True)
+    # pnpm exec may try to purge a linked modules directory in a relocated checkout.
+    # Invoke the already-installed locked tool entrypoints without dependency mutation.
+    subprocess.run([node, str(root / 'console/node_modules/typescript/bin/tsc'), '--noEmit'], cwd=console, env=env, check=True)
+    subprocess.run([node, str(root / 'console/node_modules/vite/bin/vite.js'), 'build'], cwd=console, env=env, check=True)
     for file in sorted((console / 'dist').rglob('*')):
         if file.is_file():
             static['console/dist/' + str(file.relative_to(console / 'dist'))] = file.read_bytes()
