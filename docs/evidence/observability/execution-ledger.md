@@ -172,3 +172,4 @@ Task 15: 完整回归Domain49/Integration191/Gateway27/Front35全部0失败0跳�
 Task 15: 修复源提交dbfc986实际完整e2e exit0，dd68365c原阈值三规则139秒触发/恢复/审计、实际两Span普通Trace、跨环境同Trace和5001行截断通过；结束容器0/卷0/秘密0。组件最终49/191/27/35不再重复。临时源码包先以complete=false验证封包，再封存相同产品代码的完成metadata，避免未核验ZIP时提前宣称完成。
 Task 15: Ruling: 不可变归档重建直接调用与归档package/lock相同的已安装TypeScript/Vite Node入口 — pnpm exec在迁移位置试图清除链接依赖目录，实际无TTY报错且未执行清除；不启用自动purge，锁文件不一致则拒绝封包 — 若错，需按归档锁文件重新安装依赖后重建，原工作区依赖和首期包保留。
 Task 15: 不可变源3d2e54a重新构建TS/Vite并逐文件对照归档，529文件ZIP testzip及SHA256通过、密钥/runtime/cache/.git排除；初次manifest acceptanceComplete=false。所有必需验收已通过后才封存verification.complete=true；完成metadata不改变已验证产品代码dbfc986。
+Task 15: complete (commits 7a72d30..ac5a115, tests: python3 scripts/verify-observability-delivery.py → Immutable source, static build, ZIP integrity, SHA256, required evidence and exclusions verified.)
