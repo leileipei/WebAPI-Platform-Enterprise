@@ -100,11 +100,11 @@
 
 **Interfaces:** Produces脚本命令`smoke`：随机项目名、临时秘密目录、独立卷，输出安全metadata文件包含project / endpoints / timing，EXIT清理精确本项目；`Observability:*`配置键为Enabled、CollectorEndpoint、PrometheusUrl、LokiUrl、TempoUrl、CredentialSecretFile、IpHmacSecretFile、TraceSampleRatio。
 
-- [ ] 写`deployment.test.mjs`，断言镜像均有digest、服务无公网端口、Loki启用structured metadata、Prometheus只抓取Collector、三类pipeline接收OTLP；初始`assert.ok(files.includes('collector.yaml'))`失败。为smoke设置明确断言`requestCounter >= 1 && logMarkerFound && traceFound`，不得仅测health。
-- [ ] 使用已发现Node运行该测试，确认缺配置失败；记录当前.NET10 / CPU架构而非猜测版本。
-- [ ] 核验并锁定稳定依赖、OTLP协议和Exporter组件。配置7d保留目标与磁盘限额、memory limiter / batch / retry有界；IP HMAC测试秘密只写临时0600文件。smoke通过合成OTLP payload证明三源实际收录，并检查SDK所选批处理方案有可观测的丢弃 / 失败计数接口；否则在Task 3采用显式有界processor，不能省略诊断。
-- [ ] 运行`./scripts/check-observability.sh smoke`，三源实际查询找到标记、清理后0本项目容器 / 卷 / 秘密文件；`dotnet restore --locked-mode`及项目编译通过。此项仅证明协议，不宣称Gateway链路完成。
-- [ ] 提交`build: pin isolated otlp observability stack`；依赖锁文件变更须列实际版本和digest。
+- [x] 写`deployment.test.mjs`，断言镜像均有digest、服务无公网端口、Loki启用structured metadata、Prometheus只抓取Collector、三类pipeline接收OTLP；初始`assert.ok(files.includes('collector.yaml'))`失败。为smoke设置明确断言`requestCounter >= 1 && logMarkerFound && traceFound`，不得仅测health。
+- [x] 使用已发现Node运行该测试，确认缺配置失败；记录当前.NET10 / CPU架构而非猜测版本。
+- [x] 核验并锁定稳定依赖、OTLP协议和Exporter组件。配置7d保留目标与磁盘限额、memory limiter / batch / retry有界；IP HMAC测试秘密只写临时0600文件。smoke通过合成OTLP payload证明三源实际收录，并检查SDK所选批处理方案有可观测的丢弃 / 失败计数接口；否则在Task 3采用显式有界processor，不能省略诊断。
+- [x] 运行`./scripts/check-observability.sh smoke`，三源实际查询找到标记、清理后0本项目容器 / 卷 / 秘密文件；`dotnet restore --locked-mode`及项目编译通过。此项仅证明协议，不宣称Gateway链路完成。
+- [x] 提交`build: pin isolated otlp observability stack`；依赖锁文件变更须列实际版本和digest。
 
 ## Task 3: 请求采集、脱敏、运行版本及健康观测
 

@@ -1,0 +1,51 @@
+services:
+  collector:
+    image: otel/opentelemetry-collector-contrib@sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes: ["./observability/collector.yaml:/etc/otelcol/config.yaml:ro"]
+    ports:
+      - {target: 4318, published: "0", host_ip: 127.0.0.1}
+      - {target: 13133, published: "0", host_ip: 127.0.0.1}
+    mem_limit: 256m
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  prometheus:
+    image: prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.path=/prometheus", "--storage.tsdb.retention.time=7d", "--storage.tsdb.retention.size=2GB"]
+    volumes: ["./observability/prometheus.yaml:/etc/prometheus/prometheus.yml:ro", "prometheus-data:/prometheus"]
+    ports: [{target: 9090, published: "0", host_ip: 127.0.0.1}]
+    mem_limit: 512m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  loki:
+    image: grafana/loki@sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193
+    command: ["-config.file=/etc/loki/local.yaml"]
+    volumes: ["./observability/loki.yaml:/etc/loki/local.yaml:ro", "loki-data:/var/loki"]
+    ports: [{target: 3100, published: "0", host_ip: 127.0.0.1}]
+    mem_limit: 512m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  tempo:
+    image: grafana/tempo@sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd
+    command: ["-config.file=/etc/tempo/local.yaml", "-target=all"]
+    volumes: ["./observability/tempo.yaml:/etc/tempo/local.yaml:ro", "tempo-data:/var/tempo"]
+    ports: [{target: 3200, published: "0", host_ip: 127.0.0.1}]
+    mem_limit: 768m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+networks:
+  default:
+    driver: bridge
+volumes:
+  prometheus-data:
+  loki-data:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=1073741824,uid=10001,gid=10001,mode=0750
+  tempo-data:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=1073741824,uid=10001,gid=10001,mode=0750
