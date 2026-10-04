@@ -58,7 +58,7 @@ public static class ControlPlaneApp
         PersistentDataProtection.Configure(builder.Services,builder.Configuration);
         var local=builder.Environment.IsDevelopment();
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options=>{
-            options.Cookie.Name="WebApi.Session";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;
+            options.Cookie.Name=builder.Configuration["Authentication:CookieName"]??"WebApi.Session";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;
             options.Cookie.SecurePolicy=local?CookieSecurePolicy.SameAsRequest:CookieSecurePolicy.Always;
             options.ExpireTimeSpan=TimeSpan.FromHours(8);options.SlidingExpiration=false;
             options.Events.OnRedirectToLogin=ctx=>ProblemDetailsMapping.WriteAsync(ctx.HttpContext,401,"authentication_required","请先登录。");
@@ -71,7 +71,7 @@ public static class ControlPlaneApp
             };
         });
         builder.Services.AddAuthorization();
-        builder.Services.AddAntiforgery(options=>{options.HeaderName="X-CSRF-Token";options.Cookie.Name="WebApi.Csrf";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;options.Cookie.SecurePolicy=local?CookieSecurePolicy.SameAsRequest:CookieSecurePolicy.Always;});
+        builder.Services.AddAntiforgery(options=>{options.HeaderName="X-CSRF-Token";options.Cookie.Name=builder.Configuration["Antiforgery:CookieName"]??"WebApi.Csrf";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;options.Cookie.SecurePolicy=local?CookieSecurePolicy.SameAsRequest:CookieSecurePolicy.Always;});
         var app=builder.Build();
         app.Use(ProblemDetailsMapping.HandleAsync);
         app.UseAuthentication();app.UseAuthorization();

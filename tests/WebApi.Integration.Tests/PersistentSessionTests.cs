@@ -10,6 +10,13 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class PersistentSessionTests
 {
+    [Fact] public async Task ConfiguredCookieNamesPreserveLegacySessionNamespace()
+    {
+        await using var api=new ApiFixture();await api.InitializeAsync(b=>{b.Configuration["Authentication:CookieName"]="WebApi.Local.Test.Session";b.Configuration["Antiforgery:CookieName"]="WebApi.Local.Test.Csrf";});
+        using var csrf=await api.Client.GetAsync("/api/v1/auth/csrf");Assert.Contains(csrf.Headers.GetValues("Set-Cookie"),x=>x.StartsWith("WebApi.Local.Test.Csrf=",StringComparison.Ordinal));
+        using var login=await api.LoginAsync();login.EnsureSuccessStatusCode();Assert.Contains(login.Headers.GetValues("Set-Cookie"),x=>x.StartsWith("WebApi.Local.Test.Session=",StringComparison.Ordinal));Assert.DoesNotContain(login.Headers.GetValues("Set-Cookie"),x=>x.StartsWith("WebApi.Session=",StringComparison.Ordinal));
+        using var me=await api.Client.GetAsync("/api/v1/auth/me");Assert.Equal(HttpStatusCode.OK,me.StatusCode);
+    }
     [Theory] [InlineData(false)] [InlineData(true)]
     public async Task PersistedCookieHonorsApplicationIsolation(bool differentApplication)
     {
