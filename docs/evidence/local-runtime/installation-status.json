@@ -1,19 +1,117 @@
 {
-  "checkedAt": "2026-10-04T14:51:30.482Z",
+  "checkedAt": "2026-10-04T15:07:11.989Z",
   "persistentProject": "webapi-enterprise-local",
-  "initialized": false,
+  "initialized": true,
   "bound": false,
-  "persistentResources": 0,
-  "pendingInput": [
-    "administrator username",
-    "business environment GUID after login",
-    "explicit upstream origin list"
-  ],
-  "plannedPorts": {
-    "console": 4190,
+  "phase": "Unconfigured",
+  "administrator": "admin",
+  "sourceRevision": "3c038e7d7fdbb5ec7574944a24a70478ddd0f5ab",
+  "consoleUrl": "http://127.0.0.1:4192",
+  "ports": {
+    "console": 4192,
     "gatewayA": 4196,
     "gatewayB": 4197
   },
+  "services": [
+    {
+      "name": "postgres",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "redis",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "collector",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "prometheus",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "loki",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "tempo",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "control-plane",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "worker",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "console",
+      "state": "Running",
+      "health": "healthy"
+    }
+  ],
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available",
+      "checkedAt": "2026-10-04T15:07:10.611Z"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available",
+      "checkedAt": "2026-10-04T15:07:10.618Z"
+    },
+    {
+      "name": "loki",
+      "state": "Available",
+      "checkedAt": "2026-10-04T15:07:10.610Z"
+    },
+    {
+      "name": "tempo",
+      "state": "Available",
+      "checkedAt": "2026-10-04T15:07:10.616Z"
+    }
+  ],
+  "persistentVolumes": [
+    "webapi-enterprise-local_dp-keys",
+    "webapi-enterprise-local_lkg-a",
+    "webapi-enterprise-local_lkg-b",
+    "webapi-enterprise-local_loki-data",
+    "webapi-enterprise-local_pg",
+    "webapi-enterprise-local_prometheus-data",
+    "webapi-enterprise-local_secrets-control-plane",
+    "webapi-enterprise-local_secrets-gateway-a",
+    "webapi-enterprise-local_secrets-gateway-b",
+    "webapi-enterprise-local_secrets-migrator",
+    "webapi-enterprise-local_secrets-postgres",
+    "webapi-enterprise-local_secrets-worker",
+    "webapi-enterprise-local_tempo-data"
+  ],
+  "administratorLoginVerified": true,
+  "bootstrapPasswordFileMode": "0600",
+  "businessCounts": {
+    "users": 1,
+    "organizations": 0,
+    "projects": 0,
+    "environments": 0,
+    "apis": 0,
+    "alertRules": 0,
+    "gatewayNodes": 0
+  },
+  "onlyConsoleLoopbackPortPublished": true,
+  "pendingInput": [
+    "business environment GUID after login",
+    "explicit upstream origin list"
+  ],
   "preservedOldEnvironment": {
     "unchanged": true,
     "containerIdentitiesAndMounts": true,
@@ -32,5 +130,6 @@
       "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.4.zip": "cc61148914306cca3f6dbe1bdc96d49677c7010932e1f5756c25622b8677f221"
     }
   },
-  "actualAcceptance": "disposable random project only; see verification.json"
+  "deliveryArchiveUnchanged": true,
+  "actualAcceptance": "Management initialized and login verified in persistent project; dual gateways not bound. Full chain was previously verified in disposable project."
 }

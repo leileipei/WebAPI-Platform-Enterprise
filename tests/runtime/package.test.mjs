@@ -15,3 +15,16 @@ with tarfile.open(fileobj=b,mode='w') as t:
 m['read_source'].__globals__['git']=lambda *args:b.getvalue()
 print(json.dumps(list(m['read_source']('a'*40))))
 `;const r=spawnSync('python3',['-c',program],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.deepEqual(JSON.parse(r.stdout),['README.md']);});
+test('testedDeploymentAllowsOnlyTheVerifiedBrowserPortCorrection',()=>{const program=`import runpy
+m=runpy.run_path('scripts/package-local-runtime.py')
+validate=m['validate_deployment_inputs']
+name='deploy/compose.runtime.yml'
+old=b'127.0.0.1:'+bytes([36])+b'{WEBAPI_RUNTIME_CONSOLE_PORT:-4190}:8080 persistent'
+new=old.replace(b':-4190',b':-4192')
+validate({name:old},{name:old})
+validate({name:new},{name:old})
+for changed in [{name:new.replace(b'persistent',b'tmpfs')},{name:new,'deploy/extra.yml':b'new'}]:
+ try:validate(changed,{name:old})
+ except ValueError:pass
+ else:raise AssertionError('unverified deployment change allowed')
+`;const r=spawnSync('python3',['-c',program],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);});

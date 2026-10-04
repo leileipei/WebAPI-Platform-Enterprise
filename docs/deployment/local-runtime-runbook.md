@@ -11,7 +11,7 @@ export WEBAPI_NODE=/你的/Node22以上版本/bin/node
 
 首次 init 生成独立随机密钥与一次性密码，密码位于工程 `.runtime/local/secrets/bootstrap-password`（0600）。自行读取并妥善保存，勿复制到共享日志或截图。也可用 `init --admin <名称> --password-file <0600密码文件>` 提供16–1024字符密码。再次 init 不重置密码、不自动创建其他管理员，缺失长期秘密必须恢复而非重新生成。已保存凭据后使用 `complete-bootstrap --credentials-saved` 删除一次性宿主引导文件；运行服务不挂载它。
 
-控制台默认 `http://127.0.0.1:4190`；未配置环境时网关明确为未配置。初始化不会自动创建业务组织、环境、API、规则或审核账号。后续通过正常页面建立环境，再显式绑定两网关与上游白名单。默认端口若冲突，首次 init 可用 `--console-port`、`--gateway-a-port`、`--gateway-b-port` 指定三个不同端口；不会终止端口占用者。
+控制台默认 `http://127.0.0.1:4192`；未配置环境时网关明确为未配置。初始化不会自动创建业务组织、环境、API、规则或审核账号。后续通过正常页面建立环境，再显式绑定两网关与上游白名单。默认端口若冲突，首次 init 可用 `--console-port`、`--gateway-a-port`、`--gateway-b-port` 指定三个不同端口；不会终止端口占用者。
 
 若首次端口检查失败且尚未创建任何本项目资源，可带新端口重试 init。已初始化或已创建资源后禁止改变端口；省略端口参数会沿用已保存设置。所有权检查同时发现项目标签资源与精确同名资源；即使同名卷、网络或容器没有标签，也拒绝接管。
 
@@ -27,7 +27,7 @@ export WEBAPI_NODE=/你的/Node22以上版本/bin/node
 
 ## 绑定业务环境与状态
 
-登录4190，在组织/项目/环境页面创建 Active 环境，按既有治理规则配置权限。将上游允许列表保存为JSON数组，例如 `["https://你的企业上游.example"]`，无路径、查询或凭据。
+登录4192，在组织/项目/环境页面创建 Active 环境，按既有治理规则配置权限。将上游允许列表保存为JSON数组，例如 `["https://你的企业上游.example"]`，无路径、查询或凭据。
 
 ```bash
 ./scripts/local-runtime.sh configure --environment <环境GUID> --origins-file <上游origin数组.json> --username <管理员名> --password-file <0600登录密码文件>
@@ -117,4 +117,6 @@ git -c user.name=LocalRuntime -c user.email=local-runtime@localhost commit -m 'I
 
 本轮实际验收镜像及提交见`tested-release.json`；交付提交可包含后续脚本、文档和审查修复。打包门禁要求应用/前端/部署/依赖输入与该已验镜像的提交一致，静态哈希也必须一致。长期环境的实际安装状态另行记录，不能由合成验收complete=true推断用户业务环境已绑定。
 
-当前尚待用户提供管理员用户名，长期项目未初始化。收到后执行`init --admin`，登录4190建立业务环境，再显式提供环境GUID及上游origin列表以绑定4196/4197；不会自动植入验收组织、审批人、API或告警规则。
+长期项目已使用用户指定的`admin`完成初始化，4192控制台、管理端、Worker及三源运行，管理员登录已核验。当前尚未建立业务环境或绑定双网关；登录4192建立业务环境后，显式提供环境GUID及上游origin列表以绑定4196/4197。密码保存在`.runtime/local/secrets/bootstrap-password`，未打印或加入源码包。
+
+原默认4190属于浏览器Fetch禁用端口，见[Fetch Standard](https://fetch.spec.whatwg.org/#port-blocking)。V1.1默认改为4192，并在写入状态前拒绝禁用端口；当前项目仅重建控制台完成迁移，账号、密钥与持久卷保留。原独立交付ZIP和manifest不覆盖，修正版单独使用`_V1.1.zip`和`manifest-local-runtime-v1.1.json`。运行应用镜像仍为已构建的3c038e7，实际部署环境变量显式使用4192；版本与交付提交分别记录。

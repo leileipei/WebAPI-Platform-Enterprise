@@ -81,6 +81,17 @@ def build_static(source):
         raise ValueError('Missing rebuilt console')
     return output
 
+def validate_deployment_inputs(source, tested):
+    """Permit only the verified default-port fix; all other deployment bytes stay frozen."""
+    names = {n for n in source if n.startswith('deploy/')} | {n for n in tested if n.startswith('deploy/')}
+    for name in names:
+        expected = tested.get(name)
+        if name == 'deploy/compose.runtime.yml' and expected is not None and source.get(name) != expected:
+            expected = expected.replace(b'127.0.0.1:${WEBAPI_RUNTIME_CONSOLE_PORT:-4190}:8080',
+                                        b'127.0.0.1:${WEBAPI_RUNTIME_CONSOLE_PORT:-4192}:8080')
+        if expected is None or source.get(name) != expected:
+            raise ValueError('Unverified deployment change: ' + name)
+
 def load_evidence(source, revision):
     proof = json.loads(source['docs/evidence/local-runtime/verification.json'])
     review = json.loads(source['docs/evidence/local-runtime/final-review.json'])
@@ -88,8 +99,9 @@ def load_evidence(source, revision):
         raise ValueError('Whole-branch review pending')
     # The actual container image tested earlier is identified separately. A docs/host-tool
     # commit may follow it only if every application, frontend and deployment input is identical.
-    if git('diff', proof['sourceRevision'], revision, '--', *COMPONENTS).strip():
+    if git('diff', proof['sourceRevision'], revision, '--', *[n for n in COMPONENTS if n != 'deploy']).strip():
         raise ValueError('Application/deployment changed since actual acceptance')
+    validate_deployment_inputs(source, read_source(proof['sourceRevision']))
     for name, digest in proof['ui']['screenshots'].items():
         if sha(source[name]) != digest:
             raise ValueError('UI evidence changed')
@@ -107,6 +119,9 @@ def package(revision_arg):
         raise ValueError('Required runtime delivery material missing')
     proof, tested = load_evidence(source, revision)
     expected_old = proof['preservedOldEnvironment']['before']['archives']
+    correction = source.get('docs/evidence/local-runtime/browser-port-correction.json')
+    if correction:
+        expected_old = dict(expected_old, **json.loads(correction)['preservedPriorLocalDelivery'])
     validate_inputs(proof, source, revision, revision, expected_old, old_hashes(expected_old))
     static = build_static(source)
     if {name: sha(data) for name, data in static.items()} != tested['staticFiles']:
@@ -119,7 +134,7 @@ def package(revision_arg):
     files['source-archive.json'] = (json.dumps(metadata, ensure_ascii=False, indent=2) + '\n').encode()
     out = ROOT / 'deliverables'
     out.mkdir(exist_ok=True)
-    archive = out / 'WebAPI_Enterprise_独立本机运行环境源码及验收.zip'
+    archive = out / 'WebAPI_Enterprise_独立本机运行环境源码及验收_V1.1.zip'
     with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
         for name, content in sorted(files.items()):
             entry = zipfile.ZipInfo('enterprise/' + name, (2026, 10, 4, 0, 0, 0))
@@ -135,14 +150,15 @@ def package(revision_arg):
     if old_hashes(expected_old) != expected_old:
         raise ValueError('Old delivery changed')
     manifest = {'file': archive.name, 'sourceRevision': revision, 'staticSourceRevision': revision,
-                'testedImage': tested, 'testedApplicationAndDeploymentInputsUnchanged': True,
+                'testedImage': tested, 'testedApplicationInputsUnchanged': True,
+                'deploymentDefaultPortCorrection': '4190 to 4192; all other bytes unchanged',
                 'acceptanceComplete': True, 'reviewVerified': True, 'secretsExcluded': True,
                 'sha256': sha(archive.read_bytes()), 'files': len(files),
                 'sourceFiles': {name: sha(data) for name,data in sorted(source.items())},
                 'staticFiles': {name: sha(data) for name,data in sorted(static.items())},
                 'generatedFiles': {name: sha(files[name]) for name in ['SOURCE_REVISION','source-archive.json']},
                 'preservedOldArchives': expected_old}
-    (out/'manifest-local-runtime.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
+    (out/'manifest-local-runtime-v1.1.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     print(str(archive)); print('Files: '+str(len(files))+'; SHA256: '+manifest['sha256'])
 
 if __name__ == '__main__':

@@ -181,7 +181,7 @@
         "Console__ControlPlaneUrl": "http://control-plane:8080"
       },
       "ports": [
-        "127.0.0.1:${WEBAPI_RUNTIME_CONSOLE_PORT:-4190}:8080"
+        "127.0.0.1:${WEBAPI_RUNTIME_CONSOLE_PORT:-4192}:8080"
       ],
       "healthcheck": {
         "test": [

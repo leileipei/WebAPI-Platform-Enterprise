@@ -15,5 +15,7 @@
   "fixPassCount": 1,
   "verification": "RED-to-GREEN and full regression by implementer; no second review",
   "regression": "docs/evidence/local-runtime/regression.json",
-  "persistentActivationComplete": false
+  "persistentActivationComplete": false,
+  "activationCorrection": "browser-port-correction.json",
+  "persistentManagementInitialized": true
 }

@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-10-04T15:11:54.838265+00:00",
+  "reason": "Default 4190 is Fetch-blocked (sieve); Node login failed with bad port while curl returned HTTP200. Browser and Node work at4192.",
+  "standard": "https://fetch.spec.whatwg.org/#port-blocking",
+  "originalConsolePort": 4190,
+  "correctedConsolePort": 4192,
+  "red": {
+    "stateAndCompose": {
+      "tests": 11,
+      "pass": 8,
+      "fail": 3
+    },
+    "deploymentGate": {
+      "tests": 7,
+      "pass": 6,
+      "fail": 1
+    }
+  },
+  "green": {
+    "unit": {
+      "tests": 88,
+      "pass": 88,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "deploymentScope": "Only the default console port changes; actual acceptance supplied explicit free ports. All other deployment bytes and application/frontend/dependency inputs remain unchanged.",
+  "managedMigration": {
+    "project": "webapi-enterprise-local",
+    "onlyConsoleRecreated": true,
+    "ownerPreserved": true,
+    "secretsUnchanged": true,
+    "volumesUnchanged": true,
+    "otherContainerIdentitiesUnchanged": true
+  },
+  "persistentManagementInitializationVerified": true,
+  "administratorLoginVerified": true,
+  "businessEnvironmentBound": false,
+  "installedReleaseSourceRevision": "3c038e7d7fdbb5ec7574944a24a70478ddd0f5ab",
+  "ui": {
+    "loginPageOpenedInActualBrowser": true,
+    "usernamePrefilled": "admin",
+    "passwordEnteredIntoBrowser": false,
+    "screenshot": "docs/evidence/local-runtime/ui/persistent-login-1440.png",
+    "sha256": "64daf47b538103522cd0df4bd44f6029063e36b856ba8dcf4a5c26f818cfbb1a"
+  },
+  "preservedPriorLocalDelivery": {
+    "deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收.zip": "87d536081e1e8611a0eea6d089b6a940487dcbe0c9fd890f6cc42bbe72858ce7",
+    "deliverables/manifest-local-runtime.json": "ffee33f060548d9d5b4f328525b54570dedb402afb416ea16a83e0b48434efa7"
+  }
+}

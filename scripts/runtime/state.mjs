@@ -4,12 +4,15 @@ import {randomUUID} from 'node:crypto';
 export class RuntimeError extends Error {constructor(message,exitCode=2){super(message);this.exitCode=exitCode;}}
 export const persistentProject='webapi-enterprise-local';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+// HTTP(S) ports blocked by Fetch: https://fetch.spec.whatwg.org/#port-blocking
+const blockedWebPorts=new Set([1,7,9,11,13,15,17,19,20,21,22,23,25,37,42,43,53,69,77,79,87,95,101,102,103,104,109,110,111,113,115,117,119,123,135,137,139,143,161,179,389,427,465,512,513,514,515,526,530,531,532,540,548,554,556,563,587,601,636,989,990,993,995,1719,1720,1723,2049,3659,4045,4190,5060,5061,6000,6566,6665,6666,6667,6668,6669,6679,6697,10080]);
 export const validGuid=value=>typeof value==='string'&&uuid.test(value)&&value!=='00000000-0000-0000-0000-000000000000';
 function fields(value,allowed){if(!value||Array.isArray(value)||typeof value!=='object'||Object.keys(value).some(k=>!allowed.includes(k)))throw new RuntimeError('Invalid runtime schema field.');}
 export function validateState(s){
  fields(s,['schemaVersion','projectName','ownerId','ports','bootstrapUsername','binding','demoEnabled','releaseId','initialized','bindingPhase','pendingConfiguration']);
  if(s.schemaVersion!==1||!validGuid(s.ownerId)||!(s.projectName===persistentProject||/^webapi-enterprise-local-test-[a-f0-9-]{36}$/.test(s.projectName)))throw new RuntimeError('Invalid runtime identity.');
  fields(s.ports,['console','gatewayA','gatewayB']);const ports=Object.values(s.ports);if(ports.length!==3||ports.some(p=>!Number.isInteger(p)||p<1||p>65535)||new Set(ports).size!==3)throw new RuntimeError('Invalid runtime ports.');
+ if(ports.some(p=>blockedWebPorts.has(p)))throw new RuntimeError('Runtime HTTP port is blocked by browser Fetch; choose a supported port.');
  if(typeof s.bootstrapUsername!=='string'||!s.bootstrapUsername.trim()||s.bootstrapUsername.length>128||/[\r\n\0]/.test(s.bootstrapUsername))throw new RuntimeError('Explicit administrator username required.');
  if(typeof s.demoEnabled!=='boolean'||typeof s.initialized!=='boolean'||!(s.releaseId===null||typeof s.releaseId==='string')||![null,'Validated','Applied'].includes(s.bindingPhase))throw new RuntimeError('Invalid runtime schema value.');
  validateBinding(s.binding);
@@ -24,9 +27,9 @@ export async function ownedDirectory(directory){const st=await fs.lstat(director
 export async function writePrivate(file,value){const tmp=file+'.'+randomUUID()+'.tmp';const handle=await fs.open(tmp,'wx',0o600);try{await handle.writeFile(typeof value==='string'?value:JSON.stringify(value,null,2)+'\n');await handle.sync();}finally{await handle.close();}try{await fs.rename(tmp,file);const parent=await fs.open(path.dirname(file),'r');try{await parent.sync();}finally{await parent.close();}}catch(e){await fs.rm(tmp,{force:true});throw e;}}
 export async function loadState(directory){directory=await ownedDirectory(directory);await safeFile(path.join(directory,'owner.json'));await safeFile(path.join(directory,'runtime.json'));const owner=JSON.parse(await fs.readFile(path.join(directory,'owner.json'),'utf8'));const state=validateState(JSON.parse(await fs.readFile(path.join(directory,'runtime.json'),'utf8')));if(owner.schemaVersion!==1||owner.projectName!==state.projectName||owner.ownerId!==state.ownerId)throw new RuntimeError('Foreign or inconsistent runtime owner.',3);return state;}
 export async function saveState(directory,state){validateState(state);const previous=await loadState(directory);if(previous.ownerId!==state.ownerId||previous.projectName!==state.projectName||previous.bootstrapUsername!==state.bootstrapUsername)throw new RuntimeError('Cannot replace runtime owner or bootstrap administrator.',3);await writePrivate(path.join(directory,'runtime.json'),state);}
-export async function initializeState(directory,{bootstrapUsername,ports={console:4190,gatewayA:4196,gatewayB:4197},projectName=persistentProject}={}){
+export async function initializeState(directory,{bootstrapUsername,ports={console:4192,gatewayA:4196,gatewayB:4197},projectName=persistentProject}={}){
  try{await fs.lstat(directory);try{return await loadState(directory);}catch(e){throw new RuntimeError('Foreign or non-owned runtime directory; symlink is not allowed.',3);}}catch(e){if(e.code!=='ENOENT')throw e;}
- const state=validateState({schemaVersion:1,projectName,ownerId:randomUUID(),ports:{console:4190,gatewayA:4196,gatewayB:4197,...ports},bootstrapUsername,binding:null,demoEnabled:false,releaseId:null,initialized:false,bindingPhase:null,pendingConfiguration:null});
+ const state=validateState({schemaVersion:1,projectName,ownerId:randomUUID(),ports:{console:4192,gatewayA:4196,gatewayB:4197,...ports},bootstrapUsername,binding:null,demoEnabled:false,releaseId:null,initialized:false,bindingPhase:null,pendingConfiguration:null});
  await fs.mkdir(path.dirname(directory),{recursive:true});await fs.mkdir(directory,{mode:0o700});await writePrivate(path.join(directory,'owner.json'),{schemaVersion:1,projectName,ownerId:state.ownerId});await writePrivate(path.join(directory,'runtime.json'),state);return state;
 }
 const pause=ms=>new Promise(r=>setTimeout(r,ms));

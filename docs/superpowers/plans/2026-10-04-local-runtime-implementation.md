@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - 固定 Compose 项目名为 `webapi-enterprise-local`。旧项目、数据库、密钥与 4180/4181/5090 入口保留，新库不自动复制旧库。
-- 默认控制台 `http://127.0.0.1:4190`，网关 A/B 为 `http://127.0.0.1:4196`、`http://127.0.0.1:4197`；端口可配置，冲突报错，内部服务不映射宿主端口。
+- 默认控制台 `http://127.0.0.1:4192`，网关 A/B 为 `http://127.0.0.1:4196`、`http://127.0.0.1:4197`；端口可配置，冲突报错，内部服务不映射宿主端口。
 - 应用运行 UID/GID 10001；秘密文件 0600；节点名称 `local-gateway-a`、`local-gateway-b`，秘密不同。未绑定环境时不得使用 Guid.Empty。
 - `restart: unless-stopped`；正常启停不调用 `down -v`、不删除卷、不执行全局 prune、不安装 LaunchAgent。
 - 告警默认槽 15 秒、查询延后 30 秒、租约 30 秒、并发 4；指标导出 15 秒、Trace 采样 0.1。
@@ -129,7 +129,7 @@
 
 - [x] 写失败测试：`inactiveOrUnauthorizedEnvironmentLeavesBindingUnchanged`；`differentEnvironmentRejectedBeforeRecreate`；`sameBindingDoesNotRotateSecrets`；`environmentDisabledAfterValidationNeverReportsReady`；`recreateFailurePreservesRetryableBinding`；`statusSeparatesLiveRegisteredAndReady`。
 - [x] 运行 `node --test tests/runtime/configure.test.mjs tests/runtime/status.test.mjs`，确认失败。
-- [x] 使用现有 LocalClient 登录固定控制台4190（或已配置端口），发真实 Origin 与CSRF，GET `/environments/{id}` 验证 Active，读取允许节点状态；不创建环境、不赋予权限、不保存cookie。白名单仅允许HTTP(S) origin，无userinfo/path/query/fragment；demo profile必须显式加入两demo origins，不偷偷扩充。
+- [x] 使用现有 LocalClient 登录固定控制台4192（或已配置端口），发真实 Origin 与CSRF，GET `/environments/{id}` 验证 Active，读取允许节点状态；不创建环境、不赋予权限、不保存cookie。白名单仅允许HTTP(S) origin，无userinfo/path/query/fragment；demo profile必须显式加入两demo origins，不偷偷扩充。
 - [x] 原子保存已验证binding与配置阶段，重建CP/Worker加载新配置，再启动两网关；失败记录阶段供相同参数重试，保留秘密、LKG和此前binding，不宣称事务式容器回滚。无快照时节点 Registered/NotReady 是正确结果；只有已有发布快照且当前实例ACK匹配才为Ready。
 - [x] status 显示源实际探测、运行版本、节点当前实例/期望版本/ACK、PG与源卷磁盘使用；不读出秘密。通过单测与真实同环境重试/未知环境拒绝后提交：`feat: bind local gateways and report runtime state`。
 
@@ -164,4 +164,6 @@
 
 规格1–3由Task1/4/8落实，规格4由Task2落实，规格5由Task5/6落实，规格6由Task3/4/5/7落实，规格7–8由Task4/6/7落实，规格9由Task7/8落实。五项Review Focus各有具体失败测试；变量、状态schema、命令、项目名和默认值一致。运行数据与合成验收分离，执行过程中需要用户提供的管理员名/环境ID/上游地址在Task8明确处理，不把等待时间当作授权或伪造配置。
 
-计划已获用户确认并以Native执行。Tasks 1-7已完成，Task 8按“管理员名未提供则交付精确命令”分支交付；长期服务初始化和双网关业务绑定仍待必要输入，不能称完整长期环境已运行。封存结果见独立交付manifest及执行账本。
+计划已获用户确认并以Native执行。Tasks 1-7已完成，Task 8按“管理员名未提供则交付精确命令”分支交付；后续收到admin已完成长期管理栈初始化，双网关业务绑定仍待GUID及origin输入，不能称完整双网关环境已运行。封存结果见独立交付manifest及执行账本。
+
+实施更正：原计划4190被Fetch标准禁止，实际初始化发现后修正为4192；详见browser-port-correction.json。用户已提供admin，长期管理栈已初始化，业务环境GUID和上游origin列表尚待提供。原审批、权限和双网关发布契约保持。
