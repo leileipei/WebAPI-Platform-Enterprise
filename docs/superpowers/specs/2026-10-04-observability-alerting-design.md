@@ -1,6 +1,6 @@
 # WebAPI Enterprise V2 真实监控与告警设计
 
-日期：2026-10-04。状态：用户已选择 A，并确认方案 1；本文待用户审阅。本文是设计规格，不表示相关代码、服务或验收已经完成。
+日期：2026-10-04。状态：用户已选择 A，并确认方案 1；用户在收到本文后回复“继续”，设计已确认，实施计划待审阅。本文是设计规格，不表示相关代码、服务或验收已经完成。
 
 ## 1. 目标、依据与已确认方向
 
@@ -299,4 +299,4 @@ Collector、Prometheus、Loki、Tempo仅向同Compose网络开放，必要诊断
 - [Prometheus查询函数](https://prometheus.io/docs/prometheus/latest/querying/functions/)：rate / increase处理计数变化，histogram分位数依赖桶；平台适配器需验证导出名称和聚合口径。
 - [Prometheus持续告警条件](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/)：提供持续条件概念参考；本设计并不把规则重复部署到Prometheus，业务持续性和状态以平台评估表为权威。
 
-自检结论：六页及源表字段逐项覆盖；保留原协议与现有治理事实；明确NoData / Unknown、持续计时、人工Resolve再布防、静默过期、宽Scope和Trace隔离；具体版本锁定属于带验收条件的实施任务。本文没有产品代码修改、依赖安装或外部消息发送；等待用户审阅后才编写实施计划。
+自检结论：六页及源表字段逐项覆盖；保留原协议与现有治理事实；明确NoData / Unknown、持续计时、人工Resolve再布防、静默过期、宽Scope和Trace隔离；具体版本锁定属于带验收条件的实施任务。本文没有产品代码修改、依赖安装或外部消息发送。用户已确认本文；下一步编写并审阅实施计划。
