@@ -1,0 +1,64 @@
+{
+  "services": {
+    "backend-a": {
+      "image": "${WEBAPI_RUNTIME_IMAGE:?required}",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "dotnet",
+        "/app/demo-backend/WebApi.TestBackend.dll"
+      ],
+      "mem_limit": "128m",
+      "environment": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://0.0.0.0:8080",
+        "Backend__Id": "A",
+        "Backend__ControlEndpoints": "false",
+        "Backend__ObservationEndpoints": "false"
+      }
+    },
+    "backend-b": {
+      "image": "${WEBAPI_RUNTIME_IMAGE:?required}",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "dotnet",
+        "/app/demo-backend/WebApi.TestBackend.dll"
+      ],
+      "mem_limit": "128m",
+      "environment": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://0.0.0.0:8080",
+        "Backend__Id": "B",
+        "Backend__ControlEndpoints": "false",
+        "Backend__ObservationEndpoints": "false"
+      }
+    }
+  }
+}

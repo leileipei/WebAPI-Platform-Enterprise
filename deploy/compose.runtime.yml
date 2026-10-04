@@ -1,0 +1,475 @@
+{
+  "name": "${WEBAPI_RUNTIME_PROJECT:-webapi-enterprise-local}",
+  "services": {
+    "postgres": {
+      "image": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "restart": "unless-stopped",
+      "mem_limit": "768m",
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "environment": {
+        "POSTGRES_USER": "webapi",
+        "POSTGRES_DB": "webapi",
+        "POSTGRES_PASSWORD_FILE": "/run/secrets/postgres-password"
+      },
+      "volumes": [
+        "pg:/var/lib/postgresql/data",
+        "secrets-postgres:/run/secrets:ro"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U webapi -d webapi"
+        ],
+        "interval": "2s",
+        "timeout": "3s",
+        "retries": 30
+      }
+    },
+    "redis": {
+      "image": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "restart": "unless-stopped",
+      "mem_limit": "128m",
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "redis-server",
+        "--save",
+        "",
+        "--appendonly",
+        "no"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ],
+        "interval": "2s",
+        "timeout": "3s",
+        "retries": 30
+      }
+    },
+    "control-plane": {
+      "image": "${WEBAPI_RUNTIME_IMAGE:?required}",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "dotnet",
+        "/app/control-plane/WebApi.ControlPlane.dll"
+      ],
+      "mem_limit": "512m",
+      "environment": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://0.0.0.0:8080",
+        "WEBAPI_DB_HOST": "postgres",
+        "WEBAPI_DB_PASSWORD_FILE": "/run/secrets/postgres-password",
+        "Redis__Connection": "redis:6379,abortConnect=false",
+        "Upstream__RequireExplicitAllowedOrigins": "true",
+        "Observability__Enabled": "true",
+        "Observability__PrometheusUrl": "http://prometheus:9090",
+        "Observability__LokiUrl": "http://loki:3100",
+        "Observability__TempoUrl": "http://tempo:3200",
+        "Observability__IpHmacSecretFile": "/run/secrets/ip-hmac",
+        "Observability__CursorSigningSecretFile": "/run/secrets/cursor-signing",
+        "Observability__TraceSampleRatio": "0.1",
+        "DataProtection__KeysDirectory": "/keys",
+        "DataProtection__ApplicationName": "WebApi.Enterprise.Local.v1"
+      },
+      "volumes": [
+        "secrets-control-plane:/run/secrets:ro",
+        "dp-keys:/keys"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "dotnet",
+          "/app/runtime-tool/WebApi.RuntimeTool.dll",
+          "probe",
+          "http://127.0.0.1:8080/health/live"
+        ],
+        "interval": "5s",
+        "timeout": "6s",
+        "retries": 30
+      }
+    },
+    "worker": {
+      "image": "${WEBAPI_RUNTIME_IMAGE:?required}",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "dotnet",
+        "/app/worker/WebApi.Worker.dll"
+      ],
+      "mem_limit": "256m",
+      "environment": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://0.0.0.0:8080",
+        "WEBAPI_DB_HOST": "postgres",
+        "WEBAPI_DB_PASSWORD_FILE": "/run/secrets/postgres-password",
+        "Redis__Connection": "redis:6379,abortConnect=false",
+        "Upstream__RequireExplicitAllowedOrigins": "true",
+        "Observability__Enabled": "true",
+        "Observability__PrometheusUrl": "http://prometheus:9090",
+        "Observability__LokiUrl": "http://loki:3100",
+        "Observability__TempoUrl": "http://tempo:3200",
+        "Observability__IpHmacSecretFile": "/run/secrets/ip-hmac",
+        "Observability__CursorSigningSecretFile": "/run/secrets/cursor-signing",
+        "Observability__TraceSampleRatio": "0.1",
+        "Alerts__IntervalSeconds": "15",
+        "Alerts__QueryDelaySeconds": "30",
+        "Alerts__LeaseSeconds": "30",
+        "Alerts__MaxConcurrentEvaluations": "4"
+      },
+      "volumes": [
+        "secrets-worker:/run/secrets:ro"
+      ]
+    },
+    "console": {
+      "image": "${WEBAPI_RUNTIME_IMAGE:?required}",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "dotnet",
+        "/app/console-host/WebApi.ConsoleHost.dll"
+      ],
+      "mem_limit": "128m",
+      "environment": {
+        "ASPNETCORE_URLS": "http://0.0.0.0:8080",
+        "Console__DistDirectory": "/app/console-dist",
+        "Console__ControlPlaneUrl": "http://control-plane:8080"
+      },
+      "ports": [
+        "127.0.0.1:${WEBAPI_RUNTIME_CONSOLE_PORT:-4190}:8080"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "dotnet",
+          "/app/runtime-tool/WebApi.RuntimeTool.dll",
+          "probe",
+          "http://127.0.0.1:8080/health/live"
+        ],
+        "interval": "5s",
+        "timeout": "6s",
+        "retries": 30
+      }
+    },
+    "migrator": {
+      "image": "${WEBAPI_RUNTIME_IMAGE:?required}",
+      "user": "10001:10001",
+      "restart": "no",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "dotnet",
+        "/app/migrator/WebApi.Migrator.dll"
+      ],
+      "mem_limit": "512m",
+      "environment": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://0.0.0.0:8080",
+        "WEBAPI_DB_HOST": "postgres",
+        "WEBAPI_DB_PASSWORD_FILE": "/run/secrets/postgres-password",
+        "Redis__Connection": "redis:6379,abortConnect=false",
+        "Upstream__RequireExplicitAllowedOrigins": "true",
+        "Observability__Enabled": "true",
+        "Observability__PrometheusUrl": "http://prometheus:9090",
+        "Observability__LokiUrl": "http://loki:3100",
+        "Observability__TempoUrl": "http://tempo:3200",
+        "Observability__IpHmacSecretFile": "/run/secrets/ip-hmac",
+        "Observability__CursorSigningSecretFile": "/run/secrets/cursor-signing",
+        "Observability__TraceSampleRatio": "0.1"
+      },
+      "volumes": [
+        "secrets-migrator:/run/secrets:ro"
+      ],
+      "profiles": [
+        "tools"
+      ]
+    },
+    "collector": {
+      "image": "otel/opentelemetry-collector-contrib@sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "--config=/etc/otelcol/config.yaml"
+      ],
+      "volumes": [
+        "./observability/collector.yaml:/etc/otelcol/config.yaml:ro"
+      ],
+      "mem_limit": "256m"
+    },
+    "prometheus": {
+      "image": "prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+      "user": "65534:65534",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "mem_limit": "512m",
+      "volumes": [
+        "./observability/prometheus.yaml:/etc/prometheus/prometheus.yml:ro",
+        "prometheus-data:/prometheus"
+      ],
+      "command": [
+        "--config.file=/etc/prometheus/prometheus.yml",
+        "--storage.tsdb.path=/prometheus",
+        "--storage.tsdb.retention.time=7d",
+        "--storage.tsdb.retention.size=2GB"
+      ]
+    },
+    "loki": {
+      "image": "grafana/loki@sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "mem_limit": "512m",
+      "volumes": [
+        "./observability/loki.yaml:/etc/loki/local.yaml:ro",
+        "loki-data:/var/loki"
+      ],
+      "command": [
+        "-config.file=/etc/loki/local.yaml"
+      ]
+    },
+    "tempo": {
+      "image": "grafana/tempo@sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "mem_limit": "768m",
+      "volumes": [
+        "./observability/tempo.yaml:/etc/tempo/local.yaml:ro",
+        "tempo-data:/var/tempo"
+      ],
+      "command": [
+        "-config.file=/etc/tempo/local.yaml",
+        "-target=all"
+      ]
+    },
+    "init-volumes": {
+      "image": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+      "user": "0:0",
+      "restart": "no",
+      "profiles": [
+        "tools"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "bash",
+        "/etc/runtime/init-volumes.sh"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "CHOWN",
+        "DAC_OVERRIDE",
+        "FOWNER"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "volumes": [
+        "${WEBAPI_RUNTIME_SECRET_DIRECTORY:?required}:/input:ro",
+        "./runtime/init-volumes.sh:/etc/runtime/init-volumes.sh:ro",
+        "pg:/volumes/pg",
+        "lkg-a:/volumes/lkg-a",
+        "lkg-b:/volumes/lkg-b",
+        "dp-keys:/volumes/dp-keys",
+        "prometheus-data:/volumes/prometheus-data",
+        "loki-data:/volumes/loki-data",
+        "tempo-data:/volumes/tempo-data",
+        "bootstrap-password:/volumes/bootstrap-password",
+        "secrets-postgres:/volumes/secrets-postgres",
+        "secrets-control-plane:/volumes/secrets-control-plane",
+        "secrets-worker:/volumes/secrets-worker",
+        "secrets-gateway-a:/volumes/secrets-gateway-a",
+        "secrets-gateway-b:/volumes/secrets-gateway-b",
+        "secrets-migrator:/volumes/secrets-migrator"
+      ]
+    }
+  },
+  "volumes": {
+    "pg": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "lkg-a": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "lkg-b": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "dp-keys": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "prometheus-data": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "loki-data": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "tempo-data": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "bootstrap-password": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "secrets-postgres": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "secrets-control-plane": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "secrets-worker": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "secrets-gateway-a": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "secrets-gateway-b": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "secrets-migrator": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    }
+  },
+  "networks": {
+    "default": {
+      "driver": "bridge",
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    }
+  }
+}

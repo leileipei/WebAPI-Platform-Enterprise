@@ -1,0 +1,138 @@
+{
+  "services": {
+    "gateway-a": {
+      "image": "${WEBAPI_RUNTIME_IMAGE:?required}",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "dotnet",
+        "/app/gateway/WebApi.Gateway.dll"
+      ],
+      "mem_limit": "512m",
+      "environment": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://0.0.0.0:8080",
+        "Redis__Connection": "redis:6379,abortConnect=false",
+        "Upstream__RequireExplicitAllowedOrigins": "true",
+        "Observability__Enabled": "true",
+        "Observability__PrometheusUrl": "http://prometheus:9090",
+        "Observability__LokiUrl": "http://loki:3100",
+        "Observability__TempoUrl": "http://tempo:3200",
+        "Observability__IpHmacSecretFile": "/run/secrets/ip-hmac",
+        "Observability__CursorSigningSecretFile": "/run/secrets/cursor-signing",
+        "Observability__TraceSampleRatio": "0.1",
+        "Gateway__EnvironmentId": "${WEBAPI_RUNTIME_ENVIRONMENT_ID:?required}",
+        "Gateway__NodeName": "local-gateway-a",
+        "Gateway__SecretFile": "/run/secrets/node-a",
+        "Gateway__LkgDirectory": "/lkg",
+        "Gateway__ControlPlaneUrl": "http://control-plane:8080",
+        "Observability__CollectorEndpoint": "http://collector:4318",
+        "Observability__MetricExportIntervalMs": "15000"
+      },
+      "volumes": [
+        "secrets-gateway-a:/run/secrets:ro",
+        "lkg-a:/lkg"
+      ],
+      "ports": [
+        "127.0.0.1:${WEBAPI_RUNTIME_GATEWAY_A_PORT:-4196}:8080"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "dotnet",
+          "/app/runtime-tool/WebApi.RuntimeTool.dll",
+          "probe",
+          "http://127.0.0.1:8080/health/live"
+        ],
+        "interval": "5s",
+        "timeout": "6s",
+        "retries": 30
+      }
+    },
+    "gateway-b": {
+      "image": "${WEBAPI_RUNTIME_IMAGE:?required}",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "dotnet",
+        "/app/gateway/WebApi.Gateway.dll"
+      ],
+      "mem_limit": "512m",
+      "environment": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://0.0.0.0:8080",
+        "Redis__Connection": "redis:6379,abortConnect=false",
+        "Upstream__RequireExplicitAllowedOrigins": "true",
+        "Observability__Enabled": "true",
+        "Observability__PrometheusUrl": "http://prometheus:9090",
+        "Observability__LokiUrl": "http://loki:3100",
+        "Observability__TempoUrl": "http://tempo:3200",
+        "Observability__IpHmacSecretFile": "/run/secrets/ip-hmac",
+        "Observability__CursorSigningSecretFile": "/run/secrets/cursor-signing",
+        "Observability__TraceSampleRatio": "0.1",
+        "Gateway__EnvironmentId": "${WEBAPI_RUNTIME_ENVIRONMENT_ID:?required}",
+        "Gateway__NodeName": "local-gateway-b",
+        "Gateway__SecretFile": "/run/secrets/node-b",
+        "Gateway__LkgDirectory": "/lkg",
+        "Gateway__ControlPlaneUrl": "http://control-plane:8080",
+        "Observability__CollectorEndpoint": "http://collector:4318",
+        "Observability__MetricExportIntervalMs": "15000"
+      },
+      "volumes": [
+        "secrets-gateway-b:/run/secrets:ro",
+        "lkg-b:/lkg"
+      ],
+      "ports": [
+        "127.0.0.1:${WEBAPI_RUNTIME_GATEWAY_B_PORT:-4197}:8080"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "dotnet",
+          "/app/runtime-tool/WebApi.RuntimeTool.dll",
+          "probe",
+          "http://127.0.0.1:8080/health/live"
+        ],
+        "interval": "5s",
+        "timeout": "6s",
+        "retries": 30
+      }
+    },
+    "control-plane": {
+      "environment": {
+        "Nodes__Enrollments__0__EnvironmentId": "${WEBAPI_RUNTIME_ENVIRONMENT_ID:?required}",
+        "Nodes__Enrollments__0__NodeName": "local-gateway-a",
+        "Nodes__Enrollments__0__SecretFile": "/run/secrets/node-a",
+        "Nodes__Enrollments__1__EnvironmentId": "${WEBAPI_RUNTIME_ENVIRONMENT_ID:?required}",
+        "Nodes__Enrollments__1__NodeName": "local-gateway-b",
+        "Nodes__Enrollments__1__SecretFile": "/run/secrets/node-b"
+      }
+    }
+  }
+}
