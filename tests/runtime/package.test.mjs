@@ -6,3 +6,12 @@ test('packageRejectsSecretsAndUserConfiguration',()=>{for(const file of['.runtim
 test('packageRejectsMismatchedStaticSource',()=>{const v=valid();v.static_revision='b'.repeat(40);const r=check(v);assert.notEqual(r.status,0);assert.match(r.stderr,/Static source mismatch/);});
 test('packageRejectsReplacementOfOldArchive',()=>{const v=valid();v.old_after['old.zip']='def';const r=check(v);assert.notEqual(r.status,0);assert.match(r.stderr,/Old delivery changed/);});
 test('completeInputsMayBePackaged',()=>{const r=check(valid());assert.equal(r.status,0,r.stderr);});
+test('immutableSourceExportExcludesPreviouslyTrackedDeliveryManifests',()=>{const program=`import io,tarfile,runpy,json
+m=runpy.run_path('scripts/package-local-runtime.py')
+b=io.BytesIO()
+with tarfile.open(fileobj=b,mode='w') as t:
+ for name in ['README.md','deliverables/manifest-observability.json']:
+  info=tarfile.TarInfo(name);info.size=2;t.addfile(info,io.BytesIO(b'{}'))
+m['read_source'].__globals__['git']=lambda *args:b.getvalue()
+print(json.dumps(list(m['read_source']('a'*40))))
+`;const r=spawnSync('python3',['-c',program],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.deepEqual(JSON.parse(r.stdout),['README.md']);});

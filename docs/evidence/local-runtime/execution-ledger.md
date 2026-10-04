@@ -53,3 +53,4 @@ Final: fixed missing initialized secret directory regenerates keys - missingWhol
 Final: fixed lifecycle reports registration by configuration alone - startReportsObservedFailureRatherThanConfiguredRegistration RED->GREEN, full unit suite 84/84, actual runtime integration 5/5, 0skip.
 Final: minor (deferred): none.
 Task 8 regression: backend integration195/195, Gateway27/27, unit84/84, runtime integration5/5; all0skip. Application/frontend/deployment/dependency diff vs tested ffa2d7b is empty. Old environment read-only preservation refreshed, persistent resources0 and directory absent.
+Task 8 seal regression: tracked prior-stage deliverables/manifest-observability.json caused source export to reject an intentional excluded output. Exclude root deliverables subtree before source validation; immutableSourceExportExcludesPreviouslyTrackedDeliveryManifests RED6/5/1 -> GREEN6/6, full unit85/85, no runtime/application change and no old manifest modification.

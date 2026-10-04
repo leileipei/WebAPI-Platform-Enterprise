@@ -13,7 +13,7 @@
 | Important | 已初始化环境整个秘密目录丢失时重复init重新生成密钥 | 明确报错要求恢复，不创建目录或启动Docker操作。`missingWholeInitializedSecretDirectoryNeverRegenerates` |
 | Important | start/up/restart只等管理端及源可访问，即按配置推断Registered，忽略失败网关或Worker | 返回实际综合服务、源、环境与节点状态。`startReportsObservedFailureRatherThanConfiguredRegistration`；真实生命周期/备份测试核验Unconfigured与Registered |
 
-上述修复的失败测试均在修改实现前运行：备份测试因缺少导出失败，其余测试复现断言失败。修复后的定向测试26/26通过，完整单元84/84通过；容器回归结果在`final-review.json`及`regression.json`封存。
+上述修复的失败测试均在修改实现前运行：备份测试因缺少导出失败，其余测试复现断言失败。修复后的定向测试26/26通过，完整单元84/84通过，容器回归5/5通过且无跳过。封存执行时发现已跟踪的旧deliverables清单被源码校验拒绝，补充失败测试后将整个交付输出目录排除，旧清单不改；最终完整单元85/85通过。完整结果在`final-review.json`及`regression.json`封存。
 
 审查者明确未裁决的三项，由实现者裁决并列入执行账本：
 

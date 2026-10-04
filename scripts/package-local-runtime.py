@@ -42,6 +42,8 @@ def read_source(revision):
         for member in archive:
             if not member.isfile():
                 continue
+            if pathlib.PurePosixPath(member.name).parts[0] == 'deliverables':
+                continue  # Prior-stage tracked manifests are outputs, never source inputs.
             if forbidden(member.name):
                 raise ValueError('Forbidden delivery file: ' + member.name)
             if member.size > 64 * 1024 * 1024:
