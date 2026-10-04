@@ -1,5 +1,5 @@
 {
-  "complete": false,
+  "complete": true,
   "project": "webapi-enterprise-e2e-observability-dd68365c-2d42-4e68-8487-84df4ba36c89",
   "startedAt": "2026-10-04T11:40:05.625Z",
   "classification": "real-isolated-gateway-three-source",
@@ -67,8 +67,14 @@
     "typescriptAndProductionBuild": true,
     "realLossProof": "final-loss-live.json",
     "permissionProof": "final-permission-browser.json",
-    "pending": [
-      "immutable archive verification"
-    ]
+    "pending": []
+  },
+  "archiveGate": {
+    "verified": true,
+    "provisionalSourceRevision": "3d2e54a80937ffad31fb0b62a4a4f56d04d3b4ca",
+    "provisionalSha256": "9f5497846e35390189c1e9840016de844db7f9743487f174b1918d7ba9160b97",
+    "files": 529,
+    "finalManifest": "../../../deliverables/manifest-observability.json",
+    "productSourceRevision": "dbfc9864828a090d34475e64f1ba0512695ce85d"
   }
 }
