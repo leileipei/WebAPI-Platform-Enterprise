@@ -26,6 +26,8 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         Task<IReadOnlyList<PrometheusMatrix>> M(string query)=>MatrixAsync(query,range,step,scope,ct);
         var latestTask=V("webapi_telemetry_last_observed_timestamp_seconds"+all);
         var firstTask=V("min_over_time(webapi_telemetry_last_observed_timestamp_seconds"+all+"["+window+"])");
+        // Fixed 15s subquery catches an interior collection outage that endpoint checks miss.
+        var ageTask=V("max_over_time((time() - webapi_telemetry_last_observed_timestamp_seconds"+all+")["+window+":15s])");
         var requestTask=V($"sum by ({ResourceLabels},http_response_status_code,webapi_outcome,webapi_success) (clamp_min(increase(webapi_gateway_requests_total{matcher}[{window}]),0))");
         var histogramTask=V($"sum by ({ResourceLabels},le) (clamp_min(increase(webapi_gateway_request_duration_seconds_bucket{matcher}[{window}]),0))");
         var healthTask=V("webapi_destination_health"+all);
@@ -33,11 +35,11 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var failedTask=V($"sum by (webapi_environment_id) (increase(webapi_telemetry_export_failures_total{Matcher(scope,null,"signal=\"metrics\"")}[{window}]))");
         var ratesTask=M($"sum by (webapi_environment_id,http_response_status_code,webapi_outcome,webapi_success) (clamp_min(rate(webapi_gateway_requests_total{matcher}[{bucket}]),0))");
         var latencyTrendTask=M($"sum by (webapi_environment_id,le) (clamp_min(rate(webapi_gateway_request_duration_seconds_bucket{matcher}[{bucket}]),0))");
-        await Task.WhenAll(latestTask,firstTask,requestTask,histogramTask,healthTask,droppedTask,failedTask,ratesTask,latencyTrendTask);
+        await Task.WhenAll(latestTask,firstTask,ageTask,requestTask,histogramTask,healthTask,droppedTask,failedTask,ratesTask,latencyTrendTask);
         var requests=(await requestTask).Where(x=>ResourcesValid(x.Labels,scope)&&Matches(x.Labels,filter)).ToArray();
         var histogram=(await histogramTask).Where(x=>ResourcesValid(x.Labels,scope)&&Matches(x.Labels,filter)).ToArray();
         var health=await healthTask;
-        var observed=coverage.Evaluate(scope,range,await latestTask,await firstTask,(await droppedTask).Sum(x=>x.Value)+(await failedTask).Sum(x=>x.Value));
+        var observed=coverage.Evaluate(scope,range,await latestTask,await firstTask,(await droppedTask).Sum(x=>x.Value)+(await failedTask).Sum(x=>x.Value),await ageTask);
         var missing=observed.State is SourceState.Partial or SourceState.Stale||scope.ExpectedNodes.Count==0;
         var values=Values(requests,histogram,seconds,Unhealthy(scope,health,filter),missing,observed.State);
         var groups=new List<MetricGroupDto>();
@@ -88,9 +90,11 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
     {
         var traffic=rates.SelectMany(x=>x.Points.Select(p=>(x.Labels,p.Time,p.Value))).GroupBy(x=>x.Time).OrderBy(x=>x.Key).Take(600).ToArray();
         var rps=traffic.Select(x=>new MetricPointDto(x.Key,missing?null:x.Sum(p=>p.Value))).ToArray();
-        var errors=traffic.Select(x=>new MetricPointDto(x.Key,missing||x.Sum(p=>p.Value)==0?null:x.Where(p=>int.TryParse(p.Labels.GetValueOrDefault("http_response_status_code"),out var s)&&s>=500&&s<600).Sum(p=>p.Value)/x.Sum(p=>p.Value))).ToArray();
-        var latency=histogram.SelectMany(x=>x.Points.Select(p=>(x.Labels,p.Time,p.Value))).GroupBy(x=>x.Time).OrderBy(x=>x.Key).Take(600).Select(x=>new MetricPointDto(x.Key,missing?null:Quantile(x.Select(p=>new PrometheusSeries(p.Labels,p.Value)),0.95))).ToArray();
-        return new Dictionary<string,IReadOnlyList<MetricPointDto>>{{"request_rps",rps},{"error_5xx_ratio",errors},{"latency_p95_ms",latency}};
+        MetricPointDto[] Ratio(Func<IReadOnlyDictionary<string,string>,bool> predicate)=>traffic.Select(x=>new MetricPointDto(x.Key,missing||x.Sum(p=>p.Value)==0?null:x.Where(p=>predicate(p.Labels)).Sum(p=>p.Value)/x.Sum(p=>p.Value))).ToArray();
+        var buckets=histogram.SelectMany(x=>x.Points.Select(p=>(x.Labels,p.Time,p.Value))).GroupBy(x=>x.Time).OrderBy(x=>x.Key).Take(600).ToArray();
+        MetricPointDto[] Latency(double quantile)=>buckets.Select(x=>new MetricPointDto(x.Key,missing?null:Quantile(x.Select(p=>new PrometheusSeries(p.Labels,p.Value)),quantile))).ToArray();
+        bool Status(IReadOnlyDictionary<string,string> labels,int lower)=>int.TryParse(labels.GetValueOrDefault("http_response_status_code"),out var s)&&s>=lower&&s<lower+100;
+        return new Dictionary<string,IReadOnlyList<MetricPointDto>>{{"request_rps",rps},{"success_ratio",Ratio(x=>x.GetValueOrDefault("webapi_success")=="true")},{"error_4xx_ratio",Ratio(x=>Status(x,400))},{"error_5xx_ratio",Ratio(x=>Status(x,500))},{"latency_p50_ms",Latency(0.5)},{"latency_p95_ms",Latency(0.95)},{"latency_p99_ms",Latency(0.99)}};
     }
     private static double? Unhealthy(TrustedObservationScope scope,IReadOnlyList<PrometheusSeries> health,MetricFilter filter)
     {

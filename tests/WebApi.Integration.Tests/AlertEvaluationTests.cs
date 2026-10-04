@@ -29,6 +29,14 @@ public sealed class AlertEvaluationTests
     private static async Task<IReadOnlyList<EvaluationLease>> Claim(ApiFixture f,DateTimeOffset slot,string owner){using var scope=f.Services();return await scope.ServiceProvider.GetRequiredService<AlertEvaluationLeaseStore>().ClaimAsync(slot,owner,default);}
     private static async Task<bool> Evaluate(ApiFixture f,EvaluationLease lease){using var scope=f.Services();return await scope.ServiceProvider.GetRequiredService<AlertEvaluationService>().EvaluateAsync(lease,default);}
     private static async Task<EvaluationLease> Next(ApiFixture f){await Task.Delay(1100);var leases=await Claim(f,await Slot(f),"next");return Assert.Single(leases);}
+    [Theory][InlineData("Ready")][InlineData("NotReady")][InlineData("Degraded")]
+    public async Task RegisteredNodeStatusCanEvaluateActualRule(string status)
+    {
+        var setup=await Setup();await using var f=setup.Fixture;
+        await using(var db=f.Context()){foreach(var node in await db.Set<GatewayNode>().ToArrayAsync())node.Status=status;await db.SaveChangesAsync();}
+        Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"operational"))));
+        await using var read=f.Context();Assert.Equal("Open",(await read.Set<AlertEvent>().SingleAsync()).Status);
+    }
     [Fact] public async Task TwoWorkersSameSlotCreateOneEvent()
     {
         var setup=await Setup();await using var f=setup.Fixture;var slot=await Slot(f);var claimed=await Task.WhenAll(Claim(f,slot,"worker-a"),Claim(f,slot,"worker-b"));var lease=Assert.Single(claimed.SelectMany(x=>x));

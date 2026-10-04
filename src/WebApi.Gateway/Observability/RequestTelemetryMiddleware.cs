@@ -9,7 +9,10 @@ public sealed class RequestTelemetryMiddleware(RequestDelegate next)
         if(IsHealth(ctx.Request.Path)){await next(ctx);return;}
         var started=Stopwatch.GetTimestamp();
         var ip=ctx.Connection.RemoteIpAddress is { } address?sanitizer.Ip(address):("Unknown","");
-        ActivityContext.TryParse(ctx.Request.Headers["traceparent"],ctx.Request.Headers["tracestate"],out var parent);
+        var hasRemoteParent=ActivityContext.TryParse(ctx.Request.Headers["traceparent"],ctx.Request.Headers["tracestate"],true,out var parent);
+        // A root must have neither the sampling decision nor the parent span of
+        // ASP.NET's unexported hosting Activity. Restore it after our span ends.
+        using var rootScope=hasRemoteParent?null:new RootActivityScope();
         using var activity=recorder.Activities.StartActivity("gateway.request",ActivityKind.Server,parent);
         var state=new RequestTelemetryState(new(){EnvironmentId=settings.EnvironmentId,NodeName=settings.NodeName,Method=TelemetrySanitizer.Method(ctx.Request.Method),RequestId=ctx.TraceIdentifier,TraceId=activity?.TraceId.ToHexString()??Activity.Current?.TraceId.ToHexString()??ActivityTraceId.CreateRandom().ToHexString(),SpanId=activity?.SpanId.ToHexString()??"",MaskedIp=ip.Item1,IpHmac=ip.Item2}){ServerActivity=activity};
         ctx.Items[RequestTelemetryState.Item]=state;
@@ -34,4 +37,10 @@ public sealed class RequestTelemetryMiddleware(RequestDelegate next)
         }
     }
     public static bool IsHealth(PathString path)=>path.Equals("/health/live",StringComparison.OrdinalIgnoreCase)||path.Equals("/health/ready",StringComparison.OrdinalIgnoreCase);
+    private sealed class RootActivityScope:IDisposable
+    {
+        private readonly Activity? previous=Activity.Current;
+        public RootActivityScope()=>Activity.Current=null;
+        public void Dispose()=>Activity.Current=previous;
+    }
 }

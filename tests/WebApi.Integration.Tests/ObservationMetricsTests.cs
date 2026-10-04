@@ -63,6 +63,42 @@ public sealed class ObservationMetricsTests
         Assert.Contains(source.Requests,x=>Uri.UnescapeDataString(x.Query).Contains("increase(webapi_gateway_requests_total",StringComparison.Ordinal));
         Assert.All(body.Data!.Trends["request_rps"],x=>Assert.True(x.Value>=0));
     }
+    [Theory][InlineData("Ready")][InlineData("NotReady")][InlineData("Degraded")]
+    public async Task RegisteredOperationalNodeStatesRemainExpectedCollectors(string status)
+    {
+        var source=new MetricProtocolHandler();await using var s=await FixtureAsync(source);
+        await using(var db=s.Context()){var node=await db.Set<GatewayNode>().SingleAsync();node.Status=status;await db.SaveChangesAsync();}
+        using var response=await s.Client.GetAsync(Url(s,source));response.EnsureSuccessStatusCode();
+        var body=(await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+        Assert.Equal(SourceState.Available,body.SourceState);Assert.True(body.Coverage.Complete);Assert.Single(body.Data!.NodeHealth);Assert.Equal(200,Value(body,"request_count").Value);
+    }
+    [Fact] public async Task LatencyRankingUsesMergedLatencyRatherThanTrafficCount()
+    {
+        var source=new MetricProtocolHandler();await using var s=await FixtureAsync(source);
+        var fast=new Api{OrganizationId=s.Organization.Id,ProjectId=s.Project.Id,Code="FAST",Name="快速高流量 API",LifecycleStatus="Active",OwnerUserId=s.User.Id};
+        await using(var db=s.Context()){db.Add(fast);await db.SaveChangesAsync();}source.SecondApiId=fast.Id;
+        async Task<ObservationEnvelope<MetricsDto>> Query(string sort){using var r=await s.Client.GetAsync(Url(s,source,suffix:"&groupBy=Api&sortBy="+sort));r.EnsureSuccessStatusCode();return(await r.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;}
+        Assert.Equal(fast.Id.ToString(),(await Query("request_rps")).Data!.Groups[0].Key);
+        Assert.Equal(s.Api.Id.ToString(),(await Query("latency_p95_ms")).Data!.Groups[0].Key);
+        Assert.Equal(s.Api.Id.ToString(),(await Query("latency_p99_ms")).Data!.Groups[0].Key);
+    }
+    [Fact] public async Task MiddleCollectionGapCannotClaimCompleteEvenWithFreshEndpoints()
+    {
+        var source=new MetricProtocolHandler{MiddleGap=true};await using var s=await FixtureAsync(source);
+        using var response=await s.Client.GetAsync(Url(s,source));response.EnsureSuccessStatusCode();
+        var body=(await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+        Assert.Equal(SourceState.Partial,body.SourceState);Assert.False(body.Coverage.Complete);Assert.Null(Value(body,"request_rps").Value);
+        Assert.Equal("time_window_coverage_incomplete",body.Coverage.Reason);
+        Assert.Contains(source.Requests,x=>Uri.UnescapeDataString(x.Query).Contains("max_over_time((time()",StringComparison.Ordinal));
+    }
+    [Fact] public async Task AllRequiredTrendSeriesUseRealSamplesAndUnknownStaysNull()
+    {
+        var source=new MetricProtocolHandler();await using var s=await FixtureAsync(source);
+        using var response=await s.Client.GetAsync(Url(s,source));response.EnsureSuccessStatusCode();
+        var body=(await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+        foreach(var metric in new[]{"request_rps","success_ratio","error_4xx_ratio","error_5xx_ratio","latency_p50_ms","latency_p95_ms","latency_p99_ms"})Assert.NotEmpty(body.Data!.Trends[metric]);
+        Assert.All(body.Data!.Trends["success_ratio"],x=>Assert.Equal(1,x.Value));Assert.All(body.Data.Trends["error_4xx_ratio"],x=>Assert.Equal(0,x.Value));
+    }
     [Fact] public async Task SourceFailureReturns503()
     {
         var source=new MetricProtocolHandler{Status=503};await using var s=await FixtureAsync(source);using var response=await s.Client.GetAsync(Url(s,source));Assert.Equal(HttpStatusCode.ServiceUnavailable,response.StatusCode);
@@ -117,8 +153,8 @@ public sealed class ObservationMetricsTests
 public sealed class MetricProtocolHandler : HttpMessageHandler
 {
     public Guid EnvironmentId,ApiId,ApplicationId,DestinationId,ClusterId;
-    public Guid? ForeignEnvironmentId;
-    public bool MissingSecondNode,ResetWindow;
+    public Guid? ForeignEnvironmentId,SecondApiId;
+    public bool MissingSecondNode,ResetWindow,MiddleGap;
     public int Status=200;
     public DateTimeOffset End {get;set;}=DateTimeOffset.UtcNow.AddSeconds(-1);
     public DateTimeOffset Start=>End.AddHours(-1);
@@ -130,12 +166,12 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
         var stamp=End.ToUnixTimeMilliseconds()/1000d;
         void Add(Dictionary<string,string> labels,double value)=>rows.Add(new{metric=labels,value=new object[]{stamp,value.ToString(CultureInfo.InvariantCulture)}});
         if(query.Contains("last_observed_timestamp",StringComparison.Ordinal))
-        {var time=query.Contains("min_over_time",StringComparison.Ordinal)?Start.AddSeconds(5):End.AddSeconds(-2);Add(Labels(),time.ToUnixTimeMilliseconds()/1000d);if(!MissingSecondNode)Add(Labels("node-1"),time.ToUnixTimeMilliseconds()/1000d);}
+        {var time=query.Contains("min_over_time",StringComparison.Ordinal)?Start.AddSeconds(5):End.AddSeconds(-2);var value=query.Contains("max_over_time",StringComparison.Ordinal)?MiddleGap?90:5:time.ToUnixTimeMilliseconds()/1000d;Add(Labels(),value);if(!MissingSecondNode)Add(Labels("node-1"),value);}
         else if(query.Contains("_bucket",StringComparison.Ordinal))
-        {foreach(var node in new[]{"node-0","node-1"})foreach(var le in new[]{"0.1","1","10","+Inf"}){var labels=Labels(node);labels["le"]=le;Add(labels,node=="node-0"||le is "10" or "+Inf"?100:0);}}
+        {foreach(var node in new[]{"node-0","node-1"})foreach(var le in new[]{"0.1","1","10","+Inf"}){var labels=Labels(node);labels["le"]=le;Add(labels,SecondApiId is null?node=="node-0"||le is "10" or "+Inf"?100:0:le is "10" or "+Inf"?100:0);if(SecondApiId is Guid second){var fast=Labels(node);fast["webapi_api_id"]=second.ToString();fast["le"]=le;Add(fast,100);}}}
         else if(query.Contains("webapi_destination_health",StringComparison.Ordinal))Add(Labels(),1);
         else if(query.Contains("dropped_total",StringComparison.Ordinal)||query.Contains("export_failures_total",StringComparison.Ordinal)){}
-        else if(query.Contains("webapi_gateway_requests_total",StringComparison.Ordinal)){Add(Labels(),ResetWindow?6:200);if(ForeignEnvironmentId is Guid foreign){var labels=Labels();labels["webapi_environment_id"]=foreign.ToString();Add(labels,999999);}}
+        else if(query.Contains("webapi_gateway_requests_total",StringComparison.Ordinal)){Add(Labels(),ResetWindow?6:200);if(SecondApiId is Guid second){var fast=Labels();fast["webapi_api_id"]=second.ToString();Add(fast,400);}if(ForeignEnvironmentId is Guid foreign){var labels=Labels();labels["webapi_environment_id"]=foreign.ToString();Add(labels,999999);}}
         if(request.RequestUri.AbsolutePath.EndsWith("query_range",StringComparison.Ordinal))
         {var matrix=rows.Select(row=>JsonSerializer.SerializeToElement(row)).Select(row=>new{metric=row.GetProperty("metric"),values=new[]{new object[]{Start.AddSeconds(30).ToUnixTimeMilliseconds()/1000d,"0.5"},new object[]{End.AddSeconds(-1).ToUnixTimeMilliseconds()/1000d,"1"}}});return Task.FromResult(new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="matrix",result=matrix}})});}
         return Task.FromResult(new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=rows}})});

@@ -4,18 +4,18 @@
     {
       "name": "NotificationLossRecoveredByPoll",
       "result": "passed",
-      "sequence": 6
+      "sequence": 5
     },
     {
       "name": "LostAckRetriedExactlyOncePerNodeFact",
       "result": "passed",
-      "sequence": 7
+      "sequence": 6
     },
     {
       "name": "ReadOnlyLkgKeepsOldTrafficAndIndependentRetryRecovers",
       "result": "passed",
-      "failedSequence": 8,
-      "recoverySequence": 9
+      "failedSequence": 7,
+      "recoverySequence": 8
     },
     {
       "name": "RealPublishedKeyExpiryAndCrossApiDenial",
@@ -28,12 +28,12 @@
     {
       "name": "ActualGatewayProcessRestartWhileControlPlaneAndRedisDownRestoresLkg",
       "result": "passed",
-      "sequence": 10
+      "sequence": 9
     },
     {
       "name": "ConcurrentPublishRollbackOnlyOneWinsDesired",
       "result": "passed",
-      "sequence": 11
+      "sequence": 10
     }
   ],
   "complete": true

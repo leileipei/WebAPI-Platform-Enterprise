@@ -1,0 +1,11 @@
+{
+  "complete": true,
+  "classification": "actual-no-upstream-traceparent-gateway-request",
+  "traceId": "f225b55019fdf44ee35dc5101c79e997",
+  "spanCount": 2,
+  "kinds": [
+    "Server",
+    "Client"
+  ],
+  "partialTrace": false
+}

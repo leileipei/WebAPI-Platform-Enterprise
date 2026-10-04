@@ -5,6 +5,11 @@ test('validated URL keeps allowed filters and never contains raw IP',()=>{
  const api='caec1d01-a1cc-44ef-b495-19b8a6f5a9ba';const s=serializeObservationSearch({range:'7d',api,group:'Application',ip:'10.0.0.1',cursor:'signed'});
  assert.ok(!s.includes('10.0.0.1'));assert.equal(parseObservationSearch(s).api,api);assert.equal(parseObservationSearch('?ip=10.0.0.1').ip,undefined);
 });
+test('metric sort and trend URL accepts only defined metrics and preserves navigation',()=>{
+ const q=parseObservationSearch('?sort=latency_p95_ms&trend=latency_p99_ms');assert.equal(q.sort,'latency_p95_ms');assert.equal(q.trend,'latency_p99_ms');
+ assert.equal(parseObservationSearch('?sort=raw_sql&trend=latency_p0_ms').sort,'request_count');
+ assert.equal(parseObservationSearch(serializeObservationSearch({...q,range:'6h',group:'Api'})).trend,'latency_p99_ms');
+});
 test('scope switch aborts old requests, clears cursor and rejects a late response',()=>{
  const gate=createObservationGate(),first=gate.begin('env-a','first');assert.equal(first.cursor,'first');const second=gate.begin('env-b','foreign-cursor');
  assert.ok(first.signal.aborted);assert.equal(second.cursor,undefined);assert.equal(gate.isCurrent(first),false);assert.equal(gate.isCurrent(second),true);gate.dispose();assert.ok(second.signal.aborted);

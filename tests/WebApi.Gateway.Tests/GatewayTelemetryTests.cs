@@ -18,6 +18,18 @@ using static WebApi.Gateway.Tests.Support.RecordingTelemetrySink;
 namespace WebApi.Gateway.Tests;
 public sealed class GatewayTelemetryTests
 {
+    [Theory][InlineData(null,true)][InlineData("00",false)][InlineData("01",true)]
+    public async Task RootSamplingIgnoresUnrecordedHostingActivityButHonorsRemoteDecision(string? flags,bool expected)
+    {
+        var sink=new RecordingTelemetrySink();await using var s=Fixture(sink);await s.InitializeAsync();
+        var services=s.Gateways[0].Services;var context=new DefaultHttpContext();context.Response.Body=new MemoryStream();
+        if(flags is not null)context.Request.Headers["traceparent"]="00-0123456789abcdef0123456789abcdef-0123456789abcdef-"+flags;
+        using var hosting=new System.Diagnostics.Activity("unrecorded-host-request").SetIdFormat(System.Diagnostics.ActivityIdFormat.W3C).Start();hosting.ActivityTraceFlags=System.Diagnostics.ActivityTraceFlags.None;
+        bool? recorded=null;System.Diagnostics.Activity? server=null;var middleware=new RequestTelemetryMiddleware(ctx=>{server=((RequestTelemetryState)ctx.Items[RequestTelemetryState.Item]!).ServerActivity;recorded=server?.Recorded??false;ctx.Response.StatusCode=200;return Task.CompletedTask;});
+        await middleware.InvokeAsync(context,services.GetRequiredService<GatewayTelemetryRecorder>(),services.GetRequiredService<TelemetrySanitizer>(),services.GetRequiredService<GatewaySettings>(),services.GetRequiredService<TelemetryDropTracker>());
+        Assert.Equal(expected,recorded);
+        if(flags is null){Assert.NotNull(server);Assert.Equal(default,server.ParentSpanId);Assert.NotEqual(hosting.TraceId,server.TraceId);Assert.Same(hosting,System.Diagnostics.Activity.Current);}
+    }
     private static GatewayFixture Fixture(RecordingTelemetrySink sink,int capacity=2048)
     {
         var s=new GatewayFixture();s.ConfigureGateway=b=>{b.Configuration["Observability:Enabled"]="true";b.Configuration["Observability:QueueCapacity"]=capacity.ToString();b.Configuration["Observability:TraceSampleRatio"]="1";b.Configuration["Observability:BatchDelayMs"]="20";b.Configuration["Observability:MetricExportIntervalMs"]="100";b.Services.AddSingleton<ITelemetryBatchSink>(sink);};return s;

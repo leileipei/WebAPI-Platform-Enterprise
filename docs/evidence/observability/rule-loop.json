@@ -1,0 +1,104 @@
+{
+  "complete": true,
+  "project": "webapi-enterprise-e2e-observability-911f2a53-0f3c-43b2-be90-7f60927b9d6e",
+  "classification": "actual-business-gateway-three-source-and-independent-workers",
+  "settings": {
+    "intervalSeconds": 2,
+    "queryDelaySeconds": 5,
+    "leaseSeconds": 30,
+    "metricExportIntervalMs": 1000,
+    "traceSampleRatio": 1,
+    "queueCapacity": 64
+  },
+  "windowSeconds": 60,
+  "elapsedSeconds": 146,
+  "checks": [
+    {
+      "name": "Actual60SecondCompleteCoverageAndEstimatedRates",
+      "status": "passed",
+      "ratio": 0.33333333333333337,
+      "ratioAbsoluteTolerance": 0.12,
+      "p95": 462.4999999999999,
+      "samples": 292
+    },
+    {
+      "name": "ThreeActualMetricRulesTriggerAckSilenceRecoverAndAudit",
+      "status": "passed",
+      "rules": [
+        {
+          "eventId": "142b17b9-742e-48e5-9c51-8f1cb2a654e1",
+          "ruleId": "90c440d8-8a7f-4299-870a-4d6f2b5d32e4",
+          "originalForSeconds": 300,
+          "e2eForSeconds": 4,
+          "conditionStartedAt": "2026-10-04T10:07:20.819+00:00",
+          "startedAt": "2026-10-04T10:07:32.560303+00:00",
+          "resolvedAt": "2026-10-04T10:08:44.868931+00:00",
+          "transitions": [
+            {
+              "toStatus": "Open",
+              "reason": "Triggered"
+            },
+            {
+              "toStatus": "Ack",
+              "reason": "Ack"
+            },
+            {
+              "toStatus": "Resolved",
+              "reason": "Recovered"
+            }
+          ],
+          "auditCount": 2
+        },
+        {
+          "eventId": "e5b9da06-04d0-41b2-a693-c5c35afd02b4",
+          "ruleId": "d0b6a666-5280-464e-806e-0e7e100697cb",
+          "originalForSeconds": 600,
+          "e2eForSeconds": 4,
+          "conditionStartedAt": "2026-10-04T10:07:20.819+00:00",
+          "startedAt": "2026-10-04T10:07:32.504556+00:00",
+          "resolvedAt": "2026-10-04T10:08:51.038651+00:00",
+          "transitions": [
+            {
+              "toStatus": "Open",
+              "reason": "Triggered"
+            },
+            {
+              "toStatus": "Silenced",
+              "reason": "隔离闭环维护"
+            },
+            {
+              "toStatus": "Resolved",
+              "reason": "Recovered"
+            }
+          ],
+          "auditCount": 2
+        },
+        {
+          "eventId": "2154a4d3-0e3e-467c-8dbb-f65537c04daa",
+          "ruleId": "fa2cd1fc-d473-42e0-951d-c5dbd8d7287c",
+          "originalForSeconds": 120,
+          "e2eForSeconds": 4,
+          "conditionStartedAt": "2026-10-04T10:07:36.821+00:00",
+          "startedAt": "2026-10-04T10:07:48.927251+00:00",
+          "resolvedAt": "2026-10-04T10:08:00.162014+00:00",
+          "transitions": [
+            {
+              "toStatus": "Open",
+              "reason": "Triggered"
+            },
+            {
+              "toStatus": "Resolved",
+              "reason": "Recovered"
+            }
+          ],
+          "auditCount": 2
+        }
+      ]
+    },
+    {
+      "name": "ActualYarpHealthyGaugeRecovers",
+      "status": "passed",
+      "value": 0
+    }
+  ]
+}

@@ -8,6 +8,13 @@ public sealed class ObservationTraceTests
         await using(var db=f.Context()){db.Add(new GatewayNode{EnvironmentId=f.Environment.Id,NodeName="trace-node"});await db.SaveChangesAsync();}using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();source.EnvironmentId=f.Environment.Id;source.ApiId=f.Api.Id;return(f,source);
     }
     private static string Url(ApiFixture f,TraceProtocolHandler source,string? trace=null)=>$"/api/v1/observability/traces{(trace is null?"":"/"+trace)}?organizationId={f.Organization.Id}&projectId={f.Project.Id}&environmentId={f.Environment.Id}&start={Uri.EscapeDataString(source.Start.ToString("O"))}&end={Uri.EscapeDataString(source.End.ToString("O"))}";
+    [Fact] public async Task MiddleGapCannotClaimCompleteTraceCoverage()
+    {
+        var(f,source)=await FixtureAsync();await using var fixture=f;source.MiddleGap=true;
+        using var r=await f.Client.GetAsync(Url(f,source,source.TraceId));r.EnsureSuccessStatusCode();
+        var body=(await r.Content.ReadFromJsonAsync<ObservationEnvelope<TraceDetailDto>>())!;
+        Assert.False(body.Coverage.Complete);Assert.Equal("time_window_coverage_incomplete",body.Coverage.Reason);
+    }
     [Fact]public async Task SameTraceIdAcrossEnvironmentsDoesNotLeak()
     {
         var(f,source)=await FixtureAsync();await using var fixture=f;source.ForeignEnvironmentId=Guid.NewGuid();using var r=await f.Client.GetAsync(Url(f,source,source.TraceId));r.EnsureSuccessStatusCode();var json=await r.Content.ReadAsStringAsync();var detail=JsonSerializer.Deserialize<ObservationEnvelope<TraceDetailDto>>(json,new JsonSerializerOptions(JsonSerializerDefaults.Web))!.Data!;
@@ -50,7 +57,7 @@ public sealed class ObservationTraceTests
 }
 public sealed class TraceProtocolHandler:HttpMessageHandler
 {
-    public Guid EnvironmentId,ApiId;public Guid? ForeignEnvironmentId;public bool Unscoped,IncludeClient;public int Status=200;public int CandidateCount=1;
+    public Guid EnvironmentId,ApiId;public Guid? ForeignEnvironmentId;public bool Unscoped,IncludeClient,MiddleGap;public int Status=200;public int CandidateCount=1;
     public string TraceId="1234567890abcdef1234567890abcdef";public ConcurrentQueue<Uri> Requests{get;}=new();
     public DateTimeOffset End{get;}=DateTimeOffset.UtcNow.AddSeconds(-1);public DateTimeOffset Start=>End.AddHours(-1);public DateTimeOffset SpanStart=>End.AddSeconds(-5);
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
@@ -67,7 +74,7 @@ public sealed class TraceProtocolHandler:HttpMessageHandler
             return Task.FromResult(new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{batches=rows})});
         }
         if(uri.AbsolutePath=="/api/search")return Task.FromResult(new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{traces=Enumerable.Range(0,CandidateCount).Select(i=>new{traceID=i==0?TraceId:i.ToString("x32"),rootServiceName="foreign-private-marker",rootTraceName="foreign-private-marker",startTimeUnixNano=Nano(SpanStart).ToString(CultureInfo.InvariantCulture),durationMs=12000}).ToArray()})});
-        var p=QueryHelpers.ParseQuery(uri.Query);var q=p["query"].ToString();var time=End.ToUnixTimeMilliseconds()/1000d;var value=q.Contains("min_over_time")?Start.AddSeconds(5).ToUnixTimeMilliseconds()/1000d:q.Contains("last_observed_timestamp")?time-2:0;
+        var p=QueryHelpers.ParseQuery(uri.Query);var q=p["query"].ToString();var time=End.ToUnixTimeMilliseconds()/1000d;var value=q.Contains("max_over_time")?MiddleGap?90:5:q.Contains("min_over_time")?Start.AddSeconds(5).ToUnixTimeMilliseconds()/1000d:q.Contains("last_observed_timestamp")?time-2:0;
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=new[]{new{metric=new Dictionary<string,string>{["webapi_environment_id"]=EnvironmentId.ToString(),["service_instance_id"]="trace-node"},value=new object[]{time,value.ToString(CultureInfo.InvariantCulture)}}}}})});
     }
 }

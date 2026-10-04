@@ -36,7 +36,7 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
         var apps=await db.Set<ApplicationRecord>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==project.Id).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
         var destinations=await(from d in db.Set<UpstreamDestination>().AsNoTracking() join c in db.Set<UpstreamCluster>().AsNoTracking() on d.ClusterId equals c.Id where c.ProjectId==project.Id&&environments.Contains(c.EnvironmentId) select new ObservationDestination(d.Id,c.Id,c.EnvironmentId,d.Name,d.Enabled)).ToDictionaryAsync(x=>x.Id,ct);
         if(apiId is Guid api&&!apis.ContainsKey(api)||appId is Guid app&&!apps.ContainsKey(app)||destinationId is Guid destination&&!destinations.ContainsKey(destination))throw ScopeResolver.Missing();
-        var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>environments.Contains(x.EnvironmentId)&&x.Enabled&&x.Status=="Active").Select(x=>new ExpectedObservationNode(x.EnvironmentId,x.NodeName)).ToArrayAsync(ct);
+        var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>environments.Contains(x.EnvironmentId)&&x.Enabled).Select(x=>new ExpectedObservationNode(x.EnvironmentId,x.NodeName)).ToArrayAsync(ct);
         return new(scope.OrganizationId,scope.ProjectId,environments,nodes,apis,apps,destinations);
     }
 }

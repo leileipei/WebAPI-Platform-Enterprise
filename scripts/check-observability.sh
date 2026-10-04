@@ -3,8 +3,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 kind=${1:-}
 case "$kind" in
+ e2e|faults|browser) shift; exec ./scripts/check-observability-loop.sh "$kind" "$@" ;;
  smoke) ;;
- *) echo 'Unknown check kind; usage: check-observability.sh smoke' >&2; exit 2 ;;
+ *) echo 'Unknown check kind; usage: check-observability.sh smoke|e2e|faults|browser' >&2; exit 2 ;;
 esac
 WEBAPI_OBS_NODE=${WEBAPI_NODE:-node}
 WEBAPI_OBS_PROJECT="webapi-obs-smoke-$(uuidgen | tr '[:upper:]' '[:lower:]')"

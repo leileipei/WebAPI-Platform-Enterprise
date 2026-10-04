@@ -1,0 +1,21 @@
+{
+  "complete": false,
+  "project": "webapi-enterprise-e2e-observability-409d8384-a610-4406-9d65-ebf94657532b",
+  "startedAt": "2026-10-04T10:40:23.419Z",
+  "classification": "real-isolated-gateway-three-source",
+  "mode": "e2e",
+  "endpoints": {
+    "control_plane": "http://127.0.0.1:58886",
+    "collector": "http://127.0.0.1:58887",
+    "prometheus": "http://127.0.0.1:58888",
+    "loki": "http://127.0.0.1:58889",
+    "tempo": "http://127.0.0.1:58890",
+    "console": "http://127.0.0.1:58891",
+    "gateway_a": "http://127.0.0.1:58892",
+    "gateway_b": "http://127.0.0.1:58893",
+    "backend_a": "http://127.0.0.1:58894",
+    "backend_b": "http://127.0.0.1:58895"
+  },
+  "checks": [],
+  "cleanup": null
+}

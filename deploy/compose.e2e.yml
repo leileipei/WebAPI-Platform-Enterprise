@@ -27,6 +27,7 @@ services:
       WEBAPI_BOOTSTRAP_USERNAME: e2e-admin
       WEBAPI_BOOTSTRAP_PASSWORD_FILE: /workspace/${WEBAPI_E2E_RELATIVE_DIR:?required}/password
       WEBAPI_E2E_CONTEXT_FILE: /workspace/${WEBAPI_E2E_RELATIVE_DIR:?required}/context.json
+      WEBAPI_E2E_PROJECT: ${WEBAPI_E2E_PROJECT:?required}
   control-plane:
     <<: *app
     command: ['dotnet','src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll']

@@ -1,4 +1,4 @@
-export type ObservationSearch={range:'1h'|'6h'|'24h'|'7d';group?:'None'|'Api'|'Application'|'Destination'|'Status';api?:string;app?:string;destination?:string;status?:string;duration?:number;maxDuration?:number;keyword?:string;outcome?:string;trace?:string;cursor?:string;ip?:string;end?:string;page?:number;all?:boolean};
+export type ObservationSearch={range:'1h'|'6h'|'24h'|'7d';group?:'None'|'Api'|'Application'|'Destination'|'Status';api?:string;app?:string;destination?:string;status?:string;duration?:number;maxDuration?:number;keyword?:string;outcome?:string;trace?:string;cursor?:string;ip?:string;end?:string;page?:number;all?:boolean;sort?:string;trend?:string};
 export function parseObservationSearch(search:string):ObservationSearch;
 export function serializeObservationSearch(state:ObservationSearch):string;
 export function observationRange(state:ObservationSearch,now?:Date):{start:string;end:string};

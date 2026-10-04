@@ -109,3 +109,13 @@ metric-contract-smoke.json记录独立真实Collector/Prometheus/Loki/Tempo栈�
 实际API目录选择先仅显示GUID回退RED，修正项目目录路由后显示“订单”，后端目标显示“backend”；表达式前端与领域保持三个空格分隔token及有限非负数字约束。新正常会话console error为0，文档宽1440，无全页横向溢出；已解决记录显示历史观测。截图和范围见ui-alerts-qa.json。
 
 本轮是真实CP、随机PostgreSQL库和独立评估/到期Worker，指标来源为受控协议，interval1秒/delay0秒/lease30秒。不是实际Gateway→三源端到端或生产验收。两个精确临时库确认0、临时容器0、Cookie文件不存在；预览停止，正常临时页关闭，视口恢复，原管理员权限未扩展。
+
+## Task 14 当前核验记录
+
+- 新普通请求的真实根 span、远端采样决定与宿主上下文恢复：父节点断言 RED 后 3/3 GREEN；真实普通请求经 Loki 关联 Tempo 的 Server/Client 两 span 完整。
+- 已登记节点的 Ready / NotReady / Degraded 不能消失于期待采集范围：查询及评估各 3 个 RED→GREEN；Enabled 决定期待集合，实际观察决定覆盖状态。
+- 采集中间缺口：指标 RED→GREEN；日志与链路各一例 RED→GREEN，相关查询 23/23；窗口内部最大年龄与首尾观察统一验证。
+- 趋势扩展至真实七系列，URL 记录趋势及排序；两个真实数据库内 API 的不同请求量 / P95 / P99 排名断言通过。纯前端 35/35、类型检查与正式构建通过。
+- 全量领域 49/49、数据库/API 184/184、网关 25/25，均未跳过。领域包含 300 / 600 / 120 秒原始持续语义的受控时钟验证；真实短闭环采用 60 秒窗口 / 4 秒持续 / 2 秒间隔 / 5 秒查询延后 / 30 秒租约，不能称为实际等待上述长持续时间。
+- 真实浏览器 28–33 六页检查见 browser-qa.json 与 design-qa.md。正常会话 0 console error；故障会话独立记录。1440px 六页无页面水平溢出，临时项目容器 / 卷 / 合成秘密 0。
+- 三源闭环与三类告警已分别有实际业务 GREEN；完整命令及跨环境 / 故障恢复仍以最终 verification.json 为准，当前总体 complete=false。

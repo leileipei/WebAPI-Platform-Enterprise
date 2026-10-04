@@ -3,7 +3,7 @@ namespace WebApi.Infrastructure.Observability;
 public sealed record ObservationCoverage(SourceState State,DateTimeOffset? ObservedAt,CoverageDto Coverage);
 public sealed class ObservationCoverageService
 {
-    public ObservationCoverage Evaluate(TrustedObservationScope scope,TimeRange range,IReadOnlyList<PrometheusSeries> latest,IReadOnlyList<PrometheusSeries> first,double gaps)
+    public ObservationCoverage Evaluate(TrustedObservationScope scope,TimeRange range,IReadOnlyList<PrometheusSeries> latest,IReadOnlyList<PrometheusSeries> first,double gaps,IReadOnlyList<PrometheusSeries>? maxAge=null)
     {
         if(scope.ExpectedNodes.Count==0)return new(SourceState.NoData,null,new(false,[],"no_enabled_collection_nodes",false));
         var missing=new List<string>();var dates=new List<DateTimeOffset>();var historyMissing=false;
@@ -15,6 +15,7 @@ public sealed class ObservationCoverageService
             if(row is null||(range.End.ToUnixTimeMilliseconds()/1000d-row.Value)>45||row.Value>range.End.ToUnixTimeMilliseconds()/1000d+30){missing.Add(node.NodeName);continue;}
             dates.Add(DateTimeOffset.FromUnixTimeMilliseconds((long)(row.Value*1000)));
             var earliest=first.FirstOrDefault(Same);if(earliest is null||earliest.Value>range.Start.ToUnixTimeMilliseconds()/1000d+45)historyMissing=true;
+            if(maxAge is not null){var age=maxAge.FirstOrDefault(Same);if(age is null||age.Value>45||age.Value< -30)historyMissing=true;}
         }
         var state=missing.Count>0||emptyEnvironments.Length>0?SourceState.Partial:historyMissing||gaps>0?SourceState.Partial:SourceState.Available;
         var reason=missing.Count>0?"missing_or_stale_nodes":emptyEnvironments.Length>0?"environments_without_collection_nodes":historyMissing?"time_window_coverage_incomplete":gaps>0?"known_metrics_collection_gap":null;

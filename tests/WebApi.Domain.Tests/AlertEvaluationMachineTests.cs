@@ -8,11 +8,11 @@ public sealed class AlertEvaluationMachineTests
     private static readonly DateTimeOffset Start=new(2026,10,4,8,0,0,TimeSpan.Zero);
     private static EvaluationInput Input(int seconds,bool? condition=true,SourceState source=SourceState.Available)=>new(Start.AddSeconds(seconds),source==SourceState.Available?Start.AddSeconds(seconds):null,condition is null?null:100,condition,source);
     private static EvaluationStateSnapshot State(EvaluationPhase phase=EvaluationPhase.Inactive,DateTimeOffset? pending=null,DateTimeOffset? success=null,DateTimeOffset? suppressed=null)=>new(phase,pending,success,true,suppressed);
-    [Fact] public void Continuous300SecondsFiresOnlyAfterWindow()
+    [Theory][InlineData(300)][InlineData(600)][InlineData(120)] public void ContinuousExampleSecondsFiresOnlyAfterWindow(int seconds)
     {
-        var first=AlertEvaluationMachine.Decide(State(),Input(0),300,15);Assert.Equal(EvaluationPhase.Pending,first.NewPhase);Assert.False(first.CreateEvent);
-        var at299=AlertEvaluationMachine.Decide(State(EvaluationPhase.Pending,Start,Start.AddSeconds(285)),Input(299),300,15);Assert.False(at299.CreateEvent);
-        var at300=AlertEvaluationMachine.Decide(State(EvaluationPhase.Pending,Start,Start.AddSeconds(299)),Input(300),300,15);Assert.True(at300.CreateEvent);Assert.Equal(EvaluationPhase.Firing,at300.NewPhase);
+        var first=AlertEvaluationMachine.Decide(State(),Input(0),seconds,15);Assert.Equal(EvaluationPhase.Pending,first.NewPhase);Assert.False(first.CreateEvent);
+        var before=AlertEvaluationMachine.Decide(State(EvaluationPhase.Pending,Start,Start.AddSeconds(seconds-15)),Input(seconds-1),seconds,15);Assert.False(before.CreateEvent);
+        var after=AlertEvaluationMachine.Decide(State(EvaluationPhase.Pending,Start,Start.AddSeconds(seconds-1)),Input(seconds),seconds,15);Assert.True(after.CreateEvent);Assert.Equal(EvaluationPhase.Firing,after.NewPhase);
     }
     [Fact] public void UnknownAnd31SecondGapResetPending()
     {

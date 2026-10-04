@@ -14,8 +14,9 @@ public sealed class ObservationSignalCoverage(ObservationSourceClient client,Obs
                 if(!double.TryParse(row.GetProperty("value")[1].GetString(),NumberStyles.Float,CultureInfo.InvariantCulture,out var value)||!double.IsFinite(value)||value<0)throw ObservationSourceSettings.Unavailable();result.Add(new(labels,value));}return result;}
         try{
             var latest=Fetch("webapi_telemetry_last_observed_timestamp_seconds"+match);var first=Fetch("min_over_time(webapi_telemetry_last_observed_timestamp_seconds"+match+"["+window+"])");
+            var maxAge=Fetch("max_over_time((time() - webapi_telemetry_last_observed_timestamp_seconds"+match+")["+window+":15s])");
             var lost=Fetch("sum by (webapi_environment_id) (increase(webapi_telemetry_dropped_total"+diagnostics+"["+window+"]))");var failed=Fetch("sum by (webapi_environment_id) (increase(webapi_telemetry_export_failures_total"+diagnostics+"["+window+"]))");
-            await Task.WhenAll(latest,first,lost,failed);var result=coverage.Evaluate(scope,range,await latest,await first,(await lost).Sum(x=>x.Value)+(await failed).Sum(x=>x.Value));
+            await Task.WhenAll(latest,first,lost,failed,maxAge);var result=coverage.Evaluate(scope,range,await latest,await first,(await lost).Sum(x=>x.Value)+(await failed).Sum(x=>x.Value),await maxAge);
             return result.Coverage.Reason=="known_metrics_collection_gap"?result with{Coverage=result.Coverage with{Reason="known_"+signal+"_collection_gap"}}:result;
         }catch(ApiException){return new(SourceState.Partial,null,new(false,scope.ExpectedNodes.Select(x=>x.NodeName).ToArray(),"collection_coverage_source_unavailable",false));}
         catch(Exception e)when(e is JsonException or FormatException or ArgumentException or InvalidOperationException or KeyNotFoundException){return new(SourceState.Partial,null,new(false,[],"collection_coverage_source_unavailable",false));}

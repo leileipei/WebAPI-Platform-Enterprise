@@ -1,0 +1,13 @@
+{
+  "complete": true,
+  "project": "webapi-enterprise-e2e-observability-66c3c63b-34d8-4271-9598-8006a429b137",
+  "checks": [
+    {
+      "name": "RealLokiSingleNanosecondProviderLimitExplicitlyTruncated",
+      "status": "passed",
+      "classification": "synthetic-provider-boundary-in-real-Loki-not-business-requests",
+      "pushedRows": 5001,
+      "returnedRows": 50
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+# Test-only overlay: random loopback ports, two actual workers, bounded fast telemetry.
+x-observation: &observation
+  Observability__Enabled: 'true'
+  Observability__PrometheusUrl: http://prometheus:9090
+  Observability__LokiUrl: http://loki:3100
+  Observability__TempoUrl: http://tempo:3200
+  Observability__TraceSampleRatio: '1'
+  Observability__IpHmacSecretFile: /run/secrets/ip-hmac
+  Observability__CursorSigningSecretFile: /run/secrets/cursor-key
+  Alerts__IntervalSeconds: '2'
+  Alerts__QueryDelaySeconds: '5'
+  Alerts__LeaseSeconds: '30'
+services:
+  control-plane:
+    environment: *observation
+    secrets: [ip-hmac, cursor-key]
+    ports: !override [{target: 8080, published: '${WEBAPI_OBS_CP_PORT:-0}', host_ip: 127.0.0.1}]
+  worker:
+    environment: *observation
+    secrets: [ip-hmac, cursor-key]
+  worker-b:
+    extends: {file: compose.e2e.yml, service: worker}
+    environment: *observation
+    secrets: [ip-hmac, cursor-key]
+  gateway-a:
+    environment:
+      <<: *observation
+      Observability__CollectorEndpoint: http://collector:4318
+      Observability__MetricExportIntervalMs: '1000'
+      Observability__BatchDelayMs: '100'
+      Observability__QueueCapacity: '64'
+    secrets: [ip-hmac]
+    ports: !override [{target: 8080, published: '${WEBAPI_OBS_GATEWAY_A_PORT:-0}', host_ip: 127.0.0.1}]
+  gateway-b:
+    environment:
+      <<: *observation
+      Observability__CollectorEndpoint: http://collector:4318
+      Observability__MetricExportIntervalMs: '1000'
+      Observability__BatchDelayMs: '100'
+      Observability__QueueCapacity: '64'
+    secrets: [ip-hmac]
+    ports: !override [{target: 8080, published: '${WEBAPI_OBS_GATEWAY_B_PORT:-0}', host_ip: 127.0.0.1}]
+  backend-a:
+    environment: {Backend__ObservationEndpoints: 'true'}
+    ports: !override [{target: 8080, published: '${WEBAPI_OBS_BACKEND_A_PORT:-0}', host_ip: 127.0.0.1}]
+  backend-b:
+    environment: {Backend__ObservationEndpoints: 'true'}
+    ports: !override [{target: 8080, published: '${WEBAPI_OBS_BACKEND_B_PORT:-0}', host_ip: 127.0.0.1}]
+  console:
+    ports: !override [{target: 8080, published: '${WEBAPI_OBS_CONSOLE_PORT:-0}', host_ip: 127.0.0.1}]
+  collector:
+    ports: !override [{target: 4318, published: '${WEBAPI_OBS_COLLECTOR_PORT:-0}', host_ip: 127.0.0.1}]
+  prometheus:
+    ports: !override [{target: 9090, published: '${WEBAPI_OBS_PROMETHEUS_PORT:-0}', host_ip: 127.0.0.1}]
+  loki:
+    ports: !override [{target: 3100, published: '${WEBAPI_OBS_LOKI_PORT:-0}', host_ip: 127.0.0.1}]
+  tempo:
+    ports: !override [{target: 3200, published: '${WEBAPI_OBS_TEMPO_PORT:-0}', host_ip: 127.0.0.1}]
+secrets:
+  ip-hmac: {file: '${WEBAPI_E2E_DIRECTORY:?required}/ip-hmac'}
+  cursor-key: {file: '${WEBAPI_E2E_DIRECTORY:?required}/cursor-key'}

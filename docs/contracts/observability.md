@@ -10,11 +10,11 @@ RPS单位req/s；请求数为时间窗口采样估计，不能作逐请求计费
 
 TraceId是W3C Activity的32位hex，RequestId保留既有网关请求标识；legacy header / error.traceId不改变语义。访问日志PathTemplate只存可信路由模板，不包含用户路径值、query或正文。IP显示掩码，精确查询仅服务端HMAC匹配，不将原IP写入URL、存储或CSV。
 
-所有查询需服务端授权并生成可信环境集合；metrics.read、log.read、trace.read相互独立。DTO不得返回供应商原始对象、外部端点、密钥、凭证hash、Cookie或Authorization。规则与事件契约在后续任务增加，本文件不代表真实采集链路已经验收。
+所有查询需服务端授权并生成可信环境集合；metrics.read、log.read、trace.read相互独立。DTO不得返回供应商原始对象、外部端点、密钥、凭证hash、Cookie或Authorization。规则与事件契约见本文后续章节；验收状态以 docs/evidence/observability/verification.json 为准，协议检查与真实业务闭环分别记录。
 
 ## 网关采集字段与诊断
 
-指标、日志使用 100% 请求计数；仅 Trace 应用 ParentBased / TraceIdRatioBased 采样。Gateway 只注册其受控 ActivitySource，真实 business server 与代理 client span 使用标准 traceparent 关联，不采集自动 URL、body、异常、events、links、baggage 等内容，不生成未插桩后端内部 spans。
+指标、日志使用 100% 请求计数；仅 Trace 应用 ParentBased / TraceIdRatioBased 采样。Gateway 只注册其受控 ActivitySource，真实 business server 与代理 client span 使用标准 traceparent 关联，不采集自动 URL、body、异常、events、links、baggage 等内容，不生成未插桩后端内部 spans。无有效上游 traceparent 时隔离未导出的 ASP.NET 宿主 Activity，形成真正无父节点的 gateway 根 span；结束后恢复宿主上下文。有效远端 traceparent（包括 flags=00）保持 ParentBased 决策。
 
 OTLP resource 白名单：service.name=webapi-gateway，service.instance.id=部署 NodeName，webapi.environment.id=部署 EnvironmentId。指标 data point 使用管理 UUID：webapi.api.id / webapi.application.id / webapi.destination.id；Unmatched / Unknown / Anonymous / None 是固定系统占位。请求 counter 另有 http.response.status_code / webapi.outcome / webapi.success；时延 histogram 不携带这些额外状态标签。ConfigVersion、DeploymentSequence、RouteId、ApiVersionId、RuntimeClusterId 只进日志与 Trace。
 
@@ -27,6 +27,14 @@ Collector 下划线转换后，环境、API、应用、目标的查询标签分�
 显式容量最多2048个拥有独立JSON存储的条目，单批最多512条。SDK MetricPoint、Activity 与 LogRecord 缓冲不跨生命周期保留，记录请求时无网络I/O。导出只在后台执行，5秒超时，Collector response 最大64KiB，不记录响应错误原文。
 
 诊断指标：webapi_telemetry_dropped_total / webapi_telemetry_export_failures_total 按 signal=metrics/logs/traces 统计条目缺口；webapi_telemetry_last_export_success_timestamp_seconds 记录信号最近导出成功时间；webapi_telemetry_last_observed_timestamp_seconds 每次默认15秒指标采集输出节点观察时间。webapi_destination_health 由实际YARP状态读取，1=Healthy，0=Unhealthy，-1=Unknown，-2=Disabled；当前运行快照不含已禁用目标，禁用展示由查询层数据库状态补全。
+
+## 指标与连续采集覆盖
+
+监控提供 RPS、成功率、4xx / 5xx 比例、P50 / P95 / P99 七种同源趋势；API / 应用 / 后端 / HTTP 状态分组支持请求量、P95、P99、5xx 比例排序。分位数合并桶后计算，不能平均节点分位数。
+
+一次指标查询最多 10 个供应商请求（8 个瞬时查询、2 个范围查询），共享 10 秒预算，响应 8MiB 与结果行 / 趋势点预算保持既有上限。日志和链路覆盖各使用 5 个 Prometheus 瞬时查询，不需 metrics.read。覆盖期待所有当前授权环境中 Enabled 的已登记节点，Ready / NotReady / Degraded 不改变采集期待；只有明确禁用才移除期待。
+
+首个采集时点须覆盖窗口起始（45秒容差），最新采集距窗口末尾最多45秒；另以服务器构建的固定15秒步长 max_over_time(time() - node observation timestamp) 检查窗口内部最大观察年龄。中间观察年龄超过45秒、缺节点、丢弃或导出失败均保持 Partial，无法证明完整的 KPI / 趋势为空值。固定步长可发现超过容差的采集中断，不声称逐毫秒无损历史或生产容量 / SLA 证明。
 
 ## 日志查询及 CSV 约定
 
@@ -46,7 +54,7 @@ CSV从相同过滤与截止时间的首行重新读取，忽略列表cursor；�
 
 `sampling` 显示部署配置（默认 0.1，ParentBasedTraceIdRatioBased）。404 表示当前范围未找到，可能未采样或过保留期；源故障为 503 且 sourceType=traces，两者分开。源响应后再次核验授权。
 
-固定 Tempo 3.1.0 实测返回 batches、Base64 trace/span/parent ID 和枚举字符串，受限 resource/API TraceQL search 可用。`trace-contract-smoke.json` 仅证明合成 OTLP 协议；测试中的捕获响应验证适配器投影，真实业务网关与查询 API 的端到端验收仍留待 Task 14。[Tempo API](https://grafana.com/docs/tempo/latest/api_docs/) 与 [TraceQL most_recent](https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/) 说明供应商搜索限制，不能替代平台授权。
+固定 Tempo 3.1.0 实测返回 batches、Base64 trace/span/parent ID 和枚举字符串，受限 resource/API TraceQL search 可用。`trace-contract-smoke.json` 仅证明合成 OTLP 协议；测试中的捕获响应验证适配器投影，真实业务网关与查询 API 的端到端证据见 loop.json、rule-loop.json 与 boundaries.json，最终是否完整仍看 verification.json。[Tempo API](https://grafana.com/docs/tempo/latest/api_docs/) 与 [TraceQL most_recent](https://grafana.com/docs/tempo/latest/traceql/construct-traceql-queries/) 说明供应商搜索限制，不能替代平台授权。
 
 ## 告警规则治理（Task 10）
 

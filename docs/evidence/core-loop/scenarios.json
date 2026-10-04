@@ -4,22 +4,22 @@
   "checks": [
     {
       "name": "RealApprovedReleaseChangesBothGatewayResponses",
-      "firstConfig": 2,
-      "firstSequence": 2,
-      "secondConfig": 3,
-      "secondSequence": 3
+      "firstConfig": 1,
+      "firstSequence": 1,
+      "secondConfig": 2,
+      "secondSequence": 2
     },
     {
       "name": "RollbackRestoresAWithHigherSequence",
-      "firstConfig": 2,
-      "firstSequence": 4,
+      "firstConfig": 1,
+      "firstSequence": 3,
       "secondConfig": 0,
       "secondSequence": 0
     },
     {
       "name": "OldRequestCompletesDuringSwap",
-      "firstConfig": 4,
-      "firstSequence": 5,
+      "firstConfig": 3,
+      "firstSequence": 4,
       "secondConfig": 0,
       "secondSequence": 0
     }

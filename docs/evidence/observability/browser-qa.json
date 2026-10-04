@@ -1,0 +1,81 @@
+{
+  "complete": true,
+  "classification": "actual-control-plane-postgresql-two-gateways-two-workers-prometheus-loki-tempo-production-assets-no-hmr",
+  "project": "webapi-enterprise-e2e-observability-69618f67-ef81-4f6f-9923-1eea36a88111",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "pages": [
+    {
+      "page": 28,
+      "viewportWidth": 1440,
+      "documentScrollWidth": 1440,
+      "horizontalOverflow": false
+    },
+    {
+      "page": 29,
+      "viewportWidth": 1440,
+      "documentScrollWidth": 1440,
+      "horizontalOverflow": false
+    },
+    {
+      "page": 30,
+      "viewportWidth": 1440,
+      "documentScrollWidth": 1440,
+      "horizontalOverflow": false
+    },
+    {
+      "page": 31,
+      "viewportWidth": 1440,
+      "documentScrollWidth": 1440,
+      "horizontalOverflow": false
+    },
+    {
+      "page": 32,
+      "viewportWidth": 1440,
+      "documentScrollWidth": 1440,
+      "horizontalOverflow": false
+    },
+    {
+      "page": 33,
+      "viewportWidth": 1440,
+      "documentScrollWidth": 1440,
+      "horizontalOverflow": false
+    }
+  ],
+  "normalConsoleErrors": [],
+  "expectedFailureSessionSeparatelyRecorded": true,
+  "checks": [
+    "Seven-trend selection and P95 ranking URL persistence",
+    "API metrics navigation retains API and scope",
+    "Real Loki cursor first 50 to next 50",
+    "Ordinary unsupplied traceparent real Server/Client spans and safe span detail",
+    "Tempo timeout clears old detail and recovered query reloads selected URL trace",
+    "Actual alert Ack write with retained rule revision",
+    "Real recovered event transition timeline and retired command buttons",
+    "Actual rule scope preview one environment and readonly healthy gauge zero without saving"
+  ],
+  "screenshots": [
+    "28-real-source-partial.jpg",
+    "29-real-api-source.jpg",
+    "30-real-access-logs.jpg",
+    "31-real-trace-waterfall.jpg",
+    "32-real-alert-recovery.jpg",
+    "33-real-rules.jpg",
+    "33-real-rule-test.jpg"
+  ],
+  "limitations": [
+    "1h query includes uncollected history and is honestly Partial; real 60s complete coverage separately verified",
+    "Focused desktop UX verification; no full WCAG conformance claim"
+  ],
+  "cleanup": {
+    "complete": true,
+    "remainingContainers": 0,
+    "remainingVolumes": 0,
+    "remainingSyntheticSecretFiles": 0,
+    "previewStopped": true,
+    "viewportReset": true,
+    "method": "explicit Docker project-label and filename verification after browser holder exit127; browser checks succeeded independently"
+  }
+}

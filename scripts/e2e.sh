@@ -32,5 +32,5 @@ if [ "${1:-}" = '--browser' ]; then
   touch .runtime/browser-e2e.wait
   while [ -f .runtime/browser-e2e.wait ]; do sleep 2; done
 fi
-compose run --rm sdk dotnet test tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj -c Release
+compose run --rm sdk dotnet test tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj -c Release --filter "Scenario!=Observability"
 "$NODE" scripts/e2e-faults.mjs
