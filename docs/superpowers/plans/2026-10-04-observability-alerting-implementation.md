@@ -8,7 +8,7 @@
 
 **Tech Stack:** 现有.NET10 / EF Core / PostgreSQL / YARP / React；OpenTelemetry SDK / Collector、Prometheus、Loki、Tempo。新依赖在Task 2真实兼容验证后固定补丁和镜像digest，不升级无关核心依赖。
 
-**Spec:** `docs/superpowers/specs/2026-10-04-observability-alerting-design.md`；用户在审阅入口收到设计后回复“继续”，设计已确认。本计划尚待用户审阅；沿用用户此前选择的Native方式，由当前会话逐项实施，完成后一次独立全分支审查。此前执行方式不代替本计划的审阅。
+**Spec:** `docs/superpowers/specs/2026-10-04-observability-alerting-design.md`；用户在审阅入口收到设计后回复“继续”，设计已确认。用户已回复“继续”确认本计划；沿用用户此前选择的Native方式，由当前会话逐项实施，完成后一次独立全分支审查。此前执行方式不代替本计划的审阅。
 
 ## Global Constraints
 
@@ -88,11 +88,11 @@
 
 **Interfaces:** Produces本计划公共观测DTO；`ObservationQueryValidator.Validate(TimeRange range, int limit, DateTimeOffset now) : void`，非法返回领域校验结果映射422。`ObservationTestSupport.GrantAsync(ApiFixture fixture, string[] permissions, string mode, CancellationToken ct) : Task`仅在fixture隔离数据库补测试授权；`RecordingSourceHandler.Enqueue(string json, int status)`及`Requests`仅作协议测试记录。
 
-- [ ] 写`ObservationQueryTests.SevenDaysAndHundredRowsAreAllowed`、`EightDaysOr101RowsAreRejected`及`ReversedRangeAndFutureEndRejected`，核心断言：`Assert.Throws<ArgumentException>(() => ObservationQueryValidator.Validate(new(now.AddDays(-8), now), 50, now)); Assert.Throws<ArgumentException>(() => ObservationQueryValidator.Validate(new(now, now.AddMinutes(1)), 50, now));`。fixture测试仅授予本例六类权限，不改变默认角色。
-- [ ] 运行`./scripts/check.sh domain --filter FullyQualifiedName~ObservationQueryTests`，先确认因缺校验实现失败，不能用已知基础测试替代RED。
-- [ ] 实现DTO和校验：Start<End、范围≤7d、End≤server now+30秒（容忍客户端时钟小偏差）、limit1–100，时间统一UTC；指标null与0分开。建立文档中的单位 / 固定outcome / 固定Unknown与Anonymous键；准备隔离fixture测试支持。
-- [ ] 同一命令通过，并检查原Domain测试未退化；公共DTO字段名在JSON camelCase保持一致。
-- [ ] 提交`feat: define scoped observability contracts and validation`，只包括上述文件及本任务记录。
+- [x] 写`ObservationQueryTests.SevenDaysAndHundredRowsAreAllowed`、`EightDaysOr101RowsAreRejected`及`ReversedRangeAndFutureEndRejected`，核心断言：`Assert.Throws<ArgumentException>(() => ObservationQueryValidator.Validate(new(now.AddDays(-8), now), 50, now)); Assert.Throws<ArgumentException>(() => ObservationQueryValidator.Validate(new(now, now.AddMinutes(1)), 50, now));`。fixture测试仅授予本例六类权限，不改变默认角色。
+- [x] 运行`./scripts/check.sh domain --filter FullyQualifiedName~ObservationQueryTests`，先确认因缺校验实现失败，不能用已知基础测试替代RED。
+- [x] 实现DTO和校验：Start<End、范围≤7d、End≤server now+30秒（容忍客户端时钟小偏差）、limit1–100，时间统一UTC；指标null与0分开。建立文档中的单位 / 固定outcome / 固定Unknown与Anonymous键；准备隔离fixture测试支持。
+- [x] 同一命令通过，并检查原Domain测试未退化；公共DTO字段名在JSON camelCase保持一致。
+- [x] 提交`feat: define scoped observability contracts and validation`，只包括上述文件及本任务记录。
 
 ## Task 2: 固定依赖与隔离三源协议栈
 
