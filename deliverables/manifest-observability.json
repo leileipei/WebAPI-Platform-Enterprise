@@ -1,0 +1,15 @@
+{
+  "file": "WebAPI_Enterprise_可观测与告警源码及验收.zip",
+  "sourceRevision": "7e81895c3fc2dfae41d5561692aa9fcfd78cabed",
+  "acceptanceComplete": true,
+  "sha256": "e88d06501b6b995f38af12057933edbae91151cfcac1d0f11d2bc9304eb29b06",
+  "files": 529,
+  "secretsExcluded": true,
+  "archiveIntegrityVerified": true,
+  "consoleBuiltFromImmutableSource": true,
+  "staticFiles": {
+    "console/dist/assets/index-Meaisgao.js": "90566c728615ba34002249b0a85c2c9fb04b88ca1a5c4590e0e7bf5cde33a45d",
+    "console/dist/assets/index-vpO6zksQ.css": "c0092e66c060c1756639d02edf58c5cd7ae5c6395014251bb15153cc5cbde557",
+    "console/dist/index.html": "af7bcb1ee17523a485774e88473f9115f702c55468e35764e3631fedb2e2c856"
+  }
+}
