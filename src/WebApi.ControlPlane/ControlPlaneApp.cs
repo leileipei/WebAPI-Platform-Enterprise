@@ -1,3 +1,5 @@
+using WebApi.ControlPlane.Settings;
+using WebApi.Infrastructure.Settings;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using WebApi.Infrastructure.Policies;
 using WebApi.ControlPlane.Policies;
@@ -52,7 +54,7 @@ public static class ControlPlaneApp
         builder.Services.AddScoped<CatalogService>();builder.Services.AddScoped<RouteService>();builder.Services.AddScoped<ClusterService>();
         var origins=UpstreamAddressPolicy.ReadAllowedOrigins(builder.Configuration);
         builder.Services.AddSingleton(new UpstreamAddressPolicy(origins));
-        builder.Services.AddScoped<GovernanceService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();
+        builder.Services.TryAddSingleton<TimeProvider>(TimeProvider.System);builder.Services.AddScoped<SettingsPreviewProtector>();builder.Services.AddScoped<SystemSettingsService>();builder.Services.AddScoped<SystemSettingsReader>();builder.Services.AddScoped<AuditAccessQuery>();builder.Services.AddScoped<AuditExportService>();builder.Services.AddScoped<GovernanceService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();
         builder.Services.AddScoped<AccountService>();builder.Services.AddScoped<AuthorizationService>();
         builder.Services.AddScoped<WebApi.Contracts.Security.IAuthorizationService>(sp=>sp.GetRequiredService<AuthorizationService>());
         builder.Services.AddSingleton(ObservationSourceSettings.Read(builder.Configuration));
@@ -88,6 +90,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
+        app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
     }
 }

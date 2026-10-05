@@ -1,0 +1,15 @@
+✔ delegate preserves locked restore arguments and backend failure without touching local runtime (7.073375ms)
+✔ unsupported mode fails instead of reporting acceptance (4.052209ms)
+✔ SettingsRunnerOwnsOnlyItsResources (5.236959ms)
+✔ VerifyFailsOnStaleSourceOrFailedCheck (98.471583ms)
+✔ PackageExcludesSecretsAndOldRuntimeData (104.9385ms)
+✔ PackageGatesRemainActiveUnderOptimizedPython (42.058792ms)
+✔ OldBrowserEvidenceCannotPassNewToolIdentity (34.589166ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 332.877708

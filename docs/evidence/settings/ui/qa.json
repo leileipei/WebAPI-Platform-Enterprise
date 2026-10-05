@@ -1,0 +1,138 @@
+{
+  "complete": true,
+  "toolManifestHash": "a455eeb07e1c7be63aa115ca23019d936387d44755d52e0afc29688792378ec0",
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "classification": "real-isolated-server-browser-qa",
+  "project": "webapi-enterprise-e2e-settings-95d25c50-1a45-4b30-aef0-f4aece295f4c",
+  "sourceManifestHash": "62d6b9312739e0b7892d3c320147a05c21806ef880c6aeb134de83ad0fe16653",
+  "screenshots": [
+    {
+      "name": "01-security",
+      "file": "ui/01-security.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "001cd5e2f144c961bc25cf67bd04bbe07e1e727edca5d0220f3617085ae7947c"
+    },
+    {
+      "name": "02-release",
+      "file": "ui/02-release.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "d6e929eb8c282342b8465e272e169ad4ef74423bded9bc8d7adf0484b11ce7ac"
+    },
+    {
+      "name": "03-gateway",
+      "file": "ui/03-gateway.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "514493829a0463211cb7990630cfab6ac8c3290f1f2c9ee3d96cdb19752fe163"
+    },
+    {
+      "name": "04-audit",
+      "file": "ui/04-audit.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "6055253720e63086d9327ce998327e8b6b6615e7ba3c5e99c8a43ea925e510ff"
+    },
+    {
+      "name": "05-notification",
+      "file": "ui/05-notification.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "aedbb923c390d243464a6b9bd86b3eeebd308e74273d7beb5263412998824d93"
+    },
+    {
+      "name": "06-conflict",
+      "file": "ui/06-conflict.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "8f60a6f980185f49974ca3fd39251e094aa4d820b6b0ec1bcc3b00a5315f6591"
+    },
+    {
+      "name": "07-confirmation",
+      "file": "ui/07-confirmation.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "5c8b20f1b86636c0b129d0e4516bf0fb7210f99a407d522c45a17a7a8015ba46"
+    },
+    {
+      "name": "08-route-default",
+      "file": "ui/08-route-default.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "c028131785b40cc220fdf4940bb35c0da45de442ce765fb19c71262987ad9028"
+    },
+    {
+      "name": "09-audit-disabled",
+      "file": "ui/09-audit-disabled.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "10b95bd8fd54373049fba2deb8698c0b135c4c9fe922c2cc71e96d283651a130"
+    },
+    {
+      "name": "10-revoked",
+      "file": "ui/10-revoked.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "9ec62d2487da7954421ae3cf07c40805687efc2a6c8647a7a892f85b106ece39"
+    }
+  ],
+  "checks": [
+    {
+      "name": "平台级来源与兼容默认",
+      "pass": true
+    },
+    {
+      "name": "五组十七字段与未应用意向",
+      "pass": true
+    },
+    {
+      "name": "引用操作与真实结构测试和离开保护",
+      "pass": true
+    },
+    {
+      "name": "真实412保留输入和显式复核保存与键盘弹窗",
+      "pass": true
+    },
+    {
+      "name": "新路由读取平台默认且原路由不变",
+      "pass": true
+    },
+    {
+      "name": "真实CSV下载与关闭时保留查询",
+      "pass": true
+    },
+    {
+      "name": "真实撤权清空引用草稿与迟到响应隔离",
+      "pass": true
+    },
+    {
+      "name": "OriginsRealKeyboardNewline",
+      "pass": true
+    },
+    {
+      "name": "UnrelatedScopeRefreshPreservesPlatformDraft",
+      "pass": true
+    }
+  ],
+  "defects": [],
+  "visualReviewComplete": true,
+  "visualReview": {
+    "reviewedFiles": [
+      "ui/01-security.png",
+      "ui/02-release.png",
+      "ui/03-gateway.png",
+      "ui/04-audit.png",
+      "ui/05-notification.png",
+      "ui/06-conflict.png",
+      "ui/07-confirmation.png",
+      "ui/08-route-default.png",
+      "ui/09-audit-disabled.png",
+      "ui/10-revoked.png"
+    ],
+    "notes": "逐张查看最终1440×1100像素：五组17字段、来源、生效边界、412保留、确认差异、路由默认、CSV关闭原因及撤权清空显示正常。仅桌面与已列键盘行为，不宣称移动端或完整无障碍验收。"
+  }
+}

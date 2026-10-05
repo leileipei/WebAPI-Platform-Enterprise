@@ -1,0 +1,331 @@
+{
+  "checkedAt": "2026-10-05T05:45:57.157Z",
+  "classification": "read-only-upgrade-preparation",
+  "upgradeExecuted": false,
+  "commitCreated": false,
+  "backupExecuted": false,
+  "runtimeDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/local",
+  "project": "webapi-enterprise-local",
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "bootstrapUsername": "admin",
+  "oldRelease": {
+    "sourceRevision": "79990836dedb5a3d8962ae2f828090b08208aff2",
+    "imageId": "sha256:3ca77a5a15b1949b0fe7a13793d0226cee56cd5b22247bcfce6e4d14ddfae006"
+  },
+  "status": {
+    "schemaVersion": 1,
+    "projectName": "webapi-enterprise-local",
+    "sourceRevision": "79990836dedb5a3d8962ae2f828090b08208aff2",
+    "bindingPhase": "Applied",
+    "pendingConfiguration": null,
+    "services": [
+      {
+        "name": "postgres",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "redis",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "collector",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "prometheus",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "loki",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "tempo",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "control-plane",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "worker",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "console",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-a",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-b",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "backend-a",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "backend-b",
+        "state": "Running",
+        "health": null
+      }
+    ],
+    "sources": [
+      {
+        "name": "collector",
+        "state": "Available",
+        "checkedAt": "2026-10-05T05:45:57.060Z"
+      },
+      {
+        "name": "prometheus",
+        "state": "Available",
+        "checkedAt": "2026-10-05T05:45:57.055Z"
+      },
+      {
+        "name": "loki",
+        "state": "Available",
+        "checkedAt": "2026-10-05T05:45:57.054Z"
+      },
+      {
+        "name": "tempo",
+        "state": "Available",
+        "checkedAt": "2026-10-05T05:45:57.055Z"
+      }
+    ],
+    "nodes": [
+      {
+        "name": "local-gateway-a",
+        "instanceId": "f0775021-0f19-4085-aa6f-0035005789c6",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-05T05:45:52.585383+00:00",
+        "fresh": true,
+        "currentVersion": 2,
+        "currentSequence": 2,
+        "desiredVersion": 2,
+        "desiredSequence": 2,
+        "acknowledged": true
+      },
+      {
+        "name": "local-gateway-b",
+        "instanceId": "9af4216b-1680-4845-9fa7-01df8a259172",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-05T05:45:52.595899+00:00",
+        "fresh": true,
+        "currentVersion": 2,
+        "currentSequence": 2,
+        "desiredVersion": 2,
+        "desiredSequence": 2,
+        "acknowledged": true
+      }
+    ],
+    "storage": [
+      {
+        "name": "webapi-enterprise-local_dp-keys",
+        "volumeId": "webapi-enterprise-local_dp-keys",
+        "bytesUsed": 1001,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-a",
+        "volumeId": "webapi-enterprise-local_lkg-a",
+        "bytesUsed": 4658,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-b",
+        "volumeId": "webapi-enterprise-local_lkg-b",
+        "bytesUsed": 4658,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_loki-data",
+        "volumeId": "webapi-enterprise-local_loki-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      },
+      {
+        "name": "webapi-enterprise-local_pg",
+        "volumeId": "webapi-enterprise-local_pg",
+        "bytesUsed": 69013662,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_prometheus-data",
+        "volumeId": "webapi-enterprise-local_prometheus-data",
+        "bytesUsed": 15646740,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_tempo-data",
+        "volumeId": "webapi-enterprise-local_tempo-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      }
+    ],
+    "environmentStatus": "Active",
+    "errors": [],
+    "phase": "Ready"
+  },
+  "images": [
+    {
+      "service": "control-plane",
+      "imageId": "sha256:3ca77a5a15b1949b0fe7a13793d0226cee56cd5b22247bcfce6e4d14ddfae006",
+      "revision": "79990836dedb5a3d8962ae2f828090b08208aff2"
+    },
+    {
+      "service": "gateway-a",
+      "imageId": "sha256:3ca77a5a15b1949b0fe7a13793d0226cee56cd5b22247bcfce6e4d14ddfae006",
+      "revision": "79990836dedb5a3d8962ae2f828090b08208aff2"
+    },
+    {
+      "service": "gateway-b",
+      "imageId": "sha256:3ca77a5a15b1949b0fe7a13793d0226cee56cd5b22247bcfce6e4d14ddfae006",
+      "revision": "79990836dedb5a3d8962ae2f828090b08208aff2"
+    },
+    {
+      "service": "worker",
+      "imageId": "sha256:3ca77a5a15b1949b0fe7a13793d0226cee56cd5b22247bcfce6e4d14ddfae006",
+      "revision": "79990836dedb5a3d8962ae2f828090b08208aff2"
+    },
+    {
+      "service": "console",
+      "imageId": "sha256:3ca77a5a15b1949b0fe7a13793d0226cee56cd5b22247bcfce6e4d14ddfae006",
+      "revision": "79990836dedb5a3d8962ae2f828090b08208aff2"
+    }
+  ],
+  "database": {
+    "migrations": [
+      "20261003182012_InitialCore",
+      "20261003201632_PublishCoordinatorIdentity",
+      "20261003213457_RecoveryReference",
+      "20261004030000_ObservabilityAlerts"
+    ],
+    "hasSettingsTable": false,
+    "counts": {
+      "users": 3,
+      "organizations": 1,
+      "projects": 1,
+      "environments": 1,
+      "apis": 1,
+      "applications": 1,
+      "release_records": 2,
+      "gateway_config_versions": 2,
+      "gateway_config_snapshots": 2,
+      "alert_rules": 1,
+      "alert_events": 1
+    },
+    "idHashes": {
+      "users": "bb2ebf9fee768f4494547c55f209bcd924992db9c44b41481a8dcdaebd2931e6",
+      "organizations": "354ec08198777e4607678f389603b9707af41f6fe075d396622b941176a4de18",
+      "projects": "54b48fe50d8a40c37a07da3811f92038b59f91da19784558f64dbd1c2bccc0bd",
+      "environments": "b5483768b47be5a405a29438bdb5bf0093a33bbc5493fb525b32515797fd4c33",
+      "apis": "8da322c1a1794ac9b0efba9949619ef4a73803ce3ac06a6a5bc558369d629dcc",
+      "applications": "32987e99ad0abf1746f1a2fc34f14a2b6a54abf4e23d71d0fcdeabdb68310e7d",
+      "release_records": "e210f942374679d5ec3bc457c3c8b0099503f3c91fb0a72ec14d6bf85ed32bb7",
+      "gateway_config_versions": "ba1f9365943af3b8046a016d41147566325b1d92844c76e0213bb83dc8811a74",
+      "alert_rules": "af54eee6561818964e7ffcf8c21f111f503717300a5672e59647ba79341fec5c",
+      "alert_events": "881beb383835c3c9596e1c75a81737a2798ddb0496541e7a81760a8a8f6f640c"
+    },
+    "snapshotBytes": [
+      {
+        "id": "125f4687-75f1-489d-baee-45f5b85d1ca5",
+        "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+        "version": 1,
+        "sha256": "a1c9559e73197338332385dc2463c569eed3418aaac86279ffd2b847562c3569"
+      },
+      {
+        "id": "95368703-ee27-4187-bce6-08ff9e6389eb",
+        "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+        "version": 2,
+        "sha256": "df162b6330aee91f5bfd4eda9fba80a333098ab840eeeee8bd4084f19b60ac8b"
+      }
+    ]
+  },
+  "privateFiles": {
+    "secrets/bootstrap-password": {
+      "sha256": "0ac54f4624e974e719fb1a75f033bb6f29c240a0a4d7125df3e7e72b96b8fcda",
+      "mode": "600"
+    },
+    "secrets/cursor-signing": {
+      "sha256": "78ac4c683dc96d538d89e6c69cfc1293e1cd7db53ea2e7bef5bd6fa7f285c601",
+      "mode": "600"
+    },
+    "secrets/ip-hmac": {
+      "sha256": "26127482a3f1df7c1ffb694c78c58be149feed8ab6bbedc197cddc8260ea5392",
+      "mode": "600"
+    },
+    "secrets/node-a": {
+      "sha256": "46dcf281467b7ed716bf64f38e1183de0c5c6a28bbfadcec9b312a16307fb5ac",
+      "mode": "600"
+    },
+    "secrets/node-b": {
+      "sha256": "9077e13f0b2a5dba207ac289182feddf7bf9a11d44f392522d034dc097dd78be",
+      "mode": "600"
+    },
+    "secrets/postgres-password": {
+      "sha256": "d0292bc2f1d541aae89e5a22ca242d6cacfb323418a6a96effc2e7d3a88dc545",
+      "mode": "600"
+    },
+    "demo/consumer-api-key": {
+      "sha256": "d39e3987928f8f155e543c8f751c35778e5c101f389cfca8046fb5cfbba95c7b",
+      "mode": "600"
+    },
+    "demo/journal.json": {
+      "sha256": "9386fa5bc7634f47fd30b77cb6a0f486d1bc9650822190849658b7d6d07a96cc",
+      "mode": "600"
+    },
+    "demo/local-demo-api-approver.password": {
+      "sha256": "bc0ea601870223c3f7ec827c7b69f90cb01ab1570f599afeb6606627ec98c1a9",
+      "mode": "600"
+    },
+    "demo/local-demo-security-reviewer.password": {
+      "sha256": "468ff36c7f4f9205673f1eff23de2ca804c05fcfd0f7a07149da55ad564d1684",
+      "mode": "600"
+    },
+    "demo/reviewer-verification.json": {
+      "sha256": "5d7fbb6394be3767bdefb977aede457e63b30c0c42f6151ab77ec2d89f66a81e",
+      "mode": "600"
+    }
+  },
+  "reviewedSource": {
+    "packageSha256": "ac70310f743ee6b30a4e45416de59047271163fb0f25a87b00bd6dc6fd83267a",
+    "sourceManifestHash": "62d6b9312739e0b7892d3c320147a05c21806ef880c6aeb134de83ad0fe16653",
+    "toolManifestHash": "a455eeb07e1c7be63aa115ca23019d936387d44755d52e0afc29688792378ec0",
+    "changedFiles": 88,
+    "allChangedBytesMatchReviewedArchive": true
+  },
+  "deploymentChanges": [
+    "deploy/initial-core.sql"
+  ],
+  "freeBytes": 1147690471424,
+  "originalCheckout": {
+    "unchanged": true,
+    "statusSha256": "f52dc3e6636d9dcf717e5ab0984dbe3a8f05e09e7ebecb6e7fe9582588c3886d",
+    "changeCount": 25
+  },
+  "migrationToApply": "20261005090000_SystemSettings",
+  "migrationKind": "additive-empty-platform-settings-table",
+  "settingsDefaultsWillBeCompatibilityDefaults": true
+}

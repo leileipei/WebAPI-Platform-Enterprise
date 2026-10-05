@@ -1,0 +1,72 @@
+✔ 412 retains input; explicit latest revision adoption retains duration and values (0.561833ms)
+✔ readonly Unknown test preserves null and never marks draft saved (0.16925ms)
+✔ only finite allowlisted rule expressions; ratio range and target applicability (0.703458ms)
+✔ all deferred channels explicitly pending rather than sent (0.080709ms)
+✔ event filters have independent status/severity and reset pagination (0.138625ms)
+✔ server freshness accounts for query delay; UI does not mark a valid delayed observation Unknown (0.052ms)
+✔ disabled rules display their intentional pause rather than a source failure (0.047416ms)
+✔ resolved event observations are explicitly historical (0.043333ms)
+✔ expression grammar matches the server three-token finite number contract (0.114333ms)
+✔ write carries cookie CSRF ETag and stable idempotency; csrf refreshed after login (13.633041ms)
+✔ 412 exposes conflict and trace without automatic destructive retry (0.303417ms)
+✔ resource 403 and hidden-resource 404 trigger authority refresh; 412 retains editing authority (0.527542ms)
+✔ discard confirmation and other blocking states cannot submit an editor (0.28525ms)
+✔ ordinary navigation updates accepted path and clean Back works (0.956292ms)
+✔ unsaved Back restores original URL without changing rendered page; accepted discard enables Back (0.242584ms)
+✔ dirty import blocks sidebar navigation, while successful committed save may navigate (0.129791ms)
+✔ filter edit discards cursor and retains fixed cutoff; IP never reaches URL (1.987125ms)
+✔ cursor Back restores a read page and scope/filter changes clear trail (0.662542ms)
+✔ waterfall uses real relative time and duration and tolerates missing/cyclic parents (0.44ms)
+✔ CSV status uses explicit rows/truncation/source headers; missing metadata cannot claim complete (10.094166ms)
+✔ CSV transport returns original response and preserves authority failure handling (1.697333ms)
+✔ copy falls back when browser clipboard denies, and removes temporary selection (0.666291ms)
+✔ CSV download attaches the link before clicking and removes it afterwards (0.153875ms)
+✔ query denial, invalid filters and source failure have distinct user-facing states (0.077083ms)
+✔ validated URL keeps allowed filters and never contains raw IP (0.83275ms)
+✔ metric sort and trend URL accepts only defined metrics and preserves navigation (0.621542ms)
+✔ scope switch aborts old requests, clears cursor and rejects a late response (0.153833ms)
+✔ fixed UTC cutoff survives query roundtrip; new duration resets cursor (1.408209ms)
+✔ query updates and Back emit search without changing accepted pathname or guards (0.733166ms)
+✔ unknown values stay blank while known zero keeps its unit (0.114625ms)
+✔ chart leaves a gap across missing samples and caps source rows at 600 (0.682666ms)
+✔ scope switch removes URL cursor and resets page while preserving time cutoff (0.320791ms)
+✔ resource selectors follow all returned pages and keep existing filters (0.640833ms)
+✔ paged selector propagates resource denial instead of returning a partial authorized cache (0.280709ms)
+✔ page query replaces an existing page without losing filters (0.082833ms)
+✔ AllFourDefaultsAndValidation (1.424417ms)
+✔ ConflictRetainsDirtyInput (0.2265ms)
+✔ ScopeSwitchIgnoresLateResponse (0.048ms)
+✔ CopyDoesNotReuseBindingOrEtag (0.056459ms)
+✔ LegacyDraftRefreshIsExplicit (0.235709ms)
+✔ DisabledTypesCannotSave (0.061333ms)
+✔ InvalidFieldsHaveSpecificFeedback (0.220458ms)
+✔ UnselectedPolicyFiltersAreOmittedFromRequest (0.106792ms)
+✔ CircuitDefaultCountsEveryServerError (0.093292ms)
+✔ preservesDraftOn412 (0.511292ms)
+✔ sameSemanticRetryKeepsIdempotencyKey (0.733167ms)
+✔ secretKeepDoesNotSendPlaceholder (0.446417ms)
+✔ revokeClearsDraftAndLateResponseCannotRestoreIt (0.085833ms)
+✔ dirtyNavigationRequiresExplicitDiscard (0.067125ms)
+✔ notificationStructuralTestNeverClaimsDelivery (0.122375ms)
+✔ lateRouteDefaultDoesNotOverwriteInput (0.060292ms)
+✔ conflictRequiresFreshReadBeforeAdoptingRevision (0.063375ms)
+✔ OriginsDraftKeepsNewlinesUntilCommandBoundary (0.235667ms)
+✔ PlatformSettingsShellDoesNotRemountForUnrelatedAuthority (0.169584ms)
+ℹ tests 54
+ℹ suites 0
+ℹ pass 54
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61.261208
+vite v6.4.2 building for production...
+transforming...
+✓ 6313 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.38 kB │ gzip:   0.30 kB
+dist/assets/index-u0l4cbLc.css   22.56 kB │ gzip:   5.31 kB
+dist/assets/index-DwyX1TV5.js   412.20 kB │ gzip: 124.15 kB
+✓ built in 1.66s
+$ tsc --noEmit && vite build

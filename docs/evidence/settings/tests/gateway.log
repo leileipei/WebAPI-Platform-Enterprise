@@ -1,0 +1,48 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  WebApi.Contracts -> /workspace/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  WebApi.TestBackend -> /workspace/src/WebApi.TestBackend/bin/Release/net10.0/WebApi.TestBackend.dll
+  WebApi.Domain -> /workspace/src/WebApi.Domain/bin/Release/net10.0/WebApi.Domain.dll
+  WebApi.Infrastructure -> /workspace/src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.dll
+  WebApi.ControlPlane -> /workspace/src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll
+  WebApi.Gateway -> /workspace/src/WebApi.Gateway/bin/Release/net10.0/WebApi.Gateway.dll
+  WebApi.TestSupport -> /workspace/tests/WebApi.TestSupport/bin/Release/net10.0/WebApi.TestSupport.dll
+  WebApi.Gateway.Tests -> /workspace/tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll
+Test run for /workspace/tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    51, Skipped:     0, Total:    51, Duration: 23 s - WebApi.Gateway.Tests.dll (net10.0)
+ Network webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_default Creating 
+ Network webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_default Created 
+ Volume webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_pg-test Creating 
+ Volume webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_pg-test Created 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Creating 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Creating 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Created 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Created 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Starting 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Starting 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Started 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Started 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Waiting 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Waiting 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Healthy 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Healthy 
+ Volume webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_nuget-test Creating 
+ Volume webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_nuget-test Created 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-sdk-run-6cc5c676f424 Creating 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-sdk-run-6cc5c676f424 Created 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Stopping 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Stopping 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Stopped 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Removing 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Stopped 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Removing 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-postgres-1 Removed 
+ Container webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2-redis-1 Removed 
+ Volume webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_pg-test Removing 
+ Network webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_default Removing 
+ Volume webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_nuget-test Removing 
+ Volume webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_pg-test Removed 
+ Volume webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_nuget-test Removed 
+ Network webapi-policies-test-51954ba4-7dfd-4966-8116-39da91d564a2_default Removed 

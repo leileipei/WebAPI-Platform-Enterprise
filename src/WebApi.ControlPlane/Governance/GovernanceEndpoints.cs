@@ -34,6 +34,7 @@ public static class GovernanceEndpoints
         g.MapDelete("/roles/{id:guid}",async(Guid id,HttpContext ctx,GovernanceService service,CancellationToken ct)=>{await service.DeleteRoleAsync(id,ctx.Request.Headers.IfMatch,ctx.Actor(),ct);return Results.NoContent();});
         g.MapGet("/permissions",async(HttpContext ctx,GovernanceService service,CancellationToken ct)=>Results.Ok(await service.PermissionDictionaryAsync(ctx.Actor(),ct)));
         g.MapPut("/roles/{id:guid}/permissions",async(Guid id,AssignPermissionsRequest request,HttpContext ctx,GovernanceService service,CancellationToken ct)=>Command(ctx,await service.PermissionsAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct)));
+        g.MapGet("/audit-logs/export",async(HttpContext ctx,AuditExportService service,string? traceId,string? resourceId,CancellationToken ct)=>{var result=await service.ExportAsync(ctx.Actor(),traceId,resourceId,ct);ctx.Response.Headers.CacheControl="no-store";ctx.Response.Headers["X-Export-Row-Count"]=result.RowCount.ToString(System.Globalization.CultureInfo.InvariantCulture);ctx.Response.Headers["X-Export-Truncated"]=result.Truncated?"true":"false";return Results.File(result.Bytes,"text/csv; charset=utf-8","audit-log-"+DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss")+".csv");});
         g.MapGet("/audit-logs",async(HttpContext ctx,GovernanceService service,int? page,int? pageSize,string? traceId,string? resourceId,CancellationToken ct)=>Results.Ok(await service.AuditAsync(ctx.Actor(),page??1,pageSize??50,ct,traceId,resourceId)));
     }
 }

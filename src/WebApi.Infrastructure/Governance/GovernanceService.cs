@@ -1,3 +1,4 @@
+using WebApi.Infrastructure.Settings;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Governance;
-public sealed class GovernanceService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IPasswordHasher<UserRecord> passwords)
+public sealed class GovernanceService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IPasswordHasher<UserRecord> passwords,SystemSettingsReader settings,AuditAccessQuery auditAccess)
 {
     private static readonly ScopeRef platform=new(Guid.Empty);
     private static OrganizationDto Dto(Organization x)=>new(x.Id,x.Code,x.Name,x.Status,x.Revision);
@@ -87,7 +88,9 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
     private async Task<UserDto> UserDtoAsync(UserRecord u,CancellationToken ct)=>new(u.Id,u.Username,u.DisplayName,u.Email,u.Status,u.AuthSource,u.Revision,await db.Set<UserRole>().Where(r=>r.UserId==u.Id).Select(r=>r.RoleId).ToArrayAsync(ct));
     public Task<CommandResult<UserDto>> CreateUserAsync(CreateUserRequest request,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,platform,"user.create",async(_,token)=>{
         await Require(actor,"user.manage",platform,Guid.Empty,token);if(string.IsNullOrWhiteSpace(request.Username)||request.Username.Length>128||!Regex.IsMatch(request.Username,"^[A-Za-z0-9][A-Za-z0-9_.@+-]*$")||string.IsNullOrWhiteSpace(request.DisplayName)||request.DisplayName.Length>128) throw new ApiException(422,"invalid_fields","用户名或显示名称不合法。");
-        if(request.Password.Length<16||request.Password.Length>1024||request.Email?.Length>256) throw new ApiException(422,"invalid_fields","密码至少16字符，邮箱不超过256字符。");
+        var policy=await settings.SecurityAsync(token);
+        var complex=policy.PasswordComplexity switch {"LettersAndDigits"=>request.Password.Any(char.IsLetter)&&request.Password.Any(char.IsDigit),"UpperLowerDigitSpecial"=>request.Password.Any(char.IsUpper)&&request.Password.Any(char.IsLower)&&request.Password.Any(char.IsDigit)&&request.Password.Any(c=>!char.IsLetterOrDigit(c)&&!char.IsWhiteSpace(c)),_=>true};
+        if(request.Password.Length<policy.PasswordMinLength||request.Password.Length>1024||!complex||request.Email?.Length>256) throw new ApiException(422,"invalid_fields","密码不符合当前长度或复杂度策略，邮箱不超过256字符。");
         var user=new UserRecord {Username=request.Username,DisplayName=request.DisplayName,Email=request.Email,SecurityStamp=Guid.NewGuid().ToString("N")};user.PasswordHash=passwords.HashPassword(user,request.Password);db.Add(user);return new CommandResult<UserDto>(new(user.Id,user.Username,user.DisplayName,user.Email,user.Status,user.AuthSource,user.Revision,[]),RevisionTag.Format(user.Revision));
     },ct);
     public Task<CommandResult<UserDto>> SaveUserAsync(Guid id,UpdateUserRequest request,string? tag,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,platform,"user.update",async(_,token)=>{
@@ -151,19 +154,9 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         await commands.ExecuteAsync(actor,scope,"role.delete",async(_,token)=>{await Require(actor,"role.manage",scope,id,token);var role=await db.Set<Role>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,role.Revision);if(role.IsSystem||await db.Set<UserRole>().AnyAsync(x=>x.RoleId==id,token)) throw new ApiException(409,"role_in_use","系统角色或已分配角色不能删除。");db.RemoveRange(await db.Set<RolePermission>().Where(x=>x.RoleId==id).ToArrayAsync(token));db.Remove(role);return true;},ct);
     }
     public async Task<object> PermissionDictionaryAsync(ActorContext actor,CancellationToken ct=default) {await Require(actor,"role.manage",platform,Guid.Empty,ct);return await db.Set<Permission>().AsNoTracking().OrderBy(x=>x.Module).ThenBy(x=>x.Code).Select(x=>new {x.Id,x.Code,x.Module,x.Name,x.Description}).ToArrayAsync(ct);}
-    public async Task<PageResult<AuditDto>> AuditAsync(ActorContext actor,int page=1,int pageSize=50,CancellationToken ct=default,string? traceId=null,string? resourceId=null)
+    public async Task<AuditPageDto> AuditAsync(ActorContext actor,int page=1,int pageSize=50,CancellationToken ct=default,string? traceId=null,string? resourceId=null)
     {
-        page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var query=db.Set<AuditLog>().AsNoTracking();
-        if(!await auth.CanAsync(actor,"audit.read",new("audit",Guid.Empty,platform),ct))
-        {
-            var grants=await db.Set<UserProjectScope>().Where(x=>x.UserId==actor.UserId).ToArrayAsync(ct);var rolePermissions=await(from ur in db.Set<UserRole>() join r in db.Set<Role>() on ur.RoleId equals r.Id join rp in db.Set<RolePermission>() on r.Id equals rp.RoleId join p in db.Set<Permission>() on rp.PermissionId equals p.Id where ur.UserId==actor.UserId&&p.Code=="audit.read" select r.OrganizationId).ToArrayAsync(ct);
-            if(rolePermissions.Length==0) throw new ApiException(403,"permission_denied","缺少审计权限。");
-            var allowed=grants.Where(g=>rolePermissions.Contains(null)||rolePermissions.Contains(g.OrganizationId)).Select(g=>new ScopeRef(g.OrganizationId,g.ProjectId,g.EnvironmentId)).ToArray();
-            // Build a translatable union of exact authorized ranges; organization-level entries do not leak to project-only viewers.
-            IQueryable<AuditLog> filtered=query.Where(_=>false);foreach(var s in allowed) filtered=filtered.Union(query.Where(x=>x.OrganizationId==s.OrganizationId&&(s.ProjectId==null||x.ProjectId==s.ProjectId)&&(s.EnvironmentId==null||x.EnvironmentId==s.EnvironmentId)));query=filtered;
-        }
-        if(traceId?.Length>128||resourceId?.Length>128) throw new ApiException(422,"invalid_filter","筛选值过长。");
-        if(!string.IsNullOrEmpty(traceId)) query=query.Where(x=>x.TraceId==traceId);if(!string.IsNullOrEmpty(resourceId)) query=query.Where(x=>x.ResourceId==resourceId);
-        return new(await query.OrderByDescending(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).Select(x=>new AuditDto(x.Id,x.OrganizationId,x.ProjectId,x.EnvironmentId,x.UserId,x.Action,x.ResourceType,x.ResourceId,x.BeforeJson,x.AfterJson,x.Ip==null?null:x.Ip.ToString(),x.TraceId,x.CreatedAt)).ToArrayAsync(ct),await query.CountAsync(ct),page,pageSize);
+        page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var query=await auditAccess.QueryAsync(actor,traceId,resourceId,ct);
+        return new(await query.OrderByDescending(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).Select(x=>new AuditDto(x.Id,x.OrganizationId,x.ProjectId,x.EnvironmentId,x.UserId,x.Action,x.ResourceType,x.ResourceId,x.BeforeJson,x.AfterJson,x.Ip==null?null:x.Ip.ToString(),x.TraceId,x.CreatedAt)).ToArrayAsync(ct),await query.CountAsync(ct),page,pageSize,(await settings.AuditAsync(ct)).AuditExportEnabled);
     }
 }

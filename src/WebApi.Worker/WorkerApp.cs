@@ -1,3 +1,4 @@
+using WebApi.Infrastructure.Settings;
 using WebApi.Infrastructure.Alerts;
 using WebApi.Infrastructure.Observability;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ builder.Services.AddDbContext<WebApiDbContext>(o=>o.UseNpgsql(builder.Configurat
 builder.Services.AddScoped<AuthorizationService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();builder.Services.AddScoped<IdempotentCommandExecutor>();builder.Services.AddScoped<ReleaseCandidateBuilder>();builder.Services.AddScoped<ReleaseService>();builder.Services.AddScoped<PublishCoordinator>();builder.Services.AddScoped<SnapshotCompiler>();builder.Services.AddScoped<OutboxDispatcher>();builder.Services.AddSingleton(new CommandRequestContext(""));
 builder.Services.AddSingleton(new PublishSettings(AckTimeoutSeconds:int.Parse(builder.Configuration["Publish:AckTimeoutSeconds"]??"120")));
 builder.Services.AddScoped<HistoricalSnapshotService>();
-builder.Services.AddScoped<RouteService>();
+builder.Services.AddScoped<SystemSettingsReader>();builder.Services.AddScoped<RouteService>();
 builder.Services.AddSingleton(new UpstreamAddressPolicy(UpstreamAddressPolicy.ReadAllowedOrigins(builder.Configuration)));
 builder.Services.AddSingleton(new RedisSnapshotStore(builder.Configuration["Redis:Connection"]??"redis:6379,abortConnect=false",builder.Configuration["Redis:Prefix"]??"webapi:runtime"));
 builder.Services.AddSingleton(AlertEvaluationSettings.Read(builder.Configuration));builder.Services.AddScoped<AlertRuleScopeResolver>();builder.Services.AddScoped<AlertEvaluationLeaseStore>();builder.Services.AddScoped<AlertEvaluationService>();builder.Services.AddScoped<AlertSilenceExpiryService>();builder.Services.AddHostedService<AlertSilenceExpiryWorker>();

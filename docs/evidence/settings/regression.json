@@ -1,0 +1,28 @@
+{
+  "complete": true,
+  "sourceManifestHash": "62d6b9312739e0b7892d3c320147a05c21806ef880c6aeb134de83ad0fe16653",
+  "toolManifestHash": "a455eeb07e1c7be63aa115ca23019d936387d44755d52e0afc29688792378ec0",
+  "suites": {
+    "domain": {
+      "pass": true,
+      "total": 146
+    },
+    "integration": {
+      "pass": true,
+      "total": 272
+    },
+    "gateway": {
+      "pass": true,
+      "total": 51
+    },
+    "console": {
+      "pass": true,
+      "total": 54
+    },
+    "runner": {
+      "pass": true,
+      "total": 7
+    }
+  },
+  "time": "2026-10-05T05:27:30.852Z"
+}

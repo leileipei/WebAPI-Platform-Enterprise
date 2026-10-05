@@ -1,0 +1,12 @@
+using System.Text.Json;
+namespace WebApi.Contracts.Settings;
+public sealed record SettingsMutation(JsonElement Values);
+public sealed record SaveSettingsRequest(JsonElement Values,string ConfirmationToken);
+public sealed record SecretReferenceMutation(string Operation,string? Reference);
+public sealed record SecretReferenceState(bool HasConfiguredReference,string? Provider);
+public sealed record SettingFieldMeta(string Key,string Source,string Effect);
+public sealed record SettingsGroupDto(string Group,long Revision,JsonElement Values,IReadOnlyList<SettingFieldMeta> Fields);
+public sealed record SettingsValidationDto(string TestKind,string Message);
+public sealed record SettingsDifference(string Field,string Before,string After);
+public sealed record SettingsPreviewDto(IReadOnlyList<SettingsDifference> Differences,IReadOnlyList<string> Impacts,string ConfirmationToken,DateTimeOffset ExpiresAt);
+public sealed record RouteDefaultsDto(int TimeoutMs,string Source);

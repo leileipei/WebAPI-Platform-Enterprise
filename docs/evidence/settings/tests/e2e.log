@@ -1,0 +1,13 @@
+Freezing actual build source
+Building frozen console and seven applications
+Building source-manifest identified image
+Starting independent database, Redis and three sources
+Running real settings persistence and double-gateway scenarios
+Verified settings-persistence
+Verified snapshot-unchanged-before-publish
+Verified both-gateways-ack
+Verified old-route-still-works
+Verified audit-export-disabled
+Verified references-and-structure-only
+Independent review entry: http://127.0.0.1:34310
+Settings scenario complete: 6 verified checks

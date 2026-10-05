@@ -1,3 +1,4 @@
+using WebApi.Infrastructure.Settings;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
@@ -10,7 +11,7 @@ using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 using WebApi.Infrastructure.Commands;
 namespace WebApi.Infrastructure.Catalog;
-public sealed class OpenApiImportService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext)
+public sealed class OpenApiImportService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,SystemSettingsReader settings)
 {
     private async Task<ScopeRef> ScopeAsync(ImportPreviewRequest request,ActorContext actor,CancellationToken ct)
     {
@@ -63,7 +64,7 @@ public sealed class OpenApiImportService(WebApiDbContext db,AuthorizationService
                 var normalized=RouteNormalizer.Normalize(parsed.Path);var route=target.ExistingRouteId is Guid rid?await db.Set<ApiRoute>().SingleOrDefaultAsync(r=>r.Id==rid&&r.ApiVersionId==version.Id&&r.EnvironmentId==request.Input.EnvironmentId,token)??throw new ApiException(422,"foreign_route","路由不属于导入版本和环境。"):new ApiRoute {ApiVersionId=version.Id,EnvironmentId=request.Input.EnvironmentId};
                 if(target.ExistingRouteId is not null) {RevisionTag.Require(target.ExpectedRouteRevision is long rev?RevisionTag.Format(rev):null,route.Revision);route.Revision++;}else db.Add(route);
                 if(!routeKeys.Add(parsed.Method+":"+normalized)||await db.Set<RouteMethod>().AnyAsync(m=>m.EnvironmentId==request.Input.EnvironmentId&&m.Method==parsed.Method&&m.NormalizedPath==normalized&&m.RouteId!=route.Id,token)) throw new ApiException(409,"route_conflict","导入路由与启用工作区路由冲突。");
-                route.RouteName=parsed.SuggestedCode;route.Path=parsed.Path;route.NormalizedPath=normalized;route.Methods=[parsed.Method];route.ClusterId=request.Input.ClusterId;route.Priority=100;route.Enabled=true;route.TimeoutMs=30000;route.UpdatedAt=DateTimeOffset.UtcNow;
+                route.RouteName=parsed.SuggestedCode;route.Path=parsed.Path;route.NormalizedPath=normalized;route.Methods=[parsed.Method];route.ClusterId=request.Input.ClusterId;route.Priority=100;route.Enabled=true;route.TimeoutMs=target.ExistingRouteId is not null?30000:(await settings.GatewayAsync(token)).DefaultRouteTimeoutMs;route.UpdatedAt=DateTimeOffset.UtcNow;
                 var oldMethods=await db.Set<RouteMethod>().Where(m=>m.RouteId==route.Id).ToArrayAsync(token);db.RemoveRange(oldMethods.Where(m=>m.Method!=parsed.Method));var oldMethod=oldMethods.SingleOrDefault(m=>m.Method==parsed.Method);if(oldMethod is not null) oldMethod.NormalizedPath=normalized;else db.Add(new RouteMethod {RouteId=route.Id,Method=parsed.Method,EnvironmentId=request.Input.EnvironmentId,NormalizedPath=normalized});
                 if(target.ExistingRouteId is null) {var policy=new Policy {OrganizationId=scope.OrganizationId,ProjectId=scope.ProjectId,Name="RouteAuth-"+route.Id,Type="authentication",Config=JsonSerializer.Serialize(new {mode="ApiKey"})};db.Add(policy);db.Add(new RoutePolicyBinding {RouteId=route.Id,PolicyId=policy.Id});}
                 operations.Add(new(parsed.Id,api.Id,version.Id,route.Id));

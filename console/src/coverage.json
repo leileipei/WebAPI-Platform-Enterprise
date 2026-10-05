@@ -355,8 +355,8 @@
     "number": 40,
     "name": "系统设置",
     "sourceRoute": "/settings/system",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/settings/system",
+    "status": "核心功能已接入",
+    "note": "平台级五组17字段；保存/预览/引用操作/修订保护与审计已接入。新登录、新账号、新路由和审计CSV有实际消费者；部署参数、保留目标与通知仅配置意向。本轮隔离验收，4192未升级。"
   }
 ]

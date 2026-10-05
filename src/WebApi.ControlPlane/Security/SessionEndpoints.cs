@@ -1,3 +1,4 @@
+using WebApi.Infrastructure.Settings;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
@@ -15,17 +16,20 @@ public static class SessionEndpoints
     {
         var group=app.MapGroup("/api/v1/auth").AddEndpointFilter<RequestValidationFilter>();
         group.MapGet("/csrf",(HttpContext ctx,IAntiforgery antiforgery)=> {ctx.Response.Headers.CacheControl="no-store";return Results.Ok(new { token=antiforgery.GetAndStoreTokens(ctx).RequestToken });}).AllowAnonymous();
-        group.MapPost("/login",async (LoginRequest request,HttpContext ctx,AccountService accounts,WebApiDbContext db,Microsoft.AspNetCore.Identity.IPasswordHasher<UserRecord> hasher,CancellationToken ct)=> {
+        group.MapPost("/login",async (LoginRequest request,HttpContext ctx,AccountService accounts,WebApiDbContext db,SystemSettingsReader settings,TimeProvider clock,Microsoft.AspNetCore.Identity.IPasswordHasher<UserRecord> hasher,CancellationToken ct)=> {
             var user=await accounts.AuthenticateAsync(request,ct);
             // Recheck status inside the write transaction; locks serialize concurrent user disablement.
             await using var tx=await db.Database.BeginTransactionAsync(ct);
+            await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
             user=await db.Set<UserRecord>().FromSqlInterpolated($"SELECT * FROM users WHERE id={user.Id} FOR UPDATE").AsNoTracking().SingleAsync(ct);
             if(user.Status!="Active" || user.AuthSource!="local" || user.PasswordHash is null || hasher.VerifyHashedPassword(user,user.PasswordHash,request.Password)==Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
                 throw new WebApi.Contracts.Common.ApiException(401,"invalid_credentials","用户名或密码错误。");
+            var ttl=(await settings.SecurityAsync(ct)).SessionTtlMinutes;
             db.Add(new AuditLog {UserId=user.Id,Action="auth.login",ResourceType="user",ResourceId=user.Id.ToString(),Ip=ctx.Connection.RemoteIpAddress,TraceId=ctx.TraceIdentifier});
             await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
             var principal=new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),new Claim("security_stamp",user.SecurityStamp)],CookieAuthenticationDefaults.AuthenticationScheme));
-            await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,principal,new AuthenticationProperties { IsPersistent=false });
+            var issued=clock.GetUtcNow();
+            await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,principal,new AuthenticationProperties { IsPersistent=false,IssuedUtc=issued,ExpiresUtc=issued.AddMinutes(ttl) });
             ctx.Response.Headers.CacheControl="no-store";
             return Results.Ok(await accounts.IdentityAsync(user.Id,ct));
         }).AllowAnonymous();

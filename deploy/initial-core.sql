@@ -1602,3 +1602,27 @@ BEGIN
 END $EF$;
 COMMIT;
 
+
+START TRANSACTION;
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005090000_SystemSettings') THEN
+        CREATE TABLE system_settings (
+            key varchar(128) NOT NULL,
+            scope_type varchar(24) NOT NULL,
+            scope_id uuid NULL,
+            value jsonb NOT NULL,
+            updated_by uuid NOT NULL,
+            updated_at timestamptz NOT NULL,
+            revision bigint NOT NULL DEFAULT 1,
+            CONSTRAINT "PK_system_settings" PRIMARY KEY (key),
+            CONSTRAINT ck_system_setting_scope CHECK (scope_type = 'system' AND scope_id IS NULL),
+            CONSTRAINT ck_system_setting_key CHECK (key IN ('system.security','system.release','system.gateway','system.audit','system.notification')),
+            CONSTRAINT ck_system_setting_revision CHECK (revision > 0),
+            CONSTRAINT "FK_system_settings_users_updated_by" FOREIGN KEY(updated_by) REFERENCES users(id) ON DELETE RESTRICT
+        );
+        CREATE INDEX "IX_system_settings_updated_by" ON system_settings(updated_by);
+        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion") VALUES ('20261005090000_SystemSettings', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;

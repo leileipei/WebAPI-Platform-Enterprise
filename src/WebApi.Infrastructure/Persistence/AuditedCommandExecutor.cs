@@ -20,7 +20,7 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             var value=await command(db,cancellationToken);
             db.ChangeTracker.DetectChanges();
             var changes=db.ChangeTracker.Entries().Where(e=>e.Entity is not AuditLog && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted).ToArray();
-            var first=changes.FirstOrDefault();
+            var first=changes.FirstOrDefault(e=>e.Entity is SystemSetting)??changes.FirstOrDefault();
             if(changes.Length>0) db.Add(new AuditLog {
                 UserId=actor.UserId,OrganizationId=scope.OrganizationId==Guid.Empty?null:scope.OrganizationId,ProjectId=scope.ProjectId,EnvironmentId=scope.EnvironmentId,
                 Action=action,ResourceType=first?.Metadata.ClrType.Name??action.Split('.')[0],
@@ -38,6 +38,17 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
     private static object Capture(EntityEntry e,bool original)
     {
         var captured=e.Properties.Where(p=>fields.Contains(p.Metadata.Name)||(e.Entity is Policy&&p.Metadata.Name is "Type" or "VersionNo")).ToDictionary(p=>p.Metadata.Name,p=>original?p.OriginalValue:p.CurrentValue);
+        if(e.Entity is SystemSetting setting) {
+            var prop=e.Property(nameof(SystemSetting.Value));var json=(string?)(original?prop.OriginalValue:prop.CurrentValue)??"{}";
+            using var doc=JsonDocument.Parse(json);captured["Key"]=setting.Key;
+            captured["ValueHash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(doc.RootElement)));
+            using var old=JsonDocument.Parse((string?)prop.OriginalValue??"{}");using var next=JsonDocument.Parse((string?)prop.CurrentValue??"{}");
+            captured["ChangedFields"]=next.RootElement.EnumerateObject().Where(p=>!old.RootElement.TryGetProperty(p.Name,out var before)||before.GetRawText()!=p.Value.GetRawText()).Select(p=>p.Name).ToArray();
+            if(setting.Key=="system.notification")foreach(var key in new[]{"smtpSecretRef","webhookSecretRef"}) {
+                var reference=doc.RootElement.TryGetProperty(key,out var p)&&p.ValueKind==JsonValueKind.String?p.GetString():null;
+                captured[key]=new {hasConfiguredReference=reference is not null,provider=WebApi.Infrastructure.Settings.SystemSettingsValidator.ReferenceProvider(reference)};
+            }
+        }
         if(e.Entity is Policy) {
             var property=e.Property(nameof(Policy.Config));var config=(string?)(original?property.OriginalValue:property.CurrentValue);
             // Persist a hash of policy configuration rather than arbitrary legacy JSON in audit output.

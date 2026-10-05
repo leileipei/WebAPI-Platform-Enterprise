@@ -17,3 +17,5 @@ public sealed record RoleDto(Guid Id,string Code,string Name,Guid? OrganizationI
 public sealed record AssignPermissionsRequest(IReadOnlyList<string> Permissions);
 
 public sealed record AuditDto(long Id,Guid? OrganizationId,Guid? ProjectId,Guid? EnvironmentId,Guid? UserId,string Action,string ResourceType,string ResourceId,string? BeforeJson,string? AfterJson,string? Ip,string? TraceId,DateTimeOffset CreatedAt);
+
+public sealed record AuditPageDto(IReadOnlyList<AuditDto> Items,int Total,int Page,int PageSize,bool ExportAllowed);
