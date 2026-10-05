@@ -139,18 +139,18 @@
     "number": 16,
     "name": "策略中心",
     "sourceRoute": "/policies",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/policies",
+    "status": "真实流量策略已接入",
+    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；本批独立评审版本"
   },
   {
     "id": 17,
     "number": 17,
     "name": "策略编辑器",
     "sourceRoute": "/policies/{id}",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/policies",
+    "status": "真实流量策略已接入",
+    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；本批独立评审版本"
   },
   {
     "id": 18,

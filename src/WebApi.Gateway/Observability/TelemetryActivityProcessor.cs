@@ -10,7 +10,7 @@ public sealed class TelemetryActivityProcessor(BoundedTelemetryBuffer buffer,Tel
         try
         {
             // Only our controlled source is registered. Events, links, baggage and exception descriptions are intentionally omitted.
-            var permitted=TelemetryAttributes.Values(new RequestTelemetryContext()).Keys.ToHashSet(StringComparer.Ordinal);
+            var permitted=TelemetryAttributes.PermittedKeys;
             var attributes=activity.TagObjects.Where(x=>permitted.Contains(x.Key)).Select(x=>TelemetryAttributes.Attribute(x.Key,x.Value)).ToArray();
             buffer.TryWrite("traces",TelemetryAttributes.Copy(new{traceId=activity.TraceId.ToHexString(),spanId=activity.SpanId.ToHexString(),parentSpanId=activity.ParentSpanId==default?"":activity.ParentSpanId.ToHexString(),name=activity.Kind==ActivityKind.Client?"gateway.proxy":"gateway.request",kind=activity.Kind==ActivityKind.Client?3:2,startTimeUnixNano=TelemetryAttributes.Nano(new DateTimeOffset(activity.StartTimeUtc)),endTimeUnixNano=TelemetryAttributes.Nano(new DateTimeOffset(activity.StartTimeUtc+activity.Duration)),attributes,status=new{code=activity.Status==ActivityStatusCode.Error?2:1}}));
         }

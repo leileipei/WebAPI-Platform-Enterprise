@@ -6,7 +6,7 @@ public sealed record PrometheusSeries(IReadOnlyDictionary<string,string> Labels,
 public sealed record PrometheusMatrix(IReadOnlyDictionary<string,string> Labels,IReadOnlyList<(DateTimeOffset Time,double Value)> Points);
 public sealed class PrometheusMetricSource(ObservationSourceClient client,ObservationSourceSettings settings,ObservationCoverageService coverage,CollectorSignalCoverage collector)
 {
-    public static readonly string[] KpiKeys=["request_count","request_rps","success_ratio","error_4xx_count","error_4xx_ratio","error_5xx_count","error_5xx_ratio","latency_p50_ms","latency_p95_ms","latency_p99_ms","unhealthy_destinations","cancelled_count"];
+    public static readonly string[] KpiKeys=["request_count","request_rps","success_ratio","error_4xx_count","error_4xx_ratio","error_5xx_count","error_5xx_ratio","latency_p50_ms","latency_p95_ms","latency_p99_ms","unhealthy_destinations","cancelled_count","circuit_rejected_count","rate_limit_store_unavailable_count"];
     private const string ResourceLabels="webapi_environment_id,webapi_api_id,webapi_application_id,webapi_destination_id";
     public async Task<ObservationEnvelope<MetricsDto>> QueryAsync(TrustedObservationScope scope,TimeRange range,MetricFilter filter,CancellationToken ct)
     {
@@ -30,6 +30,8 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var ageTask=V("max_over_time((time() - webapi_telemetry_last_observed_timestamp_seconds"+all+")["+window+":15s])");
         var requestTask=V($"sum by ({ResourceLabels},http_response_status_code,webapi_outcome,webapi_success) (clamp_min(increase(webapi_gateway_requests_total{matcher}[{window}]),0))");
         var histogramTask=V($"sum by ({ResourceLabels},le) (clamp_min(increase(webapi_gateway_request_duration_seconds_bucket{matcher}[{window}]),0))");
+        var policyTask=V($"sum by (webapi_environment_id,webapi_policy_id,webapi_policy_type,webapi_policy_decision) (clamp_min(increase(webapi_gateway_policy_decisions_total{all}[{window}]),0))");
+        var policyTrendTask=M($"sum by (webapi_environment_id,webapi_policy_id,webapi_policy_type,webapi_policy_decision) (clamp_min(increase(webapi_gateway_policy_decisions_total{all}[{bucket}]),0))");
         var healthTask=V("webapi_destination_health"+all);
         var droppedTask=V($"sum by (webapi_environment_id) (increase(webapi_telemetry_dropped_total{Matcher(scope,null,"signal=\"metrics\"")}[{window}]))");
         var failedTask=V($"sum by (webapi_environment_id) (increase(webapi_telemetry_export_failures_total{Matcher(scope,null,"signal=\"metrics\"")}[{window}]))");
@@ -37,7 +39,7 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var collectorTask=collector.HasGapAsync(range,"metrics",ct);
         var ratesTask=M($"sum by (webapi_environment_id,http_response_status_code,webapi_outcome,webapi_success) (clamp_min(rate(webapi_gateway_requests_total{matcher}[{bucket}]),0))");
         var latencyTrendTask=M($"sum by (webapi_environment_id,le) (clamp_min(rate(webapi_gateway_request_duration_seconds_bucket{matcher}[{bucket}]),0))");
-        await Task.WhenAll(latestTask,firstTask,ageTask,requestTask,histogramTask,healthTask,droppedTask,failedTask,ratesTask,latencyTrendTask,lastLossTask,collectorTask);
+        await Task.WhenAll(latestTask,firstTask,ageTask,requestTask,histogramTask,healthTask,droppedTask,failedTask,ratesTask,latencyTrendTask,lastLossTask,collectorTask,policyTask,policyTrendTask);
         var requests=(await requestTask).Where(x=>ResourcesValid(x.Labels,scope)&&Matches(x.Labels,filter)).ToArray();
         var histogram=(await histogramTask).Where(x=>ResourcesValid(x.Labels,scope)&&Matches(x.Labels,filter)).ToArray();
         var health=await healthTask;
@@ -46,6 +48,9 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var missing=observed.State is SourceState.Partial or SourceState.Stale||scope.ExpectedNodes.Count==0;
         var values=Values(requests,histogram,seconds,Unhealthy(scope,health,filter),missing,observed.State);
         if(filter.ApiId is not null||filter.ApplicationId is not null)values=values.Select(v=>v.Metric=="unhealthy_destinations"?v with{Value=null,State=SourceState.NotApplicable}:v).ToArray();
+        var applicable=filter.ApiId is null&&filter.ApplicationId is null&&filter.DestinationId is null;
+        var policyRows=(await policyTask).Where(x=>PolicySeriesValid(x.Labels,scope)).ToArray();
+        values=values.Concat(PolicyValues(policyRows,missing,observed.State,applicable)).ToArray();
         var groups=new List<MetricGroupDto>();
         if(filter.GroupBy!="None")
         {
@@ -53,17 +58,32 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
             foreach(var grouping in requests.GroupBy(x=>x.Labels.GetValueOrDefault(key)??"Unknown"))
             {
                 var name=filter.GroupBy=="Status"?(grouping.Key=="0"?"未发送响应状态":"HTTP "+grouping.Key):Name(scope,filter.GroupBy,grouping.Key);
-                groups.Add(new(grouping.Key,name,Values(grouping.ToArray(),filter.GroupBy=="Status"?[]:histogram.Where(x=>x.Labels.GetValueOrDefault(key)==grouping.Key).ToArray(),seconds,null,missing,observed.State)));
+                groups.Add(new(grouping.Key,name,Values(grouping.ToArray(),filter.GroupBy=="Status"?[]:histogram.Where(x=>x.Labels.GetValueOrDefault(key)==grouping.Key).ToArray(),seconds,null,missing,observed.State).Concat(PolicyValues([],missing,observed.State,false)).ToArray()));
             }
         }
         var ordered=groups.OrderByDescending(x=>x.Values.First(v=>v.Metric==filter.SortBy).Value??double.NegativeInfinity).ThenBy(x=>x.Key,StringComparer.Ordinal).ToArray();
-        var trends=Trends(await ratesTask,await latencyTrendTask,missing);
+        var trends=new Dictionary<string,IReadOnlyList<MetricPointDto>>(Trends(await ratesTask,await latencyTrendTask,missing));
+        var policyPoints=(await policyTrendTask).Where(x=>PolicySeriesValid(x.Labels,scope)).SelectMany(x=>x.Points.Select(p=>(x.Labels,p.Time,p.Value))).GroupBy(x=>x.Time).OrderBy(x=>x.Key).Take(600).ToArray();
+        foreach(var key in PolicyKpiKeys) trends[key]=policyPoints.Select(g=>new MetricPointDto(g.Key,missing||!applicable?null:g.Where(x=>PolicyMatches(x.Labels,key)).Sum(x=>x.Value))).ToArray();
         var nodes=NodeHealth(scope,health,observed.Coverage.MissingNodes);
         if(filter.ApiId is not null||filter.ApplicationId is not null)nodes=nodes.Select(n=>n with{Destinations=[]}).ToArray();
         else if(filter.DestinationId is Guid destination)nodes=nodes.Select(n=>n with{Destinations=n.Destinations.Where(d=>d.DestinationId==destination).ToArray()}).ToArray();
         var total=requests.Sum(x=>x.Value);var state=observed.State==SourceState.Available&&total==0?SourceState.NoData:observed.State;
         return new(state,range,observed.ObservedAt,observed.Coverage,new(settings.TraceSampleRatio,"ParentBasedTraceIdRatioBased"),new(values,trends,ordered.Skip((filter.Page-1)*filter.PageSize).Take(filter.PageSize).ToArray(),ordered.Length,filter.Page,filter.PageSize,nodes));
     }
+    private static readonly string[] PolicyKpiKeys=["circuit_rejected_count","rate_limit_store_unavailable_count"];
+    private static bool PolicySeriesValid(IReadOnlyDictionary<string,string> labels,TrustedObservationScope scope)
+    {
+        if(!Guid.TryParse(labels.GetValueOrDefault("webapi_environment_id"),out var env)||!Guid.TryParse(labels.GetValueOrDefault("webapi_policy_id"),out var id)||!PolicyObservationProjection.Visible(scope,env,id))return false;
+        var type=labels.GetValueOrDefault("webapi_policy_type")??"";var decision=labels.GetValueOrDefault("webapi_policy_decision")??"";
+        return WebApi.Contracts.Policies.PolicyDecisionValues.Allowed(type,decision)||type=="circuit_breaker"&&decision is "Opened" or "HalfOpened" or "Closed";
+    }
+    private static bool PolicyMatches(IReadOnlyDictionary<string,string> labels,string key)=>key=="circuit_rejected_count"
+        ?labels.GetValueOrDefault("webapi_policy_type")=="circuit_breaker"&&labels.GetValueOrDefault("webapi_policy_decision")=="OpenRejected"
+        :labels.GetValueOrDefault("webapi_policy_type")=="rate_limit"&&labels.GetValueOrDefault("webapi_policy_decision") is "StoreRejected" or "Bypass";
+    private static IReadOnlyList<MetricValueDto> PolicyValues(IReadOnlyList<PrometheusSeries> rows,bool missing,SourceState state,bool applicable)=>PolicyKpiKeys.Select(key=>new MetricValueDto(key,
+        !applicable||missing||rows.Count==0?null:rows.Where(x=>PolicyMatches(x.Labels,key)).Sum(x=>x.Value),"requests",(long)Math.Min(long.MaxValue,Math.Round(rows.Sum(x=>x.Value))),
+        !applicable?SourceState.NotApplicable:missing?state:rows.Count==0?SourceState.NoData:SourceState.Available)).ToArray();
     private static IReadOnlyList<MetricValueDto> Values(IReadOnlyList<PrometheusSeries> requests,IReadOnlyList<PrometheusSeries> histogram,double seconds,double? unhealthy,bool missing,SourceState state)
     {
         var count=requests.Sum(x=>x.Value);var success=requests.Where(x=>x.Labels.GetValueOrDefault("webapi_success")=="true").Sum(x=>x.Value);
@@ -164,5 +184,5 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
     private static double Number(JsonElement item)
     {if(!double.TryParse(item.GetString(),NumberStyles.Float,CultureInfo.InvariantCulture,out var value)||!double.IsFinite(value))throw ObservationSourceSettings.Unavailable();return value;}
     private static string Seconds(DateTimeOffset time)=>((decimal)(time.UtcTicks-DateTimeOffset.UnixEpoch.UtcTicks)/TimeSpan.TicksPerSecond).ToString(CultureInfo.InvariantCulture);
-    private ObservationEnvelope<MetricsDto> Empty(TrustedObservationScope scope,TimeRange range,MetricFilter filter)=>new(SourceState.NoData,range,null,new(false,[],"no_accessible_environments",false),new(settings.TraceSampleRatio,"ParentBasedTraceIdRatioBased"),new(Values([],[],(range.End-range.Start).TotalSeconds,null,true,SourceState.NoData),new Dictionary<string,IReadOnlyList<MetricPointDto>>(),[],0,filter.Page,filter.PageSize,[]));
+    private ObservationEnvelope<MetricsDto> Empty(TrustedObservationScope scope,TimeRange range,MetricFilter filter)=>new(SourceState.NoData,range,null,new(false,[],"no_accessible_environments",false),new(settings.TraceSampleRatio,"ParentBasedTraceIdRatioBased"),new(Values([],[],(range.End-range.Start).TotalSeconds,null,true,SourceState.NoData).Concat(PolicyValues([],true,SourceState.NoData,filter.ApiId is null&&filter.ApplicationId is null&&filter.DestinationId is null)).ToArray(),new Dictionary<string,IReadOnlyList<MetricPointDto>>(),[],0,filter.Page,filter.PageSize,[]));
 }

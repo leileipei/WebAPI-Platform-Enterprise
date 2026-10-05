@@ -1,0 +1,427 @@
+{
+  "schemaVersion": 1,
+  "complete": true,
+  "classification": "real-isolated-double-gateway-three-source",
+  "project": "webapi-enterprise-e2e-policies-5eb74453-441f-4d5f-8745-90b015af3585",
+  "image": {
+    "imageTag": "webapi-policies:778777cf72036826d752",
+    "imageDigest": "sha256:176c5d177259adb26eee15030bdd47a74751690d65a963b4890f5f25c0897b07",
+    "baseCommit": "5f2871ac378c936a0e27bf15d6a47ece4ed97765",
+    "sourceManifestHash": "778777cf72036826d7520e51a5f675a5b254a50c491213072df2c2868f53efcf"
+  },
+  "scope": {
+    "organizationId": "f2e102f2-2bd6-4bf1-95cc-6fafd346ef66",
+    "projectId": "fa3f8a41-4b15-4a5a-b7df-e401fe2c9585",
+    "environmentId": "73bdc052-9635-406c-bb84-c8f3d67078f1"
+  },
+  "checks": [
+    {
+      "name": "CurrentInstanceCapabilityGate",
+      "passed": true,
+      "desiredUnchanged": true,
+      "sequenceUnchanged": true,
+      "oldInstance": "1f9cae3c-8cbd-410e-ad94-a2bb7774a844",
+      "currentInstance": "bd61fef6-fbaf-4938-a8ea-11c664e0820a",
+      "staleAckStatus": 409
+    },
+    {
+      "name": "SharedRateLimit",
+      "passed": true,
+      "policyId": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+      "routeId": "52a7d79c-9810-458f-86bd-67a4fc4a4cac",
+      "accepted": 3,
+      "rejected": 17,
+      "elapsedMs": 96.9294579999987,
+      "burst": 3,
+      "refillTokens": 1,
+      "windowMs": 600000,
+      "nodes": 2
+    },
+    {
+      "name": "ActualCircuitRecovery",
+      "passed": true,
+      "policyId": "1081debd-6229-4f20-956f-d27e19b7e4e8",
+      "failedCalls": 2,
+      "openedNode": "gateway-a",
+      "otherNodeStatus": 200,
+      "recoveredStatus": 200,
+      "traceId": "5d06a92d9280f65b82318ff338e28809"
+    },
+    {
+      "name": "FrozenPolicyPartialRelease",
+      "passed": true,
+      "sourcePolicyId": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+      "selectedRuntimeId": "0436fe00-9582-0e99-d205-3d52d1d919e3",
+      "retainedRuntimeId": "ce2756dd-c537-a49d-d9dd-f2701d8e3897",
+      "selectedRevision": 3,
+      "retainedRevision": 2
+    },
+    {
+      "name": "RedisFailureModes",
+      "passed": true,
+      "rejectStatus": 503,
+      "rejectCode": "rate_limit_store_unavailable",
+      "allowStatus": 200,
+      "recoveredStatus": 200,
+      "traceId": "e06a4d23ff81054d13632f32f8696b13"
+    },
+    {
+      "name": "OldGenerationInFlight",
+      "passed": true,
+      "oldSequence": 7,
+      "newSequence": 8,
+      "oldBackend": "A",
+      "newBackend": "B"
+    },
+    {
+      "name": "TwoPointZeroAndTwoPointOneRollback",
+      "passed": true,
+      "originalVersion": 5,
+      "originalHash": "3688744829633d0921631e9d909a6497baa3e933a0cd0ec6fab2d9c84bfc55e4",
+      "rollbackHash": "3688744829633d0921631e9d909a6497baa3e933a0cd0ec6fab2d9c84bfc55e4",
+      "twoPointZeroVersion": 1,
+      "restoredVersion": 5,
+      "sequence": 11,
+      "lkgRestartStatus": 200
+    },
+    {
+      "name": "PathEditTimeoutUnbindAndPublish",
+      "passed": true,
+      "baseTimeoutMs": 30000,
+      "effectivePolicyTimeoutMs": 1000,
+      "publishedTimeoutMs": 30000,
+      "gatewayStatus": 200
+    },
+    {
+      "name": "ObservationScopeAndSecretExclusion",
+      "passed": true,
+      "ratePolicyId": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+      "circuitPolicyId": "1081debd-6229-4f20-956f-d27e19b7e4e8",
+      "rateLimitLogCount": 17,
+      "circuitLogCount": 1,
+      "redisRejectLogCount": 1,
+      "bypassLogCount": 3,
+      "traceId": "5d06a92d9280f65b82318ff338e28809",
+      "rootSpanFound": true,
+      "metricDecisions": [
+        "Allowed",
+        "Exceeded",
+        "Closed",
+        "HalfOpenProbe",
+        "HalfOpened",
+        "OpenRejected",
+        "Opened",
+        "StoreRejected",
+        "Bypass"
+      ],
+      "metricsSourceState": "Partial",
+      "coverageReason": "time_window_coverage_incomplete",
+      "foreignPolicyStatus": 404,
+      "secretsExcluded": true
+    }
+  ],
+  "finalStatus": 200,
+  "finalRelease": {
+    "id": "75d7096c-7504-4a80-9c69-267a31aafc3a",
+    "targetConfigVersion": 9,
+    "deploymentSequence": 12,
+    "targets": [
+      {
+        "nodeId": "4b60a7ae-f148-44e9-a3d9-b0ac851286a5",
+        "instanceId": "377dd3cd-b2b2-43ef-a1e1-a9ebb677fe31",
+        "acknowledged": true
+      },
+      {
+        "nodeId": "b338f7a7-e2db-4804-bd6d-ca5c04c4b38e",
+        "instanceId": "00e466f9-2b4c-402c-afae-3138c0ee1dba",
+        "acknowledged": true
+      }
+    ]
+  },
+  "policies": {
+    "rateId": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+    "circuitId": "1081debd-6229-4f20-956f-d27e19b7e4e8"
+  },
+  "routeIds": [
+    "52a7d79c-9810-458f-86bd-67a4fc4a4cac",
+    "f1a11292-c95e-4698-b9b5-ff64b35d5986"
+  ],
+  "apiIds": [
+    "ef9d3eec-5814-48dd-b5c8-7cd6d885babb",
+    "50aa2b00-dfab-4192-9109-cefdeadb4d1e"
+  ],
+  "startedAt": "2026-10-04T20:32:18.332Z",
+  "limitations": [
+    "生产性能与外部企业集成未执行",
+    "一小时时窗不足，指标包络为 Partial，不将缺失样本显示为 0",
+    "4192 保持原版本，新功能仅在独立环境"
+  ],
+  "signals": {
+    "logIds": [
+      "0abe3238-854f-4e73-8858-861f6b7f2dbc",
+      "c09b9992-443f-4e54-b4ae-dda91ca836f1",
+      "d1e205f6-d272-4464-8793-385202c7fe0e",
+      "11883b0b-210e-4e6a-a8fd-39dc7340fd3e"
+    ],
+    "traceId": "5d06a92d9280f65b82318ff338e28809",
+    "metrics": [
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "Allowed",
+          "webapi_policy_id": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+          "webapi_policy_type": "rate_limit"
+        },
+        "value": "2"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "Exceeded",
+          "webapi_policy_id": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+          "webapi_policy_type": "rate_limit"
+        },
+        "value": "7"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-b",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-b",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-b",
+          "webapi_policy_decision": "Exceeded",
+          "webapi_policy_id": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+          "webapi_policy_type": "rate_limit"
+        },
+        "value": "10"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "Allowed",
+          "webapi_policy_id": "1081debd-6229-4f20-956f-d27e19b7e4e8",
+          "webapi_policy_type": "circuit_breaker"
+        },
+        "value": "2"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "Closed",
+          "webapi_policy_id": "1081debd-6229-4f20-956f-d27e19b7e4e8",
+          "webapi_policy_type": "circuit_breaker"
+        },
+        "value": "1"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "HalfOpenProbe",
+          "webapi_policy_id": "1081debd-6229-4f20-956f-d27e19b7e4e8",
+          "webapi_policy_type": "circuit_breaker"
+        },
+        "value": "2"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "HalfOpened",
+          "webapi_policy_id": "1081debd-6229-4f20-956f-d27e19b7e4e8",
+          "webapi_policy_type": "circuit_breaker"
+        },
+        "value": "1"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "OpenRejected",
+          "webapi_policy_id": "1081debd-6229-4f20-956f-d27e19b7e4e8",
+          "webapi_policy_type": "circuit_breaker"
+        },
+        "value": "1"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "Opened",
+          "webapi_policy_id": "1081debd-6229-4f20-956f-d27e19b7e4e8",
+          "webapi_policy_type": "circuit_breaker"
+        },
+        "value": "1"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-b",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-b",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-b",
+          "webapi_policy_decision": "Allowed",
+          "webapi_policy_id": "1081debd-6229-4f20-956f-d27e19b7e4e8",
+          "webapi_policy_type": "circuit_breaker"
+        },
+        "value": "2"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-b",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-b",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-b",
+          "webapi_policy_decision": "Allowed",
+          "webapi_policy_id": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+          "webapi_policy_type": "rate_limit"
+        },
+        "value": "3"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "StoreRejected",
+          "webapi_policy_id": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+          "webapi_policy_type": "rate_limit"
+        },
+        "value": "1"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-a",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-a",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-a",
+          "webapi_policy_decision": "Bypass",
+          "webapi_policy_id": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+          "webapi_policy_type": "rate_limit"
+        },
+        "value": "2"
+      },
+      {
+        "labels": {
+          "__name__": "webapi_gateway_policy_decisions_total",
+          "exported_instance": "gateway-b",
+          "exported_job": "webapi-gateway",
+          "instance": "collector:8889",
+          "job": "webapi-collector",
+          "otel_scope_name": "WebApi.Gateway",
+          "service_instance_id": "gateway-b",
+          "service_name": "webapi-gateway",
+          "webapi_environment_id": "73bdc052-9635-406c-bb84-c8f3d67078f1",
+          "webapi_node_name": "gateway-b",
+          "webapi_policy_decision": "Bypass",
+          "webapi_policy_id": "585b35e6-9926-4bfe-a2eb-8619b918bf2d",
+          "webapi_policy_type": "rate_limit"
+        },
+        "value": "1"
+      }
+    ]
+  },
+  "review": {
+    "project": "webapi-enterprise-e2e-policies-5eb74453-441f-4d5f-8745-90b015af3585",
+    "url": "http://127.0.0.1:34245",
+    "privateContextFile": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/traffic-policies/.runtime/webapi-enterprise-e2e-policies-5eb74453-441f-4d5f-8745-90b015af3585/review-context.json"
+  }
+}

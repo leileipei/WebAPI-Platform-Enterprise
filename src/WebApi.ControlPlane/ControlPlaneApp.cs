@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using WebApi.Infrastructure.Policies;
+using WebApi.ControlPlane.Policies;
 using WebApi.Infrastructure.Alerts;
 using WebApi.ControlPlane.Alerts;
 using WebApi.ControlPlane.Observability;
@@ -46,6 +48,7 @@ public static class ControlPlaneApp
         builder.Services.AddScoped<GatewayReadService>();
         builder.Services.TryAddSingleton(AlertEvaluationSettings.Read(builder.Configuration));builder.Services.AddScoped<AlertRuleScopeResolver>();builder.Services.AddScoped<AlertRuleService>();builder.Services.AddScoped<AlertEventService>();builder.Services.AddScoped<AlertSilenceExpiryService>();
         builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<OpenApiImportService>();
+        builder.Services.AddScoped<PolicyAccess>();builder.Services.AddScoped<PolicyService>();builder.Services.AddScoped<PolicyReferenceService>();builder.Services.AddScoped<RoutePolicyService>();
         builder.Services.AddScoped<CatalogService>();builder.Services.AddScoped<RouteService>();builder.Services.AddScoped<ClusterService>();
         var origins=UpstreamAddressPolicy.ReadAllowedOrigins(builder.Configuration);
         builder.Services.AddSingleton(new UpstreamAddressPolicy(origins));
@@ -85,6 +88,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
+        app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
     }
 }

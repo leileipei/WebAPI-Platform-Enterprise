@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Yarp.ReverseProxy.Forwarder;
+using WebApi.Gateway.Policies;
+using WebApi.Contracts.Policies;
 namespace WebApi.Gateway.Observability;
 public sealed class RequestTelemetryMiddleware(RequestDelegate next)
 {
@@ -28,7 +30,8 @@ public sealed class RequestTelemetryMiddleware(RequestDelegate next)
                 if(ctx.RequestAborted.IsCancellationRequested)outcome="ClientAborted";
                 else if(ctx.Features.Get<IHttpRequestTimeoutFeature>()?.RequestTimeoutToken.IsCancellationRequested==true)outcome="Timeout";
                 else if(error is not null)outcome="ProxyError";
-                var final=state.Context with{Time=DateTimeOffset.UtcNow,DurationSeconds=Stopwatch.GetElapsedTime(started).TotalSeconds,Status=outcome=="ClientAborted"&&!ctx.Response.HasStarted?null:ctx.Response.StatusCode,Outcome=outcome};
+                var decisions=TrafficExecutionContext.From(ctx)?.Decisions.Select(p=>new PolicyDecisionDto(p.PolicyId,p.PolicyType,p.PolicyRevision,p.Decision,p.RejectionReason)).ToArray()??[];
+                var final=state.Context with{PolicyDecisions=decisions,Time=DateTimeOffset.UtcNow,DurationSeconds=Stopwatch.GetElapsedTime(started).TotalSeconds,Status=outcome=="ClientAborted"&&!ctx.Response.HasStarted?null:ctx.Response.StatusCode,Outcome=outcome};
                 state.Context=final;TelemetryAttributes.Apply(activity,final);
                 activity?.SetStatus(final.Success?ActivityStatusCode.Ok:ActivityStatusCode.Error);
                 recorder.Record(final);

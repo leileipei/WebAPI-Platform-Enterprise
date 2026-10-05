@@ -13,6 +13,10 @@ public sealed class TempoTraceSource(ObservationSourceClient client,ObservationS
         if(filter.TraceId is not null)return new([TraceId(filter.TraceId)],false);
         var environments=string.Join(" || ",scope.EnvironmentIds.Select(id=>$"resource.webapi.environment.id = \"{id}\""));
         var query="{ ("+environments+")"+(filter.ApiId is Guid api?$" && span.webapi.api.id = \"{api}\"":"")+" } with (most_recent=true)";
+        if(filter.PolicyId is not null||filter.PolicyDecision is not null) {
+            var clauses=WebApi.Contracts.Policies.PolicyDecisionValues.Types.Select(type=>"("+string.Join(" && ",new[]{filter.PolicyId is Guid p?$"span.webapi.policy.{type}.id = \"{p}\"":null,filter.PolicyDecision is string d?$"span.webapi.policy.{type}.decision = \"{d}\"":null}.Where(x=>x is not null))+")");
+            query=query.Replace(" } with", " && ("+string.Join(" || ",clauses)+") } with",StringComparison.Ordinal);
+        }
         var parameters=Range(range);parameters["q"]=query;parameters["limit"]=(MaximumCandidates+1).ToString(CultureInfo.InvariantCulture);
         using var doc=await client.GetAsync(settings.TempoUrl,"api/search",parameters,ct);
         try{var rows=doc.RootElement.GetProperty("traces");if(rows.ValueKind!=JsonValueKind.Array||rows.GetArrayLength()>10000)throw ObservationSourceSettings.Unavailable("traces");var ids=new List<string>();var rejected=false;

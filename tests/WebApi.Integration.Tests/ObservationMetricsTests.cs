@@ -163,7 +163,7 @@ public sealed class ObservationMetricsTests
 public sealed class MetricProtocolHandler : HttpMessageHandler
 {
     public Guid? UnhealthyDestinationId,UnhealthyClusterId;public Guid EnvironmentId,ApiId,ApplicationId,DestinationId,ClusterId;
-    public Guid? ForeignEnvironmentId,SecondApiId;
+    public Guid? ForeignEnvironmentId,SecondApiId,PolicyId;
     public bool MissingSecondNode,ResetWindow,MiddleGap;
     public int Status=200;
     public DateTimeOffset End {get;set;}=DateTimeOffset.UtcNow.AddSeconds(-1);
@@ -179,6 +179,8 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
         else if(query.Contains("last_loss_timestamp",StringComparison.Ordinal))Add(Labels(),0);
         else if(query.Contains("last_observed_timestamp",StringComparison.Ordinal))
         {var time=query.Contains("min_over_time",StringComparison.Ordinal)?Start.AddSeconds(5):End.AddSeconds(-2);var value=query.Contains("max_over_time",StringComparison.Ordinal)?MiddleGap?90:5:time.ToUnixTimeMilliseconds()/1000d;Add(Labels(),value);if(!MissingSecondNode)Add(Labels("node-1"),value);}
+        else if(query.Contains("webapi_gateway_policy_decisions_total",StringComparison.Ordinal))
+        {if(PolicyId is Guid policy){Add(new(){["webapi_environment_id"]=EnvironmentId.ToString(),["webapi_policy_id"]=policy.ToString(),["webapi_policy_type"]="rate_limit",["webapi_policy_decision"]="Bypass"},7);Add(new(){["webapi_environment_id"]=EnvironmentId.ToString(),["webapi_policy_id"]=policy.ToString(),["webapi_policy_type"]="circuit_breaker",["webapi_policy_decision"]="OpenRejected"},3);}}
         else if(query.Contains("_bucket",StringComparison.Ordinal))
         {foreach(var node in new[]{"node-0","node-1"})foreach(var le in new[]{"0.1","1","10","+Inf"}){var labels=Labels(node);labels["le"]=le;Add(labels,SecondApiId is null?node=="node-0"||le is "10" or "+Inf"?100:0:le is "10" or "+Inf"?100:0);if(SecondApiId is Guid second){var fast=Labels(node);fast["webapi_api_id"]=second.ToString();fast["le"]=le;Add(fast,100);}}}
         else if(query.Contains("webapi_destination_health",StringComparison.Ordinal)){Add(Labels(),1);if(UnhealthyDestinationId is Guid bad){var labels=Labels();labels["webapi_destination_id"]=bad.ToString();labels["webapi_cluster_id"]=UnhealthyClusterId.ToString()!;Add(labels,0);}}

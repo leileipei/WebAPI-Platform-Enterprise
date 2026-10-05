@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using WebApi.Gateway.Observability;
+using WebApi.Gateway.Policies;
 using System.Globalization;
 using WebApi.Gateway.Configuration;
 using WebApi.Infrastructure.Security;
@@ -15,7 +16,7 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
         if(ctx.Items.TryGetValue(AdmissionGate.Item,out var ticket)) ((AdmissionGate.Ticket)ticket!).Dispose();
         try
         {
-            var route=generation.Snapshot.Routes.Single(r=>r.Id==Guid.Parse(metadata["runtimeRouteId"]));var telemetry=RequestTelemetryState.From(ctx);
+            var route=generation.Snapshot.Routes.Single(r=>r.Id==Guid.Parse(metadata["runtimeRouteId"]));var execution=TrafficExecutionContext.Attach(ctx,generation,route);var telemetry=RequestTelemetryState.From(ctx);
             if(telemetry is not null)
             {
                 var cluster=generation.Snapshot.Clusters.Single(c=>c.Id==route.ClusterId);
@@ -28,6 +29,7 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
                 if(app?.Status!="Active"||key?.Status!="Active"||now<key.ValidFrom||now>=key.ExpiresAt||!ApiKeySecret.Verify(key.Hash,parts[1])) {ctx.Response.StatusCode=401;await ctx.Response.WriteAsJsonAsync(new {code="invalid_api_key",traceId=ctx.TraceIdentifier,w3cTraceId=telemetry?.Context.TraceId??Activity.Current?.TraceId.ToHexString()});return;}
                 if(telemetry is not null)telemetry.Context=telemetry.Context with{ApplicationKey=app.Id.ToString()};
                 if(!app.Permissions.Any(p=>p.ApiId==route.ApiId&&now>=p.ValidFrom&&(p.ExpiresAt is null||now<p.ExpiresAt))) {ctx.Response.StatusCode=403;await ctx.Response.WriteAsJsonAsync(new {code="api_not_granted",traceId=ctx.TraceIdentifier,w3cTraceId=telemetry?.Context.TraceId??Activity.Current?.TraceId.ToHexString()});return;}
+                execution.ApplicationId=app.Id;
             }
             // The route and its auth snapshot are now leased together; old backend requests need not hold the admission gate.
             await next(ctx);

@@ -8,7 +8,7 @@ public sealed class LokiLogSource(ObservationSourceClient client,ObservationSour
     public const int ProviderLimit=5000;
     public PreparedLogFilter Prepare(LogFilter filter)
     {
-        if(filter.Status is not null&&!Regex.IsMatch(filter.Status,"^(?:[1-5][0-9]{2}|[1-5]xx|ClientAborted)$",RegexOptions.CultureInvariant)||filter.MinDurationMs is <0||filter.MaxDurationMs is <0||filter.MinDurationMs is double a&&!double.IsFinite(a)||filter.MaxDurationMs is double b&&!double.IsFinite(b)||filter.MinDurationMs>filter.MaxDurationMs||filter.Keyword is {Length:>256}||filter.Keyword?.Any(char.IsControl)==true||filter.TraceId is not null&&(!Regex.IsMatch(filter.TraceId,"^[a-fA-F0-9]{32}$")||filter.TraceId.All(x=>x=='0')))throw Invalid();
+        if(filter.PolicyDecision is not null&&!WebApi.Contracts.Policies.PolicyDecisionValues.Types.Any(t=>WebApi.Contracts.Policies.PolicyDecisionValues.Allowed(t,filter.PolicyDecision))||filter.Status is not null&&!Regex.IsMatch(filter.Status,"^(?:[1-5][0-9]{2}|[1-5]xx|ClientAborted)$",RegexOptions.CultureInvariant)||filter.MinDurationMs is <0||filter.MaxDurationMs is <0||filter.MinDurationMs is double a&&!double.IsFinite(a)||filter.MaxDurationMs is double b&&!double.IsFinite(b)||filter.MinDurationMs>filter.MaxDurationMs||filter.Keyword is {Length:>256}||filter.Keyword?.Any(char.IsControl)==true||filter.TraceId is not null&&(!Regex.IsMatch(filter.TraceId,"^[a-fA-F0-9]{32}$")||filter.TraceId.All(x=>x=='0')))throw Invalid();
         string? hmac=null;if(filter.Ip is not null){if(!IPAddress.TryParse(filter.Ip,out var ip))throw Invalid();if(ip.IsIPv4MappedToIPv6)ip=ip.MapToIPv4();try{var key=Convert.FromBase64String(File.ReadAllText(settings.IpHmacSecretFile!).Trim());if(key.Length<32)throw new FormatException();hmac=Convert.ToHexStringLower(HMACSHA256.HashData(key,Encoding.UTF8.GetBytes(ip.ToString())));}catch(Exception e)when(e is IOException or UnauthorizedAccessException or ArgumentException or FormatException){throw ObservationSourceSettings.Unavailable("logs");}}
         var clean=filter with{Ip=null,Cursor=null,TraceId=filter.TraceId?.ToLowerInvariant()};return new(clean,hmac,ObservationCursorCodec.Hash(new{Filter=clean,IpHmac=hmac}));
     }
@@ -24,7 +24,7 @@ public sealed class LokiLogSource(ObservationSourceClient client,ObservationSour
                 foreach(var row in stream.GetProperty("values").EnumerateArray()){
                     if(++count>ProviderLimit)throw ObservationSourceSettings.Unavailable("logs");var ns=long.Parse(row[0].GetString()!,CultureInfo.InvariantCulture);oldest=oldest is null?ns:Math.Min(oldest.Value,ns);
                     if(!allowed||ns<Nano(range.Start)||ns>=Nano(range.End)||row.GetArrayLength()<2){rejected=true;continue;}
-                    var environmentId=Guid.Parse(labels.GetProperty("webapi_environment_id").GetString()!);var meta=row.GetArrayLength()>=3?row[2]:labels;var dto=Project(meta,ns,environmentId,scope);if(dto is null){rejected=true;continue;}
+                    var environmentId=Guid.Parse(labels.GetProperty("webapi_environment_id").GetString()!);var meta=row.GetArrayLength()>=3?row[2]:labels;var dto=Project(meta,ns,environmentId,scope,out var policyRejected);rejected|=policyRejected;if(dto is null){rejected=true;continue;}
                     if(logId is Guid id&&dto.Id!=id||!Matches(dto,meta,filter)||cursor is not null&&(ns>cursor.Nanoseconds||ns==cursor.Nanoseconds&&cursor.BoundaryIds.Contains(dto.Id)))continue;
                     rows.Add(new(ns,dto));
                 }
@@ -32,8 +32,9 @@ public sealed class LokiLogSource(ObservationSourceClient client,ObservationSour
             return new(rows.GroupBy(x=>x.Value.Id).Select(x=>x.OrderByDescending(r=>r.Nanoseconds).First()).OrderByDescending(x=>x.Nanoseconds).ThenByDescending(x=>x.Value.Id).ToArray(),count==ProviderLimit,oldest,rejected);
         }catch(Exception e)when(e is JsonException or FormatException or OverflowException or ArgumentOutOfRangeException or InvalidOperationException or KeyNotFoundException){throw ObservationSourceSettings.Unavailable("logs");}
     }
-    private static AccessLogDto? Project(JsonElement m,long ns,Guid environment,TrustedObservationScope scope)
+    private static AccessLogDto? Project(JsonElement m,long ns,Guid environment,TrustedObservationScope scope,out bool policyRejected)
     {
+        policyRejected=false;
         string? Text(string key,int limit=128){if(!m.TryGetProperty(key,out var v)||v.ValueKind!=JsonValueKind.String)return null;var s=v.GetString();return s is not null&&s.Length<=limit&&!s.Any(char.IsControl)?s:null;}
         Guid? Id(string key)=>Guid.TryParse(Text(key),out var id)?id:null;
         var id=Id("webapi_log_id");if(id is null)return null;
@@ -49,11 +50,16 @@ public sealed class LokiLogSource(ObservationSourceClient client,ObservationSour
         var masked=Text("webapi_client_ip_masked",80)??"Unknown";if(!Regex.IsMatch(masked,"^([0-9]{1,3}\\.){3}xxx$")&&!(masked.EndsWith("/48",StringComparison.Ordinal)&&IPAddress.TryParse(masked[..^3],out var maskedAddress)&&maskedAddress.GetAddressBytes().Length==16&&maskedAddress.GetAddressBytes().Skip(6).All(x=>x==0)))masked="Unknown";
         long? Number(string key)=>long.TryParse(Text(key),NumberStyles.None,CultureInfo.InvariantCulture,out var n)&&n>=0?n:null;
         var outcome=Text("webapi_outcome",32);if(outcome is not("Completed" or "ClientAborted" or "Timeout" or "ProxyError" or "Unauthorized" or "Forbidden" or "NotFound" or "Unavailable"))return null;
-        return new(id.Value,new DateTimeOffset(DateTimeOffset.UnixEpoch.UtcTicks+ns/100,TimeSpan.Zero),environment,api,app,method,path,status,duration,outcome,Text("webapi_request_id")??"Unknown",trace?.ToLowerInvariant(),masked,Text("webapi_node_name")??"Unknown",Number("webapi_config_version"),Number("webapi_deployment_sequence"),destination);
+        var policyAttributes=new Dictionary<string,string>();foreach(var type in WebApi.Contracts.Policies.PolicyDecisionValues.Types) foreach(var field in new[]{"id","type","revision","decision","rejection_reason"}) {var key="webapi.policy."+type+"."+field;var value=Text(key.Replace('.','_'));if(value is not null) policyAttributes[key]=value;}
+        var policy=PolicyObservationProjection.Read(policyAttributes,scope,environment);policyRejected=policy.Rejected;
+        return new(id.Value,new DateTimeOffset(DateTimeOffset.UnixEpoch.UtcTicks+ns/100,TimeSpan.Zero),environment,api,app,method,path,status,duration,outcome,Text("webapi_request_id")??"Unknown",trace?.ToLowerInvariant(),masked,Text("webapi_node_name")??"Unknown",Number("webapi_config_version"),Number("webapi_deployment_sequence"),destination,policy.Decisions);
     }
     private static string Query(TrustedObservationScope scope,PreparedLogFilter prepared,Guid? logId)
     {
         var f=prepared.Filter;var q="{service_name=\"webapi-gateway\",webapi_environment_id=~"+Quote(string.Join('|',scope.EnvironmentIds))+"}";
+        if(f.PolicyId is not null||f.PolicyDecision is not null) {
+            var clauses=WebApi.Contracts.Policies.PolicyDecisionValues.Types.Select(type=>"("+string.Join(" and ",new[]{f.PolicyId is Guid p?"webapi_policy_"+type+"_id="+Quote(p.ToString()):null,f.PolicyDecision is string decision?"webapi_policy_"+type+"_decision="+Quote(decision):null}.Where(x=>x is not null))+ ")");q+=" | ("+string.Join(" or ",clauses)+")";
+        }
         if(f.ApiId is Guid api)q+=" | webapi_api_id="+Quote(api.ToString());if(f.ApplicationId is Guid app)q+=" | webapi_application_id="+Quote(app.ToString());if(f.DestinationId is Guid destination)q+=" | webapi_destination_id="+Quote(destination.ToString());if(logId is Guid id)q+=" | webapi_log_id="+Quote(id.ToString());
         if(f.Status is {Length:>0} status)q+=status=="ClientAborted"?" | webapi_outcome=\"ClientAborted\"":status.EndsWith("xx",StringComparison.Ordinal)?" | http_response_status_code=~"+Quote(status[0]+"[0-9]{2}"):" | http_response_status_code="+Quote(status);
         if(f.MinDurationMs is double min)q+=" | webapi_duration_ms >= "+min.ToString("R",CultureInfo.InvariantCulture);if(f.MaxDurationMs is double max)q+=" | webapi_duration_ms <= "+max.ToString("R",CultureInfo.InvariantCulture);
@@ -61,7 +67,7 @@ public sealed class LokiLogSource(ObservationSourceClient client,ObservationSour
         if(f.Keyword is {Length:>0} word){q+=" | line_format \"{{.url_template}} {{.http_request_method}} {{.webapi_request_id}} {{.webapi_node_name}} {{.webapi_outcome}} {{.webapi_application_id}}\" |= "+Quote(word);}return q;
     }
     private static bool Matches(AccessLogDto d,JsonElement meta,PreparedLogFilter p)
-    {var f=p.Filter;return(f.ApiId is null||d.ApiId==f.ApiId)&&(f.ApplicationId is null||d.ApplicationKey==f.ApplicationId.ToString())&&(f.DestinationId is null||d.DestinationId==f.DestinationId)&&(f.TraceId is null||d.TraceId==f.TraceId)&&(p.IpHmac is null||meta.TryGetProperty("webapi_client_ip_hmac",out var hash)&&hash.GetString()==p.IpHmac)&&(f.MinDurationMs is null||d.DurationMs>=f.MinDurationMs)&&(f.MaxDurationMs is null||d.DurationMs<=f.MaxDurationMs)&&(f.Status is null||f.Status=="ClientAborted"&&d.Outcome=="ClientAborted"||f.Status.EndsWith("xx",StringComparison.Ordinal)&&d.Status/100==f.Status[0]-'0'||f.Status==d.Status?.ToString(CultureInfo.InvariantCulture))&&(f.Keyword is null||string.Join(' ',d.PathTemplate,d.Method,d.RequestId,d.NodeName,d.Outcome,d.ApplicationKey).Contains(f.Keyword,StringComparison.Ordinal));}
+    {var f=p.Filter;return((f.PolicyId is null&&f.PolicyDecision is null)||d.PolicyDecisions.Any(p=>(f.PolicyId is null||p.PolicyId==f.PolicyId)&&(f.PolicyDecision is null||p.Decision==f.PolicyDecision)))&&(f.ApiId is null||d.ApiId==f.ApiId)&&(f.ApplicationId is null||d.ApplicationKey==f.ApplicationId.ToString())&&(f.DestinationId is null||d.DestinationId==f.DestinationId)&&(f.TraceId is null||d.TraceId==f.TraceId)&&(p.IpHmac is null||meta.TryGetProperty("webapi_client_ip_hmac",out var hash)&&hash.GetString()==p.IpHmac)&&(f.MinDurationMs is null||d.DurationMs>=f.MinDurationMs)&&(f.MaxDurationMs is null||d.DurationMs<=f.MaxDurationMs)&&(f.Status is null||f.Status=="ClientAborted"&&d.Outcome=="ClientAborted"||f.Status.EndsWith("xx",StringComparison.Ordinal)&&d.Status/100==f.Status[0]-'0'||f.Status==d.Status?.ToString(CultureInfo.InvariantCulture))&&(f.Keyword is null||string.Join(' ',d.PathTemplate,d.Method,d.RequestId,d.NodeName,d.Outcome,d.ApplicationKey).Contains(f.Keyword,StringComparison.Ordinal));}
     private static string Quote(string value)=>JsonSerializer.Serialize(value);
     public static long Nano(DateTimeOffset time)=>checked((time.UtcTicks-DateTimeOffset.UnixEpoch.UtcTicks)*100);
     private static ApiException Invalid()=>new(422,"invalid_observation_query","日志筛选参数不合法。");

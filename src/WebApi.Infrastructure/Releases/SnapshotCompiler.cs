@@ -4,6 +4,8 @@ using WebApi.Contracts.Common;
 using WebApi.Contracts.Releases;
 using WebApi.Contracts.Runtime;
 using WebApi.Domain.Runtime;
+using WebApi.Domain.Policies;
+using WebApi.Contracts.Policies;
 using WebApi.Domain.Routing;
 using WebApi.Infrastructure.Routing;
 namespace WebApi.Infrastructure.Releases;
@@ -21,7 +23,13 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null)
             if(version.Api.OrganizationId!=candidate.OrganizationId||version.Api.ProjectId!=candidate.ProjectId||version.Version.ApiId!=version.Api.Id) throw Invalid("候选版本跨范围。");
             foreach(var parameter in version.Parameters) SnapshotValidator.ValidateSchema(parameter.Schema);foreach(var schema in version.Schemas) SnapshotValidator.ValidateSchema(schema.SchemaJson);
         }
-        var policies=candidate.Policies.Where(p=>p.Enabled).ToDictionary(p=>p.Id);foreach(var policy in policies.Values) ValidatePolicy(policy.Type,policy.Config);
+        var allPolicies=candidate.Policies.ToDictionary(p=>p.Id);foreach(var policy in allPolicies.Values) PolicyConfigurationValidator.Normalize(policy.Type,policy.Config);
+        var runtimePolicies=baseline.Policies.ToDictionary(p=>p.Id);
+        foreach(var p in candidate.Policies.Where(p=>p.Enabled)) {
+            var config=PolicyConfigurationValidator.Normalize(p.Type,p.Config);var id=RuntimePolicyIdentity.Create(p.Id,p.Revision,p.Type,config);var runtime=new RuntimePolicy(id,p.Type,config,p.Id,p.Revision);
+            if(runtimePolicies.TryGetValue(id,out var existing)&&CanonicalJson.Serialize(existing).AsSpan().SequenceEqual(CanonicalJson.Serialize(runtime))==false) throw Invalid("运行策略身份冲突。");
+            runtimePolicies[id]=runtime;
+        }
         var nativeClusters=candidate.Clusters.ToDictionary(c=>c.Id);var compiledClusters=new Dictionary<Guid,RuntimeCluster>();var clusterMap=new Dictionary<Guid,Guid>();
         foreach(var cluster in candidate.Clusters)
         {
@@ -35,15 +43,14 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null)
         foreach(var route in candidate.Routes.Where(r=>r.Enabled))
         {
             if(route.EnvironmentId!=candidate.EnvironmentId||!versions.TryGetValue(route.ApiVersionId,out var version)||!nativeClusters.TryGetValue(route.ClusterId,out var cluster)||cluster.Status!="Active") throw Invalid("候选Route引用跨环境或不完整。");
-            if(version.Api.LifecycleStatus=="Retired") continue;var timeout=route.TimeoutMs;var requireKey=route.RequireApiKey;var authenticationCount=0;
-            foreach(var binding in candidate.Bindings.Where(b=>b.RouteId==route.Id).OrderBy(b=>b.Priority))
-            {
-                if(!candidate.Policies.Any(p=>p.Id==binding.PolicyId)) throw Invalid("Policy绑定不存在。");if(!policies.TryGetValue(binding.PolicyId,out var policy)) continue;using var config=JsonDocument.Parse(policy.Config);
-                if(policy.Type=="authentication") {if(++authenticationCount>1) throw Invalid("同一路由不能同时绑定多个认证策略。");requireKey=config.RootElement.GetProperty("mode").GetString()=="ApiKey";}
-                if(policy.Type=="timeout") timeout=config.RootElement.GetProperty("timeoutMs").GetInt32();
+            if(version.Api.LifecycleStatus=="Retired") continue;
+            var bindings=new List<PolicyBindingConfiguration>();
+            foreach(var b in candidate.Bindings.Where(b=>b.RouteId==route.Id).OrderBy(b=>b.Priority).ThenBy(b=>b.PolicyId)) {
+                if(!allPolicies.TryGetValue(b.PolicyId,out var policy)) throw Invalid("Policy绑定不存在。");bindings.Add(new(policy.Id,policy.Type,policy.Config,policy.Enabled,b.Priority));
             }
-            if(!requireKey&&authenticationCount==0) throw Invalid("匿名路由必须有显式认证绑定。");
-            routes.Add(new(route.Id,version.Api.Id,route.ApiVersionId,clusterMap[route.ClusterId],route.Path,route.Methods.OrderBy(m=>m,StringComparer.Ordinal).ToArray(),RouteNormalizer.MatchOrder(route.Path,route.Priority),timeout,requireKey));
+            var effective=PolicyBindingRules.Validate(bindings,true);
+            var runtimeBindings=bindings.Where(b=>b.Enabled).Select(b=>new RuntimePolicyBinding(RuntimePolicyIdentity.Create(b.PolicyId,allPolicies[b.PolicyId].Revision,b.Type,b.Config),b.Priority)).ToArray();
+            routes.Add(new(route.Id,version.Api.Id,route.ApiVersionId,clusterMap[route.ClusterId],route.Path,route.Methods.OrderBy(m=>m,StringComparer.Ordinal).ToArray(),RouteNormalizer.MatchOrder(route.Path,route.Priority),effective.TimeoutMs??route.TimeoutMs,effective.RequireApiKey,runtimeBindings));
         }
         var usedClusters=routes.Select(r=>r.ClusterId).ToHashSet();var clusters=baseline.Clusters.Where(c=>usedClusters.Contains(c.Id)).ToDictionary(c=>c.Id);foreach(var c in compiledClusters.Values.Where(c=>usedClusters.Contains(c.Id))) clusters[c.Id]=c;
         foreach(var c in clusters.Values) foreach(var d in c.Destinations) addresses.Validate(d.Address);
@@ -54,19 +61,18 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null)
             var grants=app.Permissions.Where(p=>apiIds.Contains(p.ApiId)).OrderBy(p=>p.ApiId).Select(p=>new RuntimePermission(p.ApiId,p.ValidFrom,p.ExpiresAt)).ToArray();
             if(grants.Length==0) continue;applications.Add(new(app.Application.Id,app.Application.Status,app.Credentials.OrderBy(c=>c.Id).Select(c=>new RuntimeCredential(c.Id,c.AccessKey,c.SecretHash,c.Status,c.ValidFrom,c.ExpiresAt)).ToArray(),grants));
         }
-        var runtimePolicies=baseline.Policies.ToDictionary(p=>p.Id);foreach(var p in policies.Values) runtimePolicies[p.Id]=new(p.Id,p.Type,p.Config);
-        var snapshot=new RuntimeSnapshot("2.0",candidate.EnvironmentId,targetVersion,generatedAt.ToUniversalTime(),routes.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Id).ToArray(),clusters.Values.OrderBy(c=>c.Id).ToArray(),runtimePolicies.Values.OrderBy(p=>p.Id).ToArray(),applications.OrderBy(a=>a.Id).ToArray());
-        SnapshotValidator.Validate(snapshot,candidate.EnvironmentId);var bytes=CanonicalJson.Serialize(snapshot);return new(bytes,Convert.ToHexStringLower(SHA256.HashData(bytes)),bytes.LongLength);
-    }
-    private static void ValidatePolicy(string type,string source)
-    {
-        if(type is not ("authentication" or "timeout")) throw Invalid("首期不支持该策略类型。");
-        try
-        {
-            using var document=JsonDocument.Parse(source);var config=document.RootElement;if(config.ValueKind!=JsonValueKind.Object) throw Invalid("策略配置必须为对象。");
-            if(type=="authentication") {if(config.EnumerateObject().Any(p=>p.Name!="mode")||!config.TryGetProperty("mode",out var mode)||mode.ValueKind!=JsonValueKind.String||mode.GetString() is not ("ApiKey" or "Anonymous")) throw Invalid("首期仅支持显式API Key或匿名认证。");}
-            else if(config.EnumerateObject().Any(p=>p.Name!="timeoutMs")||!config.TryGetProperty("timeoutMs",out var timeout)||!timeout.TryGetInt32(out var value)||value is <1 or >300000) throw Invalid("超时策略字段不合法。");
+        var usedPolicyIds=routes.SelectMany(r=>r.PolicyBindings??[]).Select(b=>b.PolicyId).ToHashSet();
+        var advanced=usedPolicyIds.Any(id=>runtimePolicies[id].Type is "rate_limit" or "circuit_breaker");
+        RuntimePolicy[] finalPolicies;
+        if(advanced) finalPolicies=runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id)).OrderBy(p=>p.Id).ToArray();
+        else {
+            // In 2.0 authentication and timeout are executed only through folded route values.
+            var legacy=new Dictionary<Guid,RuntimePolicy>();
+            foreach(var p in baseline.Policies.Where(p=>baseline.SchemaVersion=="2.0"&&routes.Any(r=>!selectedApis.Contains(r.ApiId))&&p.Type is "authentication" or "timeout")) legacy.TryAdd(p.SourcePolicyId??p.Id,new(p.SourcePolicyId??p.Id,p.Type,p.Config));
+            foreach(var p in runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id))) legacy.TryAdd(p.SourcePolicyId??p.Id,new(p.SourcePolicyId??p.Id,p.Type,p.Config));
+            finalPolicies=legacy.Values.OrderBy(p=>p.Id).ToArray();routes=routes.Select(r=>r with {PolicyBindings=null}).ToList();
         }
-        catch(JsonException) {throw Invalid("策略JSON无法解析。");}
+        var snapshot=new RuntimeSnapshot(advanced?"2.1":"2.0",candidate.EnvironmentId,targetVersion,generatedAt.ToUniversalTime(),routes.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Id).ToArray(),clusters.Values.OrderBy(c=>c.Id).ToArray(),finalPolicies,applications.OrderBy(a=>a.Id).ToArray());
+        SnapshotValidator.Validate(snapshot,candidate.EnvironmentId);var bytes=CanonicalJson.Serialize(snapshot);return new(bytes,Convert.ToHexStringLower(SHA256.HashData(bytes)),bytes.LongLength);
     }
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using WebApi.Contracts.Policies;
 namespace WebApi.Gateway.Observability;
 
 public sealed record RequestTelemetryContext
@@ -26,6 +27,7 @@ public sealed record RequestTelemetryContext
     public string Outcome {get;init;}="Unknown";
     public string MaskedIp {get;init;}="Unknown";
     public string IpHmac {get;init;}="";
+    public IReadOnlyList<PolicyDecisionDto> PolicyDecisions {get;init;}=[];
     public bool Success=>Outcome=="Completed"&&Status is >=200 and <400;
 }
 public sealed class RequestTelemetryState(RequestTelemetryContext context)

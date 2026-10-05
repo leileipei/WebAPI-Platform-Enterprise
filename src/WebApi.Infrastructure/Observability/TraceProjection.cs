@@ -20,8 +20,9 @@ public static class TraceProjection
             foreach(var key in new[]{"webapi.config.version","webapi.api.version.id","webapi.route.id","webapi.cluster.id"})if(attrs.TryGetValue(key,out var value)&&Guid.TryParse(value,out var id))tags[key]=id.ToString();
             if(attrs.TryGetValue("webapi.deployment.sequence",out var seq)&&long.TryParse(seq,out var number)&&number>=0)tags["webapi.deployment.sequence"]=number.ToString(System.Globalization.CultureInfo.InvariantCulture);
             // Names are controlled by the gateway. Never copy arbitrary backend names or raw attributes.
+            var policy=PolicyObservationProjection.Read(attrs,scope,env);partial|=policy.Rejected;
             var name=span.Name is "gateway.request" or "gateway.proxy"?span.Name:span.Kind=="Server"?"gateway.request":span.Kind=="Client"?"gateway.proxy":"span";
-            visible.Add(new(span.SpanId,span.ParentSpanId,name,span.Start,span.DurationMs,span.Kind,span.Status,tags));
+            visible.Add(new(span.SpanId,span.ParentSpanId,name,span.Start,span.DurationMs,span.Kind,span.Status,tags,policy.Decisions));
         }
         var ids=visible.Select(x=>x.SpanId).ToHashSet();
         var output=visible.Select(x=>x.ParentSpanId is string parent&&!ids.Contains(parent)?MissingParent(x):x).OrderBy(x=>x.Start).ThenBy(x=>x.SpanId,StringComparer.Ordinal).ToArray();

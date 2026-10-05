@@ -7,12 +7,16 @@ using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Routing;
+using WebApi.Contracts.Policies;
+using WebApi.Infrastructure.Policies;
 namespace WebApi.ControlPlane.Routing;
 public static class RoutingEndpoints
 {
     public static void MapRouting(this WebApplication app)
     {
         var g=app.MapGroup("/api/v1").RequireAuthorization().AddEndpointFilter<RequestValidationFilter>();
+        g.MapGet("/routes/{id:guid}/policies",async(Guid id,HttpContext ctx,RoutePolicyService service,CancellationToken ct)=>{var result=await service.GetAsync(id,ctx.Actor(),ct);ctx.Response.Headers.ETag=RevisionTag.Format(result.Revision);return Results.Ok(result);});
+        g.MapPut("/routes/{id:guid}/policies",async(Guid id,SaveRoutePoliciesRequest request,HttpContext ctx,RoutePolicyService service,CancellationToken ct)=>GovernanceEndpoints.Command(ctx,await service.ReplaceAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct)));
         g.MapGet("/environments/{id:guid}/routes",async(Guid id,HttpContext ctx,RouteService service,int? page,int? pageSize,CancellationToken ct)=>Results.Ok(await service.ListAsync(id,ctx.Actor(),page??1,pageSize??50,ct)));
         g.MapGet("/routes/{id:guid}",async(Guid id,HttpContext ctx,RouteService service,CancellationToken ct)=>{var r=await service.GetAsync(id,ctx.Actor(),ct);ctx.Response.Headers.ETag=RevisionTag.Format(r.Revision);return Results.Ok(r);});
         g.MapPost("/environments/{id:guid}/routes",async(Guid id,SaveRouteRequest request,HttpContext ctx,RouteService service,CancellationToken ct)=>{if(request.Id is not null) throw new ApiException(422,"unexpected_id","创建路由不能指定ID。");return GovernanceEndpoints.Command(ctx,await service.SaveAsync(id,request,null,ctx.Actor(),ct));});

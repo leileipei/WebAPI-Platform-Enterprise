@@ -8,3 +8,5 @@
 fieldset.form-grid{border:0;padding:0;margin:0;min-width:0}.form-grid .checkline{flex-direction:row;align-items:center;}
 
 .ob-detail-grid{display:grid;grid-template-columns:130px minmax(0,1fr);margin:18px 0;border:1px solid var(--border);border-radius:6px;font-size:12px}.ob-detail-grid dt,.ob-detail-grid dd{padding:12px 14px;border-bottom:1px solid var(--border);line-height:1.6}.ob-detail-grid dt{color:var(--muted);background:#f8fafc}.ob-detail-grid dd{margin:0;overflow-wrap:anywhere}.ob-detail-grid dt:nth-last-of-type(1),.ob-detail-grid dd:last-child{border-bottom:0}
+
+.policy-sub{display:block;font-size:11px;color:var(--muted,#64748b);overflow-wrap:anywhere;max-width:250px;margin-top:5px}.form-grid input[type=checkbox]{width:auto}.form-grid{min-width:0}.page-head h1{overflow-wrap:anywhere}.split>*{min-width:0}

@@ -4,7 +4,7 @@
 
 ## 使用与边界
 
-- [页面能力覆盖](docs/console-coverage.md)：逐一对应原 40 页；28–33页已接入真实监控/告警；SSO、高级策略、完整 Breaking Change 引擎等仍属于后续开发。
+- [页面能力覆盖](docs/console-coverage.md)：逐一对应原 40 页；28–33页已接入真实监控/告警；16/17页已在本批独立评审版本接入四类流量策略；SSO、JWT/重试/缓存、完整 Breaking Change 引擎仍属于后续开发。
 - [验收与证据](docs/acceptance.md)：区分浏览器操作、数据库回归、真实容器业务响应与目标部署验收。
 - [审查修正状态](docs/evidence/core-loop/final-review.md)与[实施决策](docs/decisions.md)：3项Important修正与最终浏览器复验均已完成；全部实施裁定与延期范围已记录。
 - [配置与运维](docs/operations.md)：初始化、节点身份、快照、备份恢复和敏感日志处理。
@@ -27,3 +27,7 @@
 [运行手册](docs/deployment/observability-runbook.md)、[数据字典](docs/observability-data-dictionary.md)、[本阶段证据](docs/evidence/observability/verification.json)。`./scripts/check-observability.sh e2e` 验证真实三源与持续告警，`faults` 加入真实容器停机、租约接管及核心兼容检查；`browser` 保持临时环境，结束删除该项目metadata同目录的 `browser.wait` 后精确清理。所有观测E2E端口按本次项目预分配到loopback，仍禁止并发修改共享构建目录。
 
 `./scripts/package.sh observability <commit>` 从不可变提交封装本阶段源码、证据，并从同一提交重建前端静态产物，输出独立ZIP及manifest-observability.json，保留首期交付。当前持久本机服务未自动重配观测端点；实际数据需要按手册启用Collector及三源。
+
+## 流量策略阶段（独立版本）
+
+[交付索引](docs/evidence/policies/delivery-index.md)、[运行手册](docs/deployment/traffic-policies-runbook.md)与[数据字典](docs/traffic-policy-data-dictionary.md)。使用 `./scripts/check-policies.sh browser` 构建实际源码固定副本并保留随机端口评审入口；`e2e` 自动精确清理。`verify` 检查源码/镜像/截图/业务事实与旧包保留。`python3 scripts/package-policies.py --output <新ZIP路径>` 生成独立源码包及逐文件摘要。旧 4192 环境保持原版本，升级须另行固定提交并安排维护窗口。

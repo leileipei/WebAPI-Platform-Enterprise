@@ -1,0 +1,38 @@
+[
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-84ad6899-69d6-45a6-80dd-6134498755d6",
+    "time": "2026-10-04T19:55:39.161Z",
+    "message": "Unexpected end of JSON input"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-a01ae513-d834-42c8-8e79-d25e0dbbbfe1",
+    "time": "2026-10-04T19:57:50.189Z",
+    "message": "409"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-c2470195-7c56-45ae-803b-0f20f37440e7",
+    "message": "已保留原失败日志；修正项见执行账本",
+    "classification": "disposable-attempt-history"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-9ef94fa0-36fb-4fa0-b6ae-3362cbe654fe",
+    "message": "已保留原失败日志；修正项见执行账本",
+    "classification": "disposable-attempt-history"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-30c8c369-3ac7-4754-93e3-d522d999736d",
+    "message": "已保留原失败日志；修正项见执行账本",
+    "classification": "disposable-attempt-history"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-359ed029-19a3-48f2-a88e-34ba8de191a0",
+    "message": "已保留原失败日志；修正项见执行账本",
+    "classification": "disposable-attempt-history"
+  }
+]

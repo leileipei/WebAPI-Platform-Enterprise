@@ -1,0 +1,171 @@
+{
+  "complete": true,
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "classification": "real-isolated-server-browser-qa",
+  "project": "webapi-enterprise-e2e-policies-5eb74453-441f-4d5f-8745-90b015af3585",
+  "sourceManifestHash": "778777cf72036826d7520e51a5f675a5b254a50c491213072df2c2868f53efcf",
+  "screenshots": [
+    {
+      "name": "01-policy-center",
+      "file": "ui/01-policy-center.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "351a52258679593caa7638260298a2ab3f6356e47b4ce91da9a4a56a3d6c3cd4"
+    },
+    {
+      "name": "02-policy-editor-conflict",
+      "file": "ui/02-policy-editor-conflict.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "a0ed340e95919c799da7561f14ebc3c587dd26bd7c7dc335ab183173f30409dc"
+    },
+    {
+      "name": "03-circuit-editor-references",
+      "file": "ui/03-circuit-editor-references.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "cc04602225ea6fc6b018928a797447f21cc9b1e464483eb10a66e5011851cca7"
+    },
+    {
+      "name": "04-new-rate-policy-long-json",
+      "file": "ui/04-new-rate-policy-long-json.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "2aa439e4a1bbb24b02889285c15fe7d093361a3cc3dbf7637f7ef2c96d883594"
+    },
+    {
+      "name": "05-route-policy-bindings",
+      "file": "ui/05-route-policy-bindings.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "944920bb4e6ae5d4f4ab1d81bbe50f6ceff94f84decafbe67e31455ef9c0e403"
+    },
+    {
+      "name": "06-policy-release-review",
+      "file": "ui/06-policy-release-review.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "a1285af698d68394f5bd2cf4d3ae30fe560880c4c18931d3f95316af5ac718dd"
+    },
+    {
+      "name": "07-draft-explicit-refresh",
+      "file": "ui/07-draft-explicit-refresh.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "a908d6228245a58c2e8220ad5d5336cfdfc1623d3bf047eda06da6ec633eb7d4"
+    },
+    {
+      "name": "08-node-capabilities",
+      "file": "ui/08-node-capabilities.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "2b01d1e7cb063c48c8ba5e5e5732f4174748b537cf6896f3c4772f26b57a89ad"
+    },
+    {
+      "name": "09-policy-access-logs",
+      "file": "ui/09-policy-access-logs.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "cef391e1db55d720c2e428032c38bee5fe10181a97ddf52cd3a4cc7b85b36483"
+    },
+    {
+      "name": "10-policy-trace",
+      "file": "ui/10-policy-trace.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "9fd7d183a82bef9da6cd4fcb56813873219001e71cb1859f0c2468181d0fcdc1"
+    },
+    {
+      "name": "11-policy-empty",
+      "file": "ui/11-policy-empty.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "1ab749a54cf94c23af4123bc220e1327c07a66a5c0e789a6eda8662788bc9ebe"
+    },
+    {
+      "name": "12-policy-loading",
+      "file": "ui/12-policy-loading.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "2658dec3619ca995eacdd4bf2ee0d8688ec5f00576a5291d3b66b73cf811c439"
+    },
+    {
+      "name": "13-policy-read-error",
+      "file": "ui/13-policy-read-error.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "fdc2300bae3555ae0595b5bc948c3ce7fa27a6230f9b6df4f1ae5dbb05f9b658"
+    },
+    {
+      "name": "15-policy-cross-scope",
+      "file": "ui/15-policy-cross-scope.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "ac14ca04d3210d9674064c6823574ff929751598b4a7ec6f463162c7b5e52f5b"
+    },
+    {
+      "name": "14-policy-read-only",
+      "file": "ui/14-policy-read-only.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "0af1cf3ff4547ec3d3e1ed4d08b39b68598c7800642a0771b4a2330ea0cbadb9"
+    }
+  ],
+  "checks": [
+    {
+      "name": "策略中心与导航",
+      "passed": true
+    },
+    {
+      "name": "真实412保留输入与显式合并",
+      "passed": true
+    },
+    {
+      "name": "动态字段标签与键盘",
+      "passed": true
+    },
+    {
+      "name": "长名称与JSON布局",
+      "passed": true
+    },
+    {
+      "name": "路由整组绑定可操作",
+      "passed": true
+    },
+    {
+      "name": "目标环境版本预填与完整Review",
+      "passed": true
+    },
+    {
+      "name": "过期Draft显式刷新",
+      "passed": true
+    },
+    {
+      "name": "节点能力与实际决策筛选",
+      "passed": true
+    },
+    {
+      "name": "空加载错误状态",
+      "passed": true,
+      "readFailureInjection": "browser-only GET 503"
+    },
+    {
+      "name": "真实范围切换与脏输入保护",
+      "passed": true
+    },
+    {
+      "name": "真实只读账号禁止写入",
+      "passed": true
+    }
+  ],
+  "defects": [],
+  "visualReviewComplete": true,
+  "visualReview": {
+    "method": "逐图读取真实1440px PNG并检查",
+    "reviewedScreenshots": 15,
+    "result": "布局层级、字段、长内容、弹窗、412、权限、范围与真实Trace决策可读；无阻断缺陷"
+  }
+}

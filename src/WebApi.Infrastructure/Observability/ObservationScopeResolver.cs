@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Observability;
 using WebApi.Contracts.Security;
@@ -37,6 +38,20 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
         var destinations=await(from d in db.Set<UpstreamDestination>().AsNoTracking() join c in db.Set<UpstreamCluster>().AsNoTracking() on d.ClusterId equals c.Id where c.ProjectId==project.Id&&environments.Contains(c.EnvironmentId) select new ObservationDestination(d.Id,c.Id,c.EnvironmentId,d.Name,d.Enabled)).ToDictionaryAsync(x=>x.Id,ct);
         if(apiId is Guid api&&!apis.ContainsKey(api)||appId is Guid app&&!apps.ContainsKey(app)||destinationId is Guid destination&&!destinations.ContainsKey(destination))throw ScopeResolver.Missing();
         var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>environments.Contains(x.EnvironmentId)&&x.Enabled).Select(x=>new ExpectedObservationNode(x.EnvironmentId,x.NodeName)).ToArrayAsync(ct);
-        return new(scope.OrganizationId,scope.ProjectId,environments,nodes,apis,apps,destinations);
+        var workingIds=await db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==scope.OrganizationId&&(p.ProjectId==null||p.ProjectId==project.Id)).Select(p=>p.Id).ToArrayAsync(ct);
+        var policyIds=environments.ToDictionary(env=>env,_=>new HashSet<Guid>(workingIds));
+        // Query only historical policy identifiers; never load credentials or complete snapshots for observation scope.
+        if(environments.Length>0) {
+            var history=await db.Database.SqlQueryRaw<HistoricalPolicyObservationIdentity>("""
+                SELECT v.environment_id AS "EnvironmentId", COALESCE(p->>'sourcePolicyId',p->>'id') AS "PolicyId"
+                FROM gateway_config_versions v JOIN gateway_config_snapshots s ON s.config_version_id=v.id
+                CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(s.payload->'policies')='array' THEN s.payload->'policies' ELSE '[]'::jsonb END) p
+                WHERE v.environment_id=ANY(@environments)
+                """,new NpgsqlParameter("environments",environments)).ToArrayAsync(ct);
+            foreach(var row in history) if(Guid.TryParse(row.PolicyId,out var id)) policyIds[row.EnvironmentId].Add(id);
+        }
+        return new(scope.OrganizationId,scope.ProjectId,environments,nodes,apis,apps,destinations,policyIds.ToDictionary(x=>x.Key,x=>(IReadOnlySet<Guid>)x.Value));
     }
 }
+
+public sealed class HistoricalPolicyObservationIdentity {public Guid EnvironmentId {get;set;}public string? PolicyId {get;set;}}

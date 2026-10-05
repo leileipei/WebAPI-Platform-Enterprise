@@ -1,0 +1,206 @@
+{
+  "P01": {
+    "complete": true,
+    "title": "列表/编辑/复制/校验",
+    "expected": "实际数据库读写；四类型字段校验；复制新ID且无绑定；无模拟成功",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Integration.Tests/PolicyManagementTests.cs",
+      "tests/WebApi.Domain.Tests/PolicyConfigurationTests.cs"
+    ]
+  },
+  "P02": {
+    "complete": true,
+    "title": "权限与Scope",
+    "expected": "项目读写、组织共享可读/不可写、跨组织404/拒绝、引用分页不泄露；API直接调用同样受控",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Integration.Tests/PolicyManagementTests.cs",
+      "tests/WebApi.Integration.Tests/PolicyDeletionTests.cs"
+    ]
+  },
+  "P03": {
+    "complete": true,
+    "title": "并发与审计",
+    "expected": "412保留表单；缺If-Match为428；同幂等键不重复；保存/启停/绑定/删除均有审计",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Integration.Tests/PolicyManagementTests.cs"
+    ]
+  },
+  "P04": {
+    "complete": true,
+    "title": "工作与运行隔离",
+    "expected": "保存或停用后当前两节点仍按旧配置；绑定变化增加Route Revision；未发布不生效",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Integration.Tests/RoutePolicyBindingTests.cs",
+      "scripts/policies/scenario.mjs"
+    ]
+  },
+  "P05": {
+    "complete": true,
+    "title": "认证兼容",
+    "expected": "原RouteAuth与RequireApiKey正常；共享认证不会被单路由编辑覆盖；Anonymous/AppRoute组合拒绝",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Integration.Tests/RoutePolicyBindingTests.cs"
+    ]
+  },
+  "P06": {
+    "complete": true,
+    "title": "同类型冲突",
+    "expected": "重复绑定、外Scope、未知字段、失效组合分别在API、预览和编译拒绝",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Domain.Tests/PolicyConfigurationTests.cs",
+      "tests/WebApi.Domain.Tests/PolicySnapshotCompilerTests.cs"
+    ]
+  },
+  "P07": {
+    "complete": true,
+    "title": "共享限流",
+    "expected": "两节点并发共享同一桶；固定Redis时间的原子测试符合burst+补充数学上限；不同应用/路由隔离、同应用多凭证共享",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Gateway.Tests/RedisRateLimitTests.cs"
+    ]
+  },
+  "P08": {
+    "complete": true,
+    "title": "真实限流",
+    "expected": "真实Redis和两Gateway产生200/429、Retry-After；低补充速率并记录时间的批量请求不把合法补充误算为超发",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "scripts/policies/scenario.mjs"
+    ]
+  },
+  "P09": {
+    "complete": true,
+    "title": "Redis故障",
+    "expected": "Reject为503且不上游；Allow继续并有降级证据；超时不自动重扣；故障不影响现有LKG/心跳的恢复",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Gateway.Tests/RedisRateLimitTests.cs",
+      "scripts/policies/scenario.mjs"
+    ]
+  },
+  "P10": {
+    "complete": true,
+    "title": "熔断状态机",
+    "expected": "阈值、窗口、边界、并发epoch、探测上限、取消释放、打开等待与恢复测试通过；内存有界",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Domain.Tests/CircuitBreakerTests.cs",
+      "tests/WebApi.Gateway.Tests/CircuitRegistryTests.cs"
+    ]
+  },
+  "P11": {
+    "complete": true,
+    "title": "真实故障恢复",
+    "expected": "实际上游故障使有请求节点打开；保护期间不上游；恢复后真实探测关闭；两个节点独立事实可解释",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "scripts/policies/scenario.mjs"
+    ]
+  },
+  "P12": {
+    "complete": true,
+    "title": "故障分类",
+    "expected": "认证401/403、限流429、主动503、ClientAborted不计上游失败；实际5xx/超时/连接失败按配置计入",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Gateway.Tests/TrafficPolicyPipelineTests.cs"
+    ]
+  },
+  "P13": {
+    "complete": true,
+    "title": "部分发布",
+    "expected": "共享策略新修订只影响选中API；未选API仍使用旧运行策略ID与配置；候选冻结和revision全集有效",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Domain.Tests/PolicySnapshotCompilerTests.cs",
+      "tests/WebApi.Integration.Tests/PolicyReleaseTests.cs"
+    ]
+  },
+  "P14": {
+    "complete": true,
+    "title": "协议与软件升级",
+    "expected": "旧2.0快照/LKG可用；旧节点阻止2.1发布且desired/sequence未变；能力绑定当前实例；未知schema/类型保持旧版本",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Integration.Tests/PolicyNodeCapabilityTests.cs",
+      "tests/WebApi.Domain.Tests/PolicySnapshotCompilerTests.cs"
+    ]
+  },
+  "P15": {
+    "complete": true,
+    "title": "发布与恢复",
+    "expected": "生产独立两级审批、双节点当前实例ACK、热更新在途generation一致、2.0/2.1回滚/重试实际调用正确",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "scripts/policies/scenario.mjs"
+    ]
+  },
+  "P16": {
+    "complete": true,
+    "title": "删除保护",
+    "expected": "工作/冻结/desired/节点当前引用阻止删除；解除并发布后可删；仅历史引用可删且仍可回滚",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Integration.Tests/PolicyDeletionTests.cs"
+    ]
+  },
+  "P17": {
+    "complete": true,
+    "title": "观测与脱敏",
+    "expected": "429、熔断503、Redis故障有真实计数/日志/Trace解释；缺源为Partial/Unavailable；凭证不进证据",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "tests/WebApi.Integration.Tests/PolicyObservationTests.cs",
+      "tests/WebApi.Gateway.Tests/PolicyTelemetryTests.cs",
+      "scripts/policies/scenario.mjs"
+    ]
+  },
+  "P18": {
+    "complete": true,
+    "title": "1440px UI",
+    "expected": "两策略页、路由绑定、发布差异及空/错/412/权限状态可操作；导航、长内容、键盘与label检查通过",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "scripts/policies/browser-qa.mjs",
+      "docs/evidence/policies/ui/qa.json"
+    ]
+  },
+  "P19": {
+    "complete": true,
+    "title": "保留与交付",
+    "expected": "隔离验收完成、旧数据/快照与ZIP不改；提供源码变更、中文手册、脱敏证据、验收结论与明确限制",
+    "evidence": [
+      "docs/evidence/policies/regression.json",
+      "docs/evidence/policies/verification.json",
+      "scripts/verify-policies-delivery.py",
+      "scripts/package-policies.py",
+      "docs/evidence/policies/retained-deliveries.json",
+      "docs/evidence/policies/disposable-verification.json"
+    ]
+  }
+}

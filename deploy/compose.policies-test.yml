@@ -1,0 +1,13 @@
+services:
+  postgres:
+    labels:
+      com.webapi.policies.owner: ${WEBAPI_POLICY_TEST_OWNER:?required}
+  redis:
+    labels:
+      com.webapi.policies.owner: ${WEBAPI_POLICY_TEST_OWNER:?required}
+  sdk:
+    labels:
+      com.webapi.policies.owner: ${WEBAPI_POLICY_TEST_OWNER:?required}
+secrets:
+  postgres-password:
+    file: ${WEBAPI_POLICY_TEST_DIRECTORY:?required}/postgres-password

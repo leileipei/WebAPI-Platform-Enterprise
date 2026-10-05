@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Runtime;
 using WebApi.Domain.Routing;
+using WebApi.Domain.Policies;
+using WebApi.Contracts.Policies;
 namespace WebApi.Domain.Runtime;
 public static class SnapshotValidator
 {
@@ -10,7 +12,7 @@ public static class SnapshotValidator
     private static ApiException Invalid(string message)=>new(422,"invalid_snapshot",message);
     public static void Validate(RuntimeSnapshot snapshot,Guid expectedEnvironment)
     {
-        if(snapshot.SchemaVersion!="2.0"||snapshot.EnvironmentId!=expectedEnvironment||expectedEnvironment==Guid.Empty||snapshot.ConfigVersion<=0||snapshot.GeneratedAt.Offset!=TimeSpan.Zero) throw Invalid("Snapshot协议、环境、版本或UTC时间不合法。");
+        if(snapshot.SchemaVersion is not ("2.0" or "2.1")||snapshot.EnvironmentId!=expectedEnvironment||expectedEnvironment==Guid.Empty||snapshot.ConfigVersion<=0||snapshot.GeneratedAt.Offset!=TimeSpan.Zero) throw Invalid("Snapshot协议、环境、版本或UTC时间不合法。");
         if(snapshot.Routes.Count>10000||snapshot.Routes.Select(r=>r.Id).Distinct().Count()!=snapshot.Routes.Count||snapshot.Clusters.Select(c=>c.Id).Distinct().Count()!=snapshot.Clusters.Count) throw Invalid("Snapshot路由为空、重复或超过限制。");
         var clusters=snapshot.Clusters.ToDictionary(c=>c.Id);var keys=new HashSet<string>(StringComparer.Ordinal);
         foreach(var route in snapshot.Routes)
@@ -24,7 +26,25 @@ public static class SnapshotValidator
             if(c.Destinations.Select(d=>d.Id).Distinct().Count()!=c.Destinations.Count) throw Invalid("Destination身份重复。");
             foreach(var d in c.Destinations) if(d.Id==Guid.Empty||d.Weight is <1 or >1000||!Uri.TryCreate(d.Address,UriKind.Absolute,out var address)||address.Scheme is not ("http" or "https")||address.UserInfo.Length>0||address.Query.Length>0||address.Fragment.Length>0) throw Invalid("Destination地址或权重不合法。");
         }
-        foreach(var p in snapshot.Policies) {if(p.Type is not ("authentication" or "timeout")) throw Invalid("首期不支持该策略类型。");using var config=JsonDocument.Parse(p.Config);if(config.RootElement.ValueKind!=JsonValueKind.Object) throw Invalid("策略配置须是JSON对象。");}
+        if(snapshot.Policies.Count>40000||snapshot.Policies.Select(p=>p.Id).Distinct().Count()!=snapshot.Policies.Count) throw Invalid("运行策略数量或身份不合法。");
+        var policies=snapshot.Policies.ToDictionary(p=>p.Id);
+        foreach(var p in snapshot.Policies) {
+            if(p.Id==Guid.Empty) throw Invalid("运行策略身份为空。");
+            if(snapshot.SchemaVersion=="2.0"&&(p.Type is not ("authentication" or "timeout")||p.SourcePolicyId is not null||p.SourceRevision is not null)) throw Invalid("2.0不支持高级策略或来源字段。");
+            var normalized=PolicyConfigurationValidator.Normalize(p.Type,p.Config);
+            if(p.SourcePolicyId is not null||p.SourceRevision is not null) {
+                if(p.SourcePolicyId is not Guid source||p.SourceRevision is not long revision||p.Id!=RuntimePolicyIdentity.Create(source,revision,p.Type,normalized)) throw Invalid("运行策略身份与内容不一致。");
+            }else if(snapshot.SchemaVersion=="2.1"&&p.Type is not ("authentication" or "timeout")) throw Invalid("高级策略缺少来源。");
+        }
+        foreach(var r in snapshot.Routes) {
+            if(snapshot.SchemaVersion=="2.0"&&r.PolicyBindings is not null) throw Invalid("2.0不支持运行绑定。");
+            if(r.PolicyBindings is null) continue;
+            var bindings=new List<PolicyBindingConfiguration>();foreach(var b in r.PolicyBindings) {
+                if(!policies.TryGetValue(b.PolicyId,out var p)||p.SourcePolicyId is null||p.SourceRevision is null) throw Invalid("运行绑定缺少有效策略来源。");bindings.Add(new(p.Id,p.Type,p.Config,true,b.Priority));
+            }
+            var effective=PolicyBindingRules.Validate(bindings,true);
+            if(effective.RequireApiKey!=r.RequireApiKey||(effective.TimeoutMs is int timeout&&timeout!=r.TimeoutMs)) throw Invalid("策略绑定与路由折叠配置不一致。");
+        }
         var apiIds=snapshot.Routes.Select(r=>r.ApiId).ToHashSet();var accessKeys=new HashSet<string>(StringComparer.Ordinal);
         if(snapshot.Applications.Select(a=>a.Id).Distinct().Count()!=snapshot.Applications.Count) throw Invalid("Application身份重复。");
         foreach(var a in snapshot.Applications)

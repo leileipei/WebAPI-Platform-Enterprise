@@ -12,6 +12,7 @@ using WebApi.Infrastructure.Messaging;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
+using WebApi.Infrastructure.Gateway;
 namespace WebApi.Infrastructure.Releases;
 public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSeconds=120,int AckTimeoutSeconds=120);
 public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history)
@@ -24,7 +25,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             return await idempotency.ExecuteAsync(new(actor.UserId,scope,"release.publish",requestContext.IdempotencyKey),CanonicalJson.Serialize(new {releaseId=id}),async inner=>{
                 await LockEnvironmentAsync(initial.EnvironmentId,inner);var r=await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id,inner);ReleaseStateMachine.Require(r.Status,"Ready");
                 await VerifyBaselineAsync(r,inner);if(await db.Set<ReleaseRecord>().AnyAsync(x=>x.EnvironmentId==r.EnvironmentId&&x.Id!=id&&(x.Status=="Building"||x.Status=="Publishing"),inner)) throw new ApiException(409,"environment_busy","该环境已有正在下发的发布。");
-                await TargetsAsync(r.EnvironmentId,inner);await VerifyVersionsAsync(r,inner);r.Status="Building";r.PublishRequestedBy=actor.UserId;r.PublishTraceId=actor.TraceId;
+                var nodes=await TargetsAsync(r.EnvironmentId,inner);await VerifyVersionsAsync(r,inner);SnapshotSchemaCapabilities.RequireSupported(nodes,await TargetSchemaAsync(r,inner));r.Status="Building";r.PublishRequestedBy=actor.UserId;r.PublishTraceId=actor.TraceId;
                 return await releases.DtoAsync(r,inner);
             },token);
         },ct);
@@ -48,6 +49,14 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
         if(nodes.Length<settings.MinimumNodes||nodes.Any(n=>n.IdentityHash.Length!=64||!Guid.TryParse(n.InstanceId,out _)||n.LastHeartbeatAt is null||n.LastHeartbeatAt<threshold)) throw new ApiException(409,"gateway_cohort_unavailable","至少需要两个有效注册节点，且全部已启用节点必须在线；不会缩减确认目标。");return nodes;
     }
     public async Task ValidateCohortAsync(Guid envId,CancellationToken ct=default)=>await TargetsAsync(envId,ct);
+    public async Task ValidateTargetSchemaAsync(Guid envId,long version,CancellationToken ct=default)
+    {var nodes=await TargetsAsync(envId,ct);SnapshotSchemaCapabilities.RequireSupported(nodes,(await history.ReadAsync(envId,version,ct)).Snapshot.SchemaVersion);}
+    private async Task<string> TargetSchemaAsync(ReleaseRecord release,CancellationToken ct)
+    {
+        if(release.ReleaseType is "rollback" or "retry") return (await history.ReadAsync(release.EnvironmentId,release.ToConfigVersion,ct)).Snapshot.SchemaVersion;
+        var baseline=release.BaselineConfigVersion>0?(await history.ReadAsync(release.EnvironmentId,release.BaselineConfigVersion,ct)).Snapshot:new RuntimeSnapshot("2.0",release.EnvironmentId,0,DateTimeOffset.UtcNow,[],[],[],[]);
+        var compiled=compiler.Compile(Candidate(release),baseline,baseline.ConfigVersion+1,DateTimeOffset.UtcNow);using var document=JsonDocument.Parse(compiled.Payload);return document.RootElement.GetProperty("schemaVersion").GetString()!;
+    }
     public async Task<bool> BuildNextAsync(CancellationToken ct=default)
     {
         await using var tx=await db.Database.BeginTransactionAsync(ct);
@@ -64,7 +73,9 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             {var bytes=await (from v in db.Set<GatewayConfigVersion>() join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where v.EnvironmentId==env.Id&&v.VersionNo==r.BaselineConfigVersion select s.PayloadBytes).SingleAsync(ct);baseline=JsonSerializer.Deserialize<RuntimeSnapshot>(bytes,CanonicalJson.Options)!;}
             var next=(await db.Set<GatewayConfigVersion>().Where(v=>v.EnvironmentId==env.Id).Select(v=>(long?)v.VersionNo).MaxAsync(ct)??0)+1;var frozen=Candidate(r);CompiledSnapshot compiled;
             if(r.ReleaseType is "rollback" or "retry") {next=r.ToConfigVersion;var artifact=await history.ReadAsync(env.Id,next,ct);compiled=new(artifact.Payload,artifact.Hash,artifact.Size);}
-            else {compiled=compiler.Compile(frozen,baseline,next,DateTimeOffset.UtcNow);var config=new GatewayConfigVersion {EnvironmentId=env.Id,VersionNo=next,Status="Publishing",CreatedBy=publisher,SnapshotHash=compiled.Hash};config.SnapshotKey=$"environment/{env.Id}/snapshot/{next}";db.Add(config);db.Add(new GatewayConfigSnapshot {ConfigVersionId=config.Id,PayloadBytes=compiled.Payload.ToArray(),Payload=Encoding.UTF8.GetString(compiled.Payload.Span),SizeBytes=compiled.Size});}
+            else compiled=compiler.Compile(frozen,baseline,next,DateTimeOffset.UtcNow);
+            using(var document=JsonDocument.Parse(compiled.Payload)) SnapshotSchemaCapabilities.RequireSupported(nodes,document.RootElement.GetProperty("schemaVersion").GetString()!);
+            if(r.ReleaseType is not ("rollback" or "retry")) {var config=new GatewayConfigVersion {EnvironmentId=env.Id,VersionNo=next,Status="Publishing",CreatedBy=publisher,SnapshotHash=compiled.Hash};config.SnapshotKey=$"environment/{env.Id}/snapshot/{next}";db.Add(config);db.Add(new GatewayConfigSnapshot {ConfigVersionId=config.Id,PayloadBytes=compiled.Payload.ToArray(),Payload=Encoding.UTF8.GetString(compiled.Payload.Span),SizeBytes=compiled.Size});}
             env.DeploymentSequence=checked(env.DeploymentSequence+1);env.DesiredConfigVersion=next;r.ToConfigVersion=next;r.DeploymentSequence=env.DeploymentSequence;r.Status="Publishing";r.DeadlineAt=DateTimeOffset.UtcNow.AddSeconds(settings.AckTimeoutSeconds);
             foreach(var node in nodes) {db.Add(new ReleaseTarget {ReleaseId=r.Id,NodeId=node.Id,InstanceId=node.InstanceId});node.TargetConfigVersion=next;}
             foreach(var v in frozen.Versions) {var version=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==v.Version.Id,ct);version.SealedAt??=DateTimeOffset.UtcNow;version.Status="Publishing";}

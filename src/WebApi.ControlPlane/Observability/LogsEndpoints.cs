@@ -5,9 +5,10 @@ public sealed class LogQueryParameters
     public Guid OrganizationId{get;set;}public Guid ProjectId{get;set;}public Guid? EnvironmentId{get;set;}public bool? AllAccessibleEnvironments{get;set;}
     public DateTimeOffset? Start{get;set;}public DateTimeOffset? End{get;set;}public Guid? ApiId{get;set;}public Guid? ApplicationId{get;set;}public Guid? DestinationId{get;set;}public string? Status{get;set;}
     public double? MinDurationMs{get;set;}public double? MaxDurationMs{get;set;}public string? Keyword{get;set;}public string? TraceId{get;set;}public int? Limit{get;set;}public string? Cursor{get;set;}
+    public Guid? PolicyId{get;set;}public string? PolicyDecision{get;set;}
     public ObservationScopeRequest Scope=>new(OrganizationId,ProjectId,EnvironmentId,AllAccessibleEnvironments??false);
     public TimeRange Range{get{var end=End??DateTimeOffset.UtcNow;return new(Start??end.AddHours(-1),end);}}
-    public LogFilter Filter=>new(ApiId,ApplicationId,Status,MinDurationMs,MaxDurationMs,null,Keyword,TraceId,Limit??50,Cursor,DestinationId);
+    public LogFilter Filter=>new(ApiId,ApplicationId,Status,MinDurationMs,MaxDurationMs,null,Keyword,TraceId,Limit??50,Cursor,DestinationId,PolicyId,PolicyDecision);
 }
 public sealed record LogQueryBody(ObservationScopeRequest Scope,TimeRange Range,LogFilter Filter);
 public static class LogsEndpoints

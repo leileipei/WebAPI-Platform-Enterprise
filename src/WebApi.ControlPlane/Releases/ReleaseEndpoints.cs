@@ -12,6 +12,8 @@ public static class ReleaseEndpoints
     public static void MapReleases(this WebApplication app)
     {
         var g=app.MapGroup("/api/v1").RequireAuthorization().AddEndpointFilter<RequestValidationFilter>();
+        g.MapPost("/environments/{id:guid}/releases/preview",async(Guid id,PreviewReleaseRequest request,HttpContext ctx,ReleaseService service,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await service.PreviewSelectionAsync(id,request,ctx.Actor(),ct));});
+        g.MapPost("/releases/{id:guid}/refresh-preconditions",async(Guid id,RefreshReleasePreconditionsRequest request,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.RefreshPreconditionsAsync(id,request,ctx.Actor(),ct)));
         g.MapGet("/organizations/{id:guid}/approval-flows",async(Guid id,HttpContext ctx,ApprovalFlowService service,CancellationToken ct)=>Results.Ok(await service.ListAsync(id,ctx.Actor(),ct)));
         g.MapPost("/organizations/{id:guid}/approval-flows",async(Guid id,SaveApprovalFlowRequest request,HttpContext ctx,ApprovalFlowService service,CancellationToken ct)=>GovernanceEndpoints.Command(ctx,await service.SaveAsync(id,null,request,null,ctx.Actor(),ct)));
         g.MapPut("/approval-flows/{id:guid}",async(Guid id,SaveApprovalFlowRequest request,HttpContext ctx,ApprovalFlowService service,WebApiDbContext db,CancellationToken ct)=>{var f=await db.Set<ApprovalFlow>().AsNoTracking().SingleOrDefaultAsync(f=>f.Id==id,ct)??throw ScopeResolver.Missing();return GovernanceEndpoints.Command(ctx,await service.SaveAsync(f.OrganizationId,id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct));});

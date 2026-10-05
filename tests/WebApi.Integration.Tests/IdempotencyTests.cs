@@ -10,8 +10,8 @@ public sealed class IdempotencyTests
 {
     [Fact] public async Task TwoConcurrentSameKeysReturnOneCommittedResult()
     {
-        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedReleaseAsync();using var login=await api.LoginAsync();var token=await api.CsrfAsync();var key=Guid.NewGuid().ToString("N");
-        async Task<HttpResponseMessage> Send() {using var req=new HttpRequestMessage(HttpMethod.Post,$"/api/v1/environments/{api.Environment.Id}/releases") {Content=JsonContent.Create(api.ReleaseRequest())};req.Headers.Add("X-CSRF-Token",token);req.Headers.Add("Idempotency-Key",key);return await api.Client.SendAsync(req);}
+        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedReleaseAsync();using var login=await api.LoginAsync();var token=await api.CsrfAsync();var key=Guid.NewGuid().ToString("N");var releaseRequest=await api.PreviewReleaseRequestAsync();
+        async Task<HttpResponseMessage> Send() {using var req=new HttpRequestMessage(HttpMethod.Post,$"/api/v1/environments/{api.Environment.Id}/releases") {Content=JsonContent.Create(releaseRequest)};req.Headers.Add("X-CSRF-Token",token);req.Headers.Add("Idempotency-Key",key);return await api.Client.SendAsync(req);}
         var responses=await Task.WhenAll(Send(),Send());try {Assert.All(responses,r=>Assert.Equal(HttpStatusCode.OK,r.StatusCode));Assert.Equal(await responses[0].Content.ReadAsStringAsync(),await responses[1].Content.ReadAsStringAsync());}finally {foreach(var r in responses) r.Dispose();}
         await using var db=api.Context();Assert.Single(await db.Set<ReleaseRecord>().ToListAsync());Assert.Single(await db.Set<IdempotencyRecord>().ToListAsync());Assert.Equal(1,await db.Set<AuditLog>().CountAsync(a=>a.Action=="release.create"));
         using var different=await ApiFixture.CommandAsync(api.Client,$"/api/v1/environments/{api.Environment.Id}/releases",new {baseConfigVersion=1L,versionIds=new[]{api.Version.Id},resourceRevisions=Array.Empty<object>()},key);Assert.Equal(HttpStatusCode.Conflict,different.StatusCode);

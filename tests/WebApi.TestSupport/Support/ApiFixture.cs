@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using WebApi.Contracts.Releases;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -105,10 +106,14 @@ public sealed class ApiFixture : IAsyncDisposable
     {
         var csrf=await client.GetFromJsonAsync<Dictionary<string,string>>("/api/v1/auth/csrf");using var req=new HttpRequestMessage(HttpMethod.Post,path) {Content=body is null?JsonContent.Create(new {}):JsonContent.Create(body)};req.Headers.Add("X-CSRF-Token",csrf!["token"]);req.Headers.Add("Idempotency-Key",key??Guid.NewGuid().ToString("N"));return await client.SendAsync(req);
     }
-    public object ReleaseRequest()=>new {baseConfigVersion=0L,versionIds=new[]{Version.Id},resourceRevisions=new[]{new {type="version",id=Version.Id,revision=1L}}};
+    public async Task<CreateReleaseRequest> PreviewReleaseRequestAsync(long baseline=0,Guid? versionId=null)
+    {
+        var ids=new[]{versionId??Version.Id};using var response=await CommandAsync(Client,$"/api/v1/environments/{Environment.Id}/releases/preview",new PreviewReleaseRequest(baseline,ids));response.EnsureSuccessStatusCode();
+        var preview=(await response.Content.ReadFromJsonAsync<FrozenCandidateView>())!;return new(baseline,ids,preview.ResourceRevisions);
+    }
     public async Task<Guid> CreateSubmittedReleaseAsync()
     {
-        using var created=await CommandAsync(Client,$"/api/v1/environments/{Environment.Id}/releases",ReleaseRequest());created.EnsureSuccessStatusCode();var value=await created.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();var id=value.GetProperty("id").GetGuid();using var submitted=await CommandAsync(Client,$"/api/v1/releases/{id}/submit");submitted.EnsureSuccessStatusCode();return id;
+        using var created=await CommandAsync(Client,$"/api/v1/environments/{Environment.Id}/releases",await PreviewReleaseRequestAsync());created.EnsureSuccessStatusCode();var value=await created.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();var id=value.GetProperty("id").GetGuid();using var submitted=await CommandAsync(Client,$"/api/v1/releases/{id}/submit");submitted.EnsureSuccessStatusCode();return id;
     }
     public async ValueTask DisposeAsync()
     {

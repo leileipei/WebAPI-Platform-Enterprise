@@ -1,14 +1,15 @@
 const ranges=['1h','6h','24h','7d'],groups=['None','Api','Application','Destination','Status'];
-const metricSorts=['request_count','request_rps','latency_p50_ms','latency_p95_ms','latency_p99_ms','error_4xx_ratio','error_5xx_ratio','success_ratio'],trendMetrics=['request_rps','latency_p50_ms','latency_p95_ms','latency_p99_ms','error_4xx_ratio','error_5xx_ratio','success_ratio'];
+const metricSorts=['request_count','request_rps','latency_p50_ms','latency_p95_ms','latency_p99_ms','error_4xx_ratio','error_5xx_ratio','success_ratio','circuit_rejected_count','rate_limit_store_unavailable_count'],trendMetrics=['request_rps','latency_p50_ms','latency_p95_ms','latency_p99_ms','error_4xx_ratio','error_5xx_ratio','success_ratio','circuit_rejected_count','rate_limit_store_unavailable_count'];
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function parseObservationSearch(search){
  const p=new URLSearchParams(search);const state={range:ranges.includes(p.get('range'))?p.get('range'):'1h',group:groups.includes(p.get('group'))?p.get('group'):'Api',page:Math.max(1,Math.min(1000000,Number(p.get('page'))||1))};
  if(p.has('sort'))state.sort=metricSorts.includes(p.get('sort'))?p.get('sort'):'request_count';if(p.has('trend'))state.trend=trendMetrics.includes(p.get('trend'))?p.get('trend'):'latency_p95_ms';
- for(const key of ['api','app','destination'])if(uuid.test(p.get(key)||''))state[key]=p.get(key);
+ for(const key of ['api','app','destination','policy'])if(uuid.test(p.get(key)||''))state[key]=p.get(key);
  if(/^(?:[1-5]xx|[1-5][0-9]{2}|ClientAborted)$/.test(p.get('status')||''))state.status=p.get('status');
  if(p.get('duration')&&Number.isFinite(Number(p.get('duration')))&&Number(p.get('duration'))>=0)state.duration=Number(p.get('duration'));
  if(p.get('maxDuration')&&Number.isFinite(Number(p.get('maxDuration')))&&Number(p.get('maxDuration'))>=0)state.maxDuration=Number(p.get('maxDuration'));
  if(p.get('keyword')&&p.get('keyword').length<=256&&!/[\x00-\x1f]/.test(p.get('keyword')))state.keyword=p.get('keyword');
+ if(['Allowed','Exceeded','StoreRejected','Bypass','HalfOpenProbe','OpenRejected'].includes(p.get('decision')))state.decision=p.get('decision');
  if(['Success','Error'].includes(p.get('outcome')))state.outcome=p.get('outcome');
  if(/^[0-9a-f]{32}$/i.test(p.get('trace')||''))state.trace=p.get('trace');
  if((p.get('cursor')||'').length<=4096&&p.get('cursor'))state.cursor=p.get('cursor');
@@ -16,7 +17,7 @@ export function parseObservationSearch(search){
  if(p.get('all')==='true')state.all=true;return state;
 }
 export function serializeObservationSearch(state){
- const p=new URLSearchParams();for(const key of ['range','api','app','destination','status','duration','maxDuration','keyword','outcome','trace','group','cursor','end','page','all','sort','trend'])if(state[key]!==undefined&&state[key]!==null&&state[key]!=='')p.set(key,String(state[key]));
+ const p=new URLSearchParams();for(const key of ['range','policy','decision','api','app','destination','status','duration','maxDuration','keyword','outcome','trace','group','cursor','end','page','all','sort','trend'])if(state[key]!==undefined&&state[key]!==null&&state[key]!=='')p.set(key,String(state[key]));
  const clean=parseObservationSearch(p.toString());const result=new URLSearchParams();for(const [key,value]of Object.entries(clean))result.set(key,String(value));return '?'+result.toString();
 }
 export function observationRange(state,now=new Date()){
@@ -35,6 +36,6 @@ export function metricDisplay(metric){
 }
 export function chartSegments(points){const segments=[];let row=[];for(const p of points.slice(0,600)){if(p.value===null||!Number.isFinite(p.value)||!Number.isFinite(Date.parse(p.time))){if(row.length)segments.push(row);row=[];}else row.push(p);}if(row.length)segments.push(row);return segments;}
 export function resetObservationScopeSearch(search,kind){
- const state=parseObservationSearch(search);delete state.cursor;state.page=1;delete state.destination;
+ const state=parseObservationSearch(search);delete state.cursor;state.page=1;delete state.destination;delete state.policy;delete state.decision;
  if(kind!=='environment'){delete state.api;delete state.app;}return serializeObservationSearch(state);
 }

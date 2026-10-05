@@ -4,7 +4,7 @@ public sealed class AccessLogQueryService(ObservationScopeResolver resolver,Loki
 {
     public async Task<ObservationEnvelope<CursorPage<AccessLogDto>>> QueryAsync(ActorContext actor,ObservationScopeRequest scope,TimeRange range,LogFilter filter,CancellationToken ct)
     {
-        Validate(scope,range,filter);var trusted=await resolver.ResolveAsync(actor,"log.read",scope,filter.ApiId,filter.ApplicationId,filter.DestinationId,ct);var prepared=source.Prepare(filter);
+        Validate(scope,range,filter);var trusted=await resolver.ResolveAsync(actor,"log.read",scope,filter.ApiId,filter.ApplicationId,filter.DestinationId,ct);PolicyObservationProjection.RequireFilter(trusted,filter.PolicyId,filter.PolicyDecision);var prepared=source.Prepare(filter);
         using var timeout=CancellationTokenSource.CreateLinkedTokenSource(ct);timeout.CancelAfter(TimeSpan.FromSeconds(10));
         try{var page=await ReadPageAsync(actor,trusted,range,filter,prepared,timeout.Token);await Reauthorize(actor,scope,filter,trusted,ct);return page;}
         catch(OperationCanceledException)when(!ct.IsCancellationRequested){throw ObservationSourceSettings.Unavailable("logs");}
@@ -26,12 +26,12 @@ public sealed class AccessLogQueryService(ObservationScopeResolver resolver,Loki
         var filter=new LogFilter(Limit:1);Validate(scope,range,filter);var trusted=await resolver.ResolveAsync(actor,"log.read",scope,null,null,null,ct);
         using var timeout=CancellationTokenSource.CreateLinkedTokenSource(ct);timeout.CancelAfter(TimeSpan.FromSeconds(10));
         try{var batch=await source.QueryAsync(trusted,range,source.Prepare(filter),null,timeout.Token,logId);var row=batch.Rows.SingleOrDefault()??throw new ApiException(404,"observation_log_not_found","日志不存在或不在当前可访问范围内。");var collection=await coverage.QueryAsync(trusted,range,"logs",timeout.Token);await Reauthorize(actor,scope,filter,trusted,ct);
-            return new(collection.State==SourceState.Partial?SourceState.Partial:SourceState.Available,range,collection.ObservedAt,collection.Coverage,null,row.Value);}
+            return new(batch.RejectedRows||collection.State==SourceState.Partial?SourceState.Partial:SourceState.Available,range,collection.ObservedAt,collection.Coverage with {Complete=collection.Coverage.Complete&&!batch.RejectedRows,Reason=batch.RejectedRows?"source_rows_rejected":collection.Coverage.Reason},null,row.Value);}
         catch(OperationCanceledException)when(!ct.IsCancellationRequested){throw ObservationSourceSettings.Unavailable("logs");}
     }
     public async Task<ExportOutcome> ExportAsync(ActorContext actor,ObservationScopeRequest scope,TimeRange range,LogFilter filter,Stream output,CancellationToken ct)
     {
-        filter=filter with{Cursor=null,Limit=100};Validate(scope,range,filter);var trusted=await resolver.ResolveAsync(actor,"log.read",scope,filter.ApiId,filter.ApplicationId,filter.DestinationId,ct);var prepared=source.Prepare(filter);using var bytes=new MemoryStream();bytes.Write(Encoding.UTF8.GetBytes(CsvLogExporter.Header));var rows=0;var truncated=false;var partial=false;var seen=new HashSet<Guid>();
+        filter=filter with{Cursor=null,Limit=100};Validate(scope,range,filter);var trusted=await resolver.ResolveAsync(actor,"log.read",scope,filter.ApiId,filter.ApplicationId,filter.DestinationId,ct);PolicyObservationProjection.RequireFilter(trusted,filter.PolicyId,filter.PolicyDecision);var prepared=source.Prepare(filter);using var bytes=new MemoryStream();bytes.Write(Encoding.UTF8.GetBytes(CsvLogExporter.Header));var rows=0;var truncated=false;var partial=false;var seen=new HashSet<Guid>();
         using var timeout=CancellationTokenSource.CreateLinkedTokenSource(ct);timeout.CancelAfter(TimeSpan.FromSeconds(10));
         try{
             while(true){await Reauthorize(actor,scope,filter,trusted,timeout.Token);var page=await ReadPageAsync(actor,trusted,range,filter,prepared,timeout.Token);await Reauthorize(actor,scope,filter,trusted,timeout.Token);

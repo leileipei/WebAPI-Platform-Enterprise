@@ -19,8 +19,8 @@
 |13|参数Schema|/apis/{id}|已接入参数/Schema Tab与原文编辑；完整树和例验证后续|
 |14|Cluster|/clusters|已接入|
 |15|Destination|/clusters/{id}|已接入权重/健康配置；立即探测后续|
-|16|策略中心|/coverage|后续；Route首期认证/超时可配置|
-|17|策略编辑|/coverage|后续动态扩展策略|
+|16|策略中心|/policies|本批真实列表、类型/范围过滤、复制、引用与工作/运行修订|
+|17|策略编辑|/policies/{id}|本批四类动态字段、服务端校验、412保留输入、引用保护及审批发布|
 |18|应用|/applications|已接入|
 |19|应用详情|/applications/{id}|已接入|
 |20|凭证|/applications/{id}|已接入凭证Tab，一次性Secret及有效期/撤销|
@@ -45,4 +45,4 @@
 |39|SSO/OIDC|/coverage|后续企业身份接入|
 |40|系统设置|/coverage|后续持久设置；运行配置使用显式部署配置|
 
-28–33真实范围见 [观测验收](evidence/observability/verification.json)、[数据字典](observability-data-dictionary.md)与[运行手册](deployment/observability-runbook.md)。原40页高保真原型仍完整保留；本阶段没有把SSO、高级策略或企业通知标为已实现。
+28–33真实范围见 [观测验收](evidence/observability/verification.json)、[数据字典](observability-data-dictionary.md)与[运行手册](deployment/observability-runbook.md)。原40页高保真原型仍完整保留；本批四类流量策略证据见 [策略交付](evidence/policies/delivery-index.md)；SSO、JWT/重试/缓存、企业通知仍未实现。4192保持原交付版本。

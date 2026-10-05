@@ -14,6 +14,20 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
 {
     public async Task<FrozenReleaseCandidate> BuildAsync(Guid environmentId,CreateReleaseRequest request,CancellationToken ct)
     {
+        var candidate=await PreviewAsync(environmentId,new(request.BaseConfigVersion,request.VersionIds),ct);
+        RequireRevisions(request.ResourceRevisions,candidate.ResourceRevisions);return candidate;
+    }
+    public static void RequireRevisions(IReadOnlyList<ResourceRevision> expected,IReadOnlyList<ResourceRevision> actual)
+    {
+        if(expected.Count>50000||expected.Select(r=>(r.Type,r.Id)).Distinct().Count()!=expected.Count) throw new ApiException(422,"invalid_revisions","资源修订重复或超过限制。");
+        foreach(var revision in expected) {var current=actual.SingleOrDefault(r=>r.Type==revision.Type&&r.Id==revision.Id);if(current is not null&&current.Revision!=revision.Revision) throw new ApiException(412,"stale_revision","候选资源已更新，请重新预览。");}
+        if(expected.Any(e=>!actual.Any(a=>a.Type==e.Type&&a.Id==e.Id))) throw new ApiException(422,"foreign_revision","revision对象不属于候选资源。");
+        if(actual.Any(a=>!expected.Any(e=>e.Type==a.Type&&e.Id==a.Id))) throw new ApiException(422,"missing_revision","必须提供预览中的全部资源修订。");
+    }
+    public static bool RevisionsCurrent(IReadOnlyList<ResourceRevision> expected,IReadOnlyList<ResourceRevision> actual)
+    {try {RequireRevisions(expected,actual);return true;}catch(ApiException e) when(e.Status is 412 or 422) {return false;}}
+    public async Task<FrozenReleaseCandidate> PreviewAsync(Guid environmentId,PreviewReleaseRequest request,CancellationToken ct)
+    {
         var scope=await scopes.EnvironmentAsync(environmentId,ct);var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==environmentId,ct);
         if(request.BaseConfigVersion!=(env.DesiredConfigVersion??0)) throw new ApiException(409,"stale_baseline","环境基准版本已变化。");
         if(request.VersionIds.Count is <1 or >100||request.VersionIds.Distinct().Count()!=request.VersionIds.Count) throw new ApiException(422,"invalid_selection","请为每个API选择一个版本。");
@@ -40,8 +54,6 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
             var credentials=await db.Set<ApplicationCredential>().AsNoTracking().Where(c=>c.ApplicationId==appId).OrderBy(c=>c.Id).ToArrayAsync(ct);var permissions=grants.Where(g=>g.ApplicationId==appId).ToArray();foreach(var g in permissions) if((await scopes.ApiAsync(g.ApiId,ct)).ProjectId!=scope.ProjectId) throw new ApiException(422,"foreign_authorization","候选授权跨项目。");
             applications.Add(new(ApplicationService.Dto(app),credentials.Select(c=>new FrozenCredential(c.Id,c.AccessKey,c.SecretHash,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,c.Revision)).ToArray(),permissions.Select(ApplicationService.Dto).ToArray()));revisions.Add(new("application",appId,app.Revision));revisions.AddRange(credentials.Select(c=>new ResourceRevision("credential",c.Id,c.Revision)));revisions.AddRange(permissions.Select(g=>new ResourceRevision("authorization",g.Id,g.Revision)));
         }
-        foreach(var version in versions) if(!request.ResourceRevisions.Any(r=>r.Type=="version"&&r.Id==version.Version.Id)) throw new ApiException(422,"missing_revision","必须提供所选版本revision。");
-        foreach(var expected in request.ResourceRevisions) {var actual=revisions.SingleOrDefault(r=>r.Type==expected.Type&&r.Id==expected.Id)??throw new ApiException(422,"foreign_revision","revision对象不属于候选资源。");if(actual.Revision!=expected.Revision) throw new ApiException(412,"stale_revision","候选资源已更新，请重新预览。");}
         return new(environmentId,scope.OrganizationId,scope.ProjectId!.Value,request.BaseConfigVersion,request.VersionIds,versions,routeDtos,clusters,policies.Select(p=>new FrozenPolicy(p.Id,p.Type,p.Config,p.Enabled,p.VersionNo)).ToArray(),bindings,applications,revisions);
     }
 }

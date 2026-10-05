@@ -1,0 +1,24 @@
+{
+  "complete": true,
+  "dotnet": {
+    "domain": 92,
+    "integration": 241,
+    "gateway": 51
+  },
+  "consoleNode": 44,
+  "runtimeNode": 59,
+  "classification": "actual-isolated-full-regression",
+  "commands": [
+    "./scripts/check-policies.sh domain",
+    "./scripts/check-policies.sh integration",
+    "./scripts/check-policies.sh gateway",
+    "./scripts/check-policies.sh console",
+    "node --test --test-concurrency=1 tests/runtime/*.test.mjs"
+  ],
+  "finalReviewFixes": [
+    "RedisClockRollbackDoesNotRefillAlreadyAccountedTime",
+    "PathEditAndTimeoutUnbindPreserveBaseTimeout",
+    "CircuitDefaultCountsEveryServerError"
+  ],
+  "runtimeSandboxRetry": "默认沙箱拒绝生命周期回环端口并触发Node原生断言；获准本机端口后完整59项通过，无产品修改"
+}

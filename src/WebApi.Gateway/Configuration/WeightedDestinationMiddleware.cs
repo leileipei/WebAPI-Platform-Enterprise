@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using WebApi.Gateway.Observability;
 using WebApi.Gateway.Security;
+using WebApi.Gateway.Policies;
+using WebApi.Contracts.Policies;
 using Yarp.ReverseProxy.Model;
 namespace WebApi.Gateway.Configuration;
 public sealed class WeightedDestinationMiddleware(RequestDelegate next)
@@ -26,6 +28,7 @@ public sealed class WeightedDestinationMiddleware(RequestDelegate next)
         if(telemetry is null){await next(ctx);return;}
         if(feature.AvailableDestinations.Count==1&&Guid.TryParse(feature.AvailableDestinations[0].DestinationId,out var selectedId))
             telemetry.Context=telemetry.Context with{DestinationId=selectedId};
+        telemetry.Context=telemetry.Context with {PolicyDecisions=TrafficExecutionContext.From(ctx)?.Decisions.Select(p=>new PolicyDecisionDto(p.PolicyId,p.PolicyType,p.PolicyRevision,p.Decision,p.RejectionReason)).ToArray()??[]};
         var recorder=ctx.RequestServices.GetRequiredService<GatewayTelemetryRecorder>();
         var started=Stopwatch.GetTimestamp();using var activity=recorder.Activities.StartActivity("gateway.proxy",ActivityKind.Client);
         TelemetryAttributes.Apply(activity,telemetry.Context);

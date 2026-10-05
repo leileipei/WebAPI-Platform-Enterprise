@@ -35,5 +35,15 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
         catch {if(owned is not null) await owned.RollbackAsync(CancellationToken.None);throw;}
         finally {if(owned is not null) await owned.DisposeAsync();}
     }
-    private static object Capture(EntityEntry e,bool original) => new {Type=e.Metadata.ClrType.Name,Fields=e.Properties.Where(p=>fields.Contains(p.Metadata.Name)).ToDictionary(p=>p.Metadata.Name,p=>original?p.OriginalValue:p.CurrentValue)};
+    private static object Capture(EntityEntry e,bool original)
+    {
+        var captured=e.Properties.Where(p=>fields.Contains(p.Metadata.Name)||(e.Entity is Policy&&p.Metadata.Name is "Type" or "VersionNo")).ToDictionary(p=>p.Metadata.Name,p=>original?p.OriginalValue:p.CurrentValue);
+        if(e.Entity is Policy) {
+            var property=e.Property(nameof(Policy.Config));var config=(string?)(original?property.OriginalValue:property.CurrentValue);
+            // Persist a hash of policy configuration rather than arbitrary legacy JSON in audit output.
+            if(config is null) captured["ConfigHash"]=null;
+            else {using var document=JsonDocument.Parse(config);captured["ConfigHash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(document.RootElement)));}
+        }
+        return new {Type=e.Metadata.ClrType.Name,Fields=captured};
+    }
 }
