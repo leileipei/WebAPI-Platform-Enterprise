@@ -58,7 +58,7 @@ internal static class CoreConstraints
         application_credentials.HasIndex("AccessKey").IsUnique();
         application_api_permissions.HasIndex("ApplicationId", "ApiId", "EnvironmentId").IsUnique();
         users.HasIndex("Username").IsUnique();
-        users.HasIndex("Email").IsUnique();
+        users.HasIndex("Email").IsUnique().HasFilter("auth_source = 'local' AND email IS NOT NULL");
         permissions.HasIndex("Code").IsUnique();
         release_records.HasIndex("ReleaseNo").IsUnique();
         gateway_config_versions.HasIndex("EnvironmentId", "VersionNo").IsUnique();

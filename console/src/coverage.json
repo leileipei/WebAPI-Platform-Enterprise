@@ -346,9 +346,9 @@
     "number": 39,
     "name": "SSO / OIDC 配置",
     "sourceRoute": "/settings/sso",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/settings/sso",
+    "status": "核心功能已接入",
+    "note": "真实 OIDC Provider 治理、显式用户绑定与会话撤销；独立 Keycloak 验收。企业 IdP 与生产 TLS 需单独验收，4192 本轮未升级。"
   },
   {
     "id": 40,

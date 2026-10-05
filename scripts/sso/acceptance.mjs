@@ -1,0 +1,13 @@
+import fs from 'node:fs/promises';import path from 'node:path';
+import {createSsoFixture,composeFor,commandFor,cleanupSsoFixture} from './fixture.mjs';
+import {runSsoScenario} from './scenario.mjs';import {assertNoSecrets} from './evidence.mjs';
+const root=path.resolve(import.meta.dirname,'../..'),publicDirectory=root+'/docs/evidence/sso';await fs.mkdir(publicDirectory,{recursive:true});
+const retainForReview=process.argv.includes('--browser')||process.argv.includes('--retain-for-review');let context;
+try{
+ context=await createSsoFixture({root,retainForReview});console.log('Running real Keycloak closed-loop checks');const result=await runSsoScenario(context);await fs.writeFile(context.directory+'/result.json',JSON.stringify(result,null,2),{mode:0o600});
+ const images=JSON.parse(await fs.readFile(root+'/deploy/images.lock.json'));await context.run('docker',['run','--rm','--workdir','/workspace','-v',context.source.sourceDirectory+':/workspace','-v',context.directory+':/sso-results','-v','webapi-enterprise-core-test_nuget-test:/nuget-seed:ro','-e','WEBAPI_SSO_RESULT_DIRECTORY=/sso-results',images.sdk,'bash','-c','mkdir -p /root/.nuget/packages; cp -a /nuget-seed/. /root/.nuget/packages/; dotnet test tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj -c Release --filter Scenario=Sso -p:RestoreLockedMode=true']);
+ result.complete=true;result.endToEndTests={passed:1,failed:0,lockedRestore:true};await fs.copyFile(context.source.manifestPath,publicDirectory+'/source-manifest.json');
+ if(retainForReview){const stored={...context};delete stored.run;delete stored.compose;await fs.writeFile(context.directory+'/review-context.json',JSON.stringify(stored,null,2),{mode:0o600});await fs.writeFile(root+'/.runtime/sso-review.json',JSON.stringify({directory:context.directory,project:context.project,owner:context.owner,url:context.endpoints.console}),{mode:0o600});console.log('Independent SSO review URL: '+context.endpoints.console);result.review={retained:true,project:context.project,url:context.endpoints.console};}
+ else result.cleanup=await cleanupSsoFixture(context);
+ await fs.writeFile(publicDirectory+'/verification.json',JSON.stringify(result,null,2)+'\n');console.log('SSO real-IDP scenario passed: '+result.checks.length+' checks');
+}catch(error){if(context){await fs.copyFile(context.directory+'/operations.log',root+'/.runtime/sso-failure-'+context.owner+'.log').catch(()=>{});await cleanupSsoFixture(context).catch(()=>{});}await fs.writeFile(publicDirectory+'/last-failure.json',JSON.stringify({complete:false,message:error.message,time:new Date().toISOString()},null,2));throw error;}

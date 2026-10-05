@@ -1602,27 +1602,232 @@ BEGIN
 END $EF$;
 COMMIT;
 
-
 START TRANSACTION;
+
 DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005090000_SystemSettings') THEN
-        CREATE TABLE system_settings (
-            key varchar(128) NOT NULL,
-            scope_type varchar(24) NOT NULL,
-            scope_id uuid NULL,
-            value jsonb NOT NULL,
-            updated_by uuid NOT NULL,
-            updated_at timestamptz NOT NULL,
-            revision bigint NOT NULL DEFAULT 1,
-            CONSTRAINT "PK_system_settings" PRIMARY KEY (key),
-            CONSTRAINT ck_system_setting_scope CHECK (scope_type = 'system' AND scope_id IS NULL),
-            CONSTRAINT ck_system_setting_key CHECK (key IN ('system.security','system.release','system.gateway','system.audit','system.notification')),
-            CONSTRAINT ck_system_setting_revision CHECK (revision > 0),
-            CONSTRAINT "FK_system_settings_users_updated_by" FOREIGN KEY(updated_by) REFERENCES users(id) ON DELETE RESTRICT
-        );
-        CREATE INDEX "IX_system_settings_updated_by" ON system_settings(updated_by);
-        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion") VALUES ('20261005090000_SystemSettings', '10.0.12');
+    CREATE TABLE system_settings (
+        key varchar(128) NOT NULL,
+        scope_type varchar(24) NOT NULL,
+        scope_id uuid,
+        value jsonb NOT NULL,
+        updated_by uuid NOT NULL,
+        updated_at timestamptz NOT NULL,
+        revision bigint NOT NULL DEFAULT 1,
+        CONSTRAINT "PK_system_settings" PRIMARY KEY (key),
+        CONSTRAINT ck_system_setting_scope CHECK (scope_type = 'system' AND scope_id IS NULL),
+        CONSTRAINT ck_system_setting_key CHECK (key IN ('system.security','system.release','system.gateway','system.audit','system.notification')),
+        CONSTRAINT ck_system_setting_revision CHECK (revision > 0),
+        CONSTRAINT "FK_system_settings_users_updated_by" FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005090000_SystemSettings') THEN
+    CREATE INDEX "IX_system_settings_updated_by" ON system_settings (updated_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005090000_SystemSettings') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261005090000_SystemSettings', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE TABLE sso_providers (
+        id uuid NOT NULL,
+        organization_id uuid,
+        name varchar(128) NOT NULL,
+        provider_type varchar(24) NOT NULL DEFAULT 'oidc',
+        issuer varchar(1024) NOT NULL,
+        client_id varchar(256) NOT NULL,
+        secret_ref varchar(512) NOT NULL,
+        scopes jsonb NOT NULL,
+        claim_mapping jsonb NOT NULL,
+        enabled boolean NOT NULL DEFAULT FALSE,
+        is_default boolean NOT NULL DEFAULT FALSE,
+        revision bigint NOT NULL DEFAULT 1,
+        auth_revision bigint NOT NULL DEFAULT 1,
+        created_at timestamptz NOT NULL DEFAULT (now()),
+        updated_at timestamptz NOT NULL DEFAULT (now()),
+        CONSTRAINT "PK_sso_providers" PRIMARY KEY (id),
+        CONSTRAINT ck_sso_provider_default CHECK (NOT is_default OR enabled),
+        CONSTRAINT ck_sso_provider_json CHECK (jsonb_typeof(scopes) = 'array' AND jsonb_typeof(claim_mapping) = 'object'),
+        CONSTRAINT ck_sso_provider_revision CHECK (revision > 0 AND auth_revision > 0),
+        CONSTRAINT ck_sso_provider_type CHECK (provider_type = 'oidc'),
+        CONSTRAINT "FK_sso_providers_organizations_organization_id" FOREIGN KEY (organization_id) REFERENCES organizations (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE TABLE sso_login_attempts (
+        id uuid NOT NULL,
+        provider_id uuid NOT NULL,
+        provider_revision bigint NOT NULL,
+        auth_revision bigint NOT NULL DEFAULT 1,
+        return_path varchar(2048) NOT NULL,
+        state varchar(24) NOT NULL,
+        created_at timestamptz NOT NULL DEFAULT (now()),
+        expires_at timestamptz NOT NULL,
+        failure_code varchar(64),
+        CONSTRAINT "PK_sso_login_attempts" PRIMARY KEY (id),
+        CONSTRAINT ck_sso_attempt_expiry CHECK (expires_at > created_at),
+        CONSTRAINT ck_sso_attempt_revision CHECK (provider_revision > 0 AND auth_revision > 0),
+        CONSTRAINT ck_sso_attempt_state CHECK (state IN ('Pending','Processing','Succeeded','Failed')),
+        CONSTRAINT "FK_sso_login_attempts_sso_providers_provider_id" FOREIGN KEY (provider_id) REFERENCES sso_providers (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE TABLE sso_provider_tests (
+        id uuid NOT NULL,
+        provider_id uuid NOT NULL,
+        provider_revision bigint NOT NULL,
+        tested_at timestamptz NOT NULL DEFAULT (now()),
+        status varchar(24) NOT NULL,
+        stages jsonb NOT NULL,
+        CONSTRAINT "PK_sso_provider_tests" PRIMARY KEY (id),
+        CONSTRAINT ck_sso_test_revision CHECK (provider_revision > 0),
+        CONSTRAINT "FK_sso_provider_tests_sso_providers_provider_id" FOREIGN KEY (provider_id) REFERENCES sso_providers (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE TABLE user_external_identities (
+        id uuid NOT NULL,
+        user_id uuid NOT NULL,
+        provider_id uuid NOT NULL,
+        issuer varchar(1024) NOT NULL,
+        subject varchar(255) NOT NULL,
+        enabled boolean NOT NULL DEFAULT TRUE,
+        revision bigint NOT NULL DEFAULT 1,
+        created_at timestamptz NOT NULL DEFAULT (now()),
+        updated_at timestamptz NOT NULL DEFAULT (now()),
+        CONSTRAINT "PK_user_external_identities" PRIMARY KEY (id),
+        CONSTRAINT ck_external_identity_revision CHECK (revision > 0),
+        CONSTRAINT "FK_user_external_identities_sso_providers_provider_id" FOREIGN KEY (provider_id) REFERENCES sso_providers (id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_user_external_identities_users_user_id" FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE INDEX "IX_sso_login_attempts_provider_id" ON sso_login_attempts (provider_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE INDEX "IX_sso_login_attempts_state_expires_at" ON sso_login_attempts (state, expires_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE INDEX "IX_sso_provider_tests_provider_id_tested_at" ON sso_provider_tests (provider_id, tested_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE UNIQUE INDEX ux_sso_default_organization ON sso_providers (organization_id) WHERE organization_id IS NOT NULL AND is_default AND enabled;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE UNIQUE INDEX ux_sso_default_platform ON sso_providers (is_default) WHERE organization_id IS NULL AND is_default AND enabled;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE UNIQUE INDEX "IX_user_external_identities_provider_id_issuer_subject" ON user_external_identities (provider_id, issuer, subject);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    CREATE UNIQUE INDEX "IX_user_external_identities_user_id" ON user_external_identities (user_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005120000_SsoOidc') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261005120000_SsoOidc', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005123210_SsoDisplayEmail') THEN
+    DROP INDEX "IX_users_email";
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005123210_SsoDisplayEmail') THEN
+    CREATE UNIQUE INDEX "IX_users_email" ON users (email) WHERE auth_source = 'local' AND email IS NOT NULL;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005123210_SsoDisplayEmail') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261005123210_SsoDisplayEmail', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005152401_SsoSecretVersion') THEN
+    ALTER TABLE sso_providers ADD protected_secret_fingerprint text;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261005152401_SsoSecretVersion') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261005152401_SsoSecretVersion', '10.0.12');
     END IF;
 END $EF$;
 COMMIT;

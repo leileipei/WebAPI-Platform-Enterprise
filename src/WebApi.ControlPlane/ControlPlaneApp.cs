@@ -1,3 +1,5 @@
+using WebApi.ControlPlane.Sso;
+using WebApi.Infrastructure.Sso;
 using WebApi.ControlPlane.Settings;
 using WebApi.Infrastructure.Settings;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -56,6 +58,28 @@ public static class ControlPlaneApp
         builder.Services.AddSingleton(new UpstreamAddressPolicy(origins));
         builder.Services.TryAddSingleton<TimeProvider>(TimeProvider.System);builder.Services.AddScoped<SettingsPreviewProtector>();builder.Services.AddScoped<SystemSettingsService>();builder.Services.AddScoped<SystemSettingsReader>();builder.Services.AddScoped<AuditAccessQuery>();builder.Services.AddScoped<AuditExportService>();builder.Services.AddScoped<GovernanceService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();
         builder.Services.AddScoped<AccountService>();builder.Services.AddScoped<AuthorizationService>();
+        builder.Services.Configure<SsoOptions>(builder.Configuration.GetSection("Sso"));
+        // URI keys contain ':' and cannot be represented by flattened configuration paths.
+        // This explicit development-fixture adapter preserves exact origins for the socket override.
+        builder.Services.PostConfigure<SsoOptions>(settings=>{
+            var raw=builder.Configuration["Sso:FixtureConnectOverridesJson"];
+            if(!builder.Environment.IsDevelopment()||!settings.FixtureEnabled||string.IsNullOrEmpty(raw))return;
+            if(raw.Length>4096)throw new InvalidOperationException("Invalid SSO fixture connection configuration.");
+            var overrides=System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,string>>(raw,new System.Text.Json.JsonSerializerOptions{MaxDepth=4})??throw new InvalidOperationException("Invalid SSO fixture connection configuration.");
+            if(overrides.Count>16)throw new InvalidOperationException("Invalid SSO fixture connection configuration.");
+            settings.FixtureConnectOverrides=overrides;
+        });
+        builder.Services.TryAddSingleton<ISsoDnsResolver,SystemSsoDnsResolver>();
+        builder.Services.TryAddSingleton<IOidcAddressPolicy,OidcAddressPolicy>();
+        builder.Services.TryAddSingleton<ISsoSecretResolver,SsoSecretResolver>();
+        builder.Services.TryAddSingleton<IOidcMetadataClient>(sp=>new OidcMetadataClient(
+            sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<SsoOptions>>(),sp.GetRequiredService<IOidcAddressPolicy>(),
+            sp.GetRequiredService<TimeProvider>(),new HttpClient(new SsoBackchannelHandler(sp.GetRequiredService<IOidcAddressPolicy>())){Timeout=Timeout.InfiniteTimeSpan}));
+        builder.Services.AddSingleton<SsoSecretVersion>();builder.Services.AddScoped<SsoProviderService>();
+        builder.Services.AddScoped<LocalAdministratorGuard>();builder.Services.AddScoped<ExternalIdentityService>();
+        builder.Services.AddScoped<SsoLoginCoordinator>();
+        builder.Services.AddSingleton<OidcSchemeRegistry>();builder.Services.AddScoped<PlatformSessionIssuer>();
+        builder.Services.AddScoped<SsoSessionValidator>();builder.Services.AddScoped<SsoAttemptCleanupService>();builder.Services.AddHostedService<SsoAttemptCleanupWorker>();
         builder.Services.AddScoped<WebApi.Contracts.Security.IAuthorizationService>(sp=>sp.GetRequiredService<AuthorizationService>());
         builder.Services.AddSingleton(ObservationSourceSettings.Read(builder.Configuration));
         builder.Services.AddHttpClient("observability",client=>client.Timeout=TimeSpan.FromSeconds(10)).ConfigurePrimaryHttpMessageHandler(()=>new SocketsHttpHandler{AllowAutoRedirect=false,UseCookies=false});
@@ -72,14 +96,26 @@ public static class ControlPlaneApp
                 if(!Guid.TryParse(ctx.Principal?.FindFirstValue(ClaimTypes.NameIdentifier),out var id)) {ctx.RejectPrincipal();return;}
                 var db=ctx.HttpContext.RequestServices.GetRequiredService<WebApiDbContext>();
                 var stamp=ctx.Principal?.FindFirstValue("security_stamp");
-                if(!await db.Set<UserRecord>().AsNoTracking().AnyAsync(x=>x.Id==id && x.Status=="Active" && x.SecurityStamp==stamp,ctx.HttpContext.RequestAborted)) ctx.RejectPrincipal();
+                var providerValue=ctx.Principal?.FindFirstValue("sso_provider");
+                var revisionValue=ctx.Principal?.FindFirstValue("sso_auth_revision");var bindingValue=ctx.Principal?.FindFirstValue("sso_binding");
+                if(providerValue is not null||revisionValue is not null||bindingValue is not null)
+                {
+                    if(!Guid.TryParse(providerValue,out var provider)||!long.TryParse(revisionValue,System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var revision)||
+                        !Guid.TryParse(bindingValue,out var binding)||!await ctx.HttpContext.RequestServices.GetRequiredService<SsoSessionValidator>().ValidateAsync(id,stamp??"",provider,revision,binding,ctx.HttpContext.RequestAborted))ctx.RejectPrincipal();
+                }
+                else if(!await db.Set<UserRecord>().AsNoTracking().AnyAsync(x=>x.Id==id && x.Status=="Active" && x.SecurityStamp==stamp,ctx.HttpContext.RequestAborted)) ctx.RejectPrincipal();
             };
         });
+        builder.Services.AddAuthentication().AddOpenIdConnect("oidc-template",_=>{});
+        builder.Services.AddSingleton<Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider,OidcSchemeProvider>();
+        builder.Logging.AddFilter("Microsoft.AspNetCore.Authentication.OpenIdConnect",LogLevel.None);
+        builder.Logging.AddFilter("Microsoft.IdentityModel",LogLevel.None);
+        builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics",LogLevel.Warning);
         builder.Services.AddAuthorization();
         builder.Services.AddAntiforgery(options=>{options.HeaderName="X-CSRF-Token";options.Cookie.Name=builder.Configuration["Antiforgery:CookieName"]??"WebApi.Csrf";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;options.Cookie.SecurePolicy=local?CookieSecurePolicy.SameAsRequest:CookieSecurePolicy.Always;});
         var app=builder.Build();
         app.Use(ProblemDetailsMapping.HandleAsync);
-        app.UseAuthentication();app.UseAuthorization();
+        app.UseMiddleware<SsoProtocolMiddleware>();app.UseAuthentication();app.UseAuthorization();
         app.Use(async(ctx,next)=>{
             if(ctx.Request.Path.StartsWithSegments("/api/v1") && !HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method) && !HttpMethods.IsOptions(ctx.Request.Method))
             {
@@ -90,6 +126,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
+        app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
     }
 }

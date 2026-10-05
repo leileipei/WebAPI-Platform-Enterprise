@@ -1,3 +1,4 @@
+using WebApi.Infrastructure.Sso;
 using WebApi.Infrastructure.Settings;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
@@ -9,7 +10,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Governance;
-public sealed class GovernanceService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IPasswordHasher<UserRecord> passwords,SystemSettingsReader settings,AuditAccessQuery auditAccess)
+public sealed class GovernanceService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IPasswordHasher<UserRecord> passwords,SystemSettingsReader settings,AuditAccessQuery auditAccess,LocalAdministratorGuard localAdministrators)
 {
     private static readonly ScopeRef platform=new(Guid.Empty);
     private static OrganizationDto Dto(Organization x)=>new(x.Id,x.Code,x.Name,x.Status,x.Revision);
@@ -103,6 +104,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
     {
         var admins=from u in db.Set<UserRecord>() join ur in db.Set<UserRole>() on u.Id equals ur.UserId join r in db.Set<Role>() on ur.RoleId equals r.Id where u.Status=="Active"&&r.IsSystem&&r.OrganizationId==null&&r.Code=="PlatformAdmin" select u.Id;
         if(await admins.AnyAsync(x=>x==id,ct)&&!await admins.AnyAsync(x=>x!=id,ct)) throw new ApiException(409,"last_platform_admin","不能停用或撤销最后一位平台管理员。");
+        await localAdministrators.ProtectRemovalAsync(id,ct);
     }
     public Task<CommandResult<UserDto>> AssignRolesAsync(Guid id,AssignRolesRequest request,string? tag,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,platform,"user.roles",async(_,token)=>{
         await Require(actor,"user.manage",platform,id,token);var user=await db.Set<UserRecord>().SingleOrDefaultAsync(x=>x.Id==id,token)??throw ScopeResolver.Missing();RevisionTag.Require(tag,user.Revision);

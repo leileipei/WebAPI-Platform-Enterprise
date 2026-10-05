@@ -20,11 +20,11 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             var value=await command(db,cancellationToken);
             db.ChangeTracker.DetectChanges();
             var changes=db.ChangeTracker.Entries().Where(e=>e.Entity is not AuditLog && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted).ToArray();
-            var first=changes.FirstOrDefault(e=>e.Entity is SystemSetting)??changes.FirstOrDefault();
+            var first=changes.FirstOrDefault(e=>e.Entity is SsoProvider or SsoProviderTest)??changes.FirstOrDefault(e=>e.Entity is SystemSetting)??changes.FirstOrDefault(e=>e.Entity is not IdempotencyRecord);
             if(changes.Length>0) db.Add(new AuditLog {
                 UserId=actor.UserId,OrganizationId=scope.OrganizationId==Guid.Empty?null:scope.OrganizationId,ProjectId=scope.ProjectId,EnvironmentId=scope.EnvironmentId,
-                Action=action,ResourceType=first?.Metadata.ClrType.Name??action.Split('.')[0],
-                ResourceId=first?.Properties.FirstOrDefault(p=>p.Metadata.IsPrimaryKey())?.CurrentValue?.ToString()??"",
+                Action=action,ResourceType=first?.Entity is SsoProviderTest?nameof(SsoProvider):first?.Metadata.ClrType.Name??action.Split('.')[0],
+                ResourceId=first?.Entity is SsoProviderTest test?test.ProviderId.ToString():first?.Properties.FirstOrDefault(p=>p.Metadata.IsPrimaryKey())?.CurrentValue?.ToString()??"",
                 BeforeJson=JsonSerializer.Serialize(changes.Where(e=>e.State!=EntityState.Added).Select(e=>Capture(e,true))),
                 AfterJson=JsonSerializer.Serialize(changes.Where(e=>e.State!=EntityState.Deleted).Select(e=>Capture(e,false))),TraceId=actor.TraceId,Ip=metadata?.Ip
             });
@@ -38,6 +38,30 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
     private static object Capture(EntityEntry e,bool original)
     {
         var captured=e.Properties.Where(p=>fields.Contains(p.Metadata.Name)||(e.Entity is Policy&&p.Metadata.Name is "Type" or "VersionNo")).ToDictionary(p=>p.Metadata.Name,p=>original?p.OriginalValue:p.CurrentValue);
+        if(e.Entity is SsoProvider)
+        {
+            foreach(var name in new[]{"AuthRevision","IsDefault","ProviderType"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
+            var configFields=new[]{"Issuer","ClientId","OrganizationId","SecretRef","ScopesJson","ClaimMappingJson"};
+            var config=configFields.ToDictionary(name=>name,name=>original?e.Property(name).OriginalValue:e.Property(name).CurrentValue);
+            captured["ConfigHash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(config)));
+            captured["HasSecretReference"]=!string.IsNullOrEmpty((string?)config["SecretRef"]);
+            captured["ChangedFields"]=e.Properties.Where(p=>!Equals(p.OriginalValue,p.CurrentValue)).Select(p=>p.Metadata.Name).ToArray();
+        }
+        if(e.Entity is SsoProviderTest)
+        {
+            captured["ProviderId"]=original?e.Property("ProviderId").OriginalValue:e.Property("ProviderId").CurrentValue;
+            captured["ProviderRevision"]=original?e.Property("ProviderRevision").OriginalValue:e.Property("ProviderRevision").CurrentValue;
+        }
+        if(e.Entity is UserExternalIdentity)
+        {
+            captured["ProviderId"]=original?e.Property("ProviderId").OriginalValue:e.Property("ProviderId").CurrentValue;
+            captured["ChangedFields"]=e.Properties.Where(p=>!Equals(p.OriginalValue,p.CurrentValue)).Select(p=>p.Metadata.Name).ToArray();
+        }
+        if(e.Entity is UserRecord user&&user.AuthSource=="sso")
+        {
+            captured.Remove("DisplayName");captured["AuthSource"]="sso";
+            captured["ChangedFields"]=e.Properties.Where(p=>!Equals(p.OriginalValue,p.CurrentValue)&&p.Metadata.Name is not ("PasswordHash" or "SecurityStamp")).Select(p=>p.Metadata.Name).ToArray();
+        }
         if(e.Entity is SystemSetting setting) {
             var prop=e.Property(nameof(SystemSetting.Value));var json=(string?)(original?prop.OriginalValue:prop.CurrentValue)??"{}";
             using var doc=JsonDocument.Parse(json);captured["Key"]=setting.Key;

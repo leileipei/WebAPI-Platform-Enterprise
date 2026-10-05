@@ -1,0 +1,21 @@
+services:
+  postgres:
+    labels:
+      com.webapi.sso.owner: ${WEBAPI_SSO_TEST_OWNER:?required}
+  redis:
+    labels:
+      com.webapi.sso.owner: ${WEBAPI_SSO_TEST_OWNER:?required}
+  sdk:
+    labels:
+      com.webapi.sso.owner: ${WEBAPI_SSO_TEST_OWNER:?required}
+secrets:
+  postgres-password:
+    file: ${WEBAPI_SSO_TEST_DIRECTORY:?required}/postgres-password
+
+volumes:
+  pg-test:
+    labels:
+      com.webapi.sso.owner: ${WEBAPI_SSO_TEST_OWNER:?required}
+  nuget-test:
+    labels:
+      com.webapi.sso.owner: ${WEBAPI_SSO_TEST_OWNER:?required}

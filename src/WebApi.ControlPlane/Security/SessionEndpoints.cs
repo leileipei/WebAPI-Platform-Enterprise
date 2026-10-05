@@ -16,7 +16,7 @@ public static class SessionEndpoints
     {
         var group=app.MapGroup("/api/v1/auth").AddEndpointFilter<RequestValidationFilter>();
         group.MapGet("/csrf",(HttpContext ctx,IAntiforgery antiforgery)=> {ctx.Response.Headers.CacheControl="no-store";return Results.Ok(new { token=antiforgery.GetAndStoreTokens(ctx).RequestToken });}).AllowAnonymous();
-        group.MapPost("/login",async (LoginRequest request,HttpContext ctx,AccountService accounts,WebApiDbContext db,SystemSettingsReader settings,TimeProvider clock,Microsoft.AspNetCore.Identity.IPasswordHasher<UserRecord> hasher,CancellationToken ct)=> {
+        group.MapPost("/login",async (LoginRequest request,HttpContext ctx,AccountService accounts,WebApiDbContext db,SystemSettingsReader settings,TimeProvider clock,Microsoft.AspNetCore.Identity.IPasswordHasher<UserRecord> hasher,PlatformSessionIssuer issuer,CancellationToken ct)=> {
             var user=await accounts.AuthenticateAsync(request,ct);
             // Recheck status inside the write transaction; locks serialize concurrent user disablement.
             await using var tx=await db.Database.BeginTransactionAsync(ct);
@@ -27,9 +27,7 @@ public static class SessionEndpoints
             var ttl=(await settings.SecurityAsync(ct)).SessionTtlMinutes;
             db.Add(new AuditLog {UserId=user.Id,Action="auth.login",ResourceType="user",ResourceId=user.Id.ToString(),Ip=ctx.Connection.RemoteIpAddress,TraceId=ctx.TraceIdentifier});
             await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
-            var principal=new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier,user.Id.ToString()),new Claim("security_stamp",user.SecurityStamp)],CookieAuthenticationDefaults.AuthenticationScheme));
-            var issued=clock.GetUtcNow();
-            await ctx.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,principal,new AuthenticationProperties { IsPersistent=false,IssuedUtc=issued,ExpiresUtc=issued.AddMinutes(ttl) });
+            await issuer.IssueAsync(ctx,user.Id,user.SecurityStamp,ttl,null,ct);
             ctx.Response.Headers.CacheControl="no-store";
             return Results.Ok(await accounts.IdentityAsync(user.Id,ct));
         }).AllowAnonymous();

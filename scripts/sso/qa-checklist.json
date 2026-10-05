@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "checks": [
+    {
+      "id": "login",
+      "route": "/login",
+      "action": "本地登录和固定企业入口",
+      "expected": "本地管理员可登录，登录表单无溢出",
+      "evidence": "final-01-login.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "list",
+      "route": "/settings/sso",
+      "action": "真实列表、长字段和修订",
+      "expected": "1440px无横向溢出，旧测试修订不冒充当前测试",
+      "evidence": "final-02-provider-list.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "busy-refresh",
+      "route": "/settings/sso",
+      "action": "真实PUT延迟中触发一次403权限复查，再释放",
+      "expected": "busy释放、保存及关闭可用、Escape关闭",
+      "evidence": "final-busy-unlocked.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "grammar",
+      "route": "/settings/sso",
+      "action": "提交128字符名称、带点别名和长Issuer",
+      "expected": "服务端保存r1，仍未启用、不宣称连接通过",
+      "evidence": "final-09-long-fields.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "test",
+      "route": "/settings/sso",
+      "action": "真实连接测试",
+      "expected": "显示当前测试修订与六个阶段，登录范围说明明确",
+      "evidence": "final-05-test-stages.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "conflict",
+      "route": "/settings/sso",
+      "action": "第二管理员并发修改；旧etag保存，读取核对最新再保存",
+      "expected": "412保留输入；采用r10后保存r11",
+      "evidence": "final-06-conflict.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "binding",
+      "route": "/users",
+      "action": "Active绑定只读，Tab及Escape",
+      "expected": "无密码输入，Tab留在弹窗，Escape关闭",
+      "evidence": "final-04-sso-user.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "idp",
+      "route": "/login",
+      "action": "同源POST进入真实Keycloak",
+      "expected": "真实IdP表单，既有合成账号登录",
+      "evidence": "final-07-keycloak.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "failure",
+      "route": "/login",
+      "action": "临时错误客户端秘密且明确轮换，真实登录失败",
+      "expected": "通用错误/trace；本地登录入口仍可用",
+      "evidence": "final-08-generic-failure.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "cookies",
+      "route": "/auth/sso/complete",
+      "action": "恢复秘密后登录，并在IdP表单显式重新验证",
+      "expected": "临时Cookie跨站携带；表单流程Strict在回调/complete缺席，同源me恢复",
+      "evidence": "cookie-evidence.json",
+      "status": "passed"
+    },
+    {
+      "id": "sso-write",
+      "route": "/settings/sso",
+      "action": "完成SSO后修改名称",
+      "expected": "新CSRF受保护写入成功r14，沿用平台明确角色",
+      "evidence": "final-03-provider-drawer.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "reauthenticate",
+      "route": "/login",
+      "action": "平台退出并勾选重新验证",
+      "expected": "Keycloak要求再次输入已有密码，完成后恢复平台会话",
+      "evidence": "cookie-evidence.json",
+      "status": "passed"
+    },
+    {
+      "id": "revocation",
+      "route": "/settings/sso",
+      "action": "保持功能码撤真实SystemPlatformAdmin；延迟授权详情，刷新后释放",
+      "expected": "dialog0/referenceInputs0，迟到响应无法恢复详情",
+      "evidence": "final-10-permission-revoked.jpg",
+      "status": "passed"
+    }
+  ],
+  "initialPhaseChecklist": "docs/evidence/sso/ui/initial-review-phase/qa.json"
+}
