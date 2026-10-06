@@ -1,0 +1,12 @@
+{
+  "complete": false,
+  "sourceRevision": "f0dc1db5804b9c424aa4005f70777eb02a8850a2",
+  "project": "webapi-enterprise-e2e-comparisons-db85a78e-a43d-413d-a8b4-a423aee43536",
+  "message": "409",
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "networksRemaining": 0,
+    "secretsRemaining": 0
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "codeSourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "fileName": "WebAPI_Enterprise_版本比较与风险评审_20261006.zip",
+  "sha256": "7b60e1483c9e45f8e23c0db81c43ef97b18171e8760bf2c00bc82b7272818f5e",
+  "bytes": 11304934,
+  "entries": 31,
+  "crc": "passed",
+  "allEntryShaReadback": "passed",
+  "secretMarkerScan": "passed",
+  "sourceArchiveHash": "2d75b32cb085471929fe5b9eb29a463ae84767cce9172b3d84b95530b802e2ba",
+  "complete": true,
+  "runtime4192Upgraded": false,
+  "mainCheckoutMerged": false
+}

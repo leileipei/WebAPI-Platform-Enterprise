@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "complete": true,
+  "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "image": {
+    "schemaVersion": 1,
+    "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+    "createdAt": "2026-10-06T07:36:57.018Z",
+    "imageTag": "webapi-enterprise-runtime:943143fdf4022f55b599fd521cf2e4fbe74a502d",
+    "imageId": "sha256:0f2b243d098d19eca5d1ea1d1acb853893cf0260495bcb230fd28386fc46962c",
+    "dependencyImages": {
+      "sdk": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+      "postgres": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "redis": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "collector": "otel/opentelemetry-collector-contrib@sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+      "prometheus": "prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+      "loki": "grafana/loki@sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+      "tempo": "grafana/tempo@sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd"
+    },
+    "staticFiles": {
+      "console/dist/assets/index-6r1K49Kw.css": "94a3cf3a364f5ebf0b5ed60938724aa22e42821e1742396a233cbbb17f3f5b63",
+      "console/dist/assets/index-ByJIBa2q.js": "a0c8475393eee56bcf8b7b5276fbf0d7558bf671016b11b6e26d90b1f671fb9a",
+      "console/dist/index.html": "bb642c5b02ce3779ec2345bf9ac106e158b94fb3580b5b3b54fc7ad9067f35ef"
+    },
+    "configVersion": 1
+  },
+  "api": {
+    "passed": true
+  },
+  "permissions": {
+    "passed": true
+  },
+  "publish": {
+    "passed": true,
+    "targets": [
+      {
+        "nodeId": "a201addd-713a-485d-8989-c89eecef0181",
+        "instanceId": "23484cc6-0434-4d12-b5b5-d7cf05c5aad2",
+        "acknowledged": true,
+        "configVersion": 1,
+        "deploymentSequence": 1,
+        "errorCode": null
+      },
+      {
+        "nodeId": "cbcf6abd-83fa-4903-9c69-bf2a82495d4b",
+        "instanceId": "ea0c6a0c-0fc3-4de5-bce0-2936c01e4c57",
+        "acknowledged": true,
+        "configVersion": 1,
+        "deploymentSequence": 1,
+        "errorCode": null
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "real-comparison-and-strong-review",
+      "passed": true,
+      "evidence": {
+        "comparisonId": "9531eb6e-b4dc-42ea-a372-ece4cb0ea8e4",
+        "reviewId": "e595923d-9481-49a2-b518-b55bd01a0c91",
+        "counts": {
+          "added": 0,
+          "changed": 1,
+          "removed": 0,
+          "compatible": 0,
+          "breaking": 1,
+          "unknown": 0
+        },
+        "coverage": "Complete"
+      }
+    },
+    {
+      "name": "server-target-handoff",
+      "passed": true,
+      "evidence": {
+        "targetVersionId": "3b8f2867-d3aa-4227-8a76-d7aa94939c80",
+        "reviewId": "e595923d-9481-49a2-b518-b55bd01a0c91"
+      }
+    },
+    {
+      "name": "review-revocation-denies-protected-write",
+      "passed": true,
+      "evidence": {
+        "deniedStatus": 403
+      }
+    },
+    {
+      "name": "independent-approval-and-dual-gateway-ack",
+      "passed": true,
+      "evidence": {
+        "releaseId": "1b8b7687-f69e-4745-8500-f14116ec2779",
+        "targets": [
+          {
+            "nodeId": "a201addd-713a-485d-8989-c89eecef0181",
+            "instanceId": "23484cc6-0434-4d12-b5b5-d7cf05c5aad2",
+            "acknowledged": true,
+            "configVersion": 1,
+            "deploymentSequence": 1,
+            "errorCode": null
+          },
+          {
+            "nodeId": "cbcf6abd-83fa-4903-9c69-bf2a82495d4b",
+            "instanceId": "ea0c6a0c-0fc3-4de5-bce0-2936c01e4c57",
+            "acknowledged": true,
+            "configVersion": 1,
+            "deploymentSequence": 1,
+            "errorCode": null
+          }
+        ],
+        "configVersion": 1,
+        "deploymentSequence": 1
+      }
+    },
+    {
+      "name": "legacy-no-reference-publish",
+      "passed": true,
+      "evidence": {
+        "releaseId": "7fdc75dc-e92b-475e-b5a0-21131f799349",
+        "targets": [
+          {
+            "nodeId": "a201addd-713a-485d-8989-c89eecef0181",
+            "instanceId": "23484cc6-0434-4d12-b5b5-d7cf05c5aad2",
+            "acknowledged": true,
+            "configVersion": 2,
+            "deploymentSequence": 2,
+            "errorCode": null
+          },
+          {
+            "nodeId": "cbcf6abd-83fa-4903-9c69-bf2a82495d4b",
+            "instanceId": "ea0c6a0c-0fc3-4de5-bce0-2936c01e4c57",
+            "acknowledged": true,
+            "configVersion": 2,
+            "deploymentSequence": 2,
+            "errorCode": null
+          }
+        ]
+      }
+    }
+  ],
+  "ui": {
+    "verified": true,
+    "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+    "horizontalOverflow": false,
+    "browsers": [
+      "Codex IAB: primary interactions and screenshots",
+      "Chrome: real downloads and read-only permissions"
+    ],
+    "actions": [
+      {
+        "name": "version-selection",
+        "passed": true,
+        "observed": "Selected baseline 1.0.0 and draft 4.0.0-ui in the real browser."
+      },
+      {
+        "name": "generate",
+        "passed": true,
+        "observed": "Server generated Complete report, Breaking 1."
+      },
+      {
+        "name": "risk-filter",
+        "passed": true,
+        "observed": "Compatible showed 0/1 rows while overall Breaking count remained 1; Breaking restored row."
+      },
+      {
+        "name": "fragment-details",
+        "passed": true,
+        "observed": "Enter toggled native summary; actual long enum fragment remained locally scrollable."
+      },
+      {
+        "name": "json-export",
+        "passed": true,
+        "observed": "Chrome download read back with whole finding despite filtered zero visible rows."
+      },
+      {
+        "name": "csv-export",
+        "passed": true,
+        "observed": "Chrome download read back with header and whole finding."
+      },
+      {
+        "name": "strong-confirmation",
+        "passed": true,
+        "observed": "21-character remark alone did not enable submit; checking confirmation enabled it."
+      },
+      {
+        "name": "review-record",
+        "passed": true,
+        "observed": "AcceptedRisk persisted with actor, timestamp, remark and report hash."
+      },
+      {
+        "name": "wizard-handoff",
+        "passed": true,
+        "observed": "reviewId resolved server target; version selector disabled; real draft and preview submitted."
+      },
+      {
+        "name": "release-summary",
+        "passed": true,
+        "observed": "Frozen risk evidence and independent Pending approval steps visible; applicant cannot approve."
+      },
+      {
+        "name": "keyboard-focus",
+        "passed": true,
+        "observed": "Shift-Tab wrapped inside modal; close/Escape restored focus; remark retained and checkbox reset."
+      },
+      {
+        "name": "workspace-switch",
+        "passed": true,
+        "observed": "Changing environment cleared report and closed modal; old result was not retained."
+      }
+    ],
+    "screenshots": [
+      {
+        "name": "comparison",
+        "sha256": "da84ed0d342cd2793331b8df809724bd90a739f38bb7059917c7cc88cca42a48",
+        "width": 1440,
+        "height": 1024
+      },
+      {
+        "name": "unknown",
+        "sha256": "b0e99214803b98b1a908ca15025d379f37feff4f400c3639080cc48a042ca85a",
+        "width": 1440,
+        "height": 1024
+      },
+      {
+        "name": "strong-confirmation",
+        "sha256": "de94f0cfcab1de737ba0d3adeb6b0aa1e08ab858fc3791d38358a79933a93f47",
+        "width": 1440,
+        "height": 1024
+      },
+      {
+        "name": "review-record",
+        "sha256": "c47468e230e6aeabfe7809d9cc71bce0083b0ad4aa2d12e5291415a192fd8a7d",
+        "width": 1440,
+        "height": 1024
+      },
+      {
+        "name": "wizard-handoff",
+        "sha256": "8867fe775dae27651d03e78dcda786fd37b95b9cdcda729044f6bae33470dfc8",
+        "width": 1440,
+        "height": 1024
+      },
+      {
+        "name": "release-summary",
+        "sha256": "3f014274548a6b393e91ff04771eecf94bcf9e6255afd72edbc9b6b8e0374104",
+        "width": 1440,
+        "height": 1024
+      }
+    ],
+    "additionalScreenshots": [
+      {
+        "name": "long-fragment",
+        "sha256": "e37ceb6d4ca957d445d538bf51f44ca1721c8257314b777de5cd9772dd800cb8",
+        "width": 1440,
+        "height": 1024
+      }
+    ],
+    "longFragment": {
+      "containerWidth": 450,
+      "afterWidth": 219,
+      "scrollWidth": 18212,
+      "overflowX": "auto",
+      "pageHorizontalOverflow": false
+    },
+    "limitations": [
+      "Desktop 1440x1024 local isolated acceptance only",
+      "Not full WCAG, assistive-technology, mobile, load or production integration acceptance",
+      "IAB download event did not yield a file; download acceptance completed in Chrome"
+    ]
+  },
+  "scope": {
+    "organizationId": "29a1a4c9-3a75-4188-97ce-de74ef01db3d",
+    "projectId": "ee2b18b3-4cd3-4f36-bbb6-4e67e106da39",
+    "environmentId": "044cb205-ba5f-4160-8598-9ade4888f965"
+  },
+  "apiId": "8bc1fdda-e6d0-4ce4-a749-0e4a93190f61",
+  "comparisonId": "9531eb6e-b4dc-42ea-a372-ece4cb0ea8e4",
+  "reviewId": "e595923d-9481-49a2-b518-b55bd01a0c91",
+  "releaseId": "1b8b7687-f69e-4745-8500-f14116ec2779",
+  "targetVersionId": "3b8f2867-d3aa-4227-8a76-d7aa94939c80",
+  "time": "2026-10-06T07:37:13.577Z",
+  "toolManifestHash": "17bebef3c726078c3ee3194ce2aee7849a05f40a1496e7ff8d34b8ac25ee829a",
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "networksRemaining": 0,
+    "secretsRemaining": 0
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "verified": true,
+  "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "horizontalOverflow": false,
+  "browsers": [
+    "Codex IAB: primary interactions and screenshots",
+    "Chrome: real downloads and read-only permissions"
+  ],
+  "actions": [
+    {
+      "name": "version-selection",
+      "passed": true,
+      "observed": "Selected baseline 1.0.0 and draft 4.0.0-ui in the real browser."
+    },
+    {
+      "name": "generate",
+      "passed": true,
+      "observed": "Server generated Complete report, Breaking 1."
+    },
+    {
+      "name": "risk-filter",
+      "passed": true,
+      "observed": "Compatible showed 0/1 rows while overall Breaking count remained 1; Breaking restored row."
+    },
+    {
+      "name": "fragment-details",
+      "passed": true,
+      "observed": "Enter toggled native summary; actual long enum fragment remained locally scrollable."
+    },
+    {
+      "name": "json-export",
+      "passed": true,
+      "observed": "Chrome download read back with whole finding despite filtered zero visible rows."
+    },
+    {
+      "name": "csv-export",
+      "passed": true,
+      "observed": "Chrome download read back with header and whole finding."
+    },
+    {
+      "name": "strong-confirmation",
+      "passed": true,
+      "observed": "21-character remark alone did not enable submit; checking confirmation enabled it."
+    },
+    {
+      "name": "review-record",
+      "passed": true,
+      "observed": "AcceptedRisk persisted with actor, timestamp, remark and report hash."
+    },
+    {
+      "name": "wizard-handoff",
+      "passed": true,
+      "observed": "reviewId resolved server target; version selector disabled; real draft and preview submitted."
+    },
+    {
+      "name": "release-summary",
+      "passed": true,
+      "observed": "Frozen risk evidence and independent Pending approval steps visible; applicant cannot approve."
+    },
+    {
+      "name": "keyboard-focus",
+      "passed": true,
+      "observed": "Shift-Tab wrapped inside modal; close/Escape restored focus; remark retained and checkbox reset."
+    },
+    {
+      "name": "workspace-switch",
+      "passed": true,
+      "observed": "Changing environment cleared report and closed modal; old result was not retained."
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "comparison",
+      "sha256": "da84ed0d342cd2793331b8df809724bd90a739f38bb7059917c7cc88cca42a48",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "unknown",
+      "sha256": "b0e99214803b98b1a908ca15025d379f37feff4f400c3639080cc48a042ca85a",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "strong-confirmation",
+      "sha256": "de94f0cfcab1de737ba0d3adeb6b0aa1e08ab858fc3791d38358a79933a93f47",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "review-record",
+      "sha256": "c47468e230e6aeabfe7809d9cc71bce0083b0ad4aa2d12e5291415a192fd8a7d",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "wizard-handoff",
+      "sha256": "8867fe775dae27651d03e78dcda786fd37b95b9cdcda729044f6bae33470dfc8",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "release-summary",
+      "sha256": "3f014274548a6b393e91ff04771eecf94bcf9e6255afd72edbc9b6b8e0374104",
+      "width": 1440,
+      "height": 1024
+    }
+  ],
+  "additionalScreenshots": [
+    {
+      "name": "long-fragment",
+      "sha256": "e37ceb6d4ca957d445d538bf51f44ca1721c8257314b777de5cd9772dd800cb8",
+      "width": 1440,
+      "height": 1024
+    }
+  ],
+  "longFragment": {
+    "containerWidth": 450,
+    "afterWidth": 219,
+    "scrollWidth": 18212,
+    "overflowX": "auto",
+    "pageHorizontalOverflow": false
+  },
+  "limitations": [
+    "Desktop 1440x1024 local isolated acceptance only",
+    "Not full WCAG, assistive-technology, mobile, load or production integration acceptance",
+    "IAB download event did not yield a file; download acceptance completed in Chrome"
+  ]
+}

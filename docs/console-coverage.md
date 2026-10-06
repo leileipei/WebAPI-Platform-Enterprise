@@ -14,7 +14,7 @@
 |8|OpenAPI导入|/imports|已接入3 JSON原文、Operation映射；URL/YAML后续|
 |9|API详情|/apis/{id}|已接入工作/运行/待发布事实|
 |10|版本|/apis/{id}|已接入版本Tab|
-|11|版本比较与风险评审|/apis/{id}/versions/compare|源码已接入真实比较、历史/导出、追加风险评审和可选发布证据；规则覆盖受限，固定来源隔离 UI 验收及4192升级待执行|
+|11|版本比较与风险评审|/apis/{id}/versions/compare|真实比较、历史/导出、追加风险评审和可选发布证据已完成固定源码隔离验收及1440px UI QA；规则覆盖受限，4192未升级|
 |12|Route|/routes|已接入环境专属路由|
 |13|参数Schema|/apis/{id}|已接入参数/Schema Tab与原文编辑；完整树和例验证后续|
 |14|Cluster|/clusters|已接入|

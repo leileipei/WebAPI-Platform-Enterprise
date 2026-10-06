@@ -1,0 +1,22 @@
+{
+  "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "exports": [
+    {
+      "format": "json",
+      "bytes": 1702,
+      "sha256": "b71472765da78a97c9e70507a3277a2de205ddd45764f272ae5be30a9200d93c",
+      "browser": "Chrome",
+      "filteredVisibleRows": 0,
+      "wholeReportBreaking": 1
+    },
+    {
+      "format": "csv",
+      "bytes": 558,
+      "sha256": "22f10ccc923661ca5578930ae30c316f850f9b4e28cda69f7e42de404e7d003b",
+      "browser": "Chrome",
+      "filteredVisibleRows": 0,
+      "wholeReportBreaking": 1
+    }
+  ],
+  "inAppBrowserDownload": "No file receipt; actual downloads verified in Chrome fallback"
+}

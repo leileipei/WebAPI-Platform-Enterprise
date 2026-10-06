@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "date": "2026-10-06",
-  "stage": "source-verified",
-  "complete": false,
+  "stage": "isolated-accepted",
+  "complete": true,
   "baseRevision": "a3a39bdcb70f821c5a9e597150d667b824652052",
-  "implementationCommitted": false,
+  "implementationCommitted": true,
   "checks": [
     {
       "suite": "domain",
@@ -31,8 +31,8 @@
       "suite": "console",
       "passed": 99,
       "failed": 0,
-      "logFile": "review-ui-final.log",
-      "logSha256": "f4766ff182d4dda0cc963d7c779fc70a6b3f688d030970a5a58e1a56f588a627"
+      "logFile": "qa-fragment-console.log",
+      "logSha256": "95d3ba790c0f84df7aea7dbf8b7ac586908e571271ee85328c1b9012a676ac5a"
     },
     {
       "suite": "runtime",
@@ -51,8 +51,25 @@
     "declinedToJudge": 0,
     "deferredMinor": 0
   },
-  "fixedSourceAcceptance": "pending",
-  "browserQa": "pending",
-  "finalZip": "pending",
-  "runtime4192Upgraded": false
+  "fixedSourceAcceptance": "passed",
+  "browserQa": "passed",
+  "finalZip": "verified-see-package-verification.json",
+  "runtime4192Upgraded": false,
+  "codeSourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "mainCheckoutMerged": false,
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "networksRemaining": 0,
+    "secretsRemaining": 0
+  },
+  "repeatChecks": [
+    {
+      "suite": "comparison-runner",
+      "passed": 7,
+      "failed": 0,
+      "logFile": "fixed-runner-regression.log",
+      "logSha256": "9b79a2e0b6fd9f2b447998733ada27d68cd5cb385c1621e816ca8e540ea196d3"
+    }
+  ]
 }
