@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using System.Text;
 using System.Text.RegularExpressions;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.OpenApi;
@@ -10,9 +11,13 @@ public sealed class ContractReferenceRegistry
     private readonly Dictionary<string, JsonNode> resources = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Identity> anchors = new(StringComparer.Ordinal);
     private readonly Dictionary<JsonNode, Identity> identities = new(ReferenceEqualityComparer.Instance);
+    private readonly int maximumIndexBytes;
+    private long indexBytes;
+    private long pointerBytes;
     public IReadOnlyList<ResolvedContractNode> Resources => resources.Select(p => new ResolvedContractNode(new(p.Key), identities[p.Value].Pointer, p.Value)).ToArray();
     public ContractReferenceRegistry(ContractBundle bundle, ContractLimits limits)
     {
+        maximumIndexBytes = limits.MaxBundleBytes;
         ContractBundleCodec.Verify(bundle, limits);
         // Own this graph. A caller changing the original bundle cannot change an indexed resource.
         foreach (var doc in bundle.Documents) {
@@ -46,9 +51,11 @@ public sealed class ContractReferenceRegistry
     }
     private void Register(Uri uri, JsonNode root)
     {
+        if (uri.OriginalString.Length > 4096) throw IndexTooLarge();
         if (!uri.IsAbsoluteUri || uri.Fragment.Length > 0) throw new ApiException(422, "invalid_schema_id", "Schema 资源 ID 必须是无 fragment 的资源 URI。");
         if (resources.TryGetValue(uri.AbsoluteUri, out var existing) && !ReferenceEquals(existing, root))
             throw new ApiException(422, "duplicate_schema_id", "来源包含冲突的资源 ID。");
+        if (!resources.ContainsKey(uri.AbsoluteUri)) CountIndex(uri.AbsoluteUri);
         resources[uri.AbsoluteUri] = root;
     }
     private void Walk(JsonNode? node, string pointer, Uri basis, bool schema, ContractDialect dialect)
@@ -56,36 +63,46 @@ public sealed class ContractReferenceRegistry
         if (node is null) return;
         if (schema && dialect == ContractDialect.Oas31 && node is JsonObject s && s.TryGetPropertyValue("$id", out var id)) {
             var text = ContractDocumentReader.Text(id);
+            if (text.Length > 4096) throw IndexTooLarge();
             if (text.Length == 0 || !Uri.TryCreate(basis, text, out var uri)) throw new ApiException(422, "invalid_schema_id", "Schema 资源 ID 不合法。");
             basis = uri; Register(basis, node);
         }
-        var identity = new Identity(basis, pointer, node); identities.Add(node, identity);
+        var identity = AddIdentity(node, basis, pointer);
         if (schema && dialect == ContractDialect.Oas31 && node is JsonObject a) foreach (var keyword in new[] { "$anchor", "$dynamicAnchor" }) {
             if (!a.TryGetPropertyValue(keyword, out var value)) continue;
             var name = ContractDocumentReader.Text(value);
+            if (name.Length > 256) throw IndexTooLarge();
             if (!Regex.IsMatch(name, "^[A-Za-z_][-A-Za-z0-9._]*$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)))
                 throw new ApiException(422, "invalid_schema_anchor", "Schema anchor 不合法。");
             var key = basis.AbsoluteUri + "#" + name;
             if (anchors.TryGetValue(key, out var previous) && !ReferenceEquals(previous.Node, node))
                 throw new ApiException(422, "duplicate_schema_anchor", "同一资源中的 anchor 重复。");
+            if (!anchors.ContainsKey(key)) CountIndex(key);
             anchors[key] = identity;
         }
         if (node is JsonObject obj) foreach (var (key, value) in obj) {
             var childPointer = pointer + "/" + ContractDocumentReader.Escape(key);
             if (schema && SchemaNavigation.MapKeywords.Contains(key) && value is JsonObject map) {
-                identities.Add(map, new(basis, childPointer, map));
+                AddIdentity(map, basis, childPointer);
                 foreach (var (name, child) in map) Walk(child, childPointer + "/" + ContractDocumentReader.Escape(name), basis, true, dialect);
             } else if (schema && SchemaNavigation.ArrayKeywords.Contains(key) && value is JsonArray list) {
-                identities.Add(list, new(basis, childPointer, list));
+                AddIdentity(list, basis, childPointer);
                 for (var i = 0; i < list.Count; i++) Walk(list[i], childPointer + "/" + i, basis, true, dialect);
             } else if (!schema && childPointer == "/components/schemas" && value is JsonObject schemas) {
-                identities.Add(schemas, new(basis, childPointer, schemas));
+                AddIdentity(schemas, basis, childPointer);
                 foreach (var (name, child) in schemas) Walk(child, childPointer + "/" + ContractDocumentReader.Escape(name), basis, true, dialect);
             } else Walk(value, childPointer, basis,
                 schema ? SchemaNavigation.SingleKeywords.Contains(key) : key == "schema" && !SchemaNavigation.IsDataPointer(childPointer), dialect);
         } else if (node is JsonArray array) for (var i = 0; i < array.Count; i++) Walk(array[i], pointer + "/" + i, basis, false, dialect);
     }
     private static Uri WithoutFragment(Uri uri) => new(uri.AbsoluteUri.Split('#')[0], UriKind.Absolute);
+    private Identity AddIdentity(JsonNode node, Uri basis, string pointer)
+    {
+        if ((pointerBytes += Encoding.UTF8.GetByteCount(pointer)) > maximumIndexBytes) throw IndexTooLarge();
+        var identity = new Identity(basis, pointer, node); identities.Add(node, identity); return identity;
+    }
+    private void CountIndex(string key) { if ((indexBytes += Encoding.UTF8.GetByteCount(key)) > maximumIndexBytes) throw IndexTooLarge(); }
+    private static ApiException IndexTooLarge() => new(422, "contract_bundle_budget", "引用资源 ID、anchor 或 Pointer 索引超过预算。");
     private static ApiException Missing() => new(422, "missing_contract_reference", "引用未包含在固定来源包中，或目标 Pointer/anchor 不存在。");
 }
 

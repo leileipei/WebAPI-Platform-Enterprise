@@ -1910,3 +1910,142 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE TABLE api_import_previews (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        environment_id uuid NOT NULL,
+        cluster_id uuid NOT NULL,
+        actor_id uuid NOT NULL,
+        source_policy_revision bigint NOT NULL,
+        bundle_json jsonb,
+        preview_json jsonb,
+        source_hash varchar(64) NOT NULL,
+        bundle_hash varchar(64) NOT NULL,
+        source_format varchar(16) NOT NULL,
+        dialect varchar(16) NOT NULL,
+        created_at timestamp with time zone NOT NULL,
+        expires_at timestamp with time zone NOT NULL,
+        status varchar(16) NOT NULL,
+        import_id uuid,
+        committed_targets_json jsonb,
+        receipt_expires_at timestamp with time zone,
+        revision bigint NOT NULL,
+        CONSTRAINT "PK_api_import_previews" PRIMARY KEY (id),
+        CONSTRAINT ck_import_preview_dialect CHECK (dialect IN ('Oas30','Oas31') AND source_format IN ('json','yaml')),
+        CONSTRAINT ck_import_preview_expiry CHECK (expires_at > created_at),
+        CONSTRAINT ck_import_preview_revision CHECK (revision >= 1 AND source_policy_revision >= 0),
+        CONSTRAINT ck_import_preview_status CHECK (status IN ('Active','Committed','Revoked','Expired')),
+        CONSTRAINT "FK_api_import_previews_environments_environment_id_project_id" FOREIGN KEY (environment_id, project_id) REFERENCES environments (id, project_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_api_import_previews_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_api_import_previews_upstream_clusters_cluster_id_environmen~" FOREIGN KEY (cluster_id, environment_id) REFERENCES upstream_clusters (id, environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_api_import_previews_users_actor_id" FOREIGN KEY (actor_id) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE TABLE api_version_contract_sources (
+        api_version_id uuid NOT NULL,
+        bundle_json jsonb NOT NULL,
+        bundle_hash varchar(64) NOT NULL,
+        sources_json jsonb NOT NULL,
+        dialect varchar(16) NOT NULL,
+        source_policy_revision bigint NOT NULL,
+        CONSTRAINT "PK_api_version_contract_sources" PRIMARY KEY (api_version_id),
+        CONSTRAINT ck_contract_source_dialect CHECK (dialect IN ('Oas30','Oas31')),
+        CONSTRAINT ck_contract_source_policy_revision CHECK (source_policy_revision >= 0),
+        CONSTRAINT "FK_api_version_contract_sources_api_versions_api_version_id" FOREIGN KEY (api_version_id) REFERENCES api_versions (id) ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE TABLE project_import_source_policies (
+        project_id uuid NOT NULL,
+        rules_json jsonb NOT NULL,
+        revision bigint NOT NULL,
+        updated_by uuid NOT NULL,
+        updated_at timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_project_import_source_policies" PRIMARY KEY (project_id),
+        CONSTRAINT ck_import_policy_revision CHECK (revision >= 1),
+        CONSTRAINT "FK_project_import_source_policies_projects_project_id" FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_project_import_source_policies_users_updated_by" FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE INDEX "IX_api_import_previews_actor_id" ON api_import_previews (actor_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE INDEX "IX_api_import_previews_cluster_id_environment_id" ON api_import_previews (cluster_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE INDEX "IX_api_import_previews_environment_id_project_id" ON api_import_previews (environment_id, project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE INDEX "IX_api_import_previews_project_id_actor_id_status_expires_at" ON api_import_previews (project_id, actor_id, status, expires_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE INDEX "IX_api_import_previews_project_id_organization_id" ON api_import_previews (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE INDEX "IX_api_import_previews_receipt_expires_at" ON api_import_previews (receipt_expires_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE INDEX "IX_api_import_previews_status_expires_at" ON api_import_previews (status, expires_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    CREATE INDEX "IX_project_import_source_policies_updated_by" ON project_import_source_policies (updated_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006165518_ContractManagement') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261006165518_ContractManagement', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;

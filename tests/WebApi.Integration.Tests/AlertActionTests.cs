@@ -30,9 +30,22 @@ public sealed class AlertActionTests
     {
         using var scope=f.Services();var type=typeof(AlertRuleService).Assembly.GetType("WebApi.Infrastructure.Alerts.AlertSilenceExpiryService");Assert.NotNull(type);var service=scope.ServiceProvider.GetRequiredService(type);return await(Task<int>)type.GetMethod("ExpireAsync")!.Invoke(service,[CancellationToken.None])!;
     }
-    private static async Task<bool> Evaluate(ApiFixture f)
+    private static async Task<bool> Evaluate(ApiFixture f,DateTimeOffset? initialSlot=null)
     {
-        using var scope=f.Services();var store=scope.ServiceProvider.GetRequiredService<AlertEvaluationLeaseStore>();var lease=Assert.Single(await store.ClaimAsync(await store.CurrentSlotAsync(default),"action-test",default));return await scope.ServiceProvider.GetRequiredService<AlertEvaluationService>().EvaluateAsync(lease,default);
+        using var scope=f.Services();var store=scope.ServiceProvider.GetRequiredService<AlertEvaluationLeaseStore>();using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        // Reading the database clock and acquiring the governance lock can straddle a slot.
+        // An empty expired-slot claim is expected; reacquire rather than weaken the assertion.
+        var slot=initialSlot??await store.CurrentSlotAsync(deadline.Token);
+        IReadOnlyList<EvaluationLease> leases;
+        while((leases=await store.ClaimAsync(slot,"action-test",deadline.Token)).Count==0)
+        {
+            await Task.Delay(10,deadline.Token);slot=await store.CurrentSlotAsync(deadline.Token);
+        }
+        var lease=Assert.Single(leases);return await scope.ServiceProvider.GetRequiredService<AlertEvaluationService>().EvaluateAsync(lease,default);
+    }
+    [Fact] public async Task EvaluationHelperReacquiresAnExpiredSlot()
+    {
+        var s=await Setup();await using var f=s.Fixture;using var scope=f.Services();var store=scope.ServiceProvider.GetRequiredService<AlertEvaluationLeaseStore>();var expired=(await store.CurrentSlotAsync(default)).AddSeconds(-2);Assert.True(await Evaluate(f,expired));
     }
     [Fact] public async Task SilenceAckThenExpiryRestoresAck()
     {

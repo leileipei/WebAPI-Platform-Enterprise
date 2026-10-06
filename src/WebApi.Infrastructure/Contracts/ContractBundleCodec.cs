@@ -20,6 +20,7 @@ public static class ContractBundleCodec
         var snapshots = new List<ContractDocument>();
         foreach (var doc in documents) {
             var uri = doc.Source.LogicalUri;
+            if (uri.OriginalString.Length > 4096) throw Invalid("contract_bundle_budget", "来源包资源 URI 超过预算。");
             if (!uri.IsAbsoluteUri || uri.Fragment.Length > 0 || !names.Add(uri.AbsoluteUri)) throw Invalid("duplicate_contract_resource", "来源包资源 URI 不合法或重复。");
             rawBytes += Encoding.UTF8.GetByteCount(doc.Source.RawText);
             canonicalBytes += Encoding.UTF8.GetByteCount(doc.CanonicalJson);

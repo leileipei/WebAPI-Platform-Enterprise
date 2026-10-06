@@ -130,4 +130,15 @@ public sealed class ContractDocumentReaderTests
         root["paths"]!["/second"] = root["paths"]!["/orders"]!.DeepClone();
         Assert.Equal("contract_budget", Assert.Throws<ApiException>(() => Read(root.ToJsonString(), limits: new(MaxOperations: 1))).Code);
     }
+
+    [Theory]
+    [InlineData("json")]
+    [InlineData("yaml")]
+    public void SourceLocationPointersCannotAmplifySmallInputWithoutLimit(string format)
+    {
+        var name = new string('x', 900);
+        var text = format == "json" ? Json.Replace("\"x-future\":{\"value\":true}", "\"" + name + "\":[0,0,0,0,0,0]") : Yaml + "\n" + name + ": [0,0,0,0,0,0]";
+        Assert.True(Encoding.UTF8.GetByteCount(text) < 2000);
+        Assert.Equal("contract_budget", Assert.Throws<ApiException>(() => Read(text, format, new(MaxDocumentBytes: 2000))).Code);
+    }
 }

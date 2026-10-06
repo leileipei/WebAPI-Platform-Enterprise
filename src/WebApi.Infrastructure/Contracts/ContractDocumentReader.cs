@@ -96,7 +96,7 @@ public sealed class ContractDocumentReader
         var frames = new Stack<Frame>();
         void Locate(string pointer, long position) {
             var index = lines.BinarySearch((int)position); if (index < 0) index = ~index - 1;
-            locations.TryAdd(pointer, new("source_location", pointer, "", index + 1, (int)position - lines[index] + 1));
+            budget.RecordLocation(locations, pointer, index + 1, (int)position - lines[index] + 1);
         }
         try {
             var reader = new Utf8JsonReader(bytes, new JsonReaderOptions { MaxDepth = budget.Limits.MaxDepth });
@@ -123,10 +123,18 @@ public sealed class ContractDocumentReader
 internal sealed class ContractParseBudget(ContractLimits limits, CancellationToken ct)
 {
     private int nodes;
+    private long locationBytes;
     public ContractLimits Limits { get; } = limits;
     public void Check(int depth) {
         ct.ThrowIfCancellationRequested();
         if (depth > Limits.MaxDepth || ++nodes > Limits.MaxNodes)
             throw new ApiException(422, "contract_budget", "契约深度或节点数量超过解析预算。");
+    }
+    public void RecordLocation(Dictionary<string, ContractIssue> locations, string pointer, int line, int column)
+    {
+        if (locations.ContainsKey(pointer)) return;
+        if ((locationBytes += Encoding.UTF8.GetByteCount(pointer)) > Limits.MaxDocumentBytes)
+            throw new ApiException(422, "contract_budget", "契约位置索引超过解析预算。");
+        locations.Add(pointer, new("source_location", pointer, "", line, column));
     }
 }

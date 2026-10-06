@@ -70,13 +70,13 @@ internal sealed class BoundedYamlReader
             budget.Check(depth);
             if (!active.Add(term)) throw Invalid("yaml_alias_cycle", "YAML 别名形成循环。");
             try {
-                locations.TryAdd(pointer, new("source_location", pointer, "", checked((int)term.Source.Start.Line), checked((int)term.Source.Start.Column)));
+                budget.RecordLocation(locations, pointer, checked((int)term.Source.Start.Line), checked((int)term.Source.Start.Column));
                 if (term.Target is not null) return Build(term.Target, pointer, depth + 1, active);
                 if (term.Properties is not null) {
                     var obj = new JsonObject();
                     foreach (var (key, value) in term.Properties) {
                         var child = pointer + "/" + ContractDocumentReader.Escape(key.Value);
-                        locations.TryAdd(child, new("source_location", child, "", checked((int)key.Start.Line), checked((int)key.Start.Column)));
+                        budget.RecordLocation(locations, child, checked((int)key.Start.Line), checked((int)key.Start.Column));
                         var built = Build(value, child, depth + 1, active);
                         if (key.Value == "<<") {
                             if (built is JsonObject merged) Merge(merged);

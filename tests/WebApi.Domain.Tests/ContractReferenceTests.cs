@@ -127,4 +127,10 @@ public sealed class ContractReferenceTests
         bundle.Documents[0].Root["components"]!["schemas"]!["a"]!["type"] = "integer";
         Assert.Equal("string", registry.Resolve(Origin, "#/components/schemas/a").Node["type"]!.GetValue<string>());
     }
+
+    [Fact] public void IndexedSchemaIdsCannotAmplifyAnchorKeysWithoutLimit()
+    {
+        var doc = Document("{\"a\":{\"$id\":\"https://contracts.example/" + new string('x', 5000) + "\",\"properties\":{\"small\":{\"$anchor\":\"small\"}}}}");
+        Assert.Equal("contract_bundle_budget", Assert.Throws<ApiException>(() => new ContractReferenceRegistry(ContractBundleCodec.Create(Origin, [doc]), new())).Code);
+    }
 }
