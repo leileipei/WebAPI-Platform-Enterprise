@@ -1,0 +1,15 @@
+using System.Text.Json;
+namespace WebApi.Contracts.Comparisons;
+public sealed record CreateVersionComparisonRequest(Guid FromVersionId,Guid ToVersionId,long ExpectedFromRevision,long ExpectedToRevision);
+public sealed record ComparisonCounts(int Added,int Changed,int Removed,int Compatible,int Breaking,int Unknown);
+public sealed record ComparisonFinding(string Key,string Source,string? Operation,string Pointer,string ChangeKind,string Risk,string Reason,JsonElement? Before=null,JsonElement? After=null);
+public sealed record ComparisonCoverageIssue(string Code,string Source,string Pointer,string Reason);
+public sealed record ComparisonReport(string EngineVersion,string InputFingerprint,string Coverage,ComparisonCounts Counts,IReadOnlyList<ComparisonFinding> Findings,IReadOnlyList<ComparisonCoverageIssue> CoverageIssues);
+public sealed record ComparisonPage<T>(IReadOnlyList<T> Items,string? NextCursor);
+public sealed record ComparisonVersion(Guid Id,string Version,string Status,string ChangeType,long Revision);
+public sealed record VersionComparisonView(Guid Id,Guid ApiId,ComparisonVersion From,ComparisonVersion To,string ReportHash,ComparisonReport Report,DateTimeOffset CreatedAt,string Freshness,RiskReviewDto? LatestReview=null);
+public sealed record ComparisonSummaryDto(Guid Id,Guid ApiId,Guid FromVersionId,Guid ToVersionId,string FromVersion,string ToVersion,string Coverage,ComparisonCounts Counts,string EngineVersion,DateTimeOffset CreatedAt);
+public sealed record CreateRiskReviewRequest(string ExpectedReportHash,string Decision,string? Comment,bool ConfirmRisk=false);
+public sealed record RiskReviewDto(Guid Id,Guid ComparisonId,Guid ApiId,string InputFingerprint,string ReportHash,string EngineVersion,string Decision,string? Comment,Guid ActorId,DateTimeOffset CreatedAt);
+public sealed record RiskReviewSummaryDto(Guid ReviewId,Guid ComparisonId,Guid ApiId,Guid FromVersionId,Guid ToVersionId,string FromVersion,string ToVersion,string Decision,Guid ActorId,DateTimeOffset CreatedAt,string InputFingerprint,string ReportHash,string EngineVersion,string Coverage,ComparisonCounts Counts,string? Comment=null);
+public sealed record FrozenRiskReviewReference(Guid ApiId,Guid TargetVersionId,Guid ComparisonId,Guid ReviewId,string InputFingerprint,string ReportHash,string EngineVersion,RiskReviewSummaryDto Summary);

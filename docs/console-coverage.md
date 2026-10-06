@@ -14,7 +14,7 @@
 |8|OpenAPI导入|/imports|已接入3 JSON原文、Operation映射；URL/YAML后续|
 |9|API详情|/apis/{id}|已接入工作/运行/待发布事实|
 |10|版本|/apis/{id}|已接入版本Tab|
-|11|Breaking Change|/releases/{id}|后续完整引擎；详情仅基础资源比较|
+|11|版本比较与风险评审|/apis/{id}/versions/compare|源码已接入真实比较、历史/导出、追加风险评审和可选发布证据；规则覆盖受限，固定来源隔离 UI 验收及4192升级待执行|
 |12|Route|/routes|已接入环境专属路由|
 |13|参数Schema|/apis/{id}|已接入参数/Schema Tab与原文编辑；完整树和例验证后续|
 |14|Cluster|/clusters|已接入|
@@ -45,6 +45,6 @@
 |39|SSO/OIDC|/settings/sso|已接入Provider治理、显式账号绑定、修订保护与审计；本机独立Keycloak登录已验证；企业IdP与生产TLS待验收|
 |40|系统设置|/settings/system|已接入平台五组17字段、保存/预览/引用/修订保护与审计；登录、账号、路由和审计CSV有实际消费者；部署参数、保留目标及通知仅配置意向|
 
-28–33真实范围见 [观测验收](evidence/observability/verification.json)、[数据字典](observability-data-dictionary.md)与[运行手册](deployment/observability-runbook.md)。原40页高保真原型仍完整保留；四类流量策略证据见 [策略交付](evidence/policies/delivery-index.md)；OIDC SSO 与系统设置已部署至本机4192，独立Keycloak位于4194。完整Breaking Change引擎、JWT/重试/缓存与外部通知仍为后续能力；企业实际身份源、TLS/HA和容量需单独验收。当前入口、维护方式和验收边界见 [本机运行摘要](deployment/current-local-status.md)。
+28–33真实范围见 [观测验收](evidence/observability/verification.json)、[数据字典](observability-data-dictionary.md)与[运行手册](deployment/observability-runbook.md)。原40页高保真原型仍完整保留；四类流量策略证据见 [策略交付](evidence/policies/delivery-index.md)；OIDC SSO 与系统设置已部署至本机4192，独立Keycloak位于4194。完整 OpenAPI 兼容性覆盖、JWT/重试/缓存与外部通知仍为后续能力；企业实际身份源、TLS/HA和容量需单独验收。当前入口、维护方式和验收边界见 [本机运行摘要](deployment/current-local-status.md)。
 
 工作台范围与验证说明见 [企业工作台](workbench.md)。

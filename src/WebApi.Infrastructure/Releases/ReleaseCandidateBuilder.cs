@@ -1,3 +1,4 @@
+using WebApi.Infrastructure.Comparisons;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Catalog;
 using WebApi.Contracts.Releases;
@@ -10,12 +11,13 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Routing;
 namespace WebApi.Infrastructure.Releases;
-public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver scopes,RouteService routes)
+public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver scopes,RouteService routes,VersionRiskReviewService reviews)
 {
-    public async Task<FrozenReleaseCandidate> BuildAsync(Guid environmentId,CreateReleaseRequest request,CancellationToken ct)
+    public async Task<FrozenReleaseCandidate> BuildAsync(Guid environmentId,CreateReleaseRequest request,CancellationToken ct,ActorContext? actor=null)
     {
         var candidate=await PreviewAsync(environmentId,new(request.BaseConfigVersion,request.VersionIds),ct);
-        RequireRevisions(request.ResourceRevisions,candidate.ResourceRevisions);return candidate;
+        RequireRevisions(request.ResourceRevisions,candidate.ResourceRevisions);
+        if(request.RiskReviewIds is {Count:>0}){if(actor is null)throw new ApiException(401,"review_actor_required","评审引用需要当前用户身份。");candidate=candidate with {RiskReviewReferences=await reviews.ResolveReferencesAsync(new(candidate.OrganizationId,candidate.ProjectId,candidate.EnvironmentId),candidate.VersionIds,request.RiskReviewIds,actor,ct)};}return candidate;
     }
     public static void RequireRevisions(IReadOnlyList<ResourceRevision> expected,IReadOnlyList<ResourceRevision> actual)
     {

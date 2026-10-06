@@ -1,4 +1,6 @@
 using WebApi.ControlPlane.Sso;
+using WebApi.ControlPlane.Comparisons;
+using WebApi.Infrastructure.Comparisons;
 using WebApi.Infrastructure.Sso;
 using WebApi.ControlPlane.Settings;
 using WebApi.Infrastructure.Settings;
@@ -54,6 +56,7 @@ public static class ControlPlaneApp
         builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<OpenApiImportService>();
         builder.Services.AddScoped<PolicyAccess>();builder.Services.AddScoped<PolicyService>();builder.Services.AddScoped<PolicyReferenceService>();builder.Services.AddScoped<RoutePolicyService>();
         builder.Services.AddScoped<CatalogService>();builder.Services.AddScoped<RouteService>();builder.Services.AddScoped<ClusterService>();
+        builder.Services.AddSingleton<ContractComparisonEngine>();builder.Services.AddScoped<ComparisonCursorCodec>();builder.Services.AddScoped<VersionComparisonService>();builder.Services.AddScoped<VersionRiskReviewService>();
         var origins=UpstreamAddressPolicy.ReadAllowedOrigins(builder.Configuration);
         builder.Services.AddSingleton(new UpstreamAddressPolicy(origins));
         builder.Services.TryAddSingleton<TimeProvider>(TimeProvider.System);builder.Services.AddScoped<SettingsPreviewProtector>();builder.Services.AddScoped<SystemSettingsService>();builder.Services.AddScoped<SystemSettingsReader>();builder.Services.AddScoped<AuditAccessQuery>();builder.Services.AddScoped<AuditExportService>();builder.Services.AddScoped<GovernanceService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();
@@ -126,6 +129,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
+        app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapComparisons();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
     }
 }

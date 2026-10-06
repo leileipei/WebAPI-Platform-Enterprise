@@ -1831,3 +1831,82 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006090000_ApiVersionComparisons') THEN
+    CREATE TABLE api_version_comparisons (
+        id uuid NOT NULL DEFAULT (gen_random_uuid()),
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        api_id uuid NOT NULL,
+        from_version_id uuid NOT NULL,
+        to_version_id uuid NOT NULL,
+        from_revision bigint NOT NULL,
+        to_revision bigint NOT NULL,
+        from_version character varying(32) NOT NULL,
+        to_version character varying(32) NOT NULL,
+        engine_version character varying(64) NOT NULL,
+        input_fingerprint character varying(64) NOT NULL,
+        report_hash character varying(64) NOT NULL,
+        coverage character varying(16) NOT NULL,
+        counts_json jsonb NOT NULL,
+        input_bytes bytea NOT NULL,
+        report_bytes bytea NOT NULL,
+        created_by uuid NOT NULL,
+        created_at timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_api_version_comparisons" PRIMARY KEY (id),
+        CONSTRAINT ck_api_version_comparisons_coverage CHECK (coverage IN ('Complete','Limited','Invalid')),
+        CONSTRAINT ck_api_version_comparisons_hashes CHECK (input_fingerprint ~ '^[0-9a-f]{64}$' AND report_hash ~ '^[0-9a-f]{64}$'),
+        CONSTRAINT ck_api_version_comparisons_versions CHECK (from_version_id <> to_version_id AND from_revision >= 1 AND to_revision >= 1)
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006090000_ApiVersionComparisons') THEN
+    CREATE TABLE api_version_risk_reviews (
+        id uuid NOT NULL DEFAULT (gen_random_uuid()),
+        comparison_id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        api_id uuid NOT NULL,
+        input_fingerprint character varying(64) NOT NULL,
+        report_hash character varying(64) NOT NULL,
+        decision character varying(24) NOT NULL,
+        comment character varying(2000),
+        actor_id uuid NOT NULL,
+        created_at timestamp with time zone NOT NULL,
+        CONSTRAINT "PK_api_version_risk_reviews" PRIMARY KEY (id),
+        CONSTRAINT ck_api_version_risk_reviews_decision CHECK (decision IN ('Reviewed','AcceptedRisk') AND (decision <> 'AcceptedRisk' OR (comment IS NOT NULL AND length(btrim(comment)) BETWEEN 10 AND 2000))),
+        CONSTRAINT ck_api_version_risk_reviews_hashes CHECK (input_fingerprint ~ '^[0-9a-f]{64}$' AND report_hash ~ '^[0-9a-f]{64}$'),
+        CONSTRAINT "FK_api_version_risk_reviews_api_version_comparisons_comparison~" FOREIGN KEY (comparison_id) REFERENCES api_version_comparisons (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006090000_ApiVersionComparisons') THEN
+    CREATE INDEX "IX_api_version_comparisons_api_id_created_at_id" ON api_version_comparisons (api_id, created_at, id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006090000_ApiVersionComparisons') THEN
+    CREATE INDEX "IX_api_version_risk_reviews_comparison_id_created_at_id" ON api_version_risk_reviews (comparison_id, created_at, id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261006090000_ApiVersionComparisons') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261006090000_ApiVersionComparisons', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;

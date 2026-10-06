@@ -1,3 +1,4 @@
+using WebApi.Infrastructure.Comparisons;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ using WebApi.Infrastructure.Security;
 using WebApi.Infrastructure.Gateway;
 namespace WebApi.Infrastructure.Releases;
 public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSeconds=120,int AckTimeoutSeconds=120);
-public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history)
+public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews)
 {
     public async Task<ReleaseDto> StartAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
@@ -25,11 +26,13 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             return await idempotency.ExecuteAsync(new(actor.UserId,scope,"release.publish",requestContext.IdempotencyKey),CanonicalJson.Serialize(new {releaseId=id}),async inner=>{
                 await LockEnvironmentAsync(initial.EnvironmentId,inner);var r=await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id,inner);ReleaseStateMachine.Require(r.Status,"Ready");
                 await VerifyBaselineAsync(r,inner);if(await db.Set<ReleaseRecord>().AnyAsync(x=>x.EnvironmentId==r.EnvironmentId&&x.Id!=id&&(x.Status=="Building"||x.Status=="Publishing"),inner)) throw new ApiException(409,"environment_busy","该环境已有正在下发的发布。");
-                var nodes=await TargetsAsync(r.EnvironmentId,inner);await VerifyVersionsAsync(r,inner);SnapshotSchemaCapabilities.RequireSupported(nodes,await TargetSchemaAsync(r,inner));r.Status="Building";r.PublishRequestedBy=actor.UserId;r.PublishTraceId=actor.TraceId;
+                var nodes=await TargetsAsync(r.EnvironmentId,inner);await VerifyVersionsAsync(r,inner);SnapshotSchemaCapabilities.RequireSupported(nodes,await TargetSchemaAsync(r,inner));await ValidateReviewsAsync(r,actor,scope,inner);r.Status="Building";r.PublishRequestedBy=actor.UserId;r.PublishTraceId=actor.TraceId;
                 return await releases.DtoAsync(r,inner);
             },token);
         },ct);
     }
+    private async Task ValidateReviewsAsync(ReleaseRecord r,ActorContext actor,ScopeRef scope,CancellationToken ct)
+    {if(r.ReleaseType is "rollback" or "retry")return;var candidate=Candidate(r);await reviews.ValidateReferencesAsync(scope,candidate.VersionIds,candidate.RiskReviewReferences,actor,ct);}
     public async Task LockEnvironmentAsync(Guid envId,CancellationToken ct)=>await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={envId} FOR UPDATE",ct);
     private async Task VerifyBaselineAsync(ReleaseRecord r,CancellationToken ct)
     {var current=await db.Set<EnvironmentRecord>().AsNoTracking().Where(e=>e.Id==r.EnvironmentId).Select(e=>e.DesiredConfigVersion).SingleAsync(ct);if((current??0)!=r.BaselineConfigVersion) throw new ApiException(409,"stale_baseline","运行基线已变化，请重新建立候选并审批。");}
@@ -68,6 +71,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
         {
             if(r.PublishRequestedBy is not Guid publisher) throw new ApiException(409,"publisher_missing","发布身份缺失。");
             await RequirePublishAsync(r,new(publisher,r.PublishTraceId??r.Id.ToString()),scope,ct);await VerifyBaselineAsync(r,ct);await VerifyVersionsAsync(r,ct);var nodes=await TargetsAsync(r.EnvironmentId,ct);
+            await ValidateReviewsAsync(r,new(publisher,r.PublishTraceId??r.Id.ToString()),scope,ct);
             var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==r.EnvironmentId,ct);var baseline=new RuntimeSnapshot("2.0",env.Id,0,DateTimeOffset.UtcNow,[],[],[],[]);
             if(r.BaselineConfigVersion>0)
             {var bytes=await (from v in db.Set<GatewayConfigVersion>() join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where v.EnvironmentId==env.Id&&v.VersionNo==r.BaselineConfigVersion select s.PayloadBytes).SingleAsync(ct);baseline=JsonSerializer.Deserialize<RuntimeSnapshot>(bytes,CanonicalJson.Options)!;}

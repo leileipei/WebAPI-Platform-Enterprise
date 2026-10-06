@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-06",
+  "stage": "source-verified",
+  "complete": false,
+  "baseRevision": "a3a39bdcb70f821c5a9e597150d667b824652052",
+  "implementationCommitted": false,
+  "checks": [
+    {
+      "suite": "domain",
+      "passed": 249,
+      "failed": 0,
+      "logFile": "review-engine-green.log",
+      "logSha256": "4af12c79dfe0bb4a0b973e8f832cafbafb59a2a3661086b905958e72ec025cb8"
+    },
+    {
+      "suite": "integration",
+      "passed": 405,
+      "failed": 0,
+      "logFile": "review-integration-suite.log",
+      "logSha256": "8a0fc2b7206c2cb12bf6ae727534aeca6dcdf966369d8a7939431f456ef849c8"
+    },
+    {
+      "suite": "gateway",
+      "passed": 52,
+      "failed": 0,
+      "logFile": "task4-gateway.log",
+      "logSha256": "91c01ef4f8fccc62746a46ea75df7977c7c494d856549e00fd51976333bb7847"
+    },
+    {
+      "suite": "console",
+      "passed": 99,
+      "failed": 0,
+      "logFile": "review-ui-final.log",
+      "logSha256": "f4766ff182d4dda0cc963d7c779fc70a6b3f688d030970a5a58e1a56f588a627"
+    },
+    {
+      "suite": "runtime",
+      "passed": 104,
+      "failed": 0,
+      "logFile": "review-runtime-suite.log",
+      "logSha256": "adec120b07ca60b7e61b9aa74e230056014137396cc1e4f9f5f13818e0a41c45"
+    }
+  ],
+  "totalPassed": 909,
+  "consoleTypeScript": "passed",
+  "consoleBuild": "passed",
+  "independentReview": {
+    "findings": 6,
+    "fixed": 6,
+    "declinedToJudge": 0,
+    "deferredMinor": 0
+  },
+  "fixedSourceAcceptance": "pending",
+  "browserQa": "pending",
+  "finalZip": "pending",
+  "runtime4192Upgraded": false
+}

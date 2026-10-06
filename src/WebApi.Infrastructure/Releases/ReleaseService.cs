@@ -1,3 +1,4 @@
+using WebApi.Infrastructure.Comparisons;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -12,32 +13,40 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Releases;
-public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseCandidateBuilder candidates)
+public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseCandidateBuilder candidates,VersionRiskReviewService reviews)
 {
     public async Task<ScopeRef> ReadScopeAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {var r=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(r.EnvironmentId,ct);if(!await auth.CanAsync(actor,"release.read",new("release",id,scope),ct)) throw ScopeResolver.Missing();return scope;}
-    public async Task<ReleaseDto> DtoAsync(ReleaseRecord r,CancellationToken ct)
+    public async Task<ReleaseDto> DtoAsync(ReleaseRecord r,CancellationToken ct,ActorContext? actor=null)
     {
         FrozenCandidateView? view=null;string? hash=null;
         if(r.CandidateBytes is not null&&r.ApprovalPolicy is not null)
-        {var c=JsonSerializer.Deserialize<FrozenReleaseCandidate>(r.CandidateBytes,CanonicalJson.Options)!;view=SafeView(c);hash=Convert.ToHexStringLower(SHA256.HashData(r.CandidateBytes));}
+        {var c=JsonSerializer.Deserialize<FrozenReleaseCandidate>(r.CandidateBytes,CanonicalJson.Options)!;view=await AuthorizedViewAsync(c,actor,ct);hash=Convert.ToHexStringLower(SHA256.HashData(r.CandidateBytes));}
         var rules=r.ApprovalPolicy is null?Array.Empty<ApprovalRule>():JsonSerializer.Deserialize<ApprovalRule[]>(r.ApprovalPolicy,CanonicalJson.Options)!;
         var tasks=await db.Set<ApprovalTask>().Where(t=>t.ReleaseId==r.Id).OrderBy(t=>t.StepOrder).ThenBy(t=>t.Id).ToArrayAsync(ct);
         var targetEntities=await db.Set<ReleaseTarget>().AsNoTracking().Where(t=>t.ReleaseId==r.Id).ToArrayAsync(ct);var acks=await db.Set<GatewayAck>().AsNoTracking().Where(a=>a.ReleaseId==r.Id).ToArrayAsync(ct);
         return new(r.Id,r.EnvironmentId,r.ReleaseNo,r.Status,r.ReleaseType,r.RequestedBy,r.CreatedAt,r.BaselineConfigVersion,r.ToConfigVersion,r.DeploymentSequence,r.RollbackOf,view,hash,tasks.Select(t=>new ApprovalTaskDto(t.Id,t.StepOrder,rules.Single(x=>x.StepOrder==t.StepOrder).RoleCode,t.Status,t.AssigneeUserId,t.Comment,t.ActedAt)).ToArray(),targetEntities.Select(t=>{var ack=acks.SingleOrDefault(a=>a.NodeId==t.NodeId);return new ReleaseTargetDto(t.NodeId,t.InstanceId,ack?.Success==true,ack?.ConfigVersion,ack?.DeploymentSequence,ack?.ErrorCode);}).ToArray(),r.FailureCode is null?Array.Empty<string>():[r.FailureCode],r.RecoveryOf);
     }
-    private static FrozenCandidateView SafeView(FrozenReleaseCandidate c)=>new(c.Versions,c.Routes,c.Clusters,c.Applications.Select(a=>new FrozenApplicationView(a.Application,a.Credentials.Select(k=>new CredentialDto(k.Id,a.Application.Id,k.AccessKey,k.SecretLast4,k.Status,k.ValidFrom,k.ExpiresAt,null,null,k.Revision)).ToArray(),a.Permissions)).ToArray(),c.ResourceRevisions,c.Policies,c.Bindings);
+    private static FrozenCandidateView SafeView(FrozenReleaseCandidate c)=>new(c.Versions,c.Routes,c.Clusters,c.Applications.Select(a=>new FrozenApplicationView(a.Application,a.Credentials.Select(k=>new CredentialDto(k.Id,a.Application.Id,k.AccessKey,k.SecretLast4,k.Status,k.ValidFrom,k.ExpiresAt,null,null,k.Revision)).ToArray(),a.Permissions)).ToArray(),c.ResourceRevisions,c.Policies,c.Bindings,RiskReviews:c.RiskReviewReferences?.Select(r=>r.Summary with {Comment=null}).ToArray());
+    private async Task<FrozenCandidateView> AuthorizedViewAsync(FrozenReleaseCandidate c,ActorContext? actor,CancellationToken ct)
+    {
+        var view=SafeView(c);if(actor is null||c.RiskReviewReferences is not {Count:>0})return view;
+        var summaries=new List<WebApi.Contracts.Comparisons.RiskReviewSummaryDto>();
+        foreach(var reference in c.RiskReviewReferences){var visible=false;try{var actual=await scopes.ApiAsync(reference.ApiId,ct);if(actual.OrganizationId==c.OrganizationId&&actual.ProjectId==c.ProjectId){visible=true;foreach(var permission in new[]{"api.read","api.version.read","api.schema.read"})visible&=await auth.CanAsync(actor,permission,new("api",reference.ApiId,actual),ct);}}catch(ApiException e)when(e.Status==404){}summaries.Add(reference.Summary with {Comment=visible?reference.Summary.Comment:null});}
+        return view with {RiskReviews=summaries};
+    }
     public async Task<FrozenCandidateView> PreviewAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
         var scope=await ReadScopeAsync(id,actor,ct);
         return await commands.ExecuteAsync(actor,scope,"release.preview",async(_,token)=>{
             await auth.RequireAsync(actor,"release.read",new("release",id,scope),token);var r=await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id,token);
             if(r.CandidateBytes is null) throw new ApiException(409,"candidate_unavailable","发布候选不可用。");
-            if(r.ReleaseType=="rollback"||r.ApprovalPolicy is not null) return SafeView(JsonSerializer.Deserialize<FrozenReleaseCandidate>(r.CandidateBytes,CanonicalJson.Options)!);
+            if(r.ReleaseType=="rollback"||r.ApprovalPolicy is not null) return await AuthorizedViewAsync(JsonSerializer.Deserialize<FrozenReleaseCandidate>(r.CandidateBytes,CanonicalJson.Options)!,actor,token);
             var stored=JsonSerializer.Deserialize<CreateReleaseRequest>(r.CandidateBytes,CanonicalJson.Options)!;
             var baseline=await db.Set<EnvironmentRecord>().Where(e=>e.Id==r.EnvironmentId).Select(e=>e.DesiredConfigVersion??0).SingleAsync(token);
             var candidate=await candidates.PreviewAsync(r.EnvironmentId,new(baseline,stored.VersionIds),token);
-            return SafeView(candidate) with {PreconditionsCurrent=stored.BaseConfigVersion==baseline&&ReleaseCandidateBuilder.RevisionsCurrent(stored.ResourceRevisions,candidate.ResourceRevisions)};
+            candidate=candidate with {RiskReviewReferences=await reviews.ResolveReferencesAsync(scope,stored.VersionIds,stored.RiskReviewIds,actor,token)};
+            return await AuthorizedViewAsync(candidate,actor,token) with {PreconditionsCurrent=stored.BaseConfigVersion==baseline&&ReleaseCandidateBuilder.RevisionsCurrent(stored.ResourceRevisions,candidate.ResourceRevisions)};
         },ct);
     }
     public async Task<FrozenCandidateView> PreviewSelectionAsync(Guid environmentId,PreviewReleaseRequest request,ActorContext actor,CancellationToken ct=default)
@@ -52,12 +61,12 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
         ReleaseStateMachine.Require(r.Status,"Draft");if(r.RequestedBy!=actor.UserId) throw new ApiException(403,"not_applicant","仅申请人可刷新草稿。");
         if(r.ReleaseType!="publish"||r.ApprovalPolicy is not null) throw new ApiException(409,"frozen_candidate","该候选不能刷新工作修订。");
         var stored=JsonSerializer.Deserialize<CreateReleaseRequest>(r.CandidateBytes!,CanonicalJson.Options)!;
-        var refreshed=stored with {ResourceRevisions=request.ResourceRevisions};await candidates.BuildAsync(r.EnvironmentId,refreshed,token);
+        var refreshed=stored with {ResourceRevisions=request.ResourceRevisions};await candidates.BuildAsync(r.EnvironmentId,refreshed,token,actor);
         r.CandidateBytes=CanonicalJson.Serialize(refreshed);return await DtoAsync(r,token);
     },ct);
-    public async Task<ReleaseDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct=default) {await ReadScopeAsync(id,actor,ct);return await DtoAsync(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id,ct),ct);}
+    public async Task<ReleaseDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct=default) {await ReadScopeAsync(id,actor,ct);return await DtoAsync(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id,ct),ct,actor);}
     public async Task<PageResult<ReleaseDto>> ListAsync(Guid envId,ActorContext actor,int page,int size,CancellationToken ct=default)
-    {var scope=await scopes.EnvironmentAsync(envId,ct);if(!await auth.CanAsync(actor,"release.read",new("environment",envId,scope),ct)) throw ScopeResolver.Missing();var rows=await db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.EnvironmentId==envId).OrderByDescending(r=>r.CreatedAt).ToArrayAsync(ct);var slice=Pagination.Slice(rows,page,size);var items=new List<ReleaseDto>();foreach(var r in slice.Items) items.Add(await DtoAsync(r,ct));return new(items,slice.Total,slice.Page,slice.PageSize);}
+    {var scope=await scopes.EnvironmentAsync(envId,ct);if(!await auth.CanAsync(actor,"release.read",new("environment",envId,scope),ct)) throw ScopeResolver.Missing();var rows=await db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.EnvironmentId==envId).OrderByDescending(r=>r.CreatedAt).ToArrayAsync(ct);var slice=Pagination.Slice(rows,page,size);var items=new List<ReleaseDto>();foreach(var r in slice.Items) items.Add(await DtoAsync(r,ct,actor));return new(items,slice.Total,slice.Page,slice.PageSize);}
     private async Task<ReleaseDto> RunCommandAsync(Guid id,ActorContext actor,string operation,string permission,object normalized,Func<ReleaseRecord,ScopeRef,CancellationToken,Task<ReleaseDto>> command,CancellationToken ct)
     {
         var original=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(original.EnvironmentId,ct);
@@ -71,7 +80,7 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
         var scope=await scopes.EnvironmentAsync(environmentId,ct);return await commands.ExecuteAsync(actor,scope,"release.create",async(_,token)=>{
             await auth.RequireAsync(actor,"release.create",new("environment",environmentId,scope),token);
             return await idempotency.ExecuteAsync(new(actor.UserId,scope,"release.create",requestContext.IdempotencyKey),CanonicalJson.Serialize(request),async inner=>{
-                var initial=await candidates.BuildAsync(environmentId,request,inner);var storedRequest=request with {ResourceRevisions=initial.ResourceRevisions};var release=new ReleaseRecord {EnvironmentId=environmentId,ReleaseNo="REL-"+Guid.NewGuid().ToString("N"),ReleaseType="publish",Status="Draft",RequestedBy=actor.UserId,BaselineConfigVersion=request.BaseConfigVersion,FromConfigVersion=request.BaseConfigVersion,CandidateBytes=CanonicalJson.Serialize(storedRequest)};db.Add(release);return await DtoAsync(release,inner);
+                var initial=await candidates.BuildAsync(environmentId,request,inner,actor);var storedRequest=request with {ResourceRevisions=initial.ResourceRevisions};var release=new ReleaseRecord {EnvironmentId=environmentId,ReleaseNo="REL-"+Guid.NewGuid().ToString("N"),ReleaseType="publish",Status="Draft",RequestedBy=actor.UserId,BaselineConfigVersion=request.BaseConfigVersion,FromConfigVersion=request.BaseConfigVersion,CandidateBytes=CanonicalJson.Serialize(storedRequest)};db.Add(release);return await DtoAsync(release,inner);
             },token);
         },ct);
     }
@@ -79,7 +88,7 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
         ReleaseStateMachine.Require(r.Status,"Draft");if(r.RequestedBy!=actor.UserId) throw new ApiException(403,"not_applicant","仅申请人可提交。");
         var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==r.EnvironmentId,token);FrozenReleaseCandidate candidate;
         if(r.ReleaseType=="rollback") {if((env.DesiredConfigVersion??0)!=r.BaselineConfigVersion) throw new ApiException(409,"stale_baseline","回滚基线已变化。");candidate=JsonSerializer.Deserialize<FrozenReleaseCandidate>(r.CandidateBytes!,CanonicalJson.Options)!;}
-        else {var input=JsonSerializer.Deserialize<CreateReleaseRequest>(r.CandidateBytes!,CanonicalJson.Options)!;candidate=await candidates.BuildAsync(r.EnvironmentId,input,token);}
+        else {var input=JsonSerializer.Deserialize<CreateReleaseRequest>(r.CandidateBytes!,CanonicalJson.Options)!;candidate=await candidates.BuildAsync(r.EnvironmentId,input,token,actor);}
         var rules=Array.Empty<ApprovalRule>();if(env.IsProduction)
         {
             if(env.ReleasePolicyId is not Guid flowId) throw new ApiException(422,"approval_policy_required","生产环境必须配置两级审批流程。");var flow=await db.Set<ApprovalFlow>().AsNoTracking().SingleOrDefaultAsync(f=>f.Id==flowId&&f.OrganizationId==scope.OrganizationId&&f.Enabled,token)??throw new ApiException(422,"invalid_approval_policy","生产审批流程不可用。");

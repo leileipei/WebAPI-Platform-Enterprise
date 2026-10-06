@@ -108,7 +108,7 @@ Decision 仅有 Reviewed（Complete 且无 Breaking/Unknown）和 AcceptedRisk�
 
 InputBytes 为授权读取的真实输入快照，ReportBytes 为规范化结果；均只供控制面受权限保护的读取。版本 GUID 保存为历史身份，不以新增版本外键阻止原有草稿删除行为；比较与评审之间有外键。API/组织/项目后续删除或访问范围变化后，普通比较读取必须按当前范围授权且不可越权查询已删除父资源。
 
-指纹为 SHA-256：规范化两侧输入、版本 ID 与 Revision、规则版本。所有嵌套 JSON 字符串先解析成 JSON 节点，再使用现有 CanonicalJson 对对象排序；它自身不会解析字符串。集合排序按已声明语义处理，避免受数据库查询顺序影响。指纹包含所有版本内容，元数据保存也会使当前评审失效。
+指纹为 SHA-256：规范化两侧契约输入、版本 ID 与 Revision、规则版本。所有嵌套 JSON 字符串先解析成 JSON 节点，再使用现有 CanonicalJson 对对象排序；它自身不会解析字符串。集合排序按已声明语义处理，避免受数据库查询顺序影响。契约字段包括版本标签、人工 ChangeType、OpenAPI/来源、参数与 Schema；不包含发布自动变化的 Status、SealedAt 和只读创建人/创建时间。元数据保存仍因 Revision 变化使当前评审失效，单纯发布封存不会误报契约变化。
 
 报告、评审均为追加记录，不做物理覆盖。`Current / Stale / Missing` 是读取或使用时计算的新鲜度，不改写历史结论。当前任一版本被修改或删除、API 范围变化、规则版本升级，均不能继续用旧评审创建或发布新的候选。历史页面仍展示“当时接受了什么”和冻结摘要，不能把过期评审显示为当前有效。
 
@@ -133,7 +133,7 @@ InputBytes 为授权读取的真实输入快照，ReportBytes 为规范化结果
 | 方法与路径 | 请求/结果 | 行为 |
 | --- | --- | --- |
 | POST /apis/{id}/version-comparisons | fromVersionId、toVersionId、expectedFromRevision、expectedToRevision → 报告 | 需要幂等键；不同 API 或相同版本返回 422 |
-| GET /apis/{id}/version-comparisons | 游标分页、最多 50 条 | 历史报告摘要，同样检查完整报告权限 |
+| GET /apis/{id}/version-comparisons | 游标分页、最多 50 条，可按 reviewId 精确过滤 | 历史报告摘要；供向导从评审 ID 解析报告，同样检查完整报告权限 |
 | GET /version-comparisons/{id} | 报告、覆盖问题、新鲜度、最近评审摘要 | 结果和新鲜度分开；Cache-Control: no-store |
 | GET /version-comparisons/{id}/export?format=json 或 csv | 服务端生成附件 | 每次授权；包含规则版本、指纹、风险和覆盖声明 |
 | POST /version-comparisons/{id}/reviews | expectedReportHash、decision、comment、confirmRisk → 评审记录 | 需要幂等键、api.approve 和新鲜度验证 |

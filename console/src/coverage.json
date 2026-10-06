@@ -94,9 +94,9 @@
     "number": 11,
     "name": "版本差异/Breaking Change",
     "sourceRoute": "/apis/{id}/versions/compare",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/apis",
+    "status": "源码已接入 · 隔离验收待执行",
+    "note": "从 API 详情进入真实版本比较；覆盖限制按报告展示，固定来源 UI QA 和4192升级待执行"
   },
   {
     "id": 12,
