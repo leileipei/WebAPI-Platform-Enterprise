@@ -2,7 +2,7 @@ using System.Text.Json;
 namespace WebApi.Contracts.Comparisons;
 public sealed record CreateVersionComparisonRequest(Guid FromVersionId,Guid ToVersionId,long ExpectedFromRevision,long ExpectedToRevision);
 public sealed record ComparisonCounts(int Added,int Changed,int Removed,int Compatible,int Breaking,int Unknown);
-public sealed record ComparisonFinding(string Key,string Source,string? Operation,string Pointer,string ChangeKind,string Risk,string Reason,JsonElement? Before=null,JsonElement? After=null);
+public sealed record ComparisonFinding(string Key,string Source,string? Operation,string Pointer,string ChangeKind,string Risk,string Reason,JsonElement? Before=null,JsonElement? After=null,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? RuleId=null,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? WitnessHash=null);
 public sealed record ComparisonCoverageIssue(string Code,string Source,string Pointer,string Reason);
 public sealed record ComparisonReport(string EngineVersion,string InputFingerprint,string Coverage,ComparisonCounts Counts,IReadOnlyList<ComparisonFinding> Findings,IReadOnlyList<ComparisonCoverageIssue> CoverageIssues);
 public sealed record ComparisonPage<T>(IReadOnlyList<T> Items,string? NextCursor);

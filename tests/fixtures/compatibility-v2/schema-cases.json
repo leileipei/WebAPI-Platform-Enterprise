@@ -1,0 +1,1258 @@
+[
+  {
+    "id": "types.integer_number",
+    "baseline": {
+      "type": "integer"
+    },
+    "target": {
+      "type": "number"
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.types",
+    "version": "3.1.0"
+  },
+  {
+    "id": "types.union_null",
+    "baseline": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "target": {
+      "type": "string"
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.types",
+    "version": "3.1.0"
+  },
+  {
+    "id": "types.nullable30",
+    "baseline": {
+      "type": "string",
+      "nullable": true
+    },
+    "target": {
+      "type": "string",
+      "nullable": false
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.types",
+    "version": "3.0.3"
+  },
+  {
+    "id": "types.boolean",
+    "baseline": false,
+    "target": true,
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.types",
+    "version": "3.1.0"
+  },
+  {
+    "id": "enum.widen",
+    "baseline": {
+      "enum": [
+        1,
+        2
+      ]
+    },
+    "target": {
+      "enum": [
+        1,
+        2,
+        3
+      ]
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.enum_const",
+    "version": "3.1.0"
+  },
+  {
+    "id": "enum.deep_const",
+    "baseline": {
+      "const": {
+        "a": 1
+      }
+    },
+    "target": {
+      "enum": [
+        {
+          "a": 1
+        },
+        {
+          "a": 2
+        }
+      ]
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.enum_const",
+    "version": "3.1.0"
+  },
+  {
+    "id": "enum.numeric_precision",
+    "baseline": {
+      "enum": [
+        9007199254740992
+      ]
+    },
+    "target": {
+      "enum": [
+        9007199254740993
+      ]
+    },
+    "request": "Breaking",
+    "response": "Breaking",
+    "ruleId": "schema.enum_const",
+    "version": "3.1.0"
+  },
+  {
+    "id": "number.bounds",
+    "baseline": {
+      "type": "number",
+      "minimum": 10
+    },
+    "target": {
+      "type": "number",
+      "minimum": 5
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.number_bounds",
+    "version": "3.1.0"
+  },
+  {
+    "id": "number.exclusive",
+    "baseline": {
+      "type": "number",
+      "exclusiveMinimum": 10
+    },
+    "target": {
+      "type": "number",
+      "minimum": 10
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.number_bounds",
+    "version": "3.1.0"
+  },
+  {
+    "id": "number.exclusive30",
+    "baseline": {
+      "type": "number",
+      "minimum": 10,
+      "exclusiveMinimum": true
+    },
+    "target": {
+      "type": "number",
+      "minimum": 10,
+      "exclusiveMinimum": false
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.number_bounds",
+    "version": "3.0.3"
+  },
+  {
+    "id": "number.multiple",
+    "baseline": {
+      "type": "number",
+      "multipleOf": 0.2
+    },
+    "target": {
+      "type": "number",
+      "multipleOf": 0.1
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.multiple_of",
+    "version": "3.1.0"
+  },
+  {
+    "id": "number.multiple_cross",
+    "baseline": {
+      "type": "number",
+      "multipleOf": 0.3
+    },
+    "target": {
+      "type": "number",
+      "multipleOf": 0.2
+    },
+    "request": "Breaking",
+    "response": "Breaking",
+    "ruleId": "schema.multiple_of",
+    "version": "3.1.0"
+  },
+  {
+    "id": "string.length",
+    "baseline": {
+      "type": "string",
+      "minLength": 5
+    },
+    "target": {
+      "type": "string",
+      "minLength": 2
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.string_length",
+    "version": "3.1.0"
+  },
+  {
+    "id": "string.pattern_same",
+    "baseline": {
+      "type": "string",
+      "pattern": "^a+$",
+      "minLength": 5
+    },
+    "target": {
+      "type": "string",
+      "pattern": "^a+$",
+      "minLength": 3
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.pattern",
+    "version": "3.1.0"
+  },
+  {
+    "id": "string.pattern_changed",
+    "baseline": {
+      "type": "string",
+      "pattern": "^a$"
+    },
+    "target": {
+      "type": "string",
+      "pattern": "^[ab]$"
+    },
+    "request": "Unknown",
+    "response": "Breaking",
+    "ruleId": "schema.pattern",
+    "version": "3.1.0"
+  },
+  {
+    "id": "string.no_witness",
+    "baseline": {
+      "type": "string",
+      "pattern": "^Z{65}$"
+    },
+    "target": {
+      "type": "string",
+      "pattern": "^Z{64}$"
+    },
+    "request": "Unknown",
+    "response": "Unknown",
+    "ruleId": "schema.pattern",
+    "version": "3.1.0"
+  },
+  {
+    "id": "format.annotation",
+    "baseline": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "target": {
+      "type": "string",
+      "format": "email"
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.format",
+    "version": "3.1.0"
+  },
+  {
+    "id": "object.required",
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "a"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "integer"
+        }
+      }
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.object_members",
+    "version": "3.1.0"
+  },
+  {
+    "id": "object.optional_closed",
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": true
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "integer"
+        },
+        "b": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.object_members",
+    "version": "3.1.0"
+  },
+  {
+    "id": "object.optional_open",
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "integer"
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "integer"
+        },
+        "b": {
+          "type": "string"
+        }
+      }
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.object_members",
+    "version": "3.1.0"
+  },
+  {
+    "id": "object.pattern_properties",
+    "baseline": {
+      "type": "object",
+      "patternProperties": {
+        "^x-": {
+          "type": "integer"
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "patternProperties": {
+        "^x-": {
+          "type": "number"
+        }
+      }
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.object_patterns",
+    "version": "3.1.0"
+  },
+  {
+    "id": "object.property_names",
+    "baseline": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "a"
+        ]
+      }
+    },
+    "target": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.object_patterns",
+    "version": "3.1.0"
+  },
+  {
+    "id": "object.cardinality",
+    "baseline": {
+      "type": "object",
+      "minProperties": 2
+    },
+    "target": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.object_size",
+    "version": "3.1.0"
+  },
+  {
+    "id": "object.dependent_required",
+    "baseline": {
+      "type": "object"
+    },
+    "target": {
+      "type": "object",
+      "dependentRequired": {
+        "a": [
+          "b"
+        ]
+      }
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.dependencies",
+    "version": "3.1.0"
+  },
+  {
+    "id": "object.dependent_schema",
+    "baseline": {
+      "type": "object"
+    },
+    "target": {
+      "type": "object",
+      "dependentSchemas": {
+        "a": {
+          "required": [
+            "b"
+          ]
+        }
+      }
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.dependencies",
+    "version": "3.1.0"
+  },
+  {
+    "id": "array.items",
+    "baseline": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "target": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.array_items",
+    "version": "3.1.0"
+  },
+  {
+    "id": "array.prefix",
+    "baseline": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "target": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.array_items",
+    "version": "3.1.0"
+  },
+  {
+    "id": "array.size",
+    "baseline": {
+      "type": "array",
+      "minItems": 3
+    },
+    "target": {
+      "type": "array",
+      "minItems": 1
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.array_size",
+    "version": "3.1.0"
+  },
+  {
+    "id": "array.unique",
+    "baseline": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "target": {
+      "type": "array",
+      "uniqueItems": false
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.array_unique",
+    "version": "3.1.0"
+  },
+  {
+    "id": "array.contains",
+    "baseline": {
+      "type": "array",
+      "contains": {
+        "type": "integer"
+      },
+      "minContains": 2
+    },
+    "target": {
+      "type": "array",
+      "contains": {
+        "type": "integer"
+      },
+      "minContains": 1
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.array_contains",
+    "version": "3.1.0"
+  },
+  {
+    "id": "composition.anyof",
+    "baseline": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "target": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.composition",
+    "version": "3.1.0"
+  },
+  {
+    "id": "composition.allof",
+    "baseline": {
+      "allOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "minimum": 2
+        }
+      ]
+    },
+    "target": {
+      "type": "number"
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.composition",
+    "version": "3.1.0"
+  },
+  {
+    "id": "composition.oneof_overlap",
+    "baseline": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "target": {
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.composition",
+    "version": "3.1.0"
+  },
+  {
+    "id": "composition.not",
+    "baseline": {
+      "type": "string"
+    },
+    "target": {
+      "type": "string",
+      "not": {
+        "const": "a"
+      }
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.conditionals",
+    "version": "3.1.0"
+  },
+  {
+    "id": "composition.if",
+    "baseline": {
+      "type": "object"
+    },
+    "target": {
+      "type": "object",
+      "if": {
+        "properties": {
+          "a": {
+            "const": 1
+          }
+        },
+        "required": [
+          "a"
+        ]
+      },
+      "then": {
+        "required": [
+          "b"
+        ]
+      },
+      "else": {
+        "required": [
+          "c"
+        ]
+      }
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.conditionals",
+    "version": "3.1.0"
+  },
+  {
+    "id": "unevaluated.properties",
+    "baseline": {
+      "type": "object",
+      "allOf": [
+        {
+          "properties": {
+            "a": {
+              "type": "integer"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "target": {
+      "type": "object",
+      "allOf": [
+        {
+          "properties": {
+            "a": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "properties": {
+            "b": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "request": "Unknown",
+    "response": "Breaking",
+    "ruleId": "schema.unevaluated",
+    "version": "3.1.0"
+  },
+  {
+    "id": "unevaluated.items",
+    "baseline": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer"
+        }
+      ],
+      "unevaluatedItems": false
+    },
+    "target": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "integer"
+        }
+      ],
+      "unevaluatedItems": false
+    },
+    "request": "Unknown",
+    "response": "Breaking",
+    "ruleId": "schema.unevaluated",
+    "version": "3.1.0"
+  },
+  {
+    "id": "direction.readonly",
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "readOnly": true
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "readOnly": false
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "request": "Breaking",
+    "response": "Compatible",
+    "ruleId": "schema.direction",
+    "version": "3.1.0"
+  },
+  {
+    "id": "direction.writeonly",
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "writeOnly": false
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "writeOnly": true
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "request": "Compatible",
+    "response": "Breaking",
+    "ruleId": "schema.direction",
+    "version": "3.1.0"
+  },
+  {
+    "id": "annotations.defaults",
+    "baseline": {
+      "type": "integer",
+      "default": 1,
+      "title": "before",
+      "examples": [
+        1
+      ]
+    },
+    "target": {
+      "type": "integer",
+      "default": 2,
+      "title": "after",
+      "examples": [
+        2
+      ]
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.annotations",
+    "version": "3.1.0"
+  },
+  {
+    "id": "annotations.content",
+    "baseline": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "contentMediaType": "image/png"
+    },
+    "target": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "contentMediaType": "image/jpeg"
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.content",
+    "version": "3.1.0"
+  },
+  {
+    "id": "annotations.discriminator",
+    "baseline": {
+      "type": "object",
+      "discriminator": {
+        "propertyName": "kind"
+      }
+    },
+    "target": {
+      "type": "object",
+      "discriminator": {
+        "propertyName": "type"
+      }
+    },
+    "request": "Unknown",
+    "response": "Unknown",
+    "ruleId": "schema.annotations",
+    "version": "3.1.0"
+  },
+  {
+    "id": "vocabulary.custom",
+    "baseline": {
+      "type": "integer",
+      "x-runtime-rule": true
+    },
+    "target": {
+      "type": "integer",
+      "x-runtime-rule": true
+    },
+    "request": "Unknown",
+    "response": "Unknown",
+    "ruleId": "schema.vocabulary",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.types.same",
+    "baseline": false,
+    "target": false,
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.types",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.enum_const.same",
+    "baseline": {
+      "enum": [
+        9007199254740992
+      ]
+    },
+    "target": {
+      "enum": [
+        9007199254740992
+      ]
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.enum_const",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.number_bounds.same",
+    "baseline": {
+      "type": "number",
+      "minimum": 10,
+      "exclusiveMinimum": true
+    },
+    "target": {
+      "type": "number",
+      "minimum": 10,
+      "exclusiveMinimum": true
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.number_bounds",
+    "version": "3.0.3"
+  },
+  {
+    "id": "schema.multiple_of.same",
+    "baseline": {
+      "type": "number",
+      "multipleOf": 0.3
+    },
+    "target": {
+      "type": "number",
+      "multipleOf": 0.3
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.multiple_of",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.string_length.same",
+    "baseline": {
+      "type": "string",
+      "minLength": 5
+    },
+    "target": {
+      "type": "string",
+      "minLength": 5
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.string_length",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.pattern.same",
+    "baseline": {
+      "type": "string",
+      "pattern": "^a$"
+    },
+    "target": {
+      "type": "string",
+      "pattern": "^a$"
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.pattern",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.format.same",
+    "baseline": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "target": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.format",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.object_members.same",
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "integer"
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "type": "integer"
+        }
+      }
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.object_members",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.object_patterns.same",
+    "baseline": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "a"
+        ]
+      }
+    },
+    "target": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "a"
+        ]
+      }
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.object_patterns",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.object_size.same",
+    "baseline": {
+      "type": "object",
+      "minProperties": 2
+    },
+    "target": {
+      "type": "object",
+      "minProperties": 2
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.object_size",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.dependencies.same",
+    "baseline": {
+      "type": "object"
+    },
+    "target": {
+      "type": "object"
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.dependencies",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.array_items.same",
+    "baseline": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "target": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.array_items",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.array_size.same",
+    "baseline": {
+      "type": "array",
+      "minItems": 3
+    },
+    "target": {
+      "type": "array",
+      "minItems": 3
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.array_size",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.array_unique.same",
+    "baseline": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "target": {
+      "type": "array",
+      "uniqueItems": true
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.array_unique",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.array_contains.same",
+    "baseline": {
+      "type": "array",
+      "contains": {
+        "type": "integer"
+      },
+      "minContains": 2
+    },
+    "target": {
+      "type": "array",
+      "contains": {
+        "type": "integer"
+      },
+      "minContains": 2
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.array_contains",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.composition.same",
+    "baseline": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "target": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "integer"
+        }
+      ]
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.composition",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.conditionals.same",
+    "baseline": {
+      "type": "object"
+    },
+    "target": {
+      "type": "object"
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.conditionals",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.unevaluated.same",
+    "baseline": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer"
+        }
+      ],
+      "unevaluatedItems": false
+    },
+    "target": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer"
+        }
+      ],
+      "unevaluatedItems": false
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.unevaluated",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.direction.same",
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "writeOnly": false
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "writeOnly": false
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.direction",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.annotations.same",
+    "baseline": {
+      "type": "integer",
+      "default": 1,
+      "title": "before",
+      "examples": [
+        1
+      ]
+    },
+    "target": {
+      "type": "integer",
+      "default": 1,
+      "title": "before",
+      "examples": [
+        1
+      ]
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.annotations",
+    "version": "3.1.0"
+  },
+  {
+    "id": "schema.content.same",
+    "baseline": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "contentMediaType": "image/png"
+    },
+    "target": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "contentMediaType": "image/png"
+    },
+    "request": "Compatible",
+    "response": "Compatible",
+    "ruleId": "schema.content",
+    "version": "3.1.0"
+  }
+]

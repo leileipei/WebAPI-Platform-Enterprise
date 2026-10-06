@@ -22,7 +22,7 @@ public class SchemaProcessTests
         Assert.Equal("Incomplete",timed.Status);Assert.Contains(timed.Issues,x=>x.Code=="contract_process_timeout");Assert.True(watch.Elapsed<TimeSpan.FromSeconds(4));
         var pids=File.ReadAllLines(f.Pids).Select(int.Parse).ToArray();Assert.Equal(2,pids.Length);
         foreach(var pid in pids){var path=$"/proc/{pid}/stat";if(File.Exists(path))Assert.Contains(") Z",File.ReadAllText(path));}
-        File.WriteAllText(f.Script,"#!/bin/sh\nprintf '%s' '{\"status\":\"Valid\",\"issues\":[]}'\n");
+        File.WriteAllText(f.Script,"#!/bin/sh\ncat >/dev/null\nprintf '%s' '{\"status\":\"Valid\",\"issues\":[]}'\n");
         Assert.Equal("Valid",(await runner.RunAsync(Request,TimeSpan.FromSeconds(2),default)).Status);
     }
     [Fact]public async Task TwoActiveAndTwoWaitingRejectTheFifthRequest()
@@ -36,7 +36,7 @@ public class SchemaProcessTests
     }
     [Fact]public async Task ChildNeverReceivesConnectionStringsOrCredentialEnvironment()
     {
-        using var f=new ToolFixture("if [ -n \"$ConnectionStrings__Postgres$WEBAPI_TEST_SECRET\" ]; then printf '%s' '{\"status\":\"Invalid\",\"issues\":[]}'; else printf '%s' '{\"status\":\"Valid\",\"issues\":[]}'; fi");
+        using var f=new ToolFixture("cat >/dev/null; if [ -n \"$ConnectionStrings__Postgres$WEBAPI_TEST_SECRET\" ]; then printf '%s' '{\"status\":\"Invalid\",\"issues\":[]}'; else printf '%s' '{\"status\":\"Valid\",\"issues\":[]}'; fi");
         Environment.SetEnvironmentVariable("ConnectionStrings__Postgres","CANARY-CONNECTION");Environment.SetEnvironmentVariable("WEBAPI_TEST_SECRET","CANARY-SECRET");
         try{Assert.Equal("Valid",(await f.Runner.RunAsync(Request,TimeSpan.FromSeconds(2),default)).Status);}
         finally{Environment.SetEnvironmentVariable("ConnectionStrings__Postgres",null);Environment.SetEnvironmentVariable("WEBAPI_TEST_SECRET",null);}
@@ -63,7 +63,7 @@ public class SchemaProcessTests
     {
         using var f=new ToolFixture("head -c 8388609 /dev/zero");var runner=f.Runner;
         Assert.Contains((await runner.RunAsync(Request,TimeSpan.FromSeconds(2),default)).Issues,x=>x.Code=="contract_process_output_budget");
-        File.WriteAllText(f.Script,"#!/bin/sh\nprintf '%s' '{\"status\":\"Valid\",\"issues\":[]}'\n");
+        File.WriteAllText(f.Script,"#!/bin/sh\ncat >/dev/null\nprintf '%s' '{\"status\":\"Valid\",\"issues\":[]}'\n");
         Assert.Equal("Valid",(await runner.RunAsync(Request,TimeSpan.FromSeconds(2),default)).Status);
     }
     [Fact]public async Task InputOverflowNeverStartsAChild()
@@ -71,4 +71,10 @@ public class SchemaProcessTests
         using var f=new ToolFixture("echo $$ >> \"$1\"");var oversized=new ContractProcessRequest("schema",JsonSerializer.SerializeToElement(new string('x',16*1024*1024)));
         Assert.Contains((await f.Runner.RunAsync(oversized,TimeSpan.FromSeconds(2),default)).Issues,x=>x.Code=="contract_process_input_budget");Assert.False(File.Exists(f.Pids));
     }
+    [Fact]public async Task ChildClosingInputWithoutReadingCannotBeSuccessful()
+    {
+        using var f=new ToolFixture("printf '%s' '{\"status\":\"Valid\",\"issues\":[]}'");var input=new ContractProcessRequest("schema",JsonSerializer.SerializeToElement(new string('x',1024*1024)));
+        var response=await f.Runner.RunAsync(input,TimeSpan.FromSeconds(2),default);Assert.Equal("Incomplete",response.Status);Assert.Contains(response.Issues,x=>x.Code=="contract_process_unavailable");
+    }
+
 }
