@@ -1,0 +1,10 @@
+export type SchemaPatch={op:'add'|'remove'|'replace'|'rename';pointer:string;value?:any;newName?:string};
+export type SchemaNode={pointer:string;label:string;depth:number;required:boolean;kind:string;type:string;reference?:string;constraints:{key:string;value:string}[];keywords:string[]};
+export function applySchemaPatch(document:any,patch:SchemaPatch):any;
+export function parseSchemaDocument(text:string,options?:{locations?:Record<string,{start:number;end:number}>}):any;
+export function serializeSchemaDocument(document:any):string;
+export function buildSchemaNodes(document:any,options?:{budget?:number}):{nodes:SchemaNode[];truncated:boolean};
+export function schemaDraftState(state:any,action:any):any;
+export function validationMatches(response:any,identity:Record<string,unknown>):boolean;
+export function validationContextMatches(previous:any,current:any):boolean;
+export function exampleOptions(definition:any):{name:string;json?:string;externalValue?:string;unverified?:boolean;unverifiedReason?:string}[];

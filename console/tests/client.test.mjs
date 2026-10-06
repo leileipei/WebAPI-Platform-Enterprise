@@ -22,3 +22,7 @@ test('resource 403 and hidden-resource 404 trigger authority refresh; 412 retain
   assert.deepEqual(observed,['permission-refresh','permission-refresh']);
  } finally {globalThis.dispatchEvent=previous;}
 });
+test('structured contract failures preserve affected pointers for a reviewable repair',async()=>{
+ const issues=[{code:'schema_reference_impact',pointer:'/components/schemas/Old',message:'请显式处理引用。',line:2,column:3}];globalThis.fetch=async()=>new Response(JSON.stringify({title:'引用受影响',code:'schema_reference_impact',traceId:'t',issues}),{status:422});
+ await assert.rejects(apiRequest('/versions/v/schemas'),error=>{assert.ok(error instanceof ApiError);assert.deepEqual(error.issues,issues);assert.equal(error.code,'schema_reference_impact');return true;});
+});

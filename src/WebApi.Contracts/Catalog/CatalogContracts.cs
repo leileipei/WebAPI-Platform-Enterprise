@@ -7,9 +7,18 @@ public sealed record VersionDto(Guid Id,Guid ApiId,string Version,string Status,
 public sealed record SaveGroupRequest(string Name,Guid? ParentId=null,int SortOrder=0);
 public sealed record GroupDto(Guid Id,Guid ProjectId,string Name,Guid? ParentId,int SortOrder,long Revision);
 public sealed record SaveParameterRequest(Guid? Id,string Location,string Name,string DataType,bool Required,string? Schema=null,string? Description=null,string? ExampleJson=null);
-public sealed record ParameterDto(Guid Id,Guid ApiVersionId,string Location,string Name,string DataType,bool Required,string? Schema,string? Description,string? ExampleJson);
+public sealed record ContractExampleOption(string Name,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? Json=null,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? ExternalValue=null,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? UnverifiedReason=null);
+public sealed record ParameterDto(Guid Id,Guid ApiVersionId,string Location,string Name,string DataType,bool Required,string? Schema,string? Description,string? ExampleJson)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ContractExampleOption>? Examples {get;init;}
+}
 public sealed record SaveSchemaRequest(Guid? Id,string SchemaType,string Name,int? StatusCode,string ContentType,string SchemaJson,string? ExampleJson=null);
-public sealed record SchemaDto(Guid Id,Guid ApiVersionId,string SchemaType,string Name,int? StatusCode,string ContentType,string SchemaJson,string? SchemaHash,string? ExampleJson);
+public sealed record SchemaDto(Guid Id,Guid ApiVersionId,string SchemaType,string Name,int? StatusCode,string ContentType,string SchemaJson,string? SchemaHash,string? ExampleJson)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ContractExampleOption>? Examples {get;init;}
+}
 public sealed record SaveRouteRequest(Guid? Id,Guid ApiVersionId,string RouteName,string Path,IReadOnlyList<string> Methods,Guid ClusterId,int Priority=100,bool Enabled=true,int? TimeoutMs=null,bool RequireApiKey=true);
 public sealed record RouteDto(Guid Id,Guid ApiVersionId,Guid EnvironmentId,string RouteName,string Path,string NormalizedPath,IReadOnlyList<string> Methods,Guid ClusterId,int Priority,int MatchOrder,bool Enabled,int TimeoutMs,bool RequireApiKey,long Revision,int? EffectiveTimeoutMs=null);
 public sealed record SaveClusterRequest(string Name,string LoadBalancingPolicy="RoundRobin",bool HealthCheckEnabled=false,string HealthCheckPath="/health",int HealthCheckIntervalSec=30,string Status="Active");
