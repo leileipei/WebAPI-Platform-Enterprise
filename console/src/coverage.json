@@ -13,9 +13,9 @@
     "number": 2,
     "name": "企业工作台",
     "sourceRoute": "/dashboard",
-    "route": null,
-    "status": "后续能力",
-    "note": "当前无真实服务能力，不提供模拟业务操作"
+    "route": "/dashboard",
+    "status": "真实只读工作台已接入",
+    "note": "复用当前授权项目/环境的 API、24h 指标、网关、未确认告警和最近发布；最近50条中的待审批不等于全部或个人任务。数据源异常与缺失分别展示。"
   },
   {
     "id": 3,

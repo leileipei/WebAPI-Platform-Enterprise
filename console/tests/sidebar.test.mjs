@@ -52,14 +52,13 @@ test('collapsed navigation hides its links; opening API exposes actual entries a
   assert.doesNotMatch(open, /href="\/settings\/sso"/);
 });
 
-test('settings remain reachable in platform governance and workbench does not link to an unrelated page', async () => {
+test('settings remain reachable in platform governance', async () => {
   const SidebarNav = await component();
   const html = renderToStaticMarkup(createElement(SidebarNav, {path:'/settings/sso', expanded:'governance', onToggle:()=>{}, onNavigate:()=>{}}));
   assert.match(html, /href="\/settings\/sso"[^>]*aria-current="page"/);
   assert.match(html, /href="\/permissions"/);
   assert.match(html, /href="\/coverage"/);
-  assert.match(html, /disabled=""[^>]*>.*?工作台.*?待接入/s);
-  assert.doesNotMatch(html, /href="\/dashboard"/);
+
 });
 
 test('the signed-in root page highlights the organization list it actually renders', async () => {
@@ -70,4 +69,12 @@ test('the signed-in root page highlights the organization list it actually rende
   assert.match(html, /href="\/organizations"[^>]*aria-current="page"/);
   assert.equal(isSidebarItemActive('/', '/projects'), false);
   assert.equal(sidebarGroupForPath('/unknown'), null);
+});
+
+// Catches an unavailable workbench or an entry pointing at the wrong resource.
+test('workbench navigation opens the dashboard while root keeps organization selection', async () => {
+  const SidebarNav = await component();
+  const html = renderToStaticMarkup(createElement(SidebarNav, {path:'/dashboard', expanded:sidebarGroupForPath('/dashboard'), onToggle:()=>{}, onNavigate:()=>{}}));
+  assert.match(html, /href="\/dashboard"[^>]*aria-current="page"/);
+  assert.equal(sidebarGroupForPath('/'), 'organization');
 });

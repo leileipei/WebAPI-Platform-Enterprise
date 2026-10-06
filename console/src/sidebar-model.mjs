@@ -1,6 +1,6 @@
 // Resource detail pages inherit the group of their list entry.
 export const sidebarGroups = [
-  {id:'workbench', title:'工作台', unavailable:true, items:[]},
+  {id:'workbench', title:'工作台', items:[['/dashboard','企业工作台']]},
   {id:'organization', title:'组织与项目', items:[['/organizations','组织管理'],['/projects','项目管理'],['/environments','环境管理']]},
   {id:'api', title:'API 管理', items:[['/apis','API 目录'],['/imports','OpenAPI 导入'],['/routes','Route 管理']]},
   {id:'traffic', title:'流量与后端', items:[['/clusters','Cluster 列表']]},
