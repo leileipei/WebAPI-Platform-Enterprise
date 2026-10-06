@@ -12,6 +12,7 @@ public sealed class ContractReferenceRegistry
     private readonly Dictionary<string, JsonNode> resources = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Identity> anchors = new(StringComparer.Ordinal);
     private readonly Dictionary<JsonNode, Identity> identities = new(ReferenceEqualityComparer.Instance);
+    private readonly HashSet<JsonNode> schemaNodes = new(ReferenceEqualityComparer.Instance);
     private readonly int maximumIndexBytes;
     private long indexBytes;
     private long pointerBytes;
@@ -19,6 +20,13 @@ public sealed class ContractReferenceRegistry
     public IReadOnlyList<ContractReference> References => references.AsReadOnly();
     public ResolvedContractNode Describe(JsonNode node) => identities.TryGetValue(node,out var identity) ? new(identity.Resource,identity.Pointer,node) : throw Missing();
     public IReadOnlyList<ResolvedContractNode> Resources => resources.Select(p => new ResolvedContractNode(new(p.Key), identities[p.Value].Pointer, p.Value)).ToArray();
+    internal IReadOnlyList<ResolvedContractNode> SchemaRoots => schemaNodes.Where(node =>
+        node is JsonObject obj && obj.ContainsKey("$id") || !HasSchemaAncestor(node)).Select(Describe).ToArray();
+    private bool HasSchemaAncestor(JsonNode node)
+    {
+        for(var parent=node.Parent;parent is not null;parent=parent.Parent)if(schemaNodes.Contains(parent))return true;
+        return false;
+    }
     public ContractReferenceRegistry(ContractBundle bundle, ContractLimits limits)
     {
         maximumIndexBytes = limits.MaxBundleBytes;
@@ -92,6 +100,7 @@ public sealed class ContractReferenceRegistry
     private void Walk(JsonNode? node, string pointer, Uri basis, bool schema, ContractDialect dialect,bool data=false)
     {
         if (node is null) return;
+        if(schema&&!data)schemaNodes.Add(node);
         if (schema && dialect == ContractDialect.Oas31 && node is JsonObject s && s.TryGetPropertyValue("$id", out var id)) {
             var text = ContractDocumentReader.Text(id);
             if (text.Length > 4096) throw IndexTooLarge();

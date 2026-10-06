@@ -31,3 +31,12 @@
 - `tests/contracts/dependencies.test.mjs` 核对固定来源和全部源码哈希。
 - 固定 SDK 实际自编译三库通过；解决方案 locked restore 通过；Domain 全量 271 项通过，其中新读取边界 22 项。
 - 以上为基础解析与构建验收，尚不表示 Schema 全语义、URL 网络获取、UI 或部署验收已完成。
+
+## Schema 执行与标准资源（2026-10-07）
+
+- 官方 JSON Schema 测试集固定为 `f6fd52a0a95472e079cbfc6ef7f089702b80e045`。`tests/fixtures/json-schema-manifest.json` 保存普通根文件、离线 remotes、19 种登记 Strict 格式的 optional 文件及许可证 SHA。正式根 46 文件／1301 实例、Strict 842 实例全部遍历，无 skip。
+- 底层引擎和产品适配器分别验收。正式根中的 5 个自定义词汇方言实例由底层离线引擎验证，产品返回明确 `Incomplete`，因为产品只登记 OAS 3.0、OAS 3.1／2020-12。该差异不能描述成产品接受任意自定义元 Schema。
+- `ContractFormats` 使用每次执行独立的格式注册表，修正实际官方用例暴露的 UUID／换行、邮件、IP 字面量、IDNA 及 URI 模板边界；不改第三方源码或全局注册表。Annotation 为默认；Strict 对未登记格式返回 `Incomplete`。
+- `third_party/unicode-idna/` 保存 Unicode 17.0.0 官方 Bidi／Script 数据、Unicode License V3、SHA 清单和生成器。`IdnaUnicodeData.cs` 是可重生成的有界标量查表，配合运行库 UTS 46 映射、允许字符、ContextO 和 Bidi 检查；不执行运行时下载。运行库对未知字符的支持仍与固定镜像有关，不承诺不同 Unicode／ICU 版本完全等价。
+- `contract-evaluate` 只读一次有界 stdin 请求。协议输入 16 MiB、输出 8 MiB；Schema 原文／包仍受更小业务预算约束。固定包以原文 UTF-8 Base64、URI 和哈希传输，子进程重建并复核。父端每实例最多 2 个运行＋2 个等待，期限包括等待，Schema 5 秒／compare 10 秒；子进程不继承连接串与凭据，超时或取消终止进程树并回收。Schema 无网络获取，只有固定包及九个库内嵌 2020-12 元 Schema URI。
+- 独立测试 runner 只读源码，并在容器内复制、locked restore、构建 RuntimeTool、传入实际新 DLL 路径；不会使用工作区旧 bin／obj。Task 5 Domain 完整 366 项通过。这是离线语义与进程验收，尚不表示只读 API、v2 比较、UI 或 4192 部署已完成；compare 实际分发在 v2 引擎任务接入，之前明确未完成。

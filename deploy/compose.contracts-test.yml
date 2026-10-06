@@ -6,6 +6,8 @@ services:
     labels:
       com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
   sdk:
+    volumes:
+      - ..:/workspace:ro
     labels:
       com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
 secrets:

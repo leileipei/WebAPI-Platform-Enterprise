@@ -14,7 +14,7 @@ public static class DialectAdapter
         "contentEncoding", "contentMediaType", "contentSchema", "discriminator", "xml", "externalDocs"
     ];
     private static readonly HashSet<string> Modern = ["$id", "$anchor", "$dynamicAnchor", "$dynamicRef", "$defs", "$vocabulary", "const", "prefixItems", "contains", "minContains", "maxContains", "unevaluatedItems", "patternProperties", "dependentRequired", "dependentSchemas", "propertyNames", "unevaluatedProperties", "if", "then", "else", "contentSchema"];
-    public static PreparedSchema PrepareSchema(JsonNode schema, ContractDialect dialect, string direction)
+    public static PreparedSchema PrepareSchema(JsonNode schema, ContractDialect dialect, string direction,bool applyDirection=true)
     {
         if (direction is not ("request" or "response")) throw new ApiException(422, "invalid_schema_direction", "校验方向必须为 request 或 response。");
         var nodes = 0;
@@ -46,7 +46,10 @@ public static class DialectAdapter
                         if (list[i] is null) { Issue("invalid_schema_dialect", child, "Schema 不能为 null。"); prepared.Add((JsonNode?)null); }
                         else prepared.Add(Prepare(list[i]!, child + "/" + i, depth + 1));
                     } obj[key] = prepared;
-                } else if (SchemaNavigation.SingleKeywords.Contains(key) && value is not null) obj[key] = Prepare(value, child, depth + 1);
+                } else if (SchemaNavigation.SingleKeywords.Contains(key) && value is not null) {
+                    if (dialect == ContractDialect.Oas30 && key == "additionalProperties" && value is JsonValue flag && flag.TryGetValue<bool>(out _)) obj[key] = value.DeepClone();
+                    else obj[key] = Prepare(value, child, depth + 1);
+                }
             }
             if (dialect == ContractDialect.Oas30) {
                 if (obj["nullable"] is JsonValue n && n.TryGetValue<bool>(out var nullable) && nullable && obj["type"] is JsonValue t && t.TryGetValue<string>(out var type)) obj["type"] = new JsonArray(type, "null");
@@ -61,7 +64,7 @@ public static class DialectAdapter
                     }
                 }
             }
-            if (obj["required"] is JsonArray required && obj["properties"] is JsonObject properties) for (var i = required.Count - 1; i >= 0; i--) {
+            if (applyDirection && obj["required"] is JsonArray required && obj["properties"] is JsonObject properties) for (var i = required.Count - 1; i >= 0; i--) {
                 var name = ContractDocumentReader.Text(required[i]);
                 if (properties[name] is JsonObject property && property[direction == "request" ? "readOnly" : "writeOnly"] is JsonValue flag && flag.TryGetValue<bool>(out var enabled) && enabled) required.RemoveAt(i);
             }

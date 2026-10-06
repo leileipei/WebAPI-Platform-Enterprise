@@ -1,0 +1,18 @@
+{
+  "version": "17.0.0",
+  "sources": [
+    "https://www.unicode.org/Public/17.0.0/ucd/extracted/DerivedBidiClass.txt",
+    "https://www.unicode.org/Public/17.0.0/ucd/Scripts.txt",
+    "https://www.unicode.org/license.txt"
+  ],
+  "files": {
+    "17.0.0/DerivedBidiClass.txt": "4867b4b7f0731ed1bfcd34cc6251211ff1542541fce0734b6fbda139ee80b3a4",
+    "17.0.0/Scripts.txt": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+    "LICENSE.txt": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+    "generate.py": "b450f0664c3c047a00bd45bc112520ea8175f3dff535755cdc793503409a2e7e"
+  },
+  "derived": {
+    "path": "src/WebApi.Infrastructure/Contracts/IdnaUnicodeData.cs",
+    "sha256": "9b554cce9d10425bdab615f6f5ffc151e466bcd004b474313ad5380b912d7a43"
+  }
+}

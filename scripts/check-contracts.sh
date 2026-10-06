@@ -56,8 +56,15 @@ cleanup(){
 }
 trap cleanup EXIT
 compose up -d --wait postgres redis
-if [ "$seed_available" = yes ]; then
-  compose run --rm sdk bash -c 'mkdir -p /root/.nuget/packages; cp -a /nuget-seed/. /root/.nuget/packages/; exec dotnet test "$@"' -- "$test_project" --configuration Release "$@"
-else
-  compose run --rm sdk dotnet test "$test_project" --configuration Release "$@"
-fi
+compose run --rm sdk bash -c '
+  set -euo pipefail
+  mkdir -p /test-src /root/.nuget/packages
+  tar --exclude=bin --exclude=obj --exclude=node_modules -cf - -C /workspace Directory.Build.props Directory.Packages.props WebApi.Enterprise.sln .config src tests third_party deploy scripts | tar -xf - -C /test-src
+  if [ -d /nuget-seed ]; then cp -a /nuget-seed/. /root/.nuget/packages/; fi
+  cd /test-src
+  dotnet restore WebApi.Enterprise.sln --locked-mode
+  dotnet restore src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj --locked-mode
+  dotnet build src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj --no-restore --configuration Release --output /runtime-tool
+  export WEBAPI_RUNTIME_TOOL_DLL=/runtime-tool/WebApi.RuntimeTool.dll
+  exec dotnet test "$@" --no-restore
+' -- "$test_project" --configuration Release "$@"
