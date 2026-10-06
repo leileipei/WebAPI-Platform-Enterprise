@@ -95,8 +95,8 @@
     "name": "版本差异/Breaking Change",
     "sourceRoute": "/apis/{id}/versions/compare",
     "route": "/apis",
-    "status": "源码已接入 · 隔离验收待执行",
-    "note": "从 API 详情进入真实版本比较；覆盖限制按报告展示，固定来源 UI QA 和4192升级待执行"
+    "status": "真实版本比较与风险评审已接入",
+    "note": "支持契约比较、历史报告、导出、追加风险评审及可选发布证据；规则覆盖限制按报告展示，正式审批与网关发布独立执行。"
   },
   {
     "id": 12,
