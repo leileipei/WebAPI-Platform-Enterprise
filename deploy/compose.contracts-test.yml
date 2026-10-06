@@ -1,0 +1,13 @@
+services:
+  postgres:
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
+  redis:
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
+  sdk:
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
+secrets:
+  postgres-password:
+    file: ${WEBAPI_CONTRACT_TEST_DIRECTORY:?required}/postgres-password

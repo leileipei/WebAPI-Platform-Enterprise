@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Version>7.0.2</Version><AssemblyVersion>7.0.0.0</AssemblyVersion><AssemblyName>JsonPointer.Net</AssemblyName><RootNamespace>Json.Pointer</RootNamespace></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../Json.More/Json.More.csproj" /><PackageReference Include="Humanizer.Core" /></ItemGroup>
+</Project>

@@ -253,6 +253,22 @@
         "resolved": "10.0.12",
         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
       },
+      "json.more": {
+        "type": "Project"
+      },
+      "JsonPointer.Net": {
+        "type": "Project",
+        "dependencies": {
+          "Humanizer.Core": "[3.0.10, )",
+          "Json.More": "[3.0.1, )"
+        }
+      },
+      "JsonSchema.Net": {
+        "type": "Project",
+        "dependencies": {
+          "JsonPointer.Net": "[7.0.2, )"
+        }
+      },
       "webapi.contracts": {
         "type": "Project"
       },
@@ -265,6 +281,7 @@
       "webapi.infrastructure": {
         "type": "Project",
         "dependencies": {
+          "JsonSchema.Net": "[9.4.0, )",
           "Microsoft.EntityFrameworkCore": "[10.0.12, )",
           "Microsoft.EntityFrameworkCore.Relational": "[10.0.12, )",
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "[8.19.2, )",
@@ -274,8 +291,15 @@
           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
           "StackExchange.Redis": "[3.3.1, )",
           "WebApi.Contracts": "[1.0.0, )",
-          "WebApi.Domain": "[1.0.0, )"
+          "WebApi.Domain": "[1.0.0, )",
+          "YamlDotNet": "[18.1.0, )"
         }
+      },
+      "Humanizer.Core": {
+        "type": "CentralTransitive",
+        "requested": "[3.0.10, )",
+        "resolved": "3.0.10",
+        "contentHash": "yZIhtw8sYuvsONzQbZxWpR60tMWYHXoo0DL6nyOqSFiU5POjBTSEyWFpTQtJEZuy+oqiYTXKXY/Mjx7KnqIQFw=="
       },
       "Microsoft.EntityFrameworkCore": {
         "type": "CentralTransitive",
@@ -363,6 +387,12 @@
           "RESPite": "3.3.1",
           "System.IO.Hashing": "10.0.12"
         }
+      },
+      "YamlDotNet": {
+        "type": "CentralTransitive",
+        "requested": "[18.1.0, )",
+        "resolved": "18.1.0",
+        "contentHash": "5K+9KFg2TdTl7VXv88Qzi/0lqK6JFoNP3lRuImPYGRV7K/QYklDyTrj4+A+KAki1JsQi6qKY+hDyY7d6WRqjrw=="
       }
     }
   }

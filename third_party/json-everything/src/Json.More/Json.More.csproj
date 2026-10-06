@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Version>3.0.1</Version><AssemblyVersion>3.0.0.0</AssemblyVersion><AssemblyName>Json.More</AssemblyName><RootNamespace>Json.More</RootNamespace></PropertyGroup>
+</Project>

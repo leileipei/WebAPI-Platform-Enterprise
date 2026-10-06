@@ -1,0 +1,994 @@
+{
+  "files": {
+    "LICENSE": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "baebca0309090f4eca1b7a82c836cc91e48b2b92139c2280fb0ff69af922c2ae",
+      "upstreamPath": "LICENSE"
+    },
+    "Meta-Schemas/2019-09/applicator.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "6b5f4e2fbc326d63cef6f6a3fa53bbfd3da39323116bc2eee866d716afc0e52c",
+      "upstreamPath": "Meta-Schemas/2019-09/applicator.json"
+    },
+    "Meta-Schemas/2019-09/content.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "9054737ada8e2ffbd9c9487ea406a86af8b57dcfd269543f04aba782936e3385",
+      "upstreamPath": "Meta-Schemas/2019-09/content.json"
+    },
+    "Meta-Schemas/2019-09/core.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a6751523406d9ca767032ae97eb1c00c2de6d3cac9fc7d619babb460131cc1cb",
+      "upstreamPath": "Meta-Schemas/2019-09/core.json"
+    },
+    "Meta-Schemas/2019-09/format.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a53cf235aab26c7639e70e94656136b20bcc364379c6a129cc06377982f91e96",
+      "upstreamPath": "Meta-Schemas/2019-09/format.json"
+    },
+    "Meta-Schemas/2019-09/meta-data.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "ebcce1cded976590c75b4e5ee18ac471ffd8d21575a41d3ba05f59946fcbb5ce",
+      "upstreamPath": "Meta-Schemas/2019-09/meta-data.json"
+    },
+    "Meta-Schemas/2019-09/schema.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "7b761b3e121f0a0ca1ea2a0b8e2cc856bcf801604b8268d71bacaa202bc0c13b",
+      "upstreamPath": "Meta-Schemas/2019-09/schema.json"
+    },
+    "Meta-Schemas/2019-09/validation.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "c83c5121d0afd313846002429cd16b08ab77be022f423c70f0cfb64adc1069b7",
+      "upstreamPath": "Meta-Schemas/2019-09/validation.json"
+    },
+    "Meta-Schemas/2020-12/applicator.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "aadb75378e4270fba5d5f78c1622a3eed4bd12c781daef65aff8b6caab362144",
+      "upstreamPath": "Meta-Schemas/2020-12/applicator.json"
+    },
+    "Meta-Schemas/2020-12/content.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a10456605b2b5bb12a1b4dcfc0300f02f54d3e8bb3646bed7724583866627682",
+      "upstreamPath": "Meta-Schemas/2020-12/content.json"
+    },
+    "Meta-Schemas/2020-12/core.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "522cf3a242d24336553f4aeb4f5178e96e5fdcd575d4379a8eb919a3de6ccb58",
+      "upstreamPath": "Meta-Schemas/2020-12/core.json"
+    },
+    "Meta-Schemas/2020-12/format-annotation.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "5c79404f831dd905c0f40fefac7c6f3e51bf3729b4a876a5c2020178d97f3bcc",
+      "upstreamPath": "Meta-Schemas/2020-12/format-annotation.json"
+    },
+    "Meta-Schemas/2020-12/format-assertion.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "6a5a8e13c605e3eff51f9bf8da18078880d81ff1634e391760ccc2e16ee2146f",
+      "upstreamPath": "Meta-Schemas/2020-12/format-assertion.json"
+    },
+    "Meta-Schemas/2020-12/meta-data.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "c664d438a84d58889c8edecd248ce2f945a4bc0e3b087323b11303dc136abfbe",
+      "upstreamPath": "Meta-Schemas/2020-12/meta-data.json"
+    },
+    "Meta-Schemas/2020-12/schema.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "f708ac2931ed1fe8ea2aa315148ddae8533a14e00439696d2778cb03aacd6122",
+      "upstreamPath": "Meta-Schemas/2020-12/schema.json"
+    },
+    "Meta-Schemas/2020-12/unevaluated.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "fc99f32188da41689a9382af174dd42e8b255e4374965c157b8286556b4ab2bc",
+      "upstreamPath": "Meta-Schemas/2020-12/unevaluated.json"
+    },
+    "Meta-Schemas/2020-12/validation.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "3ac2d97a9d4db7156fddb5b138f4106f048f215e1540f70d0227401a086dd916",
+      "upstreamPath": "Meta-Schemas/2020-12/validation.json"
+    },
+    "Meta-Schemas/OpenAPI/3.1/openapi-dialect-base.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "8a0e89e365dadbebce2921ce6244340c1090e9d544c60d977e9ad6b97a61227b",
+      "upstreamPath": "Meta-Schemas/OpenAPI/3.1/openapi-dialect-base.json"
+    },
+    "Meta-Schemas/OpenAPI/3.1/openapi-meta-base.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "267a88226e64e96dfc8c89dbd7e863160c84715e0fb893ca1d9fbf9f830f1f54",
+      "upstreamPath": "Meta-Schemas/OpenAPI/3.1/openapi-meta-base.json"
+    },
+    "Meta-Schemas/OpenAPI/3.1/schema.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "f89c746035476f084bab8a24928e81ae3006dcc9d6ddebccdce96033f8da40a0",
+      "upstreamPath": "Meta-Schemas/OpenAPI/3.1/schema.json"
+    },
+    "Meta-Schemas/array-ext.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "2cf5f7182ac261aa571aa07630621aa4ab12f38860d94abc23ce6fb09eaa1566",
+      "upstreamPath": "Meta-Schemas/array-ext.json"
+    },
+    "Meta-Schemas/data-2023.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "0819dc9efe05d7a817ef2c5763ff26b08a908c5977adb07b5a37f7fe0d62dbca",
+      "upstreamPath": "Meta-Schemas/data-2023.json"
+    },
+    "Meta-Schemas/schema06.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "0064e880ba214bff1cee511e678fbe48c9826dd359e91e2423fc36de67b2ebe1",
+      "upstreamPath": "Meta-Schemas/schema06.json"
+    },
+    "Meta-Schemas/schema07.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "692e1d165e47afcb5f11b2ce1c639635ffa834035d6ecb6bcf3087481dae8404",
+      "upstreamPath": "Meta-Schemas/schema07.json"
+    },
+    "Meta-Schemas/v1.json": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "f0ed7e02e77f55016bdfbc4727f0d721329b08f13c65c2a5a049d82c64ec9695",
+      "upstreamPath": "Meta-Schemas/v1.json"
+    },
+    "json-everything.snk": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "2f4aff14411f9337c705f9fbb65033c5b6785d1abab51f17577acfed0358b4d2",
+      "upstreamPath": "json-everything.snk"
+    },
+    "src/Json.More/EnumStringConverter.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "b98f26d187f964a31673da93f4776f58930bca48ee03d9c3a923c2cdc043768c",
+      "upstreamPath": "src/Json.More/EnumStringConverter.cs"
+    },
+    "src/Json.More/Json.More.csproj.upstream.txt": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "6ac945d97643238d5142445fb4af2a37bbaf634c11ad5e024d29d4a2bd951e04",
+      "upstreamPath": "src/Json.More/Json.More.csproj"
+    },
+    "src/Json.More/JsonArrayTupleConverter.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "3effdf4c9ebdbfb93e7322d86024c0350065f7b731c81710140e432f6c5dff27",
+      "upstreamPath": "src/Json.More/JsonArrayTupleConverter.cs"
+    },
+    "src/Json.More/JsonDocumentEqualityComparer.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "7a063ccc3cb21ae3f4455f0d01e79e0335cc17968ff37da7676775d4d04e9437",
+      "upstreamPath": "src/Json.More/JsonDocumentEqualityComparer.cs"
+    },
+    "src/Json.More/JsonDocumentExtensions.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "77f27323721aeecbc8e9d9247c7169080c684e5e6032f6de47b106b5ac765500",
+      "upstreamPath": "src/Json.More/JsonDocumentExtensions.cs"
+    },
+    "src/Json.More/JsonElementEqualityComparer.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "6362d7d7427842b69901c8209d8126b82725a46322bca51f7191547b5ed5e89e",
+      "upstreamPath": "src/Json.More/JsonElementEqualityComparer.cs"
+    },
+    "src/Json.More/JsonElementExtensions.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "069d5388225c1f5a7bb61b02a5bf10f2bc3473c155234786d1272208c4310f37",
+      "upstreamPath": "src/Json.More/JsonElementExtensions.cs"
+    },
+    "src/Json.More/JsonElementProxy.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "4aa66ebfc4bdd9fdde2df4d9466e6e10bbb02dbb673d00fd6454ef973bbb4198",
+      "upstreamPath": "src/Json.More/JsonElementProxy.cs"
+    },
+    "src/Json.More/JsonNodeEqualityComparer.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "2592996594436a0c4d5b5ef9388b1ae24a1a635b9fb7df9dde69c1f5d293f9b9",
+      "upstreamPath": "src/Json.More/JsonNodeEqualityComparer.cs"
+    },
+    "src/Json.More/JsonNodeExtensions.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "e94678f713d9835f03c27b4a02b785af733ce277fd2b2aa13d0f46a47b0ab0f6",
+      "upstreamPath": "src/Json.More/JsonNodeExtensions.cs"
+    },
+    "src/Json.More/JsonSerializerOptionsExtensions.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "6e297c15a894dfa9e5b4f37c526b24cf265b5cb172d2bfa57e20aa2563a55548",
+      "upstreamPath": "src/Json.More/JsonSerializerOptionsExtensions.cs"
+    },
+    "src/Json.More/TypeExtensions.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "f746c9f59858484eb9ee6bea44e860d410a36648f75823066cadb5bb769ec022",
+      "upstreamPath": "src/Json.More/TypeExtensions.cs"
+    },
+    "src/Json.More/Utf8JsonWriterExtensions.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "7e0a5c6405c72e1b5ce82fc57bc455e4ed092bdaa1b7917d8d5bd884d4aef2d9",
+      "upstreamPath": "src/Json.More/Utf8JsonWriterExtensions.cs"
+    },
+    "src/Json.More/ValueReader.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "dc0c53615730cea0358148a541f39f495c1525dc6bc185be3597aaa1108a5782",
+      "upstreamPath": "src/Json.More/ValueReader.cs"
+    },
+    "src/Json.More/ValueWriter.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "3244d8b683f286ff307fa99bde9743826e7442bbdce7a0be162828422c140d59",
+      "upstreamPath": "src/Json.More/ValueWriter.cs"
+    },
+    "src/Json.More/WeaklyTypedJsonConverter.cs": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "sha256": "78f39de5ed5b356ab412996a7854a141aa1f19a01eb6080ae2cac8486595d899",
+      "upstreamPath": "src/Json.More/WeaklyTypedJsonConverter.cs"
+    },
+    "src/JsonPointer/EnumerableExtensions.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "829364b25794fedded4dd1eeadc483954a6477db018473d40d125f3a8a96e8b8",
+      "upstreamPath": "src/JsonPointer/EnumerableExtensions.cs"
+    },
+    "src/JsonPointer/JsonPointer.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "2d081986b78d28e138bd091a28a98abd9732ee61c8ff8872ce8037e4389addd4",
+      "upstreamPath": "src/JsonPointer/JsonPointer.cs"
+    },
+    "src/JsonPointer/JsonPointer.csproj.upstream.txt": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "7c96eab206221c0d198da462e58c37a1a4443de106bee502e3f1b10c85e523ce",
+      "upstreamPath": "src/JsonPointer/JsonPointer.csproj"
+    },
+    "src/JsonPointer/JsonPointerJsonConverter.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "e9965ce77e049ced85f790426da646fece22ab0d4cd70b0aa0c28e2bd9f7511c",
+      "upstreamPath": "src/JsonPointer/JsonPointerJsonConverter.cs"
+    },
+    "src/JsonPointer/JsonPointerSegment.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "933e74c34903fe6b5c2aa8c947d5b404ec93951acbbb5645c51a0a52e6a3bc5b",
+      "upstreamPath": "src/JsonPointer/JsonPointerSegment.cs"
+    },
+    "src/JsonPointer/JsonPointerTypeConverter.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "694d179d53882419fcc55516b52fd9724e82930569f2df3f11935b87fccd7316",
+      "upstreamPath": "src/JsonPointer/JsonPointerTypeConverter.cs"
+    },
+    "src/JsonPointer/PointerParseException.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "33f0cf049f8d83e896cb4b83a3e2220fd5aa9a00dff8979a836d927615eb418d",
+      "upstreamPath": "src/JsonPointer/PointerParseException.cs"
+    },
+    "src/JsonPointer/PropertyNameResolvers.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "6dda6c7518e157b62559215993e650fe2560f924dd76b575c154227e89c28d27",
+      "upstreamPath": "src/JsonPointer/PropertyNameResolvers.cs"
+    },
+    "src/JsonPointer/RelativeJsonPointer.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "86fcf86a2f6611ab1e473eea0e3c7578299f44a76c4fc703dc8e40ffd0e0760a",
+      "upstreamPath": "src/JsonPointer/RelativeJsonPointer.cs"
+    },
+    "src/JsonPointer/RelativeJsonPointerJsonConverter.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a378bd1b03a1755c11f80d614e4c7461d894f17d2d021f341a59d1bbf8ebdd58",
+      "upstreamPath": "src/JsonPointer/RelativeJsonPointerJsonConverter.cs"
+    },
+    "src/JsonPointer/SegmentValueStandIn.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "330382fc99171a4f551189dff05de0d204d768309c5a4e5a2095c4afea19d72d",
+      "upstreamPath": "src/JsonPointer/SegmentValueStandIn.cs"
+    },
+    "src/JsonPointer/SpanExtensions.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "0ee772ec266a405bb75b55d6f8caedb0c6e17c0b2d677619ce67c159761073ef",
+      "upstreamPath": "src/JsonPointer/SpanExtensions.cs"
+    },
+    "src/JsonPointer/UtilityExtensions.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "f3fa49031222f34817702a88328172b630e8969dd0b5cc0cb809ced60f53094e",
+      "upstreamPath": "src/JsonPointer/UtilityExtensions.cs"
+    },
+    "src/JsonSchema/BuildContext.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "11e927de395fbd0d91d5ad3e51893f82942bf5523c8f186cd80ff58b4b0bb9bd",
+      "upstreamPath": "src/JsonSchema/BuildContext.cs"
+    },
+    "src/JsonSchema/BuildOptions.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "585a0485505dccaef59305bc08fb9f4db9b818decd2ffdc39ba0da305891ed7e",
+      "upstreamPath": "src/JsonSchema/BuildOptions.cs"
+    },
+    "src/JsonSchema/DependsOnAnnotationsFromAttribute.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d80e8a675650efe8a49a4b1600e5858461af6a1295fe066d39689821acea9c3a",
+      "upstreamPath": "src/JsonSchema/DependsOnAnnotationsFromAttribute.cs"
+    },
+    "src/JsonSchema/Dialect.06.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "cb93c20781050e271f8d53ee73f3c660a1b4ae4da22217d339bd306821c4d233",
+      "upstreamPath": "src/JsonSchema/Dialect.06.cs"
+    },
+    "src/JsonSchema/Dialect.07.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "972d588d828c4899f2e2543512d024f5b01a86f22bbf9d89fa6cba84bbc58342",
+      "upstreamPath": "src/JsonSchema/Dialect.07.cs"
+    },
+    "src/JsonSchema/Dialect.201909.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "57768caf90e8200276dd832c5c62e649f792ab7db028f825c99fb29c1d02d0f7",
+      "upstreamPath": "src/JsonSchema/Dialect.201909.cs"
+    },
+    "src/JsonSchema/Dialect.202012.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "4b6ceebfacfaab1e29d2a21175cb904bd476790379f6bdbdb36879e57f847a50",
+      "upstreamPath": "src/JsonSchema/Dialect.202012.cs"
+    },
+    "src/JsonSchema/Dialect.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "3c5b54ca0113ef9fb04cee55a580649663f79d5159e1933e50205fbbec2382d0",
+      "upstreamPath": "src/JsonSchema/Dialect.cs"
+    },
+    "src/JsonSchema/Dialect.v1.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "9865ba07ae13a4a1b09e6470a140bb04517ba590a050f061015eb2e0a9429708",
+      "upstreamPath": "src/JsonSchema/Dialect.v1.cs"
+    },
+    "src/JsonSchema/DialectExtensions.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "b48a95d7714b816326bb719c10b936f0b4773b48747597d042c04f63ca44c622",
+      "upstreamPath": "src/JsonSchema/DialectExtensions.cs"
+    },
+    "src/JsonSchema/DialectRegistry.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "252300abd0bc800b9bddc72045da5cb65aac70c86ec327a4eeff8cba98aa7979",
+      "upstreamPath": "src/JsonSchema/DialectRegistry.cs"
+    },
+    "src/JsonSchema/DotnetCompatibility.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "2c1d055dc46c351cf106b1157fd1b4eadb4d5a0bffb9867a68ee804a663dc839",
+      "upstreamPath": "src/JsonSchema/DotnetCompatibility.cs"
+    },
+    "src/JsonSchema/Duration.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "eb45876727a63c64a2a83d1e8faca4322e5496efe96dfcbc696c184378103b7b",
+      "upstreamPath": "src/JsonSchema/Duration.cs"
+    },
+    "src/JsonSchema/DynamicScope.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "e260a799076976a01bf0f5b7eaf5fb6b3efdcd988ae1d93faf840b13f052ac5f",
+      "upstreamPath": "src/JsonSchema/DynamicScope.cs"
+    },
+    "src/JsonSchema/ErrorMessages.Keywords.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "351ab5fe9f1b075877a94f7e96f232a6c776bbdcad1777df6c7c83dfc7e9e024",
+      "upstreamPath": "src/JsonSchema/ErrorMessages.Keywords.cs"
+    },
+    "src/JsonSchema/ErrorMessages.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a297cdabed62c50057317b3bcf211483bdf64a4aef85dfac866b91dd6e36d963",
+      "upstreamPath": "src/JsonSchema/ErrorMessages.cs"
+    },
+    "src/JsonSchema/EvaluationContext.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "9b815f679942c306e72c047ee5f7b1dc7899dcb064fa2f2554a855e04d630339",
+      "upstreamPath": "src/JsonSchema/EvaluationContext.cs"
+    },
+    "src/JsonSchema/EvaluationOptions.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "6b089547c39afa2b29c5048ba6db1369766d53ee362a6f9eda1e5e3f9db17859",
+      "upstreamPath": "src/JsonSchema/EvaluationOptions.cs"
+    },
+    "src/JsonSchema/EvaluationResults.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "3085589388b0dcb9043d7059901a775e8aa2bfd3fa60b7d3470a213c81bbef28",
+      "upstreamPath": "src/JsonSchema/EvaluationResults.cs"
+    },
+    "src/JsonSchema/Format.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "ac890991d29a772253f6fc02b5df5263222d05f30b990dd19d3a0e39e53fdcbd",
+      "upstreamPath": "src/JsonSchema/Format.cs"
+    },
+    "src/JsonSchema/FormatRegistry.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "e8f4af7d759f8e78bc51787ba1488facdbe7356b1db836b168931399c799de2e",
+      "upstreamPath": "src/JsonSchema/FormatRegistry.cs"
+    },
+    "src/JsonSchema/Formats.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "f98b4b1bf28129d29f2d877205abceba3cc54c6c7429447491b4a632f432eb34",
+      "upstreamPath": "src/JsonSchema/Formats.cs"
+    },
+    "src/JsonSchema/GeneralExtensions.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "6df1b569a76b701d136bc09287066db116c73dfae906bb3e0329d93c40cfb9bb",
+      "upstreamPath": "src/JsonSchema/GeneralExtensions.cs"
+    },
+    "src/JsonSchema/IBaseDocument.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "ac087dc07dcbab928d5592ed284d2689ca9dcbb0a334efe25ea4e62ff7a148ee",
+      "upstreamPath": "src/JsonSchema/IBaseDocument.cs"
+    },
+    "src/JsonSchema/IKeywordHandler.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "32fd74ea9d18bb71c9adbb1d7c6454fab35e938a2575093302c4aacf5c242b5a",
+      "upstreamPath": "src/JsonSchema/IKeywordHandler.cs"
+    },
+    "src/JsonSchema/JsonElementBaseDocument.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "5964f8008bcfcd0780e942341faaa95c0f3f8ce8c4a5433269c35a6f6ddca10c",
+      "upstreamPath": "src/JsonSchema/JsonElementBaseDocument.cs"
+    },
+    "src/JsonSchema/JsonElementExtensions.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "666c2110dcb70d5bde22a4e197da5cb5f90862507e6f685ff5fed61f93d0de00",
+      "upstreamPath": "src/JsonSchema/JsonElementExtensions.cs"
+    },
+    "src/JsonSchema/JsonMath.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d96db20bdab8327bdd1cc0bc1eef29c22957a6b23584929d8895ba6a6e00c571",
+      "upstreamPath": "src/JsonSchema/JsonMath.cs"
+    },
+    "src/JsonSchema/JsonSchema.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "4fcd8530ed2a26d29f937729fd82fa73ce13b51864c5d118ee62edaacad217e0",
+      "upstreamPath": "src/JsonSchema/JsonSchema.cs"
+    },
+    "src/JsonSchema/JsonSchema.csproj.upstream.txt": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "4d9f3a9f617b090085e6674b9bf6dd54e5667a2b498627ce6306b4fc951d2764",
+      "upstreamPath": "src/JsonSchema/JsonSchema.csproj"
+    },
+    "src/JsonSchema/JsonSchemaBuilder.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "11568a703d3fdfe2b3bcf1cfca3e9ad2c58daafd8776321b60260ece52083f5d",
+      "upstreamPath": "src/JsonSchema/JsonSchemaBuilder.cs"
+    },
+    "src/JsonSchema/JsonSchemaBuilderExtensions.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d68f941b148e8ab64deda7d634abca2b0cf50c5a4d4831123c56c21c5f08b661",
+      "upstreamPath": "src/JsonSchema/JsonSchemaBuilderExtensions.cs"
+    },
+    "src/JsonSchema/JsonSchemaException.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "8a2c870076dae624a7bea3b899856a09f456ebd030f93a717b6ba6e67b931b6d",
+      "upstreamPath": "src/JsonSchema/JsonSchemaException.cs"
+    },
+    "src/JsonSchema/JsonSchemaNode.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "b5e307e8014058ebecb854d1a4ff524fe2667ef1fa8dc7545ff98a543cb8577f",
+      "upstreamPath": "src/JsonSchema/JsonSchemaNode.cs"
+    },
+    "src/JsonSchema/JsonSchemaSerializerContext.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "86bab60be11e67d19462bb90d20af423349604fc49a39623af0a723d3af1813d",
+      "upstreamPath": "src/JsonSchema/JsonSchemaSerializerContext.cs"
+    },
+    "src/JsonSchema/KeywordData.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "12f13456cd47999cab2ebbba4da80bf5a07cd34732fc2113a963ab9b6515e91c",
+      "upstreamPath": "src/JsonSchema/KeywordData.cs"
+    },
+    "src/JsonSchema/KeywordEvaluation.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "ef4cbd9288b94168300a011bda15e4016919a27e9c8be47728d52041c04c7df1",
+      "upstreamPath": "src/JsonSchema/KeywordEvaluation.cs"
+    },
+    "src/JsonSchema/Keywords/AdditionalPropertiesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "019282085d852a9a5e5d1dce45a885e8f0c928261ea694f0d82d38c5715f9d4f",
+      "upstreamPath": "src/JsonSchema/Keywords/AdditionalPropertiesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/AllOfKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "43c217791b5126e33db1d4bd6e44c6fa0fd405a25d761ccb09fd9a0061c44b49",
+      "upstreamPath": "src/JsonSchema/Keywords/AllOfKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/AnchorKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "5c4ccaa030d6b49066a58c2e965276f34753a4ddaa3cab237d28e5bd80c96a63",
+      "upstreamPath": "src/JsonSchema/Keywords/AnchorKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/AnnotationKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "90a7241ce7ca86946e659ad02caec86b50eaca8ba61dc8cdd927207df1a34791",
+      "upstreamPath": "src/JsonSchema/Keywords/AnnotationKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/AnyOfKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a161e872f1d6a54ff8d70ab93f7d48c872b15d6cbba8df8f2de1de54936e1461",
+      "upstreamPath": "src/JsonSchema/Keywords/AnyOfKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/CommentKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "60af0de3e246e2067371399892620d59e5621852e45dc8f1606b466e75185e48",
+      "upstreamPath": "src/JsonSchema/Keywords/CommentKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ConstKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d6269dddf6f2f9041237e189ce936e9e182d52107cd72f56291b69763019a9e4",
+      "upstreamPath": "src/JsonSchema/Keywords/ConstKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ContainsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "be4e951dc9ad0a92178d96b17c69e255b65e614d4278ebaa7f25f72c217ab8ea",
+      "upstreamPath": "src/JsonSchema/Keywords/ContainsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ContentEncodingKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d1086c69bb8afa93abf36c3abbfb74a109c6442c837221f8eacd629e006ec172",
+      "upstreamPath": "src/JsonSchema/Keywords/ContentEncodingKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ContentMediaTypeKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a4b714142a2b0e10cb703bc45861f05a279707ebbc61c3c8795b392f1ce92f4e",
+      "upstreamPath": "src/JsonSchema/Keywords/ContentMediaTypeKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ContentSchemaKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "9214d764ddcf4c12fc9a7ab369492b153f86a2fb7d8d12bd4aeed480101a0319",
+      "upstreamPath": "src/JsonSchema/Keywords/ContentSchemaKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/DefaultKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "f81fc0838f1f30b5dd15173825a1cd742fa0d7cdb2d7941150bcf0baa662508f",
+      "upstreamPath": "src/JsonSchema/Keywords/DefaultKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/DefsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "c0a6437034d35479a1a1ec53a8a91b995e12477015dd5b65d2d7637fde39c3ab",
+      "upstreamPath": "src/JsonSchema/Keywords/DefsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/DependentRequiredKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "09cc0b80c52e1c7da8ddaac940e6d6346d6d6d1d6becb98e4bdb69e319fdfe1b",
+      "upstreamPath": "src/JsonSchema/Keywords/DependentRequiredKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/DependentSchemasKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "969acfda3d0225d32b9bfdba2991d6273f365973b529c10e0b1109a543909544",
+      "upstreamPath": "src/JsonSchema/Keywords/DependentSchemasKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/DeprecatedKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a71ad28ab1f277779ad7cda075960db35a16918488ed48e90918a1ba336f6c5a",
+      "upstreamPath": "src/JsonSchema/Keywords/DeprecatedKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/DescriptionKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "bb3632fa92e657fc911f09fcbcf3edb0304b3871b2c597cea78bd31acf6937c0",
+      "upstreamPath": "src/JsonSchema/Keywords/DescriptionKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft06/AdditionalItemsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "b885bbd93ce81364a7bd02b8250fa1f17b95ebd4f2fba72e986f0f1f1d4701bb",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft06/AdditionalItemsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft06/ContainsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "2b6e43a56e46d2a896d41c1957d61a42a2ba07f65cc66a38419a80b901ba1a46",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft06/ContainsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft06/DefinitionsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "f56cadb4ed984aef91e09b308b80ffdb10003914e0fa7ba3142601e6ba4c6e44",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft06/DefinitionsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft06/DependenciesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "e1e96b8105d82ac3caffd41163391a3e536ef9e91f6cc5748a0f66143ce9e8ed",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft06/DependenciesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft06/FormatKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d3a08e050dde400af31ffcffbb63d779d16c3ec15acdbba87e3f010666cec86f",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft06/FormatKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft06/IdKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "374f1c280fb69dcad6e8ec7c32a3420a2ba4b69a3d1a025520706fe78fce7672",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft06/IdKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft06/ItemsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "c1010125ddc77152cfd5e6ddf0810cd7a671070965bbfd8ccb761c6e9911ff64",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft06/ItemsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft201909/AnchorKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "2ade9757ae1c71308b89d856cf7a20cd7f751eb6b1b18ece9b685470f8449577",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft201909/AnchorKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft201909/RecursiveAnchorKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "5ab7d994f24f73bae7ee2ac2f097ee54e6022b3eaead51c1caa9c674ca57f8d6",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft201909/RecursiveAnchorKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft201909/RecursiveRefKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "b473b27db61239ac18125af6b5b1044b131f87adfc84fc440898e0a1912b4513",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft201909/RecursiveRefKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft201909/UnevaluatedItemsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "f4f1f510d6f06eaeda27380e50bbe9c2e11898a53561f9dd423108fb23fa4461",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft201909/UnevaluatedItemsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft201909/VocabularyKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a5127864703be09b08090481968949e59e98fd0371477543a16a7634c20df8db",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft201909/VocabularyKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/Draft202012/DynamicRefKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "452af761d8c639331253c491a4f0791bc0b7cee99cee3c274078de6322a31429",
+      "upstreamPath": "src/JsonSchema/Keywords/Draft202012/DynamicRefKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/DynamicAnchorKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "9159c81f6c58a33a9db7c22b655165738b3d8cb8b247a9694ea6f49390935864",
+      "upstreamPath": "src/JsonSchema/Keywords/DynamicAnchorKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/DynamicRefKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "60925cc56a787aca46f2ab6a0ba66438053a6f8ca374f8f2b4748360bb8f2334",
+      "upstreamPath": "src/JsonSchema/Keywords/DynamicRefKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ElseKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "9a72504b575cb67ed61977f028e6d7312466615fcae2edbec469b757919bb147",
+      "upstreamPath": "src/JsonSchema/Keywords/ElseKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/EnumKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "26a2f74c7ef571255998cb3393b2083a2d6d4da5abfd05408e8368b5623f3d45",
+      "upstreamPath": "src/JsonSchema/Keywords/EnumKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ExamplesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a1e12f8fb903bdbbfeb7f2330c9abac8d261012ac83e4efc0495459d002d3d57",
+      "upstreamPath": "src/JsonSchema/Keywords/ExamplesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ExclusiveMaximumKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d2e25f2882cc0091478112a3ff521c8a278b9bfed73d2134d49f62efb2b179a7",
+      "upstreamPath": "src/JsonSchema/Keywords/ExclusiveMaximumKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ExclusiveMinimumKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "db1ba16006f44ca8d24edc5518041e48cbffb90dec62b5d91137b78ef79441e0",
+      "upstreamPath": "src/JsonSchema/Keywords/ExclusiveMinimumKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/FormatKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "bcf5369b7491b7d7ffb40ce95588e61a5654a6190972014601bed56a6bcd45c9",
+      "upstreamPath": "src/JsonSchema/Keywords/FormatKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/IdKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "b9cdbb0231b02918e5b2a9d263b9452ea5cfdd4beecd160715988b2ef935262e",
+      "upstreamPath": "src/JsonSchema/Keywords/IdKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/IfKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "89e5e4d8c9d815a5cfc6f9151610a69d80fbb7fa2aef561a09e5fcd28fdd5afc",
+      "upstreamPath": "src/JsonSchema/Keywords/IfKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ItemsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "5e9226c0f8bb86a5d1abce2e9378073da197b191ec0dbc63ab6f9c8cb4242da4",
+      "upstreamPath": "src/JsonSchema/Keywords/ItemsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MaxContainsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "babfdc36f204e21adf3028b9be1ad069ff4db4d9bc9f9ac22349538aceddf722",
+      "upstreamPath": "src/JsonSchema/Keywords/MaxContainsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MaxItemsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "94b57356684c87798544a86f83cb07a285c7e0a51bdaca7eb60848c8db6df39d",
+      "upstreamPath": "src/JsonSchema/Keywords/MaxItemsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MaxLengthKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "48a55ad50f87b2b0b11f49cf026aecd82efa3e30a709a6a49307f3d58ef9a526",
+      "upstreamPath": "src/JsonSchema/Keywords/MaxLengthKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MaxPropertiesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "4d96d539502367043488fbd6cccce7119f26ff7d1293df3f169c0ed0b9ead18e",
+      "upstreamPath": "src/JsonSchema/Keywords/MaxPropertiesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MaximumKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a29569c84ccad0108d84275424f6565f65bbe376401b1bccde87b1578844c218",
+      "upstreamPath": "src/JsonSchema/Keywords/MaximumKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MinContainsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "50d9ec63a10536472bbb0d2a74adb4e325260b9548eaf86615a6f98ab8b16bd5",
+      "upstreamPath": "src/JsonSchema/Keywords/MinContainsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MinItemsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "6823b83c55c2faf99fac0d3c6c78e3c387e24540c0d0745ebb8c5af0cf431efc",
+      "upstreamPath": "src/JsonSchema/Keywords/MinItemsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MinLengthKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "fb1edcb8b4e4c1b0e9db4741e542ba6750b61cef484d7ba09e891e6415267a36",
+      "upstreamPath": "src/JsonSchema/Keywords/MinLengthKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MinPropertiesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "94a2ea93edc0ad2a0aa5f412c6b9e2a2427a8e628a58b4da4b6eb2186944f5c7",
+      "upstreamPath": "src/JsonSchema/Keywords/MinPropertiesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MinimumKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "98d36bfc81c7575b50f4b2d58a5c4ae296bf43a28f38cabacd68bf9cb4c77f9b",
+      "upstreamPath": "src/JsonSchema/Keywords/MinimumKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/MultipleOfKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "85b35dcfbd134535c2b19958e0ce18b31147c20b454769100488748db96ed69b",
+      "upstreamPath": "src/JsonSchema/Keywords/MultipleOfKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/NotKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a70203b0e112dedac56996f5af6ecc03a126892a233b200c49f1fd2e59650d9a",
+      "upstreamPath": "src/JsonSchema/Keywords/NotKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/OneOfKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "118d8821af5b85e4f1040d0ba3550d6cb32b36759d8c2170486bc731fec813cf",
+      "upstreamPath": "src/JsonSchema/Keywords/OneOfKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/PatternKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "0a09c9168f1d9f885740b1cc0041beb2f3dcf03c2c7ebc4a4b2279425faa42e0",
+      "upstreamPath": "src/JsonSchema/Keywords/PatternKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/PatternPropertiesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "cc40d05d17503c5dc58598fdd375d7647483a6445ab048dc43692d13190e0f70",
+      "upstreamPath": "src/JsonSchema/Keywords/PatternPropertiesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/PrefixItemsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "b8d7c028713b7191b7a4728ac4200014b931d92edbce490db50dbe77cf0853d5",
+      "upstreamPath": "src/JsonSchema/Keywords/PrefixItemsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/PropertiesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "ba1188062808336e4296e3018e527c36911f7d26adc3bc7bf1692432d1f5b9c2",
+      "upstreamPath": "src/JsonSchema/Keywords/PropertiesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/PropertyDependenciesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "145fee3b2242053e9399dd82e40ffb47bede0ebc7a527fdc1f6ed88fd7ce2ef5",
+      "upstreamPath": "src/JsonSchema/Keywords/PropertyDependenciesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/PropertyNamesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "44b7d24ca6ec08b3ac06a6a0c7e853716108523b1ff6d32bce3d12a5f6ae10fb",
+      "upstreamPath": "src/JsonSchema/Keywords/PropertyNamesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ReadOnlyKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "0ba96876e6b71207393ccd2ab43a46b506c65cd492a36288a88660c6a355610e",
+      "upstreamPath": "src/JsonSchema/Keywords/ReadOnlyKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/RefKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "0011cfbc1119bf23b0693118fa02062ee429010a621e212a105a14f7e1c8931c",
+      "upstreamPath": "src/JsonSchema/Keywords/RefKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/RequiredKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "11e5dfc417969aaa0704e10d7cf4e3e54662620b2e5bc532696a1dd97a732b39",
+      "upstreamPath": "src/JsonSchema/Keywords/RequiredKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/SchemaKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "e77fb6017fdbd85db954b3a49bf0e70a458efa16a1b1b6b81168905fb30ffeb1",
+      "upstreamPath": "src/JsonSchema/Keywords/SchemaKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/ThenKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "c673e556639a40d0c3acc81ddd404cbb477adbe3f55c780c7befe6cc6199cde0",
+      "upstreamPath": "src/JsonSchema/Keywords/ThenKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/TitleKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "520d494d170efb8b411803e0e5e69a2fed075ae08db8e35babf89c9b9b82f763",
+      "upstreamPath": "src/JsonSchema/Keywords/TitleKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/TypeKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "4ea613fcc30942cde961508961f4adc708becb719bebd2c7706cf4c9822d758d",
+      "upstreamPath": "src/JsonSchema/Keywords/TypeKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/UnevaluatedItemsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "4467af9e721ab67dfaea867c0eba816415b4aaba41467d1bbd11cb112e489c0b",
+      "upstreamPath": "src/JsonSchema/Keywords/UnevaluatedItemsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/UnevaluatedPropertiesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d118add3991d29acd73eb2fb211c0e7378b4faedb9f572afbd57b986203b3eb2",
+      "upstreamPath": "src/JsonSchema/Keywords/UnevaluatedPropertiesKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/UniqueItemsKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "c3082291e3ace51045bb9150c47a05d78ac4f63de23877bdc504adbbd2ee6dac",
+      "upstreamPath": "src/JsonSchema/Keywords/UniqueItemsKeyword.cs"
+    },
+    "src/JsonSchema/Keywords/WriteOnlyKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "137045e243032165eded38ac4ffea4452734a2e89f625f2e5715ad188b054167",
+      "upstreamPath": "src/JsonSchema/Keywords/WriteOnlyKeyword.cs"
+    },
+    "src/JsonSchema/Localization/Resources.de.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d38680caec2e215c73e30b255a453b2456d3f1e02bbc36be30f061fdb5975715",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.de.resx"
+    },
+    "src/JsonSchema/Localization/Resources.es.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "7b334fea8a55d5b398679e4637e0c7d301ae01c8a29919080c568e4f97b30aab",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.es.resx"
+    },
+    "src/JsonSchema/Localization/Resources.it.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "76ecbc9a9e14b441ff2f4944a3a8a0d228224047ac000d19937fcd331fb728a6",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.it.resx"
+    },
+    "src/JsonSchema/Localization/Resources.ko.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "402f54e6e1fba0816da26538a89140c090018bea9d40c8044a94ed4f22a47541",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.ko.resx"
+    },
+    "src/JsonSchema/Localization/Resources.nb-NO.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "c1bf561685881e2727992e581fe2de3433e96d5420ee46e4918acd3ef1b15cdd",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.nb-NO.resx"
+    },
+    "src/JsonSchema/Localization/Resources.pl-PL.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "c604a28a35173fd12a866228237cffd0c5abcfea53da35876ab9c1ba7b045350",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.pl-PL.resx"
+    },
+    "src/JsonSchema/Localization/Resources.pt.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "01b33528cbf2a1ea0d6c174b0c65a84f190eafb298bea30c180e9dca28f5d29d",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.pt.resx"
+    },
+    "src/JsonSchema/Localization/Resources.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "40cb47a34feb03434781200bddd45e551b535f567083e6fd7e456a45f434db36",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.resx"
+    },
+    "src/JsonSchema/Localization/Resources.ru.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "640a5e56322079f269274efe599293a08c5b5081fb658251107f749292f94944",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.ru.resx"
+    },
+    "src/JsonSchema/Localization/Resources.sv-SE.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "0799f9ef65d66fd46d47602793c5ea33129f210439455acc38f051e25bd899d4",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.sv-SE.resx"
+    },
+    "src/JsonSchema/Localization/Resources.tr-TR.resx": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "8ff14f661b08cf0035e7976f73af435b4153fbf3d7570c300eacf2afa00c9ce8",
+      "upstreamPath": "src/JsonSchema/Localization/Resources.tr-TR.resx"
+    },
+    "src/JsonSchema/MetaSchemas.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "ac4ef46b4d21fcc739a67a7ab41ae19508f9b98e48724cd657e01a5b24f48ea1",
+      "upstreamPath": "src/JsonSchema/MetaSchemas.cs"
+    },
+    "src/JsonSchema/MultiLookupConcurrentDictionary.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "037fb706b8965440244656c9e6e1ea11ac17f338e53a6624bbb83c9f6b8840d0",
+      "upstreamPath": "src/JsonSchema/MultiLookupConcurrentDictionary.cs"
+    },
+    "src/JsonSchema/OutputFormat.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "a74dc04d6bdb60487689e3c980fba5246dbbe53b85a6fda6f9b52d9e812bd6fe",
+      "upstreamPath": "src/JsonSchema/OutputFormat.cs"
+    },
+    "src/JsonSchema/PredicateFormat.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "2e21825b1a4278954dbda1be2a08b51287dab5d47a52a61b1a7662a4c1f5315a",
+      "upstreamPath": "src/JsonSchema/PredicateFormat.cs"
+    },
+    "src/JsonSchema/PropertyDependenciesKeyword.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "ba678672b39cd7b3c545c4acafd45c618986eb89ab568e56851ca8bb0e40f3b3",
+      "upstreamPath": "src/JsonSchema/PropertyDependenciesKeyword.cs"
+    },
+    "src/JsonSchema/PropertyDependency.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "70f8e278a2bf71ae5226924a7cf8638ecc9d908e835007e17061c31e00b2c5d2",
+      "upstreamPath": "src/JsonSchema/PropertyDependency.cs"
+    },
+    "src/JsonSchema/RefResolutionException.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "6e663c4c4c908c8340348170fead8f2e4a88fcc1ea642c8458454bb2dd93d596",
+      "upstreamPath": "src/JsonSchema/RefResolutionException.cs"
+    },
+    "src/JsonSchema/RegexFormat.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "7683b1f8902d4af358200696b5036c3494f914ebb7cf5283bfc9c32ad53b1039",
+      "upstreamPath": "src/JsonSchema/RegexFormat.cs"
+    },
+    "src/JsonSchema/RegexOrPattern.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "915254f5fe0549517ea0a0fea5736ce29dea0dd234f67784b83ca3548d5a9a82",
+      "upstreamPath": "src/JsonSchema/RegexOrPattern.cs"
+    },
+    "src/JsonSchema/SchemaOrPropertyList.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "ceb8e37fce370e41922bef338d3836e788a8bae73ee900cc491643246cca0bc6",
+      "upstreamPath": "src/JsonSchema/SchemaOrPropertyList.cs"
+    },
+    "src/JsonSchema/SchemaRegistry.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "acb9d47342f18931f1a7dda5127c3c3eb677799fad4c8cbd4f893b4d434e5887",
+      "upstreamPath": "src/JsonSchema/SchemaRegistry.cs"
+    },
+    "src/JsonSchema/SchemaValueType.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "eb709fade7874f3129786110e78d0db659e370ed6c1dd15da979abcafab1179b",
+      "upstreamPath": "src/JsonSchema/SchemaValueType.cs"
+    },
+    "src/JsonSchema/Serialization/JsonSchemaAttribute.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "b3c562dbf317a90b70fb4e84fb9bbdd3a60a160efe41c520d803246f8c72b4e7",
+      "upstreamPath": "src/JsonSchema/Serialization/JsonSchemaAttribute.cs"
+    },
+    "src/JsonSchema/Serialization/ValidatingJsonConverter.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "8e37396d375a9cfca4aa6de23b060fce346c17911353bc02c0014f7a0d704fd0",
+      "upstreamPath": "src/JsonSchema/Serialization/ValidatingJsonConverter.cs"
+    },
+    "src/JsonSchema/UnknownFormat.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "da5a2b27a072977565bdbdce035dbfbf8afa263e21c4bc273dca17c3858b5628",
+      "upstreamPath": "src/JsonSchema/UnknownFormat.cs"
+    },
+    "src/JsonSchema/Vocabulary.201909.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "23d24923c8ff0e735cfe65c07dab21022d2631f7d5a727be8afdd870cf8afb82",
+      "upstreamPath": "src/JsonSchema/Vocabulary.201909.cs"
+    },
+    "src/JsonSchema/Vocabulary.202012.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "035a97a69cbf527345a20a418ff9882a87488dce165874140c7a6d61a4565cd9",
+      "upstreamPath": "src/JsonSchema/Vocabulary.202012.cs"
+    },
+    "src/JsonSchema/Vocabulary.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "81a1a2a15be6282d65e7e3136b95f9478e1159bf1d101113bfda21d6f22caf92",
+      "upstreamPath": "src/JsonSchema/Vocabulary.cs"
+    },
+    "src/JsonSchema/VocabularyRegistry.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "e39f6ec297450024bd3631e611e0e2ebf136346c1dea821cde87802f26ad28b1",
+      "upstreamPath": "src/JsonSchema/VocabularyRegistry.cs"
+    },
+    "src/JsonSchema/__ModuleInitialization.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "d3d14fe16aec3aec7a3840c283c8d2df2ec5bfed2290cc420dadd960f2d37d4f",
+      "upstreamPath": "src/JsonSchema/__ModuleInitialization.cs"
+    },
+    "src/JsonSchema/assembly.cs": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "sha256": "e9935e6d89815b21f33039d51a746c2fb404abe1a9e3ccdb95028f7cfa813df3",
+      "upstreamPath": "src/JsonSchema/assembly.cs"
+    }
+  },
+  "projects": {
+    "Json.More": {
+      "commit": "8b8ab34027de5ad9f4ed50808b8e4889ca69cf4d",
+      "version": "3.0.1"
+    },
+    "JsonPointer": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "version": "7.0.2"
+    },
+    "JsonSchema": {
+      "commit": "399f198431f65cf6896fe6038f833ef6d0b27a39",
+      "version": "9.4.0"
+    }
+  },
+  "repository": "https://github.com/json-everything/json-everything"
+}

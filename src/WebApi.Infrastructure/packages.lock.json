@@ -96,10 +96,11 @@
           "System.IO.Hashing": "10.0.12"
         }
       },
-      "Humanizer.Core": {
-        "type": "Transitive",
-        "resolved": "2.14.1",
-        "contentHash": "lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw=="
+      "YamlDotNet": {
+        "type": "Direct",
+        "requested": "[18.1.0, )",
+        "resolved": "18.1.0",
+        "contentHash": "5K+9KFg2TdTl7VXv88Qzi/0lqK6JFoNP3lRuImPYGRV7K/QYklDyTrj4+A+KAki1JsQi6qKY+hDyY7d6WRqjrw=="
       },
       "Microsoft.Bcl.Cryptography": {
         "type": "Transitive",
@@ -332,6 +333,22 @@
         "resolved": "10.0.12",
         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
       },
+      "json.more": {
+        "type": "Project"
+      },
+      "JsonPointer.Net": {
+        "type": "Project",
+        "dependencies": {
+          "Humanizer.Core": "[3.0.10, )",
+          "Json.More": "[3.0.1, )"
+        }
+      },
+      "JsonSchema.Net": {
+        "type": "Project",
+        "dependencies": {
+          "JsonPointer.Net": "[7.0.2, )"
+        }
+      },
       "webapi.contracts": {
         "type": "Project"
       },
@@ -340,6 +357,12 @@
         "dependencies": {
           "WebApi.Contracts": "[1.0.0, )"
         }
+      },
+      "Humanizer.Core": {
+        "type": "CentralTransitive",
+        "requested": "[3.0.10, )",
+        "resolved": "3.0.10",
+        "contentHash": "yZIhtw8sYuvsONzQbZxWpR60tMWYHXoo0DL6nyOqSFiU5POjBTSEyWFpTQtJEZuy+oqiYTXKXY/Mjx7KnqIQFw=="
       }
     }
   }

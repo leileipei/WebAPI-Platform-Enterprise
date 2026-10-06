@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><Version>9.4.0</Version><AssemblyVersion>9.0.0.0</AssemblyVersion><AssemblyName>JsonSchema.Net</AssemblyName><RootNamespace>Json.Schema</RootNamespace><NoWarn>$(NoWarn);CA2255</NoWarn></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../JsonPointer/JsonPointer.csproj" /></ItemGroup>
+  <ItemGroup>
+    <Compile Remove="PropertyDependenciesKeyword.cs;PropertyDependency.cs" />
+    <EmbeddedResource Include="../../Meta-Schemas/**/*.json" Link="Meta-Schemas/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Remove="../../Meta-Schemas/OpenAPI/**;../../Meta-Schemas/array-ext.json;../../Meta-Schemas/data-2023.json" />
+  </ItemGroup>
+</Project>
