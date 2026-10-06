@@ -1,0 +1,11 @@
+import type {Scope,ScopeTree} from '../api/types';
+export type Grant={scope:Scope;accessMode:string};
+export type Rule={key:string;level:string;scope:Scope;accessMode:string;original?:Scope};
+export type Snapshot={revision:number;displayName:string;grants:Grant[]};
+export function payload(rows:Rule[]):{scopes:Grant[]};
+export function toDraft(grants:Grant[]):Rule[];
+export function newRule(key:string):Rule;
+export function updateRule(row:Rule,field:string,value:string):Rule;
+export function validate(rows:Rule[],tree:ScopeTree):string[];
+export function summarize(before:Grant[],after:Grant[]):{added:number;removed:number;changed:number};
+export function loadScopeSnapshot(readUser:()=>Promise<any>,readGrants:()=>Promise<Grant[]>):Promise<Snapshot>;
