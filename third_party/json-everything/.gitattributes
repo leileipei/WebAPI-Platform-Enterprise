@@ -1,0 +1,3 @@
+# Preserve pinned upstream bytes, including CRLF and trailing whitespace.
+# Integrity is checked by source-manifest.json and dependencies.test.mjs.
+** -whitespace
