@@ -1,0 +1,98 @@
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
+using WebApi.Contracts.Common;
+using WebApi.Contracts.OpenApi;
+namespace WebApi.Infrastructure.Contracts;
+public sealed record ResolvedContractNode(Uri ResourceUri, string Pointer, JsonNode Node);
+public sealed class ContractReferenceRegistry
+{
+    private sealed record Identity(Uri Resource, string Pointer, JsonNode Node);
+    private readonly Dictionary<string, JsonNode> resources = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Identity> anchors = new(StringComparer.Ordinal);
+    private readonly Dictionary<JsonNode, Identity> identities = new(ReferenceEqualityComparer.Instance);
+    public IReadOnlyList<ResolvedContractNode> Resources => resources.Select(p => new ResolvedContractNode(new(p.Key), identities[p.Value].Pointer, p.Value)).ToArray();
+    public ContractReferenceRegistry(ContractBundle bundle, ContractLimits limits)
+    {
+        ContractBundleCodec.Verify(bundle, limits);
+        // Own this graph. A caller changing the original bundle cannot change an indexed resource.
+        foreach (var doc in bundle.Documents) {
+            var root = doc.Root.DeepClone();
+            Register(doc.Source.LogicalUri, root);
+            Walk(root, "", doc.Source.LogicalUri, root is not JsonObject o || !o.ContainsKey("openapi"), doc.Dialect);
+        }
+    }
+    public ResolvedContractNode Resolve(Uri currentResource, string reference)
+    {
+        if (reference.Any(char.IsControl) || reference != reference.Trim() || !Uri.TryCreate(currentResource, reference, out var uri)) throw Missing();
+        var resource = WithoutFragment(uri);
+        if (!resources.TryGetValue(resource.AbsoluteUri, out var root)) throw Missing();
+        var fragment = uri.Fragment;
+        if (Regex.IsMatch(fragment, "%(?![0-9a-fA-F]{2})", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100))) throw Missing();
+        fragment = fragment.Length > 0 ? Uri.UnescapeDataString(fragment[1..]) : "";
+        if (fragment.Length > 0 && !fragment.StartsWith('/')) {
+            if (!anchors.TryGetValue(resource.AbsoluteUri + "#" + fragment, out var anchor)) throw Missing();
+            return new(anchor.Resource, anchor.Pointer, anchor.Node);
+        }
+        JsonNode? node = root;
+        if (fragment.Length > 0) foreach (var token in fragment[1..].Split('/')) {
+            if (Regex.IsMatch(token, "~(?![01])", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100))) throw Missing();
+            var key = token.Replace("~1", "/", StringComparison.Ordinal).Replace("~0", "~", StringComparison.Ordinal);
+            if (node is JsonObject obj) { if (!obj.TryGetPropertyValue(key, out node)) throw Missing(); }
+            else if (node is JsonArray array && (key == "0" || key.Length > 0 && key[0] is >= '1' and <= '9') && int.TryParse(key, out var i) && i >= 0 && i < array.Count) node = array[i];
+            else throw Missing();
+        }
+        if (node is null || !identities.TryGetValue(node, out var found)) throw Missing();
+        return new(found.Resource, fragment, node);
+    }
+    private void Register(Uri uri, JsonNode root)
+    {
+        if (!uri.IsAbsoluteUri || uri.Fragment.Length > 0) throw new ApiException(422, "invalid_schema_id", "Schema 资源 ID 必须是无 fragment 的资源 URI。");
+        if (resources.TryGetValue(uri.AbsoluteUri, out var existing) && !ReferenceEquals(existing, root))
+            throw new ApiException(422, "duplicate_schema_id", "来源包含冲突的资源 ID。");
+        resources[uri.AbsoluteUri] = root;
+    }
+    private void Walk(JsonNode? node, string pointer, Uri basis, bool schema, ContractDialect dialect)
+    {
+        if (node is null) return;
+        if (schema && dialect == ContractDialect.Oas31 && node is JsonObject s && s.TryGetPropertyValue("$id", out var id)) {
+            var text = ContractDocumentReader.Text(id);
+            if (text.Length == 0 || !Uri.TryCreate(basis, text, out var uri)) throw new ApiException(422, "invalid_schema_id", "Schema 资源 ID 不合法。");
+            basis = uri; Register(basis, node);
+        }
+        var identity = new Identity(basis, pointer, node); identities.Add(node, identity);
+        if (schema && dialect == ContractDialect.Oas31 && node is JsonObject a) foreach (var keyword in new[] { "$anchor", "$dynamicAnchor" }) {
+            if (!a.TryGetPropertyValue(keyword, out var value)) continue;
+            var name = ContractDocumentReader.Text(value);
+            if (!Regex.IsMatch(name, "^[A-Za-z_][-A-Za-z0-9._]*$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)))
+                throw new ApiException(422, "invalid_schema_anchor", "Schema anchor 不合法。");
+            var key = basis.AbsoluteUri + "#" + name;
+            if (anchors.TryGetValue(key, out var previous) && !ReferenceEquals(previous.Node, node))
+                throw new ApiException(422, "duplicate_schema_anchor", "同一资源中的 anchor 重复。");
+            anchors[key] = identity;
+        }
+        if (node is JsonObject obj) foreach (var (key, value) in obj) {
+            var childPointer = pointer + "/" + ContractDocumentReader.Escape(key);
+            if (schema && SchemaNavigation.MapKeywords.Contains(key) && value is JsonObject map) {
+                identities.Add(map, new(basis, childPointer, map));
+                foreach (var (name, child) in map) Walk(child, childPointer + "/" + ContractDocumentReader.Escape(name), basis, true, dialect);
+            } else if (schema && SchemaNavigation.ArrayKeywords.Contains(key) && value is JsonArray list) {
+                identities.Add(list, new(basis, childPointer, list));
+                for (var i = 0; i < list.Count; i++) Walk(list[i], childPointer + "/" + i, basis, true, dialect);
+            } else if (!schema && childPointer == "/components/schemas" && value is JsonObject schemas) {
+                identities.Add(schemas, new(basis, childPointer, schemas));
+                foreach (var (name, child) in schemas) Walk(child, childPointer + "/" + ContractDocumentReader.Escape(name), basis, true, dialect);
+            } else Walk(value, childPointer, basis,
+                schema ? SchemaNavigation.SingleKeywords.Contains(key) : key == "schema" && !SchemaNavigation.IsDataPointer(childPointer), dialect);
+        } else if (node is JsonArray array) for (var i = 0; i < array.Count; i++) Walk(array[i], pointer + "/" + i, basis, false, dialect);
+    }
+    private static Uri WithoutFragment(Uri uri) => new(uri.AbsoluteUri.Split('#')[0], UriKind.Absolute);
+    private static ApiException Missing() => new(422, "missing_contract_reference", "引用未包含在固定来源包中，或目标 Pointer/anchor 不存在。");
+}
+
+internal static class SchemaNavigation
+{
+    internal static readonly HashSet<string> MapKeywords = ["properties", "patternProperties", "dependentSchemas", "$defs", "definitions"];
+    internal static readonly HashSet<string> ArrayKeywords = ["allOf", "anyOf", "oneOf", "prefixItems"];
+    internal static readonly HashSet<string> SingleKeywords = ["additionalProperties", "unevaluatedProperties", "unevaluatedItems", "propertyNames", "contains", "items", "not", "if", "then", "else", "contentSchema"];
+    internal static bool IsDataPointer(string pointer) => pointer.Split('/').Any(p => p is "example" or "examples" or "default" or "const" or "enum" or "value" || p.StartsWith("x-", StringComparison.Ordinal));
+}

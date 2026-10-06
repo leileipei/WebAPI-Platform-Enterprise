@@ -11,7 +11,12 @@ public sealed class ContractDocumentReader
     private static readonly JsonSerializerOptions Options = new() { MaxDepth = 64, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     private static readonly string[] Methods = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
 
+    public ContractDocument ReadResource(ContractSource source, ContractLimits limits, ContractDialect dialect, CancellationToken ct) => ReadCore(source, limits, dialect, ct);
+
     public ContractDocument Read(ContractSource source, ContractLimits limits, CancellationToken ct)
+        => ReadCore(source, limits, null, ct);
+
+    private static ContractDocument ReadCore(ContractSource source, ContractLimits limits, ContractDialect? inheritedDialect, CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
         if (source.RawText is null || Encoding.UTF8.GetByteCount(source.RawText) > limits.MaxDocumentBytes)
@@ -25,16 +30,20 @@ public sealed class ContractDocumentReader
             "yaml" or "yml" => new BoundedYamlReader().Read(source.RawText, budget, locations),
             _ => throw new ApiException(422, "unsupported_contract_format", "契约格式必须为 JSON 或 YAML。")
         };
-        if (node is not JsonObject root) throw Invalid("契约根必须是对象。");
-        var version = Text(root["openapi"]);
-        if (!Regex.IsMatch(version, "^3\\.(0|1)\\.[0-9]+$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)))
-            throw new ApiException(422, "unsupported_openapi", "仅支持 OpenAPI 3.0.x 或 3.1.x。");
-        ValidateShape(root, limits);
-        var canonical = Canonicalize(root).ToJsonString(Options);
+        var dialect = inheritedDialect;
+        if (inheritedDialect is null || node is JsonObject o && o.ContainsKey("openapi")) {
+            if (node is not JsonObject root) throw Invalid("契约根必须是对象。");
+            var version = Text(root["openapi"]);
+            if (!Regex.IsMatch(version, "^3\\.(0|1)\\.[0-9]+$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)))
+                throw new ApiException(422, "unsupported_openapi", "仅支持 OpenAPI 3.0.x 或 3.1.x。");
+            ValidateShape(root, limits);
+            dialect = version.StartsWith("3.0.", StringComparison.Ordinal) ? ContractDialect.Oas30 : ContractDialect.Oas31;
+        } else if (node is not JsonObject && !(node is JsonValue value && value.TryGetValue<bool>(out _)))
+            throw Invalid("引用资源必须是对象或 boolean Schema。");
+        var canonical = Canonicalize(node!).ToJsonString(Options);
         if (Encoding.UTF8.GetByteCount(canonical) > limits.MaxDocumentBytes)
             throw new ApiException(413, "contract_too_large", "规范化契约超过允许字节数。");
-        return new(source with { Format = format == "yml" ? "yaml" : format }, root,
-            version.StartsWith("3.0.", StringComparison.Ordinal) ? ContractDialect.Oas30 : ContractDialect.Oas31, canonical, locations);
+        return new(source with { Format = format == "yml" ? "yaml" : format }, node!, dialect!.Value, canonical, locations);
     }
 
     internal static string Text(JsonNode? node) => node is JsonValue value && value.TryGetValue<string>(out var text) ? text : "";
