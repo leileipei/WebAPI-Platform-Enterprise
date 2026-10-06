@@ -19,7 +19,7 @@ internal static class ReferenceRules
         context.BeginNormalization();return Walk(selected,new(ReferenceEqualityComparer.Instance),0);
         JsonNode Walk(JsonNode node,HashSet<JsonNode> path,int depth)
         {
-            context.Check();if(depth>64)throw new ApiException(422,"schema_proof_budget","引用证明超过深度预算。");if(!path.Add(node)){context.Issue("recursive_schema_reference","","递归包含关系无法在有限规则中证明。");return context.Copy(node)!;}
+            context.Check();if(depth>context.MaxDepth)throw new ApiException(422,"schema_proof_budget","引用证明超过深度预算。");if(!path.Add(node)){context.Issue("recursive_schema_reference","","递归包含关系无法在有限规则中证明。");return context.Copy(node)!;}
             try{
                 if(node is not JsonObject obj)return context.Copy(node)!;
                 if(obj.ContainsKey("$dynamicRef")||obj.ContainsKey("$dynamicAnchor")){context.Add("schema.dynamic_references");context.Issue("dynamic_schema_reference","","动态作用域变化无法自动证明。");}

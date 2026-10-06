@@ -64,4 +64,29 @@ public sealed class VersionRiskReviewService(WebApiDbContext db,AuthorizationSer
         var resolved=await ResolveReferencesAsync(environmentScope,targetVersionIds,references.Select(x=>x.ReviewId).ToArray(),actor,ct);
         foreach(var trusted in resolved){var stored=references.Single(x=>x.ReviewId==trusted.ReviewId);if(!ContractNormalizer.CanonicalBytes(trusted).AsSpan().SequenceEqual(ContractNormalizer.CanonicalBytes(stored)))throw new ApiException(409,"risk_review_stale","冻结评审证据完整性校验失败。");}
     }
+    public async Task ValidateFrozenReferencesAsync(ScopeRef environmentScope,IReadOnlyList<Guid> targetVersionIds,IReadOnlyList<FrozenRiskReviewReference>? references,ActorContext actor,CancellationToken ct)
+    {
+        if(references is null||references.Count==0)return;
+        if(references.Count>100||references.Select(x=>x.ReviewId).Distinct().Count()!=references.Count||references.Select(x=>x.ApiId).Distinct().Count()!=references.Count)throw new ApiException(422,"invalid_risk_reviews","冻结评审重复或超过限制。");
+        foreach(var stored in references){
+            var review=await db.Set<ApiVersionRiskReview>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==stored.ReviewId,ct)??throw ScopeResolver.Missing();var entity=await comparisons.ReadEntityAsync(review.ComparisonId,actor,ct);
+            if(entity.OrganizationId!=environmentScope.OrganizationId||entity.ProjectId!=environmentScope.ProjectId||review.OrganizationId!=entity.OrganizationId||review.ProjectId!=entity.ProjectId||review.ApiId!=entity.ApiId)throw ScopeResolver.Missing();
+            if(!targetVersionIds.Contains(entity.ToVersionId))throw new ApiException(422,"risk_review_target_mismatch","冻结评审与发布目标版本不一致。");
+            var report=VersionComparisonService.Report(entity);
+            if(!CompatibilityEngineRegistry.IsRegistered(entity.EngineVersion)||report.EngineVersion!=entity.EngineVersion||report.InputFingerprint!=entity.InputFingerprint||review.InputFingerprint!=entity.InputFingerprint||review.ReportHash!=entity.ReportHash)throw Stale();
+            RequireDecision(report,review.Decision,review.Comment,true);
+            if(entity.InputBytes.Length>16*1024*1024)throw Stale();ComparisonInput snapshot;
+            try{snapshot=System.Text.Json.JsonSerializer.Deserialize<ComparisonInput>(entity.InputBytes,ContractNormalizer.JsonOptions)??throw Stale();}
+            catch(System.Text.Json.JsonException){throw Stale();}
+            if(snapshot.From.Version.Id!=entity.FromVersionId||snapshot.To.Version.Id!=entity.ToVersionId||snapshot.From.Version.ApiId!=entity.ApiId||snapshot.To.Version.ApiId!=entity.ApiId||snapshot.From.Version.Revision!=entity.FromRevision||snapshot.To.Version.Revision!=entity.ToRevision||CompatibilityEngineRegistry.Fingerprint(snapshot,entity.EngineVersion)!=entity.InputFingerprint)throw Stale();
+            var current=entity.EngineVersion==LegacyV1Fingerprint.EngineVersion?await comparisons.ReadLegacySnapshotAsync(entity.ApiId,entity.FromVersionId,entity.ToVersionId,actor,ct):await comparisons.ReadSnapshotAsync(entity.ApiId,entity.FromVersionId,entity.ToVersionId,actor,ct);
+            if(entity.EngineVersion==ContractComparisonEngine.EngineVersion)current=current with{FormatMode=snapshot.FormatMode,AdapterVersion=snapshot.AdapterVersion};
+            if(CompatibilityEngineRegistry.Fingerprint(current,entity.EngineVersion)!=entity.InputFingerprint)throw Stale();
+            var summary=new RiskReviewSummaryDto(review.Id,entity.Id,entity.ApiId,entity.FromVersionId,entity.ToVersionId,entity.FromVersion,entity.ToVersion,review.Decision,review.ActorId,review.CreatedAt,entity.InputFingerprint,entity.ReportHash,entity.EngineVersion,report.Coverage,report.Counts,review.Comment);
+            var trusted=new FrozenRiskReviewReference(entity.ApiId,entity.ToVersionId,entity.Id,review.Id,entity.InputFingerprint,entity.ReportHash,entity.EngineVersion,summary);
+            if(!ContractNormalizer.CanonicalBytes(trusted).AsSpan().SequenceEqual(ContractNormalizer.CanonicalBytes(stored)))throw Stale();
+        }
+        static ApiException Stale()=>new(409,"risk_review_stale","冻结评审输入、报告、真实资源或版本登记已变化。");
+    }
+
 }

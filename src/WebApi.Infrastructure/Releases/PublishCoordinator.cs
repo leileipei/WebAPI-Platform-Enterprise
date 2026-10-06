@@ -32,7 +32,8 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
         },ct);
     }
     private async Task ValidateReviewsAsync(ReleaseRecord r,ActorContext actor,ScopeRef scope,CancellationToken ct)
-    {if(r.ReleaseType is "rollback" or "retry")return;var candidate=Candidate(r);await reviews.ValidateReferencesAsync(scope,candidate.VersionIds,candidate.RiskReviewReferences,actor,ct);}
+    {if(r.ReleaseType is "rollback" or "retry")return;var candidate=Candidate(r);
+        await reviews.ValidateFrozenReferencesAsync(scope,candidate.VersionIds,candidate.RiskReviewReferences,actor,ct);}
     public async Task LockEnvironmentAsync(Guid envId,CancellationToken ct)=>await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={envId} FOR UPDATE",ct);
     private async Task VerifyBaselineAsync(ReleaseRecord r,CancellationToken ct)
     {var current=await db.Set<EnvironmentRecord>().AsNoTracking().Where(e=>e.Id==r.EnvironmentId).Select(e=>e.DesiredConfigVersion).SingleAsync(ct);if((current??0)!=r.BaselineConfigVersion) throw new ApiException(409,"stale_baseline","运行基线已变化，请重新建立候选并审批。");}

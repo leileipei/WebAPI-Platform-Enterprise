@@ -10,12 +10,25 @@ using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
+using WebApi.Infrastructure.Contracts;
 namespace WebApi.Infrastructure.Comparisons;
-public sealed class VersionComparisonService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,CatalogService catalog,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ContractComparisonEngine engine,ComparisonCursorCodec cursors)
+public sealed class VersionComparisonService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,CatalogService catalog,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ContractProcessRunner runner,VersionContractSourceService sources,ComparisonCursorCodec cursors)
 {
     public async Task<ScopeRef> RequireReadAsync(Guid apiId,ActorContext actor,CancellationToken ct)
     {var scope=await scopes.ApiAsync(apiId,ct);foreach(var code in new[]{"api.read","api.version.read","api.schema.read"})if(!await auth.CanAsync(actor,code,new("api",apiId,scope),ct))throw ScopeResolver.Missing();return scope;}
     public async Task<ComparisonInput> ReadSnapshotAsync(Guid apiId,Guid fromVersionId,Guid toVersionId,ActorContext actor,CancellationToken ct)
+    {
+        var input=await ReadLegacySnapshotAsync(apiId,fromVersionId,toVersionId,actor,ct);
+        return input with{From=await Source(input.From),To=await Source(input.To),FormatMode="Annotation",AdapterVersion="oas-http-model-v2"};
+        async Task<ContractVersionInput> Source(ContractVersionInput version){
+            // Missing new source rows is a supported legacy state. Current imports
+            // must pass the catalog's immutable source/definition consistency check.
+            if(!await db.Set<ApiVersionContractSources>().AsNoTracking().AnyAsync(x=>x.ApiVersionId==version.Version.Id,ct))return version;
+            var entity=await db.Set<ApiVersion>().AsNoTracking().SingleAsync(x=>x.Id==version.Version.Id,ct);var state=await sources.LoadAsync(entity,ct);
+            return version with{Sources=new(state.Bundle.RootUri,state.Bundle.Documents.Select(x=>x.Source).ToArray(),state.Bundle.Hash,state.Metadata)};
+        }
+    }
+    public async Task<ComparisonInput> ReadLegacySnapshotAsync(Guid apiId,Guid fromVersionId,Guid toVersionId,ActorContext actor,CancellationToken ct)
     {
         await RequireReadAsync(apiId,actor,ct);var a=await catalog.VersionAsync(fromVersionId,actor,ct);var b=await catalog.VersionAsync(toVersionId,actor,ct);
         if(a.ApiId!=apiId||b.ApiId!=apiId||a.Id==b.Id)throw new ApiException(422,"invalid_comparison_pair","必须选择同一 API 的两个不同版本。");
@@ -27,9 +40,13 @@ public sealed class VersionComparisonService(WebApiDbContext db,AuthorizationSer
         return await commands.ExecuteAsync(actor,scope,"comparison.created",async(_,token)=>{
             var actual=await RequireReadAsync(apiId,actor,token);if(actual!=scope)throw ScopeResolver.Missing();
             return await idempotency.ExecuteAsync(new(actor.UserId,scope,"comparison.created",requestContext.IdempotencyKey),CanonicalJson.Serialize(new {apiId,request}),async inner=>{
-                var input=await ReadSnapshotAsync(apiId,request.FromVersionId,request.ToVersionId,actor,inner);
+                if(request.FormatMode is not(null or "Annotation" or "Strict"))throw new ApiException(422,"comparison_options","比较格式模式必须为 Annotation 或 Strict。");
+                var input=(await ReadSnapshotAsync(apiId,request.FromVersionId,request.ToVersionId,actor,inner)) with{FormatMode=request.FormatMode??"Annotation"};
                 if(input.From.Version.Revision!=request.ExpectedFromRevision||input.To.Version.Revision!=request.ExpectedToRevision)throw new ApiException(412,"stale_comparison_revision","版本已变化，请刷新后重新比较。");
-                var report=engine.Compare(input,new(),inner);var reportBytes=ContractNormalizer.CanonicalBytes(report);
+                var evaluated=await runner.RunAsync(ContractProcessProtocol.ComparisonRequest(input,new()),TimeSpan.FromSeconds(10),inner);
+                var report=evaluated.Status is "Valid" or "Invalid"&&evaluated.Result is JsonElement result?result.Deserialize<ComparisonReport>(ContractNormalizer.JsonOptions):null;
+                report??=new(ContractComparisonEngine.EngineVersion,ContractNormalizer.Fingerprint(input,ContractComparisonEngine.EngineVersion),"Invalid",new(0,0,0,0,0,evaluated.Issues.Count),[],evaluated.Issues.Select(x=>new ComparisonCoverageIssue(x.Code,"input",x.Pointer,x.Message)).ToArray(),new(ContractNormalizer.Hash(CanonicalJson.Serialize(input)),input.AdapterVersion!,input.FormatMode!,[],[]));
+                var reportBytes=ContractNormalizer.CanonicalBytes(report);
                 var entity=new ApiVersionComparison {OrganizationId=scope.OrganizationId,ProjectId=scope.ProjectId!.Value,ApiId=apiId,FromVersionId=request.FromVersionId,ToVersionId=request.ToVersionId,FromRevision=input.From.Version.Revision,ToRevision=input.To.Version.Revision,FromVersion=input.From.Version.Version,ToVersion=input.To.Version.Version,EngineVersion=report.EngineVersion,InputFingerprint=report.InputFingerprint,ReportHash=ContractNormalizer.Hash(reportBytes),Coverage=report.Coverage,CountsJson=JsonSerializer.Serialize(report.Counts,CanonicalJson.Options),InputBytes=CanonicalJson.Serialize(input),ReportBytes=reportBytes,CreatedBy=actor.UserId};db.Add(entity);
                 return View(entity,input,report,"Current",null);
             },token,ContractNormalizer.JsonOptions);
@@ -40,13 +57,20 @@ public sealed class VersionComparisonService(WebApiDbContext db,AuthorizationSer
         var entity=await db.Set<ApiVersionComparison>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw ScopeResolver.Missing();var scope=await RequireReadAsync(entity.ApiId,actor,ct);if(scope.OrganizationId!=entity.OrganizationId||scope.ProjectId!=entity.ProjectId)throw ScopeResolver.Missing();return entity;
     }
     public static ComparisonReport Report(ApiVersionComparison entity)
-    {if(ContractNormalizer.Hash(entity.ReportBytes)!=entity.ReportHash)throw new ApiException(409,"comparison_corrupted","比较证据完整性校验失败。");return JsonSerializer.Deserialize<ComparisonReport>(entity.ReportBytes,ContractNormalizer.JsonOptions)??throw new ApiException(409,"comparison_corrupted","比较证据无法读取。");}
+    {
+        if(ContractNormalizer.Hash(entity.ReportBytes)!=entity.ReportHash)throw new ApiException(409,"comparison_corrupted","比较证据完整性校验失败。");var report=JsonSerializer.Deserialize<ComparisonReport>(entity.ReportBytes,ContractNormalizer.JsonOptions)??throw new ApiException(409,"comparison_corrupted","比较证据无法读取。");
+        if(entity.EngineVersion==ContractComparisonEngine.EngineVersion&&(report.Provenance is null||report.Provenance.InputHash!=ContractNormalizer.Hash(entity.InputBytes)))throw new ApiException(409,"comparison_corrupted","比较输入摘要与报告来源信息不一致。");return report;
+    }
     public async Task<string> FreshnessAsync(ApiVersionComparison entity,ActorContext actor,CancellationToken ct)
     {
         if(entity.EngineVersion!=ContractComparisonEngine.EngineVersion)return "Stale";
-        try{return ContractNormalizer.Fingerprint(await ReadSnapshotAsync(entity.ApiId,entity.FromVersionId,entity.ToVersionId,actor,ct),entity.EngineVersion)==entity.InputFingerprint?"Current":"Stale";}
+        try{
+            var stored=JsonSerializer.Deserialize<ComparisonInput>(entity.InputBytes,CanonicalJson.Options)??throw new ApiException(409,"comparison_corrupted","输入快照无法读取。");
+            var current=(await ReadSnapshotAsync(entity.ApiId,entity.FromVersionId,entity.ToVersionId,actor,ct)) with{FormatMode=stored.FormatMode,AdapterVersion=stored.AdapterVersion};
+            return ContractNormalizer.Fingerprint(current,entity.EngineVersion)==entity.InputFingerprint?"Current":"Stale";
+        }
         catch(ApiException e) when(e.Status==404){return "Missing";}
-        catch(ApiException e) when(e.Status==422){return "Stale";}
+        catch(ApiException e) when(e.Status is 409 or 413 or 422){return "Stale";}
     }
     public async Task<VersionComparisonView> GetAsync(Guid comparisonId,ActorContext actor,CancellationToken ct)
     {

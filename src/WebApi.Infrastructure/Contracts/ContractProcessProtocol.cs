@@ -4,16 +4,25 @@ using System.Text.Json.Nodes;
 using WebApi.Contracts.Catalog;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.OpenApi;
+using WebApi.Infrastructure.Comparisons;
 namespace WebApi.Infrastructure.Contracts;
 public sealed record ContractProcessRequest(string Operation,JsonElement Payload);
 public sealed record ContractProcessResponse(string Status,JsonElement? Result,IReadOnlyList<ContractIssue> Issues);
 internal sealed record ProcessDocument(Uri Uri,string Utf8Base64,string Format);
 internal sealed record ProcessSchemaPayload(Uri RootUri,IReadOnlyList<ProcessDocument> Documents,string BundleHash,string SchemaUtf8Base64,string? ExampleUtf8Base64,string Direction,string FormatMode,bool HasExample,Uri? ResourceUri,string Pointer,ContractLimits Limits);
+internal sealed record ProcessComparisonPayload(string InputUtf8Base64,ComparisonLimits Limits);
 public static class ContractProcessProtocol
 {
     public const int MaxInputBytes=16*1024*1024;
     public const int MaxOutputBytes=8*1024*1024;
     public static readonly JsonSerializerOptions JsonOptions=new(JsonSerializerDefaults.Web){MaxDepth=80};
+    public static ContractProcessRequest ComparisonRequest(ComparisonInput input,ComparisonLimits? limits=null)=>new("compare",JsonSerializer.SerializeToElement(new ProcessComparisonPayload(Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(input,ContractNormalizer.JsonOptions)),limits??new()),JsonOptions));
+    public static ComparisonInput DecodeComparison(JsonElement json,out ComparisonLimits limits)
+    {
+        var payload=json.Deserialize<ProcessComparisonPayload>(JsonOptions)??throw Invalid();limits=payload.Limits;var defaults=new ComparisonLimits(MaxSideBytes:4*1024*1024,MaxPairBytes:8*1024*1024);
+        foreach(var property in typeof(ComparisonLimits).GetProperties()){var value=(int)property.GetValue(limits)!;if(value<1||value>(int)property.GetValue(defaults)!)throw Invalid();}
+        return JsonSerializer.Deserialize<ComparisonInput>(Decode(payload.InputUtf8Base64,MaxInputBytes),ContractNormalizer.JsonOptions)??throw Invalid();
+    }
     public static ContractProcessRequest SchemaRequest(SchemaValidationInput input,ContractLimits? limits=null)
     {
         limits??=new();ContractBundleCodec.Verify(input.Bundle,limits);

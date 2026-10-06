@@ -2,6 +2,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Contracts;
+using Microsoft.Extensions.DependencyInjection;
 namespace WebApi.Integration.Tests.Support;
 public sealed class ComparisonFixture : IAsyncDisposable
 {
@@ -11,7 +13,7 @@ public sealed class ComparisonFixture : IAsyncDisposable
     public string Path=>$"/api/v1/apis/{Api.Api.Id}/version-comparisons";
     public async Task InitializeAsync(bool releases=false)
     {
-        await Api.InitializeAsync();if(releases)await Api.SeedReleaseAsync();else await Api.SeedCatalogAsync();
+        await Api.InitializeAsync(builder=>{var path=System.Environment.GetEnvironmentVariable("WEBAPI_RUNTIME_TOOL_DLL");if(path is not null)builder.Services.AddSingleton(new SchemaValidationSettings(path));});if(releases)await Api.SeedReleaseAsync();else await Api.SeedCatalogAsync();
         await using(var db=Api.Context())
         {
             var from=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==Api.Version.Id);from.OpenapiDocument=EmptyDocument;from.SourceFormat="json";

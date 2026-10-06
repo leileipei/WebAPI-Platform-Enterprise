@@ -71,24 +71,31 @@ public sealed class VersionContractSourceService(WebApiDbContext db,Authorizatio
         return schemas.Select(x=>new MaintainedDefinition(x.Id,"schema",x.Name,x.SchemaJson,x.SchemaType=="component")).Concat(parameters.Select(x=>new MaintainedDefinition(x.Id,"parameter",x.Name,x.Schema??JsonSerializer.Serialize(new{type=x.DataType},JsonOptions),false))).ToArray();
     }
     internal MaintenanceGraph BuildGraph(VersionContractState state,IReadOnlyList<MaintainedDefinition> definitions,CancellationToken ct)
+        =>BuildMaintenanceGraph(state,definitions,ct);
+    internal static MaintenanceGraph BuildMaintenanceGraph(VersionContractState state,IReadOnlyList<MaintainedDefinition> definitions,CancellationToken ct,ContractLimits? representationLimits=null)
     {
-        var limits=new ContractLimits();long bytes=definitions.Sum(x=>(long)Encoding.UTF8.GetByteCount(x.Schema))+state.Bundle.Documents.Sum(x=>(long)Encoding.UTF8.GetByteCount(x.CanonicalJson));if(bytes>limits.MaxBundleBytes)throw new ApiException(413,"contract_budget","维护定义与来源包超过预算。");
+        var limits=representationLimits??new ContractLimits();var definitionLimits=representationLimits is null?limits:limits with{MaxDepth=Math.Min(64,limits.MaxDepth-16),MaxDocumentBytes=Math.Min(2*1024*1024,limits.MaxDocumentBytes)};long bytes=definitions.Sum(x=>(long)Encoding.UTF8.GetByteCount(x.Schema))+state.Bundle.Documents.Sum(x=>(long)Encoding.UTF8.GetByteCount(x.CanonicalJson));if(bytes>limits.MaxBundleBytes)throw new ApiException(413,"contract_budget","维护定义与来源包超过预算。");
         if(definitions.Where(x=>x.Component).GroupBy(x=>x.Name,StringComparer.Ordinal).Any(group=>group.Count()>1))throw Invalid("ambiguous_component_definition","组件名称在维护图中必须唯一，不能按媒体类型覆盖另一个组件。");
         var nodes=state.Bundle.Documents.ToDictionary(x=>x.Source.LogicalUri,x=>x.Root.DeepClone());var originals=new ContractReferenceRegistry(state.Bundle,limits);var origins=new List<ContractDefinitionSource>();
         var root=(JsonObject)nodes[state.Bundle.RootUri];root["components"]??=new JsonObject();var components=root["components"] as JsonObject??throw Invalid("invalid_contract","components必须为对象。");components["schemas"]??=new JsonObject();var componentSchemas=components["schemas"] as JsonObject??throw Invalid("invalid_contract","components.schemas必须为对象。");
         foreach(var definition in definitions){
-            ct.ThrowIfCancellationRequested();var schema=new ContractDocumentReader().ReadResource(new(new Uri("https://maintenance.invalid/schema"),definition.Schema,"json"),limits,state.Bundle.Documents[0].Dialect,ct).Root;
+            ct.ThrowIfCancellationRequested();var schema=new ContractDocumentReader().ReadResource(new(new Uri("https://maintenance.invalid/schema"),definition.Schema,"json"),definitionLimits,state.Bundle.Documents.Single(d=>d.Source.LogicalUri==state.Bundle.RootUri).Dialect,ct).Root;
             var old=state.Metadata.Definitions.SingleOrDefault(x=>x.Id==definition.Id&&x.Kind==definition.Kind);Uri documentUri;string pointer;
             if(definition.Component){documentUri=state.Bundle.RootUri;pointer="/components/schemas/"+ContractDocumentReader.Escape(definition.Name);componentSchemas[definition.Name]=schema.DeepClone();}
-            else if(old is not null){(documentUri,pointer)=Physical(state.Bundle,originals,old);Set(nodes[documentUri],pointer,schema);}
+            else if(old is not null){
+                (documentUri,pointer)=Physical(state.Bundle,originals,old);
+                if(IsIndependentSource(state.Bundle,old)&&!componentSchemas.ContainsKey(pointer.Split('/')[^1]))componentSchemas[pointer.Split('/')[^1]]=schema.DeepClone();
+                else Set(nodes[documentUri],pointer,schema);
+            }
             else{documentUri=state.Bundle.RootUri;var name="__maintained_"+definition.Id.ToString("N");if(componentSchemas.ContainsKey(name))throw Invalid("duplicate_schema_id","维护定义资源名称冲突。");pointer="/components/schemas/"+name;componentSchemas[name]=schema.DeepClone();}
             origins.Add(new(definition.Id,definition.Kind,documentUri,pointer,DocumentHash(definition.Schema),documentUri));
         }
         var reader=new ContractDocumentReader();var docs=state.Bundle.Documents.Select(d=>{
             if(JsonNode.DeepEquals(nodes[d.Source.LogicalUri],d.Root))return d;
-            var text=nodes[d.Source.LogicalUri].ToJsonString(JsonOptions);var source=new ContractSource(d.Source.LogicalUri,text,"json");return d.Source.LogicalUri==state.Bundle.RootUri?reader.Read(source,limits,ct):reader.ReadResource(source,limits,d.Dialect,ct);
+            var text=nodes[d.Source.LogicalUri].ToJsonString(representationLimits is null?JsonOptions:new(JsonOptions){MaxDepth=128});var source=new ContractSource(d.Source.LogicalUri,text,"json");return d.Source.LogicalUri==state.Bundle.RootUri?reader.Read(source,limits,ct):reader.ReadResource(source,limits,d.Dialect,ct);
         }).ToArray();return new(ContractBundleCodec.Create(state.Bundle.RootUri,docs,limits),origins);
     }
+    internal static bool IsIndependentSource(ContractBundle bundle,ContractDefinitionSource source)=>source.ResourceUri==bundle.RootUri&&(source.DocumentUri is null||source.DocumentUri==bundle.RootUri)&&source.Pointer=="/components/schemas/__maintained_"+source.Id.ToString("N");
     internal static (Uri Uri,string Pointer) Physical(ContractBundle bundle,ContractReferenceRegistry graph,ContractDefinitionSource source)
     {
         if(source.DocumentUri is not null){if(!bundle.Documents.Any(d=>d.Source.LogicalUri==source.DocumentUri))throw Invalid("contract_source_stale","定义物理来源不在固定包中。");return(source.DocumentUri,source.Pointer);}

@@ -8,7 +8,8 @@ using WebApi.Contracts.OpenApi;
 namespace WebApi.Infrastructure.Contracts;
 public sealed class ContractDocumentReader
 {
-    private static readonly JsonSerializerOptions Options = new() { MaxDepth = 64, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    // The parse budget validates depth before canonical serialization.
+    private static readonly JsonSerializerOptions Options = new() { MaxDepth = 128, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     private static readonly string[] Methods = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
 
     public ContractDocument ReadResource(ContractSource source, ContractLimits limits, ContractDialect dialect, CancellationToken ct) => ReadCore(source, limits, dialect, ct);

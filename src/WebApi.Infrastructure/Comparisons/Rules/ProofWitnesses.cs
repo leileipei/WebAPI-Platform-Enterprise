@@ -24,7 +24,7 @@ internal static class ProofWitnesses
             if(obj["patternProperties"] is JsonObject patterns)foreach(var(pattern,_)in patterns){var prefix=Regex.Match(pattern,"^\\^([a-zA-Z0-9_-]+)",RegexOptions.CultureInvariant,TimeSpan.FromMilliseconds(100));if(prefix.Success)names.Add(prefix.Groups[1].Value);}
             if(obj["propertyNames"] is JsonObject nameSchema&&PrimitiveRules.FiniteValues(nameSchema) is IReadOnlyList<JsonNode?> keys)foreach(var key in keys){var name=PrimitiveRules.Text(key);if(name.Length>0)names.Add(name);}
             if(obj["dependentRequired"] is JsonObject deps)names.UnionWith(deps.Select(x=>x.Key));if(obj["dependentSchemas"] is JsonObject depSchemas)names.UnionWith(depSchemas.Select(x=>x.Key));
-            foreach(var name in names.Take(24))foreach(var value in new JsonNode?[]{null,JsonValue.Create(0),JsonValue.Create(0.5),JsonValue.Create(""),JsonValue.Create(true)}){var next=(JsonObject)baseObject.DeepClone();next[name]=value?.DeepClone();Add(next);}
+            foreach(var name in names.Take(24))foreach(var value in new JsonNode?[]{null,JsonValue.Create(0),JsonValue.Create(0.5),JsonValue.Create(""),JsonValue.Create(true)}.Concat(Samples(properties[name]??PrimitiveRules.Any(),0,c))){var next=(JsonObject)baseObject.DeepClone();next[name]=value?.DeepClone();Add(next);}
             foreach(var name in required){var next=(JsonObject)baseObject.DeepClone();next.Remove(name);Add(next);}
             foreach(var key in new[]{"minProperties","maxProperties"})if(obj[key] is not null){var size=PrimitiveRules.Size(obj,key,0);foreach(var count in new[]{size-1,size,size+1})if(count>=0&&count<=8){var next=new JsonObject();for(var i=0;i<count;i++)next["p"+i]=null;Add(next);}}
         }
@@ -35,6 +35,25 @@ internal static class ProofWitnesses
     private static JsonNode? Sample(JsonNode schema,int depth)
     {
         if(depth>4)return null;if(PrimitiveRules.FiniteValues(schema) is IReadOnlyList<JsonNode?> values&&values.Count>0)return values[0]?.DeepClone();if(schema is not JsonObject obj)return null;
+        foreach(var key in new[]{"anyOf","oneOf"})if(obj[key] is JsonArray alternatives&&alternatives.FirstOrDefault(x=>x is not null) is JsonNode branch)return Sample(branch,depth+1);
         var types=PrimitiveRules.Types(obj);if(types.Contains("integer")||types.Contains("fraction"))return(PrimitiveRules.Number(obj["minimum"])??PrimitiveRules.Number(obj["multipleOf"])??ExactNumber.Zero).Node();if(types.Contains("string"))return JsonValue.Create(new string('a',Math.Min(PrimitiveRules.Size(obj,"minLength",0),16)));if(types.Contains("boolean"))return JsonValue.Create(false);if(types.Contains("object")){var result=new JsonObject();foreach(var name in PrimitiveRules.Required(obj))result[name]=Sample(obj["properties"]?[name]??PrimitiveRules.Any(),depth+1);return result;}if(types.Contains("array"))return new JsonArray();return null;
+    }
+    private static IEnumerable<JsonNode?> Samples(JsonNode schema,int depth,ProofContext c)
+    {
+        c.Check();if(depth>8)yield break;
+        if(PrimitiveRules.FiniteValues(schema) is IReadOnlyList<JsonNode?> finite){foreach(var value in finite.Take(8))yield return value?.DeepClone();yield break;}
+        if(schema is not JsonObject obj)yield break;
+        foreach(var key in new[]{"anyOf","oneOf"})if(obj[key] is JsonArray alternatives){foreach(var branch in alternatives.Take(8))if(branch is not null)foreach(var candidate in Samples(branch,depth+1,c).Take(8))yield return candidate;yield break;}
+        var seed=Sample(schema,0);yield return seed;
+        if(seed is not JsonObject&&seed is not JsonArray){
+            foreach(var key in new[]{"minimum","maximum","exclusiveMinimum","exclusiveMaximum","multipleOf"})if(PrimitiveRules.Number(obj[key]) is ExactNumber number)foreach(var value in new[]{number,number-ExactNumber.One,number+ExactNumber.One,number-ExactNumber.Half,number+ExactNumber.Half})yield return value.Node();
+            foreach(var key in new[]{"minLength","maxLength"})if(obj[key] is not null){var length=PrimitiveRules.Size(obj,key,0);foreach(var size in new[]{length-1,length,length+1})if(size>=0&&size<=64)yield return JsonValue.Create(new string('a',size));}
+            foreach(var value in new[]{"null","0","0.5","true","false","\"\"","\"a\""})yield return JsonNode.Parse(value);
+        }
+        if(seed is JsonObject instance&&obj["properties"] is JsonObject properties){
+            foreach(var(name,shape)in properties.Take(24))if(shape is not null)foreach(var candidate in Samples(shape,depth+1,c).Take(8)){
+                c.Check();var next=(JsonObject)instance.DeepClone();next[name]=candidate?.DeepClone();yield return next;
+            }
+        }
     }
 }

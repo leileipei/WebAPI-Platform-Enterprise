@@ -14,7 +14,7 @@ public static class DialectAdapter
         "contentEncoding", "contentMediaType", "contentSchema", "discriminator", "xml", "externalDocs"
     ];
     private static readonly HashSet<string> Modern = ["$id", "$anchor", "$dynamicAnchor", "$dynamicRef", "$defs", "$vocabulary", "const", "prefixItems", "contains", "minContains", "maxContains", "unevaluatedItems", "patternProperties", "dependentRequired", "dependentSchemas", "propertyNames", "unevaluatedProperties", "if", "then", "else", "contentSchema"];
-    public static PreparedSchema PrepareSchema(JsonNode schema, ContractDialect dialect, string direction,bool applyDirection=true)
+    public static PreparedSchema PrepareSchema(JsonNode schema, ContractDialect dialect, string direction,bool applyDirection=true,int maxDepth=64)
     {
         if (direction is not ("request" or "response")) throw new ApiException(422, "invalid_schema_direction", "校验方向必须为 request 或 response。");
         var nodes = 0;
@@ -22,7 +22,7 @@ public static class DialectAdapter
         var issues = new List<ContractIssue>();
         return new(Prepare(schema, "", 0), issues);
         JsonNode Prepare(JsonNode node, string pointer, int depth) {
-            if (depth > 64) throw new ApiException(422, "contract_budget", "Schema 深度超过预算。");
+            if (depth > maxDepth) throw new ApiException(422, "contract_budget", "Schema 深度超过预算。");
             if (node is JsonValue b && b.TryGetValue<bool>(out _)) {
                 if (dialect == ContractDialect.Oas30) Issue("invalid_schema_dialect", pointer, "OpenAPI 3.0 Schema 必须为对象。");
                 return node.DeepClone();
@@ -72,7 +72,7 @@ public static class DialectAdapter
         }
         void Issue(string code, string pointer, string message) { if (issues.Count >= 500) throw new ApiException(422, "contract_budget", "Schema 诊断超过预算。"); issues.Add(new(code, pointer, message)); }
         void Count(JsonNode? node, int depth) {
-            if (depth > 64 || ++nodes > 50000) throw new ApiException(422, "contract_budget", "Schema 深度或节点数量超过预算。");
+            if (depth > maxDepth || ++nodes > 50000) throw new ApiException(422, "contract_budget", "Schema 深度或节点数量超过预算。");
             if (node is JsonObject obj) foreach (var p in obj) { if (++nodes > 50000) throw new ApiException(422, "contract_budget", "Schema 节点数量超过预算。"); Count(p.Value, depth + 1); }
             else if (node is JsonArray array) foreach (var item in array) Count(item, depth + 1);
         }

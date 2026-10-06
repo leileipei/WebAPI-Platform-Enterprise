@@ -14,7 +14,7 @@ public sealed class CompatibilityProof
     public CompatibilityProofResult Compare(JsonNode baseline,JsonNode target,ContractBundle baselineBundle,ContractBundle targetBundle,string direction,ContractLimits limits,CancellationToken ct,SchemaProofLocation? baselineLocation=null,SchemaProofLocation? targetLocation=null,string formatMode="Annotation")
     {
         var rules=new HashSet<string>(StringComparer.Ordinal);var coverage=new List<ComparisonCoverageIssue>();var findings=new List<ComparisonFinding>();
-        CompatibilityProofResult Result(string risk)=>new(risk,findings,coverage,rules.Order(StringComparer.Ordinal).ToArray());
+        bool? changed=null;CompatibilityProofResult Result(string risk)=>new(risk,findings,coverage,rules.Order(StringComparer.Ordinal).ToArray(),changed);
         try{
             ct.ThrowIfCancellationRequested();if(direction is not("request" or "response")||formatMode is not("Annotation" or "Strict"))throw new ApiException(422,"schema_proof_options","比较方向或模式不合法。");
             var a=ReferenceRules.Locate(baseline,baselineBundle,baselineLocation,limits,ct);var b=ReferenceRules.Locate(target,targetBundle,targetLocation,limits,ct);
@@ -26,7 +26,8 @@ public sealed class CompatibilityProof
             var ag=new ContractReferenceRegistry(baselineBundle,limits);var bg=new ContractReferenceRegistry(targetBundle,limits);
             var ar=ag.Resolve(a.ResourceUri,"#"+Uri.EscapeDataString(a.Pointer));var br=bg.Resolve(b.ResourceUri,"#"+Uri.EscapeDataString(b.Pointer));
             var an=ReferenceRules.Normalize(ar.Node,ag,context,baselineBundle.Documents.Single(x=>x.Source.LogicalUri==baselineBundle.RootUri).Dialect);var bn=ReferenceRules.Normalize(br.Node,bg,context,targetBundle.Documents.Single(x=>x.Source.LogicalUri==targetBundle.RootUri).Dialect);
-            an=DialectAdapter.PrepareSchema(an,baselineBundle.Documents.Single(x=>x.Source.LogicalUri==baselineBundle.RootUri).Dialect,direction).Node;bn=DialectAdapter.PrepareSchema(bn,targetBundle.Documents.Single(x=>x.Source.LogicalUri==targetBundle.RootUri).Dialect,direction).Node;
+            an=DialectAdapter.PrepareSchema(an,baselineBundle.Documents.Single(x=>x.Source.LogicalUri==baselineBundle.RootUri).Dialect,direction,maxDepth:limits.MaxDepth).Node;bn=DialectAdapter.PrepareSchema(bn,targetBundle.Documents.Single(x=>x.Source.LogicalUri==targetBundle.RootUri).Dialect,direction,maxDepth:limits.MaxDepth).Node;
+            changed=ContractNormalizer.Canonical(an)!=ContractNormalizer.Canonical(bn);
             context.Add("schema.types");context.Register(an);context.Register(bn);
             if(coverage.Count>0)return Result("Unknown");
             var from=direction=="request"?an:bn;var to=direction=="request"?bn:an;var source=direction=="request"?ai:bi;var destination=direction=="request"?bi:ai;
@@ -58,6 +59,7 @@ internal sealed class ProofContext(ContractLimits limits,CancellationToken ct,Ha
 {
     private readonly Stopwatch watch=Stopwatch.StartNew();private int steps;private long normalizedSideBytes,normalizedPairBytes;private readonly Dictionary<string,bool?> pairs=new(StringComparer.Ordinal);private readonly Dictionary<string,Regex> propertyPatterns=new(StringComparer.Ordinal);
     internal string FormatMode=>formatMode;
+    internal int MaxDepth=>limits.MaxDepth;
     internal bool PropertyPatternMatches(string pattern,string name){
         Check();if(!propertyPatterns.TryGetValue(pattern,out var regex)){
             using var json=JsonDocument.Parse(new JsonObject{[pattern]=true}.ToJsonString());
@@ -87,11 +89,33 @@ internal sealed class ProofContext(ContractLimits limits,CancellationToken ct,Ha
         Check();if(PrimitiveRules.False(a)||PrimitiveRules.True(b))return true;
         var key=CatalogService.Hash(a.ToJsonString())+"|"+CatalogService.Hash(b.ToJsonString());if(pairs.TryGetValue(key,out var prior))return prior==true;pairs[key]=null;
         bool answer;if(JsonNode.DeepEquals(a,b))answer=true;
+        else if(Empty(a))answer=true;
         else if(PrimitiveRules.FiniteValues(a) is IReadOnlyList<JsonNode?> finite)answer=FiniteIncluded(a,b,finite);
         else if(PrimitiveRules.TypeSubset(a,b)&&PrimitiveRules.TypeOnly(b,formatMode))answer=true;
         else if(a is JsonObject ao&&b is JsonObject bo&&PrimitiveRules.SimpleKeys(ao,bo))answer=PrimitiveRules.Prove(ao,bo,this)&&ObjectRules.Prove(ao,bo,this)&&ArrayRules.Prove(ao,bo,this);
         else answer=CompositionRules.Prove(a,b,this);
         pairs[key]=answer;return answer;
+    }
+    private bool Empty(JsonNode node)
+    {
+        Check();if(PrimitiveRules.False(node)||PrimitiveRules.Types(node).Count==0)return true;if(node is not JsonObject obj)return false;
+        if(obj["not"] is JsonNode denied&&PrimitiveRules.True(denied))return true;
+        if(obj["allOf"] is JsonArray all&&all.Any(x=>x is not null&&Empty(x)))return true;
+        foreach(var key in new[]{"anyOf","oneOf"})if(obj[key] is JsonArray alternatives&&alternatives.All(x=>x is not null&&Empty(x)))return true;
+        var types=PrimitiveRules.Types(node);
+        if(types.SetEquals(["object"])){
+            var required=PrimitiveRules.Required(obj);foreach(var name in required)if(Empty(ObjectRules.ForName(obj,name,this)))return true;
+            var minimum=Math.Max(required.Count,PrimitiveRules.Size(obj,"minProperties",0));var maximum=PrimitiveRules.Size(obj,"maxProperties",int.MaxValue);
+            if(PrimitiveRules.False(PrimitiveRules.Child(obj,"additionalProperties"))&&(obj["patternProperties"] is not JsonObject patterns||patterns.Count==0))maximum=Math.Min(maximum,(obj["properties"] as JsonObject)?.Count??0);
+            if(minimum>maximum)return true;
+        }
+        if(types.SetEquals(["array"])){
+            var minimum=PrimitiveRules.Size(obj,"minItems",0);if(minimum>PrimitiveRules.Size(obj,"maxItems",int.MaxValue))return true;
+            var prefix=obj["prefixItems"] as JsonArray??new();for(var i=0;i<Math.Min(minimum,prefix.Count);i++)if(Empty(prefix[i]!))return true;
+            if(minimum>prefix.Count&&Empty(PrimitiveRules.Child(obj,"items")))return true;
+            if(obj["contains"] is JsonNode contains&&PrimitiveRules.Size(obj,"minContains",1)>0&&Empty(contains))return true;
+        }
+        return false;
     }
     private bool FiniteIncluded(JsonNode from,JsonNode to,IReadOnlyList<JsonNode?> values)
     {

@@ -7,7 +7,14 @@ namespace WebApi.Infrastructure.Comparisons;
 public static class ContractNormalizer
 {
     internal static readonly JsonSerializerOptions JsonOptions=new(JsonSerializerDefaults.Web){MaxDepth=128};
-    public static string Fingerprint(ComparisonInput input,string engineVersion)=>Hash(CanonicalBytes(new {engineVersion,from=Version(input.From),to=Version(input.To)}));
+    public static string Fingerprint(ComparisonInput input,string engineVersion)=>engineVersion=="compatibility-v2"
+        ?Hash(CanonicalBytes(new{engineVersion,adapterVersion=input.AdapterVersion??"oas-http-model-v2",formatMode=input.FormatMode??"Annotation",from=V2Version(input.From),to=V2Version(input.To)}))
+        :Hash(CanonicalBytes(new {engineVersion,from=Version(input.From),to=Version(input.To)}));
+    private static object V2Version(ContractVersionInput input)=>new{contract=Version(input),input.Version.Dialect,sources=input.Sources is null?null:new{
+        input.Sources.RootUri,input.Sources.BundleHash,
+        documents=input.Sources.Documents.OrderBy(x=>x.LogicalUri.AbsoluteUri,StringComparer.Ordinal).Select(x=>new{x.LogicalUri,x.Format,rawHash=Hash(Encoding.UTF8.GetBytes(x.RawText))}),
+        definitions=input.Sources.Metadata.Definitions.OrderBy(x=>x.Kind,StringComparer.Ordinal).ThenBy(x=>x.Id),input.Sources.Metadata.VersionDocumentHash
+    }};
     public static byte[] CanonicalBytes<T>(T value)=>JsonSerializer.SerializeToUtf8Bytes(Normalize(JsonSerializer.SerializeToNode(value,JsonOptions)),JsonOptions);
     public static string Hash(byte[] bytes)=>Convert.ToHexStringLower(SHA256.HashData(bytes));
     internal static string ParameterKey(string location,string name)=>location+":"+(location=="header"?name.ToLowerInvariant():name);

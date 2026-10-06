@@ -1,10 +1,12 @@
 using System.Text.Json;
 namespace WebApi.Contracts.Comparisons;
-public sealed record CreateVersionComparisonRequest(Guid FromVersionId,Guid ToVersionId,long ExpectedFromRevision,long ExpectedToRevision);
+public sealed record CreateVersionComparisonRequest(Guid FromVersionId,Guid ToVersionId,long ExpectedFromRevision,long ExpectedToRevision,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? FormatMode=null);
 public sealed record ComparisonCounts(int Added,int Changed,int Removed,int Compatible,int Breaking,int Unknown);
 public sealed record ComparisonFinding(string Key,string Source,string? Operation,string Pointer,string ChangeKind,string Risk,string Reason,JsonElement? Before=null,JsonElement? After=null,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? RuleId=null,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? WitnessHash=null);
 public sealed record ComparisonCoverageIssue(string Code,string Source,string Pointer,string Reason);
-public sealed record ComparisonReport(string EngineVersion,string InputFingerprint,string Coverage,ComparisonCounts Counts,IReadOnlyList<ComparisonFinding> Findings,IReadOnlyList<ComparisonCoverageIssue> CoverageIssues);
+public sealed record ComparisonSourceEvidence(string Side,string Kind,string Hash);
+public sealed record ComparisonProvenance(string InputHash,string AdapterVersion,string FormatMode,IReadOnlyList<ComparisonSourceEvidence> Sources,IReadOnlyList<string> AppliedRuleIds);
+public sealed record ComparisonReport(string EngineVersion,string InputFingerprint,string Coverage,ComparisonCounts Counts,IReadOnlyList<ComparisonFinding> Findings,IReadOnlyList<ComparisonCoverageIssue> CoverageIssues,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ComparisonProvenance? Provenance=null);
 public sealed record ComparisonPage<T>(IReadOnlyList<T> Items,string? NextCursor);
 public sealed record ComparisonVersion(Guid Id,string Version,string Status,string ChangeType,long Revision);
 public sealed record VersionComparisonView(Guid Id,Guid ApiId,ComparisonVersion From,ComparisonVersion To,string ReportHash,ComparisonReport Report,DateTimeOffset CreatedAt,string Freshness,RiskReviewDto? LatestReview=null);

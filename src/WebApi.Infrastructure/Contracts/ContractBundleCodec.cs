@@ -8,7 +8,7 @@ using WebApi.Contracts.OpenApi;
 namespace WebApi.Infrastructure.Contracts;
 public static class ContractBundleCodec
 {
-    private static readonly JsonSerializerOptions Options = new() { MaxDepth = 64, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    private static readonly JsonSerializerOptions Options = new() { MaxDepth = 128, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     private static readonly JsonSerializerOptions EnvelopeOptions = new(CanonicalJson.Options) { MaxDepth = 72 };
     public static string Encode(ContractBundle bundle,ContractLimits? limits=null)
     {

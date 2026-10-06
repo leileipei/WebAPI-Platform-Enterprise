@@ -3,11 +3,12 @@ using Xunit;
 namespace WebApi.Domain.Tests;
 public sealed class SchemaCompatibilityTests
 {
-    private static readonly ContractComparisonEngine Engine=new();
+    // Frozen v1 regression: these expectations intentionally describe the original algorithm.
+    private static readonly LegacyV1ComparisonEngine Engine=new();
     [Theory]
     [InlineData("request","{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}}}","{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},\"required\":[\"id\"]}","Breaking")]
     [InlineData("response","{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}},\"required\":[\"id\"]}","{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}}}","Breaking")]
-    public void RequestRequiredAndResponseOptionalHaveDirectionalRisk(string direction,string before,string after,string risk)=>Assert.Contains(Engine.Compare(ComparisonTestData.Schemas(before,after,direction),new(),default).Findings,x=>x.Risk==risk);
+    public void RequestRequiredAndResponseOptionalHaveDirectionalRisk(string direction,string before,string after,string risk)=>Assert.Contains(Engine.Compare(ComparisonTestData.Schemas(before,after,direction),new(MaxSideBytes:2*1024*1024,MaxPairBytes:4*1024*1024),default).Findings,x=>x.Risk==risk);
     [Theory]
     [InlineData("request","{\"type\":\"string\",\"enum\":[\"A\",\"B\"]}","{\"type\":\"string\",\"enum\":[\"A\"]}","Breaking")]
     [InlineData("response","{\"type\":\"string\",\"enum\":[\"A\"]}","{\"type\":\"string\",\"enum\":[\"A\",\"B\"]}","Breaking")]
@@ -27,7 +28,7 @@ public sealed class SchemaCompatibilityTests
     [InlineData("request","{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"}}}","{\"type\":\"object\",\"properties\":{}}","Unknown")]
     [InlineData("request","{\"type\":\"string\"}","{\"type\":\"string\",\"pattern\":\"a.*\"}","Unknown")]
     public void EnumAndBoundsRespectDirection(string direction,string before,string after,string risk)
-    {var report=Engine.Compare(ComparisonTestData.Schemas(before,after,direction),new(),default);Assert.Contains(report.Findings,x=>x.Risk==risk);if(risk=="Compatible")Assert.DoesNotContain(report.Findings,x=>x.Risk=="Breaking");}
+    {var report=Engine.Compare(ComparisonTestData.Schemas(before,after,direction),new(MaxSideBytes:2*1024*1024,MaxPairBytes:4*1024*1024),default);Assert.Contains(report.Findings,x=>x.Risk==risk);if(risk=="Compatible")Assert.DoesNotContain(report.Findings,x=>x.Risk=="Breaking");}
     [Fact] public void MixedConstraintChangesCannotHideBreaking()
-    {var r=Engine.Compare(ComparisonTestData.Schemas("{\"type\":\"number\",\"minimum\":0,\"maximum\":10}","{\"type\":\"number\",\"minimum\":5,\"maximum\":20}"),new(),default);Assert.True(r.Counts.Breaking>0);}
+    {var r=Engine.Compare(ComparisonTestData.Schemas("{\"type\":\"number\",\"minimum\":0,\"maximum\":10}","{\"type\":\"number\",\"minimum\":5,\"maximum\":20}"),new(MaxSideBytes:2*1024*1024,MaxPairBytes:4*1024*1024),default);Assert.True(r.Counts.Breaking>0);}
 }

@@ -1,186 +1,78 @@
-using WebApi.Contracts.Comparisons;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using WebApi.Contracts.Catalog;
+using WebApi.Contracts.Common;
+using WebApi.Contracts.Comparisons;
+using WebApi.Contracts.OpenApi;
+using WebApi.Infrastructure.Contracts;
+using WebApi.Infrastructure.Catalog;
+using WebApi.Infrastructure.Comparisons.Rules;
 namespace WebApi.Infrastructure.Comparisons;
 public sealed class ContractComparisonEngine
 {
-    public const string EngineVersion="compatibility-v1";
-    private static readonly HashSet<string> Methods=["get","post","put","patch","delete","head","options","trace"];
-    private sealed record Operation(JsonObject Value,JsonObject Path,JsonObject Root);
+    public const string EngineVersion="compatibility-v2";
     public ComparisonReport Compare(ComparisonInput input,ComparisonLimits limits,CancellationToken ct)
     {
-        ct.ThrowIfCancellationRequested();var c=new ComparisonContext(limits,ct);string fingerprint;
-        try
-        {
-            var left=JsonSerializer.SerializeToUtf8Bytes(input.From);var right=JsonSerializer.SerializeToUtf8Bytes(input.To);
-            if(left.Length>limits.MaxSideBytes||right.Length>limits.MaxSideBytes||left.Length+right.Length>limits.MaxPairBytes)c.Issue("input_budget","input","/","契约输入超出比较预算。",true);
-            if(!c.Invalid)
-            {
-                var a=Document(c,input.From,"from");var b=Document(c,input.To,"to");var ao=Operations(c,a,"from");var bo=Operations(c,b,"to");
-                foreach(var key in ao.Keys.Union(bo.Keys,StringComparer.Ordinal).Order(StringComparer.Ordinal))
-                {
-                    if(!ao.TryGetValue(key,out var before))c.Finding("openapi",key,"/paths/"+ContractNormalizer.Pointer(key),"Added","Compatible","新增 Operation。",null,bo[key].Value);
-                    else if(!bo.TryGetValue(key,out var after))c.Finding("openapi",key,"/paths/"+ContractNormalizer.Pointer(key),"Removed","Breaking","移除旧客户端使用的 Operation。",before.Value);
-                    else CompareOperation(c,key,before,after);
+        var findings=new List<ComparisonFinding>();var issues=new List<ComparisonCoverageIssue>();var invalid=false;
+        var applied=new HashSet<string>(StringComparer.Ordinal);var sourceEvidence=new List<ComparisonSourceEvidence>();
+        using var deadline=CancellationTokenSource.CreateLinkedTokenSource(ct);deadline.CancelAfter(TimeSpan.FromSeconds(10));var token=deadline.Token;
+        var budget=new ContractLimits(MaxDepth:limits.MaxDepth,MaxNodes:limits.MaxNodes,MaxFindings:limits.MaxFindings,MaxComparisonSideBytes:limits.MaxSideBytes,MaxComparisonPairBytes:limits.MaxPairBytes);
+        // A generated HTTP envelope adds at most 16 representation levels. Raw
+        // documents and standalone maintained schemas still use the original cap.
+        var modelBudget=budget with{MaxDepth=budget.MaxDepth+16,MaxDocumentBytes=budget.MaxBundleBytes};
+        string fingerprint;
+        void Issue(string code,string source,string pointer,string reason){token.ThrowIfCancellationRequested();if(issues.Count>=limits.MaxFindings)throw new ComparisonBudgetException();applied.Add("openapi.coverage");issues.Add(new(code,source,pointer,reason));}
+        void Add(ComparisonFinding finding){token.ThrowIfCancellationRequested();if(findings.Count>=limits.MaxFindings)throw new ComparisonBudgetException();if(finding.RuleId is not null)applied.Add(finding.RuleId);findings.Add(finding);}
+        try{
+            token.ThrowIfCancellationRequested();
+            if(input.FormatMode is not(null or "Annotation" or "Strict")||input.AdapterVersion is not(null or "oas-http-model-v2"))throw new ApiException(422,"comparison_options","比较模式或适配器未登记。");
+            var left=JsonSerializer.SerializeToUtf8Bytes(input.From,ContractNormalizer.JsonOptions);var right=JsonSerializer.SerializeToUtf8Bytes(input.To,ContractNormalizer.JsonOptions);
+            if(left.Length>limits.MaxSideBytes||right.Length>limits.MaxSideBytes||(long)left.Length+right.Length>limits.MaxPairBytes)throw new ComparisonBudgetException();
+            var a=Read(input.From,"from");var b=Read(input.To,"to");
+            foreach(var key in a.Operations.Keys.Union(b.Operations.Keys,StringComparer.Ordinal).Order(StringComparer.Ordinal)){
+                token.ThrowIfCancellationRequested();
+                if(!a.Operations.TryGetValue(key,out var before)){Add(new("openapi|"+key+"|added","openapi",key,b.Operations[key].Pointer,"Added","Compatible","新增 Operation。",RuleId:"openapi.operations"));continue;}
+                if(!b.Operations.TryGetValue(key,out var after)){Add(new("openapi|"+key+"|removed","openapi",key,before.Pointer,"Removed","Breaking","原 Operation 已删除。",RuleId:"openapi.operations"));continue;}
+                foreach(var field in new[]{"summary","description","operationId","tags","externalDocs","deprecated"})if(!JsonNode.DeepEquals(before.Value[field],after.Value[field]))Add(new("openapi|"+key+"|metadata|"+field,"openapi",key,before.Pointer+"/"+field,"Changed","Compatible","Operation 元数据发生变化，接受域规则另行复核。",RuleId:"openapi.operations"));
+                applied.Add("openapi.parameters");applied.Add("openapi.security");
+                if(a.RequestWireCompatible(before,b,after))Prove(a.Request(before),b.Request(after),"request",key,before.Pointer+"/request","openapi.request");
+                foreach(var group in ResponseCoverageRules.Groups(a,before,b,after)){
+                    token.ThrowIfCancellationRequested();if(!a.ResponseWireCompatible(before,group.Before,b,group.After))continue;
+                    Prove(a.Response(before,group.Before,group.Status),b.Response(after,group.After,group.Status),"response",key,before.Pointer+"/responses/"+group.Status,"openapi.responses");
                 }
-                CompareParameters(c,input.From.Parameters,input.To.Parameters,a,b,"parameters",null,"/parameters");
-                CompareManagedSchemas(c,input.From.Schemas,input.To.Schemas,a,b);
-                var ac=a?["components"]?["schemas"] as JsonObject??new();var bc=b?["components"]?["schemas"] as JsonObject??new();
-                foreach(var key in ac.Select(x=>x.Key).Union(bc.Select(x=>x.Key),StringComparer.Ordinal).Order(StringComparer.Ordinal))CompareSchema(c,ac[key],bc[key],"unknown","components",null,"/components/schemas/"+ContractNormalizer.Pointer(key),a,b);
-                Conflict(c,input.From,ao,"from");Conflict(c,input.To,bo,"to");
-                foreach(var key in new[]{"security","info"})if(!Same(a?[key],b?[key]))c.Finding("openapi",null,"/"+key,"Changed",key=="info"?"Compatible":"Unknown",key=="info"?"文档元数据变化。":"安全要求变化需人工评审。",a?[key],b?[key],key=="info");
+            }
+            if(a.Operations.Count==0&&b.Operations.Count==0&&(input.From.Parameters.Count>0||input.To.Parameters.Count>0||input.From.Schemas.Count>0||input.To.Schemas.Count>0)){
+                if(a.ManagedWireCompatible(b))Prove(a.ManagedRequest(),b.ManagedRequest(),"request","definitions","/definitions/request","openapi.request");
+                var seen=new HashSet<(string,string)>();
+                for(var status=100;status<=599;status++){var fromKey=a.ManagedResponseKey(status);var toKey=b.ManagedResponseKey(status);if(toKey.Length>0&&seen.Add((fromKey,toKey)))Prove(a.ManagedResponse(status),b.ManagedResponse(status),"response","definitions","/definitions/responses/"+status,"openapi.responses");}
+                var fromComponents=input.From.Schemas.Where(x=>x.SchemaType=="component").ToDictionary(x=>x.Name,StringComparer.Ordinal);var toComponents=input.To.Schemas.Where(x=>x.SchemaType=="component").ToDictionary(x=>x.Name,StringComparer.Ordinal);
+                foreach(var name in fromComponents.Keys.Union(toComponents.Keys,StringComparer.Ordinal))if(!fromComponents.TryGetValue(name,out var old)||!toComponents.TryGetValue(name,out var next)||ContractNormalizer.Canonical(JsonNode.Parse(old.SchemaJson))!=ContractNormalizer.Canonical(JsonNode.Parse(next.SchemaJson)))Issue("component_usage_unknown","definitions","/definitions/components/"+ContractNormalizer.Pointer(name),"组件使用方向未明确，不能独立宣称接受域兼容。");
             }
             fingerprint=ContractNormalizer.Fingerprint(input,EngineVersion);
+        }catch(Exception error)when(error is ComparisonBudgetException or OperationCanceledException or ApiException or JsonException or ArgumentException or InvalidOperationException){
+            invalid=true;findings.Clear();issues.Clear();issues.Add(new(error is OperationCanceledException?"comparison_deadline":"invalid_comparison","input","/","契约输入、输出或执行超过预算，未生成可接受的部分结果。"));
+            fingerprint=ContractNormalizer.Hash(JsonSerializer.SerializeToUtf8Bytes(input,ContractNormalizer.JsonOptions));
         }
-        catch(ComparisonBudgetException){c.Issue("comparison_budget","input","/","节点、深度或输出超出比较预算，结果不完整。",true);fingerprint=ContractNormalizer.Hash(JsonSerializer.SerializeToUtf8Bytes(input));}
-        catch(JsonException){c.Issue("invalid_json","input","/","契约 JSON 无法完整解析。",true);fingerprint=ContractNormalizer.Hash(JsonSerializer.SerializeToUtf8Bytes(input));}
-        var findings=c.Findings.OrderBy(x=>x.Key,StringComparer.Ordinal).ToArray();var issues=c.Issues;
-        return new(EngineVersion,fingerprint,c.Invalid?"Invalid":issues.Count>0?"Limited":"Complete",new(findings.Count(x=>x.ChangeKind=="Added"),findings.Count(x=>x.ChangeKind=="Changed"),findings.Count(x=>x.ChangeKind=="Removed"),findings.Count(x=>x.Risk=="Compatible"),findings.Count(x=>x.Risk=="Breaking"),findings.Count(x=>x.Risk=="Unknown")+issues.Count),findings,issues);
-    }
-    private static void UnsupportedFields(ComparisonContext c,JsonObject value,string source,string pointer,params string[] supported)
-    {foreach(var property in value)if(!supported.Contains(property.Key,StringComparer.Ordinal))c.Issue("unsupported_openapi_field",source,pointer+"/"+ContractNormalizer.Pointer(property.Key),"此 OpenAPI 结构未纳入当前自动判断范围。");}
-    private static bool Same(JsonNode? a,JsonNode? b)=>ContractNormalizer.Canonical(ContractNormalizer.Normalize(a))==ContractNormalizer.Canonical(ContractNormalizer.Normalize(b));
-    private static JsonObject? Document(ComparisonContext c,ContractVersionInput input,string side)
-    {
-        var raw=input.Version.OpenapiDocument;
-        if(raw is null){c.Issue("missing_document",side,"/openapi","缺少可解析的 OpenAPI 文档；仅比较维护定义。");return null;}
-        var root=c.Parse(raw,side,"/openapi") as JsonObject;if(root is null){c.Issue("invalid_document",side,"/openapi","OpenAPI 文档必须为对象。",true);return null;}
-        if(!SchemaCompatibilityRules.Text(root["openapi"]).StartsWith("3.0.",StringComparison.Ordinal)){c.Issue("unsupported_openapi",side,"/openapi","仅自动支持 OpenAPI 3.0 JSON。");return null;}
-        if(root["paths"] is not JsonObject){c.Issue("invalid_paths",side,"/paths","OpenAPI paths 必须为对象。",true);return null;}
-        if(root["components"] is not null&&(root["components"] is not JsonObject components||components["schemas"] is not null&&components["schemas"] is not JsonObject)){c.Issue("invalid_components",side,"/components","components 及 schemas 必须为对象。",true);return null;}
-        UnsupportedFields(c,root,side,"","openapi","info","paths","components","security","tags","externalDocs");
-        if(root["components"] is JsonObject definitions)UnsupportedFields(c,definitions,side,"/components","schemas");
-        if(root["security"] is not null)c.Issue("security_assumptions",side,"/security","安全要求不作为自动兼容性保证。");
-        if(root["components"]?["schemas"] is JsonObject schemas)foreach(var schema in schemas)c.Resolve(schema.Value,root,side,"/components/schemas/"+ContractNormalizer.Pointer(schema.Key));
-        return root;
-    }
-    private static Dictionary<string,Operation> Operations(ComparisonContext c,JsonObject? root,string side)
-    {
-        var result=new Dictionary<string,Operation>(StringComparer.Ordinal);if(root?["paths"] is not JsonObject paths)return result;
-        foreach(var path in paths)
-        {
-            if(path.Value is not JsonObject item){c.Issue("invalid_path_item",side,"/paths","Path Item 必须为对象。",true);continue;}
-            UnsupportedFields(c,item,side,"/paths/"+ContractNormalizer.Pointer(path.Key),"$ref","summary","description","parameters","get","post","put","patch","delete","head","options","trace");
-            if(item["$ref"] is not null){c.Issue("path_reference",side,"/paths/"+ContractNormalizer.Pointer(path.Key),"Path Item 引用需人工评审。");continue;}
-            foreach(var method in item.Where(p=>Methods.Contains(p.Key)))
-            {
-                if(method.Value is not JsonObject op){c.Issue("invalid_operation",side,"/paths","Operation 必须为对象。",true);continue;}
-                var key=method.Key.ToUpperInvariant()+" "+path.Key;result.Add(key,new(op,item,root));
-                UnsupportedFields(c,op,side,"/paths/"+ContractNormalizer.Pointer(path.Key)+"/"+method.Key,"parameters","requestBody","responses","security","summary","description","operationId","tags","deprecated","externalDocs");
-                foreach(var k in new[]{"security","callbacks","servers"})if(op[k] is not null)c.Issue("unsupported_operation",side,"/"+key+"/"+k,"此 Operation 约束需人工评审。");
-                _=Parameters(c,new(op,item,root),side,key);
-                _=OperationSchemas(c,new(op,item,root),side,key);
-            }
+        var ordered=findings.OrderBy(x=>x.Key,StringComparer.Ordinal).ToArray();var coverage=issues.Distinct().OrderBy(x=>x.Source,StringComparer.Ordinal).ThenBy(x=>x.Pointer,StringComparer.Ordinal).ThenBy(x=>x.Code,StringComparer.Ordinal).ToArray();
+        return new(EngineVersion,fingerprint,invalid?"Invalid":coverage.Length>0?"Limited":"Complete",new(ordered.Count(x=>x.ChangeKind=="Added"),ordered.Count(x=>x.ChangeKind=="Changed"),ordered.Count(x=>x.ChangeKind=="Removed"),ordered.Count(x=>x.Risk=="Compatible"),ordered.Count(x=>x.Risk=="Breaking"),ordered.Count(x=>x.Risk=="Unknown")+coverage.Length),ordered,coverage,new(ContractNormalizer.Hash(CanonicalJson.Serialize(input)),input.AdapterVersion??"oas-http-model-v2",input.FormatMode??"Annotation",sourceEvidence,applied.Order(StringComparer.Ordinal).ToArray()));
+        OpenApiContractRules Read(ContractVersionInput version,string side){
+            var bundle=ComparisonContractReader.Read(version,budget,token,(code,pointer,reason)=>Issue(code,side,pointer,reason));
+            sourceEvidence.Add(new(side,version.Sources is null?"legacy_document":"fixed_bundle",version.Sources?.BundleHash??ContractNormalizer.Hash(System.Text.Encoding.UTF8.GetBytes(version.Version.OpenapiDocument??"null"))));
+            var definitions=version.Schemas.Select(x=>new MaintainedDefinition(x.Id,"schema",x.Name,x.SchemaJson,x.SchemaType=="component")).Concat(version.Parameters.Select(x=>new MaintainedDefinition(x.Id,"parameter",x.Name,x.Schema??new JsonObject{["type"]=x.DataType}.ToJsonString(),false))).ToArray();
+            if(version.Parameters.GroupBy(x=>ContractNormalizer.ParameterKey(x.Location,x.Name),StringComparer.Ordinal).Any(x=>x.Count()>1)||version.Schemas.GroupBy(x=>ContractNormalizer.SchemaKey(x.SchemaType,x.Name,x.StatusCode,x.ContentType),StringComparer.Ordinal).Any(x=>x.Count()>1))throw new ApiException(422,"duplicate_definition","维护定义标识重复。");
+            var metadata=version.Sources?.Metadata??new ContractSourceMetadata(bundle.Documents.Select(x=>new ContractResourceSource(x.Source.LogicalUri,x.Source.Format)).ToArray(),[]);
+            new OpenApiContractRules(bundle,modelBudget,token,(code,pointer,reason)=>Issue(code,side,pointer,reason),selectedOperations:ComparisonContractReader.SelectedOperations(version),formatMode:input.FormatMode??"Annotation").CheckMaintenanceSources(version,metadata);
+            var maintained=VersionContractSourceService.BuildMaintenanceGraph(new(bundle,metadata,0),definitions,token,modelBudget);
+            return new(maintained.Bundle,modelBudget,token,(code,pointer,reason)=>Issue(code,side,pointer,reason),version,maintained.Definitions,ComparisonContractReader.SelectedOperations(version),input.FormatMode??"Annotation");
         }
-        return result;
-    }
-    private static IReadOnlyList<ParameterDto> Parameters(ComparisonContext c,Operation op,string source,string key)
-    {
-        var map=new Dictionary<string,ParameterDto>(StringComparer.Ordinal);
-        foreach(var collection in new[]{op.Path["parameters"],op.Value["parameters"]})
-        {
-            if(collection is null)continue;if(collection is not JsonArray list){c.Issue("invalid_parameters",source,key,"参数必须为数组。",true);continue;}
-            var local=new HashSet<string>(StringComparer.Ordinal);
-            foreach(var node in list)
-            {
-                if(node is not JsonObject p){c.Issue("invalid_parameter",source,key,"参数必须为对象。",true);continue;}
-                if(p["$ref"] is not null){c.Issue("parameter_reference",source,key,"参数引用需人工评审。");continue;}
-                var name=SchemaCompatibilityRules.Text(p["name"]);var location=SchemaCompatibilityRules.Text(p["in"]);var identity=ContractNormalizer.ParameterKey(location,name);
-                if(name.Length==0||location is not ("path" or "query" or "header" or "cookie")||!local.Add(identity)){c.Issue("invalid_parameter",source,key,"参数标识不完整或重复。",true);continue;}
-                foreach(var k in new[]{"style","explode","allowReserved","content"})if(p[k] is not null)c.Issue("parameter_serialization",source,key+"/"+identity,"参数序列化行为需人工评审。");
-                UnsupportedFields(c,p,source,key+"/parameters/"+ContractNormalizer.Pointer(identity),"name","in","description","required","schema","example","examples","deprecated","style","explode","allowReserved","content");
-                if(p.ContainsKey("required")&&(p["required"] is not JsonValue flag||!flag.TryGetValue<bool>(out _)))c.Issue("invalid_parameter_required",source,key+"/parameters/"+identity,"参数 required 必须为布尔值。",true);
-                var schema=c.Resolve(p["schema"],op.Root,source,key+"/"+identity);if(schema is null)c.Issue("missing_parameter_schema",source,key+"/"+identity,"参数缺少 Schema。");
-                map[identity]=new(Guid.Empty,Guid.Empty,location,name,SchemaCompatibilityRules.Text(schema is JsonObject shape?shape["type"]:null),SchemaCompatibilityRules.Flag(p["required"]),schema?.ToJsonString(),SchemaCompatibilityRules.Text(p["description"]),p["example"]?.ToJsonString());
-            }
+        void Prove(OpenApiContractRules.Model baseline,OpenApiContractRules.Model target,string direction,string key,string pointer,string family){
+            token.ThrowIfCancellationRequested();var proof=new CompatibilityProof().Compare(baseline.Schema,target.Schema,baseline.Bundle,target.Bundle,direction,modelBudget,token,baseline.Location,target.Location,input.FormatMode??"Annotation");
+            applied.UnionWith(proof.AppliedRuleIds);applied.Add(family);
+            foreach(var item in proof.CoverageIssues){if(item.Code.Contains("budget",StringComparison.Ordinal)||item.Code.Contains("cancelled",StringComparison.Ordinal))throw new ComparisonBudgetException();if(item.Code=="invalid_schema")throw new ApiException(422,item.Code,item.Reason);Issue(item.Code,"openapi",pointer+item.Pointer,item.Reason);}
+            if(proof.Risk=="Compatible"){if(proof.Changed==true)Add(new("openapi|"+key+"|"+pointer+"|compatible","openapi",key,pointer,"Changed","Compatible","完整接受域变化已有包含证明。",RuleId:family));return;}
+            if(proof.Risk=="Breaking")foreach(var finding in proof.Findings){var location=finding.Pointer.Contains("/components/schemas/__webapi_http_contract",StringComparison.Ordinal)?pointer:finding.Pointer.StartsWith("/paths/",StringComparison.Ordinal)||finding.Pointer.StartsWith("/components/",StringComparison.Ordinal)?finding.Pointer:pointer;Add(finding with{Key="openapi|"+key+"|"+pointer+"|"+finding.Key,Source="openapi",Operation=key,Pointer=location,RuleId=family});}
+            else if(proof.CoverageIssues.Count==0)Issue("openapi_inclusion_unproved","openapi",pointer,"完整 HTTP 接受域的包含关系未证明。");
         }
-        return map.Values.ToArray();
-    }
-    private sealed record OperationSchema(JsonNode? Schema,string Direction,bool Required);
-    private static Dictionary<string,OperationSchema> OperationSchemas(ComparisonContext c,Operation op,string source,string key)
-    {
-        var result=new Dictionary<string,OperationSchema>(StringComparer.Ordinal);
-        void Content(JsonNode? content,string identity,string direction,bool required)
-        {
-            if(content is null)return;if(content is not JsonObject media){c.Issue("invalid_content",source,key,"content 必须为对象。",true);return;}
-            foreach(var p in media){if(p.Value is not JsonObject definition){c.Issue("invalid_media_type",source,key+"/"+identity,"媒体类型定义必须为对象。",true);continue;}UnsupportedFields(c,definition,source,key+"/"+identity+"/"+ContractNormalizer.Pointer(p.Key),"schema","example","examples");var schema=definition["schema"];if(schema is null){c.Issue("missing_schema",source,key+"/"+identity+"/"+p.Key,"媒体类型未定义 Schema。");continue;}result[identity+":"+p.Key]=new(c.Resolve(schema,op.Root,source,key+"/"+identity+"/"+p.Key),direction,required);}
-        }
-        if(op.Value["requestBody"] is not null&&op.Value["requestBody"] is not JsonObject)c.Issue("invalid_request_body",source,key,"requestBody 必须为对象。",true);
-        if(op.Value["requestBody"] is JsonObject request)
-        {UnsupportedFields(c,request,source,key+"/requestBody","$ref","description","required","content");if(request.ContainsKey("required")&&(request["required"] is not JsonValue flag||!flag.TryGetValue<bool>(out _)))c.Issue("invalid_body_required",source,key+"/requestBody/required","请求体 required 必须为布尔值。",true);if(request["$ref"] is not null)c.Issue("body_reference",source,key,"请求体引用需人工评审。");else Content(request["content"],"request","request",SchemaCompatibilityRules.Flag(request["required"]));}
-        if(op.Value["responses"] is not JsonObject)c.Issue("invalid_responses",source,key,"responses 必须为对象。",true);
-        if(op.Value["responses"] is JsonObject responses)foreach(var p in responses)
-        {if(p.Value is not JsonObject response){c.Issue("invalid_response",source,key+"/responses/"+p.Key,"响应定义必须为对象。",true);continue;}UnsupportedFields(c,response,source,key+"/responses/"+p.Key,"$ref","description","content");if(response["$ref"] is not null)c.Issue("response_reference",source,key+"/responses/"+p.Key,"响应引用需人工评审。");else Content(response["content"],"response:"+p.Key,"response",false);}
-        return result;
-    }
-    private static void CompareOperation(ComparisonContext c,string key,Operation before,Operation after)
-    {
-        CompareParameters(c,Parameters(c,before,"openapi",key),Parameters(c,after,"openapi",key),before.Root,after.Root,"openapi",key,"/parameters");
-        var a=OperationSchemas(c,before,"openapi",key);var b=OperationSchemas(c,after,"openapi",key);
-        foreach(var schema in a.Keys.Union(b.Keys,StringComparer.Ordinal).Order(StringComparer.Ordinal))
-        {
-            a.TryGetValue(schema,out var old);b.TryGetValue(schema,out var next);
-            if(old is not null&&next is not null&&old.Required!=next.Required)c.Finding("openapi",key,"/"+schema+"/required","Changed",next.Required?"Breaking":"Compatible","请求体必填性变化。",JsonValue.Create(old.Required),JsonValue.Create(next.Required));
-            if(old is null||next is null)c.Finding("openapi",key,"/"+ContractNormalizer.Pointer(schema),old is null?"Added":"Removed",next?.Direction=="request"&&!a.Values.Any(x=>x.Direction=="request")?(next.Required?"Breaking":"Compatible"):"Unknown","请求/响应状态或媒体类型定义变化。",old?.Schema,next?.Schema);
-            else CompareSchema(c,old.Schema,next.Schema,next.Direction,"openapi",key,"/"+ContractNormalizer.Pointer(schema),before.Root,after.Root,next.Required);
-        }
-        foreach(var property in before.Value.Select(p=>p.Key).Union(after.Value.Select(p=>p.Key),StringComparer.Ordinal).Where(x=>x is not ("parameters" or "requestBody" or "responses")))
-            if(!Same(before.Value[property],after.Value[property]))c.Finding("openapi",key,"/"+property,"Changed",property is "description" or "summary" or "operationId" or "tags"?"Compatible":"Unknown","Operation 属性变化。",before.Value[property],after.Value[property],property is "description" or "summary" or "operationId" or "tags");
-        var oldResponses=before.Value["responses"] as JsonObject??new();var newResponses=after.Value["responses"] as JsonObject??new();
-        foreach(var status in oldResponses.Select(p=>p.Key).SymmetricExcept(newResponses.Select(p=>p.Key)))c.Finding("openapi",key,"/responses/"+status,oldResponses.ContainsKey(status)?"Removed":"Added","Unknown","响应状态码变化需核对旧客户端。");
-    }
-    private static void CompareParameters(ComparisonContext c,IReadOnlyList<ParameterDto> before,IReadOnlyList<ParameterDto> after,JsonNode? oldRoot,JsonNode? newRoot,string source,string? operation,string pointer)
-    {
-        Dictionary<string,ParameterDto> Map(IReadOnlyList<ParameterDto> values)
-        {var result=new Dictionary<string,ParameterDto>(StringComparer.Ordinal);foreach(var p in values){var k=ContractNormalizer.ParameterKey(p.Location,p.Name);if(!result.TryAdd(k,p))c.Issue("duplicate_parameter",source,pointer,"存在重复参数标识。",true);}return result;}
-        var a=Map(before);var b=Map(after);
-        foreach(var key in a.Keys.Union(b.Keys,StringComparer.Ordinal).Order(StringComparer.Ordinal))
-        {
-            a.TryGetValue(key,out var old);b.TryGetValue(key,out var next);var path=pointer+"/"+ContractNormalizer.Pointer(key);
-            var os=c.Resolve(c.Parse(old?.Schema,source,path),oldRoot,source,path);var ns=c.Resolve(c.Parse(next?.Schema,source,path),newRoot,source,path);
-            if(old is null)c.Finding(source,operation,path,"Added",next!.Required?"Breaking":"Compatible","新增请求参数。",null,ns);
-            else if(next is null)c.Finding(source,operation,path,"Removed","Unknown","移除请求参数，旧值是否仍被接受需人工判断。",os);
-            else
-            {
-                if(old.Required!=next.Required)c.Finding(source,operation,path+"/required","Changed",next.Required?"Breaking":"Compatible","请求参数必填性变化。",JsonValue.Create(old.Required),JsonValue.Create(next.Required));
-                if(old.DataType!=next.DataType)c.Finding(source,operation,path+"/dataType","Changed","Unknown","参数类型变化。",JsonValue.Create(old.DataType),JsonValue.Create(next.DataType));
-                SchemaCompatibilityRules.Compare(c,os,ns,"request",source,operation,path+"/schema");
-                if(old.Description!=next.Description||old.ExampleJson!=next.ExampleJson)c.Finding(source,operation,path+"/metadata","Changed","Compatible","仅参数元数据变化。",metadata:true);
-            }
-        }
-    }
-    private static void CompareManagedSchemas(ComparisonContext c,IReadOnlyList<SchemaDto> before,IReadOnlyList<SchemaDto> after,JsonNode? oldRoot,JsonNode? newRoot)
-    {
-        Dictionary<string,SchemaDto> Map(IReadOnlyList<SchemaDto> values)
-        {var result=new Dictionary<string,SchemaDto>(StringComparer.Ordinal);foreach(var s in values){var key=ContractNormalizer.SchemaKey(s.SchemaType,s.Name,s.StatusCode,s.ContentType);if(!result.TryAdd(key,s))c.Issue("duplicate_schema","schemas","/schemas","存在重复 Schema 标识。",true);}return result;}
-        var a=Map(before);var b=Map(after);var consumed=new HashSet<string>(StringComparer.Ordinal);
-        foreach(var key in a.Keys.Order(StringComparer.Ordinal).Concat(b.Keys.Except(a.Keys,StringComparer.Ordinal).Order(StringComparer.Ordinal)))
-        {
-            if(consumed.Contains(key))continue;a.TryGetValue(key,out var old);b.TryGetValue(key,out var next);var path="/schemas/"+ContractNormalizer.Pointer(key);
-            if(old is not null&&next is null)
-            {
-                var replacements=b.Where(p=>!a.ContainsKey(p.Key)&&!consumed.Contains(p.Key)&&p.Value.SchemaType==old.SchemaType&&p.Value.Name==old.Name).ToArray();
-                if(replacements.Length==1){next=replacements[0].Value;consumed.Add(replacements[0].Key);c.Finding("schemas",null,path+"/media","Changed","Unknown","状态码或 ContentType 变化需核对旧客户端。");}
-            }
-            CompareSchema(c,c.Parse(old?.SchemaJson,"schemas",path),c.Parse(next?.SchemaJson,"schemas",path),(next??old)!.SchemaType,"schemas",null,path,oldRoot,newRoot);
-            if(old is not null&&next is not null&&old.ExampleJson!=next.ExampleJson)c.Finding("schemas",null,path+"/metadata","Changed","Compatible","仅 Schema 示例元数据变化。",metadata:true);
-        }
-    }
-    private static void CompareSchema(ComparisonContext c,JsonNode? before,JsonNode? after,string direction,string source,string? operation,string pointer,JsonNode? oldRoot,JsonNode? newRoot,bool required=false)
-    {
-        var a=c.Resolve(before,oldRoot,source,pointer);var b=c.Resolve(after,newRoot,source,pointer);
-        if(before is null&&after is not null)c.Finding(source,operation,pointer,"Added",direction=="request"?(required?"Breaking":"Compatible"):"Unknown","新增 Schema 定义。",null,b);
-        else if(after is null&&before is not null)c.Finding(source,operation,pointer,"Removed",direction=="response"?"Breaking":"Unknown","移除 Schema 定义。",a);
-        else SchemaCompatibilityRules.Compare(c,a,b,direction,source,operation,pointer);
-    }
-    private static void Conflict(ComparisonContext c,ContractVersionInput input,Dictionary<string,Operation> operations,string side)
-    {
-        if(operations.Count!=1)return;var op=operations.Single();var parameters=Parameters(c,op.Value,side,op.Key).ToDictionary(x=>ContractNormalizer.ParameterKey(x.Location,x.Name),StringComparer.Ordinal);
-        foreach(var p in input.Parameters)if(parameters.TryGetValue(ContractNormalizer.ParameterKey(p.Location,p.Name),out var other)&&(p.DataType!=other.DataType||p.Required!=other.Required||!Same(c.Parse(p.Schema,side,"/parameters"),c.Parse(other.Schema,side,"/parameters"))))c.Issue("source_conflict",side,"/parameters/"+ContractNormalizer.Pointer(p.Name),"OpenAPI 与维护参数定义不一致。");
-        var schemas=OperationSchemas(c,op.Value,side,op.Key);
-        foreach(var s in input.Schemas)
-        {var key=s.SchemaType=="request"?"request:"+s.ContentType:s.SchemaType=="response"?"response:"+(s.StatusCode?.ToString()??"default")+":"+s.ContentType:"";if(schemas.TryGetValue(key,out var other)&&!Same(c.Resolve(c.Parse(s.SchemaJson,side,"/schemas"),op.Value.Root,side,"/schemas"),other.Schema))c.Issue("source_conflict",side,"/schemas/"+ContractNormalizer.Pointer(s.Name),"OpenAPI 与维护 Schema 定义不一致。");}
     }
 }
 internal static class ComparisonSetExtensions
