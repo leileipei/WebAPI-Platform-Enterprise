@@ -30,6 +30,45 @@ public sealed class AckTests
         public Task<HttpResponseMessage> SendAckAsync(int i,NodeAck? ack=null)=>SendAsync($"/internal/v1/nodes/{NodeIds[i]}/ack",ack??Ack(i),Secrets[i]);
         public async ValueTask DisposeAsync() {await Api.DisposeAsync();foreach(var file in files) File.Delete(file);}
     }
+    private static async Task CompleteAsync(Scenario s)
+    {for(var i=0;i<2;i++) {using var ack=await s.SendAckAsync(i);ack.EnsureSuccessStatusCode();}}
+    private static async Task<Guid> RestartAsync(Scenario s,int i,IReadOnlyList<string>? schemas=null)
+    {var fresh=Guid.NewGuid();using var response=await s.SendAsync("/internal/v1/nodes/register",new RegisterNodeRequest(s.Api.Environment.Id,"node-"+i,fresh,"test",schemas),s.Secrets[i]);response.EnsureSuccessStatusCode();return fresh;}
+    // Catches conflating runtime activation with the immutable publication target ACK.
+    [Fact] public async Task SucceededReleaseRestartRecordsRuntimeReceiptWithoutChangingPublication()
+    {
+        await using var s=new Scenario();await s.InitializeAsync();await CompleteAsync(s);
+        string before;await using(var db=s.Api.Context()) before=JsonSerializer.Serialize(new {release=await db.Set<ReleaseRecord>().SingleAsync(),targets=await db.Set<ReleaseTarget>().OrderBy(t=>t.NodeId).ToArrayAsync(),acks=await db.Set<GatewayAck>().OrderBy(a=>a.NodeId).ToArrayAsync(),audit=await db.Set<AuditLog>().Where(a=>a.Action=="release.succeeded").ToArrayAsync()});
+        for(var i=0;i<2;i++) {var fresh=await RestartAsync(s,i);var ack=s.Ack(i) with {InstanceId=fresh};using var response=await s.SendAckAsync(i,ack);Assert.Equal(HttpStatusCode.OK,response.StatusCode);Assert.False((await response.Content.ReadFromJsonAsync<AckResult>())!.Duplicate);using var duplicate=await s.SendAckAsync(i,ack);duplicate.EnsureSuccessStatusCode();Assert.True((await duplicate.Content.ReadFromJsonAsync<AckResult>())!.Duplicate);}
+        await using var check=s.Api.Context();Assert.Equal(before,JsonSerializer.Serialize(new {release=await check.Set<ReleaseRecord>().SingleAsync(),targets=await check.Set<ReleaseTarget>().OrderBy(t=>t.NodeId).ToArrayAsync(),acks=await check.Set<GatewayAck>().OrderBy(a=>a.NodeId).ToArrayAsync(),audit=await check.Set<AuditLog>().Where(a=>a.Action=="release.succeeded").ToArrayAsync()}));
+        Assert.Equal(2,await check.Set<GatewayNodeEvent>().CountAsync(e=>e.EventType=="runtime_applied"));
+        foreach(var node in await check.Set<GatewayNode>().ToArrayAsync()) {Assert.Equal("Ready",node.Status);Assert.Equal(s.Version,node.CurrentConfigVersion);using var json=JsonDocument.Parse(node.Metadata!);var receipt=json.RootElement.GetProperty("runtimeApplication");Assert.Equal(node.InstanceId,receipt.GetProperty("instanceId").GetString());Assert.Equal(s.Hash,receipt.GetProperty("payloadHash").GetString());Assert.Equal(s.Sequence,receipt.GetProperty("deploymentSequence").GetInt64());}
+    }
+    [Fact] public async Task AnotherRestartInvalidatesPriorRuntimeReceipt()
+    {await using var s=new Scenario();await s.InitializeAsync();await CompleteAsync(s);var first=await RestartAsync(s,0);using var ack=await s.SendAckAsync(0,s.Ack(0) with {InstanceId=first});ack.EnsureSuccessStatusCode();var next=await RestartAsync(s,0);using var stale=await s.SendAckAsync(0,s.Ack(0) with {InstanceId=first});Assert.Equal(HttpStatusCode.Conflict,stale.StatusCode);await using var db=s.Api.Context();var node=await db.Set<GatewayNode>().SingleAsync(n=>n.Id==s.NodeIds[0]);Assert.Equal(next.ToString(),node.InstanceId);Assert.Equal("NotReady",node.Status);using var metadata=JsonDocument.Parse(node.Metadata!);Assert.False(metadata.RootElement.TryGetProperty("runtimeApplication",out _));}
+    [Fact] public async Task ConcurrentRuntimeReceiptsProduceOneEventAndPreserveOtherMetadata()
+    {
+        await using var s=new Scenario();await s.InitializeAsync();await CompleteAsync(s);var fresh=await RestartAsync(s,0);
+        await using(var db=s.Api.Context()) {var node=await db.Set<GatewayNode>().SingleAsync(n=>n.Id==s.NodeIds[0]);var metadata=System.Text.Json.Nodes.JsonNode.Parse(node.Metadata!)!.AsObject();metadata["operatorTag"]="preserve";node.Metadata=metadata.ToJsonString();await db.SaveChangesAsync();}
+        var ack=s.Ack(0) with {InstanceId=fresh};var results=await Task.WhenAll(Enumerable.Range(0,3).Select(_=>s.SendAckAsync(0,ack)));var duplicates=0;
+        foreach(var response in results) {using(response) {response.EnsureSuccessStatusCode();if((await response.Content.ReadFromJsonAsync<AckResult>())!.Duplicate) duplicates++;}}
+        Assert.Equal(2,duplicates);await using var check=s.Api.Context();Assert.Equal(1,await check.Set<GatewayNodeEvent>().CountAsync(e=>e.EventType=="runtime_applied"));Assert.Equal(2,await check.Set<GatewayAck>().CountAsync());var current=await check.Set<GatewayNode>().SingleAsync(n=>n.Id==s.NodeIds[0]);using var json=JsonDocument.Parse(current.Metadata!);Assert.Equal("preserve",json.RootElement.GetProperty("operatorTag").GetString());Assert.True(json.RootElement.TryGetProperty("supportedSnapshotSchemas",out _));
+    }
+    [Theory]
+    [InlineData("hash",409)] [InlineData("sequence",409)] [InlineData("version",409)] [InlineData("release",409)]
+    [InlineData("old-time",422)] [InlineData("future-time",422)] [InlineData("offset",422)] [InlineData("error",422)] [InlineData("negative",409)]
+    public async Task RuntimeReceiptRejectsInvalidApplicationEvidence(string mutation,int expected)
+    {
+        await using var s=new Scenario();await s.InitializeAsync();await CompleteAsync(s);var fresh=await RestartAsync(s,0);var ack=s.Ack(0) with {InstanceId=fresh};ack=mutation switch {"hash"=>ack with {PayloadHash=new string('0',64)},"sequence"=>ack with {DeploymentSequence=s.Sequence+1},"version"=>ack with {ConfigVersion=s.Version+1},"release"=>ack with {ReleaseId=Guid.NewGuid()},"old-time"=>ack with {AppliedAt=DateTimeOffset.UtcNow.AddMinutes(-10)},"future-time"=>ack with {AppliedAt=DateTimeOffset.UtcNow.AddMinutes(10)},"offset"=>ack with {AppliedAt=DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8))},"error"=>ack with {ErrorCode="invalid_snapshot"},_=>ack with {Success=false,ErrorCode="invalid_snapshot"}};
+        using var response=await s.SendAckAsync(0,ack);Assert.Equal(expected,(int)response.StatusCode);await using var db=s.Api.Context();Assert.False(await db.Set<GatewayNodeEvent>().AnyAsync(e=>e.EventType=="runtime_applied"));Assert.Equal(2,await db.Set<GatewayAck>().CountAsync());Assert.Equal("NotReady",(await db.Set<GatewayNode>().SingleAsync(n=>n.Id==s.NodeIds[0])).Status);
+    }
+    [Theory] [InlineData("Failed")] [InlineData("RolledBack")]
+    public async Task RuntimeReceiptCannotReviveAnUnsuccessfulOrSupersededRelease(string status)
+    {await using var s=new Scenario();await s.InitializeAsync();await CompleteAsync(s);var fresh=await RestartAsync(s,0);await using(var db=s.Api.Context()) await db.Set<ReleaseRecord>().ExecuteUpdateAsync(x=>x.SetProperty(r=>r.Status,status));using var response=await s.SendAckAsync(0,s.Ack(0) with {InstanceId=fresh});Assert.Equal(HttpStatusCode.Conflict,response.StatusCode);await using var check=s.Api.Context();Assert.False(await check.Set<GatewayNodeEvent>().AnyAsync(e=>e.EventType=="runtime_applied"));Assert.Equal(status,(await check.Set<ReleaseRecord>().SingleAsync()).Status);}
+    [Fact] public async Task RuntimeReceiptRequiresCurrentDesiredSequence()
+    {await using var s=new Scenario();await s.InitializeAsync();await CompleteAsync(s);var fresh=await RestartAsync(s,0);await using(var db=s.Api.Context()) await db.Set<EnvironmentRecord>().ExecuteUpdateAsync(x=>x.SetProperty(e=>e.DeploymentSequence,s.Sequence+1));using var response=await s.SendAckAsync(0,s.Ack(0) with {InstanceId=fresh});Assert.Equal(HttpStatusCode.Conflict,response.StatusCode);}
+    [Fact] public async Task RuntimeReceiptRequiresEnabledCurrentInstanceAndSupportedSchema()
+    {await using var s=new Scenario();await s.InitializeAsync();await CompleteAsync(s);var fresh=await RestartAsync(s,0,["2.1"]);using var incompatible=await s.SendAckAsync(0,s.Ack(0) with {InstanceId=fresh});Assert.Equal(HttpStatusCode.Conflict,incompatible.StatusCode);await using(var db=s.Api.Context()) await db.Set<GatewayNode>().Where(n=>n.Id==s.NodeIds[0]).ExecuteUpdateAsync(x=>x.SetProperty(n=>n.Enabled,false));using var disabled=await s.SendAckAsync(0,s.Ack(0) with {InstanceId=fresh});Assert.Equal(HttpStatusCode.Unauthorized,disabled.StatusCode);}
     [Fact] public async Task OneOfTwoAcksKeepsPublishing()
     {await using var s=new Scenario();await s.InitializeAsync();using var ack=await s.SendAckAsync(0);Assert.Equal(HttpStatusCode.OK,ack.StatusCode);await using var db=s.Api.Context();Assert.Equal("Publishing",(await db.Set<ReleaseRecord>().SingleAsync()).Status);Assert.Equal(1,await db.Set<GatewayAck>().CountAsync());Assert.Equal(s.Version,(await db.Set<GatewayNode>().SingleAsync(n=>n.Id==s.NodeIds[0])).CurrentConfigVersion);}
     [Fact] public async Task SecondValidAckCompletesOnce()

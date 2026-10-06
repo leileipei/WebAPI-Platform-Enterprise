@@ -15,9 +15,20 @@ public sealed class AckService(WebApiDbContext db,NodeIdentityService identities
         if(nodeId!=identity.NodeId) throw NodeIdentityService.Denied();await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={identity.EnvironmentId} FOR UPDATE",ct);
         var node=await identities.RevalidateAsync(identity,ack.InstanceId,ct);var r=await db.Set<ReleaseRecord>().SingleOrDefaultAsync(r=>r.Id==ack.ReleaseId&&r.EnvironmentId==identity.EnvironmentId,ct)??throw new ApiException(409,"ack_release_mismatch","确认不属于该环境发布。");
         var target=await db.Set<ReleaseTarget>().SingleOrDefaultAsync(t=>t.ReleaseId==r.Id&&t.NodeId==nodeId,ct);var config=await db.Set<GatewayConfigVersion>().SingleOrDefaultAsync(v=>v.EnvironmentId==r.EnvironmentId&&v.VersionNo==r.ToConfigVersion,ct);
-        if(target is null||target.InstanceId!=ack.InstanceId.ToString()||ack.ConfigVersion!=r.ToConfigVersion||ack.DeploymentSequence!=r.DeploymentSequence||config?.SnapshotHash!=ack.PayloadHash) throw new ApiException(409,"ack_target_mismatch","实例、版本、序列或摘要不匹配冻结目标。");
+        if(target is null||ack.ConfigVersion!=r.ToConfigVersion||ack.DeploymentSequence!=r.DeploymentSequence||config?.SnapshotHash!=ack.PayloadHash) throw new ApiException(409,"ack_target_mismatch","实例、版本、序列或摘要不匹配冻结目标。");
         if(ack.Success) {var bytes=await db.Set<GatewayConfigSnapshot>().Where(s=>s.ConfigVersionId==config!.Id).Select(s=>s.PayloadBytes).SingleAsync(ct);using var snapshot=JsonDocument.Parse(bytes);SnapshotSchemaCapabilities.RequireSupported([node],snapshot.RootElement.GetProperty("schemaVersion").GetString()!);}
         if(ack.AppliedAt.Offset!=TimeSpan.Zero||ack.AppliedAt>DateTimeOffset.UtcNow.AddMinutes(5)||ack.AppliedAt<r.CreatedAt.AddMinutes(-5)||ack.Success&&ack.ErrorCode is not null||!ack.Success&&(ack.ErrorCode is null||!errorCodes.Contains(ack.ErrorCode))) throw new ApiException(422,"invalid_ack","确认时间或错误代码不合法。");
+        if(target.InstanceId!=ack.InstanceId.ToString())
+        {
+            var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==identity.EnvironmentId,ct);
+            if(!ack.Success||r.Status!="Succeeded"||config!.Status!="Published"||env.Status!="Active"||env.DesiredConfigVersion!=ack.ConfigVersion||env.DeploymentSequence!=ack.DeploymentSequence)
+                throw new ApiException(409,"ack_target_mismatch","新实例不能替代冻结发布目标，且运行确认必须匹配当前成功发布。");
+            if(ack.AppliedAt<DateTimeOffset.UtcNow.AddMinutes(-5)) throw new ApiException(422,"invalid_ack","运行确认必须是近期应用结果。");
+            var duplicate=RuntimeApplicationReceipt.Record(node,ack);
+            node.CurrentConfigVersion=ack.ConfigVersion;node.CurrentDeploymentSequence=ack.DeploymentSequence;node.Status="Ready";node.LastHeartbeatAt=DateTimeOffset.UtcNow;
+            if(!duplicate) db.Add(new GatewayNodeEvent {GatewayNodeId=nodeId,EventType="runtime_applied",Message="当前实例已恢复运行配置",Detail=JsonSerializer.Serialize(new {instanceId=ack.InstanceId,releaseId=r.Id,configVersion=ack.ConfigVersion,deploymentSequence=ack.DeploymentSequence,payloadHash=ack.PayloadHash,appliedAt=ack.AppliedAt})});
+            await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);return new(r.Status,duplicate);
+        }
         var previous=await db.Set<GatewayAck>().SingleOrDefaultAsync(a=>a.ReleaseId==r.Id&&a.NodeId==nodeId,ct);
         if(previous is not null)
         {if(previous.Success!=ack.Success||previous.ErrorCode!=ack.ErrorCode||previous.InstanceId!=ack.InstanceId.ToString()||previous.PayloadHash!=ack.PayloadHash||previous.DeploymentSequence!=ack.DeploymentSequence||previous.ConfigVersion!=ack.ConfigVersion) throw new ApiException(409,"ack_conflict","已经记录不同确认结果。");await tx.CommitAsync(ct);return new(r.Status,true);}

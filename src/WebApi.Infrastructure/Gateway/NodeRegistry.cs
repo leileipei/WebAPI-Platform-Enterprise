@@ -18,7 +18,7 @@ public sealed class NodeRegistry(WebApiDbContext db,NodeIdentityService identiti
         var node=await db.Set<GatewayNode>().SingleOrDefaultAsync(n=>n.EnvironmentId==request.EnvironmentId&&n.NodeName==request.NodeName,ct);
         if(node is null) {node=new() {EnvironmentId=request.EnvironmentId,NodeName=request.NodeName,IdentityHash=hash,Status="NotReady"};db.Add(node);}
         else if(!node.Enabled||node.IdentityHash!=hash) throw NodeIdentityService.Denied();
-        if(node.InstanceId!=request.InstanceId.ToString()) {node.InstanceId=request.InstanceId.ToString();node.CurrentConfigVersion=0;node.CurrentDeploymentSequence=0;node.Status="NotReady";db.Add(new GatewayNodeEvent {GatewayNodeId=node.Id,EventType="registered",Message="节点实例注册",Detail=JsonSerializer.Serialize(new {instanceId=request.InstanceId})});}
+        if(node.InstanceId!=request.InstanceId.ToString()) {node.Metadata=RuntimeApplicationReceipt.Clear(node.Metadata);node.InstanceId=request.InstanceId.ToString();node.CurrentConfigVersion=0;node.CurrentDeploymentSequence=0;node.Status="NotReady";db.Add(new GatewayNodeEvent {GatewayNodeId=node.Id,EventType="registered",Message="节点实例注册",Detail=JsonSerializer.Serialize(new {instanceId=request.InstanceId})});}
         node.Metadata=SnapshotSchemaCapabilities.Merge(node.Metadata,request.InstanceId,request.SupportedSnapshotSchemas);node.AppVersion=request.AppVersion;node.LastHeartbeatAt=DateTimeOffset.UtcNow;await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);return new(node.Id,node.EnvironmentId,request.InstanceId);
     }
     private async Task LockAsync(Guid env,CancellationToken ct)=>await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={env} FOR UPDATE",ct);

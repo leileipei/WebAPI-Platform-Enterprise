@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WebApi.Gateway.Configuration;
+using WebApi.Gateway;
 using WebApi.Gateway.Workers;
 using WebApi.Gateway.Tests.Support;
 using WebApi.Infrastructure.Persistence.Entities;
@@ -15,6 +16,13 @@ using Xunit;
 namespace WebApi.Gateway.Tests;
 public sealed class GatewayRuntimeTests
 {
+    [Fact] public async Task RealDoubleGatewayRestartConfirmsLkgWithoutRepublishing()
+    {
+        await using var s=new GatewayFixture();await s.InitializeAsync();var config=await s.PublishAsync();await s.ApplyBothAsync(config);
+        var oldInstances=s.Gateways.Select(g=>g.Services.GetRequiredService<GatewaySettings>().InstanceId).ToArray();
+        for(var i=0;i<2;i++) {await s.RestartAsync(i);var until=DateTimeOffset.UtcNow.AddSeconds(12);while(s.Gateways[i].Services.GetRequiredService<RuntimeGenerationStore>().Current is null&&DateTimeOffset.UtcNow<until) await Task.Delay(50);var gateway=s.Gateways[i];Assert.NotEqual(oldInstances[i],gateway.Services.GetRequiredService<GatewaySettings>().InstanceId);Assert.Equal(config.Envelope,gateway.Services.GetRequiredService<RuntimeGenerationStore>().Current!.Envelope);var result=await gateway.Services.GetRequiredService<ConfigWatcher>().AcceptAsync(config);Assert.True(result.Applied);using var traffic=await s.RequestAsync(i);traffic.EnsureSuccessStatusCode();Assert.Equal("A",(await traffic.Content.ReadFromJsonAsync<BackendResponse>())!.BackendId);}
+        await using var db=s.Control.Context();Assert.Equal(1,await db.Set<ReleaseRecord>().CountAsync());Assert.Equal("Succeeded",(await db.Set<ReleaseRecord>().SingleAsync()).Status);Assert.Equal(2,await db.Set<GatewayAck>().CountAsync());Assert.Equal(2,await db.Set<GatewayNodeEvent>().CountAsync(e=>e.EventType=="runtime_applied"));foreach(var node in await db.Set<GatewayNode>().ToArrayAsync()) {using var metadata=JsonDocument.Parse(node.Metadata!);Assert.Equal(node.InstanceId,metadata.RootElement.GetProperty("runtimeApplication").GetProperty("instanceId").GetString());}
+    }
     [Fact] public async Task ActualRequestUsesPublishedDestination()
     {await using var s=new GatewayFixture();await s.InitializeAsync();var config=await s.PublishAsync();await s.ApplyBothAsync(config);for(var i=0;i<2;i++) {using var response=await s.RequestAsync(i);response.EnsureSuccessStatusCode();var body=await response.Content.ReadFromJsonAsync<BackendResponse>();Assert.Equal("A",body!.BackendId);Assert.Equal("GET",body.Method);Assert.Equal("/orders",body.Path);Assert.False(body.ReceivedApiKey);}await using var db=s.Control.Context();Assert.Equal("Succeeded",(await db.Set<ReleaseRecord>().SingleAsync()).Status);Assert.Equal(2,await db.Set<GatewayAck>().CountAsync());}
     [Fact] public async Task RequestUsesOneRoutingAndAuthGeneration()
