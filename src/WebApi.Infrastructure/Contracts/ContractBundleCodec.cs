@@ -9,6 +9,24 @@ namespace WebApi.Infrastructure.Contracts;
 public static class ContractBundleCodec
 {
     private static readonly JsonSerializerOptions Options = new() { MaxDepth = 64, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    private static readonly JsonSerializerOptions EnvelopeOptions = new(CanonicalJson.Options) { MaxDepth = 72 };
+    public static string Encode(ContractBundle bundle,ContractLimits? limits=null)
+    {
+        Verify(bundle,limits);var json=JsonSerializer.Serialize(bundle,EnvelopeOptions);CheckEnvelope(json,limits??new());return json;
+    }
+    public static ContractBundle Decode(string json,ContractLimits? limits=null)
+    {
+        limits??=new();CheckEnvelope(json,limits);
+        try{
+            var bundle=JsonSerializer.Deserialize<ContractBundle>(json,EnvelopeOptions)??throw Invalid("contract_bundle_tampered","来源包不能为空。");
+            Verify(bundle,limits);return Create(bundle.RootUri,bundle.Documents,limits);
+        }catch(JsonException){throw Invalid("contract_bundle_tampered","来源包信封格式或深度不合法。");}
+    }
+    private static void CheckEnvelope(string json,ContractLimits limits)
+    {
+        // Raw/canonical strings, graph and bounded source-location records are independently capped.
+        if(Encoding.UTF8.GetByteCount(json)>16L*limits.MaxBundleBytes)throw Invalid("contract_bundle_budget","来源包信封超过存储预算。");
+    }
     public static ContractBundle Create(Uri root, IReadOnlyList<ContractDocument> documents, ContractLimits? limits = null)
     {
         limits ??= new();

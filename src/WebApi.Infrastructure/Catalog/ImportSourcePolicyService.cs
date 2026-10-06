@@ -17,8 +17,9 @@ public sealed class ImportSourcePolicyService(WebApiDbContext db, ScopeResolver 
     {
         var scope = await scopes.ProjectAsync(projectId, ct);
         if (!await auth.CanAsync(actor, "project.read", new("project", projectId, scope), ct)) throw ScopeResolver.Missing();
-        return View(projectId, await db.Set<ProjectImportSourcePolicy>().AsNoTracking().SingleOrDefaultAsync(x => x.ProjectId == projectId, ct));
+        return await CurrentAsync(projectId,ct);
     }
+    internal async Task<ImportSourcePolicyDto> CurrentAsync(Guid projectId,CancellationToken ct) => View(projectId,await db.Set<ProjectImportSourcePolicy>().AsNoTracking().SingleOrDefaultAsync(x=>x.ProjectId==projectId,ct));
     public async Task<CommandResult<ImportSourcePolicyDto>> SaveAsync(Guid projectId, SaveImportSourcePolicyRequest request, string? tag, ActorContext actor, CancellationToken ct)
     {
         var scope = await scopes.ProjectAsync(projectId, ct);

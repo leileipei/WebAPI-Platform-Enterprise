@@ -5,6 +5,7 @@ using WebApi.Contracts.Common;
 using WebApi.Contracts.OpenApi;
 namespace WebApi.Infrastructure.Contracts;
 public sealed record ResolvedContractNode(Uri ResourceUri, string Pointer, JsonNode Node);
+public sealed record ContractReference(Uri ResourceUri,string Pointer,string Reference);
 public sealed class ContractReferenceRegistry
 {
     private sealed record Identity(Uri Resource, string Pointer, JsonNode Node);
@@ -14,16 +15,46 @@ public sealed class ContractReferenceRegistry
     private readonly int maximumIndexBytes;
     private long indexBytes;
     private long pointerBytes;
+    private readonly List<ContractReference> references=[];
+    public IReadOnlyList<ContractReference> References => references.AsReadOnly();
+    public ResolvedContractNode Describe(JsonNode node) => identities.TryGetValue(node,out var identity) ? new(identity.Resource,identity.Pointer,node) : throw Missing();
     public IReadOnlyList<ResolvedContractNode> Resources => resources.Select(p => new ResolvedContractNode(new(p.Key), identities[p.Value].Pointer, p.Value)).ToArray();
     public ContractReferenceRegistry(ContractBundle bundle, ContractLimits limits)
     {
         maximumIndexBytes = limits.MaxBundleBytes;
         ContractBundleCodec.Verify(bundle, limits);
+        var openApiRoots=FindOpenApiRoots(bundle);
         // Own this graph. A caller changing the original bundle cannot change an indexed resource.
         foreach (var doc in bundle.Documents) {
             var root = doc.Root.DeepClone();
             Register(doc.Source.LogicalUri, root);
-            Walk(root, "", doc.Source.LogicalUri, root is not JsonObject o || !o.ContainsKey("openapi"), doc.Dialect);
+            Walk(root, "", doc.Source.LogicalUri, !openApiRoots.Contains(doc.Source.LogicalUri.AbsoluteUri), doc.Dialect);
+        }
+    }
+    private static HashSet<string> FindOpenApiRoots(ContractBundle bundle)
+    {
+        // A reference used as a Parameter/Response/Path Item identifies an external OpenAPI
+        // object. Its nested `schema` is a schema context; the containing object is not.
+        var names=bundle.Documents.Select(x=>x.Source.LogicalUri.AbsoluteUri).ToHashSet(StringComparer.Ordinal);
+        var result=bundle.Documents.Where(x=>x.Root is JsonObject o&&o.ContainsKey("openapi")).Select(x=>x.Source.LogicalUri.AbsoluteUri).ToHashSet(StringComparer.Ordinal);
+        bool changed;
+        do{
+            changed=false;
+            foreach(var doc in bundle.Documents)Scan(doc.Root,"",doc.Source.LogicalUri,!result.Contains(doc.Source.LogicalUri.AbsoluteUri),false,doc.Dialect);
+        }while(changed);
+        return result;
+        void Scan(JsonNode? node,string pointer,Uri basis,bool schema,bool data,ContractDialect dialect)
+        {
+            if(node is JsonObject obj){
+                if(schema&&dialect==ContractDialect.Oas31&&obj["$id"] is JsonValue id&&id.TryGetValue<string>(out var idText)&&Uri.TryCreate(basis,idText,out var idUri))basis=idUri;
+                if(!schema&&!data&&obj["$ref"] is JsonValue reference&&reference.TryGetValue<string>(out var text)&&Uri.TryCreate(basis,text,out var uri)&&uri.Fragment.Length==0&&names.Contains(uri.AbsoluteUri)&&result.Add(uri.AbsoluteUri))changed=true;
+                foreach(var(key,value)in obj){var child=pointer+"/"+ContractDocumentReader.Escape(key);
+                    if(schema&&SchemaNavigation.MapKeywords.Contains(key)&&value is JsonObject map)foreach(var(name,item)in map)Scan(item,child+"/"+ContractDocumentReader.Escape(name),basis,true,data,dialect);
+                    else if(schema&&SchemaNavigation.ArrayKeywords.Contains(key)&&value is JsonArray list)for(var i=0;i<list.Count;i++)Scan(list[i],child+"/"+i,basis,true,data,dialect);
+                    else if(!schema&&child=="/components/schemas"&&value is JsonObject components)foreach(var(name,item)in components)Scan(item,child+"/"+ContractDocumentReader.Escape(name),basis,true,data,dialect);
+                    else Scan(value,child,basis,schema?SchemaNavigation.SingleKeywords.Contains(key):key=="schema"&&!data,data||key is "example" or "examples" or "default" or "const" or "enum"||key.StartsWith("x-",StringComparison.Ordinal),dialect);
+                }
+            }else if(node is JsonArray array)for(var i=0;i<array.Count;i++)Scan(array[i],pointer+"/"+i,basis,false,data,dialect);
         }
     }
     public ResolvedContractNode Resolve(Uri currentResource, string reference)
@@ -58,7 +89,7 @@ public sealed class ContractReferenceRegistry
         if (!resources.ContainsKey(uri.AbsoluteUri)) CountIndex(uri.AbsoluteUri);
         resources[uri.AbsoluteUri] = root;
     }
-    private void Walk(JsonNode? node, string pointer, Uri basis, bool schema, ContractDialect dialect)
+    private void Walk(JsonNode? node, string pointer, Uri basis, bool schema, ContractDialect dialect,bool data=false)
     {
         if (node is null) return;
         if (schema && dialect == ContractDialect.Oas31 && node is JsonObject s && s.TryGetPropertyValue("$id", out var id)) {
@@ -68,6 +99,11 @@ public sealed class ContractReferenceRegistry
             basis = uri; Register(basis, node);
         }
         var identity = AddIdentity(node, basis, pointer);
+        if(!data && node is JsonObject refObject) foreach(var keyword in schema ? new[]{"$ref","$dynamicRef"} : new[]{"$ref"})
+            if(refObject.TryGetPropertyValue(keyword,out var reference)) {
+                if(reference is not JsonValue textNode || !textNode.TryGetValue<string>(out var text)) throw Missing();
+                references.Add(new(basis,pointer+"/"+keyword,text));
+            }
         if (schema && dialect == ContractDialect.Oas31 && node is JsonObject a) foreach (var keyword in new[] { "$anchor", "$dynamicAnchor" }) {
             if (!a.TryGetPropertyValue(keyword, out var value)) continue;
             var name = ContractDocumentReader.Text(value);
@@ -92,8 +128,9 @@ public sealed class ContractReferenceRegistry
                 AddIdentity(schemas, basis, childPointer);
                 foreach (var (name, child) in schemas) Walk(child, childPointer + "/" + ContractDocumentReader.Escape(name), basis, true, dialect);
             } else Walk(value, childPointer, basis,
-                schema ? SchemaNavigation.SingleKeywords.Contains(key) : key == "schema" && !SchemaNavigation.IsDataPointer(childPointer), dialect);
-        } else if (node is JsonArray array) for (var i = 0; i < array.Count; i++) Walk(array[i], pointer + "/" + i, basis, false, dialect);
+                schema ? SchemaNavigation.SingleKeywords.Contains(key) : key == "schema" && !data, dialect,
+                data || key is "example" or "examples" or "default" or "const" or "enum" || key.StartsWith("x-",StringComparison.Ordinal));
+        } else if (node is JsonArray array) for (var i = 0; i < array.Count; i++) Walk(array[i], pointer + "/" + i, basis, false, dialect,data);
     }
     private static Uri WithoutFragment(Uri uri) => new(uri.AbsoluteUri.Split('#')[0], UriKind.Absolute);
     private Identity AddIdentity(JsonNode node, Uri basis, string pointer)

@@ -25,26 +25,44 @@ public sealed class AlertEvaluationTests
         using var login=await fixture.LoginAsync();login.EnsureSuccessStatusCode();var request=new SaveAlertRuleRequest(fixture.Organization.Id,fixture.Project.Id,fixture.Environment.Id,"Rps","request_rps","request_rps > 1","Warning",true,duration,target,target=="Destination"?fixture.Destination.Id:null,60,new(true,[]));
         using var saved=await fixture.WriteAsync(HttpMethod.Post,"/api/v1/observability/alert-rules",request);saved.EnsureSuccessStatusCode();return(fixture,handler,(await saved.Content.ReadFromJsonAsync<AlertRuleDto>())!.Id);
     }
-    private static async Task<DateTimeOffset> Slot(ApiFixture f){using var scope=f.Services();return await scope.ServiceProvider.GetRequiredService<AlertEvaluationLeaseStore>().CurrentSlotAsync(default);}
-    private static async Task<IReadOnlyList<EvaluationLease>> Claim(ApiFixture f,DateTimeOffset slot,string owner){using var scope=f.Services();return await scope.ServiceProvider.GetRequiredService<AlertEvaluationLeaseStore>().ClaimAsync(slot,owner,default);}
+    private static async Task<DateTimeOffset> Slot(ApiFixture f,CancellationToken ct=default){using var scope=f.Services();return await scope.ServiceProvider.GetRequiredService<AlertEvaluationLeaseStore>().CurrentSlotAsync(ct);}
+    private static async Task<IReadOnlyList<EvaluationLease>> Claim(ApiFixture f,DateTimeOffset slot,string owner,CancellationToken ct=default){using var scope=f.Services();return await scope.ServiceProvider.GetRequiredService<AlertEvaluationLeaseStore>().ClaimAsync(slot,owner,ct);}
     private static async Task<bool> Evaluate(ApiFixture f,EvaluationLease lease){using var scope=f.Services();return await scope.ServiceProvider.GetRequiredService<AlertEvaluationService>().EvaluateAsync(lease,default);}
-    private static async Task<EvaluationLease> Next(ApiFixture f){await Task.Delay(1100);var leases=await Claim(f,await Slot(f),"next");return Assert.Single(leases);}
+    private static async Task<EvaluationLease> Next(ApiFixture f,DateTimeOffset? initialSlot=null){await Task.Delay(1100);var leases=await ClaimCurrent(f,"next",initialSlot);return Assert.Single(leases);}
+    [Fact] public async Task NextLeaseHelperReacquiresAnExpiredSlot()
+    {
+        var setup=await Setup();await using var f=setup.Fixture;var stale=(await Slot(f)).AddSeconds(-2);Assert.NotNull(await Next(f,stale));
+    }
+    private static async Task<IReadOnlyList<EvaluationLease>[]> ClaimSameSlot(ApiFixture f,DateTimeOffset initialSlot)
+    {
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(3));var slot=initialSlot;
+        while(true){var leases=await Task.WhenAll(Claim(f,slot,"worker-a",deadline.Token),Claim(f,slot,"worker-b",deadline.Token));if(leases.Any(x=>x.Count>0))return leases;await Task.Delay(10,deadline.Token);slot=await Slot(f,deadline.Token);}
+    }
+    private static async Task<IReadOnlyList<EvaluationLease>> ClaimCurrent(ApiFixture f,string owner,DateTimeOffset? initialSlot=null)
+    {
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(3));var slot=initialSlot??await Slot(f,deadline.Token);
+        while(true){var leases=await Claim(f,slot,owner,deadline.Token);if(leases.Count>0)return leases;await Task.Delay(10,deadline.Token);slot=await Slot(f,deadline.Token);}
+    }
+    [Fact] public async Task ConcurrentLeaseHelperReacquiresAnExpiredSlot()
+    {
+        var setup=await Setup();await using var f=setup.Fixture;var stale=(await Slot(f)).AddSeconds(-2);Assert.Single((await ClaimSameSlot(f,stale)).SelectMany(x=>x));
+    }
     [Theory][InlineData("Ready")][InlineData("NotReady")][InlineData("Degraded")]
     public async Task RegisteredNodeStatusCanEvaluateActualRule(string status)
     {
         var setup=await Setup();await using var f=setup.Fixture;
         await using(var db=f.Context()){foreach(var node in await db.Set<GatewayNode>().ToArrayAsync())node.Status=status;await db.SaveChangesAsync();}
-        Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"operational"))));
+        Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"operational"))));
         await using var read=f.Context();Assert.Equal("Open",(await read.Set<AlertEvent>().SingleAsync()).Status);
     }
     [Fact] public async Task TwoWorkersSameSlotCreateOneEvent()
     {
-        var setup=await Setup();await using var f=setup.Fixture;var slot=await Slot(f);var claimed=await Task.WhenAll(Claim(f,slot,"worker-a"),Claim(f,slot,"worker-b"));var lease=Assert.Single(claimed.SelectMany(x=>x));
+        var setup=await Setup();await using var f=setup.Fixture;var slot=await Slot(f);var claimed=await ClaimSameSlot(f,slot);var lease=Assert.Single(claimed.SelectMany(x=>x));
         var commits=await Task.WhenAll(Evaluate(f,lease),Evaluate(f,lease));Assert.Single(commits,x=>x);await using var db=f.Context();var e=Assert.Single(await db.Set<AlertEvent>().ToArrayAsync());Assert.Equal("Open",e.Status);Assert.Equal(1,await db.Set<AlertEventTransition>().CountAsync());var audit=await db.Set<AuditLog>().SingleAsync(x=>x.Action=="alert.triggered");Assert.Null(audit.UserId);Assert.Equal(e.Id.ToString(),audit.ResourceId);Assert.Equal(f.Environment.Id,audit.EnvironmentId);Assert.Contains("worker",audit.AfterJson!);
     }
     [Fact] public async Task LeaseExpiredResultCannotCommitAfterDisable()
     {
-        var setup=await Setup();await using var f=setup.Fixture;var lease=Assert.Single(await Claim(f,await Slot(f),"expired"));setup.Handler.PauseFirst=true;var running=Evaluate(f,lease);await setup.Handler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+        var setup=await Setup();await using var f=setup.Fixture;var lease=Assert.Single(await ClaimCurrent(f,"expired"));setup.Handler.PauseFirst=true;var running=Evaluate(f,lease);await setup.Handler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
         try
         {
             await using(var db=f.Context())await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE alert_evaluation_states SET lease_until=clock_timestamp()-interval '1 second' WHERE rule_id={setup.Rule}");
@@ -55,52 +73,52 @@ public sealed class AlertEvaluationTests
     }
     [Fact] public async Task ReclaimedTokenRejectsOldResultAndOnlyNewWorkerCommits()
     {
-        var setup=await Setup();await using var f=setup.Fixture;var slot=await Slot(f);var old=Assert.Single(await Claim(f,slot,"old"));await using(var db=f.Context())await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE alert_evaluation_states SET lease_until=clock_timestamp()-interval '1 second' WHERE rule_id={setup.Rule}");
-        var replacement=Assert.Single(await Claim(f,await Slot(f),"new"));Assert.True(replacement.Token>old.Token);Assert.False(await Evaluate(f,old));Assert.True(await Evaluate(f,replacement));await using var read=f.Context();Assert.Equal(1,await read.Set<AlertEvent>().CountAsync());
+        var setup=await Setup();await using var f=setup.Fixture;var slot=await Slot(f);var old=Assert.Single(await ClaimCurrent(f,"old",slot));await using(var db=f.Context())await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE alert_evaluation_states SET lease_until=clock_timestamp()-interval '1 second' WHERE rule_id={setup.Rule}");
+        var replacement=Assert.Single(await ClaimCurrent(f,"new"));Assert.True(replacement.Token>old.Token);Assert.False(await Evaluate(f,old));Assert.True(await Evaluate(f,replacement));await using var read=f.Context();Assert.Equal(1,await read.Set<AlertEvent>().CountAsync());
     }
     [Fact] public async Task RestartAndSourceFailureDoNotDuplicateOrRecoverFiringEvent()
     {
-        var setup=await Setup();await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"before-restart"))));setup.Handler.Inner.Status=503;Assert.True(await Evaluate(f,await Next(f)));
+        var setup=await Setup();await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"before-restart"))));setup.Handler.Inner.Status=503;Assert.True(await Evaluate(f,await Next(f)));
         await using(var db=f.Context()){Assert.Equal("Open",(await db.Set<AlertEvent>().SingleAsync()).Status);Assert.Equal("Unknown",(await db.Set<AlertEvaluationState>().SingleAsync()).EvaluationState);}
         setup.Handler.Inner.Status=200;Assert.True(await Evaluate(f,await Next(f)));await using var read=f.Context();Assert.Equal(1,await read.Set<AlertEvent>().CountAsync());Assert.Equal(1,await read.Set<AuditLog>().CountAsync(x=>x.Action=="alert.triggered"));
     }
     [Fact] public async Task UnknownResetsPendingAndCpuClockRollbackCannotClaimPastSlot()
     {
-        var setup=await Setup(duration:300);await using var f=setup.Fixture;var slot=await Slot(f);Assert.True(await Evaluate(f,Assert.Single(await Claim(f,slot,"pending"))));
+        var setup=await Setup(duration:300);await using var f=setup.Fixture;var slot=await Slot(f);Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"pending",slot))));
         setup.Handler.Inner.Status=503;Assert.True(await Evaluate(f,await Next(f)));await using var read=f.Context();var state=await read.Set<AlertEvaluationState>().SingleAsync();Assert.Equal("Inactive",state.Phase);Assert.Null(state.PendingSince);Assert.Empty(await Claim(f,slot.AddSeconds(-1),"cpu-backward"));Assert.Equal(0,await read.Set<AlertEvent>().CountAsync());
     }
     [Fact] public async Task ResourceRetirementClosesActualEventWithoutBorrowingSourceAbsence()
     {
-        var setup=await Setup("Destination");await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"active"))));
+        var setup=await Setup("Destination");await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"active"))));
         await using(var db=f.Context()){db.Remove(await db.Set<UpstreamDestination>().SingleAsync(x=>x.Id==f.Destination.Id));await db.SaveChangesAsync();}
         var sourceCount=setup.Handler.Inner.Requests.Count;Assert.True(await Evaluate(f,await Next(f)));Assert.Equal(sourceCount,setup.Handler.Inner.Requests.Count);await using var read=f.Context();var e=await read.Set<AlertEvent>().SingleAsync();Assert.Equal("Resolved",e.Status);Assert.Equal("ResourceRetired",e.ResolveReason);Assert.Equal(2,await read.Set<AlertEventTransition>().CountAsync());
     }
     [Fact] public async Task ScopePauseKeepsFiringAndRecoveryResolvesAfterReactivation()
     {
-        var setup=await Setup();await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"active"))));
+        var setup=await Setup();await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"active"))));
         await using(var db=f.Context()){var env=await db.Set<EnvironmentRecord>().SingleAsync();env.Status="Inactive";await db.SaveChangesAsync();}
         Assert.True(await Evaluate(f,await Next(f)));await using(var db=f.Context()){var alert=await db.Set<AlertEvent>().SingleAsync();Assert.Equal("Open",alert.Status);Assert.Equal("ScopeInactive",alert.EvaluationState);Assert.Equal("Firing",(await db.Set<AlertEvaluationState>().SingleAsync()).Phase);var env=await db.Set<EnvironmentRecord>().SingleAsync();env.Status="Active";await db.SaveChangesAsync();}
         setup.Handler.Inner.ResetWindow=true;Assert.True(await Evaluate(f,await Next(f)));await using var read=f.Context();var recovered=await read.Set<AlertEvent>().SingleAsync();Assert.Equal("Resolved",recovered.Status);Assert.Equal("Recovered",recovered.ResolveReason);
     }
     [Fact] public async Task ScopePauseDoesNotEraseManualSuppression()
     {
-        var setup=await Setup();await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"active"))));
+        var setup=await Setup();await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"active"))));
         await using(var db=f.Context()){var state=await db.Set<AlertEvaluationState>().SingleAsync();var alert=await db.Set<AlertEvent>().SingleAsync();alert.Status="Resolved";alert.ResolveReason="Manual";alert.ResolvedAt=DateTimeOffset.UtcNow;state.Phase="SuppressedUntilRecovery";state.SuppressedAt=alert.ResolvedAt;var env=await db.Set<EnvironmentRecord>().SingleAsync();env.Status="Inactive";await db.SaveChangesAsync();}
         Assert.True(await Evaluate(f,await Next(f)));await using var read=f.Context();Assert.Equal("SuppressedUntilRecovery",(await read.Set<AlertEvaluationState>().SingleAsync()).Phase);Assert.NotNull((await read.Set<AlertEvaluationState>().SingleAsync()).SuppressedAt);
     }
     [Fact] public async Task WideRuleSeedsNewEnvironmentBeforeAnyOccurrenceExists()
     {
         var setup=await Setup(duration:300);await using var f=setup.Fixture;using var get=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");var rule=(await get.Content.ReadFromJsonAsync<AlertRuleDto>())!;using var wide=await f.WriteAsync(HttpMethod.Put,$"/api/v1/observability/alert-rules/{setup.Rule}",rule.Definition with{EnvironmentId=null},"\"1\"");wide.EnsureSuccessStatusCode();
-        Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"first"))));Guid added;
+        Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"first"))));Guid added;
         await using(var db=f.Context()){var env=new EnvironmentRecord{ProjectId=f.Project.Id,Code="FUTURE",Name="Future"};added=env.Id;db.Add(env);await db.SaveChangesAsync();}
-        await Task.Delay(1100);var leases=await Claim(f,await Slot(f),"future");Assert.Contains(leases,x=>x.EnvironmentId==added);foreach(var lease in leases)Assert.True(await Evaluate(f,lease));
+        await Task.Delay(1100);var leases=await ClaimCurrent(f,"future");Assert.Contains(leases,x=>x.EnvironmentId==added);foreach(var lease in leases)Assert.True(await Evaluate(f,lease));
         await using var read=f.Context();Assert.Equal(2,await read.Set<AlertEvaluationState>().CountAsync(x=>x.LogicRevision==2));Assert.Equal(0,await read.Set<AlertEvent>().CountAsync());using var detail=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");var current=(await detail.Content.ReadFromJsonAsync<AlertRuleDto>())!;Assert.Equal("Unknown",current.EvaluationState);Assert.Null(current.LastSuccessAt);
     }
 
     [Fact] public async Task ZeroRpsIsKnownAndRecoversHighThenTriggersLowTrafficRule()
     {
         var setup=await Setup();await using var f=setup.Fixture;
-        Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"high"))));
+        Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"high"))));
         using var get=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");var rule=(await get.Content.ReadFromJsonAsync<AlertRuleDto>())!;
         setup.Handler.HealthOnly=true;
         using var test=await f.WriteAsync(HttpMethod.Post,"/api/v1/observability/alert-rules/test",rule.Definition);test.EnsureSuccessStatusCode();var result=(await test.Content.ReadFromJsonAsync<RuleTestDto>())!;Assert.Equal("Known",result.EvaluationState);Assert.False(result.Condition);Assert.Equal(0,result.Matches.Single().Values.Single().Value);
@@ -114,7 +132,7 @@ public sealed class AlertEvaluationTests
     {
         var setup=await Setup();await using var f=setup.Fixture;using var read=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");var rule=(await read.Content.ReadFromJsonAsync<AlertRuleDto>())!;var definition=rule.Definition with{Metric="unhealthy_destinations",Expression="unhealthy_destinations > 0"};using var change=await f.WriteAsync(HttpMethod.Put,$"/api/v1/observability/alert-rules/{setup.Rule}",definition,"\"1\"");change.EnsureSuccessStatusCode();setup.Handler.HealthOnly=true;
         using var test=await f.WriteAsync(HttpMethod.Post,"/api/v1/observability/alert-rules/test",definition);test.EnsureSuccessStatusCode();var result=(await test.Content.ReadFromJsonAsync<RuleTestDto>())!;Assert.Equal("Known",result.EvaluationState);Assert.True(result.Condition);Assert.Equal(1,result.Matches.Single().Values.Single().Value);
-        Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"health"))));await using var db=f.Context();Assert.Equal("Open",(await db.Set<AlertEvent>().SingleAsync()).Status);
+        Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"health"))));await using var db=f.Context();Assert.Equal("Open",(await db.Set<AlertEvent>().SingleAsync()).Status);
     }
 
     [Fact] public async Task SourceFailureDoesNotStopStandalonePublishWorker()
@@ -138,15 +156,15 @@ public sealed class AlertEvaluationTests
 
     [Fact] public async Task RenameDuringQueryReleasesObsoleteLeaseWithoutResettingPending()
     {
-        var setup=await Setup(duration:300);await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await Claim(f,await Slot(f),"before"))));DateTimeOffset? pending;
+        var setup=await Setup(duration:300);await using var f=setup.Fixture;Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"before"))));DateTimeOffset? pending;
         await using(var db=f.Context())pending=(await db.Set<AlertEvaluationState>().SingleAsync()).PendingSince;
         var next=await NextLeaseOnly(f);setup.Handler.PauseFirst=true;var running=Evaluate(f,next);await setup.Handler.Entered.Task.WaitAsync(TimeSpan.FromSeconds(3));
         try{using var get=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");var rule=(await get.Content.ReadFromJsonAsync<AlertRuleDto>())!;using var rename=await f.WriteAsync(HttpMethod.Put,$"/api/v1/observability/alert-rules/{setup.Rule}",rule.Definition with{Name="Renamed while querying"},"\"1\"").WaitAsync(TimeSpan.FromSeconds(3));rename.EnsureSuccessStatusCode();}
         finally{setup.Handler.Resume.TrySetResult(true);}
         Assert.False(await running);await using(var db=f.Context()){var state=await db.Set<AlertEvaluationState>().SingleAsync();Assert.Equal(pending,state.PendingSince);Assert.Null(state.LeaseUntil);Assert.Equal("Pending",state.Phase);}
-        var current=Assert.Single(await Claim(f,await Slot(f),"renamed"));Assert.Equal(2,current.RuleRevision);Assert.Equal(1,current.LogicRevision);Assert.True(await Evaluate(f,current));
+        var current=Assert.Single(await ClaimCurrent(f,"renamed"));Assert.Equal(2,current.RuleRevision);Assert.Equal(1,current.LogicRevision);Assert.True(await Evaluate(f,current));
     }
-    private static async Task<EvaluationLease> NextLeaseOnly(ApiFixture f){await Task.Delay(1100);return Assert.Single(await Claim(f,await Slot(f),"next"));}
+    private static async Task<EvaluationLease> NextLeaseOnly(ApiFixture f){await Task.Delay(1100);return Assert.Single(await ClaimCurrent(f,"next"));}
 
 }
 public sealed class AlertClockedMetricHandler:HttpMessageHandler

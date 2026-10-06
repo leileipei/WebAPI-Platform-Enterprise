@@ -133,4 +133,18 @@ public sealed class ContractReferenceTests
         var doc = Document("{\"a\":{\"$id\":\"https://contracts.example/" + new string('x', 5000) + "\",\"properties\":{\"small\":{\"$anchor\":\"small\"}}}}");
         Assert.Equal("contract_bundle_budget", Assert.Throws<ApiException>(() => new ContractReferenceRegistry(ContractBundleCodec.Create(Origin, [doc]), new())).Code);
     }
+
+    [Fact] public void ReferenceIndexIgnoresInstanceAnnotationsAndPreservesSchemaPropertyNames()
+    {
+        const string text="""
+        {"openapi":"3.1.0","info":{"title":"Refs","version":"1"},"paths":{},"components":{"schemas":{"A":{"type":"object","properties":{"example":{"$ref":"#/components/schemas/B"}},"default":{"$ref":"https://never-fetch.example/a"},"examples":[{"$ref":"https://never-fetch.example/b"}]},"B":{"type":"integer"}}}}
+        """;
+        var uri=new Uri("https://example.test/openapi");var document=new ContractDocumentReader().Read(new(uri,text,"json"),new(),default);var bundle=ContractBundleCodec.Create(uri,[document]);var registry=new ContractReferenceRegistry(bundle,new());var reference=Assert.Single(registry.References);Assert.Equal("#/components/schemas/B",reference.Reference);Assert.Equal("integer",registry.Resolve(reference.ResourceUri,reference.Reference).Node["type"]!.GetValue<string>());
+    }
+    [Fact] public void BundleEnvelopeDoesNotLowerTheDocumentDepthLimit()
+    {
+        JsonNode schema=new JsonObject{["type"]="integer"};for(var n=0;n<29;n++)schema=new JsonObject{["type"]="object",["properties"]=new JsonObject{["child"]=schema}};
+        var root=JsonNode.Parse("{\"openapi\":\"3.1.0\",\"info\":{\"title\":\"Depth\",\"version\":\"1\"},\"paths\":{},\"components\":{\"schemas\":{}}}")!;root["components"]!["schemas"]!["Node"]=schema;var source=root.ToJsonString(new JsonSerializerOptions{MaxDepth=64});var doc=new ContractDocumentReader().Read(new(Origin,source,"json"),new(),default);var bundle=ContractBundleCodec.Create(Origin,[doc]);
+        var json=ContractBundleCodec.Encode(bundle);Assert.Equal(bundle.Hash,ContractBundleCodec.Decode(json).Hash);
+    }
 }

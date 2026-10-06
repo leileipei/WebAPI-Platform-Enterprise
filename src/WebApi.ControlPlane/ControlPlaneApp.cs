@@ -56,7 +56,7 @@ public static class ControlPlaneApp
         builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<OpenApiImportService>();
         builder.Services.TryAddSingleton(ImportSourceSettings.Read(builder.Configuration,builder.Environment));
         builder.Services.TryAddSingleton<WebApi.Infrastructure.Contracts.IContractDnsResolver,WebApi.Infrastructure.Contracts.SystemContractDnsResolver>();
-        builder.Services.AddScoped<ImportSourcePolicyService>();builder.Services.AddScoped<ImportSourceFetcher>();
+        builder.Services.AddScoped<ImportSourcePolicyService>();builder.Services.AddScoped<ImportSourceFetcher>();builder.Services.AddScoped<ImportBatchWriter>();builder.Services.AddScoped<ImportPreviewService>();builder.Services.AddScoped<ImportPreviewCleanupService>();
         builder.Services.AddScoped<PolicyAccess>();builder.Services.AddScoped<PolicyService>();builder.Services.AddScoped<PolicyReferenceService>();builder.Services.AddScoped<RoutePolicyService>();
         builder.Services.AddScoped<CatalogService>();builder.Services.AddScoped<RouteService>();builder.Services.AddScoped<ClusterService>();
         builder.Services.AddSingleton<ContractComparisonEngine>();builder.Services.AddScoped<ComparisonCursorCodec>();builder.Services.AddScoped<VersionComparisonService>();builder.Services.AddScoped<VersionRiskReviewService>();
@@ -132,6 +132,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapImportSourcePolicies();app.MapComparisons();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
+        app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapImportSourcePolicies();app.MapImportSessions();app.MapComparisons();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
     }
 }

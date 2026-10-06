@@ -1,5 +1,8 @@
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using WebApi.Contracts.OpenApi;
+using WebApi.Infrastructure.Contracts;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
@@ -41,15 +44,21 @@ public sealed class ImportAndCredentialTests
     {
         await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
         using var commit=await api.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-commit",Commit(api,[Target("writeTwo","IMPORTED")]));Assert.Equal(HttpStatusCode.OK,commit.StatusCode);
-        await using var db=api.Context();var schemas=await db.Set<ApiSchema>().ToArrayAsync();Assert.Contains(schemas,s=>s.SchemaType=="request"&&s.ExampleJson!.Contains("1"));Assert.Contains(schemas,s=>s.StatusCode==201);Assert.Contains(schemas,s=>s.StatusCode==400);Assert.Contains(schemas,s=>s.SchemaType=="component"&&s.Name=="Order");Assert.All(schemas,s=>Assert.DoesNotContain("$ref",s.SchemaJson));
+        await using var db=api.Context();var schemas=await db.Set<ApiSchema>().ToArrayAsync();Assert.Contains(schemas,s=>s.SchemaType=="request"&&s.ExampleJson!.Contains("1"));Assert.Contains(schemas,s=>s.StatusCode==201);Assert.Contains(schemas,s=>s.StatusCode==400);Assert.Contains(schemas,s=>s.SchemaType=="component"&&s.Name=="Order");var source=await db.Set<ApiVersionContractSources>().SingleAsync();var bundle=JsonSerializer.Deserialize<ContractBundle>(source.BundleJson,WebApi.Contracts.Common.CanonicalJson.Options)!;var registry=new ContractReferenceRegistry(bundle,new());
+        var requestSchema=JsonNode.Parse(schemas.Single(x=>x.SchemaType=="request").SchemaJson)!;Assert.Equal("#/components/schemas/Order",requestSchema["$ref"]!.GetValue<string>());var resolved=registry.Resolve(bundle.RootUri,requestSchema["$ref"]!.GetValue<string>());Assert.Equal("integer",resolved.Node["properties"]!["id"]!["type"]!.GetValue<string>());
     }
-    [Theory] [InlineData("https://untrusted.example/schema")] [InlineData("#/components/schemas/Order")]
-    public async Task ExternalOrCyclicReferencesAreExplicitlyRejected(string reference)
+    [Theory] [InlineData("https://untrusted.example/schema")] [InlineData("#/components/schemas/Missing")]
+    public async Task MissingExternalOrLocalReferencesAreExplicitlyRejected(string reference)
     {
         await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
         var source=Source.Replace("{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}}}",JsonSerializer.Serialize(new Dictionary<string,string>{{"$ref",reference}}));
         using var commit=await api.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-commit",Commit(api,[Target("readOne","IMPORTED")],source));Assert.Equal(HttpStatusCode.UnprocessableEntity,commit.StatusCode);
-        var text=await commit.Content.ReadAsStringAsync();Assert.Contains("unsupported_reference",text);
+        var text=await commit.Content.ReadAsStringAsync();Assert.Contains("missing_contract_reference",text);
+    }
+    [Fact] public async Task ValidRecursiveComponentPersistsWithoutExpansion()
+    {
+        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();var source=Source.Replace("\"id\":{\"type\":\"integer\"}","\"id\":{\"type\":\"integer\"},\"child\":{\"$ref\":\"#/components/schemas/Order\"}");
+        using var r=await api.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-commit",Commit(api,[Target("writeTwo","RECURSIVE")],source));r.EnsureSuccessStatusCode();await using var db=api.Context();var schema=await db.Set<ApiSchema>().SingleAsync(x=>x.SchemaType=="component");Assert.Contains("$ref",schema.SchemaJson);Assert.True(schema.SchemaJson.Length<1000);
     }
     [Fact] public async Task SecretOnlyReturnedOnce()
     {

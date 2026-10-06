@@ -79,6 +79,15 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             if(config is null) captured["ConfigHash"]=null;
             else {using var document=JsonDocument.Parse(config);captured["ConfigHash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(document.RootElement)));}
         }
+        if(e.Entity is ApiImportPreview)
+            foreach(var name in new[]{"SourceHash","BundleHash","SourceFormat","Dialect","SourcePolicyRevision","ImportId"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
+        if(e.Entity is ApiVersionContractSources)
+            foreach(var name in new[]{"BundleHash","Dialect","SourcePolicyRevision"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
+        if(e.Entity is ProjectImportSourcePolicy){
+            var property=e.Property(nameof(ProjectImportSourcePolicy.RulesJson));var json=(string?)(original?property.OriginalValue:property.CurrentValue);
+            if(json is null)captured["RulesHash"]=null;
+            else{using var document=JsonDocument.Parse(json);captured["RulesHash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(document.RootElement)));}
+        }
         if(e.Entity is ApiVersionComparison comparison)
         {captured["ApiId"]=comparison.ApiId;captured["FromVersionId"]=comparison.FromVersionId;captured["ToVersionId"]=comparison.ToVersionId;captured["FromRevision"]=comparison.FromRevision;captured["ToRevision"]=comparison.ToRevision;captured["EngineVersion"]=comparison.EngineVersion;captured["InputFingerprint"]=comparison.InputFingerprint;captured["ReportHash"]=comparison.ReportHash;captured["Coverage"]=comparison.Coverage;captured["Counts"]=JsonSerializer.Deserialize<JsonElement>(comparison.CountsJson);}
         if(e.Entity is ApiVersionRiskReview review)
