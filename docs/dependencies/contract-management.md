@@ -40,3 +40,11 @@
 - `third_party/unicode-idna/` 保存 Unicode 17.0.0 官方 Bidi／Script 数据、Unicode License V3、SHA 清单和生成器。`IdnaUnicodeData.cs` 是可重生成的有界标量查表，配合运行库 UTS 46 映射、允许字符、ContextO 和 Bidi 检查；不执行运行时下载。运行库对未知字符的支持仍与固定镜像有关，不承诺不同 Unicode／ICU 版本完全等价。
 - `contract-evaluate` 只读一次有界 stdin 请求。协议输入 16 MiB、输出 8 MiB；Schema 原文／包仍受更小业务预算约束。固定包以原文 UTF-8 Base64、URI 和哈希传输，子进程重建并复核。父端每实例最多 2 个运行＋2 个等待，期限包括等待，Schema 5 秒／compare 10 秒；子进程不继承连接串与凭据，超时或取消终止进程树并回收。Schema 无网络获取，只有固定包及九个库内嵌 2020-12 元 Schema URI。
 - 独立测试 runner 只读源码，并在容器内复制、locked restore、构建 RuntimeTool、传入实际新 DLL 路径；不会使用工作区旧 bin／obj。Task 5 Domain 完整 366 项通过。这是离线语义与进程验收，尚不表示只读 API、v2 比较、UI 或 4192 部署已完成；compare 实际分发在 v2 引擎任务接入，之前明确未完成。
+
+只读 Schema 校验与版本来源一致性：
+- 校验请求仅引用服务端查到的版本/定义，可临时验证草稿；无写权限也能使用，版本变化返回412。客户端来源包、URL和其他未登记字段拒绝，源码来源与相对引用由固定元数据决定。
+- API返回 Valid／Invalid／Incomplete、实际评估Revision、安全诊断和模式；JSON null／false／0均作真实实例。非JSON媒体明确未完成，实例值不回显。结构与引用作为新Schema保存检查，示例不匹配仍可保存草稿。
+- JSON／YAML根文档和原始来源须规范化后一致；根替换原子失效旧外部包。下载原始YAML使用application/yaml，representation=json返回规范化JSON。维护定义保留导入原文不改写，并独立更新定义位置/内容摘要；组件删除或改名返回受影响Pointer。
+- 定义来源摘要采用规范化JSON内容，避免jsonb重新排版误报；既有业务SchemaHash及历史比较算法不改。来源元数据增加可选VersionDocumentHash和DocumentUri；旧未登记摘要来源保守未完成，不迁移回填旧行。
+- 组件名称在维护图中不可按媒体类型互相覆盖；历史重复定义仍可读但语义明确未完成。Pointer在服务端转为URI时独立编码百分号，保留斜杠／波浪号转义和物理定位。
+- 来源接口阶段完整Domain366、Integration488、Node5全部通过；这些为隔离功能回归，尚不代表UI与4192升级完成。

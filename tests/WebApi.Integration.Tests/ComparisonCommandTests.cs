@@ -20,7 +20,7 @@ public sealed class ComparisonCommandTests
     [Fact] public async Task ComparisonReplayReturnsOriginalAfterEdit()
     {
         await using var f=new ComparisonFixture();await f.InitializeAsync();var key=Guid.NewGuid().ToString("N");using var first=await f.CreateAsync(key);Assert.Equal(HttpStatusCode.OK,first.StatusCode);var body=await first.Content.ReadAsStringAsync();var value=JsonDocument.Parse(body).RootElement;var id=value.GetProperty("id").GetGuid();Assert.True(value.GetProperty("report").GetProperty("counts").GetProperty("breaking").GetInt32()>0);
-        using var edit=await f.Api.WriteAsync(HttpMethod.Put,$"/api/v1/versions/{f.Target.Id}",new {version="2.0.1",openapiDocument=ComparisonFixture.EmptyDocument},"\"1\"");edit.EnsureSuccessStatusCode();
+        using var edit=await f.Api.WriteAsync(HttpMethod.Put,$"/api/v1/versions/{f.Target.Id}",new {version="2.0.1",openapiDocument="{\"openapi\":\"3.0.3\",\"info\":{\"title\":\"Comparison replay\",\"version\":\"2.0.1\"},\"paths\":{}}"},"\"1\"");edit.EnsureSuccessStatusCode();
         using var replay=await f.CreateAsync(key);Assert.Equal(body,await replay.Content.ReadAsStringAsync());
         using var current=await f.Api.Client.GetAsync($"/api/v1/version-comparisons/{id}");current.EnsureSuccessStatusCode();Assert.Equal("Stale",(await current.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("freshness").GetString());
         await using var db=f.Api.Context();Assert.Equal(1,await db.Set<AuditLog>().CountAsync(x=>x.Action=="comparison.created"));

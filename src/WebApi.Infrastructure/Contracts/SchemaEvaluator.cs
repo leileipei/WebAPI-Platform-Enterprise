@@ -26,7 +26,7 @@ public sealed class SchemaEvaluator
             foreach(var document in input.Bundle.Documents)Count(document.Root,0);
             if(input.HasExample)Count(input.Example,0);
             graph=new ContractReferenceRegistry(input.Bundle,limits);
-            var selected=graph.Resolve(input.ResourceUri??input.Bundle.RootUri,"#"+input.Pointer);
+            var selected=graph.Resolve(input.ResourceUri??input.Bundle.RootUri,"#"+Uri.EscapeDataString(input.Pointer));
             if(!JsonNode.DeepEquals(selected.Node,input.Schema))throw new ApiException(422,"invalid_schema_location","所选Schema与固定来源位置不一致。");
             var engine=new OfflineContractSchemas(graph,dialect,input.Direction,input.FormatMode,coverage,ct);
             var schema=engine.Build(selected);

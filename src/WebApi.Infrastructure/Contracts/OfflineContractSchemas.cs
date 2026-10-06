@@ -35,7 +35,7 @@ internal sealed class OfflineContractSchemas
         // resolution and two pointers to the same anchor never register it twice.
         foreach(var root in graph.SchemaRoots)Find(root);
         var origin=graph.Describe(selected.Node);
-        var reference=origin.ResourceUri.AbsoluteUri+"#"+RelativePointer(origin);
+        var reference=origin.ResourceUri.AbsoluteUri+"#"+Uri.EscapeDataString(RelativePointer(origin)).Replace("%2F","/",StringComparison.Ordinal);
         return JsonSchema.FromText(new JsonObject{["$ref"]=reference}.ToJsonString(),options,new Uri("https://evaluation.invalid/entry"));
     }
     private string RelativePointer(ResolvedContractNode node)
@@ -119,7 +119,7 @@ internal sealed class OfflineContractSchemas
     private sealed class FixedDocument(OfflineContractSchemas owner,Uri uri):IBaseDocument
     {
         public Uri BaseUri=>uri;
-        public JsonSchemaNode? FindSubschema(JsonPointer pointer,BuildContext context)=>owner.Find(owner.graph.Resolve(uri,"#"+pointer));
+        public JsonSchemaNode? FindSubschema(JsonPointer pointer,BuildContext context)=>owner.Find(owner.graph.Resolve(uri,"#"+Uri.EscapeDataString(pointer.ToString())));
     }
 }
 internal sealed class InvalidSchemaShapeException:Exception;
