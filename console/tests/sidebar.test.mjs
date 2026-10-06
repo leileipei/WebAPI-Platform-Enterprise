@@ -61,3 +61,13 @@ test('settings remain reachable in platform governance and workbench does not li
   assert.match(html, /disabled=""[^>]*>.*?工作台.*?待接入/s);
   assert.doesNotMatch(html, /href="\/dashboard"/);
 });
+
+test('the signed-in root page highlights the organization list it actually renders', async () => {
+  const SidebarNav = await component();
+  const html = renderToStaticMarkup(createElement(SidebarNav, {
+    path:'/', expanded:sidebarGroupForPath('/'), onToggle:()=>{}, onNavigate:()=>{}
+  }));
+  assert.match(html, /href="\/organizations"[^>]*aria-current="page"/);
+  assert.equal(isSidebarItemActive('/', '/projects'), false);
+  assert.equal(sidebarGroupForPath('/unknown'), null);
+});

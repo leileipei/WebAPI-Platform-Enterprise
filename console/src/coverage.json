@@ -6,7 +6,7 @@
     "sourceRoute": "/login",
     "route": "/",
     "status": "核心功能已接入",
-    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+    "note": "未登录时提供本地 Cookie 与 OIDC SSO 登录；登录后首页显示组织管理。本地管理员恢复入口保留。"
   },
   {
     "id": 2,
@@ -141,7 +141,7 @@
     "sourceRoute": "/policies",
     "route": "/policies",
     "status": "真实流量策略已接入",
-    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；本批独立评审版本"
+    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；四类策略已接入本机控制台。"
   },
   {
     "id": 17,
@@ -150,7 +150,7 @@
     "sourceRoute": "/policies/{id}",
     "route": "/policies",
     "status": "真实流量策略已接入",
-    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；本批独立评审版本"
+    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；四类策略已接入本机控制台。"
   },
   {
     "id": 18,
@@ -347,8 +347,8 @@
     "name": "SSO / OIDC 配置",
     "sourceRoute": "/settings/sso",
     "route": "/settings/sso",
-    "status": "核心功能已接入",
-    "note": "真实 OIDC Provider 治理、显式用户绑定与会话撤销；独立 Keycloak 验收。企业 IdP 与生产 TLS 需单独验收，4192 本轮未升级。"
+    "status": "真实 OIDC SSO 已接入",
+    "note": "真实 OIDC Provider 治理、显式账号绑定、修订保护与审计；本机独立 Keycloak 登录已验证。企业 IdP 与生产 TLS 需单独验收。"
   },
   {
     "id": 40,
@@ -356,7 +356,7 @@
     "name": "系统设置",
     "sourceRoute": "/settings/system",
     "route": "/settings/system",
-    "status": "核心功能已接入",
-    "note": "平台级五组17字段；保存/预览/引用操作/修订保护与审计已接入。新登录、新账号、新路由和审计CSV有实际消费者；部署参数、保留目标与通知仅配置意向。本轮隔离验收，4192未升级。"
+    "status": "真实系统设置已接入",
+    "note": "平台级五组17字段；保存/预览/引用操作/修订保护与审计已接入本机控制台。新登录、新账号、新路由和审计CSV有实际消费者；部署参数、保留目标与通知仅配置意向。"
   }
 ]

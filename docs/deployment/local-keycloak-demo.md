@@ -1,10 +1,12 @@
 # 本机 Keycloak 持久演示运维
 
-本批为现有 OIDC / PKCE 登录的本机部署扩展。平台应用保持 0b42f9e 镜像；Keycloak 使用 deploy/sso-images.lock.json 的 26.8.0 摘要，独立 PostgreSQL 和独立 owner。保留原 admin、审核员与网关业务版本。仅 localhost HTTP 演示，企业 HTTPS / IdP / 生产验收另行执行。
+当前入口与能力范围见[本机运行摘要](current-local-status.md)。4192已包含流量策略、系统设置、OIDC SSO及网关重启运行确认；应用提交与镜像以`.runtime/local/release.json`为准。本文件保留Keycloak原阶段实施与运维记录，旧0b42f9e版本限制只适用于文末标注的历史版本。
+
+本批为现有 OIDC / PKCE 登录的本机部署扩展。Keycloak 使用 deploy/sso-images.lock.json 的 26.8.0 摘要，独立 PostgreSQL 和独立 owner。保留原 admin、审核员与网关业务版本。仅 localhost HTTP 演示，企业 HTTPS / IdP / 生产验收另行执行。
 
 ## 入口与秘密
 
-平台：http://127.0.0.1:4192/login 。在登录页选择“本机 SSO 演示 · Keycloak”，跳至 http://localhost:4193 。演示账号 sso-demo-viewer，仅 Viewer 角色和指定环境 read Scope；无本地密码。
+平台：http://127.0.0.1:4192/ 。在登录页选择“本机 SSO 演示 · Keycloak”，跳至 http://localhost:4194 。4193保留为独立导航预览。演示账号 sso-demo-viewer，仅 Viewer 角色和指定环境 read Scope；无本地密码。
 
 IdP 私有目录位于原运行目录的 idp 子目录；viewer-password 为演示密码，idp-admin-password 为独立 IdP 管理员密码，客户端秘密位于 client-secret。目录0700、文件0600，不进入 Git 或交付包。平台秘密只读挂载至控制面的 /run/sso/client-secret，容器UID10001，文件0600。不要打开或截取秘密内容作为验收截图。
 
@@ -40,6 +42,8 @@ IdP：manage-idp.sh backup --target {全新私有目录}。停止 Keycloak 和�
 
 技术依据：[Keycloak容器](https://www.keycloak.org/server/containers)、[数据库配置](https://www.keycloak.org/server/db)、[启动realm导入](https://www.keycloak.org/server/importExport)。新realm用import启动；已存在realm不以重新导入覆盖，回调通过IdP管理API精确修改。
 
-## 已确认的现有网关状态限制
+## 历史0b42f9e网关状态限制（当前已修复）
+
+以下是原阶段版本的诊断记录。当前应用已加入重启后的运行确认，不以历史发布ACK推断当前实例运行状态；本机正常重启Ready已验证，原v4/seq4与发布记录保留。
 
 原0b42f9e应用的发布ACK冻结于发布目标InstanceId。正常平台重启后新实例可加载相同v4/seq4并产生新Ready心跳，但ACK API会拒绝新的冻结目标，getRuntimeStatus总状态为Degraded。SSO接入和实际网关请求仍可工作。本批保留应用镜像与v4/seq4，不伪造ACK、不重新发布新业务版本；后续需单独修复运行就绪与发布确认的生命周期模型。不能将本批重启结果写成“总状态Ready”。

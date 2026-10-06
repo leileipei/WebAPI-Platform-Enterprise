@@ -4,8 +4,8 @@
 
 |原页|页面|真实入口|状态与范围|
 |---|---|---|---|
-|1|登录|/|已接入本地Cookie登录；SSO/首次改密后续|
-|2|企业工作台|/coverage|后续指标工作台；已有发布/节点事实在对应页面|
+|1|登录|/|已接入本地Cookie与OIDC SSO登录；保留本地管理员恢复入口，首次改密后续|
+|2|企业工作台|—|后续指标工作台；已有发布/节点事实在对应页面|
 |3|组织|/organizations|已接入|
 |4|项目|/projects|已接入；负责人由创建者记录|
 |5|环境|/environments|已接入|
@@ -19,8 +19,8 @@
 |13|参数Schema|/apis/{id}|已接入参数/Schema Tab与原文编辑；完整树和例验证后续|
 |14|Cluster|/clusters|已接入|
 |15|Destination|/clusters/{id}|已接入权重/健康配置；立即探测后续|
-|16|策略中心|/policies|本批真实列表、类型/范围过滤、复制、引用与工作/运行修订|
-|17|策略编辑|/policies/{id}|本批四类动态字段、服务端校验、412保留输入、引用保护及审批发布|
+|16|策略中心|/policies|已接入真实列表、类型/范围过滤、复制、引用与工作/运行修订|
+|17|策略编辑|/policies/{id}|已接入四类动态字段、服务端校验、412保留输入、引用保护及审批发布|
 |18|应用|/applications|已接入|
 |19|应用详情|/applications/{id}|已接入|
 |20|凭证|/applications/{id}|已接入凭证Tab，一次性Secret及有效期/撤销|
@@ -42,7 +42,7 @@
 |36|权限矩阵|/roles|已接入角色权限选择|
 |37|数据范围|/scopes|已接入精确Scope规则；结构化表单继续优化|
 |38|审计|/audit|已接入安全变更视图/筛选|
-|39|SSO/OIDC|/coverage|后续企业身份接入|
-|40|系统设置|/coverage|后续持久设置；运行配置使用显式部署配置|
+|39|SSO/OIDC|/settings/sso|已接入Provider治理、显式账号绑定、修订保护与审计；本机独立Keycloak登录已验证；企业IdP与生产TLS待验收|
+|40|系统设置|/settings/system|已接入平台五组17字段、保存/预览/引用/修订保护与审计；登录、账号、路由和审计CSV有实际消费者；部署参数、保留目标及通知仅配置意向|
 
-28–33真实范围见 [观测验收](evidence/observability/verification.json)、[数据字典](observability-data-dictionary.md)与[运行手册](deployment/observability-runbook.md)。原40页高保真原型仍完整保留；本批四类流量策略证据见 [策略交付](evidence/policies/delivery-index.md)；SSO、JWT/重试/缓存、企业通知仍未实现。4192保持原交付版本。
+28–33真实范围见 [观测验收](evidence/observability/verification.json)、[数据字典](observability-data-dictionary.md)与[运行手册](deployment/observability-runbook.md)。原40页高保真原型仍完整保留；四类流量策略证据见 [策略交付](evidence/policies/delivery-index.md)；OIDC SSO 与系统设置已部署至本机4192，独立Keycloak位于4194。企业工作台、完整Breaking Change引擎、JWT/重试/缓存与外部通知仍为后续能力；企业实际身份源、TLS/HA和容量需单独验收。当前入口、维护方式和验收边界见 [本机运行摘要](deployment/current-local-status.md)。

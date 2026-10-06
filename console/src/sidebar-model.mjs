@@ -13,7 +13,8 @@ export const sidebarGroups = [
 ];
 
 export function isSidebarItemActive(path, url) {
-  return path === url || path.startsWith(url + '/');
+  const currentPath = path === '/' ? '/organizations' : path;
+  return currentPath === url || currentPath.startsWith(url + '/');
 }
 
 export function sidebarGroupForPath(path) {
