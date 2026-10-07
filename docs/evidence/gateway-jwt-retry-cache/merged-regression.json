@@ -1,0 +1,10 @@
+{
+  "sourceRevision": "268d5c92843057ae4063031eea19a20df2539eb9",
+  "softwareRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+  "passed": 27,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "logSha256": "256af3227c09e892feb75fd3a04ad274a0accaa3d3683dd2a93297fb47757316",
+  "sandboxFirstAttempt": "EPERM temporary local HTTP listen; re-run with authorized local listening passed"
+}

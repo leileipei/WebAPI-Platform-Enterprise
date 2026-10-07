@@ -1,0 +1,94 @@
+{
+  "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+  "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+  "complete": true,
+  "actual": true,
+  "phase": "Ready",
+  "requests": [
+    200,
+    200
+  ],
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "version": 4,
+      "sequence": 4,
+      "runtimeConfirmed": true
+    },
+    {
+      "name": "local-gateway-a",
+      "version": 4,
+      "sequence": 4,
+      "runtimeConfirmed": true
+    }
+  ],
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available",
+      "checkedAt": "2026-10-07T14:32:12.633Z"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available",
+      "checkedAt": "2026-10-07T14:32:12.627Z"
+    },
+    {
+      "name": "loki",
+      "state": "Available",
+      "checkedAt": "2026-10-07T14:32:12.632Z"
+    },
+    {
+      "name": "tempo",
+      "state": "Available",
+      "checkedAt": "2026-10-07T14:32:12.632Z"
+    }
+  ],
+  "applicationContainers": 5,
+  "protectedTables": 52,
+  "protectedFiles": 792,
+  "staticFilesVerified": 3,
+  "backup": {
+    "complete": true,
+    "platform": {
+      "files": 20,
+      "volumes": 7,
+      "hashReadback": true
+    },
+    "idp": {
+      "files": 12,
+      "volumes": 4,
+      "hashReadback": true
+    },
+    "originalServicesRestored": true
+  },
+  "cacheSecretBackup": {
+    "files": 23,
+    "volumes": 8,
+    "hashReadback": true
+  },
+  "sso": {
+    "complete": true,
+    "realKeycloakLogin": true,
+    "originalViewerReadOnly": true,
+    "writeDenied403": true,
+    "logout401": true,
+    "idpServicesRunning": 2
+  },
+  "maintenance": {
+    "complete": true,
+    "softwareRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+    "files": 116,
+    "originalToolingUnchanged": true,
+    "entry": "manage-policies.sh",
+    "ready": "Ready"
+  },
+  "newBusinessPublish": false,
+  "productionAcceptance": false,
+  "installedUi": {
+    "actual": true,
+    "screenshot": "deployed-4192.png",
+    "sixPolicyTypes": true,
+    "createdQaBusiness": false
+  }
+}

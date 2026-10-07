@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "softwareRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+  "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+  "packageSourceRevision": "268d5c92843057ae4063031eea19a20df2539eb9",
+  "file": "WebAPI_Enterprise_JWT_重试_缓存_本机升级_20261007_c1c2715.zip",
+  "sha256": "468156df64f64c8b3ef69436724274ae7c70af8150d0b050e3369336cede29ce",
+  "entries": 1628,
+  "bytes": 24031990,
+  "crcReadback": true,
+  "entryShaReadback": true,
+  "actualPrivateValuesScanned": 41,
+  "productionAcceptance": false
+}

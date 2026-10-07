@@ -1,0 +1,21 @@
+{
+  "complete": true,
+  "fixture": {
+    "owner": "0c4a38fd-7159-453c-a68a-a46991631d31",
+    "project": "webapi-gateway-fixture-0c4a38fd-7159-453c-a68a-a46991631d31",
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretsRemaining": 0
+  },
+  "clones": [
+    {
+      "containersRemaining": 0,
+      "volumesRemaining": 0,
+      "secretFilesRemaining": 0
+    }
+  ],
+  "originalServicesAndDataPreserved": true,
+  "coldBackupsRetained": true,
+  "oldAndNewImagesRetained": true,
+  "onlyThisRunUuidResources": true
+}
