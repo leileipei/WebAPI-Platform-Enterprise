@@ -11,3 +11,5 @@ export function settingsTestMessage(result){if(result.testKind!=='StructuralOnly
 export function routeDefaultInput(input,defaults){return input.touched?input.timeoutMs:defaults.timeoutMs;}
 export function settingsCommandValues(group,values){return group==='security'&&typeof values.allowedOrigins==='string'?{...values,allowedOrigins:values.allowedOrigins.split(/\r?\n/).map(s=>s.trim()).filter(Boolean)}:values;}
 export function settingsShellAuthorityKey(user,path){return path==='/settings/sso'?ssoAuthorityKey(user):path==='/settings/system'?user.id:JSON.stringify([user.id,user.permissions,user.scopes]);}
+
+export function settingsGroupFromSearch(search){const tabs=new URLSearchParams(search).getAll('tab');return tabs.length===1&&['security','release','gateway','audit','notification'].includes(tabs[0])?tabs[0]:'security';}

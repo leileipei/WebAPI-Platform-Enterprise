@@ -3,7 +3,8 @@ import {IconSettings,IconShieldCheck,IconCloudUpload,IconServer,IconFileText,Ico
 import {apiRequest,ApiError} from '../api/client';
 import {useSession} from '../auth/SessionProvider';
 import {useUnsaved} from '../ui';
-import {createSettingsState,applySettingsResponse,invalidateSettingsState,applySettingsFailure,settingsSemanticKey,settingsTestMessage,toSettingsInput,settingsCommandValues} from '../settings/state.mjs';
+import {navigate} from '../navigation.mjs';
+import {createSettingsState,applySettingsResponse,invalidateSettingsState,applySettingsFailure,settingsSemanticKey,settingsTestMessage,toSettingsInput,settingsCommandValues,settingsGroupFromSearch} from '../settings/state.mjs';
 import {NotificationSettingsPanel} from '../notifications/NotificationSettingsPanel';
 import {NotificationTestDialog} from '../notifications/NotificationTestDialog';
 import {mayTestNotification} from '../notifications/settings-state.mjs';
@@ -15,8 +16,8 @@ const effects:Record<string,string>={NewLogin:'用于后续新登录，已有票
 const settingEffect=(effect:string,group:string)=>group==='notification'&&effect==='ConfigurationIntent'?'连接字段及引用固定于渠道档案；旧档案任务不会改投，保存本身不发送':effects[effect];
 const sources:Record<string,string>={Saved:'已保存配置',CodeDefault:'兼容默认',PrototypeSuggestion:'原型建议 · 未应用'};
 const limits:Record<string,[number,number]>={sessionTtlMinutes:[5,1440],passwordMinLength:[16,128],snapshotRetentionCount:[10,10000],defaultRouteTimeoutMs:[1,300000],maxRequestBodyMb:[1,256],configRefreshIntervalSeconds:[1,60],auditRetentionDays:[30,3650],smtpPort:[1,65535]};
-export function SystemSettings(){
- const session=useSession(),[state,setState]=useState<SettingsEditorState>(createSettingsState),ref=useRef(state),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[preview,setPreview]=useState<SettingsPreview|null>(null);
+export function SystemSettings({search}:{search:string}){
+ const session=useSession(),[state,setState]=useState<SettingsEditorState>(()=>({...createSettingsState(),group:settingsGroupFromSearch(search)})),ref=useRef(state),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[preview,setPreview]=useState<SettingsPreview|null>(null);
  const[test,setTest]=useState<{channel:NotificationChannel;revision:number;authority:string;epoch:number}|null>(null);
  const dialogRoot=useRef<HTMLElement>(null),previousFocus=useRef<HTMLElement|null>(null);
  useEffect(()=>{if(!preview)return;previousFocus.current=document.activeElement as HTMLElement;dialogRoot.current?.querySelector<HTMLElement>('button')?.focus();return()=>previousFocus.current?.focus();},[!!preview]);
@@ -27,10 +28,11 @@ export function SystemSettings(){
  function invalidate(){setTest(null);update(invalidateSettingsState(ref.current));setPreview(null);retry.current={semantic:'',key:''};setBusy(false);setLoading(false);checking.current=false;setError('会话或管理权限已失效，已清空配置与引用草稿。');}
  useEffect(()=>{const expired=()=>invalidate(),denied=()=>void recheckAuthority();window.addEventListener('session-expired',expired);window.addEventListener('permission-refresh',denied);return()=>{ref.current=invalidateSettingsState(ref.current);window.removeEventListener('session-expired',expired);window.removeEventListener('permission-refresh',denied);};},[session.user?.id]);
  useEffect(()=>{setTest(null);void recheckAuthority(true);},[authority]);
+ useEffect(()=>{const group=settingsGroupFromSearch(search);if(group!==ref.current.group){setTest(null);setMessage('');void load(group);}},[search]);
  async function recheckAuthority(force=false){if(!sessionRef.current.user||!sessionRef.current.can('system.manage')){invalidate();return;}if(checking.current&&!force)return;checking.current=true;const next={...ref.current,requestEpoch:ref.current.requestEpoch+1};update(next);setLoading(true);setBusy(false);setPreview(null);try{const response=await apiRequest<SettingsGroupDto>('/settings/system/'+next.group);if(ref.current.requestEpoch!==next.requestEpoch)return;if(!ref.current.loaded)update(applySettingsResponse(ref.current,response,next.requestEpoch));setError('');}catch(e){if(ref.current.requestEpoch===next.requestEpoch){update(applySettingsFailure(ref.current,e instanceof ApiError?e.status:0));if(e instanceof ApiError&&[401,403,404].includes(e.status)){invalidate();}else setError((e as Error).message);}}finally{if(ref.current.requestEpoch===next.requestEpoch){checking.current=false;setLoading(false);}}}
  async function load(group:string,keepDraft=false){checking.current=false;const old=ref.current,next={...(keepDraft?old:invalidateSettingsState(old)),group,requestEpoch:old.requestEpoch+1};update(next);setPreview(null);setLoading(true);setError('');try{const response=await apiRequest<SettingsGroupDto>('/settings/system/'+group);if(ref.current.requestEpoch!==next.requestEpoch)return;update(applySettingsResponse(ref.current,response,next.requestEpoch));}catch(e){if(ref.current.requestEpoch===next.requestEpoch){update(applySettingsFailure(ref.current,e instanceof ApiError?e.status:0));setError((e as Error).message);}}finally{if(ref.current.requestEpoch===next.requestEpoch)setLoading(false);}}
  function change(key:string,value:any){setTest(null);update({...ref.current,values:{...ref.current.values,[key]:value},dirty:true});setPreview(null);setMessage('');}
- function switchGroup(group:string){if(busy||group===state.group)return;if(state.dirty&&!window.confirm('切换分组将放弃未保存的输入，是否继续？'))return;setTest(null);setMessage('');void load(group);}
+ function switchGroup(group:string){if(busy||group===state.group)return;if(state.dirty&&!window.confirm('切换分组将放弃未保存的输入，是否继续？'))return;setTest(null);setMessage('');void load(group);navigate('/settings/system?tab='+group,true);}
  async function action(kind:'validate'|'preview'|'save'){
   const current=ref.current;if(!current.values||!current.etag||current.conflict||busy)return;const epoch=current.requestEpoch;setBusy(true);setError('');setMessage('');
   const commandValues=settingsCommandValues(current.group,current.values),semantic=settingsSemanticKey(current.group,commandValues,current.etag);if(semantic!==retry.current.semantic)retry.current={semantic,key:crypto.randomUUID()};

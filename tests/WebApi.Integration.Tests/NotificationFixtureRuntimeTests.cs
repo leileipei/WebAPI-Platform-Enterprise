@@ -8,6 +8,8 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class NotificationFixtureRuntimeTests
 {
+ [Fact] public void SeedUsesExplicitContainerEnvironmentWithoutWeakeningProduction()
+ {Assert.Equal("Development",NotificationAcceptanceCommand.CreateBuilder("Development").Environment.EnvironmentName);Assert.Equal("Production",NotificationAcceptanceCommand.CreateBuilder("Production").Environment.EnvironmentName);}
  [Fact] public void SeedGuardAcceptsOnlyExactDisposableOwnerOrganization()
  {var owner=Guid.NewGuid().ToString("D");var project="webapi-enterprise-local-test-"+Guid.NewGuid();var code="NOTIFY_"+owner.Replace("-","").ToUpperInvariant();Assert.True(NotificationAcceptanceCommand.CanSeed(project,owner,code));Assert.False(NotificationAcceptanceCommand.CanSeed("webapi-enterprise-local",owner,code));Assert.False(NotificationAcceptanceCommand.CanSeed(project,owner,"NOTIFY_FOREIGN"));}
  [Fact] public void JournalPreservesReceiptsAndRejectsForeignOwner()
