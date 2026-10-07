@@ -9,11 +9,17 @@ public sealed class RedisResponseCacheTests
     private static string Wire(string prefix,string suffix) => prefix + ":{cache}:" + suffix;
     private static async Task Cleanup(ConnectionMultiplexer mux,string prefix)
     { var server = mux.GetServer(mux.GetEndPoints().Single()); var keys = server.Keys(pattern: prefix + ":*").ToArray(); if (keys.Length > 0) await mux.GetDatabase().KeyDeleteAsync(keys); }
+    private static async Task WarmConnection(IResponseCacheStore store)
+    {
+        var deadline=DateTime.UtcNow.AddSeconds(10);
+        do { if((await store.GetAsync(Key(0),default)).Kind==CacheReadKind.Miss)return;await Task.Delay(25); } while(DateTime.UtcNow<deadline);
+        throw new TimeoutException("Redis positive-control connection did not become available.");
+    }
     [Fact]
     public async Task TwoNodesReadSameCompleteEntryAndRejectCorruptPayload()
     {
         using var f = new CacheEligibilityTests.SettingsFixture(); using var mux = await ConnectionMultiplexer.ConnectAsync("redis:6379"); using var a = new RedisResponseCacheStore(f.Settings); using var b = new RedisResponseCacheStore(f.Settings);
-        try { Assert.Equal(CacheReadKind.Miss, (await a.GetAsync(Key(1), default)).Kind); Assert.Equal(CacheWriteKind.Stored, (await a.PutAsync(Key(1), Entry(), default)).Kind); var result = await b.GetAsync(Key(1), default); Assert.Equal(CacheReadKind.Hit, result.Kind); Assert.Equal(new byte[100], result.Entry!.Body); await mux.GetDatabase().StringSetAsync(Wire(f.Prefix, "entry:" + Key(1).Opaque), "corrupt-json"); Assert.Equal(CacheReadKind.Unavailable, (await a.GetAsync(Key(1), default)).Kind); } finally { await Cleanup(mux, f.Prefix); }
+        try { await WarmConnection(a); await WarmConnection(b); Assert.Equal(CacheReadKind.Miss, (await a.GetAsync(Key(1), default)).Kind); Assert.Equal(CacheWriteKind.Stored, (await a.PutAsync(Key(1), Entry(), default)).Kind); var result = await b.GetAsync(Key(1), default); Assert.Equal(CacheReadKind.Hit, result.Kind); Assert.Equal(new byte[100], result.Entry!.Body); await mux.GetDatabase().StringSetAsync(Wire(f.Prefix, "entry:" + Key(1).Opaque), "corrupt-json"); Assert.Equal(CacheReadKind.Unavailable, (await a.GetAsync(Key(1), default)).Kind); } finally { await Cleanup(mux, f.Prefix); }
     }
     [Theory] [InlineData(100)] [InlineData(40000)]
     public async Task ConcurrentWritesCannotExceed64MiBOr2000Entries(int bodyBytes)
