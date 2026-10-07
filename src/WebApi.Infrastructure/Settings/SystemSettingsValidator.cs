@@ -13,7 +13,7 @@ public static class SystemSettingsValidator
         ["release"]=["productionApprovalLevels","snapshotRetentionCount"],
         ["gateway"]=["defaultRouteTimeoutMs","maxRequestBodyMb","configRefreshIntervalSeconds"],
         ["audit"]=["auditRetentionDays","auditExportEnabled"],
-        ["notification"]=["smtpHost","smtpPort","fromEmail","smtpSecretRef","webhookUrl","webhookSecretRef"]};
+        ["notification"]=["smtpHost","smtpPort","fromEmail","smtpSecretRef","webhookUrl","webhookSecretRef","smtpEnabled","webhookEnabled","smtpSecurity"]};
     private static ApiException Invalid(string field)=>new(422,"invalid_settings",$"{field}：字段格式、范围或完整性不符合要求。");
     public static SettingsMutation Parse(string group,ReadOnlyMemory<byte> json)=>new(ParseEnvelope(group,json,false).GetProperty("values").Clone());
     public static SaveSettingsRequest ParseSave(string group,ReadOnlyMemory<byte> json){var root=ParseEnvelope(group,json,true);return new(root.GetProperty("values").Clone(),Text(root,"confirmationToken",false)??throw Invalid("confirmationToken"));}
@@ -34,7 +34,7 @@ public static class SystemSettingsValidator
     public static string? ReferenceProvider(string? value)=>value is null?null:new Uri(value).Host;
     public static ValidatedSettings Resolve(string group,SettingsMutation mutation,SettingsValues current)
     {
-        if(!Fields.TryGetValue(group,out var fields))throw new ApiException(404,"settings_group_missing","设置分组不存在。");var v=mutation.Values;Allowed(v,fields);foreach(var key in fields)Get(v,key);
+        if(!Fields.TryGetValue(group,out var fields))throw new ApiException(404,"settings_group_missing","设置分组不存在。");var v=mutation.Values;Unique(v);Allowed(v,fields);foreach(var key in group=="notification"?fields[..6]:fields)Get(v,key);
         SettingsValues value;
         switch(group){
         case "security":
@@ -49,8 +49,13 @@ public static class SystemSettingsValidator
             if(from is not null&&(from.Length>254||!MailAddress.TryCreate(from,out var address)||address.Address!=from))throw Invalid("fromEmail");
             if(new object?[]{host,port,from,smtpRef}.Any(x=>x is not null)&&new object?[]{host,port,from,smtpRef}.Any(x=>x is null))throw Invalid("SMTP完整性");
             if(url is not null&&(url.Length>2048||!Uri.TryCreate(url,UriKind.Absolute,out var hook)||hook.Scheme!="https"||hook.Host.Length==0||hook.UserInfo.Length>0||hook.Query.Length>0||hook.Fragment.Length>0))throw Invalid("webhookUrl");
-            if((url is null)!=(webhookRef is null))throw Invalid("Webhook完整性");value=new NotificationSettings(host,port,from,smtpRef,url,webhookRef);break;
+            if((url is null)!=(webhookRef is null))throw Invalid("Webhook完整性");
+            var smtpEnabled=Flag(v,"smtpEnabled",old.SmtpEnabled);var webhookEnabled=Flag(v,"webhookEnabled",old.WebhookEnabled);var security=v.TryGetProperty("smtpSecurity",out _)?Text(v,"smtpSecurity",false):old.SmtpSecurity;
+            if(security is not("StartTlsRequired" or "TlsOnConnect")||smtpEnabled&&host is null||webhookEnabled&&url is null)throw Invalid("通知启用与TLS");
+            value=new NotificationSettings(host,port,from,smtpRef,url,webhookRef,smtpEnabled,webhookEnabled,security);break;
         }
         var element=SettingsValueCodec.Json(value);var bytes=CanonicalJson.Serialize(element);var before=SettingsValueCodec.Json(current);var changed=fields.Where(f=>before.GetProperty(f).GetRawText()!=element.GetProperty(f).GetRawText()).ToArray();return new(value,Encoding.UTF8.GetString(bytes),Convert.ToHexStringLower(SHA256.HashData(bytes)),changed);
     }
+    private static bool Flag(JsonElement values,string key,bool current)
+    {if(!values.TryGetProperty(key,out var value))return current;if(value.ValueKind is not(JsonValueKind.True or JsonValueKind.False))throw Invalid(key);return value.GetBoolean();}
 }

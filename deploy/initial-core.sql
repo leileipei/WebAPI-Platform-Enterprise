@@ -2081,3 +2081,307 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    DO $notification_upgrade$
+    DECLARE item record; value jsonb; names text[];
+    BEGIN
+      FOR item IN SELECT s.key, s.value FROM system_settings s WHERE s.key='system.notification' LOOP
+        value:=item.value;
+        IF jsonb_typeof(value) <> 'object' THEN RAISE EXCEPTION 'Invalid legacy notification settings: %',item.key; END IF;
+        SELECT array_agg(key ORDER BY key) INTO names FROM jsonb_object_keys(value) key;
+        IF names IS DISTINCT FROM ARRAY['fromEmail','smtpHost','smtpPort','smtpSecretRef','webhookSecretRef','webhookUrl']::text[] THEN RAISE EXCEPTION 'Invalid legacy notification settings fields: %',item.key; END IF;
+        IF EXISTS(SELECT 1 FROM jsonb_each(value) field WHERE field.key<>'smtpPort' AND jsonb_typeof(field.value) NOT IN ('string','null'))
+           OR jsonb_typeof(value->'smtpPort') NOT IN ('number','null')
+           OR EXISTS(SELECT 1 FROM jsonb_each_text(value) field WHERE field.key<>'smtpPort' AND (length(field.value)>2048 OR field.value ~ '[[:cntrl:]]')) THEN RAISE EXCEPTION 'Invalid legacy notification settings types: %',item.key; END IF;
+        -- Match legacy nullable text decoding only in the validation copy;
+        -- the update below preserves the original six JSON values exactly.
+        value:=value || jsonb_build_object('smtpHost',nullif(value->>'smtpHost',''),'fromEmail',nullif(value->>'fromEmail',''),'webhookUrl',nullif(value->>'webhookUrl',''));
+        IF (value->>'smtpHost' IS NULL) IS DISTINCT FROM (value->>'smtpPort' IS NULL)
+           OR (value->>'smtpHost' IS NULL) IS DISTINCT FROM (value->>'fromEmail' IS NULL)
+           OR (value->>'smtpHost' IS NULL) IS DISTINCT FROM (value->>'smtpSecretRef' IS NULL)
+           OR (value->>'webhookUrl' IS NULL) IS DISTINCT FROM (value->>'webhookSecretRef' IS NULL) THEN RAISE EXCEPTION 'Invalid legacy notification completeness: %',item.key; END IF;
+        IF value->>'smtpHost' IS NOT NULL THEN
+          IF length(value->>'smtpHost') NOT BETWEEN 1 AND 253 OR value->>'smtpHost' ~ '[[:space:]/@?#]'
+             OR value->>'smtpPort' !~ '^[0-9]+$' OR (value->>'smtpPort')::numeric NOT BETWEEN 1 AND 65535
+             OR length(value->>'fromEmail') NOT BETWEEN 3 AND 254 OR position('@' IN value->>'fromEmail')=0
+             OR value->>'smtpSecretRef' !~* '^vault://[^/@?#[:space:]]+/[^?#]*[^/?#][^?#]*$' THEN RAISE EXCEPTION 'Invalid legacy SMTP settings: %',item.key; END IF;
+        END IF;
+        IF value->>'webhookUrl' IS NOT NULL AND (value->>'webhookUrl' !~* '^https://[^/@?#[:space:]]+(/[^?#]*)?$' OR value->>'webhookSecretRef' !~* '^vault://[^/@?#[:space:]]+/[^?#]*[^/?#][^?#]*$') THEN RAISE EXCEPTION 'Invalid legacy Webhook settings: %',item.key; END IF;
+      END LOOP;
+      FOR item IN SELECT id, notification FROM alert_rules LOOP
+        value:=item.notification;
+        IF jsonb_typeof(value)<>'object' OR NOT(value ? 'inConsole' AND value ? 'requestedChannels')
+           OR value->'inConsole' IS DISTINCT FROM 'true'::jsonb OR jsonb_typeof(value->'requestedChannels')<>'array'
+           OR EXISTS(SELECT 1 FROM jsonb_object_keys(value) key WHERE key NOT IN ('inConsole','requestedChannels')) THEN RAISE EXCEPTION 'Invalid legacy rule notification: %',item.id; END IF;
+        IF jsonb_array_length(value->'requestedChannels')>3
+           OR EXISTS(SELECT 1 FROM jsonb_array_elements(value->'requestedChannels') channel WHERE channel NOT IN ('"Email"'::jsonb,'"Webhook"'::jsonb,'"EnterpriseIm"'::jsonb))
+           OR (SELECT count(*)<>count(DISTINCT channel) FROM jsonb_array_elements(value->'requestedChannels') channel) THEN RAISE EXCEPTION 'Invalid legacy rule channels: %',item.id; END IF;
+      END LOOP;
+    END $notification_upgrade$;
+    UPDATE system_settings SET value=value || '{"smtpEnabled":false,"webhookEnabled":false,"smtpSecurity":"StartTlsRequired"}'::jsonb WHERE key='system.notification';
+    UPDATE alert_rules SET notification=notification || '{"externalEnabled":false,"emailRecipients":[],"notifyRecovery":true,"retryPolicy":{"maxAttempts":5,"baseDelaySeconds":30,"maxDelaySeconds":900,"expiresAfterMinutes":1440}}'::jsonb;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    ALTER TABLE alert_events ADD frozen_notification jsonb NOT NULL DEFAULT '{"policy":{"inConsole":true,"requestedChannels":[],"externalEnabled":false,"emailRecipients":[],"notifyRecovery":true,"retryPolicy":{"maxAttempts":5,"baseDelaySeconds":30,"maxDelaySeconds":900,"expiresAfterMinutes":1440}},"emailProfileId":null,"webhookProfileId":null}';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    ALTER TABLE alert_events ADD CONSTRAINT "AK_alert_events_id_organization_id_project_id_environment_id" UNIQUE (id, organization_id, project_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    ALTER TABLE alert_event_transitions ADD CONSTRAINT "AK_alert_event_transitions_id_event_id" UNIQUE (id, event_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE TABLE notification_channel_profiles (
+        id uuid NOT NULL,
+        channel text NOT NULL,
+        configuration_hash text NOT NULL,
+        private_configuration jsonb NOT NULL,
+        protected_secret_fingerprint text NOT NULL,
+        created_by uuid NOT NULL,
+        created_at timestamp with time zone NOT NULL,
+        settings_revision bigint NOT NULL,
+        CONSTRAINT "PK_notification_channel_profiles" PRIMARY KEY (id),
+        CONSTRAINT "AK_notification_channel_profiles_id_channel" UNIQUE (id, channel),
+        CONSTRAINT ck_notification_profile_channel CHECK (channel IN ('Email','Webhook')),
+        CONSTRAINT ck_notification_profile_config CHECK (configuration_hash ~ '^[a-f0-9]{64}$' AND jsonb_typeof(private_configuration)='object' AND octet_length(private_configuration::text) BETWEEN 2 AND 16384 AND length(protected_secret_fingerprint) BETWEEN 1 AND 4096 AND settings_revision > 0),
+        CONSTRAINT "FK_notification_channel_profiles_users_created_by" FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE TABLE notification_channel_states (
+        channel text NOT NULL,
+        profile_id uuid,
+        enabled boolean NOT NULL,
+        revision bigint NOT NULL,
+        CONSTRAINT "PK_notification_channel_states" PRIMARY KEY (channel),
+        CONSTRAINT ck_notification_channel_state CHECK (channel IN ('Email','Webhook') AND revision > 0 AND (NOT enabled OR profile_id IS NOT NULL)),
+        CONSTRAINT "FK_notification_channel_states_notification_channel_profiles_p~" FOREIGN KEY (profile_id, channel) REFERENCES notification_channel_profiles (id, channel) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE TABLE notification_deliveries (
+        id uuid NOT NULL,
+        kind text NOT NULL,
+        event_id uuid,
+        transition_id uuid,
+        triggered_delivery_id uuid,
+        organization_id uuid,
+        project_id uuid,
+        environment_id uuid,
+        created_by uuid,
+        channel text NOT NULL,
+        target text NOT NULL,
+        target_hash text NOT NULL,
+        profile_id uuid,
+        payload bytea NOT NULL,
+        max_attempts integer NOT NULL,
+        base_delay_seconds integer NOT NULL,
+        max_delay_seconds integer NOT NULL,
+        expires_after_minutes integer NOT NULL,
+        status text NOT NULL,
+        reason text,
+        attempt_count integer NOT NULL,
+        next_attempt_at timestamp with time zone,
+        lease_owner text,
+        lease_token bigint NOT NULL,
+        lease_until timestamp with time zone,
+        revision bigint NOT NULL,
+        created_at timestamp with time zone NOT NULL,
+        expires_at timestamp with time zone NOT NULL,
+        completed_at timestamp with time zone,
+        CONSTRAINT "PK_notification_deliveries" PRIMARY KEY (id),
+        CONSTRAINT "AK_notification_deliveries_id_channel_target_hash" UNIQUE (id, channel, target_hash),
+        CONSTRAINT ck_notification_delivery_budget CHECK (max_attempts BETWEEN 1 AND 5 AND base_delay_seconds BETWEEN 1 AND 300 AND max_delay_seconds BETWEEN base_delay_seconds AND 3600 AND expires_after_minutes BETWEEN 5 AND 1440 AND attempt_count BETWEEN 0 AND max_attempts AND expires_at > created_at AND expires_at <= created_at + make_interval(mins => expires_after_minutes) AND revision > 0 AND lease_token >= 0 AND (kind <> 'Test' OR (max_attempts=1 AND expires_after_minutes=5))),
+        CONSTRAINT ck_notification_delivery_lease CHECK ((status='Sending' AND lease_owner IS NOT NULL AND length(lease_owner) BETWEEN 1 AND 128 AND lease_until IS NOT NULL AND lease_token > 0 AND attempt_count > 0) OR (status<>'Sending' AND lease_owner IS NULL AND lease_until IS NULL)),
+        CONSTRAINT ck_notification_delivery_scope CHECK ((kind='Alert' AND event_id IS NOT NULL AND transition_id IS NOT NULL AND organization_id IS NOT NULL AND project_id IS NOT NULL AND environment_id IS NOT NULL) OR (kind='Test' AND event_id IS NULL AND transition_id IS NULL AND triggered_delivery_id IS NULL AND organization_id IS NULL AND project_id IS NULL AND environment_id IS NULL AND created_by IS NOT NULL)),
+        CONSTRAINT ck_notification_delivery_status CHECK (status IN ('Queued','Sending','RetryScheduled','Paused','Accepted','Failed','Suppressed','Expired') AND (profile_id IS NOT NULL OR (status IN ('Suppressed','Expired') AND reason IS NOT NULL)) AND (reason IS NULL OR reason ~ '^[A-Za-z][A-Za-z0-9]{0,63}$')),
+        CONSTRAINT ck_notification_delivery_target CHECK (channel IN ('Email','Webhook') AND length(target) BETWEEN 1 AND 2048 AND (channel <> 'Email' OR length(target) <= 254) AND target_hash ~ '^[a-f0-9]{64}$' AND octet_length(payload) BETWEEN 1 AND 16384),
+        CONSTRAINT "FK_notification_deliveries_alert_event_transitions_transition_~" FOREIGN KEY (transition_id, event_id) REFERENCES alert_event_transitions (id, event_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_notification_deliveries_alert_events_event_id_organization_~" FOREIGN KEY (event_id, organization_id, project_id, environment_id) REFERENCES alert_events (id, organization_id, project_id, environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_notification_deliveries_notification_channel_profiles_profi~" FOREIGN KEY (profile_id, channel) REFERENCES notification_channel_profiles (id, channel) ON DELETE RESTRICT,
+        CONSTRAINT "FK_notification_deliveries_notification_deliveries_triggered_d~" FOREIGN KEY (triggered_delivery_id, channel, target_hash) REFERENCES notification_deliveries (id, channel, target_hash) ON DELETE RESTRICT,
+        CONSTRAINT "FK_notification_deliveries_users_created_by" FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE TABLE notification_delivery_attempts (
+        id uuid NOT NULL,
+        delivery_id uuid NOT NULL,
+        attempt_no integer NOT NULL,
+        lease_token bigint NOT NULL,
+        started_at timestamp with time zone NOT NULL,
+        completed_at timestamp with time zone,
+        outcome text,
+        code text,
+        protocol_status integer,
+        CONSTRAINT "PK_notification_delivery_attempts" PRIMARY KEY (id),
+        CONSTRAINT ck_notification_attempt_budget CHECK (attempt_no BETWEEN 1 AND 5 AND lease_token > 0 AND (completed_at IS NULL OR completed_at >= started_at)),
+        CONSTRAINT ck_notification_attempt_outcome CHECK ((completed_at IS NULL AND outcome IS NULL AND code IS NULL AND protocol_status IS NULL) OR (completed_at IS NOT NULL AND outcome IS NOT NULL AND outcome IN ('Accepted','TransientFailure','PermanentFailure','OutcomeUnknown') AND code IS NOT NULL AND code ~ '^[A-Za-z][A-Za-z0-9]{0,63}$' AND (protocol_status IS NULL OR protocol_status BETWEEN 100 AND 599))),
+        CONSTRAINT "FK_notification_delivery_attempts_notification_deliveries_deli~" FOREIGN KEY (delivery_id) REFERENCES notification_deliveries (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    ALTER TABLE alert_events ADD CONSTRAINT ck_alert_event_notification CHECK (jsonb_typeof(frozen_notification)='object' AND octet_length(frozen_notification::text) BETWEEN 2 AND 16384);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_channel_profiles_channel_created_at" ON notification_channel_profiles (channel, created_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_channel_profiles_created_by" ON notification_channel_profiles (created_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_channel_states_profile_id_channel" ON notification_channel_states (profile_id, channel);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_deliveries_created_by" ON notification_deliveries (created_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_deliveries_event_id_created_at_id" ON notification_deliveries (event_id, created_at, id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_deliveries_event_id_organization_id_project_id~" ON notification_deliveries (event_id, organization_id, project_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE UNIQUE INDEX "IX_notification_deliveries_event_id_transition_id_channel_targ~" ON notification_deliveries (event_id, transition_id, channel, target_hash);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_deliveries_kind_created_by_channel_created_at" ON notification_deliveries (kind, created_by, channel, created_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_deliveries_lease_until" ON notification_deliveries (lease_until) WHERE status = 'Sending';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_deliveries_profile_id_channel" ON notification_deliveries (profile_id, channel);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_deliveries_status_next_attempt_at_created_at" ON notification_deliveries (status, next_attempt_at, created_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_deliveries_transition_id_event_id" ON notification_deliveries (transition_id, event_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE INDEX "IX_notification_deliveries_triggered_delivery_id_channel_targe~" ON notification_deliveries (triggered_delivery_id, channel, target_hash);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE UNIQUE INDEX "IX_notification_delivery_attempts_delivery_id_attempt_no" ON notification_delivery_attempts (delivery_id, attempt_no);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    CREATE UNIQUE INDEX "IX_notification_delivery_attempts_delivery_id_lease_token" ON notification_delivery_attempts (delivery_id, lease_token);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    INSERT INTO notification_channel_states(channel,enabled,revision) VALUES('Email',false,1),('Webhook',false,1);
+    CREATE FUNCTION forbid_notification_profile_mutation() RETURNS trigger LANGUAGE plpgsql AS $immutable$
+    BEGIN RAISE EXCEPTION 'Notification profiles are immutable' USING ERRCODE='23514'; END $immutable$;
+    CREATE TRIGGER immutable_notification_profile BEFORE UPDATE OR DELETE ON notification_channel_profiles FOR EACH ROW EXECUTE FUNCTION forbid_notification_profile_mutation();
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008030000_ExternalNotifications') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261008030000_ExternalNotifications', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;

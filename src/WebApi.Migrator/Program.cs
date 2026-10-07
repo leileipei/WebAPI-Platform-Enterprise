@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Migrator;
+using WebApi.Infrastructure.Notifications;
 await using var db=new WebApiDbContext(new DbContextOptionsBuilder<WebApiDbContext>().UseNpgsql(DatabaseSettings.ConnectionString()).Options);
+await NotificationMigrationPreflight.ValidateAsync(db);
 await db.Database.MigrateAsync();
 Console.WriteLine("Database migrations applied successfully.");
 if(args.Contains("--bootstrap",StringComparer.Ordinal))

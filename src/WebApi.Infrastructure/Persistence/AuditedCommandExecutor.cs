@@ -4,11 +4,12 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Security;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Domain.Notifications;
 namespace WebApi.Infrastructure.Persistence;
 public sealed record AuditRequestMetadata(System.Net.IPAddress? Ip);
 public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetadata? metadata=null)
 {
-    private static readonly HashSet<string> fields=["Id","Code","Name","Status","DisplayName","Revision","EnvironmentId","ProjectId","OrganizationId","Version","Path","NormalizedPath","Methods","Enabled","TimeoutMs","ApplicationId","ApiId","ConfigVersion","DeploymentSequence","ReleaseNo","RoleId","UserId","PermissionId","AccessMode","ValidFrom","ExpiresAt","ReleaseId","ApiVersionId","ClusterId","CreatedBy","AssigneeUserId","StepOrder","ActedAt","Priority","Weight","OwnerUserId","LifecycleStatus","ReleaseType","RollbackOf","RecoveryOf","FromConfigVersion","ToConfigVersion","DeadlineAt","FailureCode","Metric","Expression","Severity","ForSeconds","WindowSeconds","TargetType","TargetId","LogicRevision","Notification","RuleId","RuleRevision","ResourceKey","ResourceType","ResourceId","OccurrenceNo","ResolvedBy","ResolveReason","ResolvedAt","AckedBy","AckedAt","SilencedBy","SilencedUntil","SilenceReason","FromStatus","ToStatus","ActorId","Reason","OccurredAt","CorrelationId","Phase","PendingSince","SuppressedAt","LastEventId"];
+    private static readonly HashSet<string> fields=["Id","Code","Name","Status","DisplayName","Revision","EnvironmentId","ProjectId","OrganizationId","Version","Path","NormalizedPath","Methods","Enabled","TimeoutMs","ApplicationId","ApiId","ConfigVersion","DeploymentSequence","ReleaseNo","RoleId","UserId","PermissionId","AccessMode","ValidFrom","ExpiresAt","ReleaseId","ApiVersionId","ClusterId","CreatedBy","AssigneeUserId","StepOrder","ActedAt","Priority","Weight","OwnerUserId","LifecycleStatus","ReleaseType","RollbackOf","RecoveryOf","FromConfigVersion","ToConfigVersion","DeadlineAt","FailureCode","Metric","Expression","Severity","ForSeconds","WindowSeconds","TargetType","TargetId","LogicRevision","RuleId","RuleRevision","ResourceKey","ResourceType","ResourceId","OccurrenceNo","ResolvedBy","ResolveReason","ResolvedAt","AckedBy","AckedAt","SilencedBy","SilencedUntil","SilenceReason","FromStatus","ToStatus","ActorId","Reason","OccurredAt","CorrelationId","Phase","PendingSince","SuppressedAt","LastEventId"];
     public async Task<T> ExecuteAsync<T>(ActorContext actor,ScopeRef scope,string action,Func<WebApiDbContext,CancellationToken,Task<T>> command,CancellationToken cancellationToken=default)
     {
         var owned=db.Database.CurrentTransaction is null?await db.Database.BeginTransactionAsync(cancellationToken):null;
@@ -38,6 +39,22 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
     private static object Capture(EntityEntry e,bool original)
     {
         var captured=e.Properties.Where(p=>fields.Contains(p.Metadata.Name)||(e.Entity is Policy&&p.Metadata.Name is "Type" or "VersionNo")).ToDictionary(p=>p.Metadata.Name,p=>original?p.OriginalValue:p.CurrentValue);
+        if(e.Entity is AlertRule)
+        {
+            captured.Remove("Notification");var property=e.Property(nameof(AlertRule.Notification));var json=(string?)(original?property.OriginalValue:property.CurrentValue);
+            if(json is not null)
+            {
+                var policy=NotificationPolicyValidator.Parse(json);captured["NotificationHash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(policy)));
+                captured["NotificationSummary"]=new{policy.ExternalEnabled,policy.RequestedChannels,recipientCount=policy.EmailRecipients?.Count??0,policy.NotifyRecovery,policy.RetryPolicy};
+                captured["ChangedFields"]=e.Properties.Where(p=>!Equals(p.OriginalValue,p.CurrentValue)).Select(p=>p.Metadata.Name).ToArray();
+            }
+        }
+        if(e.Entity is NotificationChannelProfile)
+            foreach(var name in new[]{"Channel","ConfigurationHash","SettingsRevision"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
+        if(e.Entity is NotificationChannelState)
+            foreach(var name in new[]{"Channel","ProfileId"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
+        if(e.Entity is NotificationDelivery)
+            foreach(var name in new[]{"Channel","Kind","AttemptCount"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
         if(e.Entity is SsoProvider)
         {
             foreach(var name in new[]{"AuthRevision","IsDefault","ProviderType"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;

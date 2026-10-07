@@ -30,5 +30,10 @@ public sealed class AlertEvent
     public double? LastValue { get; set; }
     public bool? LastCondition { get; set; }
     public string EvaluationState { get; set; } = "Unknown";
+    public string FrozenNotification {get;set;}=NotificationDefaults.DisabledSnapshot;
     public long Revision { get; set; } = 1;
+}
+public static class NotificationDefaults
+{
+    public const string DisabledSnapshot="{\"policy\":{\"inConsole\":true,\"requestedChannels\":[],\"externalEnabled\":false,\"emailRecipients\":[],\"notifyRecovery\":true,\"retryPolicy\":{\"maxAttempts\":5,\"baseDelaySeconds\":30,\"maxDelaySeconds\":900,\"expiresAfterMinutes\":1440}},\"emailProfileId\":null,\"webhookProfileId\":null}";
 }

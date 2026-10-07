@@ -6,7 +6,7 @@ public sealed record SecuritySettings(int SessionTtlMinutes,int PasswordMinLengt
 public sealed record ReleaseSettings(int ProductionApprovalLevels,int SnapshotRetentionCount):SettingsValues;
 public sealed record GatewaySettings(int DefaultRouteTimeoutMs,int MaxRequestBodyMb,int ConfigRefreshIntervalSeconds):SettingsValues;
 public sealed record AuditSettings(int AuditRetentionDays,bool AuditExportEnabled):SettingsValues;
-public sealed record NotificationSettings(string? SmtpHost,int? SmtpPort,string? FromEmail,string? SmtpSecretRef,string? WebhookUrl,string? WebhookSecretRef):SettingsValues;
+public sealed record NotificationSettings(string? SmtpHost,int? SmtpPort,string? FromEmail,string? SmtpSecretRef,string? WebhookUrl,string? WebhookSecretRef,bool SmtpEnabled=false,bool WebhookEnabled=false,string SmtpSecurity="StartTlsRequired"):SettingsValues;
 public sealed record ValidatedSettings(SettingsValues Value,string CanonicalValueJson,string ValueHash,IReadOnlyList<string> ChangedFields);
 public sealed record SettingsStoredValue(SettingsValues Value,long Revision,bool IsSaved);
 public static class SettingsValueCodec
@@ -20,7 +20,7 @@ public static class SettingsValueCodec
         try
         {
             using var document=JsonDocument.Parse(json,new JsonDocumentOptions{MaxDepth=16});
-            var properties=document.RootElement.EnumerateObject().ToArray();var expected=SystemSettingsValidator.Fields[group];
+            var properties=document.RootElement.EnumerateObject().ToArray();var expected=group=="notification"&&properties.Length==6?SystemSettingsValidator.Fields[group][..6]:SystemSettingsValidator.Fields[group];
             if(properties.Length!=expected.Length||properties.Select(p=>p.Name).Distinct(StringComparer.Ordinal).Count()!=expected.Length||properties.Any(p=>!expected.Contains(p.Name)))throw new JsonException();
             var input=properties.ToDictionary(p=>p.Name,p=>(object?)p.Value.Clone());
             if(group=="notification")foreach(var key in new[]{"smtpSecretRef","webhookSecretRef"})

@@ -2,6 +2,7 @@ using WebApi.Infrastructure.Comparisons;
 using WebApi.Infrastructure.Policies;
 using WebApi.Infrastructure.Catalog;
 using WebApi.Infrastructure.Settings;
+using WebApi.Infrastructure.Notifications;
 using WebApi.Infrastructure.Alerts;
 using WebApi.Infrastructure.Observability;
 using Microsoft.EntityFrameworkCore;
@@ -30,7 +31,8 @@ builder.Services.AddDbContext<WebApiDbContext>(o=>o.UseNpgsql(builder.Configurat
 builder.Services.AddScoped<AuthorizationService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();builder.Services.AddScoped<IdempotentCommandExecutor>();builder.Services.AddScoped<ReleaseCandidateBuilder>();builder.Services.AddScoped<ReleaseService>();builder.Services.AddScoped<ApprovalEligibilityService>();builder.Services.AddScoped<PublishCoordinator>();builder.Services.AddScoped<SnapshotCompiler>();builder.Services.AddScoped<OutboxDispatcher>();builder.Services.AddSingleton(new CommandRequestContext(""));
 builder.Services.AddSingleton(new PublishSettings(AckTimeoutSeconds:int.Parse(builder.Configuration["Publish:AckTimeoutSeconds"]??"120")));
 builder.Services.AddScoped<HistoricalSnapshotService>();
-builder.Services.AddDataProtection();builder.Services.AddSingleton<ContractComparisonEngine>();builder.Services.AddScoped<ComparisonCursorCodec>();builder.Services.AddScoped<VersionComparisonService>();builder.Services.AddScoped<VersionRiskReviewService>();builder.Services.TryAddSingleton(new WebApi.Infrastructure.Contracts.SchemaValidationSettings());builder.Services.AddSingleton<WebApi.Infrastructure.Contracts.ContractProcessRunner>();builder.Services.AddScoped<VersionContractSourceService>();builder.Services.AddScoped<SchemaValidationService>();builder.Services.AddScoped<CatalogService>();
+PersistentProtectionConfiguration.Configure(builder.Services,builder.Configuration,readOnly:true);builder.Services.AddSingleton<ContractComparisonEngine>();builder.Services.AddScoped<ComparisonCursorCodec>();builder.Services.AddScoped<VersionComparisonService>();builder.Services.AddScoped<VersionRiskReviewService>();builder.Services.TryAddSingleton(new WebApi.Infrastructure.Contracts.SchemaValidationSettings());builder.Services.AddSingleton<WebApi.Infrastructure.Contracts.ContractProcessRunner>();builder.Services.AddScoped<VersionContractSourceService>();builder.Services.AddScoped<SchemaValidationService>();builder.Services.AddScoped<CatalogService>();
+builder.Services.TryAddSingleton(NotificationDeploymentSettings.Read(builder.Configuration,builder.Environment));builder.Services.TryAddSingleton<INotificationSecretResolver,NotificationSecretResolver>();builder.Services.AddSingleton<NotificationSecretVersion>();builder.Services.AddScoped<NotificationConfigurationService>();
 builder.Services.TryAddSingleton(GatewayPolicyDeploymentRules.Read(builder.Configuration,builder.Environment));builder.Services.AddScoped<PolicyAccess>();builder.Services.AddScoped<PolicyReferenceService>();builder.Services.AddScoped<JwtApplicationBindingService>();
 builder.Services.AddScoped<SystemSettingsReader>();builder.Services.AddScoped<RouteService>();
 builder.Services.AddSingleton(new UpstreamAddressPolicy(UpstreamAddressPolicy.ReadAllowedOrigins(builder.Configuration)));
