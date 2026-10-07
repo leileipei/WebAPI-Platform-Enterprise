@@ -9,6 +9,8 @@ public interface INotificationTransport
 {
     Task<TransportResult> SendAsync(NotificationSendEnvelope envelope,CancellationToken ct=default);
 }
+public sealed class NotificationTransport(SmtpNotificationTransport smtp,WebhookNotificationTransport webhook):INotificationTransport
+{public Task<TransportResult> SendAsync(NotificationSendEnvelope envelope,CancellationToken ct=default)=>envelope.Url is null?smtp.SendAsync(envelope,ct):webhook.SendAsync(envelope,ct);}
 // No serializable public properties: only the dispatcher builds this frozen input.
 public sealed class NotificationSendEnvelope
 {

@@ -17,6 +17,9 @@ public sealed record TransportResult(DeliveryOutcome Outcome,string Code,int? Pr
 public sealed record RetryDecision(DateTimeOffset? NextAt,DeliveryStatus Status,string? Reason);
 public sealed record NotificationDeliveryDto(Guid Id,string Kind,Guid? EventId,NotificationChannel Channel,string MaskedTarget,DeliveryStatus Status,string? Reason,int AttemptCount,int MaxAttempts,DateTimeOffset CreatedAt,DateTimeOffset ExpiresAt,DateTimeOffset? NextAttemptAt,bool CanRetry,long Revision);
 public sealed record NotificationAttemptDto(int AttemptNo,DateTimeOffset StartedAt,DateTimeOffset? CompletedAt,DeliveryOutcome? Outcome,string? Code,int? ProtocolStatus);
+public sealed record NotificationLimitsDto(int MaxRecipients,bool EmailConfigured,bool EmailEnabled,bool WebhookConfigured,bool WebhookEnabled);
+public sealed record NotificationDeploymentPolicyDto(IReadOnlyList<string> AllowedRecipients,IReadOnlyList<string> AllowedDomains,string Source,int MaxRecipients);
+public sealed record CreateNotificationTestRequest(NotificationChannel Channel,string? Email);
 public sealed record NotificationMessageV1(int SchemaVersion,string Kind,Guid? EventId,long? OccurrenceNo,Guid? EnvironmentId,string? Severity,string? MetricCondition,string? Transition,DateTimeOffset OccurredAt,string ConsoleLink);
 
 // Reject duplicate/unknown notification fields at every JSON boundary, including

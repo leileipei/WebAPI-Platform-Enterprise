@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using WebApi.Contracts.Notifications;
 using WebApi.Infrastructure.Notifications;
 using WebApi.NotificationFixtureHost;
@@ -39,6 +40,13 @@ public sealed class NotificationTransportFixture:IAsyncDisposable
         });await app.StartAsync();var address=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();WebhookUrl=new Uri("https://hook.fixture.test:"+new Uri(address).Port+"/notify");
     }
     public Task<NotificationSecret> SecretAsync(NotificationChannel channel)=>secrets!.ResolveAsync(channel==NotificationChannel.Email?"vault://fixture/smtp":"vault://fixture/webhook",channel);
+    public void ConfigureNotifications(IConfiguration configuration)
+    {
+        configuration["Notifications:SecretFilesJson"]=JsonSerializer.Serialize(new Dictionary<string,string>{{"vault://fixture/smtp",Path.Combine(directory.FullName,"smtp.json")},{"vault://fixture/webhook",Path.Combine(directory.FullName,"webhook.json")}});
+        configuration["Notifications:AllowedSmtpEndpoints:0"]="smtp.fixture.test:"+Smtp.Port;configuration["Notifications:AllowedWebhookUrls:0"]=WebhookUrl.AbsoluteUri;
+        configuration["Notifications:AllowedRecipientDomains:0"]="example.test";configuration["Notifications:AllowedPrivateCidrs:0"]="127.0.0.0/8";
+        configuration["Notifications:FixtureEnabled"]="true";configuration["Notifications:FixtureCaFile"]=RootCertificatePath;configuration["Notifications:ConsoleBaseUrl"]="https://console.fixture.test/";
+    }
     private static async Task PrivateWrite(string path,string value)
     {await File.WriteAllTextAsync(path,value);if(!OperatingSystem.IsWindows())File.SetUnixFileMode(path,UnixFileMode.UserRead|UnixFileMode.UserWrite);}
     public async ValueTask DisposeAsync()

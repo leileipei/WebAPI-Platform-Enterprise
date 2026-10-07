@@ -17,4 +17,9 @@ public sealed class NotificationSecretVersion(IDataProtectionProvider protection
         try{return CryptographicOperations.FixedTimeEquals(Protector(profileId).Unprotect(Convert.FromBase64String(fingerprint)),Digest(secret));}
         catch(Exception error)when(error is CryptographicException or FormatException){return false;}
     }
+    internal bool Verify(Guid profileId,string fingerprint,NotificationSecret secret)
+    {
+        try{return CryptographicOperations.FixedTimeEquals(Protector(profileId).Unprotect(Convert.FromBase64String(fingerprint)),Digest(secret));}
+        catch(Exception error)when(error is CryptographicException or FormatException or InvalidOperationException){throw new ApiException(503,"notification_protection_unavailable","通知持久密钥不可用。");}
+    }
 }

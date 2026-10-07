@@ -100,17 +100,17 @@
 
 ## Task 5 (N5)：租约 Worker、测试/回执/人工重试 API
 
-**Files:** Create `src/WebApi.Infrastructure/Notifications/{NotificationDeliveryStore,NotificationDispatcher,NotificationQueryService,NotificationTestService}.cs`、`src/WebApi.Worker/Workers/NotificationDeliveryWorker.cs`、`src/WebApi.ControlPlane/Notifications/NotificationEndpoints.cs`、`tests/WebApi.Integration.Tests/{NotificationDispatchTests,NotificationApiTests}.cs`；ModifyControlPlane/Worker注册及Contracts DTO。
+**Files:** Create `src/WebApi.Infrastructure/Notifications/{NotificationDeliveryStore,NotificationDispatcher,NotificationQueryService,NotificationTestService}.cs`、`src/WebApi.Worker/Workers/NotificationDeliveryWorker.cs`、`src/WebApi.ControlPlane/Notifications/NotificationEndpoints.cs`、`tests/WebApi.Integration.Tests/{NotificationDispatchTests,NotificationApiTests}.cs`；Modify ControlPlane/Worker注册及Contracts DTO、SecretVersion可用性分类与Transport路由；新增共享 NotificationScenario 支持，并扩展 NotificationTransportFixture 的私有配置注入。
 
 **Interfaces:** `NotificationDeliveryStore.TryBeginAsync(string owner,CancellationToken) -> Task<DeliveryLease?>`（DeliveryLease含Id/Token/AttemptNo/Expires）；`CompleteAsync(DeliveryLease,TransportResult,CancellationToken) -> Task<bool>`fencing；`NotificationDispatcher.DispatchNextAsync(string owner,CancellationToken) -> Task<bool>`仅一次传输。`NotificationQueryService.ListForEventAsync(Guid,ActorContext,int page,int size,CancellationToken) -> Task<PageResult<NotificationDeliveryDto>>`、`AttemptsAsync(Guid,ActorContext,int,int,CancellationToken) -> Task<PageResult<NotificationAttemptDto>>`、`RetryAsync(Guid,string etag,ActorContext,CancellationToken) -> Task<NotificationDeliveryDto>`。`NotificationTestService.CreateAsync(NotificationChannel,string? email,string tag,ActorContext,CancellationToken) -> Task<NotificationDeliveryDto>`及`GetAsync(Guid,ActorContext,CancellationToken)`；使用既有CommandRequestContext幂等键。
 
 规则编辑需要的 `NotificationLimitsDto(int MaxRecipients,bool EmailConfigured,bool EmailEnabled,bool WebhookConfigured,bool WebhookEnabled)` 经 `GetLimitsAsync(ScopeRef,ActorContext,CancellationToken) -> Task<NotificationLimitsDto>` 和 `GET /api/v1/notification-limits?organizationId=...&projectId=...&environmentId=...` 输出：核对真实层级，要求该范围 alert.rule.manage，no-store，不输出端点、秘密、固定邮箱名单或跨范围数据。名单仍由保存时服务端校验；system.manage平台设置可显示原部署名单及来源。
 
-- [ ] **Step 1：写行为用例。** `TwoWorkersCannotOwnSameLiveAttempt`、`ExpiredLeaseCannotOverwriteNewReceipt`比较Token与attempt唯一键；`CrashAfterRemoteAcceptRecordsUnknownAndRecovers`重启后有且仅有恢复协调结果；`SilenceBeforeDispatchBlocksAndAfterDispatchStopsOnlyFutureAttempts`围绕begin点控制barrier；`RetryCannotResetBudgetOrShortenRetryAfter`次数/期限/下界不变；`DisabledChannelCanBeTestedWithoutActivation`202→实际回执，保存值与profile指针不变；`TestLimitsAndIdempotencyAreAtomic`第11并发Test/同分钟第二条拒绝；越Scope404、无写403、412输入可重试不被缓存绕过。
-- [ ] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter 'NotificationDispatchTests|NotificationApiTests'`。
-- [ ] **Step 3：实现。** SKIP LOCKED按数据库时间领取即将执行任务，持久attempt再网络发送；超时fencing/取消/Unknown归类与N1退避；Complete先结束其任务写回事务，再按统一锁顺序调用恢复协调，不在任务锁内反向取得治理/事件锁。每轮协调恢复并处理暂停到期。所有API按规格§7，Test不用自动enabled门禁但重新校验已保存配置/秘密版本，Receipt一律no-store且掩码；人工retry不重置预算。
-- [ ] **Step 4：GREEN。** 同上及`--filter 'IdempotencyTests|AlertActionTests|SystemSettingsCommandTests'`；实际4并发/60秒租约/5最大次数按注入时钟验证，不靠长sleep。
-- [ ] **Step 5：提交。** `feat(notifications): dispatch durable jobs and expose governed receipts`。
+- [x] **Step 1：写行为用例。** `TwoWorkersCannotOwnSameLiveAttempt`、`ExpiredLeaseCannotOverwriteNewReceipt`比较Token与attempt唯一键；`CrashAfterRemoteAcceptRecordsUnknownAndRecovers`重启后有且仅有恢复协调结果；`SilenceBeforeDispatchBlocksAndAfterDispatchStopsOnlyFutureAttempts`围绕begin点控制barrier；`RetryCannotResetBudgetOrShortenRetryAfter`次数/期限/下界不变；`DisabledChannelCanBeTestedWithoutActivation`202→实际回执，保存值与profile指针不变；`TestLimitsAndIdempotencyAreAtomic`第11并发Test/同分钟第二条拒绝；越Scope404、无写403、412输入可重试不被缓存绕过。
+- [x] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter 'NotificationDispatchTests|NotificationApiTests'`。
+- [x] **Step 3：实现。** SKIP LOCKED按数据库时间领取即将执行任务，持久attempt再网络发送；超时fencing/取消/Unknown归类与N1退避；Complete先结束其任务写回事务，再按统一锁顺序调用恢复协调，不在任务锁内反向取得治理/事件锁。每轮协调恢复并处理暂停到期。所有API按规格§7，Test不用自动enabled门禁但重新校验已保存配置/秘密版本，Receipt一律no-store且掩码；人工retry不重置预算。
+- [x] **Step 4：GREEN。** 同上及`--filter 'IdempotencyTests|AlertActionTests|SystemSettingsCommandTests'`；实际4并发/60秒租约/5最大次数按注入时钟验证，不靠长sleep。
+- [x] **Step 5：提交。** `feat(notifications): dispatch durable jobs and expose governed receipts`。
 
 ## Task 6 (N6)：系统通知设置与真实测试 UI
 
