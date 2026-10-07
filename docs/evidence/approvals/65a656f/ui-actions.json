@@ -1,0 +1,119 @@
+{
+  "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+  "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+  "viewports": [
+    1440,
+    1280
+  ],
+  "actions": [
+    {
+      "id": "inbox-1440",
+      "passed": true,
+      "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+      "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+      "viewport": 1440,
+      "screenshot": "inbox-1440.jpg",
+      "observed": {
+        "shellEnvironment": "A",
+        "visibleEnvironments": [
+          "A",
+          "B"
+        ],
+        "pendingMine": 3,
+        "allVisible": 54
+      }
+    },
+    {
+      "id": "filters-1280",
+      "passed": true,
+      "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+      "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+      "viewport": 1280,
+      "screenshot": "filters-1280.jpg",
+      "observed": {
+        "shellEnvironment": "B",
+        "filterEnvironment": "A",
+        "allVisible": 52,
+        "pageSize": 50
+      }
+    },
+    {
+      "id": "detail-return",
+      "passed": true,
+      "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+      "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+      "viewport": 1440,
+      "screenshot": "detail-return.jpg",
+      "observed": {
+        "before": "http://127.0.0.1:57531/approvals?view=AllVisible&environmentId=d7beeb3f-5be7-476e-9326-f57d6d81808a&page=2&pageSize=50",
+        "after": "http://127.0.0.1:57531/approvals?view=AllVisible&environmentId=d7beeb3f-5be7-476e-9326-f57d6d81808a&page=2&pageSize=50",
+        "actualEnvironment": "A",
+        "shellBefore": "B"
+      }
+    },
+    {
+      "id": "approval-dialog-keyboard",
+      "passed": true,
+      "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+      "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+      "viewport": 1440,
+      "screenshot": "approval-dialog-keyboard.jpg",
+      "observed": {
+        "initialFocus": "TEXTAREA",
+        "discardFocus": "继续编辑",
+        "backwards": "确认放弃",
+        "forward": "继续编辑"
+      }
+    },
+    {
+      "id": "conflict-comment",
+      "passed": true,
+      "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+      "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+      "viewport": 1440,
+      "screenshot": "conflict-comment.jpg",
+      "observed": {
+        "comment": "409 冲突后保留此批注",
+        "concurrentResult": "Rejected",
+        "conflictNotice": "申请已变化，批注已保留",
+        "submitDisabled": true
+      }
+    },
+    {
+      "id": "scope-read-revoked",
+      "passed": true,
+      "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+      "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+      "viewport": 1440,
+      "screenshot": "scope-read-revoked.jpg",
+      "observed": {
+        "dialogRemoved": true,
+        "oldCommentRemoved": true,
+        "oldRowsRemoved": true,
+        "actorScopes": 0
+      }
+    },
+    {
+      "id": "read-only-ui",
+      "passed": true,
+      "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+      "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+      "viewport": 1440,
+      "screenshot": "read-only-ui.jpg",
+      "observed": {
+        "approveRejectButtons": 0,
+        "scopeMode": "read",
+        "readerExpanded": false
+      }
+    }
+  ],
+  "screenshots": [
+    "inbox-1440.jpg",
+    "filters-1280.jpg",
+    "detail-return.jpg",
+    "approval-dialog-keyboard.jpg",
+    "conflict-comment.jpg",
+    "scope-read-revoked.jpg",
+    "read-only-ui.jpg"
+  ]
+}

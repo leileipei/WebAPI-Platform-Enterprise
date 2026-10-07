@@ -1,0 +1,246 @@
+{
+  "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+  "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+  "result": {
+    "passed": true,
+    "errors": []
+  },
+  "clone": {
+    "actual": true,
+    "ownerVerified": true,
+    "projectName": "webapi-enterprise-local-test-e05e7635-b7f2-4910-a4f9-8b67475ae891",
+    "ownerId": "6f286447-0a29-4239-b9ca-fd180514f0fa",
+    "consolePort": 57531,
+    "applicationImages": [
+      {
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5"
+      },
+      {
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5"
+      },
+      {
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5"
+      },
+      {
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5"
+      },
+      {
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5"
+      }
+    ]
+  },
+  "pagination": {
+    "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+    "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+    "total": 51,
+    "pageSize": 50,
+    "pendingMine": 1,
+    "actionableId": "06921ca3-1959-41b1-96c9-4158e2adc949",
+    "secondPageId": "06921ca3-1959-41b1-96c9-4158e2adc949",
+    "countsFromService": true
+  },
+  "checks": [
+    {
+      "id": "cross-environment",
+      "passed": true,
+      "actual": "[\"b1de2ea1-a981-49ce-954c-6aa1dcafa049\",\"d7beeb3f-5be7-476e-9326-f57d6d81808a\"]",
+      "expected": "[\"b1de2ea1-a981-49ce-954c-6aa1dcafa049\",\"d7beeb3f-5be7-476e-9326-f57d6d81808a\"]"
+    },
+    {
+      "id": "mixed-scope",
+      "passed": true,
+      "actual": "[2,1,\"d7beeb3f-5be7-476e-9326-f57d6d81808a\"]",
+      "expected": "[2,1,\"d7beeb3f-5be7-476e-9326-f57d6d81808a\"]"
+    },
+    {
+      "id": "read-only",
+      "passed": true,
+      "actual": "[2,0,403]",
+      "expected": "[2,0,403]"
+    },
+    {
+      "id": "self-approval",
+      "passed": true,
+      "actual": "403",
+      "expected": "403"
+    },
+    {
+      "id": "second-page",
+      "passed": true,
+      "actual": "[51,50,1,\"06921ca3-1959-41b1-96c9-4158e2adc949\",1]",
+      "expected": "[51,50,1,\"06921ca3-1959-41b1-96c9-4158e2adc949\",1]"
+    },
+    {
+      "id": "independent-seats",
+      "passed": true,
+      "actual": "[403,403,2,\"Ready\",3]",
+      "expected": "[403,403,2,\"Ready\",3]"
+    },
+    {
+      "id": "revocation",
+      "passed": true,
+      "actual": "[0,404]",
+      "expected": "[0,404]"
+    }
+  ],
+  "ui": {
+    "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+    "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+    "viewports": [
+      1440,
+      1280
+    ],
+    "actions": [
+      {
+        "id": "inbox-1440",
+        "passed": true,
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "viewport": 1440,
+        "screenshot": "inbox-1440.jpg",
+        "observed": {
+          "shellEnvironment": "A",
+          "visibleEnvironments": [
+            "A",
+            "B"
+          ],
+          "pendingMine": 3,
+          "allVisible": 54
+        }
+      },
+      {
+        "id": "filters-1280",
+        "passed": true,
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "viewport": 1280,
+        "screenshot": "filters-1280.jpg",
+        "observed": {
+          "shellEnvironment": "B",
+          "filterEnvironment": "A",
+          "allVisible": 52,
+          "pageSize": 50
+        }
+      },
+      {
+        "id": "detail-return",
+        "passed": true,
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "viewport": 1440,
+        "screenshot": "detail-return.jpg",
+        "observed": {
+          "before": "http://127.0.0.1:57531/approvals?view=AllVisible&environmentId=d7beeb3f-5be7-476e-9326-f57d6d81808a&page=2&pageSize=50",
+          "after": "http://127.0.0.1:57531/approvals?view=AllVisible&environmentId=d7beeb3f-5be7-476e-9326-f57d6d81808a&page=2&pageSize=50",
+          "actualEnvironment": "A",
+          "shellBefore": "B"
+        }
+      },
+      {
+        "id": "approval-dialog-keyboard",
+        "passed": true,
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "viewport": 1440,
+        "screenshot": "approval-dialog-keyboard.jpg",
+        "observed": {
+          "initialFocus": "TEXTAREA",
+          "discardFocus": "继续编辑",
+          "backwards": "确认放弃",
+          "forward": "继续编辑"
+        }
+      },
+      {
+        "id": "conflict-comment",
+        "passed": true,
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "viewport": 1440,
+        "screenshot": "conflict-comment.jpg",
+        "observed": {
+          "comment": "409 冲突后保留此批注",
+          "concurrentResult": "Rejected",
+          "conflictNotice": "申请已变化，批注已保留",
+          "submitDisabled": true
+        }
+      },
+      {
+        "id": "scope-read-revoked",
+        "passed": true,
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "viewport": 1440,
+        "screenshot": "scope-read-revoked.jpg",
+        "observed": {
+          "dialogRemoved": true,
+          "oldCommentRemoved": true,
+          "oldRowsRemoved": true,
+          "actorScopes": 0
+        }
+      },
+      {
+        "id": "read-only-ui",
+        "passed": true,
+        "sourceRevision": "65a656f4ecc142f533e84d1b22f90667b99136f5",
+        "imageId": "sha256:810eb1c47ca62af691b1ecdf4f4b793955e94bd6a8605c4b441ed43bea566fe1",
+        "viewport": 1440,
+        "screenshot": "read-only-ui.jpg",
+        "observed": {
+          "approveRejectButtons": 0,
+          "scopeMode": "read",
+          "readerExpanded": false
+        }
+      }
+    ],
+    "screenshots": [
+      "inbox-1440.jpg",
+      "filters-1280.jpg",
+      "detail-return.jpg",
+      "approval-dialog-keyboard.jpg",
+      "conflict-comment.jpg",
+      "scope-read-revoked.jpg",
+      "read-only-ui.jpg"
+    ]
+  },
+  "manifest": [
+    {
+      "path": "ui-actions.json",
+      "sha256": "6a2a5e5fc7c73ecde9a2865aa616104bb2fce4dfd7172a97c71f6223605b5ad2"
+    },
+    {
+      "path": "inbox-1440.jpg",
+      "sha256": "06753ac6cfeab96f1d7ebd755233f743aef2f6f5461ad3685853e008a8c12c1c"
+    },
+    {
+      "path": "filters-1280.jpg",
+      "sha256": "e69fef3c957765f88d78890c31aa9b8069abf1fd1e970425160121f09e31678d"
+    },
+    {
+      "path": "detail-return.jpg",
+      "sha256": "c41d1447f8ed2663a55780e6aaaee723d6b2ee18f8c4bcac9aa352cc192afe65"
+    },
+    {
+      "path": "approval-dialog-keyboard.jpg",
+      "sha256": "d182ccf404af1226ee76c8167ca70e3ab30de5363c0c128a5f492ddc0637da83"
+    },
+    {
+      "path": "conflict-comment.jpg",
+      "sha256": "a5d2f093887f4692cfa83394add6d759c318b1791d8c842dc65c6fa4d105398c"
+    },
+    {
+      "path": "scope-read-revoked.jpg",
+      "sha256": "9448780116c1bbdf25ad570d4d47c48624197b96b95b80a9bd58b90f4f72aa8f"
+    },
+    {
+      "path": "read-only-ui.jpg",
+      "sha256": "18ee131e57b95620053181539be294ab8cbad0a8bbe992c287629d68fdea9b37"
+    }
+  ],
+  "stage": "pre-install",
+  "originalInstallation": "not-upgraded"
+}

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {inflateSync} from 'node:zlib';
 function screenshotSize(content){
+ if(content[0]===255&&content[1]===216)return jpegScreenshotSize(content);
  assert(content.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),'截图不是 PNG。');
  let offset=8,width=0,height=0,channels=0,ended=false;const compressed=[];
  while(offset+12<=content.length){const size=content.readUInt32BE(offset),end=offset+12+size;assert(end<=content.length,'PNG 块截断。');const chunk=content.subarray(offset+4,end-4),kind=chunk.subarray(0,4).toString();let crc=0xffffffff;for(const byte of chunk){crc^=byte;for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}assert(((crc^0xffffffff)>>>0)===content.readUInt32BE(end-4),'PNG 校验错误。');
@@ -9,6 +10,14 @@ function screenshotSize(content){
   if(kind==='IDAT')compressed.push(content.subarray(offset+8,end-4));offset=end;if(kind==='IEND'){assert(size===0&&offset===content.length,'PNG 尾无效。');ended=true;break;}
  }
  assert(ended&&compressed.length&&channels,'PNG 内容不完整。');const raw=inflateSync(Buffer.concat(compressed),{maxOutputLength:16*1024*1024});assert(raw.length===height*(width*channels+1),'PNG 像素长度不一致。');return {width,height};
+}
+function jpegScreenshotSize(content){
+ assert(content.length>1000&&content.subarray(-2).equals(Buffer.from([255,217])),'JPEG 截断或缺少图像内容。');let offset=2,size=null,quantization=false,huffman=false;
+ while(offset<content.length-2){assert.equal(content[offset++],255,'JPEG 块无效。');while(content[offset]===255)offset++;const marker=content[offset++];assert(![0,216,217].includes(marker),'JPEG 标记无效。');const length=content.readUInt16BE(offset);assert(length>=2&&offset+length<=content.length-2,'JPEG 块截断。');
+  if([192,194].includes(marker)){assert(length>=11&&content[offset+2]===8&&[1,3].includes(content[offset+7]),'JPEG 帧无效。');size={height:content.readUInt16BE(offset+3),width:content.readUInt16BE(offset+5)};assert([1280,1440].includes(size.width)&&size.height>=600&&size.height<=2000,'截图未证明桌面视口。');}
+  if(marker===219)quantization=true;if(marker===196)huffman=true;
+  if(marker===218){assert(size&&quantization&&huffman&&offset+length<content.length-2,'JPEG 缺少编码表或扫描数据。');return size;}offset+=length;
+ }assert.fail('JPEG 缺少扫描内容。');
 }
 export const requiredApprovalChecks=['cross-environment','second-page','independent-seats','read-only','self-approval','revocation','mixed-scope'];
 export const requiredApprovalUiActions=['inbox-1440','filters-1280','approval-dialog-keyboard','conflict-comment','detail-return','scope-read-revoked'];

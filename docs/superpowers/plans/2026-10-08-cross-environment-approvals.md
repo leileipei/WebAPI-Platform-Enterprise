@@ -78,11 +78,11 @@
 
 JS AcceptanceResult固定 `{passed:boolean,errors:string[]}`；ApprovalScenarioResult含内部revision/imageId、查询计数/实际动作checks、截图与动作manifest及逐文件摘要，不能只返回“passed”标签。
 
-- [ ] **Step 1：写行为/证据用例。** `pendingAcrossShellEnvironmentsRetainsUrlFilter`、`lateResponseCannotReplaceNewAuthority`、`conflictKeepsCommentButLostReadClearsIt`、`serverEligibilityControlsBothListAndDetail`；`assert.equal(request.view,'PendingMine')`默认；伪截图/错提交/未取得服务端计数的evidence必须throw，外部returnTo拒绝。
-- [ ] **Step 2：RED。** Run `N --test console/tests/approval-inbox.test.mjs tests/approvals/evidence.test.mjs`。
-- [ ] **Step 3：实现。** 独立Approvals替代Releases approvalOnly，3标签及Scope筛选/真实环境风险步骤/等待时长，5秒可见轮询；服务端资格控制动作，412/409保存批注但读取撤权清空。Shell变化不隐式重置跨环境筛选，返回URL维持筛选及页码。原详情仅补资格和返回，不更改发布动作语义。
-- [ ] **Step 4：GREEN及实际操作。** 同上与`./scripts/check-console.sh`；自有UUID克隆新建 `approval-<uuid>-applicant/reviewer/security/reader` 四类账号及预先声明Scope：申请人可创建、两独立审核者各有各步骤角色+写Scope、reader仅read；混合Scope专用新账号同时有组织read与一个环境read_write，不给reader扩权。验证跨至少两环境、51条分页、一级多席位、只读/自批/撤权、1440/1280焦点/弹窗/批注/跨环境详情返回。可独立于通知模块验收。
-- [ ] **Step 5：封存提交。** `feat(console): deliver cross-environment personal approval inbox`；实际截图/动作身份脱敏保存 `docs/evidence/approvals/`，不把模拟前端请求当真实浏览器证据。
+- [x] **Step 1：写行为/证据用例。** `pendingAcrossShellEnvironmentsRetainsUrlFilter`、`lateResponseCannotReplaceNewAuthority`、`conflictKeepsCommentButLostReadClearsIt`、`serverEligibilityControlsBothListAndDetail`；`assert.equal(request.view,'PendingMine')`默认；伪截图/错提交/未取得服务端计数的evidence必须throw，外部returnTo拒绝。
+- [x] **Step 2：RED。** Run `N --test console/tests/approval-inbox.test.mjs tests/approvals/evidence.test.mjs`。
+- [x] **Step 3：实现。** 独立Approvals替代Releases approvalOnly，3标签及Scope筛选/真实环境风险步骤/等待时长，5秒可见轮询；服务端资格控制动作，412/409保存批注但读取撤权清空。Shell变化不隐式重置跨环境筛选，返回URL维持筛选及页码。原详情仅补资格和返回，不更改发布动作语义。
+- [x] **Step 4：GREEN及实际操作。** 同上与`./scripts/check-console.sh`；自有UUID克隆新建 `approval-<uuid>-applicant/reviewer/security/reader` 四类账号及预先声明Scope：申请人可创建、两独立审核者各有各步骤角色+写Scope、reader仅read；混合Scope专用新账号同时有组织read与一个环境read_write，不给reader扩权。验证跨至少两环境、51条分页、一级多席位、只读/自批/撤权、1440/1280焦点/弹窗/批注/跨环境详情返回。可独立于通知模块验收。
+- [x] **Step 5：封存提交。** `feat(console): deliver cross-environment personal approval inbox`；实际截图/动作身份脱敏保存 `docs/evidence/approvals/`，不把模拟前端请求当真实浏览器证据。
 
 ## 覆盖与自查
 

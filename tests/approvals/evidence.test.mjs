@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import {deflateSync} from 'node:zlib';
 import test from 'node:test';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';
 import {validateApprovalEvidence,requiredApprovalChecks,requiredApprovalUiActions} from '../../scripts/approvals/evidence.mjs';
@@ -18,3 +19,4 @@ for(const [name,change]of [
 test('fakeOrModifiedScreenshotRejected',()=>{const {proof,files}=sample();files[0].content=Buffer.from('fake screenshot');files[0].sha256=hash(files[0].content);proof.manifest[0].sha256=files[0].sha256;assert.throws(()=>validateApprovalEvidence(proof,files,{revision,imageId}));});
 test('onePixelOrReusedScreenshotCannotProveDesktopActions',()=>{const {proof,files}=sample();files[0].content=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jhD0AAAAASUVORK5CYII=','base64');files[0].sha256=hash(files[0].content);proof.manifest[0].sha256=files[0].sha256;assert.throws(()=>validateApprovalEvidence(proof,files,{revision,imageId}));});
 test('oneScreenshotCannotBeReusedForDifferentActions',()=>{const {proof,files}=sample();proof.ui.actions[1].screenshot=proof.ui.actions[0].screenshot;assert.throws(()=>validateApprovalEvidence(proof,files,{revision,imageId}));});
+test('nativeDesktopJpegIsAcceptedWithoutReencoding',()=>{const {proof,files}=sample();files[0].content=readFileSync(new URL('../../docs/evidence/approvals/65a656f/inbox-1440.jpg',import.meta.url));files[0].sha256=hash(files[0].content);proof.manifest[0].sha256=files[0].sha256;assert.deepEqual(validateApprovalEvidence(proof,files,{revision,imageId}),{passed:true,errors:[]});});
