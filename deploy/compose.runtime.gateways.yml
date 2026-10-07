@@ -40,11 +40,18 @@
         "Gateway__LkgDirectory": "/lkg",
         "Gateway__ControlPlaneUrl": "http://control-plane:8080",
         "Observability__CollectorEndpoint": "http://collector:4318",
-        "Observability__MetricExportIntervalMs": "15000"
+        "Observability__MetricExportIntervalMs": "15000",
+        "GatewayPolicies__Cache__HmacSecretFile": "/run/cache/cache-hmac",
+        "GatewayPolicies__Cache__KeyPrefix": "webapi:responsecache:${WEBAPI_RUNTIME_PROJECT:?required}",
+        "GatewayPolicies__Cache__MaxTotalBytes": "67108864",
+        "GatewayPolicies__Cache__MaxEntries": "2000",
+        "GatewayPolicies__Cache__MaxEntryBytes": "1048576",
+        "GatewayPolicies__Cache__DecisionTimeoutMs": "100"
       },
       "volumes": [
         "secrets-gateway-a:/run/secrets:ro",
-        "lkg-a:/lkg"
+        "lkg-a:/lkg",
+        "secrets-cache:/run/cache:ro"
       ],
       "ports": [
         "127.0.0.1:${WEBAPI_RUNTIME_GATEWAY_A_PORT:-4196}:8080"
@@ -102,11 +109,18 @@
         "Gateway__LkgDirectory": "/lkg",
         "Gateway__ControlPlaneUrl": "http://control-plane:8080",
         "Observability__CollectorEndpoint": "http://collector:4318",
-        "Observability__MetricExportIntervalMs": "15000"
+        "Observability__MetricExportIntervalMs": "15000",
+        "GatewayPolicies__Cache__HmacSecretFile": "/run/cache/cache-hmac",
+        "GatewayPolicies__Cache__KeyPrefix": "webapi:responsecache:${WEBAPI_RUNTIME_PROJECT:?required}",
+        "GatewayPolicies__Cache__MaxTotalBytes": "67108864",
+        "GatewayPolicies__Cache__MaxEntries": "2000",
+        "GatewayPolicies__Cache__MaxEntryBytes": "1048576",
+        "GatewayPolicies__Cache__DecisionTimeoutMs": "100"
       },
       "volumes": [
         "secrets-gateway-b:/run/secrets:ro",
-        "lkg-b:/lkg"
+        "lkg-b:/lkg",
+        "secrets-cache:/run/cache:ro"
       ],
       "ports": [
         "127.0.0.1:${WEBAPI_RUNTIME_GATEWAY_B_PORT:-4197}:8080"

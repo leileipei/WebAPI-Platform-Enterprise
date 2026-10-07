@@ -388,7 +388,8 @@
         "secrets-worker:/volumes/secrets-worker",
         "secrets-gateway-a:/volumes/secrets-gateway-a",
         "secrets-gateway-b:/volumes/secrets-gateway-b",
-        "secrets-migrator:/volumes/secrets-migrator"
+        "secrets-migrator:/volumes/secrets-migrator",
+        "secrets-cache:/volumes/secrets-cache"
       ]
     }
   },
@@ -459,6 +460,11 @@
       }
     },
     "secrets-migrator": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "secrets-cache": {
       "labels": {
         "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
       }

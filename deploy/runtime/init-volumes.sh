@@ -24,5 +24,7 @@ for role in postgres control-plane worker gateway-a gateway-b migrator; do
     gateway-b) for secret in node-b ip-hmac; do copy_secret "$secret" "$role" "$uid"; done ;;
   esac
 done
+chown 10001:10001 /volumes/secrets-cache; chmod 700 /volumes/secrets-cache
+copy_secret cache-hmac cache 10001
 if [ -f /input/bootstrap-password ]; then install -m 600 -o 10001 -g 10001 /input/bootstrap-password /volumes/bootstrap-password/password; fi
 echo 'Owned runtime volumes and role-specific secret permissions initialized.'
