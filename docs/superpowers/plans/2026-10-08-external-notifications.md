@@ -76,15 +76,15 @@
 
 ## Task 3 (N3)：有界真实 SMTP/Webhook 单次传输
 
-**Files:** Create `src/WebApi.Infrastructure/Notifications/{NotificationAddressPolicy,SmtpNotificationTransport,WebhookNotificationTransport,NotificationTransport}.cs`、`tests/WebApi.NotificationFixtureHost/WebApi.NotificationFixtureHost.csproj`、`tests/WebApi.NotificationFixtureHost/{Program,NotificationFixtureApp,SmtpFixture,WebhookFixture}.cs`、`tests/WebApi.Integration.Tests/NotificationTransportTests.cs`及`tests/WebApi.TestSupport/Support/NotificationTransportFixture.cs`；Modify `Directory.Packages.props`、`src/WebApi.Infrastructure/WebApi.Infrastructure.csproj`、`WebApi.Enterprise.sln`、TestSupport项目引用及上述依赖变动影响的各 `packages.lock.json`，新增fixture自己的锁文件。
+**Files:** Create `src/WebApi.Infrastructure/Notifications/{NotificationAddressPolicy,SmtpNotificationTransport,WebhookNotificationTransport,NotificationTransport}.cs`、`tests/WebApi.NotificationFixtureHost/WebApi.NotificationFixtureHost.csproj`、`tests/WebApi.NotificationFixtureHost/{Program,NotificationFixtureApp,SmtpFixture,WebhookFixture}.cs`、`tests/WebApi.Integration.Tests/NotificationTransportTests.cs`及`tests/WebApi.TestSupport/Support/NotificationTransportFixture.cs`；另建独立健康探针 `tests/WebApi.Integration.Tests/NotificationFixtureTests.cs` 和依赖证据 `docs/evidence/notifications/dependencies/`；Modify `src/WebApi.Infrastructure/Notifications/NotificationDeploymentSettings.cs`（显式 fixture CA 与 CIDR 配置校验）、`Directory.Packages.props`、`src/WebApi.Infrastructure/WebApi.Infrastructure.csproj`、`WebApi.Enterprise.sln`、TestSupport项目引用及上述依赖变动影响的各 `packages.lock.json`，新增fixture自己的锁文件。
 
 **Interfaces:** `INotificationTransport.SendAsync(NotificationSendEnvelope,CancellationToken) -> Task<TransportResult>`；私有Envelope含冻结body、deliveryId、地址/TLS/发件人及单个接收目标与已解析秘密；`INotificationAddressPolicy.ResolveAsync(NotificationChannel,string host,int port,Uri? url,CancellationToken) -> Task<IReadOnlyList<IPAddress>>`。`NotificationFixtureApp.Build(string[],Action<WebApplicationBuilder>? configure=null) -> WebApplication`承载WebHook控制/查询；SMTP TCP listener附着同host生命周期，支持强制STARTTLS/TLS-on-connect、AUTH、单目标DATA、暂时/永久错误、延迟、接受后断连。fixture记录协议码/次数/ID，不保存认证原文。
 
-- [ ] **Step 1：写真实协议用例。** `SmtpUsesValidatedSocketRequiredTlsAndOneRecipient`断言RCPT数量1、未知TLS模式拒绝、无STARTTLS不回退；`SmtpDataAcceptedThenDisconnectedIsUnknown`断言`OutcomeUnknown`；`WebhookSignatureReplayAndExactBody`独立校验签名及稳定deliveryId；`DnsRebindingMixedAnswersAndRedirectRejected`禁止第二次DNS或跳转；`TimeoutAndBodyReadAreBounded`超过10秒取消、响应读取≤4096；`HostnameMismatchNotAllowedByFixtureCa`必须失败。20目标由20独立发送，不合并信封。
-- [ ] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter NotificationTransportTests`；只有实际服务启动、认证/TLS协商已发生且行为不符才算RED。
-- [ ] **Step 3：实现及锁定依赖。** MailKit连接先自行将socket连到允许IP，再传原hostname和显式StartTls/SslOnConnect；禁Auto、协议日志及系统代理。Webhook SocketsHttpHandler.ConnectCallback绑定已验证地址，关重定向/Cookie/代理；总体CancellationToken覆盖全阶段。fixture CA仅匹配显式配置实例，保留hostname/有效期校验；正式路径保持正常证书验证。SMTP接受后QUIT错误不抹掉已取得的DATA接受结果。
-- [ ] **Step 4：GREEN与库验证。** 同上；固定SDK容器.NET10编译、`dotnet restore WebApi.Enterprise.sln --locked-mode`成功，归档4.17.0及传递依赖摘要/许可证，不跳过TLS或Socket实际用例。
-- [ ] **Step 5：提交。** 精确提交源码/fixture/锁文件，`feat(notifications): send bounded SMTP and signed webhooks`。
+- [x] **Step 1：写真实协议用例。** `SmtpUsesValidatedSocketRequiredTlsAndOneRecipient`断言RCPT数量1、未知TLS模式拒绝、无STARTTLS不回退；`SmtpDataAcceptedThenDisconnectedIsUnknown`断言`OutcomeUnknown`；`WebhookSignatureReplayAndExactBody`独立校验签名及稳定deliveryId；`DnsRebindingMixedAnswersAndRedirectRejected`禁止第二次DNS或跳转；`TimeoutAndBodyReadAreBounded`超过10秒取消、响应读取≤4096；`HostnameMismatchNotAllowedByFixtureCa`必须失败。20目标由20独立发送，不合并信封。
+- [x] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter NotificationTransportTests`；只有实际服务启动、认证/TLS协商已发生且行为不符才算RED。
+- [x] **Step 3：实现及锁定依赖。** MailKit连接先自行将socket连到允许IP，再传原hostname和显式StartTls/SslOnConnect；禁Auto、协议日志及系统代理。Webhook SocketsHttpHandler.ConnectCallback绑定已验证地址，关重定向/Cookie/代理；总体CancellationToken覆盖全阶段。fixture CA仅匹配显式配置实例，保留hostname/有效期校验；正式路径保持正常证书验证。SMTP接受后QUIT错误不抹掉已取得的DATA接受结果。
+- [x] **Step 4：GREEN与库验证。** 同上；固定SDK容器.NET10编译、`dotnet restore WebApi.Enterprise.sln --locked-mode`成功，归档4.17.0及传递依赖摘要/许可证，不跳过TLS或Socket实际用例。
+- [x] **Step 5：提交。** 精确提交源码/fixture/锁文件，`feat(notifications): send bounded SMTP and signed webhooks`。
 
 ## Task 4 (N4)：告警原子规划、静默及可重启恢复配对
 

@@ -1,0 +1,2 @@
+*.nuspec -text whitespace=cr-at-eol
+LICENSE.md -text whitespace=cr-at-eol

@@ -16,6 +16,8 @@ public sealed class NotificationDeploymentSettings
     public IReadOnlyList<string> AllowedDomains {get;}
     public IReadOnlyList<string> AllowedPrivateCidrs {get;}
     public Uri? ConsoleBaseUrl {get;}
+    internal string? FixtureCaFile {get;private init;}
+    internal byte[]? FixtureRootCertificate {get;private init;}
     public int Concurrency {get;private init;}=4;
     public int MaxClaimsPerPoll=>50;
     public int PollSeconds=>1;
@@ -43,6 +45,7 @@ public sealed class NotificationDeploymentSettings
             webhooks.Add(uri.AbsoluteUri);
         }
         if(consoleBaseUrl is not null&&(!consoleBaseUrl.IsAbsoluteUri||consoleBaseUrl.Scheme is not("http" or "https")||consoleBaseUrl.UserInfo.Length!=0||consoleBaseUrl.Query.Length!=0||consoleBaseUrl.Fragment.Length!=0))throw BadDeployment();
+        foreach(var cidr in privateCidrs??[])NotificationNetworkPrefix.Parse(cidr);
         ConsoleBaseUrl=consoleBaseUrl;AllowedRecipients=Array.AsReadOnly(recipients.Order(StringComparer.Ordinal).ToArray());AllowedDomains=Array.AsReadOnly(domains.Order(StringComparer.Ordinal).ToArray());AllowedPrivateCidrs=Array.AsReadOnly((privateCidrs??[]).ToArray());
     }
     public static NotificationDeploymentSettings Read(IConfiguration configuration,IHostEnvironment environment)
@@ -54,9 +57,19 @@ public sealed class NotificationDeploymentSettings
             foreach(var field in json.RootElement.EnumerateObject())if(field.Value.ValueKind!=JsonValueKind.String||!files.TryAdd(field.Name,field.Value.GetString()!))throw BadDeployment();
             var concurrency=section.GetValue<int?>("Concurrency")??4;if(concurrency is <1 or >8)throw BadDeployment();
             var url=section["ConsoleBaseUrl"];Uri? console=null;if(url is not null&&!Uri.TryCreate(url,UriKind.Absolute,out console))throw BadDeployment();
-            return new(files,section.GetSection("AllowedRecipients").Get<string[]>(),section.GetSection("AllowedRecipientDomains").Get<string[]>(),section.GetSection("AllowedSmtpEndpoints").Get<string[]>(),section.GetSection("AllowedWebhookUrls").Get<string[]>(),section.GetSection("AllowedPrivateCidrs").Get<string[]>(),console){Concurrency=concurrency};
+            var fixtureCa=section["FixtureCaFile"];byte[]? rootBytes=null;
+            if(fixtureCa is not null)
+            {
+                if(!environment.IsDevelopment()||section.GetValue<bool?>("FixtureEnabled")!=true||!Path.IsPathFullyQualified(fixtureCa))throw BadDeployment();
+                var file=new FileInfo(fixtureCa);if(!file.Exists||file.Length is <1 or >16384||file.LinkTarget is not null)throw BadDeployment();
+                for(var parent=file.Directory;parent is not null;parent=parent.Parent)if(parent.LinkTarget is not null)throw BadDeployment();
+                using var root=System.Security.Cryptography.X509Certificates.X509Certificate2.CreateFromPem(File.ReadAllText(fixtureCa));
+                if(root.HasPrivateKey||root.Extensions.OfType<System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension>().SingleOrDefault()?.CertificateAuthority!=true)throw BadDeployment();
+                rootBytes=root.RawData;
+            }
+            return new(files,section.GetSection("AllowedRecipients").Get<string[]>(),section.GetSection("AllowedRecipientDomains").Get<string[]>(),section.GetSection("AllowedSmtpEndpoints").Get<string[]>(),section.GetSection("AllowedWebhookUrls").Get<string[]>(),section.GetSection("AllowedPrivateCidrs").Get<string[]>(),console){Concurrency=concurrency,FixtureCaFile=fixtureCa,FixtureRootCertificate=rootBytes};
         }
-        catch(Exception error)when(error is JsonException or InvalidOperationException or ArgumentException or ApiException){throw BadDeployment();}
+        catch(Exception error)when(error is JsonException or InvalidOperationException or ArgumentException or ApiException or IOException or UnauthorizedAccessException or System.Security.Cryptography.CryptographicException){throw BadDeployment();}
     }
     public void RequireAllowedRecipient(string email)
     {

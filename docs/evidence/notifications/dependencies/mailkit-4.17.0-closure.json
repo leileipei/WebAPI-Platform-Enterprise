@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "sdkImage": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+  "targetFramework": "net10.0",
+  "verification": "Actual locked restore; metadata content hashes equal lock; archive hashes independently recorded. Protocol validation is recorded separately.",
+  "unchangedExistingDirectVersions": 20,
+  "packages": [
+    {
+      "id": "MailKit",
+      "version": "4.17.0",
+      "newToInfrastructure": true,
+      "licenseExpression": "MIT",
+      "nugetSource": "https://api.nuget.org/v3/index.json",
+      "lockContentHashSha512Base64": "1nUAVLxM9fhT/78we6/AGsCesnpn5dRNLLeRqOfr52Wnk87pzVwo5YMTMyqnmoXrYc7piGhmayiMA/OgDluIjg==",
+      "archiveSha512Hex": "78ecbf64372675e0fbe9a9d7a6f8b2658ca797b938e458705884001d4f16d3fbb278a6ec2a8d8c12d414983e67db01de4001b328270846dd8b8d92572c2ea43f",
+      "dependencies": {
+        "MimeKit": "4.17.0"
+      },
+      "metadataFilesSha256": {
+        "mailkit.nuspec": "7ecdb2882530eece912b88368f941656c0092040ff3b9aa7f27c71ce6ab87fe4"
+      }
+    },
+    {
+      "id": "MimeKit",
+      "version": "4.17.0",
+      "newToInfrastructure": true,
+      "licenseExpression": "MIT",
+      "nugetSource": "https://api.nuget.org/v3/index.json",
+      "lockContentHashSha512Base64": "h/KXsCreJf8RpR/PSAtlbvYtZFndp9N8Wn1Bs248AL7ITyhn+AiIY5bLTvt60tbN2mu6g8KadtBNWygTji2lqg==",
+      "archiveSha512Hex": "b87fd312a6b95e76f10a2778097935d88842c14bdb835d5eaea3812c4990d9f0ba367fe4b18ea661ebdb3c1f86882f8513bbfc77995f7419a297e505ee6c49e6",
+      "dependencies": {
+        "BouncyCastle.Cryptography": "2.6.2",
+        "System.Security.Cryptography.Pkcs": "10.0.0"
+      },
+      "metadataFilesSha256": {
+        "mimekit.nuspec": "98e340457077a4c79e6bc62064c42e131877864cbd0d363004b6273f018d038d"
+      }
+    },
+    {
+      "id": "BouncyCastle.Cryptography",
+      "version": "2.6.2",
+      "newToInfrastructure": true,
+      "licenseExpression": "MIT",
+      "nugetSource": "https://api.nuget.org/v3/index.json",
+      "lockContentHashSha512Base64": "7oWOcvnntmMKNzDLsdxAYqApt+AjpRpP2CShjMfIa3umZ42UQMvH0tl1qAliYPNYO6vTdcGMqnRrCPmsfzTI1w==",
+      "archiveSha512Hex": "4e1a32f937eebba134f1c6646c0b554edaa1bc41969dec5816d11c3c285906e106377113ea6c1cb0b161749ff08ae8ad39df05956b62abe2274d4b3060f0daef",
+      "dependencies": {},
+      "metadataFilesSha256": {
+        "LICENSE.md": "afc1653b666b64a2386b7b9b914406904f45c20b9571765d8c1121b513313179",
+        "bouncycastle.cryptography.nuspec": "27103dc39e0c5625fc165aaaae892afda7a8adf14d697f45d8a37890e4982f3b"
+      }
+    },
+    {
+      "id": "System.Security.Cryptography.Pkcs",
+      "version": "10.0.0",
+      "newToInfrastructure": true,
+      "licenseExpression": "MIT",
+      "nugetSource": "https://api.nuget.org/v3/index.json",
+      "lockContentHashSha512Base64": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg==",
+      "archiveSha512Hex": "45e6ef4e75170589e99ef6d9613bedaeee230778c96e05df53dd769ad9261218860e5fca16caa495c370d5508b84f35b5c3eee73a38a8f231600decbd9bcc313",
+      "dependencies": {},
+      "metadataFilesSha256": {
+        "system.security.cryptography.pkcs.nuspec": "7a799373a5a0bdbd36a5f770c2d8ac361e916e5c8e4d6ae429e072b6f1adeef4"
+      }
+    }
+  ]
+}
