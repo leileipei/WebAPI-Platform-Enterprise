@@ -52,11 +52,11 @@
 
 同一服务提供内部可组合 `QueryActionableReleaseIds(ActorContext actor,IReadOnlyList<Guid> visibleEnvironmentIds) -> IQueryable<Guid>`：可见环境仅由可信查询层提供，资格仍在数据库谓词中校验身份、角色、写Scope、独立席位及当前步骤。EvaluateAsync和RequireTaskAsync使用这一谓词核对指定Release，再按原状态机返回原因/席位；A2在分页/Count查询中组合此子查询，不能另写一份资格规则或把全部ID拉进内存。
 
-- [ ] **Step 1：写行为用例。** `MixedScopeUsesWritableEnvironmentGrant`：组织read+环境read_write时当前冻结角色`Assert.True(CanAct)`；`ApplicantAndUsedSeatAlwaysRejected`即管理员自批也403；`ConcurrentSeatsDoNotExposeStepTwoEarly`一级2席位只通过1个时`Assert.Equal(1,CurrentStepOrder)`；`ApprovalActionWithoutReleaseReadKeepsExistingContract`原动作权限不新增读取门槛，列表仍无读取权限不可见；`ComposableQueryMatchesCommandEligibility`在功能权限与冻结角色分属不同角色时、混合Scope时比较子查询命中与Evaluate/命令结果；撤权、停用范围、身份Inactive和错误角色不能办理。
-- [ ] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter ApprovalEligibilityTests`，补最小签名后确认真实断言失败。
-- [ ] **Step 3：实现。** 抽取现有CurrentTaskAsync规则与authorization要求，命令调用RequireTaskAsync；窄Evaluate不得写任务或缓存权限，资格原因不包含受限角色详情。冻结模板不读当前ApprovalFlow替代。
-- [ ] **Step 4：GREEN及审批回归。** 同上及`--filter 'ApprovalTests|ComparisonReleaseTests|PolicyReleaseTests|RollbackTests'`，原两级、风险冻结和回滚保持。
-- [ ] **Step 5：提交。** `refactor(approvals): share frozen role and scope eligibility`。
+- [x] **Step 1：写行为用例。** `MixedScopeUsesWritableEnvironmentGrant`：组织read+环境read_write时当前冻结角色`Assert.True(CanAct)`；`ApplicantAndUsedSeatAlwaysRejected`即管理员自批也403；`ConcurrentSeatsDoNotExposeStepTwoEarly`一级2席位只通过1个时`Assert.Equal(1,CurrentStepOrder)`；`ApprovalActionWithoutReleaseReadKeepsExistingContract`原动作权限不新增读取门槛，列表仍无读取权限不可见；`ComposableQueryMatchesCommandEligibility`在功能权限与冻结角色分属不同角色时、混合Scope时比较子查询命中与Evaluate/命令结果；撤权、停用范围、身份Inactive和错误角色不能办理。
+- [x] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter ApprovalEligibilityTests`，补最小签名后确认真实断言失败。
+- [x] **Step 3：实现。** 抽取现有CurrentTaskAsync规则与authorization要求，命令调用RequireTaskAsync；窄Evaluate不得写任务或缓存权限，资格原因不包含受限角色详情。冻结模板不读当前ApprovalFlow替代。
+- [x] **Step 4：GREEN及审批回归。** 同上及`--filter 'ApprovalTests|ComparisonReleaseTests|PolicyReleaseTests|RollbackTests'`，原两级、风险冻结和回滚保持。
+- [x] **Step 5：提交。** `refactor(approvals): share frozen role and scope eligibility`。
 
 ## Task 2 (A2)：服务端跨环境分页、计数与风险投影
 
@@ -64,11 +64,11 @@
 
 **Interfaces:** `ApprovalInboxFilter(string View,Guid? OrganizationId,Guid? ProjectId,Guid? EnvironmentId,string? Status,int Page=1,int PageSize=50)`；`ApprovalInboxCounts(int PendingMine,int HandledMine,int AllVisible)`；`ApprovalInboxItemDto`字段精确对应规格§8.2；`ApprovalInboxPageDto(PageResult<ApprovalInboxItemDto> Page,ApprovalInboxCounts Counts)`。`ApprovalInboxService.ListAsync(ApprovalInboxFilter,ActorContext,CancellationToken) -> Task<ApprovalInboxPageDto>`。服务端参数错误422、无权ID404、Inactive会话401，no-store。
 
-- [ ] **Step 1：写行为用例。** `MineOnSecondPageCountsBeforePagination`种子51条含多席位，`Assert.Equal(expectedVisible,total)`且不能按截断列表计数；`AllOrganizationsRespectFunctionalAndScopeGrants`核对跨组织角色及真实Scope，不能泄漏无权名称；`HandledHistoryRequiresCurrentReadScope`、`RoleChangeMatchesA1Eligibility`；`RestrictedRiskHasNoCountsOrComments`断言受限而不是0；`CountsAndRowsUseSameSnapshot`控制并发完成避免标签计数与列表混合时点；`InvalidFilterDoesNotEchoForeignScope`统一404；10秒超时错误而非空成功。
-- [ ] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter ApprovalInboxTests`。
-- [ ] **Step 3：实现。** EF/参数化SQL投影可见环境、审批任务和冻结角色集合，分类资格与A1同一规则；数据库先授权/分类再排序Count/Skip/Take，不读取全部Release候选或逐条ReleaseDtoAsync。可见风险以现有API/version/schema实际权限投影，未授权不返回counts/comment。同快照产生三个标签总数，status只过滤当前列表并返回当前筛选元数据。
-- [ ] **Step 4：GREEN与查询计划。** 同上及A1测试，检查50/100分页、授权集合与多任务去重；对自有大数据fixture记录EXPLAIN与查询次数，不能用无界内存加载解决分页；全部通过/零skip。
-- [ ] **Step 5：提交。** `feat(approvals): query personal tasks across authorized environments`。
+- [x] **Step 1：写行为用例。** `MineOnSecondPageCountsBeforePagination`种子51条含多席位，`Assert.Equal(expectedVisible,total)`且不能按截断列表计数；`AllOrganizationsRespectFunctionalAndScopeGrants`核对跨组织角色及真实Scope，不能泄漏无权名称；`HandledHistoryRequiresCurrentReadScope`、`RoleChangeMatchesA1Eligibility`；`RestrictedRiskHasNoCountsOrComments`断言受限而不是0；`CountsAndRowsUseSameSnapshot`控制并发完成避免标签计数与列表混合时点；`InvalidFilterDoesNotEchoForeignScope`统一404；10秒超时错误而非空成功。
+- [x] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter ApprovalInboxTests`。
+- [x] **Step 3：实现。** EF/参数化SQL投影可见环境、审批任务和冻结角色集合，分类资格与A1同一规则；数据库先授权/分类再排序Count/Skip/Take，不读取全部Release候选或逐条ReleaseDtoAsync。可见风险以现有API/version/schema实际权限投影，未授权不返回counts/comment。同快照产生三个标签总数，status只过滤当前列表并返回当前筛选元数据。
+- [x] **Step 4：GREEN与查询计划。** 同上及A1测试，检查50/100分页、授权集合与多任务去重；对自有大数据fixture记录EXPLAIN与查询次数，不能用无界内存加载解决分页；全部通过/零skip。
+- [x] **Step 5：提交。** `feat(approvals): query personal tasks across authorized environments`。
 
 ## Task 3 (A3)：独立审批页面、操作及跨环境返回
 

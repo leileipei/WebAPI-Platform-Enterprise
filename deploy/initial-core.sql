@@ -2049,3 +2049,35 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008020000_ApprovalInboxIndexes') THEN
+    CREATE INDEX "IX_release_records_environment_id_created_at_id" ON release_records (environment_id, created_at DESC, id DESC);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008020000_ApprovalInboxIndexes') THEN
+    CREATE INDEX "IX_approval_tasks_assignee_user_id_status_release_id" ON approval_tasks (assignee_user_id, status, release_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008020000_ApprovalInboxIndexes') THEN
+    CREATE INDEX "IX_approval_tasks_release_id_status_step_order_id" ON approval_tasks (release_id, status, step_order, id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261008020000_ApprovalInboxIndexes') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261008020000_ApprovalInboxIndexes', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;

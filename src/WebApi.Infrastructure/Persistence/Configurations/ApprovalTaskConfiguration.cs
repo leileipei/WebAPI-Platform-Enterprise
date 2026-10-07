@@ -15,5 +15,9 @@ public sealed class ApprovalTaskConfiguration : IEntityTypeConfiguration<Approva
         b.Property(x => x.Status).HasColumnName("status").HasColumnType("varchar(24)").IsRequired();
         b.Property(x => x.Comment).HasColumnName("comment").HasColumnType("text");
         b.Property(x => x.ActedAt).HasColumnName("acted_at").HasColumnType("timestamptz");
+        b.HasIndex(x => x.ReleaseId);
+        b.HasIndex(x => x.AssigneeUserId);
+        b.HasIndex(x => new { x.ReleaseId, x.Status, x.StepOrder, x.Id });
+        b.HasIndex(x => new { x.AssigneeUserId, x.Status, x.ReleaseId });
     }
 }

@@ -28,5 +28,6 @@ public sealed class ReleaseRecordConfiguration : IEntityTypeConfiguration<Releas
         b.Property(x => x.FailureCode).HasColumnName("failure_code").HasColumnType("varchar(128)");
         b.Property(x => x.PublishRequestedBy).HasColumnName("publish_requested_by").HasColumnType("uuid");
         b.Property(x => x.PublishTraceId).HasColumnName("publish_trace_id").HasColumnType("varchar(128)");
+        b.HasIndex(x => new { x.EnvironmentId, x.CreatedAt, x.Id }).IsDescending(false, true, true);
     }
 }
