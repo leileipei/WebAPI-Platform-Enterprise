@@ -1,0 +1,2 @@
+import http from 'node:http';
+export async function gatewayFixtureRequest({port,path,token,traceId}){return new Promise((resolve,reject)=>{const req=http.get({hostname:'127.0.0.1',port,path,headers:{Host:'gateway.fixture.test',Authorization:'Bearer '+token,traceparent:'00-'+traceId+'-0123456789abcdef-01'},signal:AbortSignal.timeout(15000)},res=>{let text='';res.setEncoding('utf8');res.on('data',b=>text+=b);res.on('error',reject);res.on('end',()=>{let body;try{body=JSON.parse(text);}catch{}resolve({status:res.statusCode,text,body,traceId});});});req.on('error',reject);});}
