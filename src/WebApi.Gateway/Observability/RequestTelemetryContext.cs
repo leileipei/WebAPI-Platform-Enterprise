@@ -28,6 +28,10 @@ public sealed record RequestTelemetryContext
     public string MaskedIp {get;init;}="Unknown";
     public string IpHmac {get;init;}="";
     public IReadOnlyList<PolicyDecisionDto> PolicyDecisions {get;init;}=[];
+    public int? AttemptCount {get;init;}
+    public int? AttemptNumber {get;init;}
+    public string? CacheDisposition {get;init;}
+    public IReadOnlyList<ForwardAttemptObservation>? ForwardAttempts {get;init;}
     public bool Success=>Outcome=="Completed"&&Status is >=200 and <400;
 }
 public sealed class RequestTelemetryState(RequestTelemetryContext context)

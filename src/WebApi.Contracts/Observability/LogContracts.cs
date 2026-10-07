@@ -1,4 +1,5 @@
 using WebApi.Contracts.Policies;
+using System.Text.Json.Serialization;
 namespace WebApi.Contracts.Observability;
 
 public sealed record LogFilter(Guid? ApiId = null, Guid? ApplicationId = null, string? Status = null,
@@ -7,6 +8,9 @@ public sealed record LogFilter(Guid? ApiId = null, Guid? ApplicationId = null, s
 public sealed record AccessLogDto(Guid Id, DateTimeOffset Time, Guid EnvironmentId, Guid? ApiId,
     string ApplicationKey, string Method, string PathTemplate, int? Status, double DurationMs, string Outcome,
     string RequestId, string? TraceId, string MaskedIp, string NodeName, long? ConfigVersion,
-    long? DeploymentSequence, Guid? DestinationId,IReadOnlyList<PolicyDecisionDto>? PolicyDecisions=null)
+    long? DeploymentSequence, Guid? DestinationId,IReadOnlyList<PolicyDecisionDto>? PolicyDecisions=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]int? AttemptCount=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]string? CacheDisposition=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]IReadOnlyList<ForwardAttemptObservation>? ForwardAttempts=null)
 {public IReadOnlyList<PolicyDecisionDto> PolicyDecisions {get;init;}=PolicyDecisions??[];}
 public sealed record CursorPage<T>(IReadOnlyList<T> Items, string? NextCursor, bool Truncated);

@@ -1,37 +1,40 @@
 using System.Diagnostics;
+using WebApi.Contracts.Policies;
 using WebApi.Gateway.Observability;
 using WebApi.Gateway.Security;
 using WebApi.Gateway.Policies;
-using WebApi.Contracts.Policies;
 using Yarp.ReverseProxy.Model;
 namespace WebApi.Gateway.Configuration;
 public sealed class WeightedDestinationMiddleware(RequestDelegate next)
 {
-    public async Task InvokeAsync(HttpContext ctx)
+    public async Task InvokeAsync(HttpContext context)
     {
-        var feature=ctx.GetReverseProxyFeature();var options=feature.AvailableDestinations;if(options.Count>1)
+        var feature=context.GetReverseProxyFeature();var options=feature.AvailableDestinations;
+        var execution=TrafficExecutionContext.From(context)!;
+        if(options.Count>1)
         {
-            var generation=(RuntimeGeneration)ctx.Items[ApiKeyMiddleware.GenerationItem]!;var cluster=generation.Snapshot.Clusters.Single(c=>c.Id==Guid.Parse(feature.Route.Config.Metadata!["runtimeClusterId"]));
-            var selected=ctx.RequestServices.GetRequiredService<WebApi.Gateway.Forwarding.WeightedDestinationSelector>().Select(generation,cluster,options,new HashSet<string>(StringComparer.Ordinal));
-            if(selected is not null)feature.AvailableDestinations=selected;
+            var generation=execution.Generation;var cluster=generation.Snapshot.Clusters.Single(c=>c.Id==execution.Route.ClusterId);
+            var selected=context.RequestServices.GetRequiredService<WebApi.Gateway.Forwarding.WeightedDestinationSelector>().Select(generation,cluster,options,new HashSet<string>(StringComparer.Ordinal));if(selected is not null)feature.AvailableDestinations=selected;
         }
-        var telemetry=RequestTelemetryState.From(ctx);
-        if(telemetry is null){await next(ctx);return;}
-        if(feature.AvailableDestinations.Count==1&&Guid.TryParse(feature.AvailableDestinations[0].DestinationId,out var selectedId))
-            telemetry.Context=telemetry.Context with{DestinationId=selectedId};
-        telemetry.Context=telemetry.Context with {PolicyDecisions=TrafficExecutionContext.From(ctx)?.Decisions.Select(p=>new PolicyDecisionDto(p.PolicyId,p.PolicyType,p.PolicyRevision,p.Decision,p.RejectionReason)).ToArray()??[]};
-        var recorder=ctx.RequestServices.GetRequiredService<GatewayTelemetryRecorder>();
-        var started=Stopwatch.GetTimestamp();using var activity=recorder.Activities.StartActivity("gateway.proxy",ActivityKind.Client);
-        TelemetryAttributes.Apply(activity,telemetry.Context);
-        if(activity?.Id is { } id)ctx.Request.Headers["traceparent"]=id;
-        try{await next(ctx);}
+        var telemetry=RequestTelemetryState.From(context);var recorder=telemetry is null?null:context.RequestServices.GetRequiredService<GatewayTelemetryRecorder>();
+        var started=Stopwatch.GetTimestamp();using var activity=feature.AvailableDestinations.Count>0?recorder?.Activities.StartActivity("gateway.proxy",ActivityKind.Client):null;
+        if(activity?.Id is { } id)context.Request.Headers["traceparent"]=id;
+        try{await next(context);}
         finally
         {
-            if(feature.ProxiedDestination is { } actual&&Guid.TryParse(actual.DestinationId,out var actualId))telemetry.Context=telemetry.Context with{DestinationId=actualId};
-            else telemetry.Context=telemetry.Context with{DestinationId=null};
-            var failed=ctx.Features.Get<Yarp.ReverseProxy.Forwarder.IForwarderErrorFeature>() is not null;
-            var client=telemetry.Context with{Status=ctx.Response.StatusCode,DurationSeconds=Stopwatch.GetElapsedTime(started).TotalSeconds,Outcome=ctx.RequestAborted.IsCancellationRequested?"ClientAborted":failed?"ProxyError":"Completed"};
-            TelemetryAttributes.Apply(activity,client);activity?.SetStatus(client.Success?ActivityStatusCode.Ok:ActivityStatusCode.Error);
+            if(feature.ProxiedDestination is { } actual)
+            {
+                var destination=Guid.TryParse(actual.DestinationId,out var actualId)?actualId:(Guid?)null;var failed=context.Features.Get<Yarp.ReverseProxy.Forwarder.IForwarderErrorFeature>() is not null;
+                var outcome=context.RequestAborted.IsCancellationRequested?"ClientAborted":context.Features.Get<Microsoft.AspNetCore.Http.Timeouts.IHttpRequestTimeoutFeature>()?.RequestTimeoutToken.IsCancellationRequested==true?"Timeout":failed?"ProxyError":"Completed";
+                var attempt=new ForwardAttemptObservation(1,destination,context.Response.StatusCode,outcome,Stopwatch.GetElapsedTime(started).TotalSeconds);execution.AddAttempt(attempt);
+                if(telemetry is not null)
+                {
+                    telemetry.Context=telemetry.Context with{DestinationId=destination};var client=telemetry.Context with{Status=attempt.Status,DurationSeconds=attempt.DurationSeconds,Outcome=outcome,PolicyDecisions=execution.Decisions.Select(p=>p.ToDto()).ToArray(),AttemptNumber=1,AttemptCount=1,ForwardAttempts=execution.Attempts};
+                    TelemetryAttributes.Apply(activity,client);activity?.SetStatus(client.Success?ActivityStatusCode.Ok:ActivityStatusCode.Error);
+                    var retry=(execution.Route.PolicyBindings??[]).Select(b=>execution.Generation.PoliciesById[b.PolicyId]).SingleOrDefault(p=>p.Type=="retry");recorder!.RecordAttempt(retry?.SourcePolicyId,outcome);
+                }
+            }
+            else if(telemetry is not null)telemetry.Context=telemetry.Context with{DestinationId=null};
         }
     }
 }

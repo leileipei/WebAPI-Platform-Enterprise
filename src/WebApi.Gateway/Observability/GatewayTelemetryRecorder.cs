@@ -9,7 +9,7 @@ public sealed class GatewayTelemetryRecorder : IDisposable
     private readonly Meter meter;
     private readonly Counter<long> requests;
     private readonly Histogram<double> durations;
-    private readonly Counter<long> policyDecisions;private readonly GatewaySettings gateway;
+    private readonly Counter<long> policyDecisions;private readonly Counter<long> attempts;private readonly GatewaySettings gateway;
     public ActivitySource Activities {get;}
     public string MeterName {get;}
     public GatewayTelemetryRecorder(BoundedTelemetryBuffer buffer,TelemetryDropTracker tracker,GatewaySettings settings,GatewayHealthObserver health)
@@ -19,6 +19,7 @@ public sealed class GatewayTelemetryRecorder : IDisposable
         meter=new(MeterName);Activities=new(MeterName);
         requests=meter.CreateCounter<long>("webapi_gateway_requests_total");
         policyDecisions=meter.CreateCounter<long>("webapi_gateway_policy_decisions_total");
+        attempts=meter.CreateCounter<long>("webapi_gateway_forward_attempts_total");
         durations=meter.CreateHistogram<double>("webapi_gateway_request_duration_seconds","s");
         meter.CreateObservableGauge("webapi_telemetry_last_observed_timestamp_seconds",()=>DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/1000d);
         meter.CreateObservableCounter("webapi_telemetry_dropped_total",()=>tracker.Drops.Select(x=>new Measurement<long>(x.Value,new KeyValuePair<string,object?>("signal",x.Key))));
@@ -31,7 +32,7 @@ public sealed class GatewayTelemetryRecorder : IDisposable
     {
         try
         {
-            foreach(var p in context.PolicyDecisions.Take(2).Where(PolicyDecisionValues.Valid)) RecordPolicy(p.PolicyId,p.PolicyType,p.Decision);
+            foreach(var p in context.PolicyDecisions.Take(5).Where(PolicyDecisionValues.Valid)) RecordPolicy(p.PolicyId,p.PolicyType,p.Decision);
             var dimensions=new TagList{{"webapi.api.id",context.ApiId?.ToString()??"Unmatched"},{"webapi.application.id",context.ApplicationKey},{"webapi.destination.id",context.DestinationId?.ToString()??"None"}};
             durations.Record(context.DurationSeconds,dimensions);
             dimensions.Add("http.response.status_code",context.Status?.ToString()??"None");dimensions.Add("webapi.outcome",context.Outcome);dimensions.Add("webapi.success",context.Success?"true":"false");requests.Add(1,dimensions);
@@ -41,5 +42,7 @@ public sealed class GatewayTelemetryRecorder : IDisposable
     }
     public void RecordPolicy(Guid sourcePolicyId,string type,string decision)
     {policyDecisions.Add(1,new TagList{{"webapi.environment.id",gateway.EnvironmentId.ToString()},{"webapi.node.name",gateway.NodeName},{"webapi.policy.id",sourcePolicyId.ToString()},{"webapi.policy.type",type},{"webapi.policy.decision",decision}});}
+    public void RecordAttempt(Guid? retryPolicyId,string outcome)
+    {try{attempts.Add(1,new TagList{{"webapi.environment.id",gateway.EnvironmentId.ToString()},{"webapi.node.name",gateway.NodeName},{"webapi.policy.id",retryPolicyId?.ToString()??"None"},{"webapi.policy.type",retryPolicyId is null?"None":"retry"},{"webapi.policy.decision",outcome}});}catch(Exception){tracker.Record("metrics",1);}}
     public void Dispose(){Activities.Dispose();meter.Dispose();}
 }

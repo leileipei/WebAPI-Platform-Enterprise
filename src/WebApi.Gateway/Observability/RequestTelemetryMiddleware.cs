@@ -30,8 +30,8 @@ public sealed class RequestTelemetryMiddleware(RequestDelegate next)
                 if(ctx.RequestAborted.IsCancellationRequested)outcome="ClientAborted";
                 else if(ctx.Features.Get<IHttpRequestTimeoutFeature>()?.RequestTimeoutToken.IsCancellationRequested==true)outcome="Timeout";
                 else if(error is not null)outcome="ProxyError";
-                var decisions=TrafficExecutionContext.From(ctx)?.Decisions.Select(p=>new PolicyDecisionDto(p.PolicyId,p.PolicyType,p.PolicyRevision,p.Decision,p.RejectionReason)).ToArray()??[];
-                var final=state.Context with{PolicyDecisions=decisions,Time=DateTimeOffset.UtcNow,DurationSeconds=Stopwatch.GetElapsedTime(started).TotalSeconds,Status=outcome=="ClientAborted"&&!ctx.Response.HasStarted?null:ctx.Response.StatusCode,Outcome=outcome};
+                var execution=TrafficExecutionContext.From(ctx);var decisions=execution?.Decisions.Select(p=>p.ToDto()).ToArray()??[];
+                var final=state.Context with{PolicyDecisions=decisions,AttemptCount=execution?.Attempts.Count,ForwardAttempts=execution?.Attempts,CacheDisposition=execution?.CacheDisposition,Time=DateTimeOffset.UtcNow,DurationSeconds=Stopwatch.GetElapsedTime(started).TotalSeconds,Status=outcome=="ClientAborted"&&!ctx.Response.HasStarted?null:ctx.Response.StatusCode,Outcome=outcome};
                 state.Context=final;TelemetryAttributes.Apply(activity,final);
                 activity?.SetStatus(final.Success?ActivityStatusCode.Ok:ActivityStatusCode.Error);
                 recorder.Record(final);

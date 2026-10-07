@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Net.Sockets;
 using WebApi.Gateway.Policies;
+using WebApi.Gateway.Observability;
+using WebApi.Contracts.Policies;
 using Yarp.ReverseProxy.Forwarder;
 using Yarp.ReverseProxy.Health;
 using Yarp.ReverseProxy.Model;
@@ -31,7 +33,25 @@ public sealed class GatewayForwardingAdapter(IHttpForwarder forwarder, ForwardAt
             if (timeout.IsCancellationRequested && !ct.IsCancellationRequested && !ctx.Response.HasStarted)
             { ctx.Response.StatusCode = 504; result = ForwarderError.RequestTimedOut; }
         }, healthPolicies);
-        await passive.Invoke(context);
+        var telemetry=RequestTelemetryState.From(context);var recorder=telemetry is null?null:context.RequestServices.GetRequiredService<GatewayTelemetryRecorder>();
+        using var activity=recorder?.Activities.StartActivity("gateway.proxy",ActivityKind.Client);
+        if(activity?.Id is { } traceparent)context.Request.Headers["traceparent"]=traceparent;
+        var threw=false;
+        try{await passive.Invoke(context);}catch{threw=true;throw;}
+        finally
+        {
+            var outcome=context.RequestAborted.IsCancellationRequested?"ClientAborted":result==ForwarderError.RequestTimedOut||timeout.IsCancellationRequested&&!ct.IsCancellationRequested?"Timeout":threw||result!=ForwarderError.None?"ProxyError":"Completed";
+            var status=result==ForwarderError.None&&!threw?transformer.StatusCode??context.Response.StatusCode:context.Response.StatusCode;
+            var destinationId=Guid.TryParse(destination.DestinationId,out var id)?id:(Guid?)null;
+            var observation=new ForwardAttemptObservation(control.Attempt,destinationId,status,outcome,Stopwatch.GetElapsedTime(started).TotalSeconds);execution.AddAttempt(observation);
+            if(telemetry is not null)
+            {
+                telemetry.Context=telemetry.Context with{DestinationId=destinationId};
+                var client=telemetry.Context with{Status=status,DurationSeconds=observation.DurationSeconds,Outcome=outcome,AttemptNumber=control.Attempt,AttemptCount=execution.Attempts.Count,ForwardAttempts=execution.Attempts};
+                TelemetryAttributes.Apply(activity,client);activity?.SetStatus(client.Success?ActivityStatusCode.Ok:ActivityStatusCode.Error);
+                var retry=(execution.Route.PolicyBindings??[]).Select(b=>execution.Generation.PoliciesById[b.PolicyId]).SingleOrDefault(p=>p.Type=="retry");recorder!.RecordAttempt(retry?.SourcePolicyId,outcome);
+            }
+        }
         var error = context.Features.Get<IForwarderErrorFeature>();
         var notSent = result == ForwarderError.Request && !timeout.IsCancellationRequested && !context.Response.HasStarted && ConnectionRefused(error?.Exception);
         return new(result, transformer.Suppressed, transformer.StatusCode, notSent);

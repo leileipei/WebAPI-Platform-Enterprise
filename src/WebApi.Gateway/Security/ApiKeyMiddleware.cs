@@ -27,6 +27,8 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
             var execution = TrafficExecutionContext.Attach(ctx, generation, route);
             var authentication = (route.PolicyBindings ?? []).Where(b => generation.Authentication.ContainsKey(b.PolicyId))
                 .Select(b => generation.Authentication[b.PolicyId]).SingleOrDefault();
+            var authPolicy=(route.PolicyBindings??[]).Select(b=>generation.PoliciesById[b.PolicyId]).SingleOrDefault(p=>p.Type=="authentication");
+            void AuthDecision(string decision,string? reason=null){if(authentication?.Mode==AuthenticationMode.JWT&&authPolicy?.SourcePolicyId is not null&&authPolicy.SourceRevision is >0)execution.Record(authPolicy,decision,reason);}
             var mode = authentication?.Mode ?? (route.RequireApiKey ? AuthenticationMode.ApiKey : AuthenticationMode.Anonymous);
             var telemetry = RequestTelemetryState.From(ctx);
             if (telemetry is not null)
@@ -59,12 +61,12 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
                 var result = header is not null && header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) && jwt is not null
                     ? verifier.Verify(header[7..], jwt, now) : null;
                 if (result?.Success != true || result.Claims is null)
-                { await Reject(ctx, telemetry, 401, "invalid_jwt", true); return; }
+                { AuthDecision("Rejected","invalid_jwt"); await Reject(ctx, telemetry, 401, "invalid_jwt", true); return; }
                 claims = result.Claims;
                 var mapping = jwt!.ApplicationMappings.SingleOrDefault(m => string.Equals(m.ClaimValue, claims.ApplicationClaimValue, StringComparison.Ordinal));
-                if (mapping is null) { await Reject(ctx, telemetry, 401, "invalid_jwt", true); return; }
+                if (mapping is null) { AuthDecision("Rejected","invalid_jwt"); await Reject(ctx, telemetry, 401, "invalid_jwt", true); return; }
                 app = generation.Snapshot.Applications.SingleOrDefault(a => a.Id == mapping.ApplicationId);
-                if (app?.Status != "Active") { await Reject(ctx, telemetry, 403, "api_not_granted"); return; }
+                if (app?.Status != "Active") { AuthDecision("Rejected","api_not_granted"); await Reject(ctx, telemetry, 403, "api_not_granted"); return; }
                 if (jwt.ForwardBearer) ctx.Request.Headers.Authorization = "Bearer " + claims.ValidatedBearer;
                 else ctx.Request.Headers.Remove("Authorization");
             }
@@ -80,9 +82,10 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
             {
                 if (telemetry is not null) telemetry.Context = telemetry.Context with { ApplicationKey = app.Id.ToString() };
                 if (!app.Permissions.Any(p => p.ApiId == route.ApiId && now >= p.ValidFrom && (p.ExpiresAt is null || now < p.ExpiresAt)))
-                { await Reject(ctx, telemetry, 403, "api_not_granted"); return; }
+                { AuthDecision("Rejected","api_not_granted"); await Reject(ctx, telemetry, 403, "api_not_granted"); return; }
                 execution.ApplicationId = app.Id;
             }
+            AuthDecision("Allowed");
             execution.VerifiedIdentity = new(mode, app?.Id, claims);
             await next(ctx);
         }
