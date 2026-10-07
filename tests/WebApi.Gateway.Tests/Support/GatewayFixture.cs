@@ -22,6 +22,7 @@ public sealed class GatewayFixture : IAsyncDisposable
 {
     public ApiFixture Control {get;}=new();public WebApplication BackendA=null!,BackendB=null!;public WebApplication[] Gateways=new WebApplication[2];public HttpClient[] Clients=new HttpClient[2];public string Directory {get;}=Path.Combine(Path.GetTempPath(),"gateway-test-"+Guid.NewGuid());public string Credential="";public string[] BackendUrls=new string[2];public Guid RouteId;private int version=1;private readonly List<string> secrets=[];
     public Action<WebApplicationBuilder>? ConfigureGateway {get;set;}
+    public Action<WebApplicationBuilder>? ConfigureControl {get;set;}
     public Action<WebApplication>? ConfigureBackendA {get;set;}
     private Guid credentialId;
     public static string Url(WebApplication app)=>app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
@@ -30,7 +31,7 @@ public sealed class GatewayFixture : IAsyncDisposable
         System.IO.Directory.CreateDirectory(Directory);
         BackendA=TestBackendApp.Build([],b=>{b.WebHost.UseUrls("http://127.0.0.1:0");b.Configuration["Backend:Id"]="A";b.Logging.ClearProviders();});BackendB=TestBackendApp.Build([],b=>{b.WebHost.UseUrls("http://127.0.0.1:0");b.Configuration["Backend:Id"]="B";b.Logging.ClearProviders();});ConfigureBackendA?.Invoke(BackendA);await BackendA.StartAsync();await BackendB.StartAsync();BackendUrls=[Url(BackendA),Url(BackendB)];
         for(var i=0;i<2;i++) {var file=Path.Combine(Directory,"node-"+i+".secret");await File.WriteAllTextAsync(file,Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));secrets.Add(file);}
-        await Control.InitializeAsync(b=>{for(var i=0;i<2;i++) {b.Configuration[$"Nodes:Enrollments:{i}:EnvironmentId"]=Control.Environment.Id.ToString();b.Configuration[$"Nodes:Enrollments:{i}:NodeName"]="gateway-"+i;b.Configuration[$"Nodes:Enrollments:{i}:SecretFile"]=secrets[i];b.Configuration[$"Upstream:AllowedOrigins:{i}"]=BackendUrls[i];}});await Control.SeedReleaseAsync();using var login=await Control.LoginAsync();login.EnsureSuccessStatusCode();
+        await Control.InitializeAsync(b=>{for(var i=0;i<2;i++) {b.Configuration[$"Nodes:Enrollments:{i}:EnvironmentId"]=Control.Environment.Id.ToString();b.Configuration[$"Nodes:Enrollments:{i}:NodeName"]="gateway-"+i;b.Configuration[$"Nodes:Enrollments:{i}:SecretFile"]=secrets[i];b.Configuration[$"Upstream:AllowedOrigins:{i}"]=BackendUrls[i];}ConfigureControl?.Invoke(b);});await Control.SeedReleaseAsync();using var login=await Control.LoginAsync();login.EnsureSuccessStatusCode();
         for(var i=0;i<2;i++) {Gateways[i]=await StartGatewayAsync(i);Clients[i]=new HttpClient {BaseAddress=new Uri(Url(Gateways[i]))};}
         await using(var db=Control.Context()) {var dst=await db.Set<UpstreamDestination>().SingleAsync(d=>d.Id==Control.Destination.Id);dst.Address=BackendUrls[0]+"/";await db.SaveChangesAsync();}
         using var route=await Control.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{Control.Environment.Id}/routes",Control.RouteBody("/orders"));route.EnsureSuccessStatusCode();RouteId=(await route.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
