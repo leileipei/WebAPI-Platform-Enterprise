@@ -56,11 +56,11 @@
 
 **Interfaces:** `NotificationRetryPolicy(int MaxAttempts,int BaseDelaySeconds,int MaxDelaySeconds,int ExpiresAfterMinutes)`；NotificationIntent追加可选 ExternalEnabled=false、EmailRecipients、NotifyRecovery=true、RetryPolicy（缺省采用规格值）；`NotificationPolicyValidator.Normalize(NotificationIntent) -> NotificationIntent`。Contracts定义 `NotificationChannel {Email,Webhook}`、`DeliveryStatus`及规格状态、`DeliveryOutcome {Accepted,TransientFailure,PermanentFailure,OutcomeUnknown}`、`TransportResult(DeliveryOutcome Outcome,string Code,int? ProtocolStatus,TimeSpan? RetryAfter)`。`NotificationDeliveryDto(Guid Id,string Kind,Guid? EventId,NotificationChannel Channel,string MaskedTarget,DeliveryStatus Status,string? Reason,int AttemptCount,int MaxAttempts,DateTimeOffset CreatedAt,DateTimeOffset ExpiresAt,DateTimeOffset? NextAttemptAt,bool CanRetry,long Revision)`；`NotificationAttemptDto(int AttemptNo,DateTimeOffset StartedAt,DateTimeOffset? CompletedAt,DeliveryOutcome? Outcome,string? Code,int? ProtocolStatus)`，均不含秘密或原地址。`NotificationDecisionMachine.NextAttemptAt(NotificationRetryPolicy,int attemptNo,DateTimeOffset now,DateTimeOffset expires,TimeSpan? retryAfter,double jitter) -> RetryDecision(DateTimeOffset? NextAt,DeliveryStatus Status,string? Reason)`；`WebhookSignature.Sign(ReadOnlySpan<byte> key,string timestamp,Guid deliveryId,ReadOnlySpan<byte> body) -> string`。
 
-- [ ] **Step 1：写行为用例。** `LegacyIntentDefaultsToExternalOff`：`Assert.False(policy.ExternalEnabled)`；`BudgetsRejectEdgesDuplicatesAndCrLf`覆盖各极值±1、重复字段/渠道/邮箱、20/21地址与CR/LF；`RetryAfterNeverShortened`断言7200秒结果`Failed/RetryAfterExceedsBudget`；`SignatureUsesExactFrozenBytes`用独立HMAC计算预期相等，改变一个字节不等。域名IDN规范化后比较名单，邮箱本地部分不改大小写。
-- [ ] **Step 2：RED。** Run `./scripts/check-contracts.sh domain --filter NotificationPolicyTests`；确认测试运行并发生上述行为断言失败。
-- [ ] **Step 3：实现。** 规范枚举、参数及旧默认；新增v1消息record只含规格允许字段，16KiB检查在序列化后执行；有效Retry-After解析由传输提供，退避不越界；选择性纯决策不访问网络/数据库。
-- [ ] **Step 4：GREEN。** 同上；另跑`--filter AlertEvaluationMachineTests`，全部通过/零skip。
-- [ ] **Step 5：提交。** 精确暂存本任务文件，`feat(notifications): define bounded notification policies and protocol`。
+- [x] **Step 1：写行为用例。** `LegacyIntentDefaultsToExternalOff`：`Assert.False(policy.ExternalEnabled)`；`BudgetsRejectEdgesDuplicatesAndCrLf`覆盖各极值±1、重复字段/渠道/邮箱、20/21地址与CR/LF；`RetryAfterNeverShortened`断言7200秒结果`Failed/RetryAfterExceedsBudget`；`SignatureUsesExactFrozenBytes`用独立HMAC计算预期相等，改变一个字节不等。域名IDN规范化后比较名单，邮箱本地部分不改大小写。
+- [x] **Step 2：RED。** Run `./scripts/check-contracts.sh domain --filter NotificationPolicyTests`；确认测试运行并发生上述行为断言失败。
+- [x] **Step 3：实现。** 规范枚举、参数及旧默认；新增v1消息record只含规格允许字段，16KiB检查在序列化后执行；有效Retry-After解析由传输提供，退避不越界；选择性纯决策不访问网络/数据库。
+- [x] **Step 4：GREEN。** 同上；另跑`--filter AlertEvaluationMachineTests`，全部通过/零skip。
+- [x] **Step 5：提交。** 精确暂存本任务文件，`feat(notifications): define bounded notification policies and protocol`。
 
 ## Task 2 (N2)：四表、默认关闭、渠道档案与持久秘密版本
 

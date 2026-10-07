@@ -1,7 +1,8 @@
 using WebApi.Contracts.Observability;
 using WebApi.Contracts.Security;
 namespace WebApi.Contracts.Alerts;
-public sealed record NotificationIntent(bool InConsole,IReadOnlyList<string> RequestedChannels);
+[System.Text.Json.Serialization.JsonConverter(typeof(WebApi.Contracts.Notifications.NotificationIntentJsonConverter))]
+public sealed record NotificationIntent(bool InConsole,IReadOnlyList<string> RequestedChannels,bool ExternalEnabled=false,IReadOnlyList<string>? EmailRecipients=null,bool NotifyRecovery=true,WebApi.Contracts.Notifications.NotificationRetryPolicy? RetryPolicy=null);
 public sealed record SaveAlertRuleRequest(Guid OrganizationId,Guid? ProjectId,Guid? EnvironmentId,string Name,string Metric,string Expression,string Severity,bool Enabled,int ForSeconds,string TargetType,Guid? TargetId,int WindowSeconds,NotificationIntent Notification);
 public sealed record AlertRuleDto(Guid Id,SaveAlertRuleRequest Definition,long Revision,long LogicRevision,string EvaluationState,DateTimeOffset? LastSuccessAt);
 public sealed record AlertEventDto(Guid Id,Guid RuleId,long RuleRevision,long LogicRevision,ScopeRef Scope,string ResourceKey,string ResourceType,Guid? ResourceId,long OccurrenceNo,string Status,string Severity,string Message,string RuleSummary,DateTimeOffset StartedAt,DateTimeOffset ConditionStartedAt,DateTimeOffset? ResolvedAt,Guid? AckedBy,DateTimeOffset? AckedAt,Guid? SilencedBy,DateTimeOffset? SilencedUntil,string? SilenceReason,Guid? ResolvedBy,string? ResolveReason,DateTimeOffset? LastObservedAt,double? LastValue,bool? LastCondition,string EvaluationState,long Revision,IReadOnlyList<AlertTransitionDto> Transitions);
