@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';import path from 'node:path';
 import {loadState,writePrivate,withRuntimeLock,RuntimeError} from '../runtime/state.mjs';
 import {docker,inspectResources,assertOwnership} from '../runtime/docker.mjs';
-import {loadRelease} from '../runtime/lifecycle.mjs';
+import {loadRelease,waitForRuntime} from '../runtime/lifecycle.mjs';
 import {loadNotificationRuntime,loadNotificationSecrets,prepareNotificationSecrets,assertNotificationPorts,notificationStateName} from './runtime-secrets.mjs';
 export async function notificationContext(directory,state,release){
  const notification=await loadNotificationRuntime(directory,state);if(!notification)return {notification:null};
@@ -29,7 +29,7 @@ export async function initializeNotificationFixture({directory,ports={smtp:57534
   let notification=await loadNotificationRuntime(directory,state);if(notification&&JSON.stringify(notification.ports)!==JSON.stringify(ports))throw new RuntimeError('Cannot change existing notification ports.',3);
   notification??={schemaVersion:1,ownerId:state.ownerId,projectName:state.projectName,enabled:true,fixtureEnabled:true,ports,secretReceipt:'notification-secrets/receipt.json'};
   await assertNotificationPorts(notification,state);await prepareNotificationSecrets({directory:path.join(directory,'notification-secrets'),owner:state.ownerId,projectName:state.projectName});await writePrivate(path.join(directory,notificationStateName),notification);
-  const {prepareContext}=await import('../runtime/context.mjs');const ctx=await prepareContext(directory,state,release);await ctx.compose('run','--rm','--no-deps','init-notification-volumes');await ctx.compose('up','-d','--wait','notification-fixture');await ctx.compose('up','-d','control-plane','worker');return {ownerId:state.ownerId,projectName:state.projectName,fixture:'Available',delivery:'NotTested'};
+  const {prepareContext}=await import('../runtime/context.mjs');const ctx=await prepareContext(directory,state,release);await ctx.compose('run','--rm','--no-deps','init-notification-volumes');await ctx.compose('up','-d','--wait','notification-fixture');await ctx.compose('up','-d','control-plane','worker');await waitForRuntime(ctx);return {ownerId:state.ownerId,projectName:state.projectName,fixture:'Available',delivery:'NotTested'};
  });
 }
 export async function fixtureRequest(directory,core,url,{method='GET',body}={}){
