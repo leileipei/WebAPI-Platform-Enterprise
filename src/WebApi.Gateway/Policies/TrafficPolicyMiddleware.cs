@@ -21,6 +21,7 @@ public sealed class TrafficPolicyMiddleware(RequestDelegate next)
         if(circuit is null) {await next(ctx);return;}
         var state=generation.CircuitLeases[route.Id].State;var admission=state.TryEnter();
         if(!admission.Allowed) {execution.Record(circuit,"OpenRejected","circuit_open");await Reject(ctx,503,"circuit_open",admission.RetryAfterSeconds);return;}
+        execution.CircuitState=state;execution.CircuitAdmission=admission;
         execution.Record(circuit,admission.Probe?"HalfOpenProbe":"Allowed");
         try {await next(ctx);}
         finally {var feature=ctx.GetReverseProxyFeature();var forwarded=feature.ProxiedDestination is not null;state.Complete(admission,CircuitOutcomeClassifier.Classify(ctx,generation.CircuitConfigurations[circuit.Id],forwarded));}

@@ -31,6 +31,8 @@ public sealed class CircuitBreakerState
             return new(true,epoch,false);
         }
     }
+    public bool CanContinue(CircuitAdmission admission)
+    {lock(sync) return admission.Allowed&&!admission.Probe&&admission.Epoch==epoch&&status==CircuitStatus.Closed;}
     public void Complete(CircuitAdmission admission,CircuitOutcome outcome)
     {
         lock(sync) {

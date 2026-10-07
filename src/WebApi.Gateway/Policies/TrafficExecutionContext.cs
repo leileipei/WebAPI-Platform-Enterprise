@@ -1,4 +1,5 @@
 using WebApi.Contracts.Runtime;
+using WebApi.Domain.Policies;
 using WebApi.Gateway.Security;
 using WebApi.Gateway.Configuration;
 namespace WebApi.Gateway.Policies;
@@ -7,6 +8,8 @@ public sealed class TrafficExecutionContext(RuntimeGeneration generation,Runtime
 {
     private static readonly object Item=new();private readonly List<TrafficPolicyDecision> decisions=[];
     public RuntimeGeneration Generation {get;}=generation;public RuntimeRoute Route {get;}=route;public Guid? ApplicationId {get;set;}
+    public CircuitAdmission? CircuitAdmission {get;internal set;}
+    public CircuitBreakerState? CircuitState {get;internal set;}
     public VerifiedTrafficIdentity? VerifiedIdentity {get;internal set;}
     public IReadOnlyList<TrafficPolicyDecision> Decisions=>decisions.AsReadOnly();
     public void Record(RuntimePolicy policy,string decision,string? reason=null)
