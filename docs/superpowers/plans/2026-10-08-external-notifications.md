@@ -10,7 +10,7 @@
 
 **Spec:** [已确认正式规格](../specs/2026-10-08-notification-cross-environment-approvals-design.md)，提交 `adc7dfd5476ae8ae21aa405efeb9248df3085937`；用户随后回复“确认”。本计划负责规格§3–7、§9通知部分、§10通知验收。审批另见同日跨环境审批计划，最终部署另见同日交付计划。
 
-状态：计划已形成，等待用户审阅；未实施。沿用此前 Native：本会话逐任务实施，交付前一次独立整分支审查。
+状态：用户已确认实施计划；正在执行。沿用此前 Native：本会话逐任务实施，交付前一次独立整分支审查。
 
 ## Global Constraints
 
@@ -50,7 +50,7 @@
 
 依赖只在获准执行后新增：`Directory.Packages.props`固定MailKit4.17.0，Infrastructure显式引用；更新受影响项目锁文件闭包，并执行固定SDK容器 `dotnet restore WebApi.Enterprise.sln --force-evaluate`，再 `--locked-mode`。记录包摘要和全部传递许可证，不升级其他已有直接依赖。官方依据：[NuGet版本](https://www.nuget.org/packages/MailKit)、[4.17.0 MIT许可证](https://github.com/jstedfast/MailKit/blob/4.17.0/LICENSE)、[Socket连接接口](https://mimekit.net/docs/html/M_MailKit_Net_Smtp_SmtpClient_ConnectAsync_1.htm)，2026-10-08查阅；实际.NET10/TLS验证由N3完成，不能以文档代替实测。
 
-## Task N1：通知契约、配置预算与纯协议
+## Task 1 (N1)：通知契约、配置预算与纯协议
 
 **Files:** Create `src/WebApi.Contracts/Notifications/NotificationContracts.cs`、`src/WebApi.Domain/Notifications/{NotificationPolicyValidator,NotificationDecisionMachine,WebhookSignature,NotificationPayload}.cs`、`tests/WebApi.Domain.Tests/NotificationPolicyTests.cs`；Modify `src/WebApi.Contracts/Alerts/AlertContracts.cs`。
 
@@ -62,7 +62,7 @@
 - [ ] **Step 4：GREEN。** 同上；另跑`--filter AlertEvaluationMachineTests`，全部通过/零skip。
 - [ ] **Step 5：提交。** 精确暂存本任务文件，`feat(notifications): define bounded notification policies and protocol`。
 
-## Task N2：四表、默认关闭、渠道档案与持久秘密版本
+## Task 2 (N2)：四表、默认关闭、渠道档案与持久秘密版本
 
 **Files:** Create `src/WebApi.Infrastructure/Notifications/{NotificationConfigurationService,NotificationSecretResolver,NotificationSecretVersion,NotificationDeploymentSettings}.cs`；Create `src/WebApi.Infrastructure/Persistence/Entities/{NotificationChannelProfile,NotificationChannelState,NotificationDelivery,NotificationDeliveryAttempt}.cs`及各同名Configuration；Create `src/WebApi.Infrastructure/Security/PersistentProtectionConfiguration.cs`、`tests/WebApi.Integration.Tests/{NotificationConfigurationTests,NotificationMigrationTests}.cs`。Modify `Settings/{SettingsValues,SystemSettingsValidator,SystemSettingsService}.cs`、`Persistence/{WebApiDbContext,AuditedCommandExecutor}.cs`、`Persistence/Entities/AlertEvent.cs`及其Configuration、ControlPlane/Worker DI和原 `ControlPlane/Security/PersistentDataProtection.cs`；生成 `20261008010000_ExternalNotifications.cs/.Designer.cs`和ModelSnapshot。
 
@@ -74,7 +74,7 @@
 - [ ] **Step 4：GREEN及消费者回归。** 同上及`--filter 'SystemSettings|SsoSecret|AlertPersistence'`；规则禁用默认、原设置五组及SSO消费者仍通过。
 - [ ] **Step 5：提交。** 精确提交上述源码/迁移，`feat(notifications): persist immutable profiles and safe migration defaults`。
 
-## Task N3：有界真实 SMTP/Webhook 单次传输
+## Task 3 (N3)：有界真实 SMTP/Webhook 单次传输
 
 **Files:** Create `src/WebApi.Infrastructure/Notifications/{NotificationAddressPolicy,SmtpNotificationTransport,WebhookNotificationTransport,NotificationTransport}.cs`、`tests/WebApi.NotificationFixtureHost/WebApi.NotificationFixtureHost.csproj`、`tests/WebApi.NotificationFixtureHost/{Program,NotificationFixtureApp,SmtpFixture,WebhookFixture}.cs`、`tests/WebApi.Integration.Tests/NotificationTransportTests.cs`及`tests/WebApi.TestSupport/Support/NotificationTransportFixture.cs`；Modify `Directory.Packages.props`、`src/WebApi.Infrastructure/WebApi.Infrastructure.csproj`、`WebApi.Enterprise.sln`、TestSupport项目引用及上述依赖变动影响的各 `packages.lock.json`，新增fixture自己的锁文件。
 
@@ -86,7 +86,7 @@
 - [ ] **Step 4：GREEN与库验证。** 同上；固定SDK容器.NET10编译、`dotnet restore WebApi.Enterprise.sln --locked-mode`成功，归档4.17.0及传递依赖摘要/许可证，不跳过TLS或Socket实际用例。
 - [ ] **Step 5：提交。** 精确提交源码/fixture/锁文件，`feat(notifications): send bounded SMTP and signed webhooks`。
 
-## Task N4：告警原子规划、静默及可重启恢复配对
+## Task 4 (N4)：告警原子规划、静默及可重启恢复配对
 
 **Files:** Create `src/WebApi.Infrastructure/Notifications/NotificationPlanner.cs`、`tests/WebApi.Integration.Tests/NotificationPlanningTests.cs`；Modify `Alerts/{AlertEvaluationService,AlertEventService,AlertSilenceExpiryService,AlertRuleService}.cs`。
 
@@ -98,7 +98,7 @@
 - [ ] **Step 4：GREEN及生命周期回归。** 同上及`--filter 'AlertActionTests|AlertEvaluationTests|AlertRuleTests'`，状态机和原RuleTest仍正确。
 - [ ] **Step 5：提交。** `feat(alerts): plan durable notifications on lifecycle transitions`。
 
-## Task N5：租约 Worker、测试/回执/人工重试 API
+## Task 5 (N5)：租约 Worker、测试/回执/人工重试 API
 
 **Files:** Create `src/WebApi.Infrastructure/Notifications/{NotificationDeliveryStore,NotificationDispatcher,NotificationQueryService,NotificationTestService}.cs`、`src/WebApi.Worker/Workers/NotificationDeliveryWorker.cs`、`src/WebApi.ControlPlane/Notifications/NotificationEndpoints.cs`、`tests/WebApi.Integration.Tests/{NotificationDispatchTests,NotificationApiTests}.cs`；ModifyControlPlane/Worker注册及Contracts DTO。
 
@@ -112,7 +112,7 @@
 - [ ] **Step 4：GREEN。** 同上及`--filter 'IdempotencyTests|AlertActionTests|SystemSettingsCommandTests'`；实际4并发/60秒租约/5最大次数按注入时钟验证，不靠长sleep。
 - [ ] **Step 5：提交。** `feat(notifications): dispatch durable jobs and expose governed receipts`。
 
-## Task N6：系统通知设置与真实测试 UI
+## Task 6 (N6)：系统通知设置与真实测试 UI
 
 **Files:** Create `console/src/notifications/{api.ts,settings-state.mjs,settings-state.d.mts,NotificationSettingsPanel.tsx,NotificationTestDialog.tsx}`、`console/tests/notification-settings.test.mjs`；Modify `pages/SystemSettings.tsx`、`settings/state.mjs`、`styles/tokens.css`。
 
@@ -124,7 +124,7 @@
 - [ ] **Step 4：GREEN。** 同上及 `./scripts/check-console.sh`，Node全测试和TypeScript/Vite构建通过。
 - [ ] **Step 5：提交。** `feat(console): manage notification activation and actual test receipts`。
 
-## Task N7：规则通知策略与告警投递记录 UI
+## Task 7 (N7)：规则通知策略与告警投递记录 UI
 
 **Files:** Create `console/src/notifications/{RuleNotificationEditor.tsx,NotificationDeliveryList.tsx,delivery-state.mjs,delivery-state.d.mts}`、`console/tests/notification-delivery.test.mjs`；Modify `observability/{RuleEditor.tsx,alert-state.mjs,alert-state.d.mts}`、`pages/{AlertRules,AlertCenter}.tsx`及现有告警API。
 
@@ -136,7 +136,7 @@
 - [ ] **Step 4：GREEN。** 同上及`./scripts/check-console.sh`；对应API重新鉴权，不因只读渲染隐藏服务端错误。
 - [ ] **Step 5：提交。** `feat(console): configure rule notifications and inspect delivery attempts`。
 
-## Task N8：可维护本机通知服务与独立实际验收
+## Task 8 (N8)：可维护本机通知服务与独立实际验收
 
 **Files:** Create `scripts/notifications/{fixture,scenario,runtime-secrets,evidence}.mjs`、`tests/notifications/{runtime,evidence}.test.mjs`、`deploy/compose.notifications-demo.yml`；Modify `deploy/compose.runtime.yml`、`scripts/runtime/{state,context,lifecycle,status,acceptance-backup}.mjs`和固定构建归档清单。公共证据至 `docs/evidence/notifications/`，私有材料只进ignored `.runtime/`。
 

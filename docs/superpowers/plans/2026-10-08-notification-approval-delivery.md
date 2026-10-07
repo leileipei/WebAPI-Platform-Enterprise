@@ -10,7 +10,7 @@
 
 **Spec:** [已确认正式规格](../specs/2026-10-08-notification-cross-environment-approvals-design.md)，用户回复“确认”；本计划覆盖§9/§10交付及两模块的联合验收。设计提交`adc7dfd5476ae8ae21aa405efeb9248df3085937`，此前运行软件`c1c271555e3a125d22184697c17320c94a4db07c`仅为待重新核对的原安装基线，不把本批文档SHA当成运行软件。
 
-状态：计划已形成并自查，等待用户审阅。沿用此前确认的Native：同一会话逐任务实施、精确本地提交，一次独立整分支审查；不重复要求选择执行方式。本批共14个任务，顺序A1–A3→N1–N8→D1–D3。
+状态：用户已确认实施计划；正在执行。沿用此前确认的Native：同一会话逐任务实施、精确本地提交，一次独立整分支审查；不重复要求选择执行方式。本批共14个任务，顺序A1–A3→N1–N8→D1–D3。
 
 ## Global Constraints
 
@@ -40,7 +40,7 @@
 
 同一执行者顺序实施，A与N交付物独立；D前要求两模块验收通过且受影响锁文件已固定。每任务只提交其Files实际清单；共享DI/ModelSnapshot修改按实际依赖同步，不覆盖相邻任务已提交内容。用户已授权本地提交、合并或部署的流程持续有效；本计划审阅确认后才进入实现。
 
-## Task D1：数据保留的兼容桥接恢复路径
+## Task 1 (D1)：数据保留的兼容桥接恢复路径
 
 **Files:** Create `scripts/notification-approval/{bridge,recovery}.mjs`、`tests/notification-approval/recovery.test.mjs`、`docs/deployment/notification-approval-recovery-runbook.md`；桥接隔离checkout只Modify `src/WebApi.Infrastructure/Settings/{SettingsValues,SystemSettingsService}.cs`、`src/WebApi.Infrastructure/Alerts/AlertRuleService.cs`及所需DI/构造注入，Create `src/WebApi.Infrastructure/Notifications/CompatibilityNotificationMode.cs`。候选库不引用旧桥接源码；只以固定桥接提交/镜像receipt使用。
 
@@ -52,7 +52,7 @@
 - [ ] **Step 4：恢复验收。** 同门禁及实际RecoveryReceipt、全部coldbackup内部SHA回读、DP/SSO跨重启、SMTP/Webhook新任务在候选恢复后正常；没有真实证据则阻止D3升级。发布安装前结果明确桥接限于恢复且通知规则管理暂时只读。
 - [ ] **Step 5：提交。** 主执行分支只提交桥接/恢复驱动和脱敏结果，`test(delivery): verify data-preserving notification recovery bridge`；桥接自身源码提交单独记录，不能把它合并成候选功能实现。
 
-## Task D2：固定提交完整回归与唯一整分支审查
+## Task 2 (D2)：固定提交完整回归与唯一整分支审查
 
 **Files:** Create `scripts/notification-approval/{acceptance,evidence,verify-suites}.mjs`、`tests/notification-approval/evidence.test.mjs`、`docs/deployment/notification-approval-pre-install-result.md`；Modify `console/src/pages/Coverage.tsx`、`console/src/coverage.json`、相应工作副本中文能力说明。公开材料至 `docs/evidence/notification-approval/`；私有值只进`.runtime/notification-approval-<uuid>/`。
 
@@ -64,7 +64,7 @@
 - [ ] **Step 4：唯一整分支审查。** 用requesting-code-review按已确认Native做一次独立整个分支审查，覆盖全部A/N/D及桥接patch。所有Critical/Important集中一次修复批；每项写Ruling和cost if wrong，延期Minor逐项列出。变更后固定新SHA、重建受影响镜像/实际用例、重新取得必要完整日志，不改标旧证据，不追加逐任务二审。
 - [ ] **Step 5：封存提交。** 实际门禁通过后`test(delivery): record verified notification and approval candidate`；pre-install只写候选/克隆验收，尚未安装原4192。保留历史成功与失败材料的身份与摘要。
 
-## Task D3：精确合并、完整冷备、原4192升级和交付
+## Task 3 (D3)：精确合并、完整冷备、原4192升级和交付
 
 **Files:** Create `scripts/notification-approval/delivery.mjs`、`tests/notification-approval/delivery.test.mjs`、`docs/deployment/notification-approval-upgrade-result.md`、`docs/deployment/notification-approval-rulings.md`、本批公开 `installed-status.json/package-status.json/cleanup-status.json`；私有运行工具、备份、baseline/upgrade receipts进原 `.runtime/`，ZIP至 `deliverables/`。
 

@@ -10,7 +10,7 @@
 
 **Spec:** [已确认正式规格](../specs/2026-10-08-notification-cross-environment-approvals-design.md)，提交`adc7dfd`、用户回复“确认”；本计划负责§8和§10审批部分。独立于SMTP/Webhook计划；共同交付见同日交付计划。
 
-状态：计划已形成，等待用户审阅；未实施。沿用Native，统一一次交付前整分支审查。
+状态：用户已确认实施计划；正在执行。沿用Native，统一一次交付前整分支审查。
 
 ## Global Constraints
 
@@ -44,7 +44,7 @@
 | ControlPlane/Releases/ApprovalInboxEndpoints.cs | 只读no-store入口，错误与会话保护 |
 | console/src/approvals | 独立页面状态、URL筛选、操作及详情返回 |
 
-## Task A1：共享真实审批资格
+## Task 1 (A1)：共享真实审批资格
 
 **Files:** Create `src/WebApi.Infrastructure/Releases/ApprovalEligibilityService.cs`、`src/WebApi.Contracts/Releases/ApprovalInboxContracts.cs`、`tests/WebApi.Integration.Tests/ApprovalEligibilityTests.cs`；Modify `Releases/ReleaseService.cs`、`Contracts/Releases/ReleaseContracts.cs`和ControlPlane/Worker DI。
 
@@ -58,7 +58,7 @@
 - [ ] **Step 4：GREEN及审批回归。** 同上及`--filter 'ApprovalTests|ComparisonReleaseTests|PolicyReleaseTests|RollbackTests'`，原两级、风险冻结和回滚保持。
 - [ ] **Step 5：提交。** `refactor(approvals): share frozen role and scope eligibility`。
 
-## Task A2：服务端跨环境分页、计数与风险投影
+## Task 2 (A2)：服务端跨环境分页、计数与风险投影
 
 **Files:** Create `src/WebApi.Infrastructure/Releases/ApprovalInboxService.cs`、`src/WebApi.ControlPlane/Releases/ApprovalInboxEndpoints.cs`、`tests/WebApi.Integration.Tests/ApprovalInboxTests.cs`；Modify A1 Contracts、DI及必要索引迁移 `20261008020000_ApprovalInboxIndexes.cs/.Designer.cs`和ModelSnapshot（不改业务行）。
 
@@ -70,7 +70,7 @@
 - [ ] **Step 4：GREEN与查询计划。** 同上及A1测试，检查50/100分页、授权集合与多任务去重；对自有大数据fixture记录EXPLAIN与查询次数，不能用无界内存加载解决分页；全部通过/零skip。
 - [ ] **Step 5：提交。** `feat(approvals): query personal tasks across authorized environments`。
 
-## Task A3：独立审批页面、操作及跨环境返回
+## Task 3 (A3)：独立审批页面、操作及跨环境返回
 
 **Files:** Create `console/src/approvals/{api.ts,inbox-state.mjs,inbox-state.d.mts,ApprovalFilters.tsx,ApprovalActionDialog.tsx}`、`console/tests/approval-inbox.test.mjs`、`scripts/approvals/{scenario,evidence}.mjs`、`tests/approvals/evidence.test.mjs`；Modify `pages/{Approvals,ReleaseDetail}.tsx`、`main.tsx`、`Shell.tsx`及styles。
 
