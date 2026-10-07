@@ -1,0 +1,20 @@
+{
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "consoleContainerId": "c83b4d08b492a44cabc45b859574a5a5e5a01216f34e57609c57ffe8aa86ea5d",
+  "consolePort": 57531,
+  "staticFiles": {
+    "console/dist/assets/index-B6Hdfw5H.css": "8abfa82bb6c63e443e0fa290b38a0cbe8858c6d98960c3b8d03320db0629d8e7",
+    "console/dist/assets/index-DvR0sPyT.js": "8277eb7530dd5d9270244d72334a19dc8a8933e36d4cf698841109fd32a38200",
+    "console/dist/index.html": "e454a360a3490a76912af066896a0fdfcf1c1c663a285d8f3eb610531de5dda5"
+  },
+  "checkedAt": "2026-10-07T23:05:43.061Z",
+  "id": "test-accepted-receipt",
+  "source": "cua",
+  "viewport": 1440,
+  "screenshotSha256": "bcf4f517cebff393c6d57d92d13abe36d8a8bd836b390545707c1275913d39ef",
+  "actual": true,
+  "url": "http://127.0.0.1:57531/settings/system?tab=notification",
+  "notes": "同一真实任务在 Worker 恢复后自动轮询到服务已接受、1/1、SmtpAccepted；明确保留仍需收件方确认的边界文案。",
+  "axSha256": "3d49248c55139255630cb179eaf983b5b0f1a5501f4d92d47b3cdbb8194dc5f5"
+}

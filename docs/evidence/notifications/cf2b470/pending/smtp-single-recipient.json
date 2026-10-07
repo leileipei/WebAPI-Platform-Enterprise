@@ -1,0 +1,29 @@
+{
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "id": "smtp-single-recipient",
+  "source": "actual-clone",
+  "serviceResponse": true,
+  "actual": [
+    [
+      1,
+      0,
+      0,
+      true,
+      true,
+      true,
+      250
+    ]
+  ],
+  "expected": [
+    [
+      1,
+      0,
+      0,
+      true,
+      true,
+      true,
+      250
+    ]
+  ]
+}

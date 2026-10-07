@@ -1,0 +1,42 @@
+{
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "actual": true,
+  "eventId": "97985666-8345-4be7-b1f1-f26e81f56042",
+  "deliveryId": "af88e157-fb93-421d-9820-c0e4de623529",
+  "before": {
+    "id": "af88e157-fb93-421d-9820-c0e4de623529",
+    "kind": "Alert",
+    "eventId": "97985666-8345-4be7-b1f1-f26e81f56042",
+    "channel": "Webhook",
+    "maskedTarget": "https://***/***",
+    "status": "RetryScheduled",
+    "reason": "WebhookTemporaryFailure",
+    "attemptCount": 1,
+    "maxAttempts": 3,
+    "createdAt": "2026-10-07T23:19:06.042589+00:00",
+    "expiresAt": "2026-10-08T00:19:06.042589+00:00",
+    "nextAttemptAt": "2026-10-07T23:24:36.042061+00:00",
+    "canRetry": true,
+    "revision": 3
+  },
+  "after": {
+    "id": "af88e157-fb93-421d-9820-c0e4de623529",
+    "kind": "Alert",
+    "eventId": "97985666-8345-4be7-b1f1-f26e81f56042",
+    "channel": "Webhook",
+    "maskedTarget": "https://***/***",
+    "status": "RetryScheduled",
+    "reason": "WebhookTemporaryFailure",
+    "attemptCount": 1,
+    "maxAttempts": 3,
+    "createdAt": "2026-10-07T23:19:06.042589+00:00",
+    "expiresAt": "2026-10-08T00:19:06.042589+00:00",
+    "nextAttemptAt": "2026-10-07T23:24:36.042061+00:00",
+    "canRetry": true,
+    "revision": 4
+  },
+  "wireCallsBefore": 1,
+  "wireCallsAfter": 1,
+  "bodyHashUnchanged": true
+}

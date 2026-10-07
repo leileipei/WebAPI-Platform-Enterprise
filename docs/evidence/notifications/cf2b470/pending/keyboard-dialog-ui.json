@@ -1,0 +1,20 @@
+{
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "consoleContainerId": "c83b4d08b492a44cabc45b859574a5a5e5a01216f34e57609c57ffe8aa86ea5d",
+  "consolePort": 57531,
+  "staticFiles": {
+    "console/dist/assets/index-B6Hdfw5H.css": "8abfa82bb6c63e443e0fa290b38a0cbe8858c6d98960c3b8d03320db0629d8e7",
+    "console/dist/assets/index-DvR0sPyT.js": "8277eb7530dd5d9270244d72334a19dc8a8933e36d4cf698841109fd32a38200",
+    "console/dist/index.html": "e454a360a3490a76912af066896a0fdfcf1c1c663a285d8f3eb610531de5dda5"
+  },
+  "checkedAt": "2026-10-07T23:05:43.061Z",
+  "id": "keyboard-dialog",
+  "source": "cua",
+  "viewport": 1440,
+  "screenshotSha256": "5225fa3faae274807b39c3cc5adc9c91598d17b85d0d98e4057b41fd7ab6bf48",
+  "actual": true,
+  "url": "http://127.0.0.1:57531/settings/system?tab=notification",
+  "notes": "首次焦点为关闭；Shift+Tab 到确认发送，Tab 返回关闭。输入后 Escape 打开放弃目标子弹窗，焦点进入继续编辑，Shift+Tab 在子弹窗内转到确认放弃。未发送网络任务。",
+  "axSha256": "d4104b73294e205485ef2a2a2fb122c860a274a0af46a3ffc6b6f6b786f752e9"
+}
