@@ -112,6 +112,11 @@ internal sealed class OpenApiContractRules
             if(declared.Required!=parameter.Required||ContractNormalizer.Canonical(ReferencedValue(declared.Schema))!=ContractNormalizer.Canonical(schema))issue("source_conflict",operation.Pointer+"/parameters/"+Escape(key),"固定 OpenAPI 与维护参数定义不一致。");
         }
         foreach(var schema in version.Schemas.Where(x=>x.SchemaType is "request" or "response")){
+            var source=metadata.Definitions.SingleOrDefault(x=>x.Kind=="schema"&&x.Id==schema.Id);
+            if(schema.SchemaType=="response"&&source?.ResponseSelector is string selector){
+                var sameScope=int.TryParse(selector,out var originalStatus)?schema.StatusCode==originalStatus:schema.StatusCode is null;
+                if(!sameScope)issue("source_conflict",operation.Pointer+"/responses/"+Escape(selector),"固定 OpenAPI 响应范围与维护 Schema 状态码范围不一致。");
+            }
             var parent=schema.SchemaType=="request"?operation.Value["requestBody"] is JsonNode body?ResolveObject(body,"request_body"):null:schema.StatusCode is int status?EffectiveResponse(operation,status):operation.Responses["default"] is JsonNode fallback?ResolveObject(fallback,"response"):null;
             if(parent?["content"]?[schema.ContentType]?["schema"] is JsonNode original&&ContractNormalizer.Canonical(original)!=ContractNormalizer.Canonical(JsonNode.Parse(schema.SchemaJson)))issue("source_conflict",operation.Pointer+"/"+schema.SchemaType+"/"+Escape(schema.ContentType),"固定 OpenAPI 与维护请求/响应 Schema 不一致。");
         }

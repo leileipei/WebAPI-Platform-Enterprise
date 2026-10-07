@@ -18,6 +18,18 @@ public sealed class ContractCompletionReviewRegressionTests
     }
     private static string Root(string responses,string version="3.1.0",string schema="")=>"{\"openapi\":\""+version+"\",\"info\":{\"title\":\"Review\",\"version\":\"1\"},\"paths\":{\"/review\":{\"get\":{\"operationId\":\"readOne\",\"responses\":"+responses+"}}}"+schema+"}";
     private const string Response="{\"description\":\"ok\",\"content\":{\"application/json\":{\"schema\":{\"type\":\"string\"}}}}";
+    [Theory][InlineData("200",null)][InlineData("2XX",200)]
+    public async Task EditingImportedResponseScopeCannotHideConflictWithFixedSource(string selector,int? status)
+    {
+        var setup=await SchemaValidationApiTests.Setup();await using var f=setup.Fixture;
+        var text=Root("{\""+selector+"\":"+Response+"}");var from=await Import(f,text,"EDIT_SCOPE");
+        Guid api;await using(var db=f.Context()){api=(await db.Set<ApiVersion>().SingleAsync(x=>x.Id==from)).ApiId;var routes=await db.Set<ApiRoute>().Where(x=>x.ApiVersionId==from).ToArrayAsync();var ids=routes.Select(x=>x.Id).ToArray();db.RemoveRange(await db.Set<RoutePolicyBinding>().Where(x=>ids.Contains(x.RouteId)).ToArrayAsync());db.RemoveRange(await db.Set<RouteMethod>().Where(x=>ids.Contains(x.RouteId)).ToArrayAsync());db.RemoveRange(routes);await db.SaveChangesAsync();}
+        var id=await Import(f,text,"EDIT_SCOPE2",apiId:api);
+        ApiSchema[] definitions;await using(var db=f.Context())definitions=await db.Set<ApiSchema>().Where(x=>x.ApiVersionId==id).ToArrayAsync();
+        using var saved=await f.WriteAsync(HttpMethod.Put,$"/api/v1/versions/{id}/schemas",definitions.Select(x=>new SaveSchemaRequest(x.Id,x.SchemaType,x.Name,status,x.ContentType,x.SchemaJson)).ToArray(),"\"1\"");saved.EnsureSuccessStatusCode();
+        using var compared=await f.WriteAsync(HttpMethod.Post,$"/api/v1/apis/{api}/version-comparisons",new{fromVersionId=from,toVersionId=id,expectedFromRevision=1,expectedToRevision=2});compared.EnsureSuccessStatusCode();
+        using var body=JsonDocument.Parse(await compared.Content.ReadAsStringAsync());Assert.True(body.RootElement.GetProperty("report").GetProperty("counts").GetProperty("unknown").GetInt32()>0);
+    }
     [Theory][InlineData(false)][InlineData(true)]
     public async Task ImportedResponseSelectorsKeepRangesAndDefaultDistinct(bool withDefault)
     {
