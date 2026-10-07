@@ -33,10 +33,10 @@ export async function prepareNotificationSecrets({directory,owner,projectName}){
  await ownedDirectory(path.dirname(directory));await fs.mkdir(directory,{mode:0o700});for(const role of ['sender','fixture'])await fs.mkdir(path.join(directory,role),{mode:0o700});
  const temp=path.join(directory,'certificate-build');await fs.mkdir(temp,{mode:0o700});
  try{
-  await exec('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',path.join(temp,'ca.key'),'-out',path.join(temp,'ca.crt'),'-days','7','-subj','/CN=WebAPI Owned Local Fixture CA','-addext','basicConstraints=critical,CA:TRUE']);
+  await exec('openssl',['req','-x509','-newkey','rsa:2048','-nodes','-keyout',path.join(temp,'ca.key'),'-out',path.join(temp,'ca.crt'),'-days','730','-subj','/CN=WebAPI Owned Local Fixture CA','-addext','basicConstraints=critical,CA:TRUE']);
   await exec('openssl',['req','-new','-newkey','rsa:2048','-nodes','-keyout',path.join(temp,'server.key'),'-out',path.join(temp,'server.csr'),'-subj','/CN=notification-fixture']);
   await writePrivate(path.join(temp,'extensions'),'subjectAltName=DNS:notification-fixture\nbasicConstraints=critical,CA:FALSE\nextendedKeyUsage=serverAuth\nkeyUsage=digitalSignature,keyEncipherment\n');
-  await exec('openssl',['x509','-req','-in',path.join(temp,'server.csr'),'-CA',path.join(temp,'ca.crt'),'-CAkey',path.join(temp,'ca.key'),'-CAcreateserial','-out',path.join(temp,'server.crt'),'-days','2','-extfile',path.join(temp,'extensions')]);
+  await exec('openssl',['x509','-req','-in',path.join(temp,'server.csr'),'-CA',path.join(temp,'ca.crt'),'-CAkey',path.join(temp,'ca.key'),'-CAserial',path.join(temp,'ca.srl'),'-CAcreateserial','-out',path.join(temp,'server.crt'),'-days','365','-extfile',path.join(temp,'extensions')]);
   const smtp={username:'fixture-'+owner,password:randomBytes(32).toString('base64')},webhook={keyBase64:randomBytes(32).toString('base64')};
   for(const role of ['sender','fixture']){await writePrivate(path.join(directory,role,'smtp.json'),smtp);await writePrivate(path.join(directory,role,'webhook.json'),webhook);}
   await writePrivate(path.join(directory,'sender','ca.crt'),await fs.readFile(path.join(temp,'ca.crt'),'utf8'));
