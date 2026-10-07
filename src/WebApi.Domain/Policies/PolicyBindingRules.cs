@@ -6,11 +6,13 @@ namespace WebApi.Domain.Policies;
 
 public static class PolicyBindingRules
 {
-    public static EffectiveRoutePolicies Validate(IReadOnlyList<PolicyBindingConfiguration> bindings, bool defaultRequireApiKey)
+    public static EffectiveRoutePolicies Validate(IReadOnlyList<PolicyBindingConfiguration> bindings, bool defaultRequireApiKey, int? defaultTimeoutMs = null)
     {
-        if (bindings is null || bindings.Count > 4 || bindings.Select(b => b.Type).Distinct().Count() != bindings.Count || bindings.Select(b => b.PolicyId).Distinct().Count() != bindings.Count)
+        if (bindings is null || bindings.Count > 6 || bindings.Select(b => b.Type).Distinct().Count() != bindings.Count || bindings.Select(b => b.PolicyId).Distinct().Count() != bindings.Count)
             throw new ApiException(422, "invalid_policy_binding", "同一路由每种类型只能绑定一个策略。");
         var requireKey = defaultRequireApiKey; int? timeout = null; RateLimitConfiguration? rate = null; CircuitBreakerConfiguration? circuit = null;
+        AuthenticationConfiguration authentication = new(defaultRequireApiKey ? AuthenticationMode.ApiKey : AuthenticationMode.Anonymous);
+        RetryConfiguration? retry = null; CacheConfiguration? cache = null;
         foreach (var binding in bindings)
         {
             if (binding.PolicyId == Guid.Empty || binding.Priority is < 0 or > 1000) throw new ApiException(422, "invalid_policy_binding", "策略身份或优先级不合法。");
@@ -19,13 +21,20 @@ public static class PolicyBindingRules
             using var config = JsonDocument.Parse(source);
             switch (binding.Type)
             {
-                case "authentication": requireKey = config.RootElement.GetProperty("mode").GetString() == "ApiKey"; break;
+                case "authentication":
+                    authentication = PolicyConfigurationValidator.ParseAuthentication(source);
+                    requireKey = authentication.Mode == AuthenticationMode.ApiKey;
+                    break;
                 case "timeout": timeout = config.RootElement.GetProperty("timeoutMs").GetInt32(); break;
                 case "rate_limit": rate = JsonSerializer.Deserialize<RateLimitConfiguration>(source, CanonicalJson.Options); break;
                 case "circuit_breaker": circuit = JsonSerializer.Deserialize<CircuitBreakerConfiguration>(source, CanonicalJson.Options); break;
+                case "retry": retry = PolicyConfigurationValidator.ParseRetry(source); break;
+                case "cache": cache = PolicyConfigurationValidator.ParseCache(source); break;
             }
         }
-        if (!requireKey && rate?.KeyBy == "ApplicationRoute") throw new ApiException(422, "anonymous_application_rate_limit", "匿名路由不能按应用限流，请选择Route维度。");
-        return new(requireKey, timeout, rate, circuit);
+        if (authentication.Mode == AuthenticationMode.Anonymous && rate?.KeyBy == "ApplicationRoute") throw new ApiException(422, "anonymous_application_rate_limit", "匿名路由不能按应用限流，请选择Route维度。");
+        if (retry is not null && (timeout ?? defaultTimeoutMs) is int effectiveTimeout && retry.PerAttemptTimeoutMs > effectiveTimeout)
+            throw new ApiException(422, "invalid_policy_binding", "重试单次超时不能超过路由总超时。");
+        return new(requireKey, timeout, rate, circuit, authentication, retry, cache);
     }
 }

@@ -7,7 +7,7 @@ namespace WebApi.Domain.Policies;
 
 public static class PolicyConfigurationValidator
 {
-    private static ApiException Invalid() => new(422, "invalid_policy_config", "策略配置字段、类型或范围不合法。");
+    internal static ApiException Invalid() => new(422, "invalid_policy_config", "策略配置字段、类型或范围不合法。");
 
     public static string Normalize(string type, string config)
     {
@@ -17,14 +17,16 @@ public static class PolicyConfigurationValidator
             using var document = JsonDocument.Parse(config, new JsonDocumentOptions { MaxDepth = 16 });
             var root = document.RootElement;
             if (root.ValueKind != JsonValueKind.Object) throw Invalid();
-            var names = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var field in root.EnumerateObject()) if (!names.Add(field.Name)) throw Invalid();
+            EnsureUniqueProperties(root);
+            var names = Names(root);
             object normalized = type switch
             {
                 "authentication" => Authentication(root, names),
                 "timeout" => Timeout(root, names),
                 "rate_limit" => Rate(root, names),
                 "circuit_breaker" => Circuit(root, names),
+                "retry" => RetryPolicyConfiguration.Parse(root),
+                "cache" => CachePolicyConfiguration.Parse(root),
                 _ => throw Invalid()
             };
             return Encoding.UTF8.GetString(CanonicalJson.Serialize(normalized));
@@ -40,30 +42,91 @@ public static class PolicyConfigurationValidator
     public static CircuitBreakerConfiguration ParseCircuit(string config) =>
         JsonSerializer.Deserialize<CircuitBreakerConfiguration>(Normalize("circuit_breaker", config), CanonicalJson.Options)!;
 
-    private static void Fields(HashSet<string> actual, params string[] expected)
+    internal static void Fields(HashSet<string> actual, params string[] expected)
     {
         if (!actual.SetEquals(expected)) throw Invalid();
     }
-    private static string Text(JsonElement root, string key)
+    internal static string Text(JsonElement root, string key)
     {
         if (!root.TryGetProperty(key, out var value) || value.ValueKind != JsonValueKind.String) throw Invalid();
         return value.GetString()!;
     }
-    private static int Integer(JsonElement root, string key, int min, int max)
+    internal static int Integer(JsonElement root, string key, int min, int max)
     {
         if (!root.TryGetProperty(key, out var value) || !value.TryGetInt32(out var number) || number < min || number > max) throw Invalid();
         return number;
     }
-    private static bool Boolean(JsonElement root, string key)
+    internal static bool Boolean(JsonElement root, string key)
     {
         if (!root.TryGetProperty(key, out var value) || value.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) throw Invalid();
         return value.GetBoolean();
     }
     private static object Authentication(JsonElement root, HashSet<string> names)
     {
-        Fields(names, "mode"); var mode = Text(root, "mode");
+        var mode = Text(root, "mode");
+        if (mode == "JWT") return JwtPolicyConfiguration.Parse(root);
+        Fields(names, "mode");
         if (mode is not ("ApiKey" or "Anonymous")) throw Invalid();
         return new { mode };
+    }
+    public static AuthenticationConfiguration ParseAuthentication(string config)
+    {
+        using var document = JsonDocument.Parse(Normalize("authentication", config));
+        var root = document.RootElement;
+        return Text(root, "mode") switch
+        {
+            "JWT" => new(AuthenticationMode.JWT, JwtPolicyConfiguration.Parse(root)),
+            "ApiKey" => new(AuthenticationMode.ApiKey),
+            _ => new(AuthenticationMode.Anonymous)
+        };
+    }
+    public static RetryConfiguration ParseRetry(string config)
+    {
+        using var document = JsonDocument.Parse(Normalize("retry", config));
+        return RetryPolicyConfiguration.Parse(document.RootElement);
+    }
+    public static CacheConfiguration ParseCache(string config)
+    {
+        using var document = JsonDocument.Parse(Normalize("cache", config));
+        return CachePolicyConfiguration.Parse(document.RootElement);
+    }
+    internal static HashSet<string> Names(JsonElement root)
+    {
+        if (root.ValueKind != JsonValueKind.Object) throw Invalid();
+        return root.EnumerateObject().Select(p => p.Name).ToHashSet(StringComparer.Ordinal);
+    }
+    private static void EnsureUniqueProperties(JsonElement element)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var p in element.EnumerateObject())
+            {
+                if (!names.Add(p.Name)) throw Invalid();
+                EnsureUniqueProperties(p.Value);
+            }
+        }
+        else if (element.ValueKind == JsonValueKind.Array)
+            foreach (var item in element.EnumerateArray()) EnsureUniqueProperties(item);
+    }
+    internal static string BoundedText(JsonElement root, string field, int max)
+    {
+        var text = Text(root, field);
+        if (string.IsNullOrWhiteSpace(text) || text.Length > max) throw Invalid();
+        return text;
+    }
+    internal static IReadOnlyList<string> StringArray(JsonElement root, string field, int min, int max, int maxLength, StringComparer? comparer = null)
+    {
+        if (!root.TryGetProperty(field, out var values) || values.ValueKind != JsonValueKind.Array || values.GetArrayLength() < min || values.GetArrayLength() > max) throw Invalid();
+        var list = new List<string>(); var unique = new HashSet<string>(comparer ?? StringComparer.Ordinal);
+        foreach (var value in values.EnumerateArray())
+        {
+            if (value.ValueKind != JsonValueKind.String) throw Invalid();
+            var text = value.GetString()!;
+            if (string.IsNullOrWhiteSpace(text) || text.Length > maxLength || !unique.Add(text)) throw Invalid();
+            list.Add(text);
+        }
+        return list.AsReadOnly();
     }
     private static object Timeout(JsonElement root, HashSet<string> names)
     {
