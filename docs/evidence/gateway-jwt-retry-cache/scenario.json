@@ -1,0 +1,136 @@
+{
+  "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+  "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+  "actual": true,
+  "complete": true,
+  "scope": {
+    "organizationId": "087143b3-e051-4482-9d41-9603611cf9aa",
+    "projectId": "38953ded-c3b6-436a-8329-19e2e968f9d3",
+    "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd"
+  },
+  "checks": [
+    {
+      "id": "two-level-publish",
+      "passed": true,
+      "evidence": {
+        "releaseId": "00c2a2c5-8418-4734-9a58-cb65dc9e4a32",
+        "dualAck": true,
+        "targetConfigVersion": 22,
+        "deploymentSequence": 25,
+        "approvers": [
+          "effb4ccc-7d3f-48d0-bb42-4a3353cb28ec",
+          "5bc7ee73-391b-4788-b6f2-7a392e17f7e3"
+        ]
+      }
+    },
+    {
+      "id": "identity-partition",
+      "passed": true,
+      "evidence": {
+        "nodes": 2,
+        "sharedFirstCalls": 1,
+        "otherIdentityCalls": 2,
+        "firstTraceId": "899ece6a914c1f16f73ae11c3e3034e3",
+        "hitTraceId": "2cafe7e5050aadd73fe72a640e2f95c6"
+      }
+    },
+    {
+      "id": "jwt-negative",
+      "passed": true,
+      "evidence": {
+        "invalidStatus": 401,
+        "ungrantedStatus": 403,
+        "noUpstream": true
+      }
+    },
+    {
+      "id": "retry-actual-calls",
+      "passed": true,
+      "evidence": {
+        "physicalCalls": 3,
+        "hitPhysicalCalls": 0,
+        "traceId": "859a996fdd2355981d846fa28ccd65d0"
+      }
+    },
+    {
+      "id": "uncertain-send-not-retried",
+      "passed": true,
+      "evidence": {
+        "status": 502,
+        "physicalCalls": 1
+      }
+    },
+    {
+      "id": "rate-once",
+      "passed": true,
+      "evidence": {
+        "firstPhysicalCalls": 3,
+        "secondStatus": 429,
+        "secondPhysicalCalls": 0
+      }
+    },
+    {
+      "id": "half-open-once",
+      "passed": true,
+      "evidence": {
+        "initialPhysicalCalls": 3,
+        "openPhysicalCalls": 0,
+        "probePhysicalCalls": 1
+      }
+    },
+    {
+      "id": "redis-fault",
+      "passed": true,
+      "evidence": {
+        "bypassStatus": 200,
+        "secondRequestCalls": 1
+      }
+    },
+    {
+      "id": "scope-isolation",
+      "passed": true,
+      "evidence": {
+        "foreignMappingRejected": true,
+        "readonlyWriteStatus": 403
+      }
+    },
+    {
+      "id": "downgrade-gate",
+      "passed": true,
+      "evidence": {
+        "currentSchema": "2.2",
+        "nodeLkgSchemas": [
+          "2.2",
+          "2.2"
+        ],
+        "oldSoftwareRejected": true,
+        "databaseRestoreForbidden": true
+      }
+    },
+    {
+      "id": "rollback",
+      "passed": true,
+      "evidence": {
+        "releaseId": "163d2c6a-f0cf-4aaa-b524-0af2a6bf5ca3",
+        "dualAck": true,
+        "targetConfigVersion": 22,
+        "newDeploymentSequence": 29,
+        "coldCache": true
+      }
+    }
+  ],
+  "observations": {
+    "hitAttemptCount": 0,
+    "hitPolicyDecisions": 5,
+    "retryClientSpans": 3
+  },
+  "fixture": {
+    "owner": "0c4a38fd-7159-453c-a68a-a46991631d31",
+    "project": "webapi-gateway-fixture-0c4a38fd-7159-453c-a68a-a46991631d31",
+    "ports": {
+      "idp": 64455,
+      "backend": 64456
+    }
+  },
+  "originalInstallation": "not-upgraded"
+}

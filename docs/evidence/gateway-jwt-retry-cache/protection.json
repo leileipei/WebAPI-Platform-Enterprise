@@ -1,0 +1,37 @@
+{
+  "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+  "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+  "originalPreserved": true,
+  "backup": {
+    "complete": true,
+    "hashReadback": true,
+    "originalServicesRestored": true,
+    "fileCount": 20
+  },
+  "restore": {
+    "actual": true,
+    "restored": true,
+    "ownerVerified": true
+  },
+  "software": {
+    "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+    "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+    "upgradeDowngradeUpgrade": true,
+    "preservedNewWorkData": true,
+    "actual": true,
+    "desiredAndTwoLkgSchemas": [
+      "2.0",
+      "2.0",
+      "2.0"
+    ],
+    "databaseRestored": false
+  },
+  "protectedFileCount": 1093,
+  "recoveryCloneCleanup": {
+    "ownerId": "ec06eab9-f3c2-45f4-8646-a7b1f9ee4d73",
+    "projectName": "webapi-enterprise-local-test-53932fe4-e662-4cd5-a040-97be3c588d4e",
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretsRemaining": 0
+  }
+}

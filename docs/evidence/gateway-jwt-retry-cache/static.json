@@ -1,0 +1,14 @@
+{
+  "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+  "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+  "expected": {
+    "console/dist/assets/index--fKcWxHu.js": "b3b18fb25550edc0c9f355d7172b7a13793e591086601f3f4caa37b9ee5e7e8d",
+    "console/dist/assets/index-NdLvJlgI.css": "52fbf85e5537c9a8e27587014d4b558bc94c136e680cc2f66d039cdb59446238",
+    "console/dist/index.html": "c69c30d443d654eb65e265a92fe46a7ab38588ad50e14843f914f38244b264c4"
+  },
+  "actual": {
+    "console/dist/assets/index--fKcWxHu.js": "b3b18fb25550edc0c9f355d7172b7a13793e591086601f3f4caa37b9ee5e7e8d",
+    "console/dist/assets/index-NdLvJlgI.css": "52fbf85e5537c9a8e27587014d4b558bc94c136e680cc2f66d039cdb59446238",
+    "console/dist/index.html": "c69c30d443d654eb65e265a92fe46a7ab38588ad50e14843f914f38244b264c4"
+  }
+}

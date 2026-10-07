@@ -1,0 +1,147 @@
+{
+  "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+  "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+  "kind": "cua",
+  "actual": true,
+  "widths": [
+    1440,
+    1280
+  ],
+  "actions": [
+    {
+      "id": "jwks-file",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-jwks-file.png",
+      "width": 1440,
+      "detail": "真实文件选择器导入公开 RSA JWKS",
+      "executedAt": "2026-10-07T14:10:02.479Z"
+    },
+    {
+      "id": "mapping",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-mapping.png",
+      "width": 1440,
+      "detail": "当前 Scope 可读应用映射，实际服务端配置校验",
+      "executedAt": "2026-10-07T14:10:28.923Z"
+    },
+    {
+      "id": "explicit-enter",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-explicit-enter.png",
+      "width": 1440,
+      "detail": "名称 Enter 不会隐式创建或保存",
+      "executedAt": "2026-10-07T14:10:29.190Z"
+    },
+    {
+      "id": "create",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-create.png",
+      "width": 1440,
+      "detail": "显式保存，实际创建 r1 工作策略",
+      "executedAt": "2026-10-07T14:10:39.870Z"
+    },
+    {
+      "id": "dirty-escape-focus",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-dirty-escape-focus.png",
+      "width": 1440,
+      "detail": "无效公钥 JSON 阻止导航；Escape 恢复 SELECT 焦点；跨模式保留原输入",
+      "executedAt": "2026-10-07T14:11:03.301Z"
+    },
+    {
+      "id": "revision-412",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-revision-412.png",
+      "width": 1440,
+      "detail": "第二会话真实 r1→r2；412 保留当前输入",
+      "executedAt": "2026-10-07T14:12:27.735Z"
+    },
+    {
+      "id": "edit",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-edit.png",
+      "width": 1440,
+      "detail": "显式采用最新修订并保存草稿 r3",
+      "executedAt": "2026-10-07T14:12:34.572Z"
+    },
+    {
+      "id": "scope-late",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-scope-late.png",
+      "width": 1440,
+      "detail": "连续切换 Scope，旧资源不可编辑；返回后应用选项仍属于当前项目",
+      "executedAt": "2026-10-07T14:12:46.572Z"
+    },
+    {
+      "id": "release-review",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-release-review.png",
+      "width": 1440,
+      "detail": "实际读取候选 Review，六类配置和缓存冷启动提示；未再次发布",
+      "executedAt": "2026-10-07T14:13:05.893Z"
+    },
+    {
+      "id": "six-bindings",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-six-bindings.png",
+      "width": 1440,
+      "detail": "六类完整绑定；实际保存后重新读取缓存优先级 101",
+      "executedAt": "2026-10-07T14:13:44.778Z"
+    },
+    {
+      "id": "readonly",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-readonly.png",
+      "width": 1280,
+      "detail": "1280 桌面只读账号，实际禁用编辑且无保存操作",
+      "executedAt": "2026-10-07T14:13:46.406Z"
+    },
+    {
+      "id": "logs-trace",
+      "passed": true,
+      "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+      "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "screenshot": "ui-logs-trace.png",
+      "width": 1280,
+      "detail": "真实 Loki 缓存 Hit：五类策略决策，0 次上游尝试；真实 Tempo 重试链路含 3 个 Client span",
+      "executedAt": "2026-10-07T14:14:06.260Z"
+    }
+  ],
+  "screenshots": [
+    "ui-jwks-file.png",
+    "ui-mapping.png",
+    "ui-explicit-enter.png",
+    "ui-create.png",
+    "ui-dirty-escape-focus.png",
+    "ui-revision-412.png",
+    "ui-edit.png",
+    "ui-scope-late.png",
+    "ui-release-review.png",
+    "ui-six-bindings.png",
+    "ui-readonly.png",
+    "ui-logs-trace.png",
+    "ui-retry-trace.png"
+  ]
+}

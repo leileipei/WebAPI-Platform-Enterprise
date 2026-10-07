@@ -1,0 +1,234 @@
+WEBAPI_FIXED_SOURCE c1c271555e3a125d22184697c17320c94a4db07c
+ Network webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_default Creating 
+ Network webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_default Created 
+ Volume webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_pg-test Creating 
+ Volume webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_pg-test Created 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Creating 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Creating 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Created 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Created 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Starting 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Starting 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Started 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Started 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Waiting 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Waiting 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Healthy 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Healthy 
+ Volume webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_nuget-test Creating 
+ Volume webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_nuget-test Created 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-sdk-run-829ac7397777 Creating 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-sdk-run-829ac7397777 Created 
+  Determining projects to restore...
+  Restored /test-src/src/WebApi.Domain/WebApi.Domain.csproj (in 60 ms).
+  Restored /test-src/src/WebApi.Contracts/WebApi.Contracts.csproj (in 59 ms).
+  Restored /test-src/src/WebApi.TestBackend/WebApi.TestBackend.csproj (in 56 ms).
+  Restored /test-src/third_party/json-everything/src/Json.More/Json.More.csproj (in 56 ms).
+  Restored /test-src/src/WebApi.ConsoleHost/WebApi.ConsoleHost.csproj (in 1.37 sec).
+  Restored /test-src/tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj (in 1.38 sec).
+  Restored /test-src/third_party/json-everything/src/JsonSchema/JsonSchema.csproj (in 2.54 sec).
+  Restored /test-src/third_party/json-everything/src/JsonPointer/JsonPointer.csproj (in 2.54 sec).
+  Restored /test-src/tests/WebApi.Domain.Tests/WebApi.Domain.Tests.csproj (in 3.54 sec).
+  Restored /test-src/src/WebApi.ControlPlane/WebApi.ControlPlane.csproj (in 3.54 sec).
+  Restored /test-src/tests/WebApi.Integration.Tests/WebApi.Integration.Tests.csproj (in 3.54 sec).
+  Restored /test-src/src/WebApi.Worker/WebApi.Worker.csproj (in 3.54 sec).
+  Restored /test-src/src/WebApi.Migrator/WebApi.Migrator.csproj (in 3.54 sec).
+  Restored /test-src/src/WebApi.Gateway/WebApi.Gateway.csproj (in 3.54 sec).
+  Restored /test-src/tests/WebApi.TestSupport/WebApi.TestSupport.csproj (in 3.54 sec).
+  Restored /test-src/src/WebApi.Infrastructure/WebApi.Infrastructure.csproj (in 3.56 sec).
+  Restored /test-src/tests/WebApi.Gateway.Tests/WebApi.Gateway.Tests.csproj (in 3.55 sec).
+  Determining projects to restore...
+  Restored /test-src/src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj (in 131 ms).
+  6 of 7 projects are up-to-date for restore.
+  Json.More -> /runtime-tool/Json.More.dll
+  WebApi.Contracts -> /runtime-tool/WebApi.Contracts.dll
+  JsonPointer -> /runtime-tool/JsonPointer.Net.dll
+  WebApi.Domain -> /runtime-tool/WebApi.Domain.dll
+  JsonSchema -> /runtime-tool/JsonSchema.Net.dll
+  WebApi.Infrastructure -> /runtime-tool/WebApi.Infrastructure.dll
+  WebApi.RuntimeTool -> /runtime-tool/WebApi.RuntimeTool.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:06.66
+  Json.More -> /test-src/third_party/json-everything/src/Json.More/bin/Release/net10.0/Json.More.dll
+  WebApi.Contracts -> /test-src/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  JsonPointer -> /test-src/third_party/json-everything/src/JsonPointer/bin/Release/net10.0/JsonPointer.Net.dll
+  WebApi.Domain -> /test-src/src/WebApi.Domain/bin/Release/net10.0/WebApi.Domain.dll
+  WebApi.TestBackend -> /test-src/src/WebApi.TestBackend/bin/Release/net10.0/WebApi.TestBackend.dll
+  WebApi.ConsoleHost -> /test-src/src/WebApi.ConsoleHost/bin/Release/net10.0/WebApi.ConsoleHost.dll
+  JsonSchema -> /test-src/third_party/json-everything/src/JsonSchema/bin/Release/net10.0/JsonSchema.Net.dll
+  WebApi.Infrastructure -> /test-src/src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.dll
+  WebApi.Gateway -> /test-src/src/WebApi.Gateway/bin/Release/net10.0/WebApi.Gateway.dll
+  WebApi.ControlPlane -> /test-src/src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll
+  WebApi.TestSupport -> /test-src/tests/WebApi.TestSupport/bin/Release/net10.0/WebApi.TestSupport.dll
+  WebApi.Gateway.Tests -> /test-src/tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll
+Test run for /test-src/tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/test-src/tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.06]   Discovering: WebApi.Gateway.Tests
+[xUnit.net 00:00:00.10]   Discovered:  WebApi.Gateway.Tests
+[xUnit.net 00:00:00.13]   Starting:    WebApi.Gateway.Tests
+  Passed WebApi.Gateway.Tests.BoundedResponseCaptureTests.StreamAndBodyWriterCaptureAreBoundedAndRestoreOriginalFeature(pipe: True) [31 ms]
+  Passed WebApi.Gateway.Tests.BoundedResponseCaptureTests.StreamAndBodyWriterCaptureAreBoundedAndRestoreOriginalFeature(pipe: False) [< 1 ms]
+  Passed WebApi.Gateway.Tests.BoundedResponseCaptureTests.JsonRejectionCanWriteThroughCapturePipeWriter [11 ms]
+  Passed WebApi.Gateway.Tests.CircuitRegistryTests.SameIdentityCannotSilentlyReplaceConfiguration [56 ms]
+  Passed WebApi.Gateway.Tests.CircuitRegistryTests.SameRuntimeIdentitySharesUntilLastGenerationReleases [< 1 ms]
+  Passed WebApi.Gateway.Tests.CacheEligibilityTests.LegacyBusinessAuthorizationAndCookiesBypass [58 ms]
+  Passed WebApi.Gateway.Tests.CircuitRegistryTests.ChangedInstanceOrRouteOrClusterOrPolicyHasIndependentState [2 ms]
+  Passed WebApi.Gateway.Tests.RedisRateLimitTests.CancelledCallerNotReportedAsBackendFailure [6 ms]
+  Passed WebApi.Gateway.Tests.CacheEligibilityTests.AgeAndOriginLifetimeCapPolicyTtl [6 ms]
+  Passed WebApi.Gateway.Tests.CacheEligibilityTests.NoStorePrivateNoCacheUnknownVaryAndSetCookieNeverStore [< 1 ms]
+  Passed WebApi.Gateway.Tests.RedisRateLimitTests.TwoClientsShareExactBurstAtFrozenRedisTime [132 ms]
+  Passed WebApi.Gateway.Tests.JwtTokenVerifierTests.NeverInvokesNetworkOrLogsClaims [245 ms]
+  Passed WebApi.Gateway.Tests.JwtTokenVerifierTests.RequireFiniteDatesSubAndBoundedLifetime [96 ms]
+  Passed WebApi.Gateway.Tests.RedisResponseCacheTests.ConcurrentWritesCannotExceed64MiBOr2000Entries(bodyBytes: 100) [507 ms]
+  Passed WebApi.Gateway.Tests.JwtTokenVerifierTests.RejectNoneHsConfusionBadSignatureUnknownKidAndTokenSuppliedUrls [282 ms]
+  Passed WebApi.Gateway.Tests.JwtTokenVerifierTests.Rs256AndEs256VerifyWithExactIssuerAudienceType(algorithm: "RS256") [157 ms]
+  Passed WebApi.Gateway.Tests.JwtTokenVerifierTests.Rs256AndEs256VerifyWithExactIssuerAudienceType(algorithm: "ES256") [6 ms]
+  Passed WebApi.Gateway.Tests.RedisRateLimitTests.TimeoutAfterDispatchDoesNotRedispatch [654 ms]
+  Passed WebApi.Gateway.Tests.RedisRateLimitTests.DifferentAppsAndRoutesIsolated [139 ms]
+  Passed WebApi.Gateway.Tests.JwtTokenVerifierTests.RejectDuplicateClaimsExtraSegmentsAndOver16KiB [231 ms]
+  Passed WebApi.Gateway.Tests.RedisResponseCacheTests.ConcurrentWritesCannotExceed64MiBOr2000Entries(bodyBytes: 40000) [603 ms]
+  Passed WebApi.Gateway.Tests.CacheKeyTests.IdentityAndTokenForwardingPartitionPrecisely [1 s]
+  Passed WebApi.Gateway.Tests.CacheKeyTests.AllRawQueryValuesAndVaryAreIncluded [154 ms]
+  Passed WebApi.Gateway.Tests.RedisRateLimitTests.ElapsedTimeRefillsAndSetsBoundedTtl [305 ms]
+  Passed WebApi.Gateway.Tests.RedisRateLimitTests.RedisClockRollbackDoesNotRefillAlreadyAccountedTime [132 ms]
+  Passed WebApi.Gateway.Tests.RedisResponseCacheTests.TwoNodesReadSameCompleteEntryAndRejectCorruptPayload [428 ms]
+  Passed WebApi.Gateway.Tests.RedisRateLimitTests.SameAppCredentialsShareBucket [135 ms]
+  Passed WebApi.Gateway.Tests.RedisRateLimitTests.ProductionRedisTimeUsesSharedBucketWithoutTestClock [89 ms]
+  Passed WebApi.Gateway.Tests.RedisResponseCacheTests.EqualCountsWithDifferentIndexMembersRefuseBeforeAnyMutation [311 ms]
+  Passed WebApi.Gateway.Tests.RedisResponseCacheTests.ExpiredReadSweepPreservesAccountingExpiry [451 ms]
+  Passed WebApi.Gateway.Tests.RedisResponseCacheTests.MissingQuotaMetadataWithLivePayloadBlocksNewWrites [288 ms]
+  Passed WebApi.Gateway.Tests.RedisResponseCacheTests.SweepNeverProcessesOver128 [1 s]
+  Passed WebApi.Gateway.Tests.RedisResponseCacheTests.TimeoutIsNotRetriedAndCorruptAccountingBypasses [171 ms]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.UnsafeResponseAlwaysFlowsWithoutStoredEntry(reason: "no-store") [8 s]
+  Passed WebApi.Gateway.Tests.PolicyTelemetryTests.PolicyDecisionsVisibleWithoutSecrets [8 s]
+  Passed WebApi.Gateway.Tests.GatewayForwardingCompatibilityTests.DefaultAndConfiguredTransformsKeepHostForwardedBasePathAndRawQuery [8 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.JwtValidAppGrantAllowsAndAppRateReceivesIdentity [8 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.ConsumedTokenNotRefundedAfterCircuitReject [8 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.ActualRequestUsesPublishedDestination [8 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.SensitiveMarkersAbsentFromAllSignals [8 s]
+  Passed WebApi.Gateway.Tests.AdvancedPolicyCompositionTests.OpenAllowsFreshHitRejectsMissAndHitNeverClosesHalfOpen [8 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.NoRetryUnsafeBodyStartedResponseUncertainSendOrCancel(kind: "PUT") [8 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.CollectorResponseIsBoundedBeforeReadingPayload [18 ms]
+  Passed WebApi.Gateway.Tests.CacheActivationTests.NodeDeploymentLimitRejectsActivationAndRetainsLkg(reason: "vary") [8 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.DiagnosticsHaveZeroBaselinesBeforeAnyLoss [10 ms]
+  Passed WebApi.Gateway.Tests.AdvancedPolicyTelemetryTests.CacheHitNoClientSpanAndFiveDecisionsSurvive [8 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.RootSamplingIgnoresUnrecordedHostingActivityButHonorsRemoteDecision(flags: null, expected: True) [5 s]
+  Passed WebApi.Gateway.Tests.GatewayForwardingCompatibilityTests.UpstreamRedirectAndCookieAreNotInternallyFollowedOrPersisted [5 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.UnsafeResponseAlwaysFlowsWithoutStoredEntry(reason: "trailer") [5 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.LimitedRequestNeverTouchesBackend [5 s]
+  Passed WebApi.Gateway.Tests.CacheActivationTests.NodeDeploymentLimitRejectsActivationAndRetainsLkg(reason: "missing") [5 s]
+  Passed WebApi.Gateway.Tests.PolicyTelemetryTests.Gateway503HasNoFakeDestination [5 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.UnknownMapping401DisabledOrUnGranted403(kind: "expired", status: 403) [5 s]
+  Passed WebApi.Gateway.Tests.AdvancedPolicyTelemetryTests.ThreeAttemptsAreThreeClientSpansOneRequestMetric [5 s]
+  Passed WebApi.Gateway.Tests.AdvancedPolicyCompositionTests.RetriedFinal200OnlyStoresFinalResponse [5 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.NoRetryUnsafeBodyStartedResponseUncertainSendOrCancel(kind: "UPGRADE") [5 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.RootSamplingIgnoresUnrecordedHostingActivityButHonorsRemoteDecision(flags: "00", expected: False) [4 s]
+  Passed WebApi.Gateway.Tests.AdvancedPolicyTelemetryTests.RejectedJwtRecordsOnlyFinalSafeDecisionAndNoAttempt [4 s]
+  Passed WebApi.Gateway.Tests.CacheActivationTests.NodeDeploymentLimitRejectsActivationAndRetainsLkg(reason: "limit") [4 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.RedisRejectAndAllowProduceDifferentFacts(mode: "Reject", status: 503, calls: 0) [4 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.CredentialExpiresAtAdmission [10 s]
+  Passed WebApi.Gateway.Tests.PolicyTelemetryTests.NoRevisionOrAppDimensionOnPolicyCounter [4 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.NoRetryUnsafeBodyStartedResponseUncertainSendOrCancel(kind: "CONDITIONAL") [4 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.UnknownMapping401DisabledOrUnGranted403(kind: "ungranted", status: 403) [4 s]
+  Passed WebApi.Gateway.Tests.GatewayForwardingCompatibilityTests.EveryActualAttemptNotifiesPassiveHealthAndReleasesOwnConcurrency [4 s]
+  Passed WebApi.Gateway.Tests.AdvancedPolicyCompositionTests.HitReauthsAndConsumesOneRateTokenWithoutCircuitSample [4 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.UnsafeResponseAlwaysFlowsWithoutStoredEntry(reason: "sse") [4 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.RootSamplingIgnoresUnrecordedHostingActivityButHonorsRemoteDecision(flags: "01", expected: True) [3 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.NoRetryUnsafeBodyStartedResponseUncertainSendOrCancel(kind: "POST") [4 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.UnknownMapping401DisabledOrUnGranted403(kind: "unknown", status: 401) [4 s]
+  Passed WebApi.Gateway.Tests.AdvancedPolicyTelemetryTests.AttemptTimeoutUsesTimeoutCircuitSettingAndFinalObservation(countTimeouts: False, countConnections: True) [4 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.RoundRobinActuallyUsesDestinationWeights [4 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.RedisRejectAndAllowProduceDifferentFacts(mode: "Allow", status: 200, calls: 1) [4 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.UnsafeResponseAlwaysFlowsWithoutStoredEntry(reason: "304") [4 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.EmptyDestinationPoolDoesNotFabricateClientSpan [3 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.NoRetryUnsafeBodyStartedResponseUncertainSendOrCancel(kind: "PATCH") [3 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.UnknownMapping401DisabledOrUnGranted403(kind: "disabled", status: 403) [4 s]
+  Passed WebApi.Gateway.Tests.AdvancedPolicyTelemetryTests.AttemptTimeoutUsesTimeoutCircuitSettingAndFinalObservation(countTimeouts: True, countConnections: False) [4 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.RetiredGenerationKeepsCircuitUntilLastRequestReleases [4 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.CorruptLatestFileRestoresPreviousLkg [4 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.UnsafeResponseAlwaysFlowsWithoutStoredEntry(reason: "no-cache") [4 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.InvalidCredentialUsesUnknownApp [4 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.NoRetryUnsafeBodyStartedResponseUncertainSendOrCancel(kind: "GRPC") [5 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.UnsafeResponseAlwaysFlowsWithoutStoredEntry(reason: "vary") [4 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.UnknownMapping401DisabledOrUnGranted403(kind: "future", status: 403) [4 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.LkgWriteDeniedKeepsOldTraffic [4 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.LateOldRequestUsesOldPolicyGeneration [4 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.ClientAbortAndNoDestinationNotCountedAsUpstreamFailure [2 ms]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.FirstLossHasActualTimestampEvenBeforeCounterBaseline [4 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.NoRetryUnsafeBodyStartedResponseUncertainSendOrCancel(kind: "DELETE") [4 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.ControlPlaneAndRedisDownStillProxyFromLkg [4 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.TelemetryOffStillPartitionsByAuthenticatedApp [4 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.LegacyApiKeyAndAnonymousPreserveBusinessAuthorization(requireKey: True) [4 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.UnsafeResponseAlwaysFlowsWithoutStoredEntry(reason: "cookie") [4 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.LateOldRequestKeepsOldSequenceAndDestination [4 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.NoRetryUnsafeBodyStartedResponseUncertainSendOrCancel(kind: "RANGE") [4 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.NoLkgNoRemoteNotReady [4 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.LegacyApiKeyAndAnonymousPreserveBusinessAuthorization(requireKey: False) [4 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.AuthRejectNeverConsumesOrTripsCircuit [4 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.UnsafeResponseAlwaysFlowsWithoutStoredEntry(reason: "private") [4 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.QueueFullDoesNotBlockProxy [6 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.JwtStripsSpoofedHeadersAndOnlyExplicitlyForwardsBearer(forward: True) [3 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.RequestUsesOneRoutingAndAuthGeneration [3 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.UnsafeResponseAlwaysFlowsWithoutStoredEntry(reason: "gzip") [3 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.NoRetryUnsafeBodyStartedResponseUncertainSendOrCancel(kind: "GET_BODY") [4 s]
+  Passed WebApi.Gateway.Tests.TrafficPolicyPipelineTests.UnchangedRuntimeIdentityHotPublishKeepsOpenCircuit [3 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.Aborted200HeadersNotCountedSuccessful [3 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.JwtStripsSpoofedHeadersAndOnlyExplicitlyForwardsBearer(forward: False) [2 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.RetryUsesDifferentHealthyWeightedTargets [2 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.RuntimeCollectionsCannotMutateAfterActivation [2 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.OriginAgeAndExpiryPreventStaleCrossNodeHit [5 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.HealthObserverReadsActualYarpStateUsingManagementIds [2 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.WrongTokenCannotFallbackToApiKeyOrAnonymous [2 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.PerAttemptTimeoutAfterRequestSentDoesNotReplay [2 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.BadHashKeepsOldGenerationAndNoAck [2 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.JwtUsersIsolatedAndBearerRefreshPartitionIsExplicit(forward: True) [3 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.ActivationDuringBackoffKeepsOldGeneration [3 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.RestartRejectsNewLkgButRestoresPriorUsableCopy [3 s]
+  Passed WebApi.Gateway.Tests.JwtAuthorizationPipelineTests.OldRequestAcrossActivationUsesOldJwtKeysMappingAndGrant [3 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.HealthRequestsExcluded [3 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.ConcurrentOpenDuringBackoffReturnsOriginalFailureWithoutAnotherRequest [2 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.RealDoubleGatewayRestartConfirmsLkgWithoutRepublishing [2 s]
+  Passed WebApi.Gateway.Tests.GatewayTelemetryTests.ExportFailureIsCountedAndLaterRequestsRecover [2 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.JwtUsersIsolatedAndBearerRefreshPartitionIsExplicit(forward: False) [2 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.SingleAttemptStillHonorsItsOwnDeadline [2 s]
+  Passed WebApi.Gateway.Tests.GatewayRuntimeTests.YarpRejectedConfigDoesNotAck [2 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.PublishRollbackSequenceNeverReusesHistoricalCache [2 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.OverallBudgetIncludesDelayAndRetryAfter(reason: "retryAfter") [2 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.NodeAFillsNodeBHitsWithFreshTraceAndAge [2 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.OverallBudgetIncludesDelayAndRetryAfter(reason: "delay") [1 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.TruncatedBodyNeverStores [1 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.OversizeContinuesStreamingWithoutCacheEntry [1 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.ClientCancellationDuringBackoffStartsNoAdditionalAttempt [1 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.HalfOpenIsOneAttemptAndConcurrentOpenStopsNext [1 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.UncertainDisconnectAndStartedBodyNeverReplay [1 s]
+  Passed WebApi.Gateway.Tests.ResponseCachePipelineTests.ClientAbortNeverStoresAndFirstChunkDoesNotWaitForCompletion [3 s]
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.TwoSuppressed503Then200ProducesThreeCallsOneResponse [1 s]
+[xUnit.net 00:01:11.38]   Finished:    WebApi.Gateway.Tests
+  Passed WebApi.Gateway.Tests.RetryPipelineTests.ExhaustedFailureForwardsLastCompleteResponse [1 s]
+
+Test Run Successful.
+Total tests: 138
+     Passed: 138
+ Total time: 1.1935 Minutes
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Stopping 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Stopping 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Stopped 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Removing 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Stopped 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Removing 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-postgres-1 Removed 
+ Container webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320-redis-1 Removed 
+ Volume webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_pg-test Removing 
+ Network webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_default Removing 
+ Volume webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_nuget-test Removing 
+ Volume webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_pg-test Removed 
+ Volume webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_nuget-test Removed 
+ Network webapi-contracts-test-f57ac3f0-aae8-456c-8926-83a4194d5320_default Removed 
+
+WEBAPI_EXIT 0

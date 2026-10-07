@@ -1,0 +1,180 @@
+{
+  "passed": true,
+  "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+  "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+  "stage": "pre-install",
+  "originalInstallation": "not-upgraded",
+  "suites": [
+    {
+      "name": "runtime",
+      "passed": 134,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "console",
+      "passed": 174,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "domain",
+      "passed": 642,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "integration",
+      "passed": 541,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "gateway",
+      "passed": 138,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "scenarioChecks": [
+    "jwt-negative",
+    "identity-partition",
+    "retry-actual-calls",
+    "uncertain-send-not-retried",
+    "rate-once",
+    "half-open-once",
+    "scope-isolation",
+    "redis-fault",
+    "two-level-publish",
+    "rollback",
+    "downgrade-gate"
+  ],
+  "uiActions": [
+    "create",
+    "edit",
+    "jwks-file",
+    "mapping",
+    "six-bindings",
+    "dirty-escape-focus",
+    "explicit-enter",
+    "scope-late",
+    "revision-412",
+    "readonly",
+    "release-review",
+    "logs-trace"
+  ],
+  "artifacts": [
+    {
+      "path": "console.json",
+      "sha256": "d6420af6d2772fa6f3a696386f8b5d2a770cb7e729db838ebc7fa9f412899b44"
+    },
+    {
+      "path": "console.log",
+      "sha256": "fb943bd11c92ae622eb2ba16fb8c7aa1e5976a5f7b7a431b7d7b74a8ebb3f1f1"
+    },
+    {
+      "path": "domain.json",
+      "sha256": "092041ffd550e1e793ee8997ce994fe0cfeafe0770603f8eae0da916cd95d097"
+    },
+    {
+      "path": "domain.log",
+      "sha256": "93851c9654e4c51751143d1df9a7b7ada2b606141587dd240a823236ae52d3ee"
+    },
+    {
+      "path": "gateway.json",
+      "sha256": "e49890062d8a597de2bd2ac5b47d2f7b350fe8fdbc467c8972e226308061f9cb"
+    },
+    {
+      "path": "gateway.log",
+      "sha256": "1b756b845867a9a2d13fe57c6887963fefd2ecca056efada38dcf22fe0421220"
+    },
+    {
+      "path": "images.json",
+      "sha256": "1bb1a5fcf3152abd52a282cb31e5bb79c286e7a0d3f0856061a7d892a7cceda6"
+    },
+    {
+      "path": "integration.json",
+      "sha256": "6cdf66795ef9685853c66c227a1dce607583d9e86d327241b400129f0eeeb8ae"
+    },
+    {
+      "path": "integration.log",
+      "sha256": "b0552d47da26018224c9831f30e4bf50933cb74323c2269a93824504de44d80b"
+    },
+    {
+      "path": "protection.json",
+      "sha256": "763de240739f2adda44056cc983b029c46d295075f3775def0917f7dea02cd2d"
+    },
+    {
+      "path": "runtime.json",
+      "sha256": "ac309f23ce1b420037488237f3b9ac465b3046d4495d58cd66289b566c845c45"
+    },
+    {
+      "path": "runtime.log",
+      "sha256": "4a7cadd489968be0d265903a8117dd8666139e9a616decb54e20811af4b8c15c"
+    },
+    {
+      "path": "scenario.json",
+      "sha256": "b37317500a2aacf19d52b4a5717d44219c943cf12bb540d9be8710f7fef5fbac"
+    },
+    {
+      "path": "static.json",
+      "sha256": "ef8bb1651b1159f023cd62e671b9458b6b97505fefdbdbf59df1b42b504cfd38"
+    },
+    {
+      "path": "ui-create.png",
+      "sha256": "5bf164c61496a80ac364b831581eea1d9274a0f7669fbcbe09a2b491a1d32669"
+    },
+    {
+      "path": "ui-dirty-escape-focus.png",
+      "sha256": "c6d3e77490adf283c2301999c9c71ea20f4e18f5bb07b462c82f07f03559a229"
+    },
+    {
+      "path": "ui-edit.png",
+      "sha256": "ad74b5bf3073cad2df6a8a1cdf60f75c2c9f560487aa26d61fc5673ed5f8dd88"
+    },
+    {
+      "path": "ui-explicit-enter.png",
+      "sha256": "fb02acdb864ba16a1e02d8a613557b311c30db857e0a41e37bdf22fccb0eb5c1"
+    },
+    {
+      "path": "ui-jwks-file.png",
+      "sha256": "1742f14eb8290459e26d3075819c22e76c2ea5fd6e1e570f2c7f52392cecb104"
+    },
+    {
+      "path": "ui-logs-trace.png",
+      "sha256": "a723579e8b8fd7bd58921bb0703087fd333f3a74f91cc7e94bc828ed5c5c05ce"
+    },
+    {
+      "path": "ui-mapping.png",
+      "sha256": "0247150a186dca942892b86774c6e25e17d2e3e66c27f3d6df32c48e626c81c0"
+    },
+    {
+      "path": "ui-readonly.png",
+      "sha256": "837714b39710f00c62869a5e1626bcfe0427587890a503b11b6d31d130daa109"
+    },
+    {
+      "path": "ui-release-review.png",
+      "sha256": "768fb68d425509397db71f80a8e882dd42df01f825d7205dc30d1ec6fc024fca"
+    },
+    {
+      "path": "ui-retry-trace.png",
+      "sha256": "6b04b5412bcef2d903d2687184f76e31cd4c9cb14df9c14b140f6d90f0adfce6"
+    },
+    {
+      "path": "ui-revision-412.png",
+      "sha256": "6a49a9302da8aa8790c9cd677788a53ca28c1500f39243d4356fd9535cbc5b38"
+    },
+    {
+      "path": "ui-scope-late.png",
+      "sha256": "0a8e4d3678d11905323af8511ecc779d5cbd24b2886e574f88f44f5cf6264b10"
+    },
+    {
+      "path": "ui-six-bindings.png",
+      "sha256": "b3e5113fd3df0dc1216cc2c0293dde5c4c1d2b90ea75b7225a75dfa8d3014d38"
+    },
+    {
+      "path": "ui.json",
+      "sha256": "aa77c6238dbbe64fe01a1707d72c486e5dae6bb15ac1ef936794ca4db3df0d81"
+    }
+  ]
+}

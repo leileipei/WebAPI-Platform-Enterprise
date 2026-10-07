@@ -1,0 +1,1743 @@
+{
+  "sourceRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+  "imageId": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+  "resources": [
+    {
+      "Id": "398c85448d48c525a9c2913525fd091d584d1dfc41f4369f0e29003e5a70af71",
+      "Created": "2026-10-07T14:01:10.223972414Z",
+      "Path": "dotnet",
+      "Args": [
+        "/app/gateway/WebApi.Gateway.dll"
+      ],
+      "State": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 2403931,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-07T14:01:16.876930865Z",
+        "FinishedAt": "0001-01-01T00:00:00Z",
+        "Health": {
+          "Status": "healthy",
+          "FailingStreak": 0,
+          "Log": [
+            {
+              "Start": "2026-10-07T22:15:13.867009003+08:00",
+              "End": "2026-10-07T22:15:13.929596446+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:18.937520259+08:00",
+              "End": "2026-10-07T22:15:19.010964209+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:24.018588979+08:00",
+              "End": "2026-10-07T22:15:24.095545902+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:29.096761228+08:00",
+              "End": "2026-10-07T22:15:29.16447011+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:34.166754607+08:00",
+              "End": "2026-10-07T22:15:34.240723767+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            }
+          ]
+        }
+      },
+      "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "ResolvConfPath": "/var/lib/docker/containers/398c85448d48c525a9c2913525fd091d584d1dfc41f4369f0e29003e5a70af71/resolv.conf",
+      "HostnamePath": "/var/lib/docker/containers/398c85448d48c525a9c2913525fd091d584d1dfc41f4369f0e29003e5a70af71/hostname",
+      "HostsPath": "/var/lib/docker/containers/398c85448d48c525a9c2913525fd091d584d1dfc41f4369f0e29003e5a70af71/hosts",
+      "LogPath": "/var/lib/docker/containers/398c85448d48c525a9c2913525fd091d584d1dfc41f4369f0e29003e5a70af71/398c85448d48c525a9c2913525fd091d584d1dfc41f4369f0e29003e5a70af71-json.log",
+      "Name": "/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-gateway-a-1",
+      "RestartCount": 0,
+      "Driver": "overlayfs",
+      "Platform": "linux",
+      "MountLabel": "",
+      "ProcessLabel": "",
+      "AppArmorProfile": "",
+      "ExecIDs": null,
+      "HostConfig": {
+        "Binds": [
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-gateway-a:/run/secrets:ro",
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_lkg-a:/lkg:rw",
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-cache:/run/cache:ro"
+        ],
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {
+            "max-file": "5",
+            "max-size": "20m"
+          }
+        },
+        "NetworkMode": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default",
+        "PortBindings": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "63718"
+            }
+          ]
+        },
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": null,
+        "DnsOptions": null,
+        "DnsSearch": null,
+        "ExtraHosts": [],
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": true,
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "Tmpfs": {
+          "/tmp": "size=33554432,mode=1777"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 8408530944,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 536870912,
+        "NanoCpus": 0,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": null,
+        "BlkioDeviceReadBps": null,
+        "BlkioDeviceWriteBps": null,
+        "BlkioDeviceReadIOps": null,
+        "BlkioDeviceWriteIOps": null,
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": null,
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 1073741824,
+        "MemorySwappiness": null,
+        "OomKillDisable": null,
+        "PidsLimit": null,
+        "Ulimits": null,
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "MaskedPaths": [
+          "/proc/acpi",
+          "/proc/asound",
+          "/proc/interrupts",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/sys/devices/virtual/powercap",
+          "/sys/firmware"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      },
+      "Storage": {
+        "RootFS": {
+          "Snapshot": {
+            "Name": "overlayfs"
+          }
+        }
+      },
+      "Mounts": [
+        {
+          "Type": "volume",
+          "Name": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-gateway-a",
+          "Source": "/var/lib/docker/volumes/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-gateway-a/_data",
+          "Destination": "/run/secrets",
+          "Driver": "local",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": ""
+        },
+        {
+          "Type": "volume",
+          "Name": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_lkg-a",
+          "Source": "/var/lib/docker/volumes/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_lkg-a/_data",
+          "Destination": "/lkg",
+          "Driver": "local",
+          "Mode": "rw",
+          "RW": true,
+          "Propagation": ""
+        },
+        {
+          "Type": "volume",
+          "Name": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-cache",
+          "Source": "/var/lib/docker/volumes/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-cache/_data",
+          "Destination": "/run/cache",
+          "Driver": "local",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": ""
+        }
+      ],
+      "Config": {
+        "Hostname": "398c85448d48",
+        "Domainname": "",
+        "User": "10001:10001",
+        "AttachStdin": false,
+        "AttachStdout": true,
+        "AttachStderr": true,
+        "ExposedPorts": {
+          "8080/tcp": {}
+        },
+        "Tty": false,
+        "OpenStdin": false,
+        "StdinOnce": false,
+        "Env": [
+          "Upstream__AllowedOrigins__5=http://policy-backend:18081",
+          "Observability__LokiUrl=http://loki:3100",
+          "Upstream__AllowedOrigins__2=http://policy-backend:18080",
+          "Upstream__AllowedOrigins__4=http://policy-backend:18080",
+          "Gateway__NodeName=local-gateway-a",
+          "Upstream__AllowedOrigins__3=http://policy-backend:18081",
+          "Gateway__ControlPlaneUrl=http://control-plane:8080",
+          "Upstream__RequireExplicitAllowedOrigins=true",
+          "GatewayPolicies__Cache__KeyPrefix=webapi:responsecache:webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897",
+          "Observability__TraceSampleRatio=1",
+          "ASPNETCORE_ENVIRONMENT=Development",
+          "GatewayPolicies__Cache__DecisionTimeoutMs=100",
+          "Upstream__AllowedOrigins__0=http://backend-a:8080",
+          "Observability__Enabled=true",
+          "Gateway__EnvironmentId=7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+          "ASPNETCORE_URLS=http://0.0.0.0:8080",
+          "Observability__MetricExportIntervalMs=15000",
+          "GatewayPolicies__Cache__MaxEntries=2000",
+          "Observability__CollectorEndpoint=http://collector:4318",
+          "GatewayPolicies__Cache__HmacSecretFile=/run/cache/cache-hmac",
+          "Observability__TempoUrl=http://tempo:3200",
+          "Observability__PrometheusUrl=http://prometheus:9090",
+          "GatewayPolicies__Cache__MaxTotalBytes=67108864",
+          "Gateway__LkgDirectory=/lkg",
+          "Observability__IpHmacSecretFile=/run/secrets/ip-hmac",
+          "Gateway__SecretFile=/run/secrets/node-a",
+          "Upstream__AllowedOrigins__1=http://backend-b:8080",
+          "Redis__Connection=redis:6379,abortConnect=false",
+          "Observability__CursorSigningSecretFile=/run/secrets/cursor-signing",
+          "GatewayPolicies__Cache__MaxEntryBytes=1048576",
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "APP_UID=1654",
+          "ASPNETCORE_HTTP_PORTS=8080",
+          "DOTNET_RUNNING_IN_CONTAINER=true",
+          "DOTNET_VERSION=10.0.12",
+          "ASPNET_VERSION=10.0.12",
+          "DOTNET_GENERATE_ASPNET_CERTIFICATE=false",
+          "DOTNET_NOLOGO=true",
+          "DOTNET_SDK_VERSION=10.0.401",
+          "DOTNET_USE_POLLING_FILE_WATCHER=true",
+          "NUGET_XMLDOC_MODE=skip",
+          "POWERSHELL_DISTRIBUTION_CHANNEL=PSDocker-DotnetSDK-Ubuntu-24.04-arm64",
+          "DOTNET_CLI_TELEMETRY_OPTOUT=1",
+          "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1",
+          "DOTNET_EnableDiagnostics=0"
+        ],
+        "Cmd": [
+          "dotnet",
+          "/app/gateway/WebApi.Gateway.dll"
+        ],
+        "Healthcheck": {
+          "Test": [
+            "CMD",
+            "dotnet",
+            "/app/runtime-tool/WebApi.RuntimeTool.dll",
+            "probe",
+            "http://127.0.0.1:8080/health/live"
+          ],
+          "Interval": 5000000000,
+          "Timeout": 6000000000,
+          "Retries": 30
+        },
+        "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+        "Volumes": null,
+        "WorkingDir": "/app",
+        "Entrypoint": null,
+        "Labels": {
+          "com.docker.compose.config-hash": "726f474b6d2c3ca174fe82dcb309fe693a6ed94b66f1f02c05a662d70aa8f6f2",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy",
+          "com.docker.compose.replace": "gateway-a-1",
+          "com.docker.compose.service": "gateway-a",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "cb9c8aa8-3121-4b5f-99cc-557731f16349",
+          "org.opencontainers.image.revision": "c1c271555e3a125d22184697c17320c94a4db07c",
+          "org.opencontainers.image.version": "24.04"
+        }
+      },
+      "NetworkSettings": {
+        "SandboxID": "6a0573c9efc1916a4ab659143c8b4eff92b8ecba8378c8071e35a8b3f57c63df",
+        "SandboxKey": "/var/run/docker/netns/6a0573c9efc1",
+        "Ports": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "63718"
+            }
+          ]
+        },
+        "Networks": {
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default": {
+            "IPAMConfig": null,
+            "Links": null,
+            "Aliases": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-gateway-a-1",
+              "gateway-a"
+            ],
+            "DriverOpts": null,
+            "GwPriority": 0,
+            "NetworkID": "9996a9b87ad09bec5d12cae36125a188014944b9563dfc3834f3dcac20253d52",
+            "EndpointID": "705bf0442d13d090d8946e2f948a2fbe981990a2777b85c89bcd8fa0740c1932",
+            "Gateway": "192.168.247.1",
+            "IPAddress": "192.168.247.8",
+            "MacAddress": "f6:f6:a9:ef:d2:6f",
+            "IPPrefixLen": 24,
+            "IPv6Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "DNSNames": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-gateway-a-1",
+              "gateway-a",
+              "398c85448d48"
+            ]
+          }
+        }
+      },
+      "ImageManifestDescriptor": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:7d2ba623a6b3c7d5d616a1624f5f8653a8b8dfc6f2f2f5bf6d4e62b7df74081e",
+        "size": 2779,
+        "platform": {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      },
+      "Kind": "container"
+    },
+    {
+      "Id": "79d3c83a7f0fd619d6b19b2d2fc7b1ecc7da8163414da8dea5a606389e66b078",
+      "Created": "2026-10-07T14:01:10.222309657Z",
+      "Path": "dotnet",
+      "Args": [
+        "/app/gateway/WebApi.Gateway.dll"
+      ],
+      "State": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 2403996,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-07T14:01:16.903299648Z",
+        "FinishedAt": "0001-01-01T00:00:00Z",
+        "Health": {
+          "Status": "healthy",
+          "FailingStreak": 0,
+          "Log": [
+            {
+              "Start": "2026-10-07T22:15:13.862125314+08:00",
+              "End": "2026-10-07T22:15:13.928894567+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:18.937802344+08:00",
+              "End": "2026-10-07T22:15:19.010533415+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:24.018226894+08:00",
+              "End": "2026-10-07T22:15:24.095828654+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:29.09682827+08:00",
+              "End": "2026-10-07T22:15:29.164292234+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:34.165746853+08:00",
+              "End": "2026-10-07T22:15:34.241141561+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            }
+          ]
+        }
+      },
+      "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "ResolvConfPath": "/var/lib/docker/containers/79d3c83a7f0fd619d6b19b2d2fc7b1ecc7da8163414da8dea5a606389e66b078/resolv.conf",
+      "HostnamePath": "/var/lib/docker/containers/79d3c83a7f0fd619d6b19b2d2fc7b1ecc7da8163414da8dea5a606389e66b078/hostname",
+      "HostsPath": "/var/lib/docker/containers/79d3c83a7f0fd619d6b19b2d2fc7b1ecc7da8163414da8dea5a606389e66b078/hosts",
+      "LogPath": "/var/lib/docker/containers/79d3c83a7f0fd619d6b19b2d2fc7b1ecc7da8163414da8dea5a606389e66b078/79d3c83a7f0fd619d6b19b2d2fc7b1ecc7da8163414da8dea5a606389e66b078-json.log",
+      "Name": "/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-gateway-b-1",
+      "RestartCount": 0,
+      "Driver": "overlayfs",
+      "Platform": "linux",
+      "MountLabel": "",
+      "ProcessLabel": "",
+      "AppArmorProfile": "",
+      "ExecIDs": null,
+      "HostConfig": {
+        "Binds": [
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-cache:/run/cache:ro",
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-gateway-b:/run/secrets:ro",
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_lkg-b:/lkg:rw"
+        ],
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {
+            "max-file": "5",
+            "max-size": "20m"
+          }
+        },
+        "NetworkMode": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default",
+        "PortBindings": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "63719"
+            }
+          ]
+        },
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": null,
+        "DnsOptions": null,
+        "DnsSearch": null,
+        "ExtraHosts": [],
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": true,
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "Tmpfs": {
+          "/tmp": "size=33554432,mode=1777"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 8408530944,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 536870912,
+        "NanoCpus": 0,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": null,
+        "BlkioDeviceReadBps": null,
+        "BlkioDeviceWriteBps": null,
+        "BlkioDeviceReadIOps": null,
+        "BlkioDeviceWriteIOps": null,
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": null,
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 1073741824,
+        "MemorySwappiness": null,
+        "OomKillDisable": null,
+        "PidsLimit": null,
+        "Ulimits": null,
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "MaskedPaths": [
+          "/proc/acpi",
+          "/proc/asound",
+          "/proc/interrupts",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/sys/devices/virtual/powercap",
+          "/sys/firmware"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      },
+      "Storage": {
+        "RootFS": {
+          "Snapshot": {
+            "Name": "overlayfs"
+          }
+        }
+      },
+      "Mounts": [
+        {
+          "Type": "volume",
+          "Name": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_lkg-b",
+          "Source": "/var/lib/docker/volumes/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_lkg-b/_data",
+          "Destination": "/lkg",
+          "Driver": "local",
+          "Mode": "rw",
+          "RW": true,
+          "Propagation": ""
+        },
+        {
+          "Type": "volume",
+          "Name": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-cache",
+          "Source": "/var/lib/docker/volumes/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-cache/_data",
+          "Destination": "/run/cache",
+          "Driver": "local",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": ""
+        },
+        {
+          "Type": "volume",
+          "Name": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-gateway-b",
+          "Source": "/var/lib/docker/volumes/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-gateway-b/_data",
+          "Destination": "/run/secrets",
+          "Driver": "local",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": ""
+        }
+      ],
+      "Config": {
+        "Hostname": "79d3c83a7f0f",
+        "Domainname": "",
+        "User": "10001:10001",
+        "AttachStdin": false,
+        "AttachStdout": true,
+        "AttachStderr": true,
+        "ExposedPorts": {
+          "8080/tcp": {}
+        },
+        "Tty": false,
+        "OpenStdin": false,
+        "StdinOnce": false,
+        "Env": [
+          "Observability__CollectorEndpoint=http://collector:4318",
+          "Observability__IpHmacSecretFile=/run/secrets/ip-hmac",
+          "GatewayPolicies__Cache__MaxEntryBytes=1048576",
+          "Upstream__AllowedOrigins__3=http://policy-backend:18081",
+          "Gateway__SecretFile=/run/secrets/node-b",
+          "GatewayPolicies__Cache__MaxEntries=2000",
+          "Gateway__EnvironmentId=7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+          "Observability__PrometheusUrl=http://prometheus:9090",
+          "ASPNETCORE_URLS=http://0.0.0.0:8080",
+          "Upstream__AllowedOrigins__2=http://policy-backend:18080",
+          "Gateway__ControlPlaneUrl=http://control-plane:8080",
+          "Observability__CursorSigningSecretFile=/run/secrets/cursor-signing",
+          "Upstream__AllowedOrigins__5=http://policy-backend:18081",
+          "GatewayPolicies__Cache__HmacSecretFile=/run/cache/cache-hmac",
+          "Observability__LokiUrl=http://loki:3100",
+          "Upstream__AllowedOrigins__1=http://backend-b:8080",
+          "Observability__TempoUrl=http://tempo:3200",
+          "Upstream__AllowedOrigins__4=http://policy-backend:18080",
+          "Upstream__RequireExplicitAllowedOrigins=true",
+          "GatewayPolicies__Cache__MaxTotalBytes=67108864",
+          "GatewayPolicies__Cache__KeyPrefix=webapi:responsecache:webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897",
+          "Redis__Connection=redis:6379,abortConnect=false",
+          "Gateway__NodeName=local-gateway-b",
+          "Observability__Enabled=true",
+          "ASPNETCORE_ENVIRONMENT=Development",
+          "Observability__TraceSampleRatio=1",
+          "Gateway__LkgDirectory=/lkg",
+          "GatewayPolicies__Cache__DecisionTimeoutMs=100",
+          "Upstream__AllowedOrigins__0=http://backend-a:8080",
+          "Observability__MetricExportIntervalMs=15000",
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "APP_UID=1654",
+          "ASPNETCORE_HTTP_PORTS=8080",
+          "DOTNET_RUNNING_IN_CONTAINER=true",
+          "DOTNET_VERSION=10.0.12",
+          "ASPNET_VERSION=10.0.12",
+          "DOTNET_GENERATE_ASPNET_CERTIFICATE=false",
+          "DOTNET_NOLOGO=true",
+          "DOTNET_SDK_VERSION=10.0.401",
+          "DOTNET_USE_POLLING_FILE_WATCHER=true",
+          "NUGET_XMLDOC_MODE=skip",
+          "POWERSHELL_DISTRIBUTION_CHANNEL=PSDocker-DotnetSDK-Ubuntu-24.04-arm64",
+          "DOTNET_CLI_TELEMETRY_OPTOUT=1",
+          "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1",
+          "DOTNET_EnableDiagnostics=0"
+        ],
+        "Cmd": [
+          "dotnet",
+          "/app/gateway/WebApi.Gateway.dll"
+        ],
+        "Healthcheck": {
+          "Test": [
+            "CMD",
+            "dotnet",
+            "/app/runtime-tool/WebApi.RuntimeTool.dll",
+            "probe",
+            "http://127.0.0.1:8080/health/live"
+          ],
+          "Interval": 5000000000,
+          "Timeout": 6000000000,
+          "Retries": 30
+        },
+        "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+        "Volumes": null,
+        "WorkingDir": "/app",
+        "Entrypoint": null,
+        "Labels": {
+          "com.docker.compose.config-hash": "8d195d3fde8b06021e9f244c2a456985920e4bbb8745457e6fbe44dff2dacbe9",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy",
+          "com.docker.compose.replace": "gateway-b-1",
+          "com.docker.compose.service": "gateway-b",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "cb9c8aa8-3121-4b5f-99cc-557731f16349",
+          "org.opencontainers.image.revision": "c1c271555e3a125d22184697c17320c94a4db07c",
+          "org.opencontainers.image.version": "24.04"
+        }
+      },
+      "NetworkSettings": {
+        "SandboxID": "cbfb4462eb47737bc1caf2ed4a70495802bcba803db0716644618742278a10ee",
+        "SandboxKey": "/var/run/docker/netns/cbfb4462eb47",
+        "Ports": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "63719"
+            }
+          ]
+        },
+        "Networks": {
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default": {
+            "IPAMConfig": null,
+            "Links": null,
+            "Aliases": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-gateway-b-1",
+              "gateway-b"
+            ],
+            "DriverOpts": null,
+            "GwPriority": 0,
+            "NetworkID": "9996a9b87ad09bec5d12cae36125a188014944b9563dfc3834f3dcac20253d52",
+            "EndpointID": "c3443d91ce404b1fd0a4b1aa5cb3678ba5afb3f77f6f4fba835631b3f48440a5",
+            "Gateway": "192.168.247.1",
+            "IPAddress": "192.168.247.9",
+            "MacAddress": "fe:bd:0b:f8:dd:ed",
+            "IPPrefixLen": 24,
+            "IPv6Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "DNSNames": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-gateway-b-1",
+              "gateway-b",
+              "79d3c83a7f0f"
+            ]
+          }
+        }
+      },
+      "ImageManifestDescriptor": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:7d2ba623a6b3c7d5d616a1624f5f8653a8b8dfc6f2f2f5bf6d4e62b7df74081e",
+        "size": 2779,
+        "platform": {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      },
+      "Kind": "container"
+    },
+    {
+      "Id": "39d62021fee070f93f268304156c65a6920c2f75139fc72adbd9c7c37bc166e7",
+      "Created": "2026-10-07T14:01:10.167406581Z",
+      "Path": "dotnet",
+      "Args": [
+        "/app/control-plane/WebApi.ControlPlane.dll"
+      ],
+      "State": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 2404021,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-07T14:01:16.911473351Z",
+        "FinishedAt": "0001-01-01T00:00:00Z",
+        "Health": {
+          "Status": "healthy",
+          "FailingStreak": 0,
+          "Log": [
+            {
+              "Start": "2026-10-07T22:15:13.861671187+08:00",
+              "End": "2026-10-07T22:15:13.930261532+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:18.937466384+08:00",
+              "End": "2026-10-07T22:15:19.012505924+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:24.018655355+08:00",
+              "End": "2026-10-07T22:15:24.096928367+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:29.097266397+08:00",
+              "End": "2026-10-07T22:15:29.164019983+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:34.166839774+08:00",
+              "End": "2026-10-07T22:15:34.240606683+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            }
+          ]
+        }
+      },
+      "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "ResolvConfPath": "/var/lib/docker/containers/39d62021fee070f93f268304156c65a6920c2f75139fc72adbd9c7c37bc166e7/resolv.conf",
+      "HostnamePath": "/var/lib/docker/containers/39d62021fee070f93f268304156c65a6920c2f75139fc72adbd9c7c37bc166e7/hostname",
+      "HostsPath": "/var/lib/docker/containers/39d62021fee070f93f268304156c65a6920c2f75139fc72adbd9c7c37bc166e7/hosts",
+      "LogPath": "/var/lib/docker/containers/39d62021fee070f93f268304156c65a6920c2f75139fc72adbd9c7c37bc166e7/39d62021fee070f93f268304156c65a6920c2f75139fc72adbd9c7c37bc166e7-json.log",
+      "Name": "/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-control-plane-1",
+      "RestartCount": 0,
+      "Driver": "overlayfs",
+      "Platform": "linux",
+      "MountLabel": "",
+      "ProcessLabel": "",
+      "AppArmorProfile": "",
+      "ExecIDs": null,
+      "HostConfig": {
+        "Binds": [
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-control-plane:/run/secrets:ro",
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_dp-keys:/keys:rw"
+        ],
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {
+            "max-file": "5",
+            "max-size": "20m"
+          }
+        },
+        "NetworkMode": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default",
+        "PortBindings": {},
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": null,
+        "DnsOptions": null,
+        "DnsSearch": null,
+        "ExtraHosts": [],
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": true,
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "Tmpfs": {
+          "/tmp": "size=33554432,mode=1777"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 8408530944,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 536870912,
+        "NanoCpus": 0,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": null,
+        "BlkioDeviceReadBps": null,
+        "BlkioDeviceWriteBps": null,
+        "BlkioDeviceReadIOps": null,
+        "BlkioDeviceWriteIOps": null,
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": null,
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 1073741824,
+        "MemorySwappiness": null,
+        "OomKillDisable": null,
+        "PidsLimit": null,
+        "Ulimits": null,
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "MaskedPaths": [
+          "/proc/acpi",
+          "/proc/asound",
+          "/proc/interrupts",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/sys/devices/virtual/powercap",
+          "/sys/firmware"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      },
+      "Storage": {
+        "RootFS": {
+          "Snapshot": {
+            "Name": "overlayfs"
+          }
+        }
+      },
+      "Mounts": [
+        {
+          "Type": "volume",
+          "Name": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-control-plane",
+          "Source": "/var/lib/docker/volumes/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-control-plane/_data",
+          "Destination": "/run/secrets",
+          "Driver": "local",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": ""
+        },
+        {
+          "Type": "volume",
+          "Name": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_dp-keys",
+          "Source": "/var/lib/docker/volumes/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_dp-keys/_data",
+          "Destination": "/keys",
+          "Driver": "local",
+          "Mode": "rw",
+          "RW": true,
+          "Propagation": ""
+        }
+      ],
+      "Config": {
+        "Hostname": "39d62021fee0",
+        "Domainname": "",
+        "User": "10001:10001",
+        "AttachStdin": false,
+        "AttachStdout": true,
+        "AttachStderr": true,
+        "Tty": false,
+        "OpenStdin": false,
+        "StdinOnce": false,
+        "Env": [
+          "Observability__PrometheusUrl=http://prometheus:9090",
+          "GatewayPolicies__Jwt__HttpFixtureOrigins__0=http://localhost:64455",
+          "WEBAPI_DB_HOST=postgres",
+          "Upstream__AllowedOrigins__2=http://policy-backend:18080",
+          "Nodes__Enrollments__0__SecretFile=/run/secrets/node-a",
+          "Observability__TempoUrl=http://tempo:3200",
+          "Authentication__CookieName=WebApi.Local.cb9c8aa8-3121-4b5f-99cc-557731f16349.Session",
+          "Upstream__AllowedOrigins__0=http://backend-a:8080",
+          "WEBAPI_DB_PASSWORD_FILE=/run/secrets/postgres-password",
+          "Observability__CursorSigningSecretFile=/run/secrets/cursor-signing",
+          "Nodes__Enrollments__0__EnvironmentId=7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+          "Redis__Connection=redis:6379,abortConnect=false",
+          "Upstream__RequireExplicitAllowedOrigins=true",
+          "Observability__TraceSampleRatio=0.1",
+          "Nodes__Enrollments__1__EnvironmentId=7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+          "Upstream__AllowedOrigins__4=http://policy-backend:18080",
+          "GatewayPolicies__FixtureEnabled=true",
+          "ASPNETCORE_ENVIRONMENT=Development",
+          "Nodes__Enrollments__0__NodeName=local-gateway-a",
+          "Upstream__AllowedOrigins__1=http://backend-b:8080",
+          "Observability__IpHmacSecretFile=/run/secrets/ip-hmac",
+          "Observability__LokiUrl=http://loki:3100",
+          "Nodes__Enrollments__1__NodeName=local-gateway-b",
+          "DataProtection__ApplicationName=WebApi.Enterprise.Local.v1",
+          "Upstream__AllowedOrigins__3=http://policy-backend:18081",
+          "Observability__Enabled=true",
+          "Antiforgery__CookieName=WebApi.Local.cb9c8aa8-3121-4b5f-99cc-557731f16349.Csrf",
+          "Nodes__Enrollments__1__SecretFile=/run/secrets/node-b",
+          "Upstream__AllowedOrigins__5=http://policy-backend:18081",
+          "DataProtection__KeysDirectory=/keys",
+          "ASPNETCORE_URLS=http://0.0.0.0:8080",
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "APP_UID=1654",
+          "ASPNETCORE_HTTP_PORTS=8080",
+          "DOTNET_RUNNING_IN_CONTAINER=true",
+          "DOTNET_VERSION=10.0.12",
+          "ASPNET_VERSION=10.0.12",
+          "DOTNET_GENERATE_ASPNET_CERTIFICATE=false",
+          "DOTNET_NOLOGO=true",
+          "DOTNET_SDK_VERSION=10.0.401",
+          "DOTNET_USE_POLLING_FILE_WATCHER=true",
+          "NUGET_XMLDOC_MODE=skip",
+          "POWERSHELL_DISTRIBUTION_CHANNEL=PSDocker-DotnetSDK-Ubuntu-24.04-arm64",
+          "DOTNET_CLI_TELEMETRY_OPTOUT=1",
+          "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1",
+          "DOTNET_EnableDiagnostics=0"
+        ],
+        "Cmd": [
+          "dotnet",
+          "/app/control-plane/WebApi.ControlPlane.dll"
+        ],
+        "Healthcheck": {
+          "Test": [
+            "CMD",
+            "dotnet",
+            "/app/runtime-tool/WebApi.RuntimeTool.dll",
+            "probe",
+            "http://127.0.0.1:8080/health/live"
+          ],
+          "Interval": 5000000000,
+          "Timeout": 6000000000,
+          "Retries": 30
+        },
+        "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+        "Volumes": null,
+        "WorkingDir": "/app",
+        "Entrypoint": null,
+        "Labels": {
+          "com.docker.compose.config-hash": "c0e60ea75f94d09669537c10ed8ebffe7fefd749c07799acf490f50c1d222569",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy",
+          "com.docker.compose.replace": "control-plane-1",
+          "com.docker.compose.service": "control-plane",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "cb9c8aa8-3121-4b5f-99cc-557731f16349",
+          "org.opencontainers.image.revision": "c1c271555e3a125d22184697c17320c94a4db07c",
+          "org.opencontainers.image.version": "24.04"
+        }
+      },
+      "NetworkSettings": {
+        "SandboxID": "ba38703b2b4148b295ae5d87e0524155cca5129a13ce0b06470102fc1d2f90de",
+        "SandboxKey": "/var/run/docker/netns/ba38703b2b41",
+        "Ports": {},
+        "Networks": {
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default": {
+            "IPAMConfig": null,
+            "Links": null,
+            "Aliases": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-control-plane-1",
+              "control-plane"
+            ],
+            "DriverOpts": null,
+            "GwPriority": 0,
+            "NetworkID": "9996a9b87ad09bec5d12cae36125a188014944b9563dfc3834f3dcac20253d52",
+            "EndpointID": "59bfea76f1f815b21cac14c2f3299ad10086611c8dc70ef66c94cbf09b1bcd79",
+            "Gateway": "192.168.247.1",
+            "IPAddress": "192.168.247.12",
+            "MacAddress": "8e:d4:fd:16:3a:f5",
+            "IPPrefixLen": 24,
+            "IPv6Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "DNSNames": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-control-plane-1",
+              "control-plane",
+              "39d62021fee0"
+            ]
+          }
+        }
+      },
+      "ImageManifestDescriptor": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:7d2ba623a6b3c7d5d616a1624f5f8653a8b8dfc6f2f2f5bf6d4e62b7df74081e",
+        "size": 2779,
+        "platform": {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      },
+      "Kind": "container"
+    },
+    {
+      "Id": "a763a803a2d34dd4b840feca8ae3d4d5405ed738805282acf7e082cfc7a1f554",
+      "Created": "2026-10-07T14:01:10.086774559Z",
+      "Path": "dotnet",
+      "Args": [
+        "/app/worker/WebApi.Worker.dll"
+      ],
+      "State": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 2403932,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-07T14:01:16.872597638Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "ResolvConfPath": "/var/lib/docker/containers/a763a803a2d34dd4b840feca8ae3d4d5405ed738805282acf7e082cfc7a1f554/resolv.conf",
+      "HostnamePath": "/var/lib/docker/containers/a763a803a2d34dd4b840feca8ae3d4d5405ed738805282acf7e082cfc7a1f554/hostname",
+      "HostsPath": "/var/lib/docker/containers/a763a803a2d34dd4b840feca8ae3d4d5405ed738805282acf7e082cfc7a1f554/hosts",
+      "LogPath": "/var/lib/docker/containers/a763a803a2d34dd4b840feca8ae3d4d5405ed738805282acf7e082cfc7a1f554/a763a803a2d34dd4b840feca8ae3d4d5405ed738805282acf7e082cfc7a1f554-json.log",
+      "Name": "/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-worker-1",
+      "RestartCount": 0,
+      "Driver": "overlayfs",
+      "Platform": "linux",
+      "MountLabel": "",
+      "ProcessLabel": "",
+      "AppArmorProfile": "",
+      "ExecIDs": null,
+      "HostConfig": {
+        "Binds": [
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-worker:/run/secrets:ro"
+        ],
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {
+            "max-file": "5",
+            "max-size": "20m"
+          }
+        },
+        "NetworkMode": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default",
+        "PortBindings": {},
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": null,
+        "DnsOptions": null,
+        "DnsSearch": null,
+        "ExtraHosts": [],
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": true,
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "Tmpfs": {
+          "/tmp": "size=33554432,mode=1777"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 8408530944,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 268435456,
+        "NanoCpus": 0,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": null,
+        "BlkioDeviceReadBps": null,
+        "BlkioDeviceWriteBps": null,
+        "BlkioDeviceReadIOps": null,
+        "BlkioDeviceWriteIOps": null,
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": null,
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 536870912,
+        "MemorySwappiness": null,
+        "OomKillDisable": null,
+        "PidsLimit": null,
+        "Ulimits": null,
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "MaskedPaths": [
+          "/proc/acpi",
+          "/proc/asound",
+          "/proc/interrupts",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/sys/devices/virtual/powercap",
+          "/sys/firmware"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      },
+      "Storage": {
+        "RootFS": {
+          "Snapshot": {
+            "Name": "overlayfs"
+          }
+        }
+      },
+      "Mounts": [
+        {
+          "Type": "volume",
+          "Name": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-worker",
+          "Source": "/var/lib/docker/volumes/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_secrets-worker/_data",
+          "Destination": "/run/secrets",
+          "Driver": "local",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": ""
+        }
+      ],
+      "Config": {
+        "Hostname": "a763a803a2d3",
+        "Domainname": "",
+        "User": "10001:10001",
+        "AttachStdin": false,
+        "AttachStdout": true,
+        "AttachStderr": true,
+        "Tty": false,
+        "OpenStdin": false,
+        "StdinOnce": false,
+        "Env": [
+          "Observability__LokiUrl=http://loki:3100",
+          "Observability__IpHmacSecretFile=/run/secrets/ip-hmac",
+          "Alerts__MaxConcurrentEvaluations=4",
+          "Upstream__AllowedOrigins__1=http://backend-b:8080",
+          "GatewayPolicies__Jwt__HttpFixtureOrigins__0=http://localhost:64455",
+          "Upstream__RequireExplicitAllowedOrigins=true",
+          "WEBAPI_DB_HOST=postgres",
+          "ASPNETCORE_URLS=http://0.0.0.0:8080",
+          "ASPNETCORE_ENVIRONMENT=Development",
+          "Observability__TempoUrl=http://tempo:3200",
+          "Observability__CursorSigningSecretFile=/run/secrets/cursor-signing",
+          "WEBAPI_DB_PASSWORD_FILE=/run/secrets/postgres-password",
+          "Upstream__AllowedOrigins__4=http://policy-backend:18080",
+          "Observability__TraceSampleRatio=0.1",
+          "Upstream__AllowedOrigins__3=http://policy-backend:18081",
+          "Upstream__AllowedOrigins__2=http://policy-backend:18080",
+          "Redis__Connection=redis:6379,abortConnect=false",
+          "Alerts__LeaseSeconds=30",
+          "Upstream__AllowedOrigins__0=http://backend-a:8080",
+          "Observability__Enabled=true",
+          "Alerts__QueryDelaySeconds=30",
+          "Observability__PrometheusUrl=http://prometheus:9090",
+          "Upstream__AllowedOrigins__5=http://policy-backend:18081",
+          "Alerts__IntervalSeconds=15",
+          "GatewayPolicies__FixtureEnabled=true",
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "APP_UID=1654",
+          "ASPNETCORE_HTTP_PORTS=8080",
+          "DOTNET_RUNNING_IN_CONTAINER=true",
+          "DOTNET_VERSION=10.0.12",
+          "ASPNET_VERSION=10.0.12",
+          "DOTNET_GENERATE_ASPNET_CERTIFICATE=false",
+          "DOTNET_NOLOGO=true",
+          "DOTNET_SDK_VERSION=10.0.401",
+          "DOTNET_USE_POLLING_FILE_WATCHER=true",
+          "NUGET_XMLDOC_MODE=skip",
+          "POWERSHELL_DISTRIBUTION_CHANNEL=PSDocker-DotnetSDK-Ubuntu-24.04-arm64",
+          "DOTNET_CLI_TELEMETRY_OPTOUT=1",
+          "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1",
+          "DOTNET_EnableDiagnostics=0"
+        ],
+        "Cmd": [
+          "dotnet",
+          "/app/worker/WebApi.Worker.dll"
+        ],
+        "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+        "Volumes": null,
+        "WorkingDir": "/app",
+        "Entrypoint": null,
+        "Labels": {
+          "com.docker.compose.config-hash": "18ad4989b90ec48b7d74b5300db31a3115f6b553a2e8ad235b767741b5fa883a",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy",
+          "com.docker.compose.replace": "worker-1",
+          "com.docker.compose.service": "worker",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "cb9c8aa8-3121-4b5f-99cc-557731f16349",
+          "org.opencontainers.image.revision": "c1c271555e3a125d22184697c17320c94a4db07c",
+          "org.opencontainers.image.version": "24.04"
+        }
+      },
+      "NetworkSettings": {
+        "SandboxID": "7584bb060a94f7c164a06c2cb5d29496b92a368beacc2af7ffaaf03600ac9fe3",
+        "SandboxKey": "/var/run/docker/netns/7584bb060a94",
+        "Ports": {},
+        "Networks": {
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default": {
+            "IPAMConfig": null,
+            "Links": null,
+            "Aliases": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-worker-1",
+              "worker"
+            ],
+            "DriverOpts": null,
+            "GwPriority": 0,
+            "NetworkID": "9996a9b87ad09bec5d12cae36125a188014944b9563dfc3834f3dcac20253d52",
+            "EndpointID": "b528d0305eee62d03f3886f341ae2f79e7ab401c574c186c4b05b0eea1c69ed5",
+            "Gateway": "192.168.247.1",
+            "IPAddress": "192.168.247.6",
+            "MacAddress": "ae:cb:0b:7f:a4:4e",
+            "IPPrefixLen": 24,
+            "IPv6Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "DNSNames": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-worker-1",
+              "worker",
+              "a763a803a2d3"
+            ]
+          }
+        }
+      },
+      "ImageManifestDescriptor": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:7d2ba623a6b3c7d5d616a1624f5f8653a8b8dfc6f2f2f5bf6d4e62b7df74081e",
+        "size": 2779,
+        "platform": {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      },
+      "Kind": "container"
+    },
+    {
+      "Id": "4d83071e2a3b9a89f3c3373146847438e9171b7ae4d2b4e211213e681d4f5033",
+      "Created": "2026-10-07T14:00:14.141864928Z",
+      "Path": "dotnet",
+      "Args": [
+        "/app/console-host/WebApi.ConsoleHost.dll"
+      ],
+      "State": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 2391837,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-10-07T14:00:28.390771434Z",
+        "FinishedAt": "0001-01-01T00:00:00Z",
+        "Health": {
+          "Status": "healthy",
+          "FailingStreak": 0,
+          "Log": [
+            {
+              "Start": "2026-10-07T22:15:16.294070133+08:00",
+              "End": "2026-10-07T22:15:16.362921853+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:21.363733177+08:00",
+              "End": "2026-10-07T22:15:21.441122852+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:26.443157473+08:00",
+              "End": "2026-10-07T22:15:26.514805956+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:31.517651247+08:00",
+              "End": "2026-10-07T22:15:31.590785362+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            },
+            {
+              "Start": "2026-10-07T22:15:36.599296511+08:00",
+              "End": "2026-10-07T22:15:36.682918214+08:00",
+              "ExitCode": 0,
+              "Output": ""
+            }
+          ]
+        }
+      },
+      "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "ResolvConfPath": "/var/lib/docker/containers/4d83071e2a3b9a89f3c3373146847438e9171b7ae4d2b4e211213e681d4f5033/resolv.conf",
+      "HostnamePath": "/var/lib/docker/containers/4d83071e2a3b9a89f3c3373146847438e9171b7ae4d2b4e211213e681d4f5033/hostname",
+      "HostsPath": "/var/lib/docker/containers/4d83071e2a3b9a89f3c3373146847438e9171b7ae4d2b4e211213e681d4f5033/hosts",
+      "LogPath": "/var/lib/docker/containers/4d83071e2a3b9a89f3c3373146847438e9171b7ae4d2b4e211213e681d4f5033/4d83071e2a3b9a89f3c3373146847438e9171b7ae4d2b4e211213e681d4f5033-json.log",
+      "Name": "/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-console-1",
+      "RestartCount": 0,
+      "Driver": "overlayfs",
+      "Platform": "linux",
+      "MountLabel": "",
+      "ProcessLabel": "",
+      "AppArmorProfile": "",
+      "ExecIDs": null,
+      "HostConfig": {
+        "Binds": null,
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {
+            "max-file": "5",
+            "max-size": "20m"
+          }
+        },
+        "NetworkMode": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default",
+        "PortBindings": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "63717"
+            }
+          ]
+        },
+        "RestartPolicy": {
+          "Name": "unless-stopped",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": null,
+        "DnsOptions": null,
+        "DnsSearch": null,
+        "ExtraHosts": [],
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": true,
+        "SecurityOpt": [
+          "no-new-privileges:true"
+        ],
+        "Tmpfs": {
+          "/tmp": "size=33554432,mode=1777"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 8408530944,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 134217728,
+        "NanoCpus": 0,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": null,
+        "BlkioDeviceReadBps": null,
+        "BlkioDeviceWriteBps": null,
+        "BlkioDeviceReadIOps": null,
+        "BlkioDeviceWriteIOps": null,
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": null,
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 268435456,
+        "MemorySwappiness": null,
+        "OomKillDisable": null,
+        "PidsLimit": null,
+        "Ulimits": null,
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "MaskedPaths": [
+          "/proc/acpi",
+          "/proc/asound",
+          "/proc/interrupts",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/sys/devices/virtual/powercap",
+          "/sys/firmware"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      },
+      "Storage": {
+        "RootFS": {
+          "Snapshot": {
+            "Name": "overlayfs"
+          }
+        }
+      },
+      "Mounts": [],
+      "Config": {
+        "Hostname": "4d83071e2a3b",
+        "Domainname": "",
+        "User": "10001:10001",
+        "AttachStdin": false,
+        "AttachStdout": true,
+        "AttachStderr": true,
+        "ExposedPorts": {
+          "8080/tcp": {}
+        },
+        "Tty": false,
+        "OpenStdin": false,
+        "StdinOnce": false,
+        "Env": [
+          "Console__DistDirectory=/app/console-dist",
+          "Console__ControlPlaneUrl=http://control-plane:8080",
+          "ASPNETCORE_URLS=http://0.0.0.0:8080",
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "APP_UID=1654",
+          "ASPNETCORE_HTTP_PORTS=8080",
+          "DOTNET_RUNNING_IN_CONTAINER=true",
+          "DOTNET_VERSION=10.0.12",
+          "ASPNET_VERSION=10.0.12",
+          "DOTNET_GENERATE_ASPNET_CERTIFICATE=false",
+          "DOTNET_NOLOGO=true",
+          "DOTNET_SDK_VERSION=10.0.401",
+          "DOTNET_USE_POLLING_FILE_WATCHER=true",
+          "NUGET_XMLDOC_MODE=skip",
+          "POWERSHELL_DISTRIBUTION_CHANNEL=PSDocker-DotnetSDK-Ubuntu-24.04-arm64",
+          "DOTNET_CLI_TELEMETRY_OPTOUT=1",
+          "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1",
+          "DOTNET_EnableDiagnostics=0"
+        ],
+        "Cmd": [
+          "dotnet",
+          "/app/console-host/WebApi.ConsoleHost.dll"
+        ],
+        "Healthcheck": {
+          "Test": [
+            "CMD",
+            "dotnet",
+            "/app/runtime-tool/WebApi.RuntimeTool.dll",
+            "probe",
+            "http://127.0.0.1:8080/health/live"
+          ],
+          "Interval": 5000000000,
+          "Timeout": 6000000000,
+          "Retries": 30
+        },
+        "Image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+        "Volumes": null,
+        "WorkingDir": "/app",
+        "Entrypoint": null,
+        "Labels": {
+          "com.docker.compose.config-hash": "aba0063a07b7b54a672df35759d23657b112fbf217a2b4f30e59f88a7f4d278b",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.superpowers/sdd/2026-10-07-gateway-jwt-retry-cache/webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897/artifacts/c1c271555e3a125d22184697c17320c94a4db07c/deploy",
+          "com.docker.compose.replace": "console-1",
+          "com.docker.compose.service": "console",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "cb9c8aa8-3121-4b5f-99cc-557731f16349",
+          "org.opencontainers.image.revision": "c1c271555e3a125d22184697c17320c94a4db07c",
+          "org.opencontainers.image.version": "24.04"
+        }
+      },
+      "NetworkSettings": {
+        "SandboxID": "b7cabcc2e066fe05e389fcbfdedcb4fbed0cbffef957148778f23eb2947fadcf",
+        "SandboxKey": "/var/run/docker/netns/b7cabcc2e066",
+        "Ports": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "63717"
+            }
+          ]
+        },
+        "Networks": {
+          "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897_default": {
+            "IPAMConfig": null,
+            "Links": null,
+            "Aliases": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-console-1",
+              "console"
+            ],
+            "DriverOpts": null,
+            "GwPriority": 0,
+            "NetworkID": "9996a9b87ad09bec5d12cae36125a188014944b9563dfc3834f3dcac20253d52",
+            "EndpointID": "080ac3a950ef43acb7dade1c74664e3f8feb8eec981a065d13125df8743a18f0",
+            "Gateway": "192.168.247.1",
+            "IPAddress": "192.168.247.5",
+            "MacAddress": "be:e3:ce:ba:3c:36",
+            "IPPrefixLen": 24,
+            "IPv6Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "DNSNames": [
+              "webapi-enterprise-local-test-5a61f9ca-b291-41d9-98af-57c0e5920897-console-1",
+              "console",
+              "4d83071e2a3b"
+            ]
+          }
+        }
+      },
+      "ImageManifestDescriptor": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:7d2ba623a6b3c7d5d616a1624f5f8653a8b8dfc6f2f2f5bf6d4e62b7df74081e",
+        "size": 2779,
+        "platform": {
+          "architecture": "arm64",
+          "os": "linux"
+        }
+      },
+      "Kind": "container"
+    }
+  ],
+  "images": [
+    {
+      "Id": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+      "RepoTags": [
+        "webapi-enterprise-runtime:c1c271555e3a125d22184697c17320c94a4db07c"
+      ],
+      "RepoDigests": [
+        "webapi-enterprise-runtime@sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b"
+      ],
+      "Comment": "buildkit.dockerfile.v0",
+      "Created": "2026-10-07T21:38:34.609956958+08:00",
+      "Config": {
+        "User": "10001:10001",
+        "Env": [
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+          "APP_UID=1654",
+          "ASPNETCORE_HTTP_PORTS=8080",
+          "DOTNET_RUNNING_IN_CONTAINER=true",
+          "DOTNET_VERSION=10.0.12",
+          "ASPNET_VERSION=10.0.12",
+          "DOTNET_GENERATE_ASPNET_CERTIFICATE=false",
+          "DOTNET_NOLOGO=true",
+          "DOTNET_SDK_VERSION=10.0.401",
+          "DOTNET_USE_POLLING_FILE_WATCHER=true",
+          "NUGET_XMLDOC_MODE=skip",
+          "POWERSHELL_DISTRIBUTION_CHANNEL=PSDocker-DotnetSDK-Ubuntu-24.04-arm64",
+          "DOTNET_CLI_TELEMETRY_OPTOUT=1",
+          "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1",
+          "DOTNET_EnableDiagnostics=0"
+        ],
+        "Cmd": [
+          "/bin/bash"
+        ],
+        "WorkingDir": "/app",
+        "Labels": {
+          "org.opencontainers.image.revision": "c1c271555e3a125d22184697c17320c94a4db07c",
+          "org.opencontainers.image.version": "24.04"
+        }
+      },
+      "Architecture": "arm64",
+      "Os": "linux",
+      "Size": 374071789,
+      "RootFS": {
+        "Type": "layers",
+        "Layers": [
+          "sha256:9a354992483c962fa69075527e7a2690fd9103f53d2c10af083fb31f24335256",
+          "sha256:64723c36a2e8a475d02fd4680daf184919724e7b0e518989587b29235da69024",
+          "sha256:3e5db5ab1ddf5ac38f0b727d4cb114c7d390a5a87c05f804b485070b3010b744",
+          "sha256:6863b65ce0227838e70dca139b45b609b10fcabcd4939737ca901077a01c469d",
+          "sha256:fa43c5a340a5b19a57b02f12ace314fe400432a0524b908b0ece9c100abb3cd8",
+          "sha256:0ad4db910ac08a621b175352b81eee71aa22a57b8c71f0293f54a33d6754f321",
+          "sha256:c726939dcf8619a5c3d62cd678e823f0918754ac91f1fc018ba4e40cc771cd46",
+          "sha256:54a5e2e72dfb0cc0e9b18cbfd6ef5880662a74a39f65c7052c96080d57776237",
+          "sha256:4f9774978fb1a760f7e74dd8ecadfa9884321299fb28279f9af8d6e85a681568",
+          "sha256:c007a25fddcdfee3e2e0defc24c25578a40b6d895dd2cdf408f5d74facdd99a5",
+          "sha256:ad861d06d364ff9a4d9f91789d6393e311ddaaf05c8dad7f0c2aa20f944b0e75",
+          "sha256:cf238a7ba28ec3273e1323edf11ecf2c3f66da59e78c9a49d6df9ab1468aa224",
+          "sha256:90e2b9489927e7fc2b8ebf23712e37ba2239da0c3438068ae625dd060c7dbedb"
+        ]
+      },
+      "Metadata": {
+        "LastTagTime": "2026-10-07T13:58:35.408470264Z"
+      },
+      "Descriptor": {
+        "mediaType": "application/vnd.oci.image.index.v1+json",
+        "digest": "sha256:bc07e5333e135ff4672fc2934e5e8076e619744185728174d205e3f8231b8b1b",
+        "size": 856
+      },
+      "Identity": {
+        "Build": [
+          {
+            "Ref": "xcamk7k6w795aob18b6qqcxr7",
+            "CreatedAt": "2026-10-07T21:58:35.425842755+08:00"
+          }
+        ]
+      }
+    }
+  ]
+}
