@@ -1,0 +1,506 @@
+{
+  "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+  "catalog": {
+    "engineVersion": "compatibility-v2",
+    "adapterVersion": "oas-http-model-v2",
+    "limits": {
+      "maxDocumentBytes": 2097152,
+      "maxBundleBytes": 4194304,
+      "maxResources": 16,
+      "maxDepth": 64,
+      "maxNodes": 50000,
+      "maxOperations": 1000,
+      "maxExampleBytes": 262144,
+      "maxDiagnostics": 500,
+      "maxComparisonSideBytes": 4194304,
+      "maxComparisonPairBytes": 8388608,
+      "maxFindings": 5000
+    },
+    "rules": [
+      {
+        "id": "schema.types",
+        "family": "types",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "types.integer_number",
+          "types.union_null",
+          "types.nullable30",
+          "types.boolean",
+          "schema.types.same"
+        ],
+        "proofCondition": "登记方言的类型集合包含；integer属于number；boolean空/全集",
+        "unknownCondition": "非法方言或未登记类型"
+      },
+      {
+        "id": "schema.enum_const",
+        "family": "enum_const",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "enum.widen",
+          "enum.deep_const",
+          "enum.numeric_precision",
+          "schema.enum_const.same"
+        ],
+        "proofCondition": "逐一验证有限枚举和常量的全部允许实例",
+        "unknownCondition": "枚举超预算或实例无法完成校验"
+      },
+      {
+        "id": "schema.number_bounds",
+        "family": "number_bounds",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "number.bounds",
+          "number.exclusive",
+          "number.exclusive30",
+          "schema.number_bounds.same"
+        ],
+        "proofCondition": "精确有理数区间及独占边界包含",
+        "unknownCondition": "数值精度/指数超证明预算"
+      },
+      {
+        "id": "schema.multiple_of",
+        "family": "multiple_of",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "number.multiple",
+          "number.multiple_cross",
+          "schema.multiple_of.same"
+        ],
+        "proofCondition": "精确有理数整除与整数步长包含",
+        "unknownCondition": "无法证明倍数格包含"
+      },
+      {
+        "id": "schema.string_length",
+        "family": "string_length",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "string.length",
+          "schema.string_length.same"
+        ],
+        "proofCondition": "Unicode长度上下界放宽且其他条件不变或已证明",
+        "unknownCondition": "组合/正则语言包含未证明"
+      },
+      {
+        "id": "schema.pattern",
+        "family": "pattern",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "string.pattern_same",
+          "string.pattern_changed",
+          "string.no_witness",
+          "schema.pattern.same"
+        ],
+        "proofCondition": "正则完全相同；其余约束包含",
+        "unknownCondition": "不同正则仅凭无反例不能证明包含"
+      },
+      {
+        "id": "schema.format",
+        "family": "format",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "format.annotation",
+          "schema.format.same"
+        ],
+        "proofCondition": "Annotation模式为注解；Strict同格式且其他条件已证明",
+        "unknownCondition": "Strict格式改变或未登记"
+      },
+      {
+        "id": "schema.object_members",
+        "family": "object_members",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "object.required",
+          "object.optional_closed",
+          "object.optional_open",
+          "schema.object_members.same"
+        ],
+        "proofCondition": "完整对象成员/必填/附加属性接受域包含",
+        "unknownCondition": "父约束或子Schema未证明"
+      },
+      {
+        "id": "schema.object_patterns",
+        "family": "object_patterns",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "object.pattern_properties",
+          "object.property_names",
+          "schema.object_patterns.same"
+        ],
+        "proofCondition": "同一pattern集合逐项证明；propertyNames包含",
+        "unknownCondition": "正则匹配集合改变或命名接受域未证明"
+      },
+      {
+        "id": "schema.object_size",
+        "family": "object_size",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "object.cardinality",
+          "schema.object_size.same"
+        ],
+        "proofCondition": "有效属性数量上下界包含",
+        "unknownCondition": "依赖/命名/重叠模式交互未证明"
+      },
+      {
+        "id": "schema.dependencies",
+        "family": "dependencies",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "object.dependent_required",
+          "object.dependent_schema",
+          "schema.dependencies.same"
+        ],
+        "proofCondition": "目标依赖条件已由来源同条件或更强约束保证",
+        "unknownCondition": "改变的条件蕴含无法证明"
+      },
+      {
+        "id": "schema.array_items",
+        "family": "array_items",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "array.items",
+          "array.prefix",
+          "schema.array_items.same"
+        ],
+        "proofCondition": "每个可出现位置与后续items包含",
+        "unknownCondition": "元组位置/组合交互未证明"
+      },
+      {
+        "id": "schema.array_size",
+        "family": "array_size",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "array.size",
+          "schema.array_size.same"
+        ],
+        "proofCondition": "完整数组的长度上下界包含",
+        "unknownCondition": "items/contains交互未证明"
+      },
+      {
+        "id": "schema.array_unique",
+        "family": "array_unique",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "array.unique",
+          "schema.array_unique.same"
+        ],
+        "proofCondition": "保持唯一性或从唯一放宽为不要求唯一",
+        "unknownCondition": "新增唯一性不能只凭采样无重复证明"
+      },
+      {
+        "id": "schema.array_contains",
+        "family": "array_contains",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "array.contains",
+          "schema.array_contains.same"
+        ],
+        "proofCondition": "contains相同，计数范围放宽",
+        "unknownCondition": "contains变化与maxContains/评估上下文交互未证明"
+      },
+      {
+        "id": "schema.composition",
+        "family": "composition",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "composition.anyof",
+          "composition.allof",
+          "composition.oneof_overlap",
+          "schema.composition.same"
+        ],
+        "proofCondition": "有限分支的足够蕴含；oneOf保持恰一语义",
+        "unknownCondition": "分支重叠/联合蕴含未证明"
+      },
+      {
+        "id": "schema.conditionals",
+        "family": "conditionals",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "composition.not",
+          "composition.if",
+          "schema.conditionals.same"
+        ],
+        "proofCondition": "完整表达式同一或目标为已证明的宽泛域",
+        "unknownCondition": "条件分支蕴含或not补集关系未证明"
+      },
+      {
+        "id": "schema.unevaluated",
+        "family": "unevaluated",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "unevaluated.properties",
+          "unevaluated.items",
+          "schema.unevaluated.same"
+        ],
+        "proofCondition": "完整表达式及annotation上下文不变的反身性",
+        "unknownCondition": "上下文变化不能降级成additionalProperties/items"
+      },
+      {
+        "id": "schema.direction",
+        "family": "direction",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "direction.readonly",
+          "direction.writeonly",
+          "schema.direction.same"
+        ],
+        "proofCondition": "按请求readOnly/响应writeOnly处理required后证明",
+        "unknownCondition": "跨引用注解/动态上下文未证明"
+      },
+      {
+        "id": "schema.annotations",
+        "family": "annotations",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "annotations.defaults",
+          "annotations.discriminator",
+          "schema.annotations.same"
+        ],
+        "proofCondition": "纯已知注解变化不改变接受域",
+        "unknownCondition": "discriminator/mapping或自定义行为未声明"
+      },
+      {
+        "id": "schema.content",
+        "family": "content",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "annotations.content",
+          "schema.content.same"
+        ],
+        "proofCondition": "contentEncoding/contentMediaType只作已知注解",
+        "unknownCondition": "contentSchema与解码行为无法完整证明"
+      },
+      {
+        "id": "schema.vocabulary",
+        "family": "vocabulary",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "vocabulary.custom"
+        ],
+        "proofCondition": "仅登记的OAS3.0/OAS3.1/2020-12语义",
+        "unknownCondition": "自定义词汇/方言/扩展没有声明的接受语义"
+      },
+      {
+        "id": "schema.references",
+        "family": "references",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "FiniteExternalReferencesRespectEachFixedBundle",
+          "RecursiveRefTerminatesAndUnknownIsVisible",
+          "MissingReferenceIsNeverCompatibleEvenWhenTextIsEqual"
+        ],
+        "proofCondition": "固定包中有限引用图静态解析后证明",
+        "unknownCondition": "引用损坏、歧义或递归包含不能证明"
+      },
+      {
+        "id": "schema.dynamic_references",
+        "family": "dynamic_references",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "DynamicScopeChangeIsExplicitlyUnknown"
+        ],
+        "proofCondition": "保留登记语义的诊断与真实实例验证",
+        "unknownCondition": "动态作用域/递归包含一般无法静态证明"
+      },
+      {
+        "id": "openapi.operations",
+        "family": "operations",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "operation.add",
+          "operation.remove",
+          "path.template_ambiguity",
+          "OperationMetadataChangesRemainVisibleWithoutContractRisk"
+        ],
+        "proofCondition": "新增操作保留已有域；删除已声明操作是明确破坏证据；元数据单独标注",
+        "unknownCondition": "模板匹配歧义或对象无法解析"
+      },
+      {
+        "id": "openapi.parameters",
+        "family": "parameters",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "parameter.path_inheritance",
+          "parameter.defaults",
+          "parameter.serialization",
+          "parameter.header_case",
+          "parameter.required",
+          "parameter.content",
+          "MaintainedRequestParametersAreProvedTogetherAndRemovalStaysUnknown",
+          "UndefinedComplexParameterWireCannotClaimComplete",
+          "ContradictoryMaintainedParameterSourceRemainsVisible"
+        ],
+        "proofCondition": "继承/覆盖及默认编码一致后证明完整请求父域",
+        "unknownCondition": "参数移除、来源冲突或 wire 编码不明；复杂 query 编码保守评审"
+      },
+      {
+        "id": "openapi.request",
+        "family": "request",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "request.required",
+          "request.media_remove",
+          "request.media_add",
+          "request.encoding",
+          "schema.cross_dialect_nullable",
+          "FullHttpParentEmptinessPreventsParameterAndStatusFalsePositives"
+        ],
+        "proofCondition": "认证、参数和请求体合成完整域，使用充分证明或实际反例",
+        "unknownCondition": "媒体范围、编码或父约束未证明"
+      },
+      {
+        "id": "openapi.responses",
+        "family": "responses",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "response.range_narrow",
+          "response.new_status",
+          "response.explicit_priority",
+          "response.default_priority",
+          "response.media_narrow",
+          "response.new_media",
+          "response.header_schema",
+          "response.required_header_remove",
+          "MaintainedResponsesUseExactStatusBeforeDefault",
+          "MaintainedDefaultResponseCoversStatusesBeyondTwoHundred",
+          "UnmappedMaintainedResponseChangesAreIncludedInOperationParent",
+          "UnknownResponseHeaderStyleCannotClaimComplete"
+        ],
+        "proofCondition": "有限状态码精确/范围/default 优先选择；维护响应纳入完整目标域包含于旧域",
+        "unknownCondition": "来源冲突、头、媒体或父约束未证明"
+      },
+      {
+        "id": "openapi.security",
+        "family": "security",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "security.inheritance",
+          "security.anonymous",
+          "security.tighten",
+          "security.or_and",
+          "security.and_or",
+          "security.scope_tighten",
+          "security.scope_relax",
+          "security.implementation_change",
+          "OrAndAndScopesArePositiveFullPredicates",
+          "NonOAuthRolesRespectTheSelectedOpenApiDialect",
+          "OAuthFlowStructureAndUnknownFieldsAreNotSilentlyIgnored",
+          "ReferencedOperationResolvesAuthenticationInItsOwnSourceDocument"
+        ],
+        "proofCondition": "相同认证实现的匿名/OR/AND/scope 或3.1角色可用域包含，整体请求复核",
+        "unknownCondition": "认证实现缺失、未登记字段或改变；不证明实际签名/token 接入"
+      },
+      {
+        "id": "openapi.coverage",
+        "family": "coverage",
+        "dialects": [
+          "oas-3.0",
+          "oas-3.1"
+        ],
+        "testIds": [
+          "callback.visible_coverage",
+          "extension.visible_coverage",
+          "ImportedVersionComparesOnlyItsSelectedOperationWhileKeepingTheWholeSourcePackage",
+          "ComparisonUsesImmutableExternalSourcesRatherThanFetchingOrDroppingThem",
+          "MappedMaintenanceDoesNotEraseOriginalSourceConflict",
+          "UnusedSchemasHaveStructuralReferenceAndDynamicCoverage",
+          "StrictModeCoversUnusedUnregisteredFormats",
+          "PreviouslySavedIndependentMaintenanceSourceCanBeReconstructed",
+          "V2AdmitsLegalDocumentAndSourcePairAboveTheOldTwoMiBLimit",
+          "PrivateMaintenanceDocumentMayExceedOneSourceDocumentButNotSideBudget",
+          "ReferenceChainCannotExceedThePrivateTraversalBudget",
+          "OpenApiFindingPointersDoNotConcatenateTwoDocumentRoots",
+          "CurrentRulesRecordTheParameterAndSecurityFamiliesActuallyApplied"
+        ],
+        "proofCondition": "固定来源完整且登记字段已纳入父约束；预算、来源与规则摘要可核对",
+        "unknownCondition": "callbacks/webhooks/自定义扩展、动态/递归、未知来源行为或模式"
+      }
+    ]
+  }
+}

@@ -1,43 +1,51 @@
 {
-  "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
   "kind": "cua",
   "actual": true,
+  "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
   "widths": [
     1440,
     1280
   ],
-  "completedAt": "2026-10-07T05:15:32.195Z",
+  "measuredViewports": [
+    {
+      "width": 1440,
+      "height": 1000,
+      "scrollWidth": 1440
+    },
+    {
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280
+    }
+  ],
   "actions": [
-    "URL YAML 固定预览",
-    "Operation 勾选与映射脏表单 Escape 焦点返回",
-    "慢响应 504 和取消预览后旧响应不覆盖新输入",
-    "文本 JSON 整批提交并进入 API 详情",
-    "文件 YAML 根文件及附带引用包可导入预览，缺失引用禁用提交",
-    "Schema 特殊 Pointer 改名与未知字段原文保留",
-    "Tab/ShiftTab 循环，Enter 不隐式保存",
-    "示例 Valid/Invalid/Incomplete，语法错误及来源切换清除旧结果",
-    "真实 412 保留草稿，查看及采用最新修订，显式保存 R3",
-    "示例不匹配仍可保存合法工作定义",
-    "封存版本与只读角色无保存入口，只读示例实际 Valid",
-    "比较 Limited/Breaking/Unknown 与来源冲突可见",
-    "风险说明和强确认门禁，GUI AcceptedRisk 记录",
-    "携带风险引用进入现有向导，预览并提交两级审批申请"
+    "新镜像重读 WaitingApproval，原风险评审和两级审批保持，申请人仍不可自审。",
+    "1440实测视口：切换第二项目，来源策略修订0且无URL允许项，不继承第一项目rev3。",
+    "URL YAML实际固定哈希预览，零选择禁提交；脏映射Escape保护并确认放弃返回映射按钮。",
+    "JSON文本固定包真实整批提交，新API/Version/Route实际ID返回并导航。",
+    "1280实测：Tab/ShiftTab在对话框循环，Enter未保存R1；Pointer含/~字段改名并保未知关键字，语义Incomplete；非法示例/id定位，非法原文禁保存；恢复未知原文后显式保存。",
+    "重开后R2，特殊字符属性新名称与x-maintenance-note原样保留。",
+    "既有只读账号登录：API/版本新增和编辑禁用，Schema原文只读、无保存按钮，临时实例校验可返回Incomplete；未增加写权限。",
+    "只读账号打开保留的历史不可变报告，规则目录30条及Limited/Unknown仍显示，风险评审按钮禁用。"
   ],
   "screenshots": [
-    "docs/evidence/contract-management-completion/approval-submitted-1280.png",
-    "docs/evidence/contract-management-completion/comparison-1280.png",
-    "docs/evidence/contract-management-completion/import-file-bundle-1280.png",
-    "docs/evidence/contract-management-completion/import-result-1440.png",
-    "docs/evidence/contract-management-completion/import-url-1440.png",
-    "docs/evidence/contract-management-completion/schema-conflict-1280.png",
-    "docs/evidence/contract-management-completion/schema-readonly-1280.png",
+    "docs/evidence/contract-management-completion/approval-evidence-1440.png",
+    "docs/evidence/contract-management-completion/example-diagnostic-1280.png",
+    "docs/evidence/contract-management-completion/json-import-result-1440.png",
+    "docs/evidence/contract-management-completion/readonly-comparison-1280.png",
+    "docs/evidence/contract-management-completion/readonly-import-1280.png",
+    "docs/evidence/contract-management-completion/readonly-validation-1280.png",
     "docs/evidence/contract-management-completion/schema-saved-1280.png",
-    "docs/evidence/contract-management-completion/schema-sealed-1280.png",
-    "docs/evidence/contract-management-completion/schema-tree-example-1440.png"
+    "docs/evidence/contract-management-completion/schema-unknown-1280.png",
+    "docs/evidence/contract-management-completion/scope-policy-1440.png",
+    "docs/evidence/contract-management-completion/url-yaml-preview-1440.png"
   ],
-  "limitations": [
-    "浏览器文件选择器两次响应很慢，timeout 未及时终止等待；上传最终成功",
-    "未知 Schema 关键字导致校验 Incomplete；另一个 QA 操作者显式移除合成未知关键字后完成并发保存，不宣称未知关键字可正常保存",
-    "GUI 流程提交到 WaitingApproval；真正两级审批发布、双网关 ACK/请求和回滚由同提交隔离 HTTP 场景完成"
-  ]
+  "priorFrontendEvidence": {
+    "sourceRevision": "8031023b03d59835445443694d591c0ee224eede",
+    "artifact": "docs/evidence/contract-management-completion/prior-803-ui-proof.json",
+    "reason": "仅复用实际SHA完全一致的3个前端静态文件的文件读取、412恢复、metadata与向导交互回归；旧记录保留原提交身份，新的后端规则由cc880ba实际全套与E2E验证。",
+    "equivalenceArtifact": "docs/evidence/contract-management-completion/ui-asset-equivalence.json"
+  },
+  "imageEncoding": "JPEG bytes in historical .png filenames; browser screenshot renderer has zoom padding, measured CSS widths are the breakpoint evidence.",
+  "productionAcceptance": false
 }

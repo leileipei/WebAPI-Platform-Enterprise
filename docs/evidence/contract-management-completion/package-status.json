@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+  "file": "deliverables/WebAPI_Enterprise_契约管理补全_4192部署验收_20261007.zip",
+  "entries": 45,
+  "crcPassed": true,
+  "entryReadbackPassed": true,
+  "bytes": 1688994,
+  "sha256": "cee951ad3637b3b455d5b4b91398ab9845bd3aebe5fe88e85b5dea333463a483",
+  "actualPrivateValueScan": true,
+  "privatePathsExcluded": true,
+  "sourceFiles": 519,
+  "historicalArchivesPreserved": 28,
+  "pushed": false
+}

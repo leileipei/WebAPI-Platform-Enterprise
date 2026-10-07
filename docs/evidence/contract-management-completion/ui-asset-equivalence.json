@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "actual": true,
+  "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+  "priorRevision": "8031023b03d59835445443694d591c0ee224eede",
+  "priorImageId": "sha256:16f7690d9b99039e6a9bb32c859f9c64c108b95cd6388a6d507cf216e4a5eaa2",
+  "currentImageId": "sha256:07663ffc529b36d708316f25df9364e42ea2bf7c8dfe3b8c293646a19d7664af",
+  "identicalStaticFiles": 3,
+  "hashes": [
+    "9184100680dbf556eac504d0def0db841ac7615c095fe487bc397cde240dc1a4  /app/console-dist/index.html",
+    "0206fac1a64f53b1b208538df925971fabd745e3014db792f69eaa289d25adce  /app/console-dist/assets/index-C_Aysr-Y.js",
+    "3ca0b290510bf0532cdce056fdbb861fc3353d9ab54fcae6c1ed14388fe8c205  /app/console-dist/assets/index-CnNTuGe3.css"
+  ]
+}

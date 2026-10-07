@@ -1,0 +1,45 @@
+{
+  "kind": "cua",
+  "actual": true,
+  "sourceRevision": "8031023b03d59835445443694d591c0ee224eede",
+  "widths": [
+    1440,
+    1280
+  ],
+  "actions": [
+    "1440 URL YAML固定预览与来源规则读取",
+    "Operation取消选择禁用提交",
+    "映射脏表单Escape确认与焦点返回",
+    "文本JSON整批提交实际API",
+    "Schema特殊Pointer改名、Tab/ShiftTab循环、Enter不保存",
+    "未知Schema字段语义Incomplete但结构保存成功且重新打开保留",
+    "1280语法错误禁用保存，Escape脏表单继续编辑",
+    "另一操作者保留未知原文修改修订，真实412保留草稿并采用最新R3",
+    "临时已知Schema示例Valid/Invalid与/id诊断，恢复未知原文并显式保存R4，示例不匹配不阻断保存",
+    "1280完整版本编辑表单仅改版本号保存成功，原fixed来源行由独立摘要核对保持",
+    "实际1440宽度保存A修订3后切换B修订0，规则为空不继承A允许来源",
+    "实际1440慢URL取消等待后新文本预览仍为JSON，不恢复旧来源",
+    "文件入口：实际读取根 openapi.yaml 与 schemas.yaml；缺少引用时不可提交，附带引用后 1/1 Operation 可导入。",
+    "封存版本只读：无保存入口，选择固定来源 valid 示例实际验证通过。",
+    "打开 Limited 比较全量报告，空说明不可提交；填说明并勾选风险确认后真实记录 AcceptedRisk，携带评审进入发布向导。",
+    "真实发布向导创建草稿并提交，详情显示 WaitingApproval，两级独立审批 Pending，申请人不可自审。"
+  ],
+  "screenshots": [
+    "docs/evidence/contract-management-completion/prior-803-comparison-review-1440.png",
+    "docs/evidence/contract-management-completion/prior-803-import-file-bundle-1440.png",
+    "docs/evidence/contract-management-completion/prior-803-import-result-1440.png",
+    "docs/evidence/contract-management-completion/prior-803-import-url-1440.png",
+    "docs/evidence/contract-management-completion/prior-803-project-source-isolation-1440.png",
+    "docs/evidence/contract-management-completion/prior-803-risk-confirmation-1440.png",
+    "docs/evidence/contract-management-completion/prior-803-schema-conflict-1280.png",
+    "docs/evidence/contract-management-completion/prior-803-schema-example-invalid-1280.png",
+    "docs/evidence/contract-management-completion/prior-803-schema-sealed-valid-1440.png",
+    "docs/evidence/contract-management-completion/prior-803-schema-tree-unknown-1440.png",
+    "docs/evidence/contract-management-completion/prior-803-schema-unknown-saved-1280.png",
+    "docs/evidence/contract-management-completion/prior-803-version-metadata-1280.png",
+    "docs/evidence/contract-management-completion/prior-803-wizard-waiting-approval-1440.png"
+  ],
+  "calibration": "Measured CSS 1440×1000 and 1280×900 after browser zoom calibration. Early import-result/tree/conflict/invalid images are pre-calibration and do not independently prove named width.",
+  "imageEncoding": "JPEG capture bytes; historical .png filenames preserved",
+  "productionAcceptance": false
+}

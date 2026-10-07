@@ -1,1 +1,34 @@
-<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>契约管理补全 · 安装前验收</title><style>body{margin:0;background:#f5f7fb;color:#172338;font:16px/1.7 system-ui,sans-serif}main{max-width:1080px;margin:48px auto;padding:32px;background:white;border:1px solid #e3e8f1;border-radius:12px}h1{margin-top:0}a{color:#3159d9}img{max-width:100%;border:1px solid #e3e8f1;border-radius:8px}small{color:#63718a}.status{background:#fff7df;padding:16px;border-radius:8px}li{margin:8px 0}</style><main><small>WebAPI Platform Enterprise · 第一批</small><h1>契约管理补全：安装前验收</h1><p class="status">隔离克隆及真实双宽度 UI 验收完成。等待独立审查、合并和 4192 软件升级；后两批尚未实施。</p><p>源码 b45c471 · Domain 610 · Integration 506 · Gateway 52 · Console 154 · Runtime/Contracts 114，零跳过。30 条规则关联 188 个实际测试标识。</p><ul><li><a href="result.md">中文结果与实际边界</a></li><li><a href="verification.json">C01–C15 安装前检查</a> · <a href="rule-coverage.json">规则覆盖</a></li><li><a href="scenario.json">真实双角色审批、双网关发布与回滚</a></li><li><a href="ui-proof.json">1440 / 1280 CUA 操作记录</a></li><li><a href="protection.json">冷备、恢复与原环境保护</a></li></ul><p>未知 Schema 关键字保存限制尚需独立审查；详细结果没有将 Incomplete 算作验证成功。Vite 大 chunk 提示仍存在。以下为克隆中通过现有向导提交的两级审批申请。</p><img alt="1280 克隆环境真实提交两级审批申请" src="approval-submitted-1280.png"></main></html>
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>契约管理第一批部署验收</title><style>body{font:16px/1.7 system-ui;margin:40px auto;max-width:1100px;padding:0 24px;background:#f6f8fc;color:#17233a}pre{white-space:pre-wrap;background:white;padding:28px;border:1px solid #dce3ee;border-radius:12px}img{display:block;width:100%;height:auto;margin:24px 0;border:1px solid #dce3ee;border-radius:8px}a{color:#245de5}</style><h1>契约管理第一批本机验收</h1><p><a href="http://127.0.0.1:4192/">打开4192</a> · 软件提交 cc880ba171de74dae33b87587a308134780f39a6</p><pre># 契约管理补全：第一批本机部署验收
+
+已提交、合并并部署至 [4192 控制台](http://127.0.0.1:4192/)。运行软件提交 `cc880ba171de74dae33b87587a308134780f39a6`；镜像 `sha256:07663ffc529b36d708316f25df9364e42ea2bf7c8dfe3b8c293646a19d7664af`。结果文档后续独立提交，不改变已验收软件身份。
+
+本批完成 URL / 文件 / 文本的 JSON、YAML 导入、固定离线引用包、30条登记兼容性规则与保守证明、Schema树/原文/示例验证及现有风险评审/两级发布流程衔接。JWT／重试／缓存、外部通知和跨环境审批是后两批，尚未实施；本结果不代表全部六项或生产验收。
+
+## 实际验证
+
+| 套件 | 通过 | 失败 | 跳过 |
+| --- | ---: | ---: | ---: |
+| domain | 620 | 0 | 0 |
+| integration | 516 | 0 | 0 |
+| gateway | 52 | 0 | 0 |
+| console | 157 | 0 | 0 |
+| runtime-contracts | 128 | 0 | 0 |
+
+共1473项，五套最终均exit0；tsc/Vite及7个锁定后端应用构建通过。15项材料门禁/30条规则真实Passed ID覆盖通过。UUID冷备恢复、候选→旧1259ba0→候选软件演练、实际URL/YAML→固定预览→Schema→v2比较→风险评审→两级发布→双网关ACK/200→回滚全部执行。
+
+4192原管理员及两个审批账号登录通过；真实Keycloak只读用户登录、范围只读、退出后同会话401通过。五个应用容器镜像/提交及三个静态文件SHA通过。双网关Ready，保留原业务版本4、序列4；既有订单请求双200，四个遥测源可用。原33表内容摘要、645本机文件、20凭据/SSO元数据、96固定维护文件和28历史归档保持。新增三表无QA业务；原环境没有登记fixture来源或导入/评审/发布测试业务。
+
+## 界面与证据身份
+
+当前cc880ba镜像的1440/1280 CSS实测无横向溢出，实际JSON导入、特殊Pointer改名、未知原文保存R2、错误实例定位、Tab/ShiftTab/Enter、只读验证/写入门禁及项目来源隔离通过。prior-803前缀材料保持8031023原身份，包含文件读取、真实412草稿恢复、元数据包保留和向导提交；两个实际镜像的3个前端文件SHA逐一完全相同。后端规则、全套测试及发布场景均重新运行cc880ba；未把旧执行数改标新提交。浏览器截图为JPEG字节，保留历史.png名称；截图工具有缩放留白，断点以实际DOM CSS尺寸为准。
+
+## 审查与已知边界
+
+唯一整分支审查的9项Important已在同一修复批次解决；响应范围修改的漏冲突边界补充真实RED2/2→GREEN，最终集成516项通过。Critical/Important未解决项为0。Minor M1自有源码局部长行排版延期，第三方字节保持固定。复杂/动态/递归或未登记Schema语义仍保守Unknown/Incomplete；Compatible要求充分包含证明，不以缺少反例推断。未知关键字可原样保存，但不升级为已验证语义。externalValue仅标记未验证，不获取。
+
+Domain并行首轮619/620：进程树终止后立即读取/proc曾见瞬时R；单项1/1和完整重跑620/620 exit0，未放宽断言，首次失败日志保留。其偶发时序原因未最终确认。Vite有大于500KiB的包体警告，构建通过。文件选择工具一次约9分钟，超出配置超时但最终读取成功，记录为工具延迟。
+
+## 交付与恢复
+
+平台7卷及Keycloak4卷冷备逐SHA回读，原服务已恢复，备份与新旧镜像保留在本机私有维护区。回退必须先验证新契约表为空及旧软件兼容；出现新业务时使用兼容候选，禁止以旧备覆盖原卷。公共包仅含报告、规则/测试摘要、脱敏截图、源码清单与补丁；不含密码、业务库转储或私有目录。ZIP CRC和SHA在package-status.json登记；资源清理结果在cleanup-status.json登记。未push。
+</pre><img src="deployed-import-1440.png" alt="deployed-import-1440.png"><img src="schema-saved-1280.png" alt="schema-saved-1280.png"><img src="url-yaml-preview-1440.png" alt="url-yaml-preview-1440.png"></html>

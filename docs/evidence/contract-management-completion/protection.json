@@ -1,5 +1,5 @@
 {
-  "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+  "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
   "stage": "pre-install",
   "originalInstallation": "not-upgraded",
   "originalSourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
@@ -22,7 +22,7 @@
     "originalDataAndProtectedFilesPreserved": true
   },
   "restore": {
-    "time": "2026-10-07T03:37:24.765Z",
+    "time": "2026-10-07T06:55:59.051Z",
     "complete": true,
     "restored": true,
     "actual": true,
@@ -39,10 +39,10 @@
     "originalRuntimeUnchanged": true
   },
   "software": {
-    "time": "2026-10-07T03:39:58.179Z",
+    "time": "2026-10-07T06:58:29.182Z",
     "complete": true,
-    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-    "imageId": "sha256:10478f8f638f13823cb7daf0f2d0cd446da8d18b3a9caed80393bf2c214f4275",
+    "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+    "imageId": "sha256:07663ffc529b36d708316f25df9364e42ea2bf7c8dfe3b8c293646a19d7664af",
     "oldSoftwareRollbackVerified": true,
     "migrationNotReversed": true,
     "onlyNewTables": 3,

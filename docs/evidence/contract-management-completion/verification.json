@@ -1,6 +1,6 @@
 {
-  "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-  "imageId": "sha256:10478f8f638f13823cb7daf0f2d0cd446da8d18b3a9caed80393bf2c214f4275",
+  "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+  "imageId": "sha256:07663ffc529b36d708316f25df9364e42ea2bf7c8dfe3b8c293646a19d7664af",
   "passed": true,
   "failed": [],
   "notExecuted": [],
@@ -10,7 +10,7 @@
       "name": "JSON/YAML与三入口",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/scenario.json",
         "docs/evidence/contract-management-completion/ui-proof.json"
@@ -21,7 +21,7 @@
       "name": "解析边界与取消",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/tests-domain.json",
         "docs/evidence/contract-management-completion/tests-integration.json",
@@ -33,7 +33,7 @@
       "name": "SSRF与获取资源限制",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/tests-integration.json",
         "docs/evidence/contract-management-completion/scenario.json"
@@ -44,7 +44,7 @@
       "name": "固定预览与授权/修订绑定",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/tests-integration.json",
         "docs/evidence/contract-management-completion/scenario.json"
@@ -55,7 +55,7 @@
       "name": "离线引用图",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/tests-domain.json",
         "docs/evidence/contract-management-completion/tests-integration.json"
@@ -66,7 +66,7 @@
       "name": "Operation映射与方言语义",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/scenario.json",
         "docs/evidence/contract-management-completion/tests-integration.json",
@@ -78,7 +78,7 @@
       "name": "数据库原子性/幂等/竞争",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/tests-integration.json",
         "docs/evidence/contract-management-completion/scenario.json"
@@ -89,7 +89,7 @@
       "name": "兼容规则可追踪",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/rule-coverage.json",
         "docs/evidence/contract-management-completion/tests-domain.json"
@@ -100,7 +100,7 @@
       "name": "全父接受域证明与反例",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/tests-domain.json",
         "docs/evidence/contract-management-completion/rule-coverage.json"
@@ -111,7 +111,7 @@
       "name": "固定官方套件与独立适配",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/tests-domain.json"
       ]
@@ -121,7 +121,7 @@
       "name": "Schema树/原文/并发/只读",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/ui-proof.json",
         "docs/evidence/contract-management-completion/tests-integration.json"
@@ -132,7 +132,7 @@
       "name": "示例方向/格式/定位/未完成",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/ui-proof.json",
         "docs/evidence/contract-management-completion/scenario.json",
@@ -144,7 +144,7 @@
       "name": "v1历史证据及v2冻结发布",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/tests-integration.json",
         "docs/evidence/contract-management-completion/scenario.json"
@@ -155,7 +155,7 @@
       "name": "双宽度真实交互",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/ui-proof.json",
         "docs/evidence/contract-management-completion/scenario.json"
@@ -166,7 +166,7 @@
       "name": "固定构建/恢复/原实例保护",
       "status": "Passed",
       "kind": "actual",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "evidence": [
         "docs/evidence/contract-management-completion/protection.json",
         "docs/evidence/contract-management-completion/tests-domain.json",
@@ -180,8 +180,8 @@
   "ruleCoverage": [
     {
       "ruleId": "schema.types",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "types.integer_number",
@@ -205,8 +205,8 @@
     },
     {
       "ruleId": "schema.enum_const",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "enum.widen",
@@ -227,8 +227,8 @@
     },
     {
       "ruleId": "schema.number_bounds",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "number.bounds",
@@ -249,8 +249,8 @@
     },
     {
       "ruleId": "schema.multiple_of",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "number.multiple",
@@ -268,8 +268,8 @@
     },
     {
       "ruleId": "schema.string_length",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "string.length",
@@ -284,8 +284,8 @@
     },
     {
       "ruleId": "schema.pattern",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "string.pattern_same",
@@ -306,8 +306,8 @@
     },
     {
       "ruleId": "schema.format",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "format.annotation",
@@ -322,8 +322,8 @@
     },
     {
       "ruleId": "schema.object_members",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "object.required",
@@ -344,8 +344,8 @@
     },
     {
       "ruleId": "schema.object_patterns",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "object.pattern_properties",
@@ -363,8 +363,8 @@
     },
     {
       "ruleId": "schema.object_size",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "object.cardinality",
@@ -379,8 +379,8 @@
     },
     {
       "ruleId": "schema.dependencies",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "object.dependent_required",
@@ -398,8 +398,8 @@
     },
     {
       "ruleId": "schema.array_items",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "array.items",
@@ -417,8 +417,8 @@
     },
     {
       "ruleId": "schema.array_size",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "array.size",
@@ -433,8 +433,8 @@
     },
     {
       "ruleId": "schema.array_unique",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "array.unique",
@@ -449,8 +449,8 @@
     },
     {
       "ruleId": "schema.array_contains",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "array.contains",
@@ -465,8 +465,8 @@
     },
     {
       "ruleId": "schema.composition",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "composition.anyof",
@@ -487,8 +487,8 @@
     },
     {
       "ruleId": "schema.conditionals",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "composition.not",
@@ -506,8 +506,8 @@
     },
     {
       "ruleId": "schema.unevaluated",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "unevaluated.properties",
@@ -525,8 +525,8 @@
     },
     {
       "ruleId": "schema.direction",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "direction.readonly",
@@ -544,8 +544,8 @@
     },
     {
       "ruleId": "schema.annotations",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "annotations.defaults",
@@ -563,8 +563,8 @@
     },
     {
       "ruleId": "schema.content",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "annotations.content",
@@ -579,8 +579,8 @@
     },
     {
       "ruleId": "schema.vocabulary",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "vocabulary.custom"
@@ -592,8 +592,8 @@
     },
     {
       "ruleId": "schema.references",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "FiniteExternalReferencesRespectEachFixedBundle",
@@ -608,8 +608,8 @@
     },
     {
       "ruleId": "schema.dynamic_references",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "DynamicScopeChangeIsExplicitlyUnknown"
@@ -620,8 +620,8 @@
     },
     {
       "ruleId": "openapi.operations",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "operation.add",
@@ -638,8 +638,8 @@
     },
     {
       "ruleId": "openapi.parameters",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "parameter.path_inheritance",
@@ -666,8 +666,8 @@
     },
     {
       "ruleId": "openapi.request",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "request.required",
@@ -688,8 +688,8 @@
     },
     {
       "ruleId": "openapi.responses",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "response.range_narrow",
@@ -722,8 +722,8 @@
     },
     {
       "ruleId": "openapi.security",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "security.inheritance",
@@ -756,8 +756,8 @@
     },
     {
       "ruleId": "openapi.coverage",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "logHash": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "complete": true,
       "registeredTestIds": [
         "callback.visible_coverage",
@@ -796,100 +796,108 @@
   "suites": [
     {
       "name": "domain",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "passed": 610,
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "passed": 620,
       "failed": 0,
       "skipped": 0,
       "exitCode": 0,
-      "originalLogSha256": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "originalLogSha256": "d72a638a02425a3887dd88624716e49aae285de017e6158500653ee1478e84d0",
       "artifact": "docs/evidence/contract-management-completion/tests-domain.json"
     },
     {
       "name": "integration",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "passed": 506,
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "passed": 516,
       "failed": 0,
       "skipped": 0,
       "exitCode": 0,
-      "originalLogSha256": "974f01cb41e8fee17e5dd2950de7e5c8c3785c532453bf0a35af259eb5591e43",
+      "originalLogSha256": "096b6b0f39acc83f3b48b4e1a7c3b46a1e7c1c0b7241477aac870acbc9bf5184",
       "artifact": "docs/evidence/contract-management-completion/tests-integration.json"
     },
     {
       "name": "gateway",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
       "passed": 52,
       "failed": 0,
       "skipped": 0,
       "exitCode": 0,
-      "originalLogSha256": "4108acbe0f4ef2a8243878480118c0985bcecca92efbd78bd074e31fa8589492",
+      "originalLogSha256": "f2b810b7bd7a8e2b3834f1b479cb73c9b78e2e76b0cd948fa27599935dae80cd",
       "artifact": "docs/evidence/contract-management-completion/tests-gateway.json"
     },
     {
       "name": "console",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "passed": 154,
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "passed": 157,
       "failed": 0,
       "skipped": 0,
       "exitCode": 0,
-      "originalLogSha256": "c68c3ae9c9e636ebb48b864892fa3883ef7e9aa0eb4e78fce865260f5239d952",
+      "originalLogSha256": "2fed547d9216d4250701d0db6ed2c4d8697a601ce82e5b11014743d5f076f3cb",
       "artifact": "docs/evidence/contract-management-completion/tests-console.json"
     },
     {
       "name": "runtime-contracts",
-      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-      "passed": 114,
+      "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+      "passed": 128,
       "failed": 0,
       "skipped": 0,
       "exitCode": 0,
-      "originalLogSha256": "961fb2d1f381c5a1971b7ae4819555b430266a2199bac57f3f986aad6209bf8e",
+      "originalLogSha256": "5f1fc478a7bd689e17fc9629d6db5fa314f98c53972a26c419f3eb62e8604e3b",
       "artifact": "docs/evidence/contract-management-completion/tests-runtime-contracts.json"
     }
   ],
   "ui": {
-    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
     "kind": "cua",
     "actual": true,
+    "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
     "widths": [
       1440,
       1280
     ],
-    "completedAt": "2026-10-07T05:15:32.195Z",
+    "measuredViewports": [
+      {
+        "width": 1440,
+        "height": 1000,
+        "scrollWidth": 1440
+      },
+      {
+        "width": 1280,
+        "height": 900,
+        "scrollWidth": 1280
+      }
+    ],
     "actions": [
-      "URL YAML 固定预览",
-      "Operation 勾选与映射脏表单 Escape 焦点返回",
-      "慢响应 504 和取消预览后旧响应不覆盖新输入",
-      "文本 JSON 整批提交并进入 API 详情",
-      "文件 YAML 根文件及附带引用包可导入预览，缺失引用禁用提交",
-      "Schema 特殊 Pointer 改名与未知字段原文保留",
-      "Tab/ShiftTab 循环，Enter 不隐式保存",
-      "示例 Valid/Invalid/Incomplete，语法错误及来源切换清除旧结果",
-      "真实 412 保留草稿，查看及采用最新修订，显式保存 R3",
-      "示例不匹配仍可保存合法工作定义",
-      "封存版本与只读角色无保存入口，只读示例实际 Valid",
-      "比较 Limited/Breaking/Unknown 与来源冲突可见",
-      "风险说明和强确认门禁，GUI AcceptedRisk 记录",
-      "携带风险引用进入现有向导，预览并提交两级审批申请"
+      "新镜像重读 WaitingApproval，原风险评审和两级审批保持，申请人仍不可自审。",
+      "1440实测视口：切换第二项目，来源策略修订0且无URL允许项，不继承第一项目rev3。",
+      "URL YAML实际固定哈希预览，零选择禁提交；脏映射Escape保护并确认放弃返回映射按钮。",
+      "JSON文本固定包真实整批提交，新API/Version/Route实际ID返回并导航。",
+      "1280实测：Tab/ShiftTab在对话框循环，Enter未保存R1；Pointer含/~字段改名并保未知关键字，语义Incomplete；非法示例/id定位，非法原文禁保存；恢复未知原文后显式保存。",
+      "重开后R2，特殊字符属性新名称与x-maintenance-note原样保留。",
+      "既有只读账号登录：API/版本新增和编辑禁用，Schema原文只读、无保存按钮，临时实例校验可返回Incomplete；未增加写权限。",
+      "只读账号打开保留的历史不可变报告，规则目录30条及Limited/Unknown仍显示，风险评审按钮禁用。"
     ],
     "screenshots": [
-      "docs/evidence/contract-management-completion/approval-submitted-1280.png",
-      "docs/evidence/contract-management-completion/comparison-1280.png",
-      "docs/evidence/contract-management-completion/import-file-bundle-1280.png",
-      "docs/evidence/contract-management-completion/import-result-1440.png",
-      "docs/evidence/contract-management-completion/import-url-1440.png",
-      "docs/evidence/contract-management-completion/schema-conflict-1280.png",
-      "docs/evidence/contract-management-completion/schema-readonly-1280.png",
+      "docs/evidence/contract-management-completion/approval-evidence-1440.png",
+      "docs/evidence/contract-management-completion/example-diagnostic-1280.png",
+      "docs/evidence/contract-management-completion/json-import-result-1440.png",
+      "docs/evidence/contract-management-completion/readonly-comparison-1280.png",
+      "docs/evidence/contract-management-completion/readonly-import-1280.png",
+      "docs/evidence/contract-management-completion/readonly-validation-1280.png",
       "docs/evidence/contract-management-completion/schema-saved-1280.png",
-      "docs/evidence/contract-management-completion/schema-sealed-1280.png",
-      "docs/evidence/contract-management-completion/schema-tree-example-1440.png"
+      "docs/evidence/contract-management-completion/schema-unknown-1280.png",
+      "docs/evidence/contract-management-completion/scope-policy-1440.png",
+      "docs/evidence/contract-management-completion/url-yaml-preview-1440.png"
     ],
-    "limitations": [
-      "浏览器文件选择器两次响应很慢，timeout 未及时终止等待；上传最终成功",
-      "未知 Schema 关键字导致校验 Incomplete；另一个 QA 操作者显式移除合成未知关键字后完成并发保存，不宣称未知关键字可正常保存",
-      "GUI 流程提交到 WaitingApproval；真正两级审批发布、双网关 ACK/请求和回滚由同提交隔离 HTTP 场景完成"
-    ]
+    "priorFrontendEvidence": {
+      "sourceRevision": "8031023b03d59835445443694d591c0ee224eede",
+      "artifact": "docs/evidence/contract-management-completion/prior-803-ui-proof.json",
+      "reason": "仅复用实际SHA完全一致的3个前端静态文件的文件读取、412恢复、metadata与向导交互回归；旧记录保留原提交身份，新的后端规则由cc880ba实际全套与E2E验证。",
+      "equivalenceArtifact": "docs/evidence/contract-management-completion/ui-asset-equivalence.json"
+    },
+    "imageEncoding": "JPEG bytes in historical .png filenames; browser screenshot renderer has zoom padding, measured CSS widths are the breakpoint evidence.",
+    "productionAcceptance": false
   },
   "clone": {
-    "time": "2026-10-07T03:37:24.765Z",
+    "time": "2026-10-07T06:55:59.051Z",
     "complete": true,
     "restored": true,
     "actual": true,
@@ -907,80 +915,144 @@
   },
   "artifacts": [
     {
-      "path": "docs/evidence/contract-management-completion/approval-submitted-1280.png",
-      "sha256": "cdba4660b1b08d205100276aa165962ed59d6406eb2c267ef057f6a5393e3b21"
+      "path": "docs/evidence/contract-management-completion/approval-evidence-1440.png",
+      "sha256": "93d3c841a3f4f03a0de44cd9d570cdf380c71fecf5fb5ea8b07f0650996f8a30"
     },
     {
-      "path": "docs/evidence/contract-management-completion/comparison-1280.png",
-      "sha256": "f4002b8411539f3544eb4b4eb695bc8d572f3dfd29a942755b2e0e701203ccf7"
+      "path": "docs/evidence/contract-management-completion/example-diagnostic-1280.png",
+      "sha256": "e7ea23f22c7e0179d9c1acf18106c2176be1bf37c5f8bba244116d69cb02937f"
     },
     {
-      "path": "docs/evidence/contract-management-completion/import-file-bundle-1280.png",
-      "sha256": "dad3c71a3ff2c49dd0cf1c5ba7154e2f4aa94287086c4c6d386a36121d4d7fc1"
+      "path": "docs/evidence/contract-management-completion/json-import-result-1440.png",
+      "sha256": "201f506483e3f64d1f3627d8ac5bc33a4f4a92fadf7dff5cead9fe22b505ceb2"
     },
     {
-      "path": "docs/evidence/contract-management-completion/import-result-1440.png",
-      "sha256": "d56f3f4872b575fb58b933f2419848794ad0cbda4f5418366bfd6811658bae16"
+      "path": "docs/evidence/contract-management-completion/prior-803-comparison-review-1440.png",
+      "sha256": "eff207b560764afa0802812a277170fdc0f5f560884e494e03ac25849c3f215c"
     },
     {
-      "path": "docs/evidence/contract-management-completion/import-url-1440.png",
-      "sha256": "00e288fb2fd9f9c20a713eb27221ef35e45cf38f76ed6fdb36e5afe0cf407985"
+      "path": "docs/evidence/contract-management-completion/prior-803-import-file-bundle-1440.png",
+      "sha256": "5a17c15cdd604a3089e93b53fcf25e646690e99bef549cea7572e74bebb0f33b"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-import-result-1440.png",
+      "sha256": "9f5b52e5b323c0b57a8dfe3d43e60c93940db7a789f052aa92bd67f398232417"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-import-url-1440.png",
+      "sha256": "cddaf185c8ddc9314a3cb395bfb51ce60eb025027f610de29a7bb0d5f8d31f75"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-project-source-isolation-1440.png",
+      "sha256": "fd6479f98e22b8e3fa42551c18f5b0a39b39267ee230313996797bc9cad0bbcb"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-risk-confirmation-1440.png",
+      "sha256": "d831131f5ad63801c5b2448150867b509d292b2cf1a4c08d948007a3d434ca49"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-schema-conflict-1280.png",
+      "sha256": "679d231d3b27d0bb6a3d76d7219d4e3713dcf9fffe0341ce235c681a90dad9d0"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-schema-example-invalid-1280.png",
+      "sha256": "8130d8998bdb1172e82a7bee6224f8e6de828609d5ccb0b09ed717246a2ed71e"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-schema-sealed-valid-1440.png",
+      "sha256": "6819bbfdfd057de7d2618c3cd4f5340add129e635fa9d28e9864d39748d51928"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-schema-tree-unknown-1440.png",
+      "sha256": "6bc289ceb3b8ce6ce8d6984f809561d076b7e89da6cf8f0cbe072f9303d113a2"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-schema-unknown-saved-1280.png",
+      "sha256": "4af42e08cf60da832f9c823b699510b6be279a76b140921a0e6b9d356654cb59"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-ui-proof.json",
+      "sha256": "470181f7de54a5ce0dacb94e173621088c65804719533d91aafc77ae7c6444b0"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-version-metadata-1280.png",
+      "sha256": "a7fad36caeab203203a21aeebab75d05c97ea38b615af311e776f9feaeb46595"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/prior-803-wizard-waiting-approval-1440.png",
+      "sha256": "9fec687632c61c1d2f31b5bc3f0c1cf702493e624c9f8ab81036ab22e1cd2073"
     },
     {
       "path": "docs/evidence/contract-management-completion/protection.json",
-      "sha256": "fba199a25018b1db094b15ff01c96a9aaaa3ac7517d22d71a2045eac8b4b7347"
+      "sha256": "4cd19da5896c2aa504c1cb955a70722bf9ec5c3a5a7ffa60f0286a75060230ed"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/readonly-comparison-1280.png",
+      "sha256": "fac844e7e78bd103acc2050b18ab60d19ec9bd1a8e87066e98ae9e769dd6c860"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/readonly-import-1280.png",
+      "sha256": "9bebb8b2ad06baeb825af523c9c105252fd63b6aa3a14a699ba44ebb29b9c63b"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/readonly-validation-1280.png",
+      "sha256": "1e0195d699164cf925a6ea20074d50e1cac857d83ac15ef938840b8cf1efc3f6"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/rule-catalog.json",
+      "sha256": "fc5ee47c6eb0fa9e00875bb9d4046b13bdad4704455dc925d6ecc0a38cd5b86d"
     },
     {
       "path": "docs/evidence/contract-management-completion/rule-coverage.json",
-      "sha256": "db7a987eb1ef6072e51826e8a86bb1fc96a25e01b861986919f9a98235455da6"
+      "sha256": "378daf1c8f6e31eccd8f8f6c1b8ef4a0286355578c879271b61b8af613b7c492"
     },
     {
       "path": "docs/evidence/contract-management-completion/scenario.json",
-      "sha256": "d8b46bf30739ee1fa80ad2e83c35d7d421e2ee97d03f227a9f834aede9907ae2"
-    },
-    {
-      "path": "docs/evidence/contract-management-completion/schema-conflict-1280.png",
-      "sha256": "3ea9dd8694e01d4320ed2b4c8f72f12e45af47f010236fff10e80500627f8520"
-    },
-    {
-      "path": "docs/evidence/contract-management-completion/schema-readonly-1280.png",
-      "sha256": "0a253ff53de4871c25c3a20300cb3bdd3fef62c408e4c321934d8ceebba73644"
+      "sha256": "f79e71166eac43c47f67880802a63943933edaf9cf7cf74144adfd51a089dee8"
     },
     {
       "path": "docs/evidence/contract-management-completion/schema-saved-1280.png",
-      "sha256": "6dafb52aa9cba5b4901093c608405595a7440ab172bbce34ab46a690b5885acf"
+      "sha256": "9e0b683b3906b67d218cf56ac0383e12770bebcf84aa3e34dcdedd9557af77e2"
     },
     {
-      "path": "docs/evidence/contract-management-completion/schema-sealed-1280.png",
-      "sha256": "0569f934ce1df2ed70f4760698a801ad04e8dabaa80c436b43ca360bdbc8ef32"
+      "path": "docs/evidence/contract-management-completion/schema-unknown-1280.png",
+      "sha256": "4ba57d94beabc013a1621db18f7333ce6684ea50264d85229759ed2a18270a2c"
     },
     {
-      "path": "docs/evidence/contract-management-completion/schema-tree-example-1440.png",
-      "sha256": "8e07dc7fbf7f1dcafd74bfec3fc304004fa0b2c0819e1337ef022e49e1bd1809"
+      "path": "docs/evidence/contract-management-completion/scope-policy-1440.png",
+      "sha256": "844d29d9c0e4f957a67fc2aa84e8105da485a59bca0303c5f0a538a40040156e"
     },
     {
       "path": "docs/evidence/contract-management-completion/tests-console.json",
-      "sha256": "93657239fb5ab271e76f3b1fa462b2220939e35e32452d8834f9af42c99802b9"
+      "sha256": "727b40026022632b86fa2803784625eda4cebd839f3b145afa90998af9316df3"
     },
     {
       "path": "docs/evidence/contract-management-completion/tests-domain.json",
-      "sha256": "81cdbb9a192f1897144e598f519158d8da428b12ce857ac246645bea89466515"
+      "sha256": "aa5d7c822b2f34bcb34ad4b48301ef0ae48cd861e4a1959d62ad7b9d861158ae"
     },
     {
       "path": "docs/evidence/contract-management-completion/tests-gateway.json",
-      "sha256": "8799b30b3059eef7a6022468a66b7ba58bba48b3fddef8b86fd626526e09b0b6"
+      "sha256": "f5f80064da95c12f5c0b7101a1a3676e7560c3743c7966c2eb80b4caeaf6b2ba"
     },
     {
       "path": "docs/evidence/contract-management-completion/tests-integration.json",
-      "sha256": "bafbbcd9ba599b56322c719b82ab7ea163760150d2f3698233814036e4bb735d"
+      "sha256": "d755549f26b126c902087322942e02451eb6c25472b9a42f696f4fa68ece2616"
     },
     {
       "path": "docs/evidence/contract-management-completion/tests-runtime-contracts.json",
-      "sha256": "b3a1bebcbcd567c72899d8ceb763a830d70df36e83a4fa0bcbb7e0502ef33df3"
+      "sha256": "0b6fc3df0ae1c4dcce3ffb55fa2ca02e85b47b037f15f26e4f16e91a8e2a7ed9"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/ui-asset-equivalence.json",
+      "sha256": "c725a5c5e151c0fb5802916f970e1e63141771e70eb01772710c4538548cefc7"
     },
     {
       "path": "docs/evidence/contract-management-completion/ui-proof.json",
-      "sha256": "b124176421ee9f5d5422fb057f3d106690f9f858aadebd1b3868a11e8917022b"
+      "sha256": "3a2e5ec3267ac07fb90cb0581bf737b1a24ce631c5d4ad916bfd3af86393fc88"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/url-yaml-preview-1440.png",
+      "sha256": "737a7fbc3ecd473897f4286c41d24259b367a05042615f31be6759ec5e433f68"
     }
   ]
 }

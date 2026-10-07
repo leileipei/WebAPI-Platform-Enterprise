@@ -1,0 +1,98 @@
+{
+  "time": "2026-10-07T07:16:29.956Z",
+  "complete": true,
+  "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+  "imageId": "sha256:07663ffc529b36d708316f25df9364e42ea2bf7c8dfe3b8c293646a19d7664af",
+  "phase": "Ready",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available",
+      "checkedAt": "2026-10-07T07:16:29.766Z"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available",
+      "checkedAt": "2026-10-07T07:16:29.766Z"
+    },
+    {
+      "name": "loki",
+      "state": "Available",
+      "checkedAt": "2026-10-07T07:16:29.765Z"
+    },
+    {
+      "name": "tempo",
+      "state": "Available",
+      "checkedAt": "2026-10-07T07:16:29.765Z"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "runtimeConfirmed": true
+    },
+    {
+      "name": "local-gateway-a",
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "runtimeConfirmed": true
+    }
+  ],
+  "originalPasswordsAndThreeLocalAccounts": true,
+  "realKeycloakViewerLogin": true,
+  "viewerReadOnlyScopes": true,
+  "logoutSameClient401": true,
+  "staticFilesVerified": 3,
+  "protectedTables": 33,
+  "protectedLocalFiles": 645,
+  "secretAndMetadataFiles": 20,
+  "fixedMaintenanceFiles": 96,
+  "historicalArchives": 28,
+  "originalPreserved": true,
+  "requests": [
+    200,
+    200
+  ],
+  "newBusinessPublish": false,
+  "productionAcceptance": false,
+  "installation": "4192-upgraded",
+  "newContractTablesEmpty": true,
+  "acceptanceChecks": 15,
+  "ruleCount": 30,
+  "totalTests": 1473,
+  "deployedUi": {
+    "complete": true,
+    "kind": "cua",
+    "actual": true,
+    "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+    "endpoint": "http://127.0.0.1:4192",
+    "pages": [
+      "/imports",
+      "original Published API Schema page"
+    ],
+    "originalAdminLogin": true,
+    "originalProjectSourcePolicyRevision": 0,
+    "noUrlAllowances": true,
+    "threeImportModes": true,
+    "jsonYamlFormats": true,
+    "sealedVersionNewDisabled": true,
+    "originalSchemaDefinitions": 0,
+    "noQaBusinessWrites": true,
+    "screenshots": [
+      "docs/evidence/contract-management-completion/deployed-import-1440.png",
+      "docs/evidence/contract-management-completion/deployed-sealed-api-1440.png"
+    ]
+  },
+  "batches": {
+    "contractManagement": "implemented-and-locally-deployed",
+    "gatewayPolicies": "not-implemented",
+    "externalNotificationsAndCrossEnvironmentApproval": "not-implemented"
+  }
+}

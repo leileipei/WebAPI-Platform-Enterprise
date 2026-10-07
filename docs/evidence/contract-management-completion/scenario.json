@@ -1,58 +1,58 @@
 {
-  "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
-  "imageId": "sha256:10478f8f638f13823cb7daf0f2d0cd446da8d18b3a9caed80393bf2c214f4275",
+  "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+  "imageId": "sha256:07663ffc529b36d708316f25df9364e42ea2bf7c8dfe3b8c293646a19d7664af",
   "actual": true,
   "steps": [
     {
       "name": "readonly-zero-network",
       "status": 403,
       "requests": 0,
-      "time": "2026-10-07T03:45:54.238Z"
+      "time": "2026-10-07T06:59:23.688Z"
     },
     {
       "name": "url-yaml-json-semantics",
       "dialect": "Oas31",
-      "sourceHash": "a259b1e918f18b02c57fd8f6fdce45f3ad331cfcb1fe26a5e52fd10336554c82",
-      "bundleHash": "305fcfaf4fd159a1bb4705c50307a4d8af03da6cb42f2e3f28a133f6cdc16234",
+      "sourceHash": "68d2de2829856675541cf672a57ee7467760e5e80806b3746761abc8149c3d9f",
+      "bundleHash": "71b665f4c1c58c18d6dafb339ab629355dd34519d9065a8b35dee8f4a9ca5bc9",
       "operations": 1,
-      "time": "2026-10-07T03:45:54.310Z"
+      "time": "2026-10-07T06:59:23.881Z"
     },
     {
       "name": "immutable-commit-and-receipt",
-      "importId": "6c54ec92-2358-4fab-9a27-5cf5403df857",
+      "importId": "17f4006a-580b-4e72-aede-10694489c132",
       "noNetworkOnCommit": true,
       "receiptReplay": true,
-      "apiId": "623bf6a9-a281-42bd-9ede-ee89ec95801c",
-      "versionId": "0fd12680-063e-41fc-84ce-12f488cfee64",
-      "time": "2026-10-07T03:45:54.365Z"
+      "apiId": "8242d306-ea97-4856-b8ca-bdfdb1f39915",
+      "versionId": "5705f38d-82f9-4e37-932c-584f641aea1f",
+      "time": "2026-10-07T06:59:24.049Z"
     },
     {
       "name": "url-rejection-redirect.yaml",
       "status": 422,
       "bounded": true,
-      "time": "2026-10-07T03:45:54.378Z"
+      "time": "2026-10-07T06:59:24.063Z"
     },
     {
       "name": "url-rejection-oversized.yaml",
       "status": 413,
       "bounded": true,
-      "time": "2026-10-07T03:45:54.393Z"
+      "time": "2026-10-07T06:59:24.083Z"
     },
     {
       "name": "url-rejection-slow.yaml",
       "status": 504,
       "bounded": true,
-      "time": "2026-10-07T03:46:09.408Z"
+      "time": "2026-10-07T06:59:39.103Z"
     },
     {
       "name": "yaml-invalid-rejections",
       "actualRequests": 3,
-      "time": "2026-10-07T03:46:09.454Z"
+      "time": "2026-10-07T06:59:39.139Z"
     },
     {
       "name": "policy-revision-invalidates-preview",
       "status": 409,
-      "time": "2026-10-07T03:46:09.515Z"
+      "time": "2026-10-07T06:59:39.209Z"
     },
     {
       "name": "example-validation",
@@ -63,28 +63,28 @@
       "staleRevisionStatus": 412,
       "falsyAndExternalOptions": true,
       "readOnlyValidation": true,
-      "time": "2026-10-07T03:46:09.912Z"
+      "time": "2026-10-07T06:59:39.650Z"
     },
     {
       "name": "baseline-published",
-      "releaseId": "a37978e7-00a7-4e4f-897b-596840fe2848",
+      "releaseId": "05cd101a-d8b4-4907-9a94-c1d0b93ac858",
       "twoIndependentApprovers": true,
       "dualAck": true,
       "dualGatewayStatus": 200,
-      "time": "2026-10-07T03:46:12.142Z"
+      "time": "2026-10-07T06:59:41.562Z"
     },
     {
       "name": "schema-draft-save",
       "staleRevisionStatus": 412,
       "readOnlyWriteStatus": 403,
-      "versionId": "79115c85-1b66-4480-824d-c4a1e221b43c",
-      "time": "2026-10-07T03:46:12.349Z"
+      "versionId": "bfb35255-d6c7-4314-aa7e-3598b73df0d7",
+      "time": "2026-10-07T06:59:41.789Z"
     },
     {
       "name": "comparison-risk-review",
-      "comparisonId": "74af5d10-08a4-48eb-8f0f-6cf0522865e8",
-      "reportHash": "be7154986c394932447b83220da99bcd65f082ff1311ab55f7bf7507ca2f8e4c",
-      "inputHash": "2eafc4636871effe347bb328580d5b8a01614bc17bdeb38f83bf0897a6719515",
+      "comparisonId": "17decd22-9fe6-41d5-b19e-5852a906849e",
+      "reportHash": "ed5008570bcaefd86326d8b9542d27921442da00f1a44cd1437735bfe641fcb7",
+      "inputHash": "0e83cb9d9869150245b0441a011d412e59d5469c4858d00f759128b5941134ca",
       "coverage": "Limited",
       "counts": {
         "added": 1,
@@ -94,37 +94,37 @@
         "breaking": 1,
         "unknown": 2
       },
-      "reviewId": "2340311e-fdff-4bec-8634-ad730c631932",
-      "time": "2026-10-07T03:46:12.605Z"
+      "reviewId": "44d5cbde-a9d1-4aa9-9ef4-ec8943c1f5f9",
+      "time": "2026-10-07T06:59:42.068Z"
     },
     {
       "name": "review-two-level-publish",
-      "releaseId": "84ded9f4-634a-4707-b4c9-7d1fcf9e9af1",
+      "releaseId": "7d56f1ad-b170-4d3c-856e-a96b6cf519d4",
       "twoIndependentApprovers": true,
       "frozenReview": true,
       "dualAck": true,
       "dualGatewayStatus": 200,
-      "time": "2026-10-07T03:46:13.814Z"
+      "time": "2026-10-07T06:59:43.788Z"
     },
     {
       "name": "rollback",
-      "releaseId": "1e854a19-09ba-41dc-ac05-77fa542b64de",
-      "targetConfigVersion": 6,
+      "releaseId": "6e1a1d40-5d4b-430f-87ac-9a5c5a1838df",
+      "targetConfigVersion": 5,
       "dualAck": true,
       "dualGatewayStatus": 200,
-      "time": "2026-10-07T03:46:14.956Z"
+      "time": "2026-10-07T06:59:45.445Z"
     }
   ],
   "complete": true,
-  "apiId": "623bf6a9-a281-42bd-9ede-ee89ec95801c",
-  "v1Id": "0fd12680-063e-41fc-84ce-12f488cfee64",
-  "v2Id": "79115c85-1b66-4480-824d-c4a1e221b43c",
-  "comparisonId": "74af5d10-08a4-48eb-8f0f-6cf0522865e8",
-  "reviewId": "2340311e-fdff-4bec-8634-ad730c631932",
+  "apiId": "8242d306-ea97-4856-b8ca-bdfdb1f39915",
+  "v1Id": "5705f38d-82f9-4e37-932c-584f641aea1f",
+  "v2Id": "bfb35255-d6c7-4314-aa7e-3598b73df0d7",
+  "comparisonId": "17decd22-9fe6-41d5-b19e-5852a906849e",
+  "reviewId": "44d5cbde-a9d1-4aa9-9ef4-ec8943c1f5f9",
   "releaseIds": [
-    "a37978e7-00a7-4e4f-897b-596840fe2848",
-    "84ded9f4-634a-4707-b4c9-7d1fcf9e9af1",
-    "1e854a19-09ba-41dc-ac05-77fa542b64de"
+    "05cd101a-d8b4-4907-9a94-c1d0b93ac858",
+    "7d56f1ad-b170-4d3c-856e-a96b6cf519d4",
+    "6e1a1d40-5d4b-430f-87ac-9a5c5a1838df"
   ],
   "httpRequestCount": 5
 }

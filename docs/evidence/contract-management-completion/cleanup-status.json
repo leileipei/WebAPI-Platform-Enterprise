@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "sourceRevision": "cc880ba171de74dae33b87587a308134780f39a6",
+  "ownedClonesCleaned": 2,
+  "qaDriversStopped": 2,
+  "containersRemaining": 0,
+  "volumesRemaining": 0,
+  "secretFilesRemaining": 0,
+  "originalPreserved": true,
+  "originalPhase": "Ready",
+  "originalDataVolumesPreserved": true,
+  "privateColdBackupsRetained": true,
+  "newAndOldImagesRetained": true
+}
