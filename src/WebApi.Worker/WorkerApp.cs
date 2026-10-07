@@ -1,4 +1,5 @@
 using WebApi.Infrastructure.Comparisons;
+using WebApi.Infrastructure.Policies;
 using WebApi.Infrastructure.Catalog;
 using WebApi.Infrastructure.Settings;
 using WebApi.Infrastructure.Alerts;
@@ -30,6 +31,7 @@ builder.Services.AddScoped<AuthorizationService>();builder.Services.AddScoped<Sc
 builder.Services.AddSingleton(new PublishSettings(AckTimeoutSeconds:int.Parse(builder.Configuration["Publish:AckTimeoutSeconds"]??"120")));
 builder.Services.AddScoped<HistoricalSnapshotService>();
 builder.Services.AddDataProtection();builder.Services.AddSingleton<ContractComparisonEngine>();builder.Services.AddScoped<ComparisonCursorCodec>();builder.Services.AddScoped<VersionComparisonService>();builder.Services.AddScoped<VersionRiskReviewService>();builder.Services.TryAddSingleton(new WebApi.Infrastructure.Contracts.SchemaValidationSettings());builder.Services.AddSingleton<WebApi.Infrastructure.Contracts.ContractProcessRunner>();builder.Services.AddScoped<VersionContractSourceService>();builder.Services.AddScoped<SchemaValidationService>();builder.Services.AddScoped<CatalogService>();
+builder.Services.TryAddSingleton(GatewayPolicyDeploymentRules.Read(builder.Configuration,builder.Environment));builder.Services.AddScoped<PolicyAccess>();builder.Services.AddScoped<PolicyReferenceService>();builder.Services.AddScoped<JwtApplicationBindingService>();
 builder.Services.AddScoped<SystemSettingsReader>();builder.Services.AddScoped<RouteService>();
 builder.Services.AddSingleton(new UpstreamAddressPolicy(UpstreamAddressPolicy.ReadAllowedOrigins(builder.Configuration)));
 builder.Services.AddSingleton(new RedisSnapshotStore(builder.Configuration["Redis:Connection"]??"redis:6379,abortConnect=false",builder.Configuration["Redis:Prefix"]??"webapi:runtime"));

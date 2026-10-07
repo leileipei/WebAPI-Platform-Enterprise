@@ -43,6 +43,23 @@ public sealed class PolicyReferenceService(WebApiDbContext db,PolicyAccess acces
         }
         return result;
     }
+    internal async Task<IReadOnlyList<(string Type,string Config)>> ProtectedConfigurationsAsync(Guid organizationId,CancellationToken ct)
+    {
+        var result=new List<(string Type,string Config)>();
+        foreach(var p in await db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==organizationId).ToArrayAsync(ct)) result.Add((p.Type,p.Config));
+        var environmentIds=await (from e in db.Set<EnvironmentRecord>() join p in db.Set<Project>() on e.ProjectId equals p.Id where p.OrganizationId==organizationId select e.Id).ToArrayAsync(ct);
+        var frozen=await db.Set<ReleaseRecord>().AsNoTracking().Where(r=>environmentIds.Contains(r.EnvironmentId)&&r.CandidateBytes!=null&&((r.ApprovalPolicy!=null&&(r.Status=="WaitingApproval"||r.Status=="Ready"||r.Status=="Building"||r.Status=="Publishing"))||(r.ReleaseType=="rollback"&&r.Status=="Draft"))).ToArrayAsync(ct);
+        foreach(var release in frozen) foreach(var policy in (Read<FrozenReleaseCandidate>(release.CandidateBytes!).Policies??throw Unavailable())) result.Add((policy.Type,policy.Config));
+        var desired=await db.Set<EnvironmentRecord>().AsNoTracking().Where(e=>environmentIds.Contains(e.Id)&&e.DesiredConfigVersion!=null).Select(e=>new {EnvironmentId=e.Id,Version=e.DesiredConfigVersion!.Value}).ToArrayAsync(ct);
+        var applied=await db.Set<GatewayNode>().AsNoTracking().Where(n=>environmentIds.Contains(n.EnvironmentId)&&n.CurrentConfigVersion>0).Select(n=>new {n.EnvironmentId,Version=n.CurrentConfigVersion}).ToArrayAsync(ct);
+        foreach(var current in desired.Concat(applied).Distinct())
+        {
+            var bytes=await (from v in db.Set<GatewayConfigVersion>().AsNoTracking() join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where v.EnvironmentId==current.EnvironmentId&&v.VersionNo==current.Version select s.PayloadBytes).SingleOrDefaultAsync(ct);
+            if(bytes is null||bytes.Length==0) throw Unavailable();
+            foreach(var policy in (Read<RuntimeSnapshot>(bytes).Policies??throw Unavailable())) result.Add((policy.Type,policy.Config));
+        }
+        return result;
+    }
     private static T Read<T>(byte[] bytes)
     {try {return JsonSerializer.Deserialize<T>(bytes,CanonicalJson.Options)??throw Unavailable();}catch(JsonException) {throw Unavailable();}}
     private static ApiException Unavailable()=>new(409,"policy_reference_unavailable","受保护快照无法校验，请先修复快照。");

@@ -9,13 +9,13 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Policies;
-public sealed class PolicyService(WebApiDbContext db,AuthorizationService auth,PolicyAccess access,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,PolicyReferenceService references)
+public sealed class PolicyService(WebApiDbContext db,AuthorizationService auth,PolicyAccess access,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,PolicyReferenceService references,JwtApplicationBindingService mappings,GatewayPolicyDeploymentRules deployment)
 {
     public static PolicyDto Dto(Policy p)=>new(p.Id,p.OrganizationId,p.ProjectId,p.Name,p.Type,p.Config,p.Enabled,p.VersionNo);
     public async Task<PageResult<PolicyDto>> ListAsync(PolicyScopeRequest requested,ActorContext actor,int page,int pageSize,string? type,string? search,bool? enabled,CancellationToken ct=default)
     {
         var scope=await access.ResolveAsync(requested,ct);if(!await access.CanReadAsync(scope,actor,ct)) throw ScopeResolver.Missing();
-        if(type is not null&&type is not ("authentication" or "timeout" or "rate_limit" or "circuit_breaker")||search?.Length>128) throw new ApiException(422,"invalid_policy_filter","策略筛选条件不合法。");
+        if(type is not null&&type is not ("authentication" or "timeout" or "rate_limit" or "circuit_breaker" or "retry" or "cache")||search?.Length>128) throw new ApiException(422,"invalid_policy_filter","策略筛选条件不合法。");
         var query=db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==scope.OrganizationId&&(scope.ProjectId==null||p.ProjectId==null||p.ProjectId==scope.ProjectId));
         if(type is not null) query=query.Where(p=>p.Type==type);if(enabled is bool on) query=query.Where(p=>p.Enabled==on);if(!string.IsNullOrWhiteSpace(search)) query=query.Where(p=>p.Name.Contains(search));
         var visible=new List<PolicyDto>();foreach(var p in await query.OrderBy(p=>p.Name).ThenBy(p=>p.Id).ToArrayAsync(ct)) if(await access.CanReadAsync(new(p.OrganizationId,p.ProjectId),actor,ct)) visible.Add(Dto(p));
@@ -30,7 +30,7 @@ public sealed class PolicyService(WebApiDbContext db,AuthorizationService auth,P
             if(id is Guid existing) {var current=await GetAsync(existing,actor,token);if(current.OrganizationId!=scope.OrganizationId||current.ProjectId!=scope.ProjectId) throw ScopeResolver.Missing();}
             await auth.RequireAsync(actor,"policy.write",new("policy",id??Guid.Empty,scope),token);
             var name=request.Name.Trim();if(name.Length is <1 or >128) throw new ApiException(422,"invalid_policy_name","策略名称长度须为1至128。");
-            var config=PolicyConfigurationValidator.Normalize(request.Type,request.Config);var normalized=request with {Name=name,Config=config};
+            var config=PolicyConfigurationValidator.Normalize(request.Type,request.Config);await ValidateConfigurationAsync(scope,request.Type,config,actor,token);var normalized=request with {Name=name,Config=config};
             return await idempotency.ExecuteAsync(new(actor.UserId,scope,"policy.save",requestContext.IdempotencyKey),CanonicalJson.Serialize(new {id,request=normalized,ifMatch}),async inner=>{
                 var p=id is Guid actual?await db.Set<Policy>().SingleOrDefaultAsync(p=>p.Id==actual,inner)??throw ScopeResolver.Missing():new Policy {OrganizationId=scope.OrganizationId,ProjectId=scope.ProjectId};
                 if(id is not null) {PolicyPreconditions.Require(ifMatch,p.VersionNo);if(p.Type!=request.Type) throw new ApiException(422,"immutable_policy_type","策略类型不可修改。");}
@@ -39,7 +39,8 @@ public sealed class PolicyService(WebApiDbContext db,AuthorizationService auth,P
                 p.Name=name;p.Type=request.Type;p.Config=config;p.Enabled=request.Enabled;p.UpdatedAt=DateTimeOffset.UtcNow;
                 if(id is not null) foreach(var routeId in await db.Set<RoutePolicyBinding>().Where(b=>b.PolicyId==p.Id).Select(b=>b.RouteId).ToArrayAsync(inner)) {
                     var bindings=await RoutePolicyService.LoadAsync(db,routeId,inner);
-                    PolicyBindingRules.Validate(bindings.Select(b=>b.PolicyId==p.Id?b with {Config=config,Enabled=request.Enabled}:b).ToArray(),true);
+                    var timeout=await db.Set<ApiRoute>().Where(r=>r.Id==routeId).Select(r=>r.TimeoutMs).SingleAsync(inner);
+                    PolicyBindingRules.Validate(bindings.Select(b=>b.PolicyId==p.Id?b with {Config=config,Enabled=request.Enabled}:b).ToArray(),true,timeout);
                 }
                 return new CommandResult<PolicyDto>(Dto(p),RevisionTag.Format(p.VersionNo));
             },token);
@@ -59,5 +60,16 @@ public sealed class PolicyService(WebApiDbContext db,AuthorizationService auth,P
         },ct);
     }
     public async Task<PolicyValidationDto> ValidateAsync(ValidatePolicyRequest request,ActorContext actor,CancellationToken ct=default)
-    {var scope=await access.ResolveAsync(request.Scope,ct);await auth.RequireAsync(actor,"policy.write",new("policy",Guid.Empty,scope),ct);return new(true,PolicyConfigurationValidator.Normalize(request.Type,request.Config));}
+    {var scope=await access.ResolveAsync(request.Scope,ct);await auth.RequireAsync(actor,"policy.write",new("policy",Guid.Empty,scope),ct);var config=PolicyConfigurationValidator.Normalize(request.Type,request.Config);await ValidateConfigurationAsync(scope,request.Type,config,actor,ct);return new(true,config);}
+    private async Task ValidateConfigurationAsync(ScopeRef scope,string type,string config,ActorContext actor,CancellationToken ct)
+    {
+        deployment.Validate(type,config);
+        if(type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(config).Jwt is {} jwt) await mappings.ValidateAsync(scope,jwt,actor,ct);
+    }
+    public async Task<PolicyLimitsDto> LimitsAsync(PolicyScopeRequest requested,ActorContext actor,CancellationToken ct)
+    {
+        var scope=await access.ResolveAsync(requested,ct);
+        if(!await access.CanReadAsync(scope,actor,ct)) throw ScopeResolver.Missing();
+        return deployment.Limits;
+    }
 }

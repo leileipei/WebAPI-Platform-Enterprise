@@ -1,4 +1,9 @@
 using WebApi.Infrastructure.Comparisons;
+using System.Text.Json;
+using WebApi.Contracts.Runtime;
+using WebApi.Contracts.Policies;
+using WebApi.Domain.Policies;
+using WebApi.Infrastructure.Policies;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Catalog;
 using WebApi.Contracts.Releases;
@@ -11,7 +16,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Routing;
 namespace WebApi.Infrastructure.Releases;
-public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver scopes,RouteService routes,VersionRiskReviewService reviews)
+public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver scopes,RouteService routes,VersionRiskReviewService reviews,JwtApplicationBindingService mappings,GatewayPolicyDeploymentRules deployment)
 {
     public async Task<FrozenReleaseCandidate> BuildAsync(Guid environmentId,CreateReleaseRequest request,CancellationToken ct,ActorContext? actor=null)
     {
@@ -43,14 +48,39 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
             versions.Add(new(CatalogService.Dto(a),CatalogService.Dto(v),parameters,schemas));revisions.Add(new("version",id,v.Revision));revisions.Add(new("api",a.Id,a.VersionNo));
         }
         var routeEntities=await db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId&&request.VersionIds.Contains(r.ApiVersionId)).OrderBy(r=>r.Id).ToArrayAsync(ct);var routeDtos=new List<RouteDto>();
-        foreach(var r in routeEntities) {routeDtos.Add(RouteService.Dto(r,await routes.RequiresKeyAsync(r.Id,ct)));revisions.Add(new("route",r.Id,r.Revision));}
+        foreach(var r in routeEntities) {var effective=await routes.EffectiveAsync(r.Id,ct);routeDtos.Add(RouteService.Dto(r,effective.RequireApiKey) with {EffectiveAuthenticationMode=effective.Authentication?.Mode==AuthenticationMode.JWT?"JWT":null});revisions.Add(new("route",r.Id,r.Revision));}
         var clusterIds=routeEntities.Select(r=>r.ClusterId).Distinct().ToArray();var clusters=new List<ClusterDto>();
         foreach(var c in await db.Set<UpstreamCluster>().AsNoTracking().Where(c=>clusterIds.Contains(c.Id)).OrderBy(c=>c.Id).ToArrayAsync(ct))
         {if(c.EnvironmentId!=environmentId||c.ProjectId!=scope.ProjectId) throw new ApiException(422,"foreign_cluster","候选Cluster跨环境。");var destinations=await db.Set<UpstreamDestination>().AsNoTracking().Where(d=>d.ClusterId==c.Id).OrderBy(d=>d.Id).ToArrayAsync(ct);clusters.Add(new(c.Id,c.ProjectId,c.EnvironmentId,c.Name,c.LoadBalancingPolicy,c.HealthCheckEnabled,c.HealthCheckPath,c.HealthCheckIntervalSec,c.Status,c.Revision,destinations.Select(ClusterService.Dto).ToArray()));revisions.Add(new("cluster",c.Id,c.Revision));revisions.AddRange(destinations.Select(d=>new ResourceRevision("destination",d.Id,d.Revision)));}
         var routeIds=routeEntities.Select(r=>r.Id).ToArray();var bindings=await db.Set<RoutePolicyBinding>().AsNoTracking().Where(b=>routeIds.Contains(b.RouteId)).Select(b=>new FrozenBinding(b.RouteId,b.PolicyId,b.Priority)).ToArrayAsync(ct);var policyIds=bindings.Select(b=>b.PolicyId).ToArray();var policies=await db.Set<Policy>().AsNoTracking().Where(p=>policyIds.Contains(p.Id)).ToArrayAsync(ct);
         if(policies.Any(p=>p.OrganizationId!=scope.OrganizationId||p.ProjectId is Guid project&&project!=scope.ProjectId)) throw new ApiException(422,"foreign_policy","候选Policy跨范围。");revisions.AddRange(policies.Select(p=>new ResourceRevision("policy",p.Id,p.VersionNo)));
+        var mappedIds=new HashSet<Guid>();
+        foreach(var policy in policies)
+        {
+            deployment.Validate(policy.Type,policy.Config);
+            if(policy.Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(policy.Config).Jwt is {} jwt)
+            {
+                await mappings.ValidateAsync(new(policy.OrganizationId,policy.ProjectId),jwt,null,ct);
+                mappedIds.UnionWith(jwt.ApplicationMappings.Select(m=>m.ApplicationId));
+            }
+        }
+        if(request.BaseConfigVersion>0)
+        {
+            var bytes=await (from v in db.Set<GatewayConfigVersion>().AsNoTracking() join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where v.EnvironmentId==environmentId&&v.VersionNo==request.BaseConfigVersion select s.PayloadBytes).SingleOrDefaultAsync(ct);
+            RuntimeSnapshot baseline;
+            try { baseline=JsonSerializer.Deserialize<RuntimeSnapshot>(bytes??throw new ApiException(409,"baseline_unavailable","环境基准快照不可用。"),CanonicalJson.Options)??throw new JsonException(); }
+            catch(JsonException) { throw new ApiException(409,"baseline_unavailable","环境基准快照不可用。"); }
+            var retainedPolicyIds=baseline.Routes.Where(r=>!apiIds.Contains(r.ApiId)).SelectMany(r=>r.PolicyBindings??[]).Select(b=>b.PolicyId).ToHashSet();
+            foreach(var policy in baseline.Policies.Where(p=>retainedPolicyIds.Contains(p.Id)))
+                if(policy.Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(policy.Config).Jwt is {} jwt)
+                {
+                    deployment.Validate(policy.Type,policy.Config);
+                    await mappings.ValidateAsync(scope,jwt,null,ct);
+                    mappedIds.UnionWith(jwt.ApplicationMappings.Select(m=>m.ApplicationId));
+                }
+        }
         var grants=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(p=>p.EnvironmentId==environmentId).OrderBy(p=>p.Id).ToArrayAsync(ct);var applications=new List<FrozenApplication>();
-        foreach(var appId in grants.Select(g=>g.ApplicationId).Distinct().OrderBy(x=>x))
+        foreach(var appId in grants.Select(g=>g.ApplicationId).Concat(mappedIds).Distinct().OrderBy(x=>x))
         {
             var app=await db.Set<ApplicationRecord>().AsNoTracking().SingleAsync(a=>a.Id==appId,ct);if(app.OrganizationId!=scope.OrganizationId||app.ProjectId is Guid p&&p!=scope.ProjectId) throw new ApiException(422,"foreign_application","候选应用跨范围。");
             var credentials=await db.Set<ApplicationCredential>().AsNoTracking().Where(c=>c.ApplicationId==appId).OrderBy(c=>c.Id).ToArrayAsync(ct);var permissions=grants.Where(g=>g.ApplicationId==appId).ToArray();foreach(var g in permissions) if((await scopes.ApiAsync(g.ApiId,ct)).ProjectId!=scope.ProjectId) throw new ApiException(422,"foreign_authorization","候选授权跨项目。");

@@ -19,3 +19,5 @@ public sealed record RetryConfiguration(int MaxAttempts, int PerAttemptTimeoutMs
     int MaxDelayMs, int JitterPercent, IReadOnlyList<int> RetryStatusCodes, bool RetryConnectionFailures);
 public sealed record CacheConfiguration(int TtlSeconds, int MaxEntryBytes, IReadOnlyList<string> VaryHeaders,
     string IdentityPartition, string RedisFailureMode);
+
+public sealed record PolicyLimitsDto(int MaxEntryBytes, IReadOnlyList<string> AllowedVaryHeaders);

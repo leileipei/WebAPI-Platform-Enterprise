@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WebApi.Infrastructure.Policies;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Applications;
 using WebApi.Contracts.Security;
@@ -7,7 +8,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Applications;
-public sealed class ApplicationService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands)
+public sealed class ApplicationService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,JwtApplicationBindingService mappings)
 {
     public static ApplicationDto Dto(ApplicationRecord a)=>new(a.Id,a.OrganizationId,a.ProjectId,a.Code,a.Name,a.Owner,a.Status,a.Revision);
     public static CredentialDto Dto(ApplicationCredential c)=>new(c.Id,c.ApplicationId,c.AccessKey,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,c.LastUsedAt,c.RevokedAt,c.Revision);
@@ -29,7 +30,7 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
     public async Task<CommandResult<ApplicationDto>> SaveAsync(Guid id,SaveApplicationRequest request,string? tag,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.ApplicationAsync(id,ct);return await commands.ExecuteAsync(actor,scope,"app.update",async(_,token)=>{await auth.RequireAsync(actor,"app.write",new("application",id,scope),token);var a=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==id,token);RevisionTag.Require(tag,a.Revision);if(a.OrganizationId!=request.OrganizationId||a.ProjectId!=request.ProjectId) throw new ApiException(422,"application_scope_immutable","应用不能直接移动到其他组织或项目。");Validate(request);a.Code=request.Code;a.Name=request.Name;a.Owner=request.Owner;a.Status=request.Status;a.Revision++;a.UpdatedAt=DateTimeOffset.UtcNow;return new CommandResult<ApplicationDto>(Dto(a),RevisionTag.Format(a.Revision));},ct);}
     public async Task DeleteAsync(Guid id,string? tag,ActorContext actor,CancellationToken ct=default)
-    {var scope=await scopes.ApplicationAsync(id,ct);await commands.ExecuteAsync(actor,scope,"app.delete",async(_,token)=>{await auth.RequireAsync(actor,"app.write",new("application",id,scope),token);var a=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==id,token);RevisionTag.Require(tag,a.Revision);if(await db.Set<ApplicationCredential>().AnyAsync(c=>c.ApplicationId==id,token)||await db.Set<ApplicationApiPermission>().AnyAsync(p=>p.ApplicationId==id,token)) throw new ApiException(409,"application_in_use","应用存在凭证或授权，请先停用。");db.Remove(a);return true;},ct);}
+    {var scope=await scopes.ApplicationAsync(id,ct);await commands.ExecuteAsync(actor,scope,"app.delete",async(_,token)=>{await auth.RequireAsync(actor,"app.write",new("application",id,scope),token);var a=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==id,token);RevisionTag.Require(tag,a.Revision);await mappings.RequireNotReferencedAsync(id,token);if(await db.Set<ApplicationCredential>().AnyAsync(c=>c.ApplicationId==id,token)||await db.Set<ApplicationApiPermission>().AnyAsync(p=>p.ApplicationId==id,token)) throw new ApiException(409,"application_in_use","应用存在凭证或授权，请先停用。");db.Remove(a);return true;},ct);}
     private static void ValidateWindow(DateTimeOffset from,DateTimeOffset? expires) {if(from==DateTimeOffset.MinValue||expires<=from) throw new ApiException(422,"invalid_validity_window","有效期结束必须晚于开始时间。");}
     public async Task<CredentialCreateResponse> CreateCredentialAsync(Guid applicationId,CredentialCreateRequest request,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.ApplicationAsync(applicationId,ct);return await commands.ExecuteAsync(actor,scope,"credential.create",async(_,token)=>{await auth.RequireAsync(actor,"credential.manage",new("application",applicationId,scope),token);ValidateWindow(request.ValidFrom,request.ExpiresAt);var app=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==applicationId,token);if(app.Status!="Active") throw new ApiException(409,"application_disabled","停用应用不能创建凭证。");var material=ApiKeySecret.Create();var c=new ApplicationCredential {ApplicationId=applicationId,AccessKey=material.AccessKey,SecretHash=material.Hash,SecretLast4=material.Last4,Status="Active",ValidFrom=request.ValidFrom.ToUniversalTime(),ExpiresAt=request.ExpiresAt.ToUniversalTime()};db.Add(c);app.Revision++;app.UpdatedAt=DateTimeOffset.UtcNow;return new CredentialCreateResponse(Dto(c),material.Secret,material.AccessKey+"."+material.Secret);},ct);}

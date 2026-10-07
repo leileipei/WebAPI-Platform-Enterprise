@@ -17,10 +17,14 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
 {
     private static readonly string[] methods=["GET","POST","PUT","PATCH","DELETE","HEAD","OPTIONS"];
     public static RouteDto Dto(ApiRoute r,bool key=true)=>new(r.Id,r.ApiVersionId,r.EnvironmentId,r.RouteName,r.Path,r.NormalizedPath,r.Methods,r.ClusterId,r.Priority,RouteNormalizer.MatchOrder(r.Path,r.Priority),r.Enabled,r.TimeoutMs,key,r.Revision);
-    public async Task<EffectiveRoutePolicies> EffectiveAsync(Guid routeId,CancellationToken ct)=>PolicyBindingRules.Validate(await RoutePolicyService.LoadAsync(db,routeId,ct),true);
+    public async Task<EffectiveRoutePolicies> EffectiveAsync(Guid routeId,CancellationToken ct)
+    {
+        var timeout=await db.Set<ApiRoute>().Where(r=>r.Id==routeId).Select(r=>r.TimeoutMs).SingleAsync(ct);
+        return PolicyBindingRules.Validate(await RoutePolicyService.LoadAsync(db,routeId,ct),true,timeout);
+    }
     public async Task<bool> RequiresKeyAsync(Guid routeId,CancellationToken ct)=>(await EffectiveAsync(routeId,ct)).RequireApiKey;
     private async Task<RouteDto> EffectiveDtoAsync(ApiRoute route,CancellationToken ct)
-    {var effective=await EffectiveAsync(route.Id,ct);return Dto(route,effective.RequireApiKey) with {EffectiveTimeoutMs=effective.TimeoutMs??route.TimeoutMs};}
+    {var effective=await EffectiveAsync(route.Id,ct);return Dto(route,effective.RequireApiKey) with {EffectiveTimeoutMs=effective.TimeoutMs??route.TimeoutMs,EffectiveAuthenticationMode=effective.Authentication?.Mode==AuthenticationMode.JWT?"JWT":null};}
     public async Task<PageResult<RouteDto>> ListAsync(Guid environmentId,ActorContext actor,int page,int size,CancellationToken ct=default)
     {var scope=await scopes.EnvironmentAsync(environmentId,ct);if(!await auth.CanAsync(actor,"route.read",new("environment",environmentId,scope),ct)) throw ScopeResolver.Missing();var routes=await db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId).ToArrayAsync(ct);var result=new List<RouteDto>();foreach(var r in routes) result.Add(await EffectiveDtoAsync(r,ct));return Pagination.Slice(result.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Path).ToArray(),page,size);}
     public async Task<RouteDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct=default)
@@ -41,7 +45,11 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
             var r=request.Id is Guid id?await db.Set<ApiRoute>().SingleOrDefaultAsync(r=>r.Id==id&&r.EnvironmentId==environmentId,token)??throw ScopeResolver.Missing():new ApiRoute {EnvironmentId=environmentId};
             if(request.Id is not null) RevisionTag.Require(ifMatch,r.Revision);
             var oldBindings=request.Id is null?Array.Empty<PolicyBindingConfiguration>():await RoutePolicyService.LoadAsync(db,r.Id,token);
-            var authChanged=request.RequireApiKey!=PolicyBindingRules.Validate(oldBindings,true).RequireApiKey;
+            if(request.AuthenticationChange is not null && (request.AuthenticationChange is not ("ApiKey" or "Anonymous") || (request.AuthenticationChange=="ApiKey")!=request.RequireApiKey))
+                throw new ApiException(422,"invalid_authentication_change","认证模式与API Key字段不一致。");
+            var oldAuthentication=PolicyBindingRules.Validate(oldBindings,true,r.TimeoutMs);
+            var requestedMode=request.RequireApiKey?AuthenticationMode.ApiKey:AuthenticationMode.Anonymous;
+            var authChanged=request.RequireApiKey!=oldAuthentication.RequireApiKey || request.AuthenticationChange is not null && requestedMode!=oldAuthentication.Authentication!.Mode;
             if(authChanged) await auth.RequireAsync(actor,"policy.write",new("environment",environmentId,scope),token);
             if(request.Enabled&&await db.Set<RouteMethod>().AnyAsync(m=>m.EnvironmentId==environmentId&&m.NormalizedPath==normalized&&verbs.Contains(m.Method)&&m.RouteId!=r.Id,token)) throw new ApiException(409,"route_conflict","同一环境、方法和同形路径已有启用路由。");
             if(request.Id is null) db.Add(r);else r.Revision++;
@@ -57,8 +65,8 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
                 db.Add(privatePolicy);db.Add(new RoutePolicyBinding {RouteId=r.Id,PolicyId=privatePolicy.Id});
                 updatedBindings.RemoveAll(b=>b.Type=="authentication");updatedBindings.Add(new(privatePolicy.Id,privatePolicy.Type,privatePolicy.Config,true,0));
             }
-            var effective=PolicyBindingRules.Validate(updatedBindings,true);
-            return new CommandResult<RouteDto>(Dto(r,effective.RequireApiKey) with {EffectiveTimeoutMs=effective.TimeoutMs??r.TimeoutMs},RevisionTag.Format(r.Revision));
+            var effective=PolicyBindingRules.Validate(updatedBindings,true,timeout);
+            return new CommandResult<RouteDto>(Dto(r,effective.RequireApiKey) with {EffectiveTimeoutMs=effective.TimeoutMs??r.TimeoutMs,EffectiveAuthenticationMode=effective.Authentication?.Mode==AuthenticationMode.JWT?"JWT":null},RevisionTag.Format(r.Revision));
         },ct);
     }
     public async Task DeleteAsync(Guid id,string? tag,ActorContext actor,CancellationToken ct=default)
