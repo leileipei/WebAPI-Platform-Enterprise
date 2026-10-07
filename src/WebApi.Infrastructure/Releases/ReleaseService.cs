@@ -1,4 +1,6 @@
 using WebApi.Infrastructure.Comparisons;
+using WebApi.Infrastructure.Gateway;
+using WebApi.Domain.Policies;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +15,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Releases;
-public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseCandidateBuilder candidates,VersionRiskReviewService reviews)
+public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseCandidateBuilder candidates,VersionRiskReviewService reviews,PublishSettings publishSettings)
 {
     public async Task<ScopeRef> ReadScopeAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {var r=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(r.EnvironmentId,ct);if(!await auth.CanAsync(actor,"release.read",new("release",id,scope),ct)) throw ScopeResolver.Missing();return scope;}
@@ -89,6 +91,8 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
         var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==r.EnvironmentId,token);FrozenReleaseCandidate candidate;
         if(r.ReleaseType=="rollback") {if((env.DesiredConfigVersion??0)!=r.BaselineConfigVersion) throw new ApiException(409,"stale_baseline","回滚基线已变化。");candidate=JsonSerializer.Deserialize<FrozenReleaseCandidate>(r.CandidateBytes!,CanonicalJson.Options)!;}
         else {var input=JsonSerializer.Deserialize<CreateReleaseRequest>(r.CandidateBytes!,CanonicalJson.Options)!;candidate=await candidates.BuildAsync(r.EnvironmentId,input,token,actor);}
+        if(r.ReleaseType=="rollback"&&(candidate.Routes.Any(route=>route.EffectiveAuthenticationMode=="JWT")||candidate.Policies.Any(policy=>policy.Type is "retry" or "cache"||policy.Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(policy.Config).Mode==WebApi.Contracts.Policies.AuthenticationMode.JWT)))
+            await SnapshotSchemaCapabilities.RequireOnline22Async(db,publishSettings,r.EnvironmentId,token);
         var rules=Array.Empty<ApprovalRule>();if(env.IsProduction)
         {
             if(env.ReleasePolicyId is not Guid flowId) throw new ApiException(422,"approval_policy_required","生产环境必须配置两级审批流程。");var flow=await db.Set<ApprovalFlow>().AsNoTracking().SingleOrDefaultAsync(f=>f.Id==flowId&&f.OrganizationId==scope.OrganizationId&&f.Enabled,token)??throw new ApiException(422,"invalid_approval_policy","生产审批流程不可用。");

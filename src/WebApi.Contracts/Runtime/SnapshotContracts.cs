@@ -1,8 +1,9 @@
 using System.Text.Json.Serialization;
+using WebApi.Contracts.Policies;
 namespace WebApi.Contracts.Runtime;
 public sealed record RuntimeSnapshot(string SchemaVersion,Guid EnvironmentId,long ConfigVersion,DateTimeOffset GeneratedAt,IReadOnlyList<RuntimeRoute> Routes,IReadOnlyList<RuntimeCluster> Clusters,IReadOnlyList<RuntimePolicy> Policies,IReadOnlyList<RuntimeApplication> Applications);
 public sealed record RuntimePolicyBinding(Guid PolicyId,int Priority);
-public sealed record RuntimeRoute(Guid Id,Guid ApiId,Guid ApiVersionId,Guid ClusterId,string Path,IReadOnlyList<string> Methods,int MatchOrder,int TimeoutMs,bool RequireApiKey,[property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<RuntimePolicyBinding>? PolicyBindings=null);
+public sealed record RuntimeRoute(Guid Id,Guid ApiId,Guid ApiVersionId,Guid ClusterId,string Path,IReadOnlyList<string> Methods,int MatchOrder,int TimeoutMs,bool RequireApiKey,[property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<RuntimePolicyBinding>? PolicyBindings=null,[property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] AuthenticationMode? AuthenticationMode=null);
 public sealed record RuntimeCluster(Guid Id,Guid EnvironmentId,string LoadBalancingPolicy,bool HealthCheckEnabled,string HealthCheckPath,int HealthCheckIntervalSec,IReadOnlyList<RuntimeDestination> Destinations,Guid? SourceId=null);
 public sealed record RuntimeDestination(Guid Id,string Address,int Weight);
 public sealed record RuntimePolicy(Guid Id,string Type,string Config,[property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] Guid? SourcePolicyId=null,[property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] long? SourceRevision=null);

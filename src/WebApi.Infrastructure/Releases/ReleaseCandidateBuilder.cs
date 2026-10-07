@@ -4,6 +4,8 @@ using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Policies;
 using WebApi.Domain.Policies;
 using WebApi.Infrastructure.Policies;
+using WebApi.Infrastructure.Gateway;
+using WebApi.Domain.Runtime;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Catalog;
 using WebApi.Contracts.Releases;
@@ -16,7 +18,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Routing;
 namespace WebApi.Infrastructure.Releases;
-public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver scopes,RouteService routes,VersionRiskReviewService reviews,JwtApplicationBindingService mappings,GatewayPolicyDeploymentRules deployment)
+public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver scopes,RouteService routes,VersionRiskReviewService reviews,JwtApplicationBindingService mappings,GatewayPolicyDeploymentRules deployment,SnapshotCompiler compiler,PublishSettings publishSettings)
 {
     public async Task<FrozenReleaseCandidate> BuildAsync(Guid environmentId,CreateReleaseRequest request,CancellationToken ct,ActorContext? actor=null)
     {
@@ -64,11 +66,11 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
                 mappedIds.UnionWith(jwt.ApplicationMappings.Select(m=>m.ApplicationId));
             }
         }
+        RuntimeSnapshot? baseline=null;
         if(request.BaseConfigVersion>0)
         {
             var bytes=await (from v in db.Set<GatewayConfigVersion>().AsNoTracking() join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where v.EnvironmentId==environmentId&&v.VersionNo==request.BaseConfigVersion select s.PayloadBytes).SingleOrDefaultAsync(ct);
-            RuntimeSnapshot baseline;
-            try { baseline=JsonSerializer.Deserialize<RuntimeSnapshot>(bytes??throw new ApiException(409,"baseline_unavailable","环境基准快照不可用。"),CanonicalJson.Options)??throw new JsonException(); }
+            try { baseline=SnapshotValidator.ParsePayload(bytes??throw new ApiException(409,"baseline_unavailable","环境基准快照不可用。"),environmentId); }
             catch(JsonException) { throw new ApiException(409,"baseline_unavailable","环境基准快照不可用。"); }
             var retainedPolicyIds=baseline.Routes.Where(r=>!apiIds.Contains(r.ApiId)).SelectMany(r=>r.PolicyBindings??[]).Select(b=>b.PolicyId).ToHashSet();
             foreach(var policy in baseline.Policies.Where(p=>retainedPolicyIds.Contains(p.Id)))
@@ -86,6 +88,16 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
             var credentials=await db.Set<ApplicationCredential>().AsNoTracking().Where(c=>c.ApplicationId==appId).OrderBy(c=>c.Id).ToArrayAsync(ct);var permissions=grants.Where(g=>g.ApplicationId==appId).ToArray();foreach(var g in permissions) if((await scopes.ApiAsync(g.ApiId,ct)).ProjectId!=scope.ProjectId) throw new ApiException(422,"foreign_authorization","候选授权跨项目。");
             applications.Add(new(ApplicationService.Dto(app),credentials.Select(c=>new FrozenCredential(c.Id,c.AccessKey,c.SecretHash,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,c.Revision)).ToArray(),permissions.Select(ApplicationService.Dto).ToArray()));revisions.Add(new("application",appId,app.Revision));revisions.AddRange(credentials.Select(c=>new ResourceRevision("credential",c.Id,c.Revision)));revisions.AddRange(permissions.Select(g=>new ResourceRevision("authorization",g.Id,g.Revision)));
         }
-        return new(environmentId,scope.OrganizationId,scope.ProjectId!.Value,request.BaseConfigVersion,request.VersionIds,versions,routeDtos,clusters,policies.Select(p=>new FrozenPolicy(p.Id,p.Type,p.Config,p.Enabled,p.VersionNo)).ToArray(),bindings,applications,revisions);
+        var candidate=new FrozenReleaseCandidate(environmentId,scope.OrganizationId,scope.ProjectId!.Value,request.BaseConfigVersion,request.VersionIds,versions,routeDtos,clusters,policies.Select(p=>new FrozenPolicy(p.Id,p.Type,p.Config,p.Enabled,p.VersionNo)).ToArray(),bindings,applications,revisions);
+        var newSemantics=policies.Any(p=>p.Enabled&&routeEntities.Any(r=>r.Enabled&&bindings.Any(b=>b.RouteId==r.Id&&b.PolicyId==p.Id))&&Is22(p.Type,p.Config))
+            || baseline is not null&&baseline.Routes.Where(r=>!apiIds.Contains(r.ApiId)).Any(r=>r.AuthenticationMode==AuthenticationMode.JWT||(r.PolicyBindings??[]).Any(b=>baseline.Policies.Any(p=>p.Id==b.PolicyId&&Is22(p.Type,p.Config))));
+        if(newSemantics)
+        {
+            var compiled=compiler.Compile(candidate,baseline??new RuntimeSnapshot("2.0",environmentId,0,DateTimeOffset.UtcNow,[],[],[],[]),request.BaseConfigVersion+1,DateTimeOffset.UtcNow);
+            using var document=JsonDocument.Parse(compiled.Payload);
+            if(document.RootElement.GetProperty("schemaVersion").GetString()=="2.2") await SnapshotSchemaCapabilities.RequireOnline22Async(db,publishSettings,environmentId,ct);
+        }
+        return candidate;
     }
+    private static bool Is22(string type,string config)=>type is "retry" or "cache"||type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(config).Mode==AuthenticationMode.JWT;
 }

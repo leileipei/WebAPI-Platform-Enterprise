@@ -10,6 +10,8 @@ using WebApi.Contracts.Runtime;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
+using WebApi.Domain.Policies;
+using WebApi.Infrastructure.Gateway;
 
 namespace WebApi.Integration.Tests;
 
@@ -31,6 +33,7 @@ public sealed class JwtApplicationBindingTests
         });
         await f.SeedReleaseAsync(); await using var db=f.Context(); var role=await db.Set<UserRole>().Where(r=>r.UserId==f.User.Id).Select(r=>r.RoleId).SingleAsync();
         foreach(var code in new[]{"policy.read","policy.write"}) { var p=new Permission {Code=code,Name=code,Module="policy"}; db.Add(p); db.Add(new RolePermission {RoleId=role,PermissionId=p.Id}); }
+        for(var i=0;i<2;i++) { var instance=Guid.NewGuid(); db.Add(new GatewayNode {EnvironmentId=f.Environment.Id,NodeName="jwt-fixture-"+i,InstanceId=instance.ToString(),IdentityHash=new string('a',64),LastHeartbeatAt=DateTimeOffset.UtcNow,Metadata=SnapshotSchemaCapabilities.Merge(null,instance,["2.0","2.1","2.2"])}); }
         await db.SaveChangesAsync(); using var login=await f.LoginAsync(); login.EnsureSuccessStatusCode(); return f;
     }
     private static async Task<PolicyDto> Create(ApiFixture f, Guid? application = null)
@@ -104,11 +107,11 @@ public sealed class JwtApplicationBindingTests
     [InlineData(false)]
     public async Task RuntimeMappedApplicationIsProtectedAndBaselineRetained(bool desired)
     {
-        await using var f=await Prepare(); var config=Jwt(f.Application.Id); var runtimePolicy=Guid.NewGuid(); var oldApi=Guid.NewGuid();
+        await using var f=await Prepare(); var config=Jwt(f.Application.Id); var runtimeSource=Guid.NewGuid(); var runtimePolicy=RuntimePolicyIdentity.Create(runtimeSource,1,"authentication",config); var oldApi=Guid.NewGuid(); var clusterId=Guid.NewGuid();
         await using(var db=f.Context())
         {
             var version=new GatewayConfigVersion {EnvironmentId=f.Environment.Id,VersionNo=1,CreatedBy=f.User.Id}; db.Add(version);
-            var snapshot=new RuntimeSnapshot("2.2",f.Environment.Id,1,DateTimeOffset.UtcNow,[new(Guid.NewGuid(),oldApi,Guid.NewGuid(),Guid.NewGuid(),"/old-jwt",["GET"],1,30000,false,[new(runtimePolicy,0)])],[],[new(runtimePolicy,"authentication",config)],[]);
+            var snapshot=new RuntimeSnapshot("2.2",f.Environment.Id,1,DateTimeOffset.UtcNow,[new(Guid.NewGuid(),oldApi,Guid.NewGuid(),clusterId,"/old-jwt",["GET"],1,30000,false,[new(runtimePolicy,0)],AuthenticationMode.JWT)],[new(clusterId,f.Environment.Id,"RoundRobin",false,"/health",30,[new(Guid.NewGuid(),"http://test-backend:8080/",1)])],[new(runtimePolicy,"authentication",config,runtimeSource,1)],[new(f.Application.Id,"Active",[],[])]);
             db.Add(new GatewayConfigSnapshot {ConfigVersionId=version.Id,PayloadBytes=CanonicalJson.Serialize(snapshot)});
             if(desired) (await db.Set<EnvironmentRecord>().SingleAsync()).DesiredConfigVersion=1;
             else db.Add(new GatewayNode {EnvironmentId=f.Environment.Id,NodeName="停用旧节点",InstanceId=Guid.NewGuid().ToString(),Enabled=false,CurrentConfigVersion=1});

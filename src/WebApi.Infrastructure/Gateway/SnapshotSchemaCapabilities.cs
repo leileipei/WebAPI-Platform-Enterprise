@@ -1,4 +1,7 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using WebApi.Infrastructure.Persistence;
+using WebApi.Infrastructure.Releases;
 using System.Text.Json.Nodes;
 using WebApi.Contracts.Common;
 using WebApi.Infrastructure.Persistence.Entities;
@@ -6,7 +9,7 @@ namespace WebApi.Infrastructure.Gateway;
 public static class SnapshotSchemaCapabilities
 {
     private static string[] Normalize(IReadOnlyList<string>? schemas)
-    {if(schemas is null) return ["2.0"];if(schemas.Count is <1 or >4||schemas.Any(s=>s is not ("2.0" or "2.1"))) throw new ApiException(422,"invalid_snapshot_capabilities","节点协议能力不合法。");return schemas.Distinct().Order(StringComparer.Ordinal).ToArray();}
+    {if(schemas is null) return ["2.0"];if(schemas.Count is <1 or >4||schemas.Any(s=>s is not ("2.0" or "2.1" or "2.2"))) throw new ApiException(422,"invalid_snapshot_capabilities","节点协议能力不合法。");return schemas.Distinct().Order(StringComparer.Ordinal).ToArray();}
     public static IReadOnlyList<string> Read(GatewayNode node)
     {
         try {
@@ -21,6 +24,14 @@ public static class SnapshotSchemaCapabilities
         JsonObject root;try {root=metadata is null?new():JsonNode.Parse(metadata) as JsonObject??throw new JsonException();}catch(JsonException) {throw new ApiException(422,"invalid_node_metadata","节点元数据不可读。");}
         root["snapshotSchemaInstanceId"]=instanceId.ToString();root["supportedSnapshotSchemas"]=JsonSerializer.SerializeToNode(normalized);return root.ToJsonString();
     }
+    public static async Task RequireOnline22Async(WebApiDbContext db,PublishSettings settings,Guid environmentId,CancellationToken ct)
+    {
+        var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(n=>n.EnvironmentId==environmentId&&n.Enabled).OrderBy(n=>n.Id).ToArrayAsync(ct);
+        var threshold=DateTimeOffset.UtcNow.AddSeconds(-settings.HeartbeatGraceSeconds);
+        if(nodes.Length<settings.MinimumNodes||nodes.Any(n=>n.IdentityHash.Length!=64||!Guid.TryParse(n.InstanceId,out _)||n.LastHeartbeatAt is null||n.LastHeartbeatAt<threshold))
+            throw new ApiException(409,"gateway_cohort_unavailable","至少需要两个有效注册节点，且全部已启用节点必须在线；不会缩减确认目标。");
+        RequireSupported(nodes,"2.2");
+    }
     public static void RequireSupported(IReadOnlyList<GatewayNode> nodes,string schema)
-    {if(schema is not ("2.0" or "2.1")||nodes.Any(n=>!Read(n).Contains(schema))) throw new ApiException(409,"gateway_schema_unsupported","全部已启用目标节点必须声明支持目标快照协议。");}
+    {if(schema is not ("2.0" or "2.1" or "2.2")||nodes.Any(n=>!Read(n).Contains(schema))) throw new ApiException(409,"gateway_schema_unsupported","全部已启用目标节点必须声明支持目标快照协议。");}
 }

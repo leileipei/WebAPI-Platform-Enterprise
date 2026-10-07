@@ -11,6 +11,9 @@ public sealed class RuntimeGeneration(SnapshotEnvelope envelope,byte[] payload,R
     public IReadOnlyDictionary<Guid,RuntimePolicy> PoliciesById {get;}=new ReadOnlyDictionary<Guid,RuntimePolicy>(snapshot.Policies.ToDictionary(p=>p.Id));
     public IReadOnlyDictionary<Guid,RateLimitConfiguration> RateLimits {get;}=new ReadOnlyDictionary<Guid,RateLimitConfiguration>(snapshot.Policies.Where(p=>p.Type=="rate_limit").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseRate(p.Config)));
     public IReadOnlyDictionary<Guid,CircuitBreakerConfiguration> CircuitConfigurations {get;}=new ReadOnlyDictionary<Guid,CircuitBreakerConfiguration>(snapshot.Policies.Where(p=>p.Type=="circuit_breaker").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseCircuit(p.Config)));
+    public IReadOnlyDictionary<Guid,AuthenticationConfiguration> Authentication {get;}=new ReadOnlyDictionary<Guid,AuthenticationConfiguration>(snapshot.Policies.Where(p=>p.Type=="authentication").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseAuthentication(p.Config)));
+    public IReadOnlyDictionary<Guid,RetryConfiguration> Retry {get;}=new ReadOnlyDictionary<Guid,RetryConfiguration>(snapshot.Policies.Where(p=>p.Type=="retry").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseRetry(p.Config)));
+    public IReadOnlyDictionary<Guid,CacheConfiguration> Cache {get;}=new ReadOnlyDictionary<Guid,CacheConfiguration>(snapshot.Policies.Where(p=>p.Type=="cache").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseCache(p.Config)));
     internal Dictionary<Guid,CircuitStateLease> CircuitLeases {get;}=[];
     private static RuntimeSnapshot Freeze(RuntimeSnapshot snapshot)=>snapshot with
     {

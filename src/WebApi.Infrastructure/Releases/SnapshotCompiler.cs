@@ -48,21 +48,23 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null)
             foreach(var b in candidate.Bindings.Where(b=>b.RouteId==route.Id).OrderBy(b=>b.Priority).ThenBy(b=>b.PolicyId)) {
                 if(!allPolicies.TryGetValue(b.PolicyId,out var policy)) throw Invalid("Policy绑定不存在。");bindings.Add(new(policy.Id,policy.Type,policy.Config,policy.Enabled,b.Priority));
             }
-            var effective=PolicyBindingRules.Validate(bindings,true);
+            var effective=PolicyBindingRules.Validate(bindings,true,route.TimeoutMs);
             var runtimeBindings=bindings.Where(b=>b.Enabled).Select(b=>new RuntimePolicyBinding(RuntimePolicyIdentity.Create(b.PolicyId,allPolicies[b.PolicyId].Revision,b.Type,b.Config),b.Priority)).ToArray();
-            routes.Add(new(route.Id,version.Api.Id,route.ApiVersionId,clusterMap[route.ClusterId],route.Path,route.Methods.OrderBy(m=>m,StringComparer.Ordinal).ToArray(),RouteNormalizer.MatchOrder(route.Path,route.Priority),effective.TimeoutMs??route.TimeoutMs,effective.RequireApiKey,runtimeBindings));
+            routes.Add(new(route.Id,version.Api.Id,route.ApiVersionId,clusterMap[route.ClusterId],route.Path,route.Methods.OrderBy(m=>m,StringComparer.Ordinal).ToArray(),RouteNormalizer.MatchOrder(route.Path,route.Priority),effective.TimeoutMs??route.TimeoutMs,effective.RequireApiKey,runtimeBindings,effective.Authentication?.Mode==AuthenticationMode.JWT?AuthenticationMode.JWT:null));
         }
         var usedClusters=routes.Select(r=>r.ClusterId).ToHashSet();var clusters=baseline.Clusters.Where(c=>usedClusters.Contains(c.Id)).ToDictionary(c=>c.Id);foreach(var c in compiledClusters.Values.Where(c=>usedClusters.Contains(c.Id))) clusters[c.Id]=c;
         foreach(var c in clusters.Values) foreach(var d in c.Destinations) addresses.Validate(d.Address);
+        var usedPolicyIds=routes.SelectMany(r=>r.PolicyBindings??[]).Select(b=>b.PolicyId).ToHashSet();
+        var mappedApps=runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id)&&p.Type=="authentication").SelectMany(p=>PolicyConfigurationValidator.ParseAuthentication(p.Config).Jwt?.ApplicationMappings??[]).Select(m=>m.ApplicationId).ToHashSet();
         var apiIds=routes.Select(r=>r.ApiId).ToHashSet();var applications=new List<RuntimeApplication>();
         foreach(var app in candidate.Applications)
         {
             if(app.Application.OrganizationId!=candidate.OrganizationId||app.Application.ProjectId is Guid project&&project!=candidate.ProjectId||app.Permissions.Any(p=>p.ApplicationId!=app.Application.Id||p.EnvironmentId!=candidate.EnvironmentId)) throw Invalid("应用或授权跨范围。");
             var grants=app.Permissions.Where(p=>apiIds.Contains(p.ApiId)).OrderBy(p=>p.ApiId).Select(p=>new RuntimePermission(p.ApiId,p.ValidFrom,p.ExpiresAt)).ToArray();
-            if(grants.Length==0) continue;applications.Add(new(app.Application.Id,app.Application.Status,app.Credentials.OrderBy(c=>c.Id).Select(c=>new RuntimeCredential(c.Id,c.AccessKey,c.SecretHash,c.Status,c.ValidFrom,c.ExpiresAt)).ToArray(),grants));
+            if(grants.Length==0&&!mappedApps.Contains(app.Application.Id)) continue;applications.Add(new(app.Application.Id,app.Application.Status,app.Credentials.OrderBy(c=>c.Id).Select(c=>new RuntimeCredential(c.Id,c.AccessKey,c.SecretHash,c.Status,c.ValidFrom,c.ExpiresAt)).ToArray(),grants));
         }
-        var usedPolicyIds=routes.SelectMany(r=>r.PolicyBindings??[]).Select(b=>b.PolicyId).ToHashSet();
-        var advanced=usedPolicyIds.Any(id=>runtimePolicies[id].Type is "rate_limit" or "circuit_breaker");
+        var newest=usedPolicyIds.Any(id=>runtimePolicies[id].Type is "retry" or "cache" || runtimePolicies[id].Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(runtimePolicies[id].Config).Mode==AuthenticationMode.JWT);
+        var advanced=newest||usedPolicyIds.Any(id=>runtimePolicies[id].Type is "rate_limit" or "circuit_breaker");
         RuntimePolicy[] finalPolicies;
         if(advanced) finalPolicies=runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id)).OrderBy(p=>p.Id).ToArray();
         else {
@@ -72,7 +74,7 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null)
             foreach(var p in runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id))) legacy.TryAdd(p.SourcePolicyId??p.Id,new(p.SourcePolicyId??p.Id,p.Type,p.Config));
             finalPolicies=legacy.Values.OrderBy(p=>p.Id).ToArray();routes=routes.Select(r=>r with {PolicyBindings=null}).ToList();
         }
-        var snapshot=new RuntimeSnapshot(advanced?"2.1":"2.0",candidate.EnvironmentId,targetVersion,generatedAt.ToUniversalTime(),routes.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Id).ToArray(),clusters.Values.OrderBy(c=>c.Id).ToArray(),finalPolicies,applications.OrderBy(a=>a.Id).ToArray());
+        var snapshot=new RuntimeSnapshot(newest?"2.2":advanced?"2.1":"2.0",candidate.EnvironmentId,targetVersion,generatedAt.ToUniversalTime(),routes.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Id).ToArray(),clusters.Values.OrderBy(c=>c.Id).ToArray(),finalPolicies,applications.OrderBy(a=>a.Id).ToArray());
         SnapshotValidator.Validate(snapshot,candidate.EnvironmentId);var bytes=CanonicalJson.Serialize(snapshot);return new(bytes,Convert.ToHexStringLower(SHA256.HashData(bytes)),bytes.LongLength);
     }
 }

@@ -75,7 +75,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             await ValidateReviewsAsync(r,new(publisher,r.PublishTraceId??r.Id.ToString()),scope,ct);
             var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==r.EnvironmentId,ct);var baseline=new RuntimeSnapshot("2.0",env.Id,0,DateTimeOffset.UtcNow,[],[],[],[]);
             if(r.BaselineConfigVersion>0)
-            {var bytes=await (from v in db.Set<GatewayConfigVersion>() join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where v.EnvironmentId==env.Id&&v.VersionNo==r.BaselineConfigVersion select s.PayloadBytes).SingleAsync(ct);baseline=JsonSerializer.Deserialize<RuntimeSnapshot>(bytes,CanonicalJson.Options)!;}
+            {var bytes=await (from v in db.Set<GatewayConfigVersion>() join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where v.EnvironmentId==env.Id&&v.VersionNo==r.BaselineConfigVersion select s.PayloadBytes).SingleAsync(ct);baseline=WebApi.Domain.Runtime.SnapshotValidator.ParsePayload(bytes,env.Id);}
             var next=(await db.Set<GatewayConfigVersion>().Where(v=>v.EnvironmentId==env.Id).Select(v=>(long?)v.VersionNo).MaxAsync(ct)??0)+1;var frozen=Candidate(r);CompiledSnapshot compiled;
             if(r.ReleaseType is "rollback" or "retry") {next=r.ToConfigVersion;var artifact=await history.ReadAsync(env.Id,next,ct);compiled=new(artifact.Payload,artifact.Hash,artifact.Size);}
             else compiled=compiler.Compile(frozen,baseline,next,DateTimeOffset.UtcNow);
