@@ -126,15 +126,15 @@
 
 ## Task 7 (N7)：规则通知策略与告警投递记录 UI
 
-**Files:** Create `console/src/notifications/{RuleNotificationEditor.tsx,NotificationDeliveryList.tsx,delivery-state.mjs,delivery-state.d.mts}`、`console/tests/notification-delivery.test.mjs`；Modify `observability/{RuleEditor.tsx,alert-state.mjs,alert-state.d.mts}`、`pages/{AlertRules,AlertCenter}.tsx`及现有告警API。
+**Files:** Create `console/src/notifications/{RuleNotificationEditor.tsx,NotificationDeliveryList.tsx,delivery-state.mjs,delivery-state.d.mts}`、`console/tests/notification-delivery.test.mjs`；Modify `observability/{RuleEditor.tsx,alert-state.mjs,alert-state.d.mts}`、`pages/{AlertRules,AlertCenter}.tsx`及现有告警 API、共享通知 API、Shell 告警专用范围切换适配、样式与旧渠道标签回归。
 
 **Interfaces:** `RuleNotificationEditor({value,onChange,readOnly,limits})`使用N1完整策略；`NotificationDeliveryList({eventId,scope})`调用N5接口；`deliveryActionState(state,event) -> state`按真实预算/永久错误/读取权限控制重试和清空。
 
-- [ ] **Step 1：写状态用例。** `legacyChannelsRemainIntentUntilExplicitEnable`、`twentyRecipientsAreSeparateTargets`、`attemptsExhaustedAndRetryAfterCannotBeBypassed`、`silenceShowsInFlightBoundary`、`maskedTargetsAndUnknownOutcomeAreDistinct`；更换Scope/401/403丢弃迟到回执，普通412保留规则及接收人草稿。
-- [ ] **Step 2：RED。** Run `N --test console/tests/notification-delivery.test.mjs`。
-- [ ] **Step 3：实现。** 新增显式外部开关、收件人、恢复通知和4预算字段，企业IM保留待接入；详情显示分页状态/尝试/可能重复及掩码目标。重试按钮以服务器可操作信息及原权限为准，不以前端修改次数启用。原RuleTest继续只测试阈值，不发送。
-- [ ] **Step 4：GREEN。** 同上及`./scripts/check-console.sh`；对应API重新鉴权，不因只读渲染隐藏服务端错误。
-- [ ] **Step 5：提交。** `feat(console): configure rule notifications and inspect delivery attempts`。
+- [x] **Step 1：写状态用例。** `legacyChannelsRemainIntentUntilExplicitEnable`、`twentyRecipientsAreSeparateTargets`、`attemptsExhaustedAndRetryAfterCannotBeBypassed`、`silenceShowsInFlightBoundary`、`maskedTargetsAndUnknownOutcomeAreDistinct`；更换Scope/401/403丢弃迟到回执，普通412保留规则及接收人草稿。
+- [x] **Step 2：RED。** Run `N --test console/tests/notification-delivery.test.mjs`。
+- [x] **Step 3：实现。** 新增显式外部开关、收件人、恢复通知和4预算字段，企业IM保留待接入；详情显示分页状态/尝试/可能重复及掩码目标。重试按钮以服务器可操作信息及原权限为准，不以前端修改次数启用。原RuleTest继续只测试阈值，不发送。
+- [x] **Step 4：GREEN。** 同上及`./scripts/check-console.sh`；对应API重新鉴权，不因只读渲染隐藏服务端错误。
+- [x] **Step 5：提交。** `feat(console): configure rule notifications and inspect delivery attempts`。
 
 ## Task 8 (N8)：可维护本机通知服务与独立实际验收
 

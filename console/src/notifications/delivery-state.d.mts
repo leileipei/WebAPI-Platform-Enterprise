@@ -1,0 +1,11 @@
+import type {NotificationIntent,NotificationPolicy} from '../api/alerts';
+import type {NotificationDelivery,NotificationAttempt,NotificationPage} from './api';
+export const defaultNotificationRetry:{maxAttempts:number;baseDelaySeconds:number;maxDelaySeconds:number;expiresAfterMinutes:number};
+export function notificationIntent(value?:Partial<NotificationIntent>):NotificationPolicy;
+export function validateNotificationIntent(value:NotificationIntent):string;
+export function mayRetryDelivery(row:NotificationDelivery|null,authorized:boolean,busy?:boolean,conflict?:boolean,now?:number):boolean;
+export function notificationOutcomeLabel(outcome:string|null):string;
+export function silenceBoundary(status:string):string;
+export type DeliveryState={identity:string;epoch:number;items:NotificationDelivery[];total:number;page:number;pageSize:number;selected:NotificationDelivery|null;attempts:NotificationAttempt[];attemptTotal:number;attemptPage:number;key:string|null;error:string;busy:boolean;conflict:boolean;invalid:boolean};
+export function createDeliveryState(identity:string):DeliveryState;
+export function deliveryActionState(state:DeliveryState,event:{type:string;identity?:string;epoch?:number;page?:number;row?:NotificationDelivery;result?:NotificationPage<NotificationDelivery>|NotificationPage<NotificationAttempt>;key?:string;status?:number;message?:string}):DeliveryState;
