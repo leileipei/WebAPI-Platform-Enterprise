@@ -68,8 +68,8 @@
     "name": "OpenAPI 导入",
     "sourceRoute": "/apis/import",
     "route": "/imports",
-    "status": "核心功能已接入",
-    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+    "status": "JSON/YAML 与固定来源导入已接入",
+    "note": "文件/文本/URL，项目来源规则、附带引用文件、20分钟固定预览、Operation勾选和三类目标映射；提交只发送固定包哈希和映射，网关按现有审批发布。"
   },
   {
     "id": 9,
@@ -95,8 +95,8 @@
     "name": "版本差异/Breaking Change",
     "sourceRoute": "/apis/{id}/versions/compare",
     "route": "/apis",
-    "status": "真实版本比较与风险评审已接入",
-    "note": "支持契约比较、历史报告、导出、追加风险评审及可选发布证据；规则覆盖限制按报告展示，正式审批与网关发布独立执行。"
+    "status": "v2版本比较与规则目录已接入",
+    "note": "服务端30条兼容性规则、证明/Unknown边界、登记用例ID、format模式和固定来源哈希；历史报告保持原证据，风险评审及发布交接保留。"
   },
   {
     "id": 12,
@@ -113,8 +113,8 @@
     "name": "Schema 与参数",
     "sourceRoute": "/apis/{id}/schema",
     "route": "/apis",
-    "status": "核心功能已接入",
-    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+    "status": "Schema树与示例验证工作台已接入",
+    "note": "参数及请求/响应/组件结构树、原文共用草稿，保留数值字面量与未知字段；来源多示例、Annotation/Strict临时验证、只读可查看，412与引用影响保留草稿。"
   },
   {
     "id": 14,
