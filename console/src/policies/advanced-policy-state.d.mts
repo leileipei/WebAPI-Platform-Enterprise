@@ -6,3 +6,4 @@ export function parsePublicJwksFile(raw:string,algorithms?:string[]):any;
 export function effectiveAuthentication(route:any):string;
 export function routePolicyPayload(value:any,original?:any):any;
 export function advancedPolicyReview(policies:any[],options?:{baselinePolicies?:any[]|null}):any[];
+export function policyCopyTargets(can:(permission:string,scope:any,write?:boolean)=>boolean,workspace:{organizationId:string;projectId?:string}):{value:string;label:string}[];

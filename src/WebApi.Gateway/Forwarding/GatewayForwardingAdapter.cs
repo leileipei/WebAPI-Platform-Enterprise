@@ -30,8 +30,12 @@ public sealed class GatewayForwardingAdapter(IHttpForwarder forwarder, ForwardAt
         {
             result = await forwarder.SendAsync(ctx, destination.Model.Config.Address, feature.Cluster.HttpClient,
                 feature.Cluster.Config.HttpRequest ?? ForwarderRequestConfig.Empty, transformer, timeout.Token);
-            if (timeout.IsCancellationRequested && !ct.IsCancellationRequested && !ctx.Response.HasStarted)
-            { ctx.Response.StatusCode = 504; result = ForwarderError.RequestTimedOut; }
+            if (timeout.IsCancellationRequested && !ct.IsCancellationRequested)
+            {
+                if (!ctx.Response.HasStarted) ctx.Response.StatusCode = 504;
+                result = ForwarderError.RequestTimedOut;
+                ctx.Features.Set<IForwarderErrorFeature>(new AttemptTimeoutError(ctx.Features.Get<IForwarderErrorFeature>()?.Exception ?? new TimeoutException("Forward attempt deadline elapsed.")));
+            }
         }, healthPolicies);
         var telemetry=RequestTelemetryState.From(context);var recorder=telemetry is null?null:context.RequestServices.GetRequiredService<GatewayTelemetryRecorder>();
         using var activity=recorder?.Activities.StartActivity("gateway.proxy",ActivityKind.Client);
@@ -62,4 +66,9 @@ public sealed class GatewayForwardingAdapter(IHttpForwarder forwarder, ForwardAt
             if (current is SocketException { SocketErrorCode: SocketError.ConnectionRefused }) return true;
         return false;
     }
+    private sealed record AttemptTimeoutError(Exception Exception) : IForwarderErrorFeature
+    {
+        public ForwarderError Error => ForwarderError.RequestTimedOut;
+    }
+
 }

@@ -21,7 +21,8 @@ public sealed class RedisResponseCacheTests
         using var f = new CacheEligibilityTests.SettingsFixture(); using var mux = await ConnectionMultiplexer.ConnectAsync("redis:6379"); using var a = new RedisResponseCacheStore(f.Settings); using var b = new RedisResponseCacheStore(f.Settings);
         try
         {
-            var results = await Task.WhenAll(Enumerable.Range(1, 2100).Select(i => (i % 2 == 0 ? a : b).PutAsync(Key(i), Entry(bodyBytes), default).AsTask())); Assert.Contains(results, r => r.Kind == CacheWriteKind.Stored);
+            Assert.Equal(CacheWriteKind.Stored,(await a.PutAsync(Key(0),Entry(bodyBytes),default)).Kind);
+            var results = await Task.WhenAll(Enumerable.Range(1, 2100).Select(i => (i % 2 == 0 ? a : b).PutAsync(Key(i), Entry(bodyBytes), default).AsTask())); Assert.All(results,r=>Assert.Contains(r.Kind,new[]{CacheWriteKind.Stored,CacheWriteKind.Bypass}));
             var stats = (RedisResult[])(await mux.GetDatabase().ScriptEvaluateAsync("local sum=0; local rows=redis.call('HGETALL',KEYS[2]); for i=2,#rows,2 do sum=sum+tonumber(rows[i]) end; return {tonumber(redis.call('GET',KEYS[1]) or '0'),redis.call('HLEN',KEYS[2]),redis.call('ZCARD',KEYS[3]),sum}", new RedisKey[] { Wire(f.Prefix,"bytes"),Wire(f.Prefix,"sizes"),Wire(f.Prefix,"expiry") }))!;
             Assert.InRange((long)stats[0], 1, 64L * 1024 * 1024); Assert.InRange((long)stats[1], 1, 2000); Assert.Equal((long)stats[1], (long)stats[2]); Assert.Equal((long)stats[0], (long)stats[3]);
         } finally { await Cleanup(mux, f.Prefix); }
@@ -58,4 +59,18 @@ public sealed class RedisResponseCacheTests
         using var f = new CacheEligibilityTests.SettingsFixture(); using var mux = await ConnectionMultiplexer.ConnectAsync("redis:6379"); using var store = new RedisResponseCacheStore(f.Settings); var db = mux.GetDatabase();
         try { await db.HashSetAsync(Wire(f.Prefix,"sizes"),Key(1).Opaque,100); await db.SortedSetAddAsync(Wire(f.Prefix,"expiry"),Key(1).Opaque,1); await db.StringSetAsync(Wire(f.Prefix,"bytes"),100); await db.StringSetAsync(Wire(f.Prefix,"seal"),"v1"); foreach (var name in new[] { "sizes","expiry","bytes","seal" }) await db.KeyExpireAsync(Wire(f.Prefix,name),TimeSpan.FromSeconds(30)); Assert.Equal(CacheReadKind.Miss,(await store.GetAsync(Key(1),default)).Kind); var ttl = await db.KeyTimeToLiveAsync(Wire(f.Prefix,"bytes")); Assert.NotNull(ttl); Assert.InRange(ttl.Value.TotalSeconds,1,30); } finally { await Cleanup(mux,f.Prefix); }
     }
+    [Fact]
+    public async Task EqualCountsWithDifferentIndexMembersRefuseBeforeAnyMutation()
+    {
+        using var f=new CacheEligibilityTests.SettingsFixture();using var mux=await ConnectionMultiplexer.ConnectAsync("redis:6379");using var store=new RedisResponseCacheStore(f.Settings);var db=mux.GetDatabase();
+        try{
+            Assert.Equal(CacheWriteKind.Stored,(await store.PutAsync(Key(1),Entry(),default)).Kind);
+            var score=await db.SortedSetScoreAsync(Wire(f.Prefix,"expiry"),Key(1).Opaque);await db.SortedSetRemoveAsync(Wire(f.Prefix,"expiry"),Key(1).Opaque);await db.SortedSetAddAsync(Wire(f.Prefix,"expiry"),Key(2).Opaque,score!.Value);
+            var before=await db.StringGetAsync(Wire(f.Prefix,"bytes"));
+            Assert.Equal(CacheWriteKind.Bypass,(await store.PutAsync(Key(3),Entry(),default)).Kind);
+            Assert.Equal(CacheReadKind.Unavailable,(await store.GetAsync(Key(1),default)).Kind);
+            Assert.Equal(before,await db.StringGetAsync(Wire(f.Prefix,"bytes")));Assert.Equal(1,await db.HashLengthAsync(Wire(f.Prefix,"sizes")));Assert.Equal(1,await db.SortedSetLengthAsync(Wire(f.Prefix,"expiry")));Assert.False(await db.KeyExistsAsync(Wire(f.Prefix,"entry:"+Key(3).Opaque)));
+        }finally{await Cleanup(mux,f.Prefix);}
+    }
+
 }

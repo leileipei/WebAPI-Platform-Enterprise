@@ -8,7 +8,7 @@ public sealed class RetryForwardingMiddleware(RequestDelegate next)
         var binding=(execution.Route.PolicyBindings??[]).SingleOrDefault(b=>execution.Generation.Retry.ContainsKey(b.PolicyId));
         if(binding is null){await next(context);return;}
         var config=execution.Generation.Retry[binding.PolicyId];string? bypass=null;
-        try{if(!Eligible(context)){bypass="unsafe_request";await next(context);return;}if(config.MaxAttempts==1){bypass="single_attempt";await next(context);return;}await coordinator.ExecuteAsync(context,execution,config,context.RequestAborted);}
+        try{if(!Eligible(context)){bypass="unsafe_request";await next(context);return;}await coordinator.ExecuteAsync(context,execution,config,context.RequestAborted);}
         finally
         {
             var count=execution.Attempts.Count;

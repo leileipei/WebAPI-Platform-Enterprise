@@ -39,4 +39,19 @@ public sealed class AdvancedPolicyTelemetryTests
         using var key=new SigningKey();var sink=new RecordingTelemetrySink();await using var s=new CachePipelineFixture();Telemetry(s.F,sink);await s.Init(jwt:key);
         using var response=await s.Get(token:"private-token-canary-invalid");Assert.Equal(HttpStatusCode.Unauthorized,response.StatusCode);await sink.WaitAsync(()=>sink.Logs.Length==1);Assert.Equal("Rejected",Attribute(sink.Logs[0],"webapi.policy.authentication.decision"));Assert.Equal("invalid_jwt",Attribute(sink.Logs[0],"webapi.policy.authentication.rejection_reason"));Assert.Equal("0",Attribute(sink.Logs[0],"webapi.attempt.count"));Assert.Equal(0,s.Calls);Assert.DoesNotContain("private-token-canary-invalid",string.Join('\n',sink.Items.Select(x=>x.Item.GetRawText())));
     }
+    [Theory][InlineData(true,false)][InlineData(false,true)]
+    public async Task AttemptTimeoutUsesTimeoutCircuitSettingAndFinalObservation(bool countTimeouts,bool countConnections)
+    {
+        var calls=0;var sink=new RecordingTelemetrySink();
+        await using var f=new GatewayFixture{ConfigureBackendA=a=>a.Use(async(c,next)=>{if(c.Request.Path=="/health"){await next();return;}Interlocked.Increment(ref calls);await Task.Delay(700,c.RequestAborted);await next();})};Telemetry(f,sink);
+        await f.InitializeAsync();await RetryPipelineTests.Bind(f,RetryPipelineTests.Config(perAttempt:100),timeout:5000,circuit:true);
+        await using(var db=f.Control.Context()){
+            var policy=Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.SingleAsync(db.Set<WebApi.Infrastructure.Persistence.Entities.Policy>(),p=>p.Type=="circuit_breaker");
+            var p=await policy;p.Config=JsonSerializer.Serialize(new {samplingWindowMs=30000,minimumRequests=1,failureRatio=1,openDurationMs=30000,halfOpenMaxRequests=1,halfOpenSuccesses=1,failureStatusCodes=new[]{503},countTimeouts,countConnectionFailures=countConnections});await db.SaveChangesAsync();
+        }
+        await f.ApplyBothAsync(await f.PublishAsync());using(var first=await f.RequestAsync())Assert.Equal(HttpStatusCode.GatewayTimeout,first.StatusCode);
+        await sink.WaitAsync(()=>sink.Logs.Length==1);Assert.Equal("Timeout",Attribute(sink.Logs[0],"webapi.outcome"));Assert.Equal("1",Attribute(sink.Logs[0],"webapi.attempt.count"));
+        using var second=await f.RequestAsync();Assert.Equal(countTimeouts?HttpStatusCode.ServiceUnavailable:HttpStatusCode.GatewayTimeout,second.StatusCode);Assert.Equal(countTimeouts?1:2,calls);
+    }
+
 }

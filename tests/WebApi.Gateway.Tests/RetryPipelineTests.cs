@@ -169,4 +169,13 @@ public sealed class RetryPipelineTests
         try { await clock.Started.Task.WaitAsync(TimeSpan.FromSeconds(5)); for (var i = 0; i < 2; i++) state.State.Complete(state.State.TryEnter(), CircuitOutcome.Failure); Assert.Equal(CircuitStatus.Open, state.State.Status); clock.Released.TrySetResult(); using var response = await waiting; Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode); Assert.Equal("original failure", await response.Content.ReadAsStringAsync()); Assert.Equal(1, calls); }
         finally { clock.Released.TrySetResult(); }
     }
+    [Fact]
+    public async Task SingleAttemptStillHonorsItsOwnDeadline()
+    {
+        var calls=0;
+        await using var f=new GatewayFixture{ConfigureBackendA=a=>a.Use(async(c,next)=>{if(c.Request.Path=="/health"){await next();return;}Interlocked.Increment(ref calls);await Task.Delay(700,c.RequestAborted);await next();})};
+        await f.InitializeAsync();await Bind(f,Config(attempts:1,perAttempt:100),timeout:5000);await f.ApplyBothAsync(await f.PublishAsync());
+        using var r=await f.RequestAsync();Assert.Equal(HttpStatusCode.GatewayTimeout,r.StatusCode);Assert.Equal(1,calls);
+    }
+
 }

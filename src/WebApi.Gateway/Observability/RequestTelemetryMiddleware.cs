@@ -28,7 +28,7 @@ public sealed class RequestTelemetryMiddleware(RequestDelegate next)
             {
                 var error=ctx.Features.Get<IForwarderErrorFeature>();
                 if(ctx.RequestAborted.IsCancellationRequested)outcome="ClientAborted";
-                else if(ctx.Features.Get<IHttpRequestTimeoutFeature>()?.RequestTimeoutToken.IsCancellationRequested==true)outcome="Timeout";
+                else if(ctx.Features.Get<IHttpRequestTimeoutFeature>()?.RequestTimeoutToken.IsCancellationRequested==true||error?.Error==ForwarderError.RequestTimedOut)outcome="Timeout";
                 else if(error is not null)outcome="ProxyError";
                 var execution=TrafficExecutionContext.From(ctx);var decisions=execution?.Decisions.Select(p=>p.ToDto()).ToArray()??[];
                 var final=state.Context with{PolicyDecisions=decisions,AttemptCount=execution?.Attempts.Count,ForwardAttempts=execution?.Attempts,CacheDisposition=execution?.CacheDisposition,Time=DateTimeOffset.UtcNow,DurationSeconds=Stopwatch.GetElapsedTime(started).TotalSeconds,Status=outcome=="ClientAborted"&&!ctx.Response.HasStarted?null:ctx.Response.StatusCode,Outcome=outcome};

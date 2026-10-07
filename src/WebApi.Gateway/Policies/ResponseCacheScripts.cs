@@ -7,7 +7,7 @@ if (seal and (seal~='v1' or not counter)) or (not seal and (counter or count>0 o
 if count~=cardinal or count>tonumber(ARGV[4]) then return {'unavailable'} end
 local total=tonumber(redis.call('GET',KEYS[1]) or '0'); if not total or total<0 or math.floor(total)~=total then return {'unavailable'} end
 local rows=redis.call('HGETALL',KEYS[2]); local sum=0
-for i=2,#rows,2 do local size=tonumber(rows[i]); if not size or size<1 or math.floor(size)~=size then return {'unavailable'} end; sum=sum+size end
+for i=2,#rows,2 do local size=tonumber(rows[i]); local expiry=tonumber(redis.call('ZSCORE',KEYS[3],rows[i-1])); if not size or size<1 or math.floor(size)~=size or not expiry or expiry<1 or expiry==math.huge or expiry~=expiry or math.floor(expiry)~=expiry then return {'unavailable'} end; sum=sum+size end
 if sum~=total then return {'unavailable'} end
 local time=redis.call('TIME'); local now=tonumber(time[1])*1000+math.floor(tonumber(time[2])/1000)
 local expired=redis.call('ZRANGEBYSCORE',KEYS[3],'-inf',now,'LIMIT',0,128)
