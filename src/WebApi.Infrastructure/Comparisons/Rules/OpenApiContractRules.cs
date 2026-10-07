@@ -162,7 +162,10 @@ internal sealed class OpenApiContractRules
     private SchemaDto[] ResponseSchemas(int status)
     {
         if(Operations.Count>1)return [];var responses=maintained?.Schemas.Where(x=>x.SchemaType=="response").ToArray()??[];
-        var exact=responses.Where(x=>x.StatusCode==status).ToArray();return exact.Length>0?exact:responses.Where(x=>x.StatusCode is null).ToArray();
+        var exact=responses.Where(x=>x.StatusCode==status).ToArray();if(exact.Length>0)return exact;
+        string? Selector(SchemaDto schema)=>origins.TryGetValue(("schema",schema.Id),out var source)?source.ResponseSelector:null;
+        var range=responses.Where(x=>x.StatusCode is null&&Selector(x)==(status/100)+"XX").ToArray();
+        return range.Length>0?range:responses.Where(x=>x.StatusCode is null&&Selector(x) is null or "DEFAULT").ToArray();
     }
     internal Model Response(HttpOperation op,JsonObject? response,int status)
     {

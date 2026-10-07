@@ -9,7 +9,7 @@ namespace WebApi.Infrastructure.Contracts;
 public sealed record ContractProcessRequest(string Operation,JsonElement Payload);
 public sealed record ContractProcessResponse(string Status,JsonElement? Result,IReadOnlyList<ContractIssue> Issues);
 internal sealed record ProcessDocument(Uri Uri,string Utf8Base64,string Format);
-internal sealed record ProcessSchemaPayload(Uri RootUri,IReadOnlyList<ProcessDocument> Documents,string BundleHash,string SchemaUtf8Base64,string? ExampleUtf8Base64,string Direction,string FormatMode,bool HasExample,Uri? ResourceUri,string Pointer,ContractLimits Limits);
+internal sealed record ProcessSchemaPayload(Uri RootUri,IReadOnlyList<ProcessDocument> Documents,string BundleHash,string SchemaUtf8Base64,string? ExampleUtf8Base64,string Direction,string FormatMode,bool HasExample,Uri? ResourceUri,string Pointer,ContractLimits Limits,bool StructureOnly=false);
 internal sealed record ProcessComparisonPayload(string InputUtf8Base64,ComparisonLimits Limits);
 public static class ContractProcessProtocol
 {
@@ -27,7 +27,7 @@ public static class ContractProcessProtocol
     {
         limits??=new();ContractBundleCodec.Verify(input.Bundle,limits);
         var documents=input.Bundle.Documents.Select(x=>new ProcessDocument(x.Source.LogicalUri,Encode(x.Source.RawText),x.Source.Format)).ToArray();
-        var payload=new ProcessSchemaPayload(input.Bundle.RootUri,documents,input.Bundle.Hash,Encode(input.Schema.ToJsonString()),input.HasExample?Encode(input.Example?.ToJsonString()??"null"):null,input.Direction,input.FormatMode,input.HasExample,input.ResourceUri,input.Pointer,limits);
+        var payload=new ProcessSchemaPayload(input.Bundle.RootUri,documents,input.Bundle.Hash,Encode(input.Schema.ToJsonString()),input.HasExample?Encode(input.Example?.ToJsonString()??"null"):null,input.Direction,input.FormatMode,input.HasExample,input.ResourceUri,input.Pointer,limits,input.StructureOnly);
         return new("schema",JsonSerializer.SerializeToElement(payload,JsonOptions));
     }
     public static SchemaValidationInput DecodeSchema(JsonElement json,out ContractLimits limits,CancellationToken ct)
@@ -42,7 +42,7 @@ public static class ContractProcessProtocol
         var bundle=ContractBundleCodec.Create(payload.RootUri,documents,limits);if(bundle.Hash!=payload.BundleHash)throw Invalid();
         var schema=JsonNode.Parse(Decode(payload.SchemaUtf8Base64,limits.MaxBundleBytes),documentOptions:new(){MaxDepth=limits.MaxDepth})??throw Invalid();
         var example=payload.HasExample?JsonNode.Parse(Decode(payload.ExampleUtf8Base64??throw Invalid(),limits.MaxExampleBytes),documentOptions:new(){MaxDepth=limits.MaxDepth}):null;
-        return new(bundle,schema,example,payload.Direction,payload.FormatMode,payload.HasExample,payload.ResourceUri,payload.Pointer);
+        return new(bundle,schema,example,payload.Direction,payload.FormatMode,payload.HasExample,payload.ResourceUri,payload.Pointer,payload.StructureOnly);
     }
     private static string Encode(string text)=>Convert.ToBase64String(Encoding.UTF8.GetBytes(text));
     private static string Decode(string text,int maximum)

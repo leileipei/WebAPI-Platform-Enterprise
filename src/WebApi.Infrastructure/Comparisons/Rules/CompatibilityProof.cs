@@ -26,7 +26,7 @@ public sealed class CompatibilityProof
             var ag=new ContractReferenceRegistry(baselineBundle,limits);var bg=new ContractReferenceRegistry(targetBundle,limits);
             var ar=ag.Resolve(a.ResourceUri,"#"+Uri.EscapeDataString(a.Pointer));var br=bg.Resolve(b.ResourceUri,"#"+Uri.EscapeDataString(b.Pointer));
             var an=ReferenceRules.Normalize(ar.Node,ag,context,baselineBundle.Documents.Single(x=>x.Source.LogicalUri==baselineBundle.RootUri).Dialect);var bn=ReferenceRules.Normalize(br.Node,bg,context,targetBundle.Documents.Single(x=>x.Source.LogicalUri==targetBundle.RootUri).Dialect);
-            an=DialectAdapter.PrepareSchema(an,baselineBundle.Documents.Single(x=>x.Source.LogicalUri==baselineBundle.RootUri).Dialect,direction,maxDepth:limits.MaxDepth).Node;bn=DialectAdapter.PrepareSchema(bn,targetBundle.Documents.Single(x=>x.Source.LogicalUri==targetBundle.RootUri).Dialect,direction,maxDepth:limits.MaxDepth).Node;
+            an=DialectAdapter.PrepareSchema(an,ContractDialect.Oas31,direction,maxDepth:limits.MaxDepth).Node;bn=DialectAdapter.PrepareSchema(bn,ContractDialect.Oas31,direction,maxDepth:limits.MaxDepth).Node;
             changed=ContractNormalizer.Canonical(an)!=ContractNormalizer.Canonical(bn);
             context.Add("schema.types");context.Register(an);context.Register(bn);
             if(coverage.Count>0)return Result("Unknown");

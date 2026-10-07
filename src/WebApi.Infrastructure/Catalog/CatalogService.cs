@@ -58,7 +58,21 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
     public async Task<CommandResult<VersionDto>> SaveVersionAsync(Guid id,CreateVersionRequest request,string? tag,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.VersionAsync(id,ct);return await commands.ExecuteAsync(actor,scope,"api.version.update",async(_,token)=>{
         await auth.RequireAsync(actor,"api.version.write",new("version",id,scope),token);var v=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,v.Revision);RequireDraft(v);ValidateVersion(request);
-        var bundle=VersionContractSourceService.Prepare(v.Id,request,token,out var document,out var source,out var format);v.Version=request.Version;v.ChangeType=request.ChangeType;v.OpenapiDocument=document;v.OpenapiSource=source;v.SourceFormat=format;v.SchemaHash=document is null?null:Hash(document);v.Revision++;await sources.SaveDraftAsync(v.Id,bundle,token);return new CommandResult<VersionDto>(Dto(v) with{Dialect=VersionContractSourceService.DialectName(bundle.Documents[0].Dialect)},RevisionTag.Format(v.Revision));},ct);}
+        var replacement = request.OpenapiDocument is not null && request.OpenapiDocument != v.OpenapiDocument
+            || request.OpenapiSource is not null && request.OpenapiSource != v.OpenapiSource
+            || request.SourceFormat is not null && request.SourceFormat != v.SourceFormat;
+        string? dialect;
+        if (replacement) {
+            var bundle=VersionContractSourceService.Prepare(v.Id,request,token,out var document,out var source,out var format);
+            v.OpenapiDocument=document;v.OpenapiSource=source;v.SourceFormat=format;v.SchemaHash=document is null?null:Hash(document);
+            await sources.SaveDraftAsync(v.Id,bundle,token);dialect=VersionContractSourceService.DialectName(bundle.Documents[0].Dialect);
+        } else {
+            var savedDialect=await db.Set<ApiVersionContractSources>().Where(x=>x.ApiVersionId==id).Select(x=>x.Dialect).SingleOrDefaultAsync(token);
+            dialect=savedDialect=="Oas30"?"oas-3.0":savedDialect=="Oas31"?"oas-3.1":null;
+            if(request.Dialect is not null && request.Dialect!=dialect)throw new ApiException(422,"contract_dialect_mismatch","修改方言需显式替换契约来源。");
+        }
+        v.Version=request.Version;v.ChangeType=request.ChangeType;v.Revision++;
+        return new CommandResult<VersionDto>(Dto(v) with{Dialect=dialect},RevisionTag.Format(v.Revision));},ct);}
     public async Task DeleteVersionAsync(Guid id,string? tag,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.VersionAsync(id,ct);await commands.ExecuteAsync(actor,scope,"api.version.delete",async(_,token)=>{await auth.RequireAsync(actor,"api.version.write",new("version",id,scope),token);var v=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,v.Revision);RequireDraft(v);if(await db.Set<ApiRoute>().AnyAsync(r=>r.ApiVersionId==id,token)) throw new ApiException(409,"version_in_use","版本已被路由引用。");db.RemoveRange(await db.Set<ApiParameter>().Where(p=>p.ApiVersionId==id).ToArrayAsync(token));db.RemoveRange(await db.Set<ApiSchema>().Where(s=>s.ApiVersionId==id).ToArrayAsync(token));db.Remove(v);return true;},ct);}
     public async Task<IReadOnlyList<GroupDto>> GroupsAsync(Guid projectId,ActorContext actor,CancellationToken ct=default)

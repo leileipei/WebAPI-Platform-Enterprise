@@ -43,3 +43,14 @@ export function acceptImportPreview(state,input,preview,requestSequence){
  if(state.requestSequence!==requestSequence||importIdentity(state.input)!==importIdentity(input))return state;
  return {...state,input,identity:importIdentity(input),preview,targets:preview.operations.filter(x=>x.supported).map(x=>mapImportTarget(x,{newApiCode:x.suggestedCode,newApiName:x.summary||x.operationId,version:'1.0.0'})),result:undefined,issues:preview.issues??[],busy:false,recovery:''};
 }
+
+export function importPolicyScope(scope){return JSON.stringify([scope?.organizationId??null,scope?.projectId??null]);}
+export function selectImportPolicy(scope,remote,override){
+ const identity=importPolicyScope(scope),current=remote?.projectId===scope?.projectId?remote:undefined;
+ const saved=override?.scope===identity&&override.value?.projectId===scope?.projectId?override.value:undefined;
+ return saved&&(!current||saved.revision>=current.revision)?saved:current;
+}
+export function acceptImportPolicySave(current,captured,value){
+ if(current.scope!==captured.scope||current.generation!==captured.generation||importPolicyScope({organizationId:JSON.parse(captured.scope)[0],projectId:value?.projectId})!==captured.scope)return undefined;
+ return {...captured,value};
+}

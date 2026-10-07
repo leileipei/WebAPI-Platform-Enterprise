@@ -29,6 +29,17 @@ public static class DialectAdapter
             }
             if (node is not JsonObject original) { Issue("invalid_schema_dialect", pointer, "Schema 必须为对象或 boolean。"); return node.DeepClone(); }
             if (dialect == ContractDialect.Oas30 && original.ContainsKey("$ref")) return new JsonObject { ["$ref"] = original["$ref"]?.DeepClone() };
+            if (dialect == ContractDialect.Oas30) {
+                if (original.ContainsKey("type") && (original["type"] is not JsonValue typeValue || !typeValue.TryGetValue<string>(out var rawType) || rawType is not ("string" or "number" or "integer" or "boolean" or "array" or "object")))
+                    Issue("invalid_schema_dialect", pointer + "/type", "OpenAPI 3.0 type 必须为登记的单个非 null 类型。");
+                if (original.ContainsKey("nullable") && (original["nullable"] is not JsonValue nullableValue || !nullableValue.TryGetValue<bool>(out _)))
+                    Issue("invalid_schema_dialect", pointer + "/nullable", "OpenAPI 3.0 nullable 必须为 boolean。");
+                foreach (var key in new[] { "exclusiveMinimum", "exclusiveMaximum" })
+                    if (original.ContainsKey(key) && (original[key] is not JsonValue exclusiveValue || !exclusiveValue.TryGetValue<bool>(out _)))
+                        Issue("invalid_schema_dialect", pointer + "/" + key, "OpenAPI 3.0 独占边界开关必须为 boolean。");
+                if (ContractDocumentReader.Text(original["type"]) == "array" && !original.ContainsKey("items"))
+                    Issue("invalid_schema_dialect", pointer + "/items", "OpenAPI 3.0 数组必须声明 items。");
+            }
             var obj = (JsonObject)original.DeepClone();
             foreach (var (key, value) in original) {
                 var child = pointer + "/" + ContractDocumentReader.Escape(key);

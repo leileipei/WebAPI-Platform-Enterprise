@@ -5,7 +5,7 @@ import {createHash} from 'node:crypto';
 import {loadState} from '../runtime/state.mjs';
 import {loadRelease} from '../runtime/lifecycle.mjs';
 import {inspectResources,docker} from '../runtime/docker.mjs';
-import {assertReleaseIdentity,assertPublicFiles,validateCloneOwnership,validateContractAcceptance} from './evidence.mjs';
+import {assertReleaseIdentity,assertPublicFiles,validateCloneOwnership,validateContractAcceptance,assertMaterialEvidence} from './evidence.mjs';
 
 const json=async file=>JSON.parse(await fs.readFile(file,'utf8'));
 const digest=value=>createHash('sha256').update(value).digest('hex');
@@ -42,6 +42,7 @@ export async function runContractAcceptance({revision,directory,cloneDirectory})
  for(const check of proof.checks??[])assert(check.evidence?.length&&check.evidence.every(file=>paths.has(file)),'验收引用缺少实际证据。');
  assert(proof.ui?.screenshots?.length&&proof.ui.screenshots.every(file=>paths.has(file)),'CUA截图缺失。');
  assert(proof.suites?.length>=5&&proof.suites.every(suite=>suite.sourceRevision===revision&&suite.exitCode===0&&suite.failed===0&&suite.skipped===0&&suite.passed>0&&paths.has(suite.artifact)),'本提交测试尚未完整通过。');
+ assertMaterialEvidence(proof,files);
  const result=validateContractAcceptance(proof,{revision,imageId:release.imageId});
  return {...result,stage:'pre-install',originalInstallation:'not-upgraded',suites:proof.suites,ui:proof.ui,clone:proof.clone,artifacts:proof.artifacts};
 }

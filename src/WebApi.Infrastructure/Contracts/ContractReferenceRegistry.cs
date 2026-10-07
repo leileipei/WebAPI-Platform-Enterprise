@@ -12,6 +12,8 @@ public sealed class ContractReferenceRegistry
     private readonly Dictionary<string, JsonNode> resources = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Identity> anchors = new(StringComparer.Ordinal);
     private readonly Dictionary<JsonNode, Identity> identities = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<JsonNode, ContractDialect> physicalDialects = new(ReferenceEqualityComparer.Instance);
+    public ContractDialect DialectOf(JsonNode node) { while (node.Parent is not null) node = node.Parent; return physicalDialects.TryGetValue(node, out var dialect) ? dialect : throw Missing(); }
     private readonly HashSet<JsonNode> schemaNodes = new(ReferenceEqualityComparer.Instance);
     private readonly int maximumIndexBytes;
     private long indexBytes;
@@ -35,6 +37,7 @@ public sealed class ContractReferenceRegistry
         // Own this graph. A caller changing the original bundle cannot change an indexed resource.
         foreach (var doc in bundle.Documents) {
             var root = doc.Root.DeepClone();
+            physicalDialects.Add(root, doc.Dialect);
             Register(doc.Source.LogicalUri, root);
             Walk(root, "", doc.Source.LogicalUri, !openApiRoots.Contains(doc.Source.LogicalUri.AbsoluteUri), doc.Dialect);
         }
@@ -101,7 +104,7 @@ public sealed class ContractReferenceRegistry
     {
         if (node is null) return;
         if(schema&&!data)schemaNodes.Add(node);
-        if (schema && dialect == ContractDialect.Oas31 && node is JsonObject s && s.TryGetPropertyValue("$id", out var id)) {
+        if (schema && !data && dialect == ContractDialect.Oas31 && node is JsonObject s && s.TryGetPropertyValue("$id", out var id)) {
             var text = ContractDocumentReader.Text(id);
             if (text.Length > 4096) throw IndexTooLarge();
             if (text.Length == 0 || !Uri.TryCreate(basis, text, out var uri)) throw new ApiException(422, "invalid_schema_id", "Schema 资源 ID 不合法。");
@@ -113,7 +116,7 @@ public sealed class ContractReferenceRegistry
                 if(reference is not JsonValue textNode || !textNode.TryGetValue<string>(out var text)) throw Missing();
                 references.Add(new(basis,pointer+"/"+keyword,text));
             }
-        if (schema && dialect == ContractDialect.Oas31 && node is JsonObject a) foreach (var keyword in new[] { "$anchor", "$dynamicAnchor" }) {
+        if (schema && !data && dialect == ContractDialect.Oas31 && node is JsonObject a) foreach (var keyword in new[] { "$anchor", "$dynamicAnchor" }) {
             if (!a.TryGetPropertyValue(keyword, out var value)) continue;
             var name = ContractDocumentReader.Text(value);
             if (name.Length > 256) throw IndexTooLarge();
@@ -127,6 +130,11 @@ public sealed class ContractReferenceRegistry
         }
         if (node is JsonObject obj) foreach (var (key, value) in obj) {
             var childPointer = pointer + "/" + ContractDocumentReader.Escape(key);
+            if (data || schema && dialect == ContractDialect.Oas30 && obj.ContainsKey("$ref")) {
+                // Keep raw identities for provenance; ignored siblings are never schema contexts.
+                Walk(value, childPointer, basis, false, dialect, true);
+                continue;
+            }
             if (schema && SchemaNavigation.MapKeywords.Contains(key) && value is JsonObject map) {
                 AddIdentity(map, basis, childPointer);
                 foreach (var (name, child) in map) Walk(child, childPointer + "/" + ContractDocumentReader.Escape(name), basis, true, dialect);

@@ -88,7 +88,7 @@ public sealed class VersionContractSourceService(WebApiDbContext db,Authorizatio
                 else Set(nodes[documentUri],pointer,schema);
             }
             else{documentUri=state.Bundle.RootUri;var name="__maintained_"+definition.Id.ToString("N");if(componentSchemas.ContainsKey(name))throw Invalid("duplicate_schema_id","维护定义资源名称冲突。");pointer="/components/schemas/"+name;componentSchemas[name]=schema.DeepClone();}
-            origins.Add(new(definition.Id,definition.Kind,documentUri,pointer,DocumentHash(definition.Schema),documentUri));
+            origins.Add(new(definition.Id,definition.Kind,documentUri,pointer,DocumentHash(definition.Schema),documentUri,old?.ResponseSelector));
         }
         var reader=new ContractDocumentReader();var docs=state.Bundle.Documents.Select(d=>{
             if(JsonNode.DeepEquals(nodes[d.Source.LogicalUri],d.Root))return d;

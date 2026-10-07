@@ -7,3 +7,6 @@ export function readImportFiles(files:Iterable<any>,budget?:any):Promise<{name:s
 export function recoverImportFailure(state:any,error:any):any;
 
 export function acceptImportPreview(state:any,input:any,preview:any,requestSequence:number):any;
+export function importPolicyScope(scope:any):string;
+export function selectImportPolicy(scope:any,remote:any,override:any):any;
+export function acceptImportPolicySave(current:{scope:string;generation:number},captured:{scope:string;generation:number},value:any):any;

@@ -10,7 +10,7 @@ namespace WebApi.Infrastructure.Contracts;
 internal sealed class OfflineContractSchemas
 {
     private readonly ContractReferenceRegistry graph;
-    private readonly ContractDialect dialect;
+    private readonly bool structureOnly;
     private readonly string direction;
     private readonly string formatMode;
     private readonly CancellationToken token;
@@ -20,9 +20,9 @@ internal sealed class OfflineContractSchemas
     private readonly List<ContractIssue> coverage;
     private static readonly HashSet<Uri> BuiltinMetas=[MetaSchemas.Draft202012Id,MetaSchemas.Applicator202012Id,MetaSchemas.Content202012Id,MetaSchemas.Core202012Id,MetaSchemas.FormatAnnotation202012Id,MetaSchemas.FormatAssertion202012Id,MetaSchemas.Metadata202012Id,MetaSchemas.Unevaluated202012Id,MetaSchemas.Validation202012Id];
 
-    public OfflineContractSchemas(ContractReferenceRegistry graph,ContractDialect dialect,string direction,string formatMode,List<ContractIssue> coverage,CancellationToken token)
+    public OfflineContractSchemas(ContractReferenceRegistry graph,ContractDialect dialect,string direction,string formatMode,List<ContractIssue> coverage,CancellationToken token,bool structureOnly=false)
     {
-        this.graph=graph;this.dialect=dialect;this.direction=direction;this.formatMode=formatMode;this.coverage=coverage;this.token=token;
+        this.graph=graph;this.structureOnly=structureOnly;this.direction=direction;this.formatMode=formatMode;this.coverage=coverage;this.token=token;
         var registry=new SchemaRegistry {Fetch=(_,_)=>throw new ApiException(422,"missing_contract_reference","引用不在固定来源包中。")};
         options=new(){SchemaRegistry=registry,VocabularyRegistry=new(),DialectRegistry=new(),Dialect=Dialect.Draft202012};
         foreach(var resource in graph.Resources)registry.Register(new FixedDocument(this,resource.ResourceUri));
@@ -48,9 +48,10 @@ internal sealed class OfflineContractSchemas
     {
         token.ThrowIfCancellationRequested();var origin=graph.Describe(selected.Node);var pointer=RelativePointer(origin);var key=origin.ResourceUri.AbsoluteUri+"#"+pointer;
         if(cache.TryGetValue(key,out var existing))return existing;
-        var prepared=DialectAdapter.PrepareSchema(selected.Node,dialect,direction,applyDirection:false);
+        var prepared=DialectAdapter.PrepareSchema(selected.Node,graph.DialectOf(selected.Node),direction,applyDirection:false);
         coverage.AddRange(prepared.Issues);
-        if(prepared.Issues.Count>0)throw new ApiException(422,"unsupported_schema_semantics","Schema包含未登记或不支持的语义。");
+        if(prepared.Issues.Any(x=>x.Code=="invalid_schema_dialect"))throw new InvalidSchemaShapeException();
+        if(prepared.Issues.Any(x=>!structureOnly||x.Code!="unsupported_schema_keyword"))throw new ApiException(422,"unsupported_schema_semantics","Schema包含未登记或不支持的语义。");
         var element=JsonSerializer.SerializeToElement(prepared.Node);
         if(!MetaSchemas.Draft202012.Evaluate(element,new(){OutputFormat=OutputFormat.Flag}).IsValid)throw new InvalidSchemaShapeException();
         ApplyDirection(selected.Node,prepared.Node);
@@ -69,7 +70,7 @@ internal sealed class OfflineContractSchemas
         token.ThrowIfCancellationRequested();
         if(original is not JsonObject source||prepared is not JsonObject transformed)return prepared.DeepClone();
         var identity=graph.Describe(original);
-        if(!root&&dialect==ContractDialect.Oas31&&source.ContainsKey("$id"))return new JsonObject{["$ref"]=identity.ResourceUri.AbsoluteUri};
+        if(!root&&graph.DialectOf(original)==ContractDialect.Oas31&&source.ContainsKey("$id"))return new JsonObject{["$ref"]=identity.ResourceUri.AbsoluteUri};
         var result=(JsonObject)transformed.DeepClone();result.Remove("$id");
         if(result.ContainsKey("$schema"))result["$schema"]="https://json-schema.org/draft/2020-12/schema";
         if(formatMode=="Strict"&&source["format"] is JsonValue format&&format.TryGetValue<string>(out var formatName)&&!ContractFormats.Registered.Contains(formatName))throw new ApiException(422,"unsupported_schema_format","Strict模式中该格式未登记。");
@@ -105,7 +106,7 @@ internal sealed class OfflineContractSchemas
         token.ThrowIfCancellationRequested();if(!visited.Add(node)||node is not JsonObject schema)return false;
         if(visited.Count>50000)throw new ApiException(422,"contract_budget","方向注解引用图超过预算。");
         var reference=schema["$ref"];
-        if(!(dialect==ContractDialect.Oas30&&reference is not null)&&schema[keyword] is JsonValue flag&&flag.TryGetValue<bool>(out var enabled)&&enabled)return true;
+        if(!(graph.DialectOf(node)==ContractDialect.Oas30&&reference is not null)&&schema[keyword] is JsonValue flag&&flag.TryGetValue<bool>(out var enabled)&&enabled)return true;
         if(reference is JsonValue text&&text.TryGetValue<string>(out var value))return Annotated(graph.Resolve(graph.Describe(node).ResourceUri,value).Node,keyword,visited);
         return false;
     }

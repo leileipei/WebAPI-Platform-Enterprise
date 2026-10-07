@@ -41,7 +41,7 @@ public sealed class SchemaValidationService(WebApiDbContext db,AuthorizationServ
         var registry=new ContractReferenceRegistry(graph.Bundle,new());var missing=new List<ContractIssue>();foreach(var reference in registry.References)try{registry.Resolve(reference.ResourceUri,reference.Reference);}catch(ApiException){missing.Add(new("missing_contract_reference",reference.Pointer,"引用目标不存在于当前维护图。"));if(missing.Count==500)break;}
         if(missing.Count>0)throw new ApiException(422,"invalid_schema_reference","Schema包含失效引用。"){Issues=missing};
         if(graph.Definitions.Count==0)return;var origin=graph.Definitions[0];var node=registry.Resolve(origin.DocumentUri??origin.ResourceUri,"#"+Uri.EscapeDataString(origin.Pointer)).Node;
-        var response=await runner.RunAsync(ContractProcessProtocol.SchemaRequest(new(graph.Bundle,node,null,"request","Annotation",false,origin.DocumentUri??origin.ResourceUri,origin.Pointer)),TimeSpan.FromSeconds(5),ct);
+        var response=await runner.RunAsync(ContractProcessProtocol.SchemaRequest(new(graph.Bundle,node,null,"request","Annotation",false,origin.DocumentUri??origin.ResourceUri,origin.Pointer,StructureOnly:true)),TimeSpan.FromSeconds(5),ct);
         if(response.Status!="Valid"){
             var result=response.Result?.Deserialize<SchemaValidationResult>(ContractProcessProtocol.JsonOptions);var issues=result?.Issues.Select(x=>new ContractIssue(x.Code,x.SchemaPointer,x.Message,x.Line,x.Column)).Concat(result.CoverageIssues).ToArray()??response.Issues.ToArray();
             throw new ApiException(422,response.Status=="Invalid"?"invalid_schema":"schema_validation_incomplete","Schema结构或引用未通过校验；示例匹配不作为保存门禁。"){Issues=issues};
