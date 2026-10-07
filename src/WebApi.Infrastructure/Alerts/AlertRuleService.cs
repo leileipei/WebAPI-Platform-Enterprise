@@ -11,20 +11,23 @@ using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Observability;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Domain.Notifications;
+using WebApi.Infrastructure.Notifications;
 namespace WebApi.Infrastructure.Alerts;
-public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings)
+public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings,NotificationDeploymentSettings notificationSettings,NotificationPlanner notifications)
 {
     public static SaveAlertRuleRequest Definition(AlertRule r)=>new(r.OrganizationId,r.ProjectId,r.EnvironmentId,r.Name,r.Metric,r.Expression,r.Severity,r.Enabled,r.ForSeconds,r.TargetType,r.TargetId,r.WindowSeconds,JsonSerializer.Deserialize<NotificationIntent>(r.Notification,CanonicalJson.Options)!);
     public static string ResourceKey(SaveAlertRuleRequest r)=>r.TargetType=="Environment"?"Environment":r.TargetType+":"+r.TargetId!.Value.ToString("D");
     private static ApiException Invalid(string message)=>new(422,"invalid_alert_rule",message);
-    private static SaveAlertRuleRequest Validate(SaveAlertRuleRequest r)
+    private SaveAlertRuleRequest Validate(SaveAlertRuleRequest r)
     {
         var name=r.Name.Trim().Normalize(NormalizationForm.FormKC);
         if(name.Length is <1 or >128||name.Any(char.IsControl)||r.Severity is not("Info" or "Warning" or "Critical")||r.ForSeconds is <0 or >86400||r.WindowSeconds is <60 or >3600)throw Invalid("规则名称、级别、持续时间或窗口不合法。");
         if(r.TargetType=="Api"&&r.Metric=="unhealthy_destinations")throw Invalid("API目标尚不支持准确的后端健康聚合，请选择环境或具体后端。");
         try{AlertExpressionParser.Parse(r.Metric,r.Expression);}catch(ArgumentException e){throw Invalid(e.Message);}
-        if(r.Notification is null||!r.Notification.InConsole||r.Notification.RequestedChannels is null||r.Notification.RequestedChannels.Count>3||r.Notification.RequestedChannels.Any(x=>x is not("Email" or "Webhook" or "EnterpriseIm")))throw Invalid("通知仅支持站内中心及三个未启用渠道的意向配置。");
-        return r with{Name=name,Notification=new(true,r.Notification.RequestedChannels.Distinct().Order(StringComparer.Ordinal).ToArray())};
+        if(r.Notification is null)throw Invalid("通知策略不可为空。");var policy=NotificationPolicyValidator.Normalize(r.Notification);
+        if(policy.ExternalEnabled&&policy.RequestedChannels.Contains("Email"))foreach(var recipient in policy.EmailRecipients!)notificationSettings.RequireAllowedRecipient(recipient);
+        return r with{Name=name,Notification=policy};
     }
     private async Task<AlertRuleDto> DtoAsync(AlertRule rule,CancellationToken ct)
     {
@@ -78,7 +81,7 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
         // Global governance -> rule -> evaluation -> event. Source I/O never runs in this transaction.
         var states=await db.Set<AlertEvaluationState>().FromSqlInterpolated($"SELECT * FROM alert_evaluation_states WHERE rule_id={rule.Id} ORDER BY id FOR UPDATE").ToArrayAsync(ct);
         var events=await db.Set<AlertEvent>().FromSqlInterpolated($"SELECT * FROM alert_events WHERE rule_id={rule.Id} AND status <> 'Resolved' ORDER BY id FOR UPDATE").ToArrayAsync(ct);var now=DateTimeOffset.UtcNow;
-        foreach(var e in events){var from=e.Status;e.Status="Resolved";e.ResolvedAt=now;e.ResolveReason=reason;e.ResolvedBy=actor.UserId;e.SilencedUntil=null;e.Revision++;db.Add(new AlertEventTransition{EventId=e.Id,FromStatus=from,ToStatus="Resolved",ActorId=actor.UserId,Reason=reason,OccurredAt=now,CorrelationId=actor.TraceId});}
+        foreach(var e in events){var from=e.Status;e.Status="Resolved";e.ResolvedAt=now;e.ResolveReason=reason;e.ResolvedBy=actor.UserId;e.SilencedUntil=null;e.Revision++;var transition=new AlertEventTransition{EventId=e.Id,FromStatus=from,ToStatus="Resolved",ActorId=actor.UserId,Reason=reason,OccurredAt=now,CorrelationId=actor.TraceId};db.Add(transition);await notifications.OnGovernanceClosureAsync(e,transition,ct);}
         foreach(var s in states){s.Phase="Inactive";s.PendingSince=null;s.SuppressedAt=null;s.LeaseOwner=null;s.LeaseUntil=null;s.LeaseToken++;s.Revision++;}
     }
     public async Task<RuleScopePreviewDto> PreviewAsync(ActorContext actor,SaveAlertRuleRequest input,CancellationToken ct)

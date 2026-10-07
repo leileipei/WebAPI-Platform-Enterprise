@@ -88,15 +88,15 @@
 
 ## Task 4 (N4)：告警原子规划、静默及可重启恢复配对
 
-**Files:** Create `src/WebApi.Infrastructure/Notifications/NotificationPlanner.cs`、`tests/WebApi.Integration.Tests/NotificationPlanningTests.cs`；Modify `Alerts/{AlertEvaluationService,AlertEventService,AlertSilenceExpiryService,AlertRuleService}.cs`。
+**Files:** Create `src/WebApi.Infrastructure/Notifications/NotificationPlanner.cs`、`tests/WebApi.Integration.Tests/NotificationPlanningTests.cs`；Modify ControlPlane/Worker DI 注册及 `Alerts/{AlertEvaluationService,AlertEventService,AlertSilenceExpiryService,AlertRuleService}.cs`。
 
 **Interfaces:** `NotificationPlanner.OnTransitionAsync(AlertEvent,AlertEventTransition,CancellationToken) -> Task`须在持有既有锁的事务调用；`CoordinateResolvedAsync(Guid eventId,CancellationToken) -> Task`按持久转换和父任务协调；`CoordinateNextResolvedAsync(CancellationToken) -> Task<bool>`每轮有界扫描≤50事件。生产路径不借用规则创建者权限，采用冻结真实Scope及当前有效范围。
 
-- [ ] **Step 1：写行为用例。** `EventAndTasksCommitOrRollbackTogether`事务失败时`Assert.Empty(deliveries)`；`RepeatedTransitionCreatesOneTaskPerTarget`每收件人/转换只一条；`NotificationEditDoesNotResetLogicOrRetargetOldOccurrence`比较logic_revision及冻结目标；`SilencedResolvedAndManualClosureAreDifferent`FromStatus=Silenced生成抑制、不宣称恢复；`ResolveDuringSendingSurvivesRestart`发送中Resolve后重建服务、结束父尝试再协调，断言Resolved只有一个且创建晚于父结果；规则关闭/范围变更取消，升级旧事件不补发。
-- [ ] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter NotificationPlanningTests`。
-- [ ] **Step 3：实现。** 规则保存接N1.Normalize，在ExternalEnabled且选择Email时逐个调用N2.RequireAllowedRecipient；保存未启用意向不自动激活。接入全部四类转换入口，治理→规则→状态/事件→任务统一锁顺序；评估落库阶段也先取得治理锁，外部观测I/O仍在锁外。已持有规则锁的Planner不反向获取上游锁。Triggered冻结策略/档案，Resolved仅配对Accepted/OutcomeUnknown父任务，终止未开始Triggered；不把恢复待协调状态放到仅内存回调。旧关闭理由治理分支仅生成取消/抑制。
-- [ ] **Step 4：GREEN及生命周期回归。** 同上及`--filter 'AlertActionTests|AlertEvaluationTests|AlertRuleTests'`，状态机和原RuleTest仍正确。
-- [ ] **Step 5：提交。** `feat(alerts): plan durable notifications on lifecycle transitions`。
+- [x] **Step 1：写行为用例。** `EventAndTasksCommitOrRollbackTogether`事务失败时`Assert.Empty(deliveries)`；`RepeatedTransitionCreatesOneTaskPerTarget`每收件人/转换只一条；`NotificationEditDoesNotResetLogicOrRetargetOldOccurrence`比较logic_revision及冻结目标；`SilencedResolvedAndManualClosureAreDifferent`FromStatus=Silenced生成抑制、不宣称恢复；`ResolveDuringSendingSurvivesRestart`发送中Resolve后重建服务、结束父尝试再协调，断言Resolved只有一个且创建晚于父结果；规则关闭/范围变更取消，升级旧事件不补发。
+- [x] **Step 2：RED。** Run `./scripts/check-contracts.sh integration --filter NotificationPlanningTests`。
+- [x] **Step 3：实现。** 规则保存接N1.Normalize，在ExternalEnabled且选择Email时逐个调用N2.RequireAllowedRecipient；保存未启用意向不自动激活。接入全部四类转换入口，治理→规则→状态/事件→任务统一锁顺序；评估落库阶段也先取得治理锁，外部观测I/O仍在锁外。已持有规则锁的Planner不反向获取上游锁。Triggered冻结策略/档案，Resolved仅配对Accepted/OutcomeUnknown父任务，终止未开始Triggered；不把恢复待协调状态放到仅内存回调。旧关闭理由治理分支仅生成取消/抑制。
+- [x] **Step 4：GREEN及生命周期回归。** 同上及`--filter 'AlertActionTests|AlertEvaluationTests|AlertRuleTests'`，状态机和原RuleTest仍正确。
+- [x] **Step 5：提交。** `feat(alerts): plan durable notifications on lifecycle transitions`。
 
 ## Task 5 (N5)：租约 Worker、测试/回执/人工重试 API
 

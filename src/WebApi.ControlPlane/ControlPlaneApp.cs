@@ -55,7 +55,7 @@ public static class ControlPlaneApp
         builder.Services.AddScoped<GatewayReadService>();
         builder.Services.TryAddSingleton(AlertEvaluationSettings.Read(builder.Configuration));builder.Services.AddScoped<AlertRuleScopeResolver>();builder.Services.AddScoped<AlertRuleService>();builder.Services.AddScoped<AlertEventService>();builder.Services.AddScoped<AlertSilenceExpiryService>();
         builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<OpenApiImportService>();
-        builder.Services.TryAddSingleton(NotificationDeploymentSettings.Read(builder.Configuration,builder.Environment));builder.Services.TryAddSingleton<INotificationSecretResolver,NotificationSecretResolver>();builder.Services.AddSingleton<NotificationSecretVersion>();builder.Services.AddScoped<NotificationConfigurationService>();
+        builder.Services.TryAddSingleton(NotificationDeploymentSettings.Read(builder.Configuration,builder.Environment));builder.Services.TryAddSingleton<INotificationSecretResolver,NotificationSecretResolver>();builder.Services.AddSingleton<NotificationSecretVersion>();builder.Services.AddScoped<NotificationConfigurationService>();builder.Services.AddScoped<NotificationPlanner>();
         builder.Services.TryAddSingleton(ImportSourceSettings.Read(builder.Configuration,builder.Environment));
         builder.Services.TryAddSingleton<WebApi.Infrastructure.Contracts.IContractDnsResolver,WebApi.Infrastructure.Contracts.SystemContractDnsResolver>();
         builder.Services.AddScoped<ImportSourcePolicyService>();builder.Services.AddScoped<ImportSourceFetcher>();builder.Services.AddScoped<ImportBatchWriter>();builder.Services.AddScoped<ImportPreviewService>();builder.Services.AddScoped<ImportPreviewCleanupService>();

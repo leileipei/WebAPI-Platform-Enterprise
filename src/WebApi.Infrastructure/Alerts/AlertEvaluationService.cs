@@ -7,8 +7,9 @@ using WebApi.Domain.Alerts;
 using WebApi.Infrastructure.Observability;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Notifications;
 namespace WebApi.Infrastructure.Alerts;
-public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeResolver scopes,PrometheusMetricSource source,AlertEvaluationSettings settings,ILogger<AlertEvaluationService> logger)
+public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeResolver scopes,PrometheusMetricSource source,AlertEvaluationSettings settings,ILogger<AlertEvaluationService> logger,NotificationPlanner notifications)
 {
     public async Task<bool> EvaluateAsync(EvaluationLease lease,CancellationToken ct)
     {
@@ -50,7 +51,7 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
             if(retired&&active)state.SuppressedAt=null;
             state.LastCondition=null;state.EvaluationState="ScopeInactive";
             if(alert is not null){alert.EvaluationState="ScopeInactive";alert.LastCondition=null;alert.LastValue=null;}
-            if(retired&&active&&alert is not null)Resolve(alert,"ResourceRetired",now,correlation);
+            if(retired&&active&&alert is not null)await ResolveAsync(alert,"ResourceRetired",now,correlation,ct);
         }
         else
         {
@@ -64,13 +65,13 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
             if(decision.CreateEvent&&alert is null)
             {
                 alert=new(){RuleId=current.Id,RuleRevision=current.Revision,LogicRevision=current.LogicRevision,OrganizationId=state.OrganizationId,ProjectId=state.ProjectId,EnvironmentId=state.EnvironmentId,ResourceKey=state.ResourceKey,ResourceType=state.ResourceType,ResourceId=state.ResourceId,OccurrenceNo=state.NextOccurrenceNo++,Severity=current.Severity,Message=$"{current.Metric} 满足告警阈值。",RuleSummary=current.Name+" · "+current.Expression,StartedAt=now,ConditionStartedAt=decision.PendingSince??input.ObservedAt??now,EvaluationState="Known"};db.Add(alert);state.LastEventId=alert.Id;
-                db.Add(new AlertEventTransition{EventId=alert.Id,ToStatus="Open",Reason="Triggered",OccurredAt=now,CorrelationId=correlation});AlertSystemAudit.Add(db,alert,"alert.triggered","Triggered",now,correlation);
+                var transition=new AlertEventTransition{EventId=alert.Id,ToStatus="Open",Reason="Triggered",OccurredAt=now,CorrelationId=correlation};db.Add(transition);await notifications.OnTransitionAsync(alert,transition,ct);AlertSystemAudit.Add(db,alert,"alert.triggered","Triggered",now,correlation);
             }
             if(alert is not null)
             {
                 alert.EvaluationState=known?"Known":"Unknown";alert.LastCondition=decision.LastCondition;
                 if(advances){alert.LastObservedAt=input.ObservedAt;alert.LastValue=input.Value;}else if(!known)alert.LastValue=null;
-                if(decision.ResolveReason is not null)Resolve(alert,decision.ResolveReason,now,correlation);
+                if(decision.ResolveReason is not null)await ResolveAsync(alert,decision.ResolveReason,now,correlation,ct);
                 // The event command revision protects lifecycle facts. Observation metadata
                 // is already serialized by the rule/state/event locks and lease token.
             }
@@ -85,9 +86,9 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
         if(rule.TargetType=="Api")return await db.Set<Api>().AnyAsync(x=>x.Id==rule.TargetId&&x.ProjectId==rule.ProjectId&&x.OrganizationId==rule.OrganizationId,ct);
         return await(from d in db.Set<UpstreamDestination>() join c in db.Set<UpstreamCluster>() on d.ClusterId equals c.Id where d.Id==rule.TargetId&&c.ProjectId==rule.ProjectId&&c.EnvironmentId==rule.EnvironmentId select d.Id).AnyAsync(ct);
     }
-    private void Resolve(AlertEvent alert,string reason,DateTimeOffset now,string correlation)
+    private async Task ResolveAsync(AlertEvent alert,string reason,DateTimeOffset now,string correlation,CancellationToken ct)
     {
         var from=alert.Status;alert.Status="Resolved";alert.ResolvedAt=now;alert.ResolvedBy=null;alert.ResolveReason=reason;alert.SilencedUntil=null;alert.Revision++;
-        db.Add(new AlertEventTransition{EventId=alert.Id,FromStatus=from,ToStatus="Resolved",Reason=reason,OccurredAt=now,CorrelationId=correlation});AlertSystemAudit.Add(db,alert,"alert.resolved",reason,now,correlation);
+        var transition=new AlertEventTransition{EventId=alert.Id,FromStatus=from,ToStatus="Resolved",Reason=reason,OccurredAt=now,CorrelationId=correlation};db.Add(transition);if(reason=="ResourceRetired")await notifications.OnGovernanceClosureAsync(alert,transition,ct);else await notifications.OnTransitionAsync(alert,transition,ct);AlertSystemAudit.Add(db,alert,"alert.resolved",reason,now,correlation);
     }
 }

@@ -9,8 +9,9 @@ using WebApi.Infrastructure.Observability;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
+using WebApi.Infrastructure.Notifications;
 namespace WebApi.Infrastructure.Alerts;
-public sealed class AlertEventService(WebApiDbContext db,AuthorizationService authorization,ObservationScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings)
+public sealed class AlertEventService(WebApiDbContext db,AuthorizationService authorization,ObservationScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings,NotificationPlanner notifications)
 {
     internal static ScopeRef Scope(AlertEvent e)=>new(e.OrganizationId,e.ProjectId,e.EnvironmentId);
     private async Task<AlertEventDto> DtoAsync(AlertEvent e,CancellationToken ct)
@@ -67,7 +68,7 @@ public sealed class AlertEventService(WebApiDbContext db,AuthorizationService au
                         if(state is null){state=new(){RuleId=e.RuleId,LogicRevision=e.LogicRevision,OrganizationId=e.OrganizationId,ProjectId=e.ProjectId,EnvironmentId=e.EnvironmentId,ResourceKey=e.ResourceKey,ResourceType=e.ResourceType,ResourceId=e.ResourceId,LastEventId=e.Id,NextOccurrenceNo=e.OccurrenceNo+1};db.Add(state);}
                         state.Phase="SuppressedUntilRecovery";state.PendingSince=null;state.SuppressedAt=now;state.LastEventId=e.Id;state.LeaseToken++;state.LeaseOwner=null;state.LeaseUntil=null;state.Revision++;break;
                 }
-                if(changed){e.Revision++;db.Add(new AlertEventTransition{EventId=e.Id,FromStatus=from,ToStatus=e.Status,ActorId=actor.UserId,Reason=reason,OccurredAt=now,CorrelationId=actor.TraceId});}
+                if(changed){e.Revision++;var transition=new AlertEventTransition{EventId=e.Id,FromStatus=from,ToStatus=e.Status,ActorId=actor.UserId,Reason=reason,OccurredAt=now,CorrelationId=actor.TraceId};db.Add(transition);if(action.Kind!="Ack")await notifications.OnTransitionAsync(e,transition,inner);}
                 return await DtoAsync(e,inner);
             },token);
         },ct);
