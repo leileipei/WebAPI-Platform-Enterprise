@@ -1,6 +1,6 @@
 export const policyTypes:Record<string,string>;
 export function initialPolicyDraft(type:string):Record<string,any>;
-export function validatePolicyDraft(draft:any):string|null;
+export function validatePolicyDraft(draft:any,scope?:any):string|null;
 export function policyEditorReducer(state:any,event:any):any;
 export function copyDraft(source:any):any;
 export function refreshReview(review:any,revisions:any[],confirmed:boolean):any;
