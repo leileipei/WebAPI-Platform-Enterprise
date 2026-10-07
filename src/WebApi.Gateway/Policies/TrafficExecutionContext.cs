@@ -10,6 +10,7 @@ public sealed class TrafficExecutionContext(RuntimeGeneration generation,Runtime
     public RuntimeGeneration Generation {get;}=generation;public RuntimeRoute Route {get;}=route;public Guid? ApplicationId {get;set;}
     public CircuitAdmission? CircuitAdmission {get;internal set;}
     public CircuitBreakerState? CircuitState {get;internal set;}
+    internal string? CacheDisposition {get;set;}
     public VerifiedTrafficIdentity? VerifiedIdentity {get;internal set;}
     public IReadOnlyList<TrafficPolicyDecision> Decisions=>decisions.AsReadOnly();
     public void Record(RuntimePolicy policy,string decision,string? reason=null)
