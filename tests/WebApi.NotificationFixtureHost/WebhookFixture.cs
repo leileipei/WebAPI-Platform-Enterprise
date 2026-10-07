@@ -11,10 +11,10 @@ public sealed class WebhookFixtureOptions
     public WebhookFixtureOptions(byte[] key){if(key.Length is <32 or >64)throw new ArgumentException("Invalid fixture key.");Key=key.ToArray();}
 }
 public sealed record WebhookFixtureReceipt(Guid? DeliveryId,string Timestamp,bool SignatureValid,bool Tls,string? TlsProtocol,string BodyHash,int BodyBytes,int ReplyCode,bool RemoteAccepted,bool Duplicate,DateTimeOffset ObservedAt);
-public sealed class WebhookFixture(WebhookFixtureOptions options,TimeProvider clock)
+public sealed class WebhookFixture(WebhookFixtureOptions options,TimeProvider clock,FixtureJournal? journal=null)
 {
-    private readonly ConcurrentQueue<WebhookFixtureReceipt> receipts=new();
-    private readonly ConcurrentDictionary<Guid,byte> accepted=new();
+    private readonly ConcurrentQueue<WebhookFixtureReceipt> receipts=new(journal?.Webhook??[]);
+    private readonly ConcurrentDictionary<Guid,byte> accepted=new((journal?.Webhook??[]).Where(r=>r.RemoteAccepted&&r.DeliveryId is not null).Select(r=>r.DeliveryId!.Value).Distinct().Select(id=>new KeyValuePair<Guid,byte>(id,0)));
     private string mode="Accept";
     private string retryAfter="1";
     public IReadOnlyList<WebhookFixtureReceipt> Receipts=>receipts.ToArray();
@@ -32,13 +32,14 @@ public sealed class WebhookFixture(WebhookFixtureOptions options,TimeProvider cl
         var body=data.ToArray();var idText=context.Request.Headers["X-WebAPI-Delivery-Id"].ToString();var timestamp=context.Request.Headers["X-WebAPI-Timestamp"].ToString();var signature=context.Request.Headers["X-WebAPI-Signature"].ToString();Guid? id=Guid.TryParseExact(idText,"D",out var parsed)?parsed:null;
         var valid=context.Request.Headers["X-WebAPI-Delivery-Id"].Count==1&&context.Request.Headers["X-WebAPI-Timestamp"].Count==1&&context.Request.Headers["X-WebAPI-Signature"].Count==1&&id is not null&&id!=Guid.Empty&&Verify(id.Value,timestamp,signature,body);
         var selected=redirectTarget?"Accept":Volatile.Read(ref mode);var code=!valid?401:selected switch{"Temporary"=>500,"Permanent"=>400,"RateLimited"=>429,"Redirect"=>307,_=>202};var remoteAccepted=valid&&code==202;var duplicate=remoteAccepted&&!accepted.TryAdd(id!.Value,0);
-        receipts.Enqueue(new(id,valid?timestamp:"Invalid",valid,context.Request.IsHttps,context.Features.Get<ITlsHandshakeFeature>()?.Protocol.ToString(),Convert.ToHexStringLower(SHA256.HashData(body)),body.Length,code,remoteAccepted,duplicate,clock.GetUtcNow()));
+        Record(new(id,valid?timestamp:"Invalid",valid,context.Request.IsHttps,context.Features.Get<ITlsHandshakeFeature>()?.Protocol.ToString(),Convert.ToHexStringLower(SHA256.HashData(body)),body.Length,code,remoteAccepted,duplicate,clock.GetUtcNow()));
         if(valid&&selected=="Disconnect"){context.Abort();return;}
         if(valid&&selected=="Delay")await Task.Delay(TimeSpan.FromSeconds(15),ct);
         context.Response.StatusCode=code;if(code==429)context.Response.Headers.RetryAfter=Volatile.Read(ref retryAfter);
         if(code==307)context.Response.Headers.Location="/redirect-target";
         await context.Response.WriteAsync(selected=="Large"?new string('x',65536):"fixture receipt",ct);
     }
+    private void Record(WebhookFixtureReceipt receipt){journal?.Append(receipt);receipts.Enqueue(receipt);}
     // Independent receiver implementation; never calls the product signature helper.
     private bool Verify(Guid id,string timestamp,string signature,byte[] body)
     {

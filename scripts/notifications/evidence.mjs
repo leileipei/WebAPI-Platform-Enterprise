@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {screenshotSize} from '../approvals/evidence.mjs';
+export const requiredNotificationChecks=['smtp-single-recipient','smtp-required-tls','webhook-signature','webhook-429-budget','webhook-5xx-retry','unknown-disconnect','lease-fencing','worker-restart','silence-before-start','silence-in-flight','paired-recovery','secret-version-change','explicit-test-disabled','scope-read-denied','retry-write-denied','saved-revision-conflict'];
+export const requiredNotificationUiActions=['settings-1440','rules-1280','test-queued-receipt','delivery-attempts','retry-original-budget','keyboard-dialog','revoked-clear','event-link'];
+const sha=b=>createHash('sha256').update(b).digest('hex');
+export function validateNotificationEvidence(proof,files,{revision,imageId,privateValues=[]}={}){
+ try{
+  const same=value=>assert(value?.sourceRevision===revision&&value?.imageId===imageId,'内部源码/镜像身份不一致');
+  assert(/^[a-f0-9]{40}$/.test(revision)&&/^sha256:[a-f0-9]{64}$/.test(imageId),'无效固定身份');same(proof);
+  assert(proof.clone?.actual&&proof.clone.ownerVerified&&/^webapi-enterprise-local-test-[a-f0-9-]{36}$/.test(proof.clone.projectName),'缺少自有 UUID 克隆');
+  assert(Number.isInteger(proof.clone.consolePort)&&proof.clone.consolePort>1024&&![4180,4181,4192,4193,4194,4196,4197,5090].includes(proof.clone.consolePort),'禁止原实例验收');
+  same(proof.fixture);assert(proof.fixture.actual&&proof.fixture.ownerVerified&&proof.fixture.host==='notification-fixture'&&proof.fixture.tls,'缺少独立 TLS fixture');
+  const indexed=new Map();assert(files.length>0&&files.length===proof.manifest?.length,'文件清单缺失');
+  const scan=text=>{for(const value of privateValues)if(value)assert(!text.includes(value),'私有值泄漏');};scan(JSON.stringify(proof));
+  for(const file of files){assert(typeof file.path==='string'&&/^[a-zA-Z0-9_./-]+$/.test(file.path)&&!file.path.startsWith('/')&&!file.path.split('/').includes('..')&&!indexed.has(file.path)&&Buffer.isBuffer(file.content),'文件路径/内容无效');const hash=sha(file.content);assert(hash===file.sha256&&proof.manifest.some(m=>m.path===file.path&&m.sha256===hash),'文件摘要不一致');scan(file.content.toString());indexed.set(file.path,file);}
+  const read=name=>{assert(indexed.has(name),'缺少内部观察文件');return JSON.parse(indexed.get(name).content.toString());};
+  const runtime=read(proof.runtime?.observation);same(runtime);assert(runtime.ownerId===proof.clone.ownerId&&runtime.projectName===proof.clone.projectName&&runtime.imageLabel===revision&&runtime.originalConsolePort!==proof.clone.consolePort,'运行归属/镜像标签不一致');
+  const fixture=read(proof.fixture.observation);same(fixture);assert(fixture.ownerId===proof.clone.ownerId&&fixture.projectName===proof.clone.projectName&&fixture.binaryVerified===true&&/^[a-f0-9]{64}$/.test(fixture.binaryHash),'缺少 fixture 内部二进制身份');
+  const protocol=fixture.protocol;assert(protocol?.smtp?.length&&protocol?.webhook?.length,'缺少真实协议回执');assert.deepEqual(proof.protocol,protocol,'协议摘要与内部回执不一致');
+  assert(protocol.smtp.some(r=>r.deliveryId&&r.recipientCount===1&&r.ccCount===0&&r.bccCount===0&&r.tls&&r.authenticated&&r.accepted&&r.replyCode===250&&/^[a-f0-9]{64}$/.test(r.bodyHash)),'缺少单目标 TLS/AUTH/DATA250');
+  assert(protocol.webhook.some(r=>r.deliveryId&&r.signatureValid&&r.tls&&r.remoteAccepted&&r.replyCode===202&&/^[a-f0-9]{64}$/.test(r.bodyHash)),'缺少独立签名 TLS202');
+  for(const id of requiredNotificationChecks){const check=proof.checks?.find(c=>c.id===id);same(check);assert(check?.passed,'检查缺失：'+id);const observed=read(check.observation);same(observed);assert(observed.id===id&&observed.serviceResponse&&observed.actual!==undefined&&JSON.stringify(observed.actual)===JSON.stringify(observed.expected)&&observed.source==='actual-clone','检查内部观察不符：'+id);}
+  assert(proof.runtime.oldToolsUnchanged===true,'旧固定工具被改');for(const volume of ['dp-keys','notification-secrets','notification-fixture-secrets','notification-fixture-data'])assert(proof.runtime.backupVolumes?.includes(volume)&&runtime.backupVolumes?.includes(volume),'冷备卷遗漏');
+  same(proof.ui);assert(proof.ui.viewports?.includes(1440)&&proof.ui.viewports?.includes(1280),'视口缺失');const used=new Set();
+  for(const id of requiredNotificationUiActions){const action=proof.ui.actions?.find(a=>a.id===id);same(action);assert(action?.passed,'浏览器动作缺失：'+id);const file=indexed.get(action.screenshot);assert(file&&!used.has(file.sha256),'动作截图缺失或复用');used.add(file.sha256);assert.equal(screenshotSize(file.content).width,action.viewport);const observation=read(action.observation);same(observation);assert(observation.id===id&&observation.source==='cua'&&observation.viewport===action.viewport&&observation.screenshotSha256===file.sha256&&observation.consolePort===proof.clone.consolePort&&observation.actual===true,'旧截图改标或动作缺失');assert(Object.entries(observation.staticFiles??{}).length&&Object.entries(observation.staticFiles).every(([name,hash])=>runtime.staticFiles?.[name]===hash),'浏览器静态资源不属固定构建');}
+  return {passed:true,errors:[]};
+ }catch(error){return {passed:false,errors:[error instanceof Error?error.message:'Invalid notification evidence']};}
+}
+export function assertNotificationEvidence(proof,files,options){const result=validateNotificationEvidence(proof,files,options);if(!result.passed)throw Error(result.errors.join('; '));return result;}

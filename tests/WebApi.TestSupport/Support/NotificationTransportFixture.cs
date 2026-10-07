@@ -22,9 +22,10 @@ public sealed class NotificationTransportFixture:IAsyncDisposable
     private NotificationSecretResolver? secrets;
     public string RootCertificatePath=>Path.Combine(directory.FullName,"root.pem");
     public SmtpFixture Smtp=>app!.Services.GetRequiredService<SmtpFixture>();
+    public FixtureJournal WebhookJournal=>app!.Services.GetRequiredService<FixtureJournal>();
     public WebhookFixture Webhook=>app!.Services.GetRequiredService<WebhookFixture>();
     public Uri WebhookUrl {get;private set;}=null!;
-    public async Task InitializeAsync(bool tlsOnConnect=false,bool advertiseStartTls=true,bool expiredCertificate=false)
+    public async Task InitializeAsync(bool tlsOnConnect=false,bool advertiseStartTls=true,bool expiredCertificate=false,Action<WebApplicationBuilder>? configure=null)
     {
         using var rootKey=RSA.Create(2048);var rootRequest=new CertificateRequest("CN=WebAPI Notification Fixture Root "+Guid.NewGuid().ToString("D"),rootKey,System.Security.Cryptography.HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
         rootRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(true,false,0,true));rootRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.KeyCertSign|X509KeyUsageFlags.CrlSign,true));
@@ -36,7 +37,7 @@ public sealed class NotificationTransportFixture:IAsyncDisposable
         secrets=new(new(new Dictionary<string,string>{{"vault://fixture/smtp",smtpPath},{"vault://fixture/webhook",hookPath}}));
         var serverCertificate=certificate??throw new InvalidOperationException("Fixture certificate unavailable.");
         app=NotificationFixtureApp.Build(["--environment","Development"],builder=>{
-            builder.Logging.ClearProviders();builder.Services.AddSingleton(new SmtpFixtureOptions(serverCertificate,username,password,tlsOnConnect:tlsOnConnect,advertiseStartTls:advertiseStartTls));builder.Services.AddSingleton(new WebhookFixtureOptions(webhookKey));builder.WebHost.ConfigureKestrel(options=>options.Listen(IPAddress.Loopback,0,listen=>listen.UseHttps(serverCertificate)));
+            configure?.Invoke(builder);builder.Logging.ClearProviders();builder.Services.AddSingleton(new SmtpFixtureOptions(serverCertificate,username,password,tlsOnConnect:tlsOnConnect,advertiseStartTls:advertiseStartTls));builder.Services.AddSingleton(new WebhookFixtureOptions(webhookKey));builder.WebHost.ConfigureKestrel(options=>options.Listen(IPAddress.Loopback,0,listen=>listen.UseHttps(serverCertificate)));
         });await app.StartAsync();var address=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();WebhookUrl=new Uri("https://hook.fixture.test:"+new Uri(address).Port+"/notify");
     }
     public Task<NotificationSecret> SecretAsync(NotificationChannel channel)=>secrets!.ResolveAsync(channel==NotificationChannel.Email?"vault://fixture/smtp":"vault://fixture/webhook",channel);

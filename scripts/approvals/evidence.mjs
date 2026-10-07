@@ -34,3 +34,6 @@ export function validateApprovalEvidence(proof,files,{revision,imageId}){
  const used=new Set();for(const id of requiredApprovalUiActions){const action=proof.ui.actions?.find(a=>a.id===id);same(action);assert(action?.passed&&proof.ui.screenshots.includes(action.screenshot),'缺少实际浏览器动作：'+id);const file=indexed.get(action.screenshot);assert(file,'缺少动作截图。');assert(!used.has(file.sha256),'不同动作必须提供各自截图。');used.add(file.sha256);assert.equal(screenshotSize(file.content).width,action.viewport,'截图宽度与动作视口不一致。');}
  return {passed:true,errors:[]};
 }
+
+// Shared native JPEG/PNG integrity checks; no conversion of CUA captures.
+export {screenshotSize};

@@ -1,0 +1,123 @@
+{
+  "services": {
+    "notification-fixture": {
+      "image": "${WEBAPI_RUNTIME_IMAGE:?required}",
+      "user": "10001:10001",
+      "restart": "unless-stopped",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:size=33554432,mode=1777"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "dotnet",
+        "/app/notification-fixture/WebApi.NotificationFixtureHost.dll"
+      ],
+      "mem_limit": "256m",
+      "environment": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Fixture__SmtpPort": "2525",
+        "Fixture__HttpsPort": "9443",
+        "Fixture__ManagementPort": "8080",
+        "Fixture__CertificateFile": "/run/fixture/server.crt",
+        "Fixture__CertificateKeyFile": "/run/fixture/server.key",
+        "Fixture__SmtpCredentialsFile": "/run/fixture/smtp.json",
+        "Fixture__WebhookKeyFile": "/run/fixture/webhook.json",
+        "Fixture__OwnerTokenFile": "/run/fixture/owner-token",
+        "Fixture__OwnerId": "${WEBAPI_RUNTIME_OWNER:?required}",
+        "Fixture__ProjectName": "${WEBAPI_RUNTIME_PROJECT:?required}",
+        "Fixture__JournalDirectory": "/var/fixture",
+        "Fixture__BuildIdentityFile": "/app/build-identity.json"
+      },
+      "volumes": [
+        "notification-fixture-secrets:/run/fixture:ro",
+        "notification-fixture-data:/var/fixture"
+      ],
+      "ports": [
+        "127.0.0.1:${WEBAPI_NOTIFICATION_SMTP_PORT:?required}:2525",
+        "127.0.0.1:${WEBAPI_NOTIFICATION_HTTPS_PORT:?required}:9443",
+        "127.0.0.1:${WEBAPI_NOTIFICATION_MANAGEMENT_PORT:?required}:8080"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "dotnet",
+          "/app/runtime-tool/WebApi.RuntimeTool.dll",
+          "probe",
+          "http://127.0.0.1:8080/health"
+        ],
+        "interval": "5s",
+        "timeout": "6s",
+        "retries": 20
+      }
+    },
+    "init-notification-volumes": {
+      "image": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+      "user": "0:0",
+      "restart": "no",
+      "profiles": [
+        "tools"
+      ],
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      },
+      "command": [
+        "bash",
+        "/etc/runtime/init-notification-volumes.sh"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "CHOWN",
+        "DAC_OVERRIDE",
+        "FOWNER"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "volumes": [
+        "${WEBAPI_NOTIFICATION_SECRET_DIRECTORY:?required}:/input:ro",
+        "./runtime/init-notification-volumes.sh:/etc/runtime/init-notification-volumes.sh:ro",
+        "notification-secrets:/volumes/sender",
+        "notification-fixture-secrets:/volumes/fixture",
+        "notification-fixture-data:/volumes/data"
+      ]
+    },
+    "control-plane": {
+      "volumes": [
+        "notification-secrets:/run/notifications:ro"
+      ]
+    },
+    "worker": {
+      "volumes": [
+        "notification-secrets:/run/notifications:ro"
+      ]
+    }
+  },
+  "volumes": {
+    "notification-secrets": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "notification-fixture-secrets": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "notification-fixture-data": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    }
+  }
+}

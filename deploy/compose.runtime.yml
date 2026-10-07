@@ -147,10 +147,13 @@
         "Alerts__IntervalSeconds": "15",
         "Alerts__QueryDelaySeconds": "30",
         "Alerts__LeaseSeconds": "30",
-        "Alerts__MaxConcurrentEvaluations": "4"
+        "Alerts__MaxConcurrentEvaluations": "4",
+        "DataProtection__KeysDirectory": "/keys",
+        "DataProtection__ApplicationName": "WebApi.Enterprise.Local.v1"
       },
       "volumes": [
-        "secrets-worker:/run/secrets:ro"
+        "secrets-worker:/run/secrets:ro",
+        "dp-keys:/keys:ro"
       ]
     },
     "console": {

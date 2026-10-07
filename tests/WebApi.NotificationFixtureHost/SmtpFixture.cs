@@ -22,9 +22,9 @@ public sealed class SmtpFixtureOptions
     {Certificate=certificate;Username=username;Password=password;Port=port;TlsOnConnect=tlsOnConnect;AdvertiseStartTls=advertiseStartTls;ListenAddress=listenAddress??IPAddress.Loopback;}
 }
 public sealed record SmtpFixtureReceipt(Guid SessionId,Guid? DeliveryId,string? MessageId,int RecipientCount,bool Tls,bool Authenticated,bool Accepted,int? ReplyCode,string? BodyHash,int CcCount,int BccCount,DateTimeOffset ObservedAt);
-public sealed class SmtpFixture(SmtpFixtureOptions options):IHostedService,IDisposable
+public sealed class SmtpFixture(SmtpFixtureOptions options,FixtureJournal? journal=null):IHostedService,IDisposable
 {
-    private readonly ConcurrentQueue<SmtpFixtureReceipt> receipts=new();
+    private readonly ConcurrentQueue<SmtpFixtureReceipt> receipts=new(journal?.Smtp??[]);
     private readonly ConcurrentDictionary<Guid,TcpClient> clients=new();
     private readonly ConcurrentDictionary<Guid,Task> sessions=new();
     private readonly CancellationTokenSource shutdown=new();
@@ -97,7 +97,7 @@ public sealed class SmtpFixture(SmtpFixtureOptions options):IHostedService,IDisp
                     if(mime.Body is MimePart {Content:{} content}){await using var decoded=new MemoryStream();await content.DecodeToAsync(decoded,ct);bodyHash=Convert.ToHexStringLower(SHA256.HashData(decoded.ToArray()));}
                     if(selectedMode=="Delay")await Task.Delay(TimeSpan.FromSeconds(15),ct);
                     replyCode=selectedMode switch{"Temporary"=>451,"Permanent"=>550,_=>250};accepted=replyCode==250;
-                    receipts.Enqueue(new(id,delivery,messageId,recipientCount,tls,authenticated,accepted,selectedMode=="AcceptThenDisconnect"?null:replyCode,bodyHash,cc,bcc,DateTimeOffset.UtcNow));
+                    Record(new(id,delivery,messageId,recipientCount,tls,authenticated,accepted,selectedMode=="AcceptThenDisconnect"?null:replyCode,bodyHash,cc,bcc,DateTimeOffset.UtcNow));
                     if(selectedMode=="AcceptThenDisconnect")break;
                     await Reply(replyCode switch{451=>"451 4.3.0 Temporary fixture failure",550=>"550 5.0.0 Permanent fixture failure",_=>"250 2.0.0 Accepted"});
                 }
@@ -110,11 +110,12 @@ public sealed class SmtpFixture(SmtpFixtureOptions options):IHostedService,IDisp
         catch(Exception error)when(error is IOException or AuthenticationException or OperationCanceledException or SocketException or FormatException or ObjectDisposedException){ }
         finally
         {
-            if(delivery is null)receipts.Enqueue(new(id,null,null,recipientCount,tls,authenticated,false,replyCode,null,0,0,DateTimeOffset.UtcNow));
+            if(delivery is null)Record(new(id,null,null,recipientCount,tls,authenticated,false,replyCode,null,0,0,DateTimeOffset.UtcNow));
             try{reader?.Dispose();writer?.Dispose();await stream.DisposeAsync();}catch(Exception error)when(error is IOException or ObjectDisposedException){ }
             client.Dispose();clients.TryRemove(id,out _);
         }
     }
+    private void Record(SmtpFixtureReceipt receipt){journal?.Append(receipt);receipts.Enqueue(receipt);}
     private static bool Equal(string left,string right)=>CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(left),Encoding.UTF8.GetBytes(right));
     public async Task StopAsync(CancellationToken ct)
     {shutdown.Cancel();listener.Stop();foreach(var client in clients.Values)client.Dispose();if(accepting is not null)await accepting;await Task.WhenAll(sessions.Values).WaitAsync(ct);}
