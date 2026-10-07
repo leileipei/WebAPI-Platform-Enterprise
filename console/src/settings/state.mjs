@@ -1,6 +1,7 @@
+import {notificationSettingsInput} from '../notifications/settings-state.mjs';
 import {ssoAuthorityKey} from '../sso/state.mjs';
 export function createSettingsState(){return {group:'security',loaded:null,values:null,etag:null,dirty:false,requestEpoch:0,conflict:false,conflictReviewed:false,idempotencyKey:null};}
-export function toSettingsInput(response){const values=structuredClone(response.values);if(response.group==='notification'){values.smtpSecretRef={operation:'Keep'};values.webhookSecretRef={operation:'Keep'};}return values;}
+export function toSettingsInput(response){return response.group==='notification'?notificationSettingsInput(response):structuredClone(response.values);}
 export function applySettingsResponse(state,response,requestEpoch){if(state.requestEpoch!==requestEpoch||state.group!==response.group)return state;return {...state,loaded:response,conflictReviewed:state.conflict,etag:'"'+response.revision+'"',values:state.dirty?state.values:toSettingsInput(response)};}
 export function invalidateSettingsState(state){return {...createSettingsState(),group:state.group,requestEpoch:state.requestEpoch+1};}
 export function applySettingsFailure(state,status){return [401,403,404].includes(status)?invalidateSettingsState(state):status===412?{...state,conflict:true,conflictReviewed:false}:state;}

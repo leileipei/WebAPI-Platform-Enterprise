@@ -118,11 +118,11 @@
 
 **Interfaces:** `notificationSettingsInput(dto) -> values`保留Keep引用操作；`notificationTestState(state,event) -> state`按请求epoch/revision区分Queued/Accepted/Failed等；`NotificationSettingsPanel({state,onChange,onTest})`复用原设置保存/预览，`NotificationTestDialog({channel,revision,onClose})`只选择Email接收人或已保存WebHook目标。
 
-- [ ] **Step 1：写状态用例。** `queuedTestIsNotSuccess`：`assert.equal(label({status:'Queued'}),'已排队，等待实际回执')`；`unsavedOrStaleRevisionCannotBeTested`、`secretKeepNeverBecomesPlaceholderReplace`、`lateReceiptCannotOverwriteNewRevision`、`deniedClearsTargetAndSecretDraft`；测试错误不覆盖dirty/412输入，渠道关闭仍能明确发测试。
-- [ ] **Step 2：RED。** Run `N --test console/tests/notification-settings.test.mjs`，模块可加载后断言失败。
-- [ ] **Step 3：实现。** 展示3新增字段、收件/地址名单来源、实际启用效果及轮换影响；“校验配置”和“发送测试”分按钮；Test受saved/etag条件，202只显示排队并轮询自身回执。未保存导航/焦点/Escape沿用现有状态保护，秘密不回显。
-- [ ] **Step 4：GREEN。** 同上及 `./scripts/check-console.sh`，Node全测试和TypeScript/Vite构建通过。
-- [ ] **Step 5：提交。** `feat(console): manage notification activation and actual test receipts`。
+- [x] **Step 1：写状态用例。** `queuedTestIsNotSuccess`：`assert.equal(label({status:'Queued'}),'已排队，等待实际回执')`；`unsavedOrStaleRevisionCannotBeTested`、`secretKeepNeverBecomesPlaceholderReplace`、`lateReceiptCannotOverwriteNewRevision`、`deniedClearsTargetAndSecretDraft`；测试错误不覆盖dirty/412输入，渠道关闭仍能明确发测试。
+- [x] **Step 2：RED。** Run `N --test console/tests/notification-settings.test.mjs`，模块可加载后断言失败。
+- [x] **Step 3：实现。** 展示3新增字段、收件/地址名单来源、实际启用效果及轮换影响；“校验配置”和“发送测试”分按钮；Test受saved/etag条件，202只显示排队并轮询自身回执。未保存导航/焦点/Escape沿用现有状态保护，秘密不回显。
+- [x] **Step 4：GREEN。** 同上及 `./scripts/check-console.sh`，Node全测试和TypeScript/Vite构建通过。
+- [x] **Step 5：提交。** `feat(console): manage notification activation and actual test receipts`。
 
 ## Task 7 (N7)：规则通知策略与告警投递记录 UI
 
