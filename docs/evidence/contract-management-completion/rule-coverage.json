@@ -1,0 +1,614 @@
+[
+  {
+    "ruleId": "schema.types",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "types.integer_number",
+      "types.union_null",
+      "types.nullable30",
+      "types.boolean",
+      "schema.types.same"
+    ],
+    "executedTestIds": [
+      "types.integer_number/request",
+      "types.integer_number/response",
+      "types.union_null/request",
+      "types.union_null/response",
+      "types.nullable30/request",
+      "types.nullable30/response",
+      "types.boolean/request",
+      "types.boolean/response",
+      "schema.types.same/request",
+      "schema.types.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.enum_const",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "enum.widen",
+      "enum.deep_const",
+      "enum.numeric_precision",
+      "schema.enum_const.same"
+    ],
+    "executedTestIds": [
+      "enum.widen/request",
+      "enum.widen/response",
+      "enum.deep_const/request",
+      "enum.deep_const/response",
+      "enum.numeric_precision/request",
+      "enum.numeric_precision/response",
+      "schema.enum_const.same/request",
+      "schema.enum_const.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.number_bounds",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "number.bounds",
+      "number.exclusive",
+      "number.exclusive30",
+      "schema.number_bounds.same"
+    ],
+    "executedTestIds": [
+      "number.bounds/request",
+      "number.bounds/response",
+      "number.exclusive/request",
+      "number.exclusive/response",
+      "number.exclusive30/request",
+      "number.exclusive30/response",
+      "schema.number_bounds.same/request",
+      "schema.number_bounds.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.multiple_of",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "number.multiple",
+      "number.multiple_cross",
+      "schema.multiple_of.same"
+    ],
+    "executedTestIds": [
+      "number.multiple/request",
+      "number.multiple/response",
+      "number.multiple_cross/request",
+      "number.multiple_cross/response",
+      "schema.multiple_of.same/request",
+      "schema.multiple_of.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.string_length",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "string.length",
+      "schema.string_length.same"
+    ],
+    "executedTestIds": [
+      "string.length/request",
+      "string.length/response",
+      "schema.string_length.same/request",
+      "schema.string_length.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.pattern",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "string.pattern_same",
+      "string.pattern_changed",
+      "string.no_witness",
+      "schema.pattern.same"
+    ],
+    "executedTestIds": [
+      "string.pattern_same/request",
+      "string.pattern_same/response",
+      "string.pattern_changed/request",
+      "string.pattern_changed/response",
+      "string.no_witness/request",
+      "string.no_witness/response",
+      "schema.pattern.same/request",
+      "schema.pattern.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.format",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "format.annotation",
+      "schema.format.same"
+    ],
+    "executedTestIds": [
+      "format.annotation/request",
+      "format.annotation/response",
+      "schema.format.same/request",
+      "schema.format.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.object_members",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "object.required",
+      "object.optional_closed",
+      "object.optional_open",
+      "schema.object_members.same"
+    ],
+    "executedTestIds": [
+      "object.required/request",
+      "object.required/response",
+      "object.optional_closed/request",
+      "object.optional_closed/response",
+      "object.optional_open/request",
+      "object.optional_open/response",
+      "schema.object_members.same/request",
+      "schema.object_members.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.object_patterns",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "object.pattern_properties",
+      "object.property_names",
+      "schema.object_patterns.same"
+    ],
+    "executedTestIds": [
+      "object.pattern_properties/request",
+      "object.pattern_properties/response",
+      "object.property_names/request",
+      "object.property_names/response",
+      "schema.object_patterns.same/request",
+      "schema.object_patterns.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.object_size",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "object.cardinality",
+      "schema.object_size.same"
+    ],
+    "executedTestIds": [
+      "object.cardinality/request",
+      "object.cardinality/response",
+      "schema.object_size.same/request",
+      "schema.object_size.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.dependencies",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "object.dependent_required",
+      "object.dependent_schema",
+      "schema.dependencies.same"
+    ],
+    "executedTestIds": [
+      "object.dependent_required/request",
+      "object.dependent_required/response",
+      "object.dependent_schema/request",
+      "object.dependent_schema/response",
+      "schema.dependencies.same/request",
+      "schema.dependencies.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.array_items",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "array.items",
+      "array.prefix",
+      "schema.array_items.same"
+    ],
+    "executedTestIds": [
+      "array.items/request",
+      "array.items/response",
+      "array.prefix/request",
+      "array.prefix/response",
+      "schema.array_items.same/request",
+      "schema.array_items.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.array_size",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "array.size",
+      "schema.array_size.same"
+    ],
+    "executedTestIds": [
+      "array.size/request",
+      "array.size/response",
+      "schema.array_size.same/request",
+      "schema.array_size.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.array_unique",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "array.unique",
+      "schema.array_unique.same"
+    ],
+    "executedTestIds": [
+      "array.unique/request",
+      "array.unique/response",
+      "schema.array_unique.same/request",
+      "schema.array_unique.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.array_contains",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "array.contains",
+      "schema.array_contains.same"
+    ],
+    "executedTestIds": [
+      "array.contains/request",
+      "array.contains/response",
+      "schema.array_contains.same/request",
+      "schema.array_contains.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.composition",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "composition.anyof",
+      "composition.allof",
+      "composition.oneof_overlap",
+      "schema.composition.same"
+    ],
+    "executedTestIds": [
+      "composition.anyof/request",
+      "composition.anyof/response",
+      "composition.allof/request",
+      "composition.allof/response",
+      "composition.oneof_overlap/request",
+      "composition.oneof_overlap/response",
+      "schema.composition.same/request",
+      "schema.composition.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.conditionals",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "composition.not",
+      "composition.if",
+      "schema.conditionals.same"
+    ],
+    "executedTestIds": [
+      "composition.not/request",
+      "composition.not/response",
+      "composition.if/request",
+      "composition.if/response",
+      "schema.conditionals.same/request",
+      "schema.conditionals.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.unevaluated",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "unevaluated.properties",
+      "unevaluated.items",
+      "schema.unevaluated.same"
+    ],
+    "executedTestIds": [
+      "unevaluated.properties/request",
+      "unevaluated.properties/response",
+      "unevaluated.items/request",
+      "unevaluated.items/response",
+      "schema.unevaluated.same/request",
+      "schema.unevaluated.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.direction",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "direction.readonly",
+      "direction.writeonly",
+      "schema.direction.same"
+    ],
+    "executedTestIds": [
+      "direction.readonly/request",
+      "direction.readonly/response",
+      "direction.writeonly/request",
+      "direction.writeonly/response",
+      "schema.direction.same/request",
+      "schema.direction.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.annotations",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "annotations.defaults",
+      "annotations.discriminator",
+      "schema.annotations.same"
+    ],
+    "executedTestIds": [
+      "annotations.defaults/request",
+      "annotations.defaults/response",
+      "annotations.discriminator/request",
+      "annotations.discriminator/response",
+      "schema.annotations.same/request",
+      "schema.annotations.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.content",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "annotations.content",
+      "schema.content.same"
+    ],
+    "executedTestIds": [
+      "annotations.content/request",
+      "annotations.content/response",
+      "schema.content.same/request",
+      "schema.content.same/response"
+    ]
+  },
+  {
+    "ruleId": "schema.vocabulary",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "vocabulary.custom"
+    ],
+    "executedTestIds": [
+      "vocabulary.custom/request",
+      "vocabulary.custom/response"
+    ]
+  },
+  {
+    "ruleId": "schema.references",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "FiniteExternalReferencesRespectEachFixedBundle",
+      "RecursiveRefTerminatesAndUnknownIsVisible",
+      "MissingReferenceIsNeverCompatibleEvenWhenTextIsEqual"
+    ],
+    "executedTestIds": [
+      "FiniteExternalReferencesRespectEachFixedBundle",
+      "RecursiveRefTerminatesAndUnknownIsVisible",
+      "MissingReferenceIsNeverCompatibleEvenWhenTextIsEqual"
+    ]
+  },
+  {
+    "ruleId": "schema.dynamic_references",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "DynamicScopeChangeIsExplicitlyUnknown"
+    ],
+    "executedTestIds": [
+      "DynamicScopeChangeIsExplicitlyUnknown"
+    ]
+  },
+  {
+    "ruleId": "openapi.operations",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "operation.add",
+      "operation.remove",
+      "path.template_ambiguity",
+      "OperationMetadataChangesRemainVisibleWithoutContractRisk"
+    ],
+    "executedTestIds": [
+      "operation.add",
+      "operation.remove",
+      "path.template_ambiguity",
+      "OperationMetadataChangesRemainVisibleWithoutContractRisk"
+    ]
+  },
+  {
+    "ruleId": "openapi.parameters",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "parameter.path_inheritance",
+      "parameter.defaults",
+      "parameter.serialization",
+      "parameter.header_case",
+      "parameter.required",
+      "parameter.content",
+      "MaintainedRequestParametersAreProvedTogetherAndRemovalStaysUnknown",
+      "UndefinedComplexParameterWireCannotClaimComplete",
+      "ContradictoryMaintainedParameterSourceRemainsVisible"
+    ],
+    "executedTestIds": [
+      "parameter.path_inheritance",
+      "parameter.defaults",
+      "parameter.serialization",
+      "parameter.header_case",
+      "parameter.required",
+      "parameter.content",
+      "MaintainedRequestParametersAreProvedTogetherAndRemovalStaysUnknown",
+      "UndefinedComplexParameterWireCannotClaimComplete",
+      "ContradictoryMaintainedParameterSourceRemainsVisible"
+    ]
+  },
+  {
+    "ruleId": "openapi.request",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "request.required",
+      "request.media_remove",
+      "request.media_add",
+      "request.encoding",
+      "schema.cross_dialect_nullable",
+      "FullHttpParentEmptinessPreventsParameterAndStatusFalsePositives"
+    ],
+    "executedTestIds": [
+      "request.required",
+      "request.media_remove",
+      "request.media_add",
+      "request.encoding",
+      "schema.cross_dialect_nullable",
+      "FullHttpParentEmptinessPreventsParameterAndStatusFalsePositives"
+    ]
+  },
+  {
+    "ruleId": "openapi.responses",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "response.range_narrow",
+      "response.new_status",
+      "response.explicit_priority",
+      "response.default_priority",
+      "response.media_narrow",
+      "response.new_media",
+      "response.header_schema",
+      "response.required_header_remove",
+      "MaintainedResponsesUseExactStatusBeforeDefault",
+      "MaintainedDefaultResponseCoversStatusesBeyondTwoHundred",
+      "UnmappedMaintainedResponseChangesAreIncludedInOperationParent",
+      "UnknownResponseHeaderStyleCannotClaimComplete"
+    ],
+    "executedTestIds": [
+      "response.range_narrow",
+      "response.new_status",
+      "response.explicit_priority",
+      "response.default_priority",
+      "response.media_narrow",
+      "response.new_media",
+      "response.header_schema",
+      "response.required_header_remove",
+      "MaintainedResponsesUseExactStatusBeforeDefault",
+      "MaintainedDefaultResponseCoversStatusesBeyondTwoHundred",
+      "UnmappedMaintainedResponseChangesAreIncludedInOperationParent",
+      "UnknownResponseHeaderStyleCannotClaimComplete"
+    ]
+  },
+  {
+    "ruleId": "openapi.security",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "security.inheritance",
+      "security.anonymous",
+      "security.tighten",
+      "security.or_and",
+      "security.and_or",
+      "security.scope_tighten",
+      "security.scope_relax",
+      "security.implementation_change",
+      "OrAndAndScopesArePositiveFullPredicates",
+      "NonOAuthRolesRespectTheSelectedOpenApiDialect",
+      "OAuthFlowStructureAndUnknownFieldsAreNotSilentlyIgnored",
+      "ReferencedOperationResolvesAuthenticationInItsOwnSourceDocument"
+    ],
+    "executedTestIds": [
+      "security.inheritance",
+      "security.anonymous",
+      "security.tighten",
+      "security.or_and",
+      "security.and_or",
+      "security.scope_tighten",
+      "security.scope_relax",
+      "security.implementation_change",
+      "OrAndAndScopesArePositiveFullPredicates",
+      "NonOAuthRolesRespectTheSelectedOpenApiDialect",
+      "OAuthFlowStructureAndUnknownFieldsAreNotSilentlyIgnored",
+      "ReferencedOperationResolvesAuthenticationInItsOwnSourceDocument"
+    ]
+  },
+  {
+    "ruleId": "openapi.coverage",
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+    "complete": true,
+    "registeredTestIds": [
+      "callback.visible_coverage",
+      "extension.visible_coverage",
+      "ImportedVersionComparesOnlyItsSelectedOperationWhileKeepingTheWholeSourcePackage",
+      "ComparisonUsesImmutableExternalSourcesRatherThanFetchingOrDroppingThem",
+      "MappedMaintenanceDoesNotEraseOriginalSourceConflict",
+      "UnusedSchemasHaveStructuralReferenceAndDynamicCoverage",
+      "StrictModeCoversUnusedUnregisteredFormats",
+      "PreviouslySavedIndependentMaintenanceSourceCanBeReconstructed",
+      "V2AdmitsLegalDocumentAndSourcePairAboveTheOldTwoMiBLimit",
+      "PrivateMaintenanceDocumentMayExceedOneSourceDocumentButNotSideBudget",
+      "ReferenceChainCannotExceedThePrivateTraversalBudget",
+      "OpenApiFindingPointersDoNotConcatenateTwoDocumentRoots",
+      "CurrentRulesRecordTheParameterAndSecurityFamiliesActuallyApplied"
+    ],
+    "executedTestIds": [
+      "callback.visible_coverage",
+      "extension.visible_coverage",
+      "ImportedVersionComparesOnlyItsSelectedOperationWhileKeepingTheWholeSourcePackage",
+      "ComparisonUsesImmutableExternalSourcesRatherThanFetchingOrDroppingThem",
+      "MappedMaintenanceDoesNotEraseOriginalSourceConflict",
+      "UnusedSchemasHaveStructuralReferenceAndDynamicCoverage",
+      "StrictModeCoversUnusedUnregisteredFormats",
+      "PreviouslySavedIndependentMaintenanceSourceCanBeReconstructed",
+      "V2AdmitsLegalDocumentAndSourcePairAboveTheOldTwoMiBLimit",
+      "PrivateMaintenanceDocumentMayExceedOneSourceDocumentButNotSideBudget",
+      "ReferenceChainCannotExceedThePrivateTraversalBudget",
+      "OpenApiFindingPointersDoNotConcatenateTwoDocumentRoots",
+      "CurrentRulesRecordTheParameterAndSecurityFamiliesActuallyApplied"
+    ]
+  }
+]

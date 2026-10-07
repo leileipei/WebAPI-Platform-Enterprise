@@ -1,0 +1,11 @@
+{
+  "name": "integration",
+  "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+  "passed": 506,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "974f01cb41e8fee17e5dd2950de7e5c8c3785c532453bf0a35af259eb5591e43",
+  "passedTestLines": [],
+  "artifact": "docs/evidence/contract-management-completion/tests-integration.json"
+}

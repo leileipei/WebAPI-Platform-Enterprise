@@ -1,0 +1,11 @@
+{
+  "name": "gateway",
+  "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+  "passed": 52,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "4108acbe0f4ef2a8243878480118c0985bcecca92efbd78bd074e31fa8589492",
+  "passedTestLines": [],
+  "artifact": "docs/evidence/contract-management-completion/tests-gateway.json"
+}

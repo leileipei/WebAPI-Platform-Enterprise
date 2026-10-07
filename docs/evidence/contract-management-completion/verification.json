@@ -1,0 +1,986 @@
+{
+  "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+  "imageId": "sha256:10478f8f638f13823cb7daf0f2d0cd446da8d18b3a9caed80393bf2c214f4275",
+  "passed": true,
+  "failed": [],
+  "notExecuted": [],
+  "checks": [
+    {
+      "id": "C01",
+      "name": "JSON/YAML与三入口",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/scenario.json",
+        "docs/evidence/contract-management-completion/ui-proof.json"
+      ]
+    },
+    {
+      "id": "C02",
+      "name": "解析边界与取消",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/tests-domain.json",
+        "docs/evidence/contract-management-completion/tests-integration.json",
+        "docs/evidence/contract-management-completion/ui-proof.json"
+      ]
+    },
+    {
+      "id": "C03",
+      "name": "SSRF与获取资源限制",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/tests-integration.json",
+        "docs/evidence/contract-management-completion/scenario.json"
+      ]
+    },
+    {
+      "id": "C04",
+      "name": "固定预览与授权/修订绑定",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/tests-integration.json",
+        "docs/evidence/contract-management-completion/scenario.json"
+      ]
+    },
+    {
+      "id": "C05",
+      "name": "离线引用图",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/tests-domain.json",
+        "docs/evidence/contract-management-completion/tests-integration.json"
+      ]
+    },
+    {
+      "id": "C06",
+      "name": "Operation映射与方言语义",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/scenario.json",
+        "docs/evidence/contract-management-completion/tests-integration.json",
+        "docs/evidence/contract-management-completion/ui-proof.json"
+      ]
+    },
+    {
+      "id": "C07",
+      "name": "数据库原子性/幂等/竞争",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/tests-integration.json",
+        "docs/evidence/contract-management-completion/scenario.json"
+      ]
+    },
+    {
+      "id": "C08",
+      "name": "兼容规则可追踪",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/rule-coverage.json",
+        "docs/evidence/contract-management-completion/tests-domain.json"
+      ]
+    },
+    {
+      "id": "C09",
+      "name": "全父接受域证明与反例",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/tests-domain.json",
+        "docs/evidence/contract-management-completion/rule-coverage.json"
+      ]
+    },
+    {
+      "id": "C10",
+      "name": "固定官方套件与独立适配",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/tests-domain.json"
+      ]
+    },
+    {
+      "id": "C11",
+      "name": "Schema树/原文/并发/只读",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/ui-proof.json",
+        "docs/evidence/contract-management-completion/tests-integration.json"
+      ]
+    },
+    {
+      "id": "C12",
+      "name": "示例方向/格式/定位/未完成",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/ui-proof.json",
+        "docs/evidence/contract-management-completion/scenario.json",
+        "docs/evidence/contract-management-completion/tests-domain.json"
+      ]
+    },
+    {
+      "id": "C13",
+      "name": "v1历史证据及v2冻结发布",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/tests-integration.json",
+        "docs/evidence/contract-management-completion/scenario.json"
+      ]
+    },
+    {
+      "id": "C14",
+      "name": "双宽度真实交互",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/ui-proof.json",
+        "docs/evidence/contract-management-completion/scenario.json"
+      ]
+    },
+    {
+      "id": "C15",
+      "name": "固定构建/恢复/原实例保护",
+      "status": "Passed",
+      "kind": "actual",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "evidence": [
+        "docs/evidence/contract-management-completion/protection.json",
+        "docs/evidence/contract-management-completion/tests-domain.json",
+        "docs/evidence/contract-management-completion/tests-integration.json",
+        "docs/evidence/contract-management-completion/tests-gateway.json",
+        "docs/evidence/contract-management-completion/tests-console.json",
+        "docs/evidence/contract-management-completion/tests-runtime-contracts.json"
+      ]
+    }
+  ],
+  "ruleCoverage": [
+    {
+      "ruleId": "schema.types",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "types.integer_number",
+        "types.union_null",
+        "types.nullable30",
+        "types.boolean",
+        "schema.types.same"
+      ],
+      "executedTestIds": [
+        "types.integer_number/request",
+        "types.integer_number/response",
+        "types.union_null/request",
+        "types.union_null/response",
+        "types.nullable30/request",
+        "types.nullable30/response",
+        "types.boolean/request",
+        "types.boolean/response",
+        "schema.types.same/request",
+        "schema.types.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.enum_const",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "enum.widen",
+        "enum.deep_const",
+        "enum.numeric_precision",
+        "schema.enum_const.same"
+      ],
+      "executedTestIds": [
+        "enum.widen/request",
+        "enum.widen/response",
+        "enum.deep_const/request",
+        "enum.deep_const/response",
+        "enum.numeric_precision/request",
+        "enum.numeric_precision/response",
+        "schema.enum_const.same/request",
+        "schema.enum_const.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.number_bounds",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "number.bounds",
+        "number.exclusive",
+        "number.exclusive30",
+        "schema.number_bounds.same"
+      ],
+      "executedTestIds": [
+        "number.bounds/request",
+        "number.bounds/response",
+        "number.exclusive/request",
+        "number.exclusive/response",
+        "number.exclusive30/request",
+        "number.exclusive30/response",
+        "schema.number_bounds.same/request",
+        "schema.number_bounds.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.multiple_of",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "number.multiple",
+        "number.multiple_cross",
+        "schema.multiple_of.same"
+      ],
+      "executedTestIds": [
+        "number.multiple/request",
+        "number.multiple/response",
+        "number.multiple_cross/request",
+        "number.multiple_cross/response",
+        "schema.multiple_of.same/request",
+        "schema.multiple_of.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.string_length",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "string.length",
+        "schema.string_length.same"
+      ],
+      "executedTestIds": [
+        "string.length/request",
+        "string.length/response",
+        "schema.string_length.same/request",
+        "schema.string_length.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.pattern",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "string.pattern_same",
+        "string.pattern_changed",
+        "string.no_witness",
+        "schema.pattern.same"
+      ],
+      "executedTestIds": [
+        "string.pattern_same/request",
+        "string.pattern_same/response",
+        "string.pattern_changed/request",
+        "string.pattern_changed/response",
+        "string.no_witness/request",
+        "string.no_witness/response",
+        "schema.pattern.same/request",
+        "schema.pattern.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.format",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "format.annotation",
+        "schema.format.same"
+      ],
+      "executedTestIds": [
+        "format.annotation/request",
+        "format.annotation/response",
+        "schema.format.same/request",
+        "schema.format.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.object_members",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "object.required",
+        "object.optional_closed",
+        "object.optional_open",
+        "schema.object_members.same"
+      ],
+      "executedTestIds": [
+        "object.required/request",
+        "object.required/response",
+        "object.optional_closed/request",
+        "object.optional_closed/response",
+        "object.optional_open/request",
+        "object.optional_open/response",
+        "schema.object_members.same/request",
+        "schema.object_members.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.object_patterns",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "object.pattern_properties",
+        "object.property_names",
+        "schema.object_patterns.same"
+      ],
+      "executedTestIds": [
+        "object.pattern_properties/request",
+        "object.pattern_properties/response",
+        "object.property_names/request",
+        "object.property_names/response",
+        "schema.object_patterns.same/request",
+        "schema.object_patterns.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.object_size",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "object.cardinality",
+        "schema.object_size.same"
+      ],
+      "executedTestIds": [
+        "object.cardinality/request",
+        "object.cardinality/response",
+        "schema.object_size.same/request",
+        "schema.object_size.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.dependencies",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "object.dependent_required",
+        "object.dependent_schema",
+        "schema.dependencies.same"
+      ],
+      "executedTestIds": [
+        "object.dependent_required/request",
+        "object.dependent_required/response",
+        "object.dependent_schema/request",
+        "object.dependent_schema/response",
+        "schema.dependencies.same/request",
+        "schema.dependencies.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.array_items",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "array.items",
+        "array.prefix",
+        "schema.array_items.same"
+      ],
+      "executedTestIds": [
+        "array.items/request",
+        "array.items/response",
+        "array.prefix/request",
+        "array.prefix/response",
+        "schema.array_items.same/request",
+        "schema.array_items.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.array_size",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "array.size",
+        "schema.array_size.same"
+      ],
+      "executedTestIds": [
+        "array.size/request",
+        "array.size/response",
+        "schema.array_size.same/request",
+        "schema.array_size.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.array_unique",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "array.unique",
+        "schema.array_unique.same"
+      ],
+      "executedTestIds": [
+        "array.unique/request",
+        "array.unique/response",
+        "schema.array_unique.same/request",
+        "schema.array_unique.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.array_contains",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "array.contains",
+        "schema.array_contains.same"
+      ],
+      "executedTestIds": [
+        "array.contains/request",
+        "array.contains/response",
+        "schema.array_contains.same/request",
+        "schema.array_contains.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.composition",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "composition.anyof",
+        "composition.allof",
+        "composition.oneof_overlap",
+        "schema.composition.same"
+      ],
+      "executedTestIds": [
+        "composition.anyof/request",
+        "composition.anyof/response",
+        "composition.allof/request",
+        "composition.allof/response",
+        "composition.oneof_overlap/request",
+        "composition.oneof_overlap/response",
+        "schema.composition.same/request",
+        "schema.composition.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.conditionals",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "composition.not",
+        "composition.if",
+        "schema.conditionals.same"
+      ],
+      "executedTestIds": [
+        "composition.not/request",
+        "composition.not/response",
+        "composition.if/request",
+        "composition.if/response",
+        "schema.conditionals.same/request",
+        "schema.conditionals.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.unevaluated",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "unevaluated.properties",
+        "unevaluated.items",
+        "schema.unevaluated.same"
+      ],
+      "executedTestIds": [
+        "unevaluated.properties/request",
+        "unevaluated.properties/response",
+        "unevaluated.items/request",
+        "unevaluated.items/response",
+        "schema.unevaluated.same/request",
+        "schema.unevaluated.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.direction",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "direction.readonly",
+        "direction.writeonly",
+        "schema.direction.same"
+      ],
+      "executedTestIds": [
+        "direction.readonly/request",
+        "direction.readonly/response",
+        "direction.writeonly/request",
+        "direction.writeonly/response",
+        "schema.direction.same/request",
+        "schema.direction.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.annotations",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "annotations.defaults",
+        "annotations.discriminator",
+        "schema.annotations.same"
+      ],
+      "executedTestIds": [
+        "annotations.defaults/request",
+        "annotations.defaults/response",
+        "annotations.discriminator/request",
+        "annotations.discriminator/response",
+        "schema.annotations.same/request",
+        "schema.annotations.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.content",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "annotations.content",
+        "schema.content.same"
+      ],
+      "executedTestIds": [
+        "annotations.content/request",
+        "annotations.content/response",
+        "schema.content.same/request",
+        "schema.content.same/response"
+      ]
+    },
+    {
+      "ruleId": "schema.vocabulary",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "vocabulary.custom"
+      ],
+      "executedTestIds": [
+        "vocabulary.custom/request",
+        "vocabulary.custom/response"
+      ]
+    },
+    {
+      "ruleId": "schema.references",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "FiniteExternalReferencesRespectEachFixedBundle",
+        "RecursiveRefTerminatesAndUnknownIsVisible",
+        "MissingReferenceIsNeverCompatibleEvenWhenTextIsEqual"
+      ],
+      "executedTestIds": [
+        "FiniteExternalReferencesRespectEachFixedBundle",
+        "RecursiveRefTerminatesAndUnknownIsVisible",
+        "MissingReferenceIsNeverCompatibleEvenWhenTextIsEqual"
+      ]
+    },
+    {
+      "ruleId": "schema.dynamic_references",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "DynamicScopeChangeIsExplicitlyUnknown"
+      ],
+      "executedTestIds": [
+        "DynamicScopeChangeIsExplicitlyUnknown"
+      ]
+    },
+    {
+      "ruleId": "openapi.operations",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "operation.add",
+        "operation.remove",
+        "path.template_ambiguity",
+        "OperationMetadataChangesRemainVisibleWithoutContractRisk"
+      ],
+      "executedTestIds": [
+        "operation.add",
+        "operation.remove",
+        "path.template_ambiguity",
+        "OperationMetadataChangesRemainVisibleWithoutContractRisk"
+      ]
+    },
+    {
+      "ruleId": "openapi.parameters",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "parameter.path_inheritance",
+        "parameter.defaults",
+        "parameter.serialization",
+        "parameter.header_case",
+        "parameter.required",
+        "parameter.content",
+        "MaintainedRequestParametersAreProvedTogetherAndRemovalStaysUnknown",
+        "UndefinedComplexParameterWireCannotClaimComplete",
+        "ContradictoryMaintainedParameterSourceRemainsVisible"
+      ],
+      "executedTestIds": [
+        "parameter.path_inheritance",
+        "parameter.defaults",
+        "parameter.serialization",
+        "parameter.header_case",
+        "parameter.required",
+        "parameter.content",
+        "MaintainedRequestParametersAreProvedTogetherAndRemovalStaysUnknown",
+        "UndefinedComplexParameterWireCannotClaimComplete",
+        "ContradictoryMaintainedParameterSourceRemainsVisible"
+      ]
+    },
+    {
+      "ruleId": "openapi.request",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "request.required",
+        "request.media_remove",
+        "request.media_add",
+        "request.encoding",
+        "schema.cross_dialect_nullable",
+        "FullHttpParentEmptinessPreventsParameterAndStatusFalsePositives"
+      ],
+      "executedTestIds": [
+        "request.required",
+        "request.media_remove",
+        "request.media_add",
+        "request.encoding",
+        "schema.cross_dialect_nullable",
+        "FullHttpParentEmptinessPreventsParameterAndStatusFalsePositives"
+      ]
+    },
+    {
+      "ruleId": "openapi.responses",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "response.range_narrow",
+        "response.new_status",
+        "response.explicit_priority",
+        "response.default_priority",
+        "response.media_narrow",
+        "response.new_media",
+        "response.header_schema",
+        "response.required_header_remove",
+        "MaintainedResponsesUseExactStatusBeforeDefault",
+        "MaintainedDefaultResponseCoversStatusesBeyondTwoHundred",
+        "UnmappedMaintainedResponseChangesAreIncludedInOperationParent",
+        "UnknownResponseHeaderStyleCannotClaimComplete"
+      ],
+      "executedTestIds": [
+        "response.range_narrow",
+        "response.new_status",
+        "response.explicit_priority",
+        "response.default_priority",
+        "response.media_narrow",
+        "response.new_media",
+        "response.header_schema",
+        "response.required_header_remove",
+        "MaintainedResponsesUseExactStatusBeforeDefault",
+        "MaintainedDefaultResponseCoversStatusesBeyondTwoHundred",
+        "UnmappedMaintainedResponseChangesAreIncludedInOperationParent",
+        "UnknownResponseHeaderStyleCannotClaimComplete"
+      ]
+    },
+    {
+      "ruleId": "openapi.security",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "security.inheritance",
+        "security.anonymous",
+        "security.tighten",
+        "security.or_and",
+        "security.and_or",
+        "security.scope_tighten",
+        "security.scope_relax",
+        "security.implementation_change",
+        "OrAndAndScopesArePositiveFullPredicates",
+        "NonOAuthRolesRespectTheSelectedOpenApiDialect",
+        "OAuthFlowStructureAndUnknownFieldsAreNotSilentlyIgnored",
+        "ReferencedOperationResolvesAuthenticationInItsOwnSourceDocument"
+      ],
+      "executedTestIds": [
+        "security.inheritance",
+        "security.anonymous",
+        "security.tighten",
+        "security.or_and",
+        "security.and_or",
+        "security.scope_tighten",
+        "security.scope_relax",
+        "security.implementation_change",
+        "OrAndAndScopesArePositiveFullPredicates",
+        "NonOAuthRolesRespectTheSelectedOpenApiDialect",
+        "OAuthFlowStructureAndUnknownFieldsAreNotSilentlyIgnored",
+        "ReferencedOperationResolvesAuthenticationInItsOwnSourceDocument"
+      ]
+    },
+    {
+      "ruleId": "openapi.coverage",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "logHash": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "complete": true,
+      "registeredTestIds": [
+        "callback.visible_coverage",
+        "extension.visible_coverage",
+        "ImportedVersionComparesOnlyItsSelectedOperationWhileKeepingTheWholeSourcePackage",
+        "ComparisonUsesImmutableExternalSourcesRatherThanFetchingOrDroppingThem",
+        "MappedMaintenanceDoesNotEraseOriginalSourceConflict",
+        "UnusedSchemasHaveStructuralReferenceAndDynamicCoverage",
+        "StrictModeCoversUnusedUnregisteredFormats",
+        "PreviouslySavedIndependentMaintenanceSourceCanBeReconstructed",
+        "V2AdmitsLegalDocumentAndSourcePairAboveTheOldTwoMiBLimit",
+        "PrivateMaintenanceDocumentMayExceedOneSourceDocumentButNotSideBudget",
+        "ReferenceChainCannotExceedThePrivateTraversalBudget",
+        "OpenApiFindingPointersDoNotConcatenateTwoDocumentRoots",
+        "CurrentRulesRecordTheParameterAndSecurityFamiliesActuallyApplied"
+      ],
+      "executedTestIds": [
+        "callback.visible_coverage",
+        "extension.visible_coverage",
+        "ImportedVersionComparesOnlyItsSelectedOperationWhileKeepingTheWholeSourcePackage",
+        "ComparisonUsesImmutableExternalSourcesRatherThanFetchingOrDroppingThem",
+        "MappedMaintenanceDoesNotEraseOriginalSourceConflict",
+        "UnusedSchemasHaveStructuralReferenceAndDynamicCoverage",
+        "StrictModeCoversUnusedUnregisteredFormats",
+        "PreviouslySavedIndependentMaintenanceSourceCanBeReconstructed",
+        "V2AdmitsLegalDocumentAndSourcePairAboveTheOldTwoMiBLimit",
+        "PrivateMaintenanceDocumentMayExceedOneSourceDocumentButNotSideBudget",
+        "ReferenceChainCannotExceedThePrivateTraversalBudget",
+        "OpenApiFindingPointersDoNotConcatenateTwoDocumentRoots",
+        "CurrentRulesRecordTheParameterAndSecurityFamiliesActuallyApplied"
+      ]
+    }
+  ],
+  "stage": "pre-install",
+  "originalInstallation": "not-upgraded",
+  "suites": [
+    {
+      "name": "domain",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "passed": 610,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "68b63410d3d623f2e814020b0a45b3727ae1dd1df566b7f13c8ee4c7ed864194",
+      "artifact": "docs/evidence/contract-management-completion/tests-domain.json"
+    },
+    {
+      "name": "integration",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "passed": 506,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "974f01cb41e8fee17e5dd2950de7e5c8c3785c532453bf0a35af259eb5591e43",
+      "artifact": "docs/evidence/contract-management-completion/tests-integration.json"
+    },
+    {
+      "name": "gateway",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "passed": 52,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "4108acbe0f4ef2a8243878480118c0985bcecca92efbd78bd074e31fa8589492",
+      "artifact": "docs/evidence/contract-management-completion/tests-gateway.json"
+    },
+    {
+      "name": "console",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "passed": 154,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "c68c3ae9c9e636ebb48b864892fa3883ef7e9aa0eb4e78fce865260f5239d952",
+      "artifact": "docs/evidence/contract-management-completion/tests-console.json"
+    },
+    {
+      "name": "runtime-contracts",
+      "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+      "passed": 114,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "961fb2d1f381c5a1971b7ae4819555b430266a2199bac57f3f986aad6209bf8e",
+      "artifact": "docs/evidence/contract-management-completion/tests-runtime-contracts.json"
+    }
+  ],
+  "ui": {
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "kind": "cua",
+    "actual": true,
+    "widths": [
+      1440,
+      1280
+    ],
+    "completedAt": "2026-10-07T05:15:32.195Z",
+    "actions": [
+      "URL YAML 固定预览",
+      "Operation 勾选与映射脏表单 Escape 焦点返回",
+      "慢响应 504 和取消预览后旧响应不覆盖新输入",
+      "文本 JSON 整批提交并进入 API 详情",
+      "文件 YAML 根文件及附带引用包可导入预览，缺失引用禁用提交",
+      "Schema 特殊 Pointer 改名与未知字段原文保留",
+      "Tab/ShiftTab 循环，Enter 不隐式保存",
+      "示例 Valid/Invalid/Incomplete，语法错误及来源切换清除旧结果",
+      "真实 412 保留草稿，查看及采用最新修订，显式保存 R3",
+      "示例不匹配仍可保存合法工作定义",
+      "封存版本与只读角色无保存入口，只读示例实际 Valid",
+      "比较 Limited/Breaking/Unknown 与来源冲突可见",
+      "风险说明和强确认门禁，GUI AcceptedRisk 记录",
+      "携带风险引用进入现有向导，预览并提交两级审批申请"
+    ],
+    "screenshots": [
+      "docs/evidence/contract-management-completion/approval-submitted-1280.png",
+      "docs/evidence/contract-management-completion/comparison-1280.png",
+      "docs/evidence/contract-management-completion/import-file-bundle-1280.png",
+      "docs/evidence/contract-management-completion/import-result-1440.png",
+      "docs/evidence/contract-management-completion/import-url-1440.png",
+      "docs/evidence/contract-management-completion/schema-conflict-1280.png",
+      "docs/evidence/contract-management-completion/schema-readonly-1280.png",
+      "docs/evidence/contract-management-completion/schema-saved-1280.png",
+      "docs/evidence/contract-management-completion/schema-sealed-1280.png",
+      "docs/evidence/contract-management-completion/schema-tree-example-1440.png"
+    ],
+    "limitations": [
+      "浏览器文件选择器两次响应很慢，timeout 未及时终止等待；上传最终成功",
+      "未知 Schema 关键字导致校验 Incomplete；另一个 QA 操作者显式移除合成未知关键字后完成并发保存，不宣称未知关键字可正常保存",
+      "GUI 流程提交到 WaitingApproval；真正两级审批发布、双网关 ACK/请求和回滚由同提交隔离 HTTP 场景完成"
+    ]
+  },
+  "clone": {
+    "time": "2026-10-07T03:37:24.765Z",
+    "complete": true,
+    "restored": true,
+    "actual": true,
+    "ownerVerified": true,
+    "physicalVolumes": 7,
+    "backupHashVerified": true,
+    "originalSourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+    "originalAdminLogin": true,
+    "protectedTablesPreserved": 33,
+    "dualGatewayStatuses": [
+      200,
+      200
+    ],
+    "originalRuntimeUnchanged": true
+  },
+  "artifacts": [
+    {
+      "path": "docs/evidence/contract-management-completion/approval-submitted-1280.png",
+      "sha256": "cdba4660b1b08d205100276aa165962ed59d6406eb2c267ef057f6a5393e3b21"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/comparison-1280.png",
+      "sha256": "f4002b8411539f3544eb4b4eb695bc8d572f3dfd29a942755b2e0e701203ccf7"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/import-file-bundle-1280.png",
+      "sha256": "dad3c71a3ff2c49dd0cf1c5ba7154e2f4aa94287086c4c6d386a36121d4d7fc1"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/import-result-1440.png",
+      "sha256": "d56f3f4872b575fb58b933f2419848794ad0cbda4f5418366bfd6811658bae16"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/import-url-1440.png",
+      "sha256": "00e288fb2fd9f9c20a713eb27221ef35e45cf38f76ed6fdb36e5afe0cf407985"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/protection.json",
+      "sha256": "fba199a25018b1db094b15ff01c96a9aaaa3ac7517d22d71a2045eac8b4b7347"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/rule-coverage.json",
+      "sha256": "db7a987eb1ef6072e51826e8a86bb1fc96a25e01b861986919f9a98235455da6"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/scenario.json",
+      "sha256": "d8b46bf30739ee1fa80ad2e83c35d7d421e2ee97d03f227a9f834aede9907ae2"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/schema-conflict-1280.png",
+      "sha256": "3ea9dd8694e01d4320ed2b4c8f72f12e45af47f010236fff10e80500627f8520"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/schema-readonly-1280.png",
+      "sha256": "0a253ff53de4871c25c3a20300cb3bdd3fef62c408e4c321934d8ceebba73644"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/schema-saved-1280.png",
+      "sha256": "6dafb52aa9cba5b4901093c608405595a7440ab172bbce34ab46a690b5885acf"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/schema-sealed-1280.png",
+      "sha256": "0569f934ce1df2ed70f4760698a801ad04e8dabaa80c436b43ca360bdbc8ef32"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/schema-tree-example-1440.png",
+      "sha256": "8e07dc7fbf7f1dcafd74bfec3fc304004fa0b2c0819e1337ef022e49e1bd1809"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/tests-console.json",
+      "sha256": "93657239fb5ab271e76f3b1fa462b2220939e35e32452d8834f9af42c99802b9"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/tests-domain.json",
+      "sha256": "81cdbb9a192f1897144e598f519158d8da428b12ce857ac246645bea89466515"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/tests-gateway.json",
+      "sha256": "8799b30b3059eef7a6022468a66b7ba58bba48b3fddef8b86fd626526e09b0b6"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/tests-integration.json",
+      "sha256": "bafbbcd9ba599b56322c719b82ab7ea163760150d2f3698233814036e4bb735d"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/tests-runtime-contracts.json",
+      "sha256": "b3a1bebcbcd567c72899d8ceb763a830d70df36e83a4fa0bcbb7e0502ef33df3"
+    },
+    {
+      "path": "docs/evidence/contract-management-completion/ui-proof.json",
+      "sha256": "b124176421ee9f5d5422fb057f3d106690f9f858aadebd1b3868a11e8917022b"
+    }
+  ]
+}

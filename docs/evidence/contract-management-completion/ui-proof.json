@@ -1,0 +1,43 @@
+{
+  "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+  "kind": "cua",
+  "actual": true,
+  "widths": [
+    1440,
+    1280
+  ],
+  "completedAt": "2026-10-07T05:15:32.195Z",
+  "actions": [
+    "URL YAML 固定预览",
+    "Operation 勾选与映射脏表单 Escape 焦点返回",
+    "慢响应 504 和取消预览后旧响应不覆盖新输入",
+    "文本 JSON 整批提交并进入 API 详情",
+    "文件 YAML 根文件及附带引用包可导入预览，缺失引用禁用提交",
+    "Schema 特殊 Pointer 改名与未知字段原文保留",
+    "Tab/ShiftTab 循环，Enter 不隐式保存",
+    "示例 Valid/Invalid/Incomplete，语法错误及来源切换清除旧结果",
+    "真实 412 保留草稿，查看及采用最新修订，显式保存 R3",
+    "示例不匹配仍可保存合法工作定义",
+    "封存版本与只读角色无保存入口，只读示例实际 Valid",
+    "比较 Limited/Breaking/Unknown 与来源冲突可见",
+    "风险说明和强确认门禁，GUI AcceptedRisk 记录",
+    "携带风险引用进入现有向导，预览并提交两级审批申请"
+  ],
+  "screenshots": [
+    "docs/evidence/contract-management-completion/approval-submitted-1280.png",
+    "docs/evidence/contract-management-completion/comparison-1280.png",
+    "docs/evidence/contract-management-completion/import-file-bundle-1280.png",
+    "docs/evidence/contract-management-completion/import-result-1440.png",
+    "docs/evidence/contract-management-completion/import-url-1440.png",
+    "docs/evidence/contract-management-completion/schema-conflict-1280.png",
+    "docs/evidence/contract-management-completion/schema-readonly-1280.png",
+    "docs/evidence/contract-management-completion/schema-saved-1280.png",
+    "docs/evidence/contract-management-completion/schema-sealed-1280.png",
+    "docs/evidence/contract-management-completion/schema-tree-example-1440.png"
+  ],
+  "limitations": [
+    "浏览器文件选择器两次响应很慢，timeout 未及时终止等待；上传最终成功",
+    "未知 Schema 关键字导致校验 Incomplete；另一个 QA 操作者显式移除合成未知关键字后完成并发保存，不宣称未知关键字可正常保存",
+    "GUI 流程提交到 WaitingApproval；真正两级审批发布、双网关 ACK/请求和回滚由同提交隔离 HTTP 场景完成"
+  ]
+}

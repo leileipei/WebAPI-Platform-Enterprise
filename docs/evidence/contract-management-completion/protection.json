@@ -1,0 +1,53 @@
+{
+  "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+  "stage": "pre-install",
+  "originalInstallation": "not-upgraded",
+  "originalSourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+  "originalPreserved": true,
+  "protectedTables": 33,
+  "protectedLocalFiles": 645,
+  "secretAndMetadataFiles": 20,
+  "fixedMaintenanceFiles": 96,
+  "historicalArchives": 28,
+  "backup": {
+    "time": "2026-10-07T03:36:16.218Z",
+    "complete": true,
+    "originalSourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+    "platformVolumes": 7,
+    "idpVolumes": 4,
+    "platformFiles": 20,
+    "idpFiles": 12,
+    "hashReadback": true,
+    "originalServicesRestored": true,
+    "originalDataAndProtectedFilesPreserved": true
+  },
+  "restore": {
+    "time": "2026-10-07T03:37:24.765Z",
+    "complete": true,
+    "restored": true,
+    "actual": true,
+    "ownerVerified": true,
+    "physicalVolumes": 7,
+    "backupHashVerified": true,
+    "originalSourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+    "originalAdminLogin": true,
+    "protectedTablesPreserved": 33,
+    "dualGatewayStatuses": [
+      200,
+      200
+    ],
+    "originalRuntimeUnchanged": true
+  },
+  "software": {
+    "time": "2026-10-07T03:39:58.179Z",
+    "complete": true,
+    "sourceRevision": "b45c471e51ec6e05a63372fb91035ee2761878b7",
+    "imageId": "sha256:10478f8f638f13823cb7daf0f2d0cd446da8d18b3a9caed80393bf2c214f4275",
+    "oldSoftwareRollbackVerified": true,
+    "migrationNotReversed": true,
+    "onlyNewTables": 3,
+    "protectedTablesPreserved": 33,
+    "originalRuntimeUnchanged": true,
+    "actualApplicationContainers": 5
+  }
+}
