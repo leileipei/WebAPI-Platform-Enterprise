@@ -149,7 +149,8 @@
         "Alerts__LeaseSeconds": "30",
         "Alerts__MaxConcurrentEvaluations": "4",
         "DataProtection__KeysDirectory": "/keys",
-        "DataProtection__ApplicationName": "WebApi.Enterprise.Local.v1"
+        "DataProtection__ApplicationName": "WebApi.Enterprise.Local.v1",
+        "DOTNET_ENVIRONMENT": "Development"
       },
       "volumes": [
         "secrets-worker:/run/secrets:ro",
