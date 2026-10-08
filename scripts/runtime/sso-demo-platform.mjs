@@ -32,7 +32,7 @@ export async function provisionSsoDemo({runtimeDirectory,directory,passwordFile,
   const tested=await admin.request('/settings/sso/providers/'+provider.id+'/test',{method:'POST',body:{},headers:{'If-Match':'"'+provider.revision+'"'}});if(tested.status!=='Passed')throw new RuntimeError('Provider structural test failed; platform user not provisioned.');
 
   let user=(await admin.request('/users?search=sso-demo-viewer')).items.find(u=>u.username==='sso-demo-viewer');
-  if(!user)user=await admin.request('/users/sso',{method:'POST',body:{username:'sso-demo-viewer',displayName:'本机 SSO 演示 · 只读用户',email:'sso-demo-viewer@example.test',providerId:provider.id,subject:ctx.state.subject}});
+  if(!user)user=await admin.request('/users/sso',{method:'POST',body:{username:'sso-demo-viewer',displayName:'本机 SSO 演示 · 只读用户',email:actual.username+'@example.test',providerId:provider.id,subject:ctx.state.subject}});
   if(rebindRestored)user=await rebindRestoredViewer(ctx,admin,user,provider);
   const binding=await admin.request('/users/'+user.id+'/external-identity');if(binding.providerId!==provider.id||binding.subject!==ctx.state.subject)throw new RuntimeError('Existing viewer binding differs; refusing account takeover.');
   const role=(await admin.request('/roles')).find(r=>r.code==='Viewer');if(!role)throw new RuntimeError('Viewer role missing.');
