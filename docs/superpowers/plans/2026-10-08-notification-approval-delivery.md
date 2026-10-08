@@ -58,8 +58,8 @@
 
 **Interfaces:** `validateNotificationApprovalEvidence(proof,files,{revision,imageId,bridgeRevision,privateValues}) -> AcceptanceResult`；本批JS AcceptanceResult固定 `{passed:boolean,errors:string[]}`，ScenarioResult必须含内部身份、每项checks、protocol observations与截图/动作manifest；`verifySuiteLogs(logs,{revision}) -> SuiteReceipt`复用已存在日志解析函数，不复用旧Passed标签。
 
-- [ ] **Step 1：材料门禁RED。** 缺恢复/混合Scope/5xx实际次数/静默竞态、错源镜像/桥接SHA、伪共享密钥证明、UI截图无实际动作、公开秘密/邮箱、旧1629数字重贴、非UUID克隆等必须拒绝。Run `N --test tests/notification-approval/evidence.test.mjs`确认真实行为失败。
-- [ ] **Step 2：实现及GREEN。** 汇总N8/A3/D1内部证据，逐SHA/CRC/真实身份核对；更新Coverage仅声明已有实际证据的能力，企业IM/企业端点/生产验收仍边界明确。测试log归属当前源码，镜像inspect包括5运行应用及Console静态资源。
+- [x] **Step 1：材料门禁RED。** 缺恢复/混合Scope/5xx实际次数/静默竞态、错源镜像/桥接SHA、伪共享密钥证明、UI截图无实际动作、公开秘密/邮箱、旧1629数字重贴、非UUID克隆等必须拒绝。Run `N --test tests/notification-approval/evidence.test.mjs`确认真实行为失败。
+- [x] **Step 2：实现及GREEN。** 汇总N8/A3/D1内部证据，逐SHA/CRC/真实身份核对；更新Coverage仅声明已有实际证据的能力，企业IM/企业端点/生产验收仍边界明确。测试log归属当前源码，镜像inspect包括5运行应用及Console静态资源。
 - [ ] **Step 3：完整实际执行。** 精确提交产品及driver后Gitarchive构建锁定7应用/Console和自有fixture镜像。Run `./scripts/check-contracts.sh domain`、`integration`、`gateway`、`./scripts/check-console.sh`及`N --test tests/runtime/*.test.mjs`五套完整回归，exit0/零fail/skip；本批新增Node测试另计，不能漏算。执行N8/A3/D1完整实际克隆+两级发布/双ACK、SSO、所有观测源、JWT/retry/cache已有能力回归及1440/1280CUA，计数来自本次日志。
 - [ ] **Step 4：唯一整分支审查。** 用requesting-code-review按已确认Native做一次独立整个分支审查，覆盖全部A/N/D及桥接patch。所有Critical/Important集中一次修复批；每项写Ruling和cost if wrong，延期Minor逐项列出。变更后固定新SHA、重建受影响镜像/实际用例、重新取得必要完整日志，不改标旧证据，不追加逐任务二审。
 - [ ] **Step 5：封存提交。** 实际门禁通过后`test(delivery): record verified notification and approval candidate`；pre-install只写候选/克隆验收，尚未安装原4192。保留历史成功与失败材料的身份与摘要。

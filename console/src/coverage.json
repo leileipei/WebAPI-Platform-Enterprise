@@ -60,7 +60,7 @@
     "sourceRoute": "/apis/new",
     "route": "/apis",
     "status": "核心功能已接入",
-    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+    "note": "API 与版本编辑、修订保护、Schema 工作台及固定导入预览；详情从对应列表进入。"
   },
   {
     "id": 8,
@@ -140,8 +140,8 @@
     "name": "策略中心",
     "sourceRoute": "/policies",
     "route": "/policies",
-    "status": "真实流量策略已接入",
-    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；四类策略已接入本机控制台。"
+    "status": "六类流量策略已接入",
+    "note": "认证（API Key/JWT）、超时、Redis 共享限流、节点独立熔断、重试与缓存六类策略；审批发布、引用保护和 412 保留输入。"
   },
   {
     "id": 17,
@@ -149,8 +149,8 @@
     "name": "策略编辑器",
     "sourceRoute": "/policies/{id}",
     "route": "/policies",
-    "status": "真实流量策略已接入",
-    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；四类策略已接入本机控制台。"
+    "status": "六类流量策略已接入",
+    "note": "JWT 映射/JWKS、重试预算与确定性安全边界、缓存身份隔离及 Redis 故障模式；结构化编辑与原文共享草稿。"
   },
   {
     "id": 18,
@@ -204,7 +204,7 @@
     "sourceRoute": "/releases/{id}",
     "route": "/releases",
     "status": "核心功能已接入",
-    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+    "note": "当前步骤与独立席位审批、自审批拒绝、冻结审批流、双网关 ACK 与发布回滚；详情返回审批中心保留筛选。"
   },
   {
     "id": 24,
@@ -212,8 +212,8 @@
     "name": "审批中心",
     "sourceRoute": "/approvals",
     "route": "/approvals",
-    "status": "核心功能已接入",
-    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+    "status": "跨环境审批已接入",
+    "note": "跨授权环境查询；服务端待我审批与总量、分页、状态/环境筛选，混合 Scope 与只读权限区分；冲突保留意见，撤权清除受限内容。"
   },
   {
     "id": 25,
@@ -293,8 +293,8 @@
     "name": "告警规则",
     "sourceRoute": "/observability/alert-rules",
     "route": "/observability/alert-rules",
-    "status": "真实规则已接入",
-    "note": "创建/编辑/启停、范围预览与只读测试、412保留输入；外部通知仅保存意向"
+    "status": "规则与外部通知已接入",
+    "note": "创建/编辑/启停、范围预览与只读测试、412 保留输入；Email/Webhook、恢复配对、重试预算与静默冻结，实际投递/尝试历史和事件跳转。"
   },
   {
     "id": 34,
@@ -357,6 +357,6 @@
     "sourceRoute": "/settings/system",
     "route": "/settings/system",
     "status": "真实系统设置已接入",
-    "note": "平台级五组17字段；保存/预览/引用操作/修订保护与审计已接入本机控制台。新登录、新账号、新路由和审计CSV有实际消费者；部署参数、保留目标与通知仅配置意向。"
+    "note": "平台五组设置及通知开关/TLS/秘密引用；保存、预览、Keep/Replace/Clear、修订保护与审计。显式测试返回 Queued，投递记录显示 Accepted/Unknown；部署参数与保留目标需按消费者分别验收。"
   }
 ]
