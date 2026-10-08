@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "complete": true,
+  "archiveFiles": 697,
+  "archiveHashReadback": true,
+  "retainedBackups": 6,
+  "clones": [
+    {
+      "ownerId": "110e9f3e-c4d2-4dfc-90cc-aaba23c99d4c",
+      "projectName": "webapi-enterprise-local-test-808ce204-c0f9-4b79-b598-07c6b5167c7a",
+      "consolePort": 58631,
+      "containersRemaining": 0,
+      "networksRemaining": 0,
+      "dataVolumesRetained": 17
+    },
+    {
+      "ownerId": "8c4a6182-262c-4498-8d34-b3c5c9146230",
+      "projectName": "webapi-enterprise-local-test-6ddad4c4-6027-489c-837d-dc87b45b2640",
+      "consolePort": 58831,
+      "containersRemaining": 0,
+      "networksRemaining": 0,
+      "dataVolumesRetained": 14
+    },
+    {
+      "ownerId": "78380ede-3da3-47b3-ad14-1bcd5a89134b",
+      "projectName": "webapi-enterprise-local-test-4d83bf8b-2377-4e85-b1dd-e67c854e60ef",
+      "consolePort": 58931,
+      "containersRemaining": 0,
+      "networksRemaining": 0,
+      "dataVolumesRetained": 17
+    }
+  ],
+  "idp": {
+    "containersRemaining": 0,
+    "networksRemaining": 0,
+    "volumesRetained": 4
+  },
+  "historicalWorktreesAndFilesPreserved": true,
+  "historical57531Untouched": true,
+  "scratchDeleted": false,
+  "imagesRetained": true,
+  "globalPrune": false,
+  "originalPhase": "Ready"
+}

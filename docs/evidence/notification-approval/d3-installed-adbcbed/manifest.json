@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "files": {
+    "installed-status.json": "bc44d7348cfab28573678b7df5c162d3f48ed00ae0fadceb73f47008e1dcd6e4",
+    "backup-summary.json": "b62dc59c3a49bd21110a25ed73e7576a3446c8b99def1333c24bba6104990c7b",
+    "cleanup-status.json": "4e68d9dfe7115404f237002cca2a53f6e93a34f428de04ff529690de320f597d",
+    "original-protection.json": "306e51561bfa51fe899e1e07fd2562072e3058cbabe68b147c30c39ec296d854",
+    "merged-features.log": "cc62f5e2352cc61cb465146b211837b7c145dc0a8064b34d89e1b3682520246f",
+    "delivery-guards.log": "90dcf535eef106c7ff3af70198f04f9ad90c207f23766d5b1025010bf8f8cb5d",
+    "ui/original-notification-default-off.jpg": "2aea3274cc4800cd4d31b3f0f33d1511875897fb2022ec82ad40f03565bd9a3f",
+    "ui/original-notification-default-off.json": "328d465bb55537355eea6bd7094d313e6efe2ff267b4d8f1c8e103d330419627",
+    "ui/original-approvals-preserved.jpg": "6cdcffcc3b49e20c2a26548b0a628e62f4d5783ee4645ed8f364be2506bb72bf",
+    "ui/original-approvals-preserved.json": "07460595633079de6591255386e2358001382db62fc459a7db3d4821f4bc997e",
+    "ui-actions.json": "75d00ca3753a5b318f7f73c67c4068d7c6c0b75f9880d7e18cfbb900ad5b5385",
+    "acceptance.json": "5e0787cc501ff3c032fb7079bde06910a699c0401eb5651bcdb34cfea0ed6d3e"
+  }
+}

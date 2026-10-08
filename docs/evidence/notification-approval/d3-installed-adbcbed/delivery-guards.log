@@ -1,0 +1,37 @@
+✔ exact approved original installation may proceed (1.207625ms)
+✔ delivery rejects foreign owner (0.533709ms)
+✔ delivery rejects foreign project (0.116459ms)
+✔ delivery rejects different port (0.297209ms)
+✔ delivery rejects unverified candidate (0.101542ms)
+✔ delivery rejects different image (0.069333ms)
+✔ delivery rejects mutable approved source (0.067792ms)
+✔ delivery rejects pending review (0.0645ms)
+✔ delivery rejects local source edit (0.065334ms)
+✔ delivery rejects protected path overwritten (0.086792ms)
+✔ delivery rejects preexisting stage (0.071625ms)
+✔ stable maintenance window allowed (0.050792ms)
+✔ maintenance refuses building release (0.055333ms)
+✔ maintenance refuses pending publish (0.0385ms)
+✔ maintenance refuses pending configuration (0.03225ms)
+✔ maintenance refuses unregistered state (0.028541ms)
+✔ migration preserves six fields and disables external channels (0.08875ms)
+✔ migration refuses automatic send (0.065375ms)
+✔ migration refuses changed host (0.05475ms)
+✔ migration refuses unknown extension (0.09875ms)
+✔ only declared notification tables may be added (0.090833ms)
+✔ changed old account refuses installation receipt (0.080333ms)
+✔ missing notification table refuses installation receipt (0.061458ms)
+✔ unrelated schema addition refuses installation receipt (0.059167ms)
+✔ new maintenance entry fails closed on missing notification secrets without creating any replacement (47.625584ms)
+✔ new maintenance entry refuses changed software identity before starting services (44.306958ms)
+✔ legacy event remains externally disabled without channel profile (0.161583ms)
+✔ legacy event cannot acquire automatic sending (0.093958ms)
+✔ legacy event cannot acquire a frozen channel profile (0.072791ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 150.810375

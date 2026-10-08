@@ -1,0 +1,21 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "originalOwnerVerified": true,
+  "tablesBefore": 52,
+  "tablesAfter": 56,
+  "files": 794,
+  "historicalTools": 216,
+  "sevenUserEditHashesPreserved": true,
+  "allExistingBusinessRowsPreserved": true,
+  "newTables": 4,
+  "oldNotificationFieldsOrUnsavedStatePreserved": true,
+  "oldRuleAndEventAutomaticNotificationsDisabled": true,
+  "oldPasswordsAndSSOUnchanged": true,
+  "oldDPKeyHashesPreserved": true,
+  "newQaBusinessOnOriginal": false,
+  "existingApprovals": 4,
+  "desiredConfigVersion": 4,
+  "deploymentSequence": 4,
+  "noPush": true,
+  "noDatabaseRestore": true
+}

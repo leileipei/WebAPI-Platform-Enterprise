@@ -72,8 +72,8 @@
 
 - [x] **Step 1：写安全门禁RED。** 目标不是原owner、原仓库有非文档产品修改、后台发布未安全完成、计划软件不是验收软件、冷备缺卷/manifest、用户文件SHA改变、状态恢复只看HTTP200、兼容恢复未验证、旧维护入口被重写、ZIP含secret/原邮箱均拒绝。Run `N --test tests/notification-approval/delivery.test.mjs`。
 - [x] **Step 2：实现及GREEN。** 精确merge检查/备份/升级/恢复finally，兼容桥接只在已验证允许状态使用；原`manage.sh/manage-policies.sh`及原manifest字节不改，本批生成固定Git归档工具目录和`manage-notifications.sh`入口/manifest。核心runtime.json严格schema保持，新通知元数据使用N8同归属sidecar。新维护入口可独立status/start/stop/restart/up，纳入新增fixture生命周期/Secret/readiness，旧入口作为原功能/历史工具保留；丢失私有钥匙fail closed不重新生成覆盖。
-- [ ] **Step 3：原只读基线、合并和coldbackup。** 核对M分支/HEAD/七项修改与全部untracked/业务/账号/SSO/旧工具/历史ZIP；精确快进或审阅合并候选提交，不push；SHA复核七项和原文件。安全窗口暂停已有授权服务做全冷备，升级前只盘点实际已存在的全部卷（PG、LKG双节点、dp-keys、三源data、cache-secret以及Keycloak数据/secret）；不存在的新通知卷不得伪造备份成功。逐内部SHA回读后finally恢复就绪。此阶段不在原4192造QA数据。
-- [ ] **Step 4：升级与原实例验收。** 仅安装D2固定候选，自动渠道/原规则保持原默认关闭，真实本机演示测试只发向已声明fixture。确认软件/镜像/静态SHA、真实本地账号和Keycloak登录、只读403/注销401、两网关200/全部观测源、原业务desired/sequence、全部业务行与附件保护、通知长期管理入口和跨环境审批入口。升级后按实际卷清单补齐新通知secret/fixture状态和全部原卷的coldbackup，内部manifest逐SHA回读且finally恢复所有服务就绪；前后备份数量可不同，差异须来自明确新增卷。验证前后冷备及兼容恢复receipt；不可宣称此时重新完成企业端点验收。
+- [x] **Step 3：原只读基线、合并和coldbackup。** 核对M分支/HEAD/七项修改与全部untracked/业务/账号/SSO/旧工具/历史ZIP；精确快进或审阅合并候选提交，不push；SHA复核七项和原文件。安全窗口暂停已有授权服务做全冷备，升级前只盘点实际已存在的全部卷（PG、LKG双节点、dp-keys、三源data、cache-secret以及Keycloak数据/secret）；不存在的新通知卷不得伪造备份成功。逐内部SHA回读后finally恢复就绪。此阶段不在原4192造QA数据。
+- [x] **Step 4：升级与原实例验收。** 仅安装D2固定候选，自动渠道/原规则保持原默认关闭，真实本机演示测试只发向已声明fixture。确认软件/镜像/静态SHA、真实本地账号和Keycloak登录、只读403/注销401、两网关200/全部观测源、原业务desired/sequence、全部业务行与附件保护、通知长期管理入口和跨环境审批入口。升级后按实际卷清单补齐新通知secret/fixture状态和全部原卷的coldbackup，内部manifest逐SHA回读且finally恢复所有服务就绪；前后备份数量可不同，差异须来自明确新增卷。验证前后冷备及兼容恢复receipt；不可宣称此时重新完成企业端点验收。
 - [ ] **Step 5：交付封存与清理。** 精确提交脱敏安装/能力/裁决结果；生成含源码/计划/公开证据/中文维护说明/逐文件摘要的ZIP，CRC和私有canary扫描通过，实际ZIP整包SHA记录。仅清理UUID自有测试资源；先完整归档执行账本/日志/失败尝试并逐SHA回读，再删除重复scratch；保留原worktree/历史资料、所有coldbackup和恢复/候选镜像。最终报告区分本地提交、主仓库合并和原4192实际安装，列全部Ruling/cost if wrong与延期Minor。
 
 ## 计划自查与用户审阅
