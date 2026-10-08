@@ -21,3 +21,9 @@
 公开实证见[安装状态](../evidence/notification-approval/d3-installed-adbcbed/installed-status.json)、[原数据保护](../evidence/notification-approval/d3-installed-adbcbed/original-protection.json)、[前后备份](../evidence/notification-approval/d3-installed-adbcbed/backup-summary.json)、[清理状态](../evidence/notification-approval/d3-installed-adbcbed/cleanup-status.json)。所有裁决与判断错误影响见[裁决记录](notification-approval-rulings.md)，克隆细项见[固定安装前结果](notification-approval-pre-install-result.md)。最终ZIP的固定源、CRC/逐文件摘要/私有canary检查和整包SHA另见交付目录package-status.json。
 
 失败不隐去：辅助相对路径错误在导入阶段失败；修复后主体基线成功，辅助配置读取空JSON失败，随后只读核实未保存行。D2网络池、SMTP恢复漏stdin、QA Key过期和旧CUA闭包等完整失败材料保留，其修复及边界见裁决记录；仅当前实际成功证据计入结论。
+
+## 正式交付包
+
+[下载ZIP](../../deliverables/WebAPI_Enterprise_通知与跨环境审批_已安装交付_20261008.zip)，23208314字节、1925文件。固定包源码`b3f320b22242f8d10d17fef0aee9865573c0cf93`，原实例软件仍为`adbcbed56a7e465c483b7462e4f3de9ac1156669`；两个身份用途不同。整包SHA256：`4e32fb8e76f7b212eef1b528a9e4b3d62b762ba3073a05c509b9743294129f0b`。CRC、全部文件摘要、124实际私有canary/私钥块/令牌检查均通过；同一固定包源码全部208项Node功能测试通过，零失败/跳过。
+
+[包装状态](../evidence/notification-approval/d3-installed-adbcbed/package-status.json)和ZIP外部sha256文件为最终封存回执；包内规格/计划为固定源捕获时的文本，最终步骤完成状态在本仓库当前计划及外部回执，避免包内自引用整包摘要。旧ZIP和原七项修改继续保留。

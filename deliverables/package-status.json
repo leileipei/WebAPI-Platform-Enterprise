@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "complete": true,
+  "mode": "final",
+  "packageSourceRevision": "b3f320b22242f8d10d17fef0aee9865573c0cf93",
+  "softwareRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "filename": "WebAPI_Enterprise_通知与跨环境审批_已安装交付_20261008.zip",
+  "zipSha256": "4e32fb8e76f7b212eef1b528a9e4b3d62b762ba3073a05c509b9743294129f0b",
+  "zipBytes": 23208314,
+  "crcPassed": true,
+  "allFileHashesPassed": true,
+  "files": 1925,
+  "privateCanaryCount": 124,
+  "privateScanPassed": true,
+  "rawPrivateKeysExcluded": true,
+  "rawTokensExcluded": true,
+  "oldZipsPreserved": true,
+  "sourceArchivedFromGit": true,
+  "original4192Installed": true,
+  "productionAcceptance": false
+}

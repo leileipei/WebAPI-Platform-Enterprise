@@ -13,6 +13,9 @@
     "ui/original-approvals-preserved.jpg": "6cdcffcc3b49e20c2a26548b0a628e62f4d5783ee4645ed8f364be2506bb72bf",
     "ui/original-approvals-preserved.json": "07460595633079de6591255386e2358001382db62fc459a7db3d4821f4bc997e",
     "ui-actions.json": "75d00ca3753a5b318f7f73c67c4068d7c6c0b75f9880d7e18cfbb900ad5b5385",
-    "acceptance.json": "5e0787cc501ff3c032fb7079bde06910a699c0401eb5651bcdb34cfea0ed6d3e"
+    "acceptance.json": "5e0787cc501ff3c032fb7079bde06910a699c0401eb5651bcdb34cfea0ed6d3e",
+    "package-status.json": "860ee4bf5acbc1d264aa3a5665ed20dacdb8980001e0471dc3209a43c3567cfe",
+    "package-source-features.json": "c81dc9e62d6fc8ae7bb2251f02d41d631c3af9cc18a5cf5cfb1cd7c729d4a320",
+    "package-source-features.log": "d4dfd1fcecc3cd2a6e63a13716d92cb6fa75824a43cb697b7590f189200b00af"
   }
 }
