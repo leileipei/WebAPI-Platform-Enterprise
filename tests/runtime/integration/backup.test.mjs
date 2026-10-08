@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import net from 'node:net';
 import {randomUUID} from 'node:crypto';
-import {initializeRuntime,operateRuntime} from '../../../scripts/runtime/lifecycle.mjs';
+import {initializeRuntime,operateRuntime,runtimeServices} from '../../../scripts/runtime/lifecycle.mjs';
 import {loadState} from '../../../scripts/runtime/state.mjs';
 import {prepareContext} from '../../../scripts/runtime/context.mjs';
 import {inspectResources,assertOwnership,docker} from '../../../scripts/runtime/docker.mjs';
@@ -18,7 +18,7 @@ test('real backups cover unbound, bound without demo and bound with demo',async(
  const [consolePort,gatewayA,gatewayB]=servers.map(s=>s.address().port);await Promise.all(servers.map(s=>new Promise(r=>s.close(r))));
  let state;
  const context=async()=>prepareContext(directory,state,JSON.parse(await fs.readFile(path.join(directory,'release.json'),'utf8')));
- const backup=async label=>{const ctx=await context(),target=path.join(directory,'backup-'+label);await createBackup(ctx,target);const m=JSON.parse(await fs.readFile(path.join(target,'backup-manifest.json'),'utf8'));for(const name of dataVolumes)assert.ok((await fs.stat(path.join(target,name+'.tar'))).size>0);assert.ok(m.files['postgres.dump']);const after=await inspectResources(state);assert.ok(after.filter(r=>r.Kind==='container').every(r=>!r.State.Running));const result=await operateRuntime('start',state,{directory});assert.equal(result.phase,state.binding?'Registered':'Unconfigured');};
+ const backup=async label=>{const ctx=await context(),target=path.join(directory,'backup-'+label);await createBackup(ctx,target);const m=JSON.parse(await fs.readFile(path.join(target,'backup-manifest.json'),'utf8'));for(const name of dataVolumes)assert.ok((await fs.stat(path.join(target,name+'.tar'))).size>0);assert.ok(m.files['postgres.dump']);const after=await inspectResources(state);for(const name of runtimeServices(state)){const service=after.find(r=>r.Kind==='container'&&r.Config?.Labels?.['com.docker.compose.service']===name&&r.Config.Labels['com.docker.compose.oneoff']!=='True');assert(service?.State.Running,'Cold backup finally must resume '+name);}const result=await operateRuntime('start',state,{directory});assert.equal(result.phase,state.binding?'Registered':'Unconfigured');};
  try{
   state=await initializeRuntime({directory,projectName:project,ports:{console:consolePort,gatewayA,gatewayB},bootstrapUsername:'backup-test-admin',releaseFile:path.resolve('.runtime/local-build/release.json')});
   await operateRuntime('stop',state,{directory});await backup('unbound-already-stopped');
