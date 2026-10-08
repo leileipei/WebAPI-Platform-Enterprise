@@ -14,12 +14,13 @@ public sealed class ContractManagementMigrationTests
     {
         await using var database = new PostgresDatabase(); await database.InitializeAsync();
         await using var db = database.Context();
+        var target = db.Database.GetMigrations().Single(x => x.EndsWith("_ContractManagement", StringComparison.Ordinal));
         var previous = db.Database.GetMigrations().TakeWhile(x => !x.EndsWith("_ContractManagement", StringComparison.Ordinal)).Last();
         await db.GetService<IMigrator>().MigrateAsync(previous);
         db.Add(new UserRecord { Username = "retained", DisplayName = "保留用户", PasswordHash = "isolated-synthetic-hash", SecurityStamp = "retained-stamp" });
         db.Add(new Organization { Code = "RETAINED", Name = "保留组织" }); await db.SaveChangesAsync();
         var before = await Snapshot(database);
-        await db.Database.MigrateAsync();
+        await db.GetService<IMigrator>().MigrateAsync(target);
         var after = await Snapshot(database);
         Assert.Equal(3, after.Keys.Except(before.Keys).Count());
         Assert.Equal(["api_import_previews", "api_version_contract_sources", "project_import_source_policies"], after.Keys.Except(before.Keys).Order(StringComparer.Ordinal));
