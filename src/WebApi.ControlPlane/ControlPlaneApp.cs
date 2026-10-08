@@ -133,7 +133,7 @@ public static class ControlPlaneApp
             }
             await next();
         });
-        
+
         if(compatibility.IsReadOnly)
         {
             app.Use(async(ctx,next)=>{ctx.Response.Headers["X-WebAPI-Compatibility-Mode"]="NotificationReadOnly";await next();});
