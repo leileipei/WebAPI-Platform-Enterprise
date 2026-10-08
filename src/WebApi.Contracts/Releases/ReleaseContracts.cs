@@ -6,7 +6,7 @@ public sealed record ResourceRevision(string Type,Guid Id,long Revision);
 public sealed record CreateReleaseRequest(long BaseConfigVersion,IReadOnlyList<Guid> VersionIds,IReadOnlyList<ResourceRevision> ResourceRevisions,IReadOnlyList<Guid>? RiskReviewIds=null);
 public sealed record PreviewReleaseRequest(long BaseConfigVersion,IReadOnlyList<Guid> VersionIds);
 public sealed record RefreshReleasePreconditionsRequest(IReadOnlyList<ResourceRevision> ResourceRevisions);
-public sealed record ApprovalActionRequest(string Comment="");
+public sealed record ApprovalActionRequest(string Comment="",int? ExpectedStepOrder=null,string? ExpectedCandidateHash=null);
 public sealed record CreateRollbackRequest(long TargetConfigVersion);
 public sealed record ApprovalRule(int StepOrder,string RoleCode,int RequiredCount);
 public sealed record SaveApprovalFlowRequest(string Name,IReadOnlyList<ApprovalRule> Steps,bool Enabled=true);

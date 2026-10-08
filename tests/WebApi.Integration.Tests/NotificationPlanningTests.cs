@@ -35,6 +35,13 @@ public sealed class NotificationPlanningTests
     }
     private static async Task Lock(WebApiDbContext db,Guid rule)
     {await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)");await db.Database.ExecuteSqlInterpolatedAsync($"SELECT 1 FROM alert_rules WHERE id={rule} FOR UPDATE");}
+    [Theory][InlineData(false,"Recovery")][InlineData(true,"Manual")]
+    public async Task FrozenResolvedMessageDistinguishesManualClosureFromRecovery(bool manual,string closureKind)
+    {
+        var setup=await Setup();await using var f=setup.Fixture;var e=await Trigger(f,setup.Rule);await FinishParents(f,e.Id);
+        using(var services=f.Services()){var db=services.ServiceProvider.GetRequiredService<WebApiDbContext>();await using var tx=await db.Database.BeginTransactionAsync();await Lock(db,setup.Rule);var alert=await db.Set<AlertEvent>().SingleAsync(x=>x.Id==e.Id);alert.Status="Resolved";var transition=Transition(alert,"Resolved","Open",manual?"private investigation reason":"ConditionRecovered",manual?f.User.Id:null);db.Add(transition);await services.ServiceProvider.GetRequiredService<NotificationPlanner>().OnTransitionAsync(alert,transition);await db.SaveChangesAsync();await tx.CommitAsync();}
+        await using var read=f.Context();var rows=await read.Set<NotificationDelivery>().Where(x=>x.TriggeredDeliveryId!=null).ToArrayAsync();Assert.Equal(2,rows.Length);foreach(var row in rows){using var body=JsonDocument.Parse(row.Payload);Assert.Equal("Resolved",body.RootElement.GetProperty("transition").GetString());Assert.True(body.RootElement.TryGetProperty("closureKind",out var kind));Assert.Equal(closureKind,kind.GetString());Assert.DoesNotContain("private investigation reason",Encoding.UTF8.GetString(row.Payload));}
+    }
     [Fact] public async Task RuleSavePreservesExternalPolicyAndValidatesDeploymentRecipients()
     {
         var setup=await Setup(forcePolicy:false);await using var f=setup.Fixture;using var detail=await f.Client.GetAsync("/api/v1/observability/alert-rules/"+setup.Rule);var rule=(await detail.Content.ReadFromJsonAsync<AlertRuleDto>())!;Assert.True(rule.Definition.Notification.ExternalEnabled);Assert.Equal(2,rule.Definition.Notification.EmailRecipients!.Count);

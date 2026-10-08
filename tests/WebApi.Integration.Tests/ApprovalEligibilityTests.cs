@@ -18,6 +18,18 @@ public sealed class ApprovalEligibilityTests
     private static ScopeRef Scope(ApiFixture api) => new(api.Organization.Id, api.Project.Id, api.Environment.Id);
     private static ApprovalEligibilityService Service(WebApiDbContext db) => new(db, new AuthorizationService(db));
 
+    // A still-qualified reviewer must explicitly confirm the new step, not submit an old dialog.
+    [Theory][InlineData("approve")][InlineData("reject")]
+    public async Task StaleDialogCannotActOnNextStepEvenWithBothRoles(string action)
+    {
+        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedReleaseAsync();using var login=await api.LoginAsync();var id=await api.CreateSubmittedReleaseAsync();
+        var first=await api.NewReviewerAsync("ApiApprover");var both=await api.NewReviewerAsync("ApiApprover","SecurityReviewer");
+        var opened=(await both.Client.GetFromJsonAsync<ReleaseDto>($"/api/v1/releases/{id}"))!;Assert.Equal(1,opened.ApprovalEligibility!.CurrentStepOrder);
+        using(var advanced=await ApiFixture.CommandAsync(first.Client,$"/api/v1/releases/{id}/approve",new{comment="另一个审核人推进"}))advanced.EnsureSuccessStatusCode();
+        var current=(await both.Client.GetFromJsonAsync<ReleaseDto>($"/api/v1/releases/{id}"))!;Assert.True(current.ApprovalEligibility!.CanAct);Assert.Equal(2,current.ApprovalEligibility.CurrentStepOrder);
+        using var stale=await ApiFixture.CommandAsync(both.Client,$"/api/v1/releases/{id}/{action}",new{comment="仍保留的旧意见",expectedStepOrder=1,expectedCandidateHash=opened.CandidateHash});Assert.Equal(HttpStatusCode.Conflict,stale.StatusCode);
+        await using var db=api.Context();Assert.Equal("WaitingApproval",(await db.Set<ReleaseRecord>().SingleAsync(x=>x.Id==id)).Status);Assert.All(await db.Set<ApprovalTask>().Where(x=>x.ReleaseId==id&&x.StepOrder==2).ToArrayAsync(),x=>{Assert.Equal("Pending",x.Status);Assert.Null(x.Comment);});
+    }
     // Selecting only the first (read-only) grant would incorrectly reject this user.
     [Fact] public async Task MixedScopeUsesWritableEnvironmentGrant()
     {

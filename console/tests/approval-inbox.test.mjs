@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {parseApprovalQuery,approvalQuery,createInboxState,inboxReducer,approvalMayAct,safeApprovalReturnTo,approvalScope,switchApprovalView,approvalAuthority} from '../src/approvals/inbox-state.mjs';
 
+import * as inbox from '../src/approvals/inbox-state.mjs';
 const org='10000000-0000-4000-8000-000000000001',project='20000000-0000-4000-8000-000000000002',env='30000000-0000-4000-8000-000000000003';
 const item={id:'r',state:'WaitingApproval',organization:{id:org},project:{id:project},environment:{id:env},approvalEligibility:{canAct:true,currentStepOrder:1}};
 const payload={page:{items:[item],total:1,page:1,pageSize:50},counts:{pendingMine:1,handledMine:0,allVisible:1}};
@@ -60,3 +61,5 @@ test('authorityIncludesScopeModesAndIgnoresIrrelevantOrdering',()=>{
  assert.equal(approvalAuthority(user),approvalAuthority({...user,permissions:[...user.permissions].reverse()}));
  assert.notEqual(approvalAuthority(user),approvalAuthority({...user,scopes:[{scope:{organizationId:org},accessMode:'read_write'}]}));
 });
+
+test('dialog cannot carry an operation into a later step despite retained eligibility',()=>{assert.equal(typeof inbox.approvalOperationMatches,'function','dialog requires an immutable operation boundary');const approvalOperationMatches=inbox.approvalOperationMatches;const opened={stepOrder:1,candidateHash:'a'.repeat(64)},detail={...item,candidateHash:'a'.repeat(64)};assert.equal(approvalOperationMatches(opened,detail),true);assert.equal(approvalOperationMatches(opened,{...detail,approvalEligibility:{canAct:true,currentStepOrder:2}}),false);assert.equal(approvalOperationMatches(opened,{...detail,candidateHash:'b'.repeat(64)}),false);assert.equal(approvalOperationMatches(opened,undefined),false);});

@@ -41,7 +41,7 @@ public sealed class NotificationConfigurationService(WebApiDbContext db,Notifica
             var oldConfiguration=TryConfiguration(before,channel);var configuration=TryConfiguration(after,channel);
             var changed=oldConfiguration!=configuration;var enabled=channel==NotificationChannel.Email?after.SmtpEnabled:after.WebhookEnabled;var wasEnabled=channel==NotificationChannel.Email?before.SmtpEnabled:before.WebhookEnabled;
             var oldProfileId=state.ProfileId;var oldEnabled=state.Enabled;
-            if(!enabled){if(changed)state.ProfileId=null;state.Enabled=false;}
+            if(!enabled){if(changed||wasEnabled)state.ProfileId=null;state.Enabled=false;}
             else if(changed||!wasEnabled||state.ProfileId is null||explicitSameValue)
             {
                 if(configuration is null)throw new ApiException(422,"notification_configuration_incomplete","通知渠道尚未配置完整。");

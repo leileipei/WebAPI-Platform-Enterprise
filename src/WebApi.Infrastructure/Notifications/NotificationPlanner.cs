@@ -74,7 +74,7 @@ public sealed class NotificationPlanner(WebApiDbContext db,AlertRuleScopeResolve
             if(tasks.Any(x=>x.TransitionId==transition.Id&&x.Channel==parent.Channel&&x.TargetHash==parent.TargetHash))continue;
             var reason=transition.FromStatus=="Silenced"?"SuppressedSilenced":await UnavailableReasonAsync(alert,parent.Channel,parent.ProfileId,parent.Target,ct);
             var original=JsonSerializer.Deserialize<NotificationMessageV1>(parent.Payload,CanonicalJson.Options)??throw new ApiException(503,"notification_payload_invalid","通知消息不可用。");
-            var payload=NotificationPayload.Serialize(original with{Transition="Resolved",OccurredAt=transition.OccurredAt});var delivery=Create(alert,transition,parent.Channel,parent.Target,parent.ProfileId,payload,frozen.Policy,now,reason,parent.Id);
+            var payload=NotificationPayload.Serialize(original with{Transition="Resolved",OccurredAt=transition.OccurredAt,ClosureKind=frozen.ClosureKind});var delivery=Create(alert,transition,parent.Channel,parent.Target,parent.ProfileId,payload,frozen.Policy,now,reason,parent.Id);
             if(reason is null&&transition.ActorId is not null)delivery.Reason="ManualClosure";
             db.Add(delivery);tasks.Add(delivery);changed=true;
         }

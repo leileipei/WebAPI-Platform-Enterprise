@@ -35,3 +35,5 @@ export function inboxReducer(state,event){
   default:return state;
  }
 }
+
+export function approvalOperationMatches(opened,detail){return approvalMayAct(detail)&&Number.isInteger(opened?.stepOrder)&&opened.stepOrder===detail.approvalEligibility.currentStepOrder&&typeof opened.candidateHash==='string'&&/^[a-f0-9]{64}$/.test(opened.candidateHash)&&opened.candidateHash===detail.candidateHash;}

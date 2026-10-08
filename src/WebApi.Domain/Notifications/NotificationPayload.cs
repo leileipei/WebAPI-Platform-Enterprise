@@ -9,10 +9,11 @@ public static class NotificationPayload
     {
         if(value.SchemaVersion!=1||!Uri.TryCreate(value.ConsoleLink,UriKind.Absolute,out var uri)||uri.Scheme is not("https" or "http")||uri.UserInfo.Length!=0||uri.Fragment.Length!=0)throw Invalid();
         if(value.Kind=="Test")
-        {if(value.EventId is not null||value.OccurrenceNo is not null||value.EnvironmentId is not null||value.Severity is not null||value.MetricCondition is not null||value.Transition is not null)throw Invalid();}
+        {if(value.EventId is not null||value.OccurrenceNo is not null||value.EnvironmentId is not null||value.Severity is not null||value.MetricCondition is not null||value.Transition is not null||value.ClosureKind is not null)throw Invalid();}
         else if(value.Kind=="Alert")
         {
             if(value.EventId is null||value.EventId==Guid.Empty||value.EnvironmentId is null||value.EnvironmentId==Guid.Empty||value.OccurrenceNo is null or <1||value.Severity is not("Info" or "Warning" or "Critical")||value.Transition is not("Triggered" or "Resolved")||value.MetricCondition is null)throw Invalid();
+            if(value.ClosureKind is not(null or "Manual" or "Recovery")||value.Transition=="Triggered"&&value.ClosureKind is not null)throw Invalid();
             try
             {
                 var metric=value.MetricCondition.Split((char[]?)null,StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();

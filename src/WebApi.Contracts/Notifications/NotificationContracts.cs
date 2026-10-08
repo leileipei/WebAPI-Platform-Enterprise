@@ -20,7 +20,7 @@ public sealed record NotificationAttemptDto(int AttemptNo,DateTimeOffset Started
 public sealed record NotificationLimitsDto(int MaxRecipients,bool EmailConfigured,bool EmailEnabled,bool WebhookConfigured,bool WebhookEnabled);
 public sealed record NotificationDeploymentPolicyDto(IReadOnlyList<string> AllowedRecipients,IReadOnlyList<string> AllowedDomains,string Source,int MaxRecipients);
 public sealed record CreateNotificationTestRequest(NotificationChannel Channel,string? Email);
-public sealed record NotificationMessageV1(int SchemaVersion,string Kind,Guid? EventId,long? OccurrenceNo,Guid? EnvironmentId,string? Severity,string? MetricCondition,string? Transition,DateTimeOffset OccurredAt,string ConsoleLink);
+public sealed record NotificationMessageV1(int SchemaVersion,string Kind,Guid? EventId,long? OccurrenceNo,Guid? EnvironmentId,string? Severity,string? MetricCondition,string? Transition,DateTimeOffset OccurredAt,string ConsoleLink,[property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string? ClosureKind=null);
 
 // Reject duplicate/unknown notification fields at every JSON boundary, including
 // the original typed rule endpoint. Web naming aliases remain compatible.
