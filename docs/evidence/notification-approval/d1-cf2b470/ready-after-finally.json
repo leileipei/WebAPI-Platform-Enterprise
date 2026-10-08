@@ -1,0 +1,43 @@
+{
+  "actual": true,
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "phase": "Ready",
+  "fixture": "Available",
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available"
+    },
+    {
+      "name": "loki",
+      "state": "Available"
+    },
+    {
+      "name": "tempo",
+      "state": "Available"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "acknowledged": true,
+      "fresh": true
+    },
+    {
+      "name": "local-gateway-a",
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "acknowledged": true,
+      "fresh": true
+    }
+  ],
+  "ssoLoginPerformed": false,
+  "original4192Upgraded": false
+}

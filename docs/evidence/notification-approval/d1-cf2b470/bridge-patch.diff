@@ -1,0 +1,204 @@
+diff --git a/src/WebApi.ControlPlane/ControlPlaneApp.cs b/src/WebApi.ControlPlane/ControlPlaneApp.cs
+index dd61794..9144c2f 100644
+--- a/src/WebApi.ControlPlane/ControlPlaneApp.cs
++++ b/src/WebApi.ControlPlane/ControlPlaneApp.cs
+@@ -1,4 +1,5 @@
+ using WebApi.ControlPlane.Sso;
++using WebApi.Infrastructure.Notifications;
+ using WebApi.ControlPlane.Comparisons;
+ using WebApi.Infrastructure.Comparisons;
+ using WebApi.Infrastructure.Sso;
+@@ -40,6 +41,7 @@ public static class ControlPlaneApp
+     public static WebApplication Build(string[] args, Action<WebApplicationBuilder>? configure = null)
+     {
+         var builder=WebApplication.CreateBuilder(args);configure?.Invoke(builder);
++        var compatibility=CompatibilityNotificationMode.Read(builder.Configuration);builder.Services.AddSingleton(compatibility);
+         builder.WebHost.ConfigureKestrel(options=>options.Limits.MaxRequestBodySize=8*1024*1024);
+         var connection=builder.Configuration.GetConnectionString("WebApi")??DatabaseSettings.ConnectionString();
+         builder.Services.AddDbContext<WebApiDbContext>(options=>options.UseNpgsql(connection));
+@@ -131,6 +133,15 @@ public static class ControlPlaneApp
+             }
+             await next();
+         });
++
++        if(compatibility.IsReadOnly)
++        {
++            app.Use(async(ctx,next)=>{ctx.Response.Headers["X-WebAPI-Compatibility-Mode"]="NotificationReadOnly";await next();});
++            // These candidate-only writes have no old handlers. Return an explicit lock,
++            // keeping normal authentication and CSRF middleware ahead of them.
++            app.MapPost("/api/v1/settings/system/notification/tests",()=>{compatibility.RequireWritable();return Results.NoContent();}).RequireAuthorization();
++            app.MapPost("/api/v1/notification-deliveries/{id:guid}/retry",(Guid id)=>{compatibility.RequireWritable();return Results.NoContent();}).RequireAuthorization();
++        }
+         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
+         app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapSchemaValidation();app.MapImportSourcePolicies();app.MapImportSessions();app.MapComparisons();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
+     }
+diff --git a/src/WebApi.Infrastructure/Alerts/AlertRuleService.cs b/src/WebApi.Infrastructure/Alerts/AlertRuleService.cs
+index 0fa7c19..e4f695c 100644
+--- a/src/WebApi.Infrastructure/Alerts/AlertRuleService.cs
++++ b/src/WebApi.Infrastructure/Alerts/AlertRuleService.cs
+@@ -1,4 +1,5 @@
+ using System.Text;
++using WebApi.Infrastructure.Notifications;
+ using System.Text.Json;
+ using Microsoft.EntityFrameworkCore;
+ using WebApi.Contracts.Alerts;
+@@ -12,7 +13,7 @@ using WebApi.Infrastructure.Observability;
+ using WebApi.Infrastructure.Persistence;
+ using WebApi.Infrastructure.Persistence.Entities;
+ namespace WebApi.Infrastructure.Alerts;
+-public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings)
++public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings,CompatibilityNotificationMode? compatibility=null)
+ {
+     public static SaveAlertRuleRequest Definition(AlertRule r)=>new(r.OrganizationId,r.ProjectId,r.EnvironmentId,r.Name,r.Metric,r.Expression,r.Severity,r.Enabled,r.ForSeconds,r.TargetType,r.TargetId,r.WindowSeconds,JsonSerializer.Deserialize<NotificationIntent>(r.Notification,CanonicalJson.Options)!);
+     public static string ResourceKey(SaveAlertRuleRequest r)=>r.TargetType=="Environment"?"Environment":r.TargetType+":"+r.TargetId!.Value.ToString("D");
+@@ -52,11 +53,13 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
+     public Task<AlertRuleDto> UpdateAsync(ActorContext actor,Guid id,SaveAlertRuleRequest request,string etag,CancellationToken ct)=>SaveAsync(actor,id,request,etag,ct);
+     public async Task<AlertRuleDto> SetEnabledAsync(ActorContext actor,Guid id,bool enabled,string etag,CancellationToken ct)
+     {
++        compatibility?.RequireWritable();
+         var rule=await db.Set<AlertRule>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw ScopeResolver.Missing();
+         return await SaveAsync(actor,id,Definition(rule) with{Enabled=enabled},etag,ct);
+     }
+     private async Task<AlertRuleDto> SaveAsync(ActorContext actor,Guid? id,SaveAlertRuleRequest input,string? etag,CancellationToken ct)
+     {
++        compatibility?.RequireWritable();
+         var request=Validate(input);var old=id is Guid existing?await db.Set<AlertRule>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==existing,ct)??throw ScopeResolver.Missing():null;
+         var initialScope=old is null?AlertRuleScopeResolver.Scope(request):AlertRuleScopeResolver.Scope(Definition(old));var operation=id is null?"alert.rule.create":"alert.rule.update";
+         return await commands.ExecuteAsync(actor,initialScope,operation,async(_,token)=>{
+diff --git a/src/WebApi.Infrastructure/Notifications/CompatibilityNotificationMode.cs b/src/WebApi.Infrastructure/Notifications/CompatibilityNotificationMode.cs
+new file mode 100644
+index 0000000..75cf22f
+--- /dev/null
++++ b/src/WebApi.Infrastructure/Notifications/CompatibilityNotificationMode.cs
+@@ -0,0 +1,13 @@
++using Microsoft.Extensions.Configuration;
++using WebApi.Contracts.Common;
++namespace WebApi.Infrastructure.Notifications;
++// Recovery-only bridge. It never sends notifications or rewrites new definitions.
++public sealed class CompatibilityNotificationMode
++{
++    private CompatibilityNotificationMode(bool readOnly){IsReadOnly=readOnly;}
++    public bool IsReadOnly {get;}
++    public static CompatibilityNotificationMode Disabled {get;}=new(false);
++    public static CompatibilityNotificationMode ReadOnly {get;}=new(true);
++    public static CompatibilityNotificationMode Read(IConfiguration configuration)=>configuration["CompatibilityNotifications:Mode"] switch {null or "Disabled"=>Disabled,"ReadOnly"=>ReadOnly,_=>throw new InvalidOperationException("Invalid recovery compatibility mode.")};
++    public void RequireWritable(){if(IsReadOnly)throw new ApiException(423,"notification_maintenance_mode","恢复桥接模式：通知设置与告警规则暂时只读，请恢复候选版本后再修改。");}
++}
+diff --git a/src/WebApi.Infrastructure/Settings/SettingsValues.cs b/src/WebApi.Infrastructure/Settings/SettingsValues.cs
+index fa3537f..286d6bb 100644
+--- a/src/WebApi.Infrastructure/Settings/SettingsValues.cs
++++ b/src/WebApi.Infrastructure/Settings/SettingsValues.cs
+@@ -1,4 +1,5 @@
+ using System.Text.Json;
++using WebApi.Infrastructure.Notifications;
+ using WebApi.Contracts.Common;
+ namespace WebApi.Infrastructure.Settings;
+ public abstract record SettingsValues;
+@@ -14,13 +15,21 @@ public static class SettingsValueCodec
+     public static SettingsValues Default(string group)=>group switch {
+         "security"=>new SecuritySettings(480,16,"LengthOnly",[]),"release"=>new ReleaseSettings(2,50),"gateway"=>new GatewaySettings(30000,20,2),"audit"=>new AuditSettings(365,true),"notification"=>new NotificationSettings(null,null,null,null,null,null),_=>throw new ApiException(404,"settings_group_missing","设置分组不存在。")};
+     public static JsonElement Json(SettingsValues value)=>JsonSerializer.SerializeToElement(value,value.GetType(),CanonicalJson.Options);
+-    public static SettingsValues Decode(string group,string json)
++    public static SettingsValues Decode(string group,string json,CompatibilityNotificationMode? compatibility=null)
+     {
+         Default(group);
+         try
+         {
+             using var document=JsonDocument.Parse(json,new JsonDocumentOptions{MaxDepth=16});
+             var properties=document.RootElement.EnumerateObject().ToArray();var expected=SystemSettingsValidator.Fields[group];
++            if(group=="notification"&&compatibility?.IsReadOnly==true&&properties.Length==expected.Length+3)
++            {
++                var allowed=expected.Concat(new[]{"smtpEnabled","webhookEnabled","smtpSecurity"}).ToArray();
++                if(properties.Select(p=>p.Name).Distinct(StringComparer.Ordinal).Count()!=allowed.Length||properties.Any(p=>!allowed.Contains(p.Name)))throw new JsonException();
++                if(document.RootElement.GetProperty("smtpEnabled").ValueKind is not(JsonValueKind.True or JsonValueKind.False)||document.RootElement.GetProperty("webhookEnabled").ValueKind is not(JsonValueKind.True or JsonValueKind.False))throw new JsonException();
++                var security=document.RootElement.GetProperty("smtpSecurity");if(security.ValueKind!=JsonValueKind.String||security.GetString() is not("StartTlsRequired" or "TlsOnConnect"))throw new JsonException();
++                properties=properties.Where(p=>expected.Contains(p.Name)).ToArray();
++            }
+             if(properties.Length!=expected.Length||properties.Select(p=>p.Name).Distinct(StringComparer.Ordinal).Count()!=expected.Length||properties.Any(p=>!expected.Contains(p.Name)))throw new JsonException();
+             var input=properties.ToDictionary(p=>p.Name,p=>(object?)p.Value.Clone());
+             if(group=="notification")foreach(var key in new[]{"smtpSecretRef","webhookSecretRef"})
+diff --git a/src/WebApi.Infrastructure/Settings/SystemSettingsReader.cs b/src/WebApi.Infrastructure/Settings/SystemSettingsReader.cs
+index 8041d80..1280035 100644
+--- a/src/WebApi.Infrastructure/Settings/SystemSettingsReader.cs
++++ b/src/WebApi.Infrastructure/Settings/SystemSettingsReader.cs
+@@ -1,10 +1,11 @@
+ using Microsoft.EntityFrameworkCore;
++using WebApi.Infrastructure.Notifications;
+ using WebApi.Infrastructure.Persistence;
+ using WebApi.Infrastructure.Persistence.Entities;
+ namespace WebApi.Infrastructure.Settings;
+-public sealed class SystemSettingsReader(WebApiDbContext db)
++public sealed class SystemSettingsReader(WebApiDbContext db,CompatibilityNotificationMode? compatibility=null)
+ {
+-    public async Task<SettingsStoredValue> ReadAsync(string group,CancellationToken ct=default){var fallback=SettingsValueCodec.Default(group);var key="system."+group;var row=await db.Set<SystemSetting>().AsNoTracking().SingleOrDefaultAsync(x=>x.Key==key,ct);return row is null?new(fallback,0,false):new(SettingsValueCodec.Decode(group,row.Value),row.Revision,true);}
++    public async Task<SettingsStoredValue> ReadAsync(string group,CancellationToken ct=default){var fallback=SettingsValueCodec.Default(group);var key="system."+group;var row=await db.Set<SystemSetting>().AsNoTracking().SingleOrDefaultAsync(x=>x.Key==key,ct);return row is null?new(fallback,0,false):new(SettingsValueCodec.Decode(group,row.Value,compatibility),row.Revision,true);}
+     public async Task<SecuritySettings> SecurityAsync(CancellationToken ct=default)=>(SecuritySettings)(await ReadAsync("security",ct)).Value;
+     public async Task<GatewaySettings> GatewayAsync(CancellationToken ct=default)=>(GatewaySettings)(await ReadAsync("gateway",ct)).Value;
+     public async Task<AuditSettings> AuditAsync(CancellationToken ct=default)=>(AuditSettings)(await ReadAsync("audit",ct)).Value;
+diff --git a/src/WebApi.Infrastructure/Settings/SystemSettingsService.cs b/src/WebApi.Infrastructure/Settings/SystemSettingsService.cs
+index 4169a2c..55d830d 100644
+--- a/src/WebApi.Infrastructure/Settings/SystemSettingsService.cs
++++ b/src/WebApi.Infrastructure/Settings/SystemSettingsService.cs
+@@ -1,4 +1,5 @@
+ using WebApi.Infrastructure.Governance;
++using WebApi.Infrastructure.Notifications;
+ using System.Text.Json;
+ using Microsoft.EntityFrameworkCore;
+ using WebApi.Contracts.Common;
+@@ -10,7 +11,7 @@ using WebApi.Infrastructure.Security;
+ using WebApi.Infrastructure.Commands;
+ using WebApi.Infrastructure.Policies;
+ namespace WebApi.Infrastructure.Settings;
+-public sealed class SystemSettingsService(WebApiDbContext db,AuthorizationService auth,SystemSettingsReader reader,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,SettingsPreviewProtector protector,TimeProvider clock,ScopeResolver scopes)
++public sealed class SystemSettingsService(WebApiDbContext db,AuthorizationService auth,SystemSettingsReader reader,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,SettingsPreviewProtector protector,TimeProvider clock,ScopeResolver scopes,CompatibilityNotificationMode? compatibility=null)
+ {
+     private static readonly ScopeRef platform=new(Guid.Empty);
+     private Task Require(ActorContext actor,CancellationToken ct)=>auth.RequireAsync(actor,"system.manage",new("system_settings",Guid.Empty,platform),ct);
+@@ -19,7 +20,7 @@ public sealed class SystemSettingsService(WebApiDbContext db,AuthorizationServic
+     public async Task<SettingsValidationDto> ValidateAsync(string group,SettingsMutation request,ActorContext actor,CancellationToken ct=default){await Require(actor,ct);var stored=await reader.ReadAsync(group,ct);SystemSettingsValidator.Resolve(group,request,stored.Value);return new("StructuralOnly","结构校验通过；未解析 SecretRef，未连接 SMTP/Webhook，未发送通知。");}
+     public async Task<SettingsPreviewDto> PreviewAsync(string group,SettingsMutation request,string? tag,ActorContext actor,CancellationToken ct=default){await Require(actor,ct);var current=await reader.ReadAsync(group,ct);PolicyPreconditions.Require(tag,current.Revision);var validated=SystemSettingsValidator.Resolve(group,request,current.Value);var before=SafeJson(current.Value);var after=SafeJson(validated.Value);return new(validated.ChangedFields.Select(f=>new SettingsDifference(f,Display(before.GetProperty(f)),Display(after.GetProperty(f)))).ToArray(),SystemSettingsValidator.Fields[group].Select(Effect).Distinct().ToArray(),protector.Issue(actor.UserId,group,current.Revision,validated.ValueHash),clock.GetUtcNow().AddMinutes(5));}
+     public Task<CommandResult<SettingsGroupDto>> SaveAsync(string group,SaveSettingsRequest request,string? tag,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,platform,"settings.system."+group+".update",async(_,token)=>{
+-        await Require(actor,token);SettingsValueCodec.Default(group);
++        await Require(actor,token);if(group=="notification")compatibility?.RequireWritable();SettingsValueCodec.Default(group);
+         return await idempotency.ExecuteAsync(new(actor.UserId,platform,"settings.system."+group,requestContext.IdempotencyKey),CanonicalJson.Serialize(new{group,values=request.Values,tag}),async commandToken=>{
+             var current=await reader.ReadAsync(group,commandToken);PolicyPreconditions.Require(tag,current.Revision);var validated=SystemSettingsValidator.Resolve(group,new(request.Values),current.Value);protector.Require(request.ConfirmationToken,actor.UserId,group,current.Revision,validated.ValueHash);
+             var key="system."+group;var row=await db.Set<SystemSetting>().SingleOrDefaultAsync(x=>x.Key==key,commandToken);if(row is null){row=new SystemSetting{Key=key};db.Add(row);}else row.Revision++;
+diff --git a/tests/WebApi.Integration.Tests/NotificationCompatibilityBridgeTests.cs b/tests/WebApi.Integration.Tests/NotificationCompatibilityBridgeTests.cs
+new file mode 100644
+index 0000000..db99fb7
+--- /dev/null
++++ b/tests/WebApi.Integration.Tests/NotificationCompatibilityBridgeTests.cs
+@@ -0,0 +1,33 @@
++using System.Net;
++using System.Net.Http.Json;
++using System.Text.Json;
++using Microsoft.EntityFrameworkCore;
++using WebApi.Contracts.Alerts;
++using WebApi.Infrastructure.Persistence.Entities;
++using WebApi.Integration.Tests.Support;
++using Xunit;
++using WebApi.Contracts.Common;
++using WebApi.Infrastructure.Settings;
++using WebApi.Infrastructure.Notifications;
++namespace WebApi.Integration.Tests;
++public sealed class NotificationCompatibilityBridgeTests
++{
++    private const string Nine="""{"smtpHost":"mail.example.test","smtpPort":587,"fromEmail":"sender@example.test","smtpSecretRef":"vault://fixture/mail","webhookUrl":"https://hook.example.test/notify","webhookSecretRef":"vault://fixture/hook","smtpEnabled":true,"webhookEnabled":true,"smtpSecurity":"StartTlsRequired"}""";
++    private static async Task<ApiFixture> Setup(bool readOnly=true){var f=new ApiFixture();await f.InitializeAsync(b=>b.Configuration["CompatibilityNotifications:Mode"]=readOnly?"ReadOnly":"Disabled");await f.SeedScopeAsync(platformAdmin:true);await SystemSettingsFixture.PromoteAsync(f);await ObservationTestSupport.GrantAsync(f,["alert.rule.manage"]);(await f.LoginAsync()).EnsureSuccessStatusCode();return f;}
++    private static async Task Seed(ApiFixture f,string value){await using var db=f.Context();db.Add(new SystemSetting{Key="system.notification",Value=value,UpdatedBy=f.User.Id});await db.SaveChangesAsync();}
++    private static SaveAlertRuleRequest Definition(ApiFixture f)=>new(f.Organization.Id,f.Project.Id,f.Environment.Id,"Recovery bridge","request_rps","request_rps > 999999999","Warning",true,0,"Environment",null,60,new(true,["Webhook"]));
++    [Fact]public async Task ExactNineReadsSixWithoutRewritingStoredJson(){await using var f=await Setup();await Seed(f,Nine);string storedBefore;await using(var before=f.Context())storedBefore=(await before.Set<SystemSetting>().SingleAsync()).Value;using var response=await f.Client.GetAsync("/api/v1/settings/system/notification");response.EnsureSuccessStatusCode();var value=(await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("values");Assert.Equal(6,value.EnumerateObject().Count());Assert.Equal("mail.example.test",value.GetProperty("smtpHost").GetString());Assert.DoesNotContain("vault://",value.GetRawText());await using var db=f.Context();Assert.Equal(storedBefore,(await db.Set<SystemSetting>().SingleAsync()).Value);Assert.Equal(1,(await db.Set<SystemSetting>().SingleAsync()).Revision);}
++    [Fact]public async Task LegacySixStillReadsWithoutRewriting(){await using var f=await Setup();var fields=JsonSerializer.Deserialize<Dictionary<string,JsonElement>>(Nine)!;foreach(var name in new[]{"smtpEnabled","webhookEnabled","smtpSecurity"})fields.Remove(name);var six=JsonSerializer.Serialize(fields);await Seed(f,six);string storedBefore;await using(var before=f.Context())storedBefore=(await before.Set<SystemSetting>().SingleAsync()).Value;(await f.Client.GetAsync("/api/v1/settings/system/notification")).EnsureSuccessStatusCode();await using var db=f.Context();Assert.Equal(storedBefore,(await db.Set<SystemSetting>().SingleAsync()).Value);}
++    [Fact]public void DuplicateExtendedPropertyFailsClosed(){var invalid=Nine.Replace("\"smtpEnabled\":true", "\"smtpEnabled\":true,\"smtpEnabled\":false");var error=Assert.Throws<ApiException>(()=>SettingsValueCodec.Decode("notification",invalid,CompatibilityNotificationMode.ReadOnly));Assert.Equal(503,error.Status);}
++    [Fact]public async Task DisabledCompatibilityStillRejectsNine(){await using var f=await Setup(false);await Seed(f,Nine);Assert.Equal(HttpStatusCode.ServiceUnavailable,(await f.Client.GetAsync("/api/v1/settings/system/notification")).StatusCode);}
++    [Theory][InlineData("smtpEnabled","false")][InlineData("smtpEnabled",null)][InlineData("webhookEnabled",123)][InlineData("smtpSecurity","Optional")][InlineData("extra",true)]
++    public async Task UnknownOrInvalidExtensionsFailClosed(string key,object? value){await using var f=await Setup();var fields=JsonSerializer.Deserialize<Dictionary<string,JsonElement>>(Nine)!;fields[key]=JsonSerializer.SerializeToElement(value);await Seed(f,JsonSerializer.Serialize(fields));Assert.Equal(HttpStatusCode.ServiceUnavailable,(await f.Client.GetAsync("/api/v1/settings/system/notification")).StatusCode);}
++    [Fact]public async Task PartialExtendedJsonFailsClosed(){await using var f=await Setup();var fields=JsonSerializer.Deserialize<Dictionary<string,JsonElement>>(Nine)!;fields.Remove("webhookEnabled");await Seed(f,JsonSerializer.Serialize(fields));Assert.Equal(HttpStatusCode.ServiceUnavailable,(await f.Client.GetAsync("/api/v1/settings/system/notification")).StatusCode);}
++    [Fact]public async Task NotificationSaveCannotOverwriteNine(){await using var f=await Setup();await Seed(f,Nine);using var response=await SystemSettingsFixture.SendAsync(f,HttpMethod.Put,"notification","",new{values=new{smtpHost=(string?)null,smtpPort=(int?)null,fromEmail=(string?)null,smtpSecretRef=new{operation="Clear"},webhookUrl=(string?)null,webhookSecretRef=new{operation="Clear"}},confirmationToken="unused"},"\"1\"");Assert.Equal((HttpStatusCode)423,response.StatusCode);Assert.Equal("notification_maintenance_mode",(await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());await using var db=f.Context();Assert.Equal(9,JsonDocument.Parse((await db.Set<SystemSetting>().SingleAsync()).Value).RootElement.EnumerateObject().Count());}
++    [Fact]public async Task RuleCreateCannotWriteDuringRecovery(){await using var f=await Setup();using var response=await f.WriteAsync(HttpMethod.Post,"/api/v1/observability/alert-rules",Definition(f));Assert.Equal((HttpStatusCode)423,response.StatusCode);await using var db=f.Context();Assert.Empty(await db.Set<AlertRule>().ToArrayAsync());}
++    [Theory][InlineData("update")][InlineData("enable")][InlineData("disable")]
++    public async Task ExistingRuleMutationsAreReadOnly(string operation){await using var f=await Setup();var rule=new AlertRule{OrganizationId=f.Organization.Id,ProjectId=f.Project.Id,EnvironmentId=f.Environment.Id,Name="Frozen",NormalizedName="FROZEN",Metric="request_rps",Expression="request_rps > 999999999",TargetType="Environment",Severity="Warning",Enabled=true,WindowSeconds=60,ForSeconds=0,Notification="{\"inConsole\":true,\"requestedChannels\":[\"Webhook\"],\"externalEnabled\":true}",CreatedBy=f.User.Id,UpdatedBy=f.User.Id};await using(var db=f.Context()){db.Add(rule);await db.SaveChangesAsync();}using var response=await f.WriteAsync(operation=="update"?HttpMethod.Put:HttpMethod.Post,"/api/v1/observability/alert-rules/"+rule.Id+(operation=="update"?"":"/"+operation),operation=="update"?Definition(f):null,"\"1\"");Assert.Equal((HttpStatusCode)423,response.StatusCode);await using var verify=f.Context();var after=await verify.Set<AlertRule>().SingleAsync();Assert.True(after.Enabled);Assert.Equal(1,after.Revision);Assert.Contains("externalEnabled",after.Notification);}
++    [Theory][InlineData("/api/v1/settings/system/notification/tests")][InlineData("/api/v1/notification-deliveries/00000000-0000-0000-0000-000000000001/retry")]
++    public async Task NewNotificationMutationRoutesRejectDuringRecovery(string route){await using var f=await Setup();using var response=await f.WriteAsync(HttpMethod.Post,route,new{channel="Email",email="recipient@example.test"},"\"1\"");Assert.Equal((HttpStatusCode)423,response.StatusCode);}
++    [Fact]public async Task OtherSettingsAndBusinessWritesStillWork(){await using var f=await Setup();using var saved=await SystemSettingsFixture.SaveAsync(f,"gateway",new{defaultRouteTimeoutMs=12000,maxRequestBodyMb=20,configRefreshIntervalSeconds=2});saved.EnsureSuccessStatusCode();using var project=await f.WriteAsync(HttpMethod.Post,"/api/v1/organizations/"+f.Organization.Id+"/projects",new{code="AFTERBRIDGE",name="Created after bridge"});project.EnsureSuccessStatusCode();}
++}

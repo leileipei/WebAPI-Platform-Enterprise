@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "actual": true,
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "clone": {
+    "ownerVerified": true,
+    "ownerId": "70c0d47f-77c0-4509-a234-0c8f8e304863",
+    "projectName": "webapi-enterprise-local-test-f672e4a5-d9ad-4eb1-8401-c484d578a660",
+    "consolePort": 57541
+  },
+  "bridge": {
+    "schemaVersion": 1,
+    "baselineRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+    "bridgeRevision": "cf41823b9a7bcac7f0ef2195b66c4efa058883ac",
+    "imageId": "sha256:e6ef85d58930c55f79a802f7502c5b050201e51088c6d3d038db56ab001389e6",
+    "imageLabel": "cf41823b9a7bcac7f0ef2195b66c4efa058883ac",
+    "patchSha256": "e74f0f82cf97f6a11bbe0fdb2dadebf9ac67de9e55373059e8e3a44fb688d4ab",
+    "lockFiles": {
+      "Directory.Packages.props": "7e5465d74ab19dd0e9871eb2a7834b4c9150853f0a99a13015aa09dffe3df53f",
+      "console/package.json": "635a503c47075c25f06aa9c6d25ba8e48a32592ce2dbb0649003fa79050d51f2",
+      "console/pnpm-lock.yaml": "5c42fdae9c029964343748c67e516e5d4b5f4a4f0268ed5ce9d71974efa57311",
+      "deploy/images.lock.json": "d519afd50a6363ec9b21950fb368299677b3c0ab431e9b5144483666849b8fbf",
+      "src/WebApi.ConsoleHost/packages.lock.json": "c0bc7b52320fc95d09d31ade66a17814f480831003cd67c6044fadd6d81920e2",
+      "src/WebApi.Contracts/packages.lock.json": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "src/WebApi.ControlPlane/packages.lock.json": "f8afa307bee74ea212c8da90f415bd296178c5c3607893bf0616ab4e1e73748f",
+      "src/WebApi.Domain/packages.lock.json": "a83092dcd661edb64a223c41cc92721c154df2eeebb515522487defeda9b0fa3",
+      "src/WebApi.Gateway/packages.lock.json": "4f1fac3d6935f04b47532b440bf3e1c5bc31c20e53d04262afaf85b63a1ffa5a",
+      "src/WebApi.Infrastructure/packages.lock.json": "e09488ff488d1f8461334e01150a8c46b36f91526b5f53450f14059d1a05683e",
+      "src/WebApi.Migrator/packages.lock.json": "3573f8d75bb089fc1b6f4f19bd03079ef19b655bafdce0ded3bab73a9a3e5fcd",
+      "src/WebApi.RuntimeTool/packages.lock.json": "3573f8d75bb089fc1b6f4f19bd03079ef19b655bafdce0ded3bab73a9a3e5fcd",
+      "src/WebApi.TestBackend/packages.lock.json": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "src/WebApi.Worker/packages.lock.json": "4fee729bbce0b8624dd5bd99515dcf29e0f507dd1f227708e20bba3a6bc44f4a",
+      "tests/WebApi.Domain.Tests/packages.lock.json": "3ff7605b2483e2e761be388d606b8705992050a4376575d4e9ec4038640b7f40",
+      "tests/WebApi.EndToEnd.Tests/packages.lock.json": "6a41a16d99049a719133fa8595b5b60bd8e49d502519001199a58d68090bc01a",
+      "tests/WebApi.Gateway.Tests/packages.lock.json": "289ff5f43f20a55b940cb671425d102ddc4ad75996138daed9bc56128e9c5de9",
+      "tests/WebApi.Integration.Tests/packages.lock.json": "e75b0bb87f61d0fe331141d2221a4c7f010964930bff3c9a492a8df12241091a",
+      "tests/WebApi.TestSupport/packages.lock.json": "12d50ad962fe1b02fd14ecb098edd81edc22b933cc49449a4e60e6134f723086",
+      "third_party/json-everything/src/Json.More/packages.lock.json": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "third_party/json-everything/src/JsonPointer/packages.lock.json": "369cba97e49c48f5a09aedbb28c84a14b338fb6dcefcb736f927ca9d06c15044",
+      "third_party/json-everything/src/JsonSchema/packages.lock.json": "ce43327af2737eca53b2fea4083e1680e0ec77662778c47357c593c4ee2515cc"
+    },
+    "changedFiles": [
+      "src/WebApi.ControlPlane/ControlPlaneApp.cs",
+      "src/WebApi.Infrastructure/Alerts/AlertRuleService.cs",
+      "src/WebApi.Infrastructure/Notifications/CompatibilityNotificationMode.cs",
+      "src/WebApi.Infrastructure/Settings/SettingsValues.cs",
+      "src/WebApi.Infrastructure/Settings/SystemSettingsReader.cs",
+      "src/WebApi.Infrastructure/Settings/SystemSettingsService.cs",
+      "tests/WebApi.Integration.Tests/NotificationCompatibilityBridgeTests.cs"
+    ],
+    "readonlyMode": "ReadOnly",
+    "notificationsWritable": false,
+    "rulesWritable": false,
+    "buildSource": "git-archive",
+    "dirtyCheckoutIncluded": false,
+    "ownerId": "6da951d3-89e2-407a-a2c1-e4d96d7c2370"
+  },
+  "phases": [
+    {
+      "revision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+      "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a"
+    },
+    {
+      "revision": "cf41823b9a7bcac7f0ef2195b66c4efa058883ac",
+      "imageId": "sha256:e6ef85d58930c55f79a802f7502c5b050201e51088c6d3d038db56ab001389e6",
+      "mode": "ReadOnly"
+    },
+    {
+      "revision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+      "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a"
+    }
+  ],
+  "drained": true,
+  "sendingBeforeSwitch": 0,
+  "sourceDatabaseRestored": false,
+  "oldImageRejectsNine": true,
+  "protectedBefore": {
+    "business": "ab2f2614fc4ae5d3bbd44530f58b58fb78c6c52cf188fa524ac679dc98a6a633",
+    "accounts": "741c9262e96520969fbf389e842fb43fd363626097b04cead6426153ef59610c",
+    "attachments": "08b6baa2b58e27ffe71f186a45ea3f13748402c97fcac9b08e5bfb7af04aaa77",
+    "notificationDefinitions": "13f0030558da7917760b6a6366d7720ea4e1492115e3a7839f1ba633971af9eb",
+    "notificationHistory": "4e7af2bb39db6d8d793f5591ac52e3b5ccbf2a1debce66be7767606493b2b5c7",
+    "sso": "e63983fcc8eaa237d7f45af3cffc0a1406b85da2ac8adb35bc8ecadbad81cc1d",
+    "dpKeys": "349c11505b4c98a9b4e3d418a9a1cb78a3a730d1d5a84f2e9319a269de539c80"
+  },
+  "protectedAfter": {
+    "business": "ab2f2614fc4ae5d3bbd44530f58b58fb78c6c52cf188fa524ac679dc98a6a633",
+    "accounts": "741c9262e96520969fbf389e842fb43fd363626097b04cead6426153ef59610c",
+    "attachments": "08b6baa2b58e27ffe71f186a45ea3f13748402c97fcac9b08e5bfb7af04aaa77",
+    "notificationDefinitions": "13f0030558da7917760b6a6366d7720ea4e1492115e3a7839f1ba633971af9eb",
+    "notificationHistory": "4e7af2bb39db6d8d793f5591ac52e3b5ccbf2a1debce66be7767606493b2b5c7",
+    "sso": "e63983fcc8eaa237d7f45af3cffc0a1406b85da2ac8adb35bc8ecadbad81cc1d",
+    "dpKeys": "349c11505b4c98a9b4e3d418a9a1cb78a3a730d1d5a84f2e9319a269de539c80"
+  },
+  "protectedRowCounts": {
+    "business": {
+      "organizations": 4,
+      "projects": 14,
+      "environments": 9,
+      "apis": 7,
+      "api_versions": 7,
+      "api_groups": 0,
+      "api_routes": 9,
+      "route_methods": 9,
+      "upstream_clusters": 9,
+      "policies": 5,
+      "route_policy_bindings": 5,
+      "applications": 1,
+      "application_api_permissions": 1,
+      "release_records": 110,
+      "release_items": 110,
+      "approval_flows": 3,
+      "approval_steps": 6,
+      "approval_tasks": 226
+    },
+    "accounts": {
+      "users": 37,
+      "user_roles": 33,
+      "user_project_scopes": 32,
+      "roles": 17,
+      "role_permissions": 300,
+      "application_credentials": 1
+    },
+    "attachments": {
+      "api_version_contract_sources": 6,
+      "api_schemas": 4,
+      "api_parameters": 0
+    },
+    "notificationDefinitions": {
+      "system_settings": 1,
+      "alert_rules": 22,
+      "notification_channel_profiles": 7,
+      "notification_channel_states": 2
+    },
+    "notificationHistory": {
+      "notification_deliveries": 39,
+      "notification_delivery_attempts": 42
+    },
+    "sso": {
+      "sso_providers": 1,
+      "user_external_identities": 1
+    }
+  },
+  "backup": {
+    "actual": true,
+    "manifestVerified": true,
+    "manifestFilesVerified": 36,
+    "manifestSha256": "3a6e3c30fc840c79518a89aed388dd78c58b5da11e842b0d28ebcf955ec8be91",
+    "volumes": [
+      "pg",
+      "lkg-a",
+      "lkg-b",
+      "dp-keys",
+      "prometheus-data",
+      "loki-data",
+      "tempo-data",
+      "secrets-cache",
+      "notification-secrets",
+      "notification-fixture-secrets",
+      "notification-fixture-data"
+    ]
+  },
+  "bridgeChecks": {
+    "settingsGroups": 5,
+    "notificationSave": 423,
+    "ruleCreate": 423,
+    "ruleUpdate": 423,
+    "ruleEnable": 423,
+    "ruleDisable": 423,
+    "notificationTest": 423,
+    "notificationRetry": 423,
+    "otherBusinessWrite": true,
+    "oldWorkerFrozenOff": true
+  },
+  "candidateRestored": {
+    "ready": true,
+    "dpRetained": true,
+    "ssoRetained": true,
+    "noRetrospectiveSends": true,
+    "smtpAccepted": true,
+    "webhookAccepted": true
+  },
+  "markers": {
+    "projectId": "07e76247-efa2-4d16-8f60-79cb8f3cd891",
+    "accountId": "d2ce6712-3f98-496c-8bfd-7243b7796742",
+    "versionId": "e9e91fbc-ff78-40d9-9f25-e9a15abedddc",
+    "ruleId": "e3b6b393-bb11-400a-a5fc-30718eec3c32",
+    "attachmentKind": "actual imported supporting YAML stored in contract sources"
+  },
+  "events": {
+    "ruleId": "e3b6b393-bb11-400a-a5fc-30718eec3c32",
+    "oldWorkerEventId": "e4b05c4c-a089-426f-b565-71951652c810"
+  },
+  "fresh": {
+    "kind": "Test",
+    "createdVia": "shipped notification API",
+    "deliveries": [
+      {
+        "id": "12617f28-50cc-46c9-b63e-a134b49fe528",
+        "channel": "Email",
+        "status": "Accepted",
+        "attemptCount": 1
+      },
+      {
+        "id": "ac2679cc-bdb8-483b-8cd0-b02110b375e2",
+        "channel": "Webhook",
+        "status": "Accepted",
+        "attemptCount": 1
+      }
+    ],
+    "smtp": [
+      {
+        "sessionId": "1ae764cb-f0c1-4244-834d-8988d71e570a",
+        "deliveryId": "12617f28-50cc-46c9-b63e-a134b49fe528",
+        "messageId": "12617f28-50cc-46c9-b63e-a134b49fe528@webapi.invalid",
+        "recipientCount": 1,
+        "tls": true,
+        "authenticated": true,
+        "accepted": true,
+        "replyCode": 250,
+        "bodyHash": "fad2390373f94d0dbc014f1c4d677c168af9957718d5ac3f37f27c11f6dcc106",
+        "ccCount": 0,
+        "bccCount": 0,
+        "observedAt": "2026-10-08T01:21:49.1534073+00:00"
+      }
+    ],
+    "webhook": [
+      {
+        "deliveryId": "ac2679cc-bdb8-483b-8cd0-b02110b375e2",
+        "timestamp": "1791422509",
+        "signatureValid": true,
+        "tls": true,
+        "tlsProtocol": "Tls13",
+        "bodyHash": "12e01b2328bf3672b48b6c96ee0d988b71c1bb0016e2b5bdc2dc31ee0d081f15",
+        "bodyBytes": 270,
+        "replyCode": 202,
+        "remoteAccepted": true,
+        "duplicate": false,
+        "observedAt": "2026-10-08T01:21:49.0820433+00:00"
+      }
+    ]
+  },
+  "ssoEvidence": {
+    "storedProviderAndBindingRowsUnchanged": true,
+    "deploymentConfigUnchanged": true,
+    "persistentDpKeysUnchanged": true,
+    "sessionCookieSurvived": true,
+    "newLocalAccountLoginPassed": true,
+    "liveOidcLoginPerformed": false
+  },
+  "temporarySwitchOnly": true,
+  "original4192Upgraded": false
+}

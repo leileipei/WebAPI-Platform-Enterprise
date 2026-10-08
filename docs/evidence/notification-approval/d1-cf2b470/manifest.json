@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "bridgeRevision": "cf41823b9a7bcac7f0ef2195b66c4efa058883ac",
+  "complete": true,
+  "tests": {
+    "node": 40,
+    "bridgeIntegration": 67
+  },
+  "files": [
+    {
+      "path": "bridge-receipt.json",
+      "sha256": "01fe9762f58fd7af4f305ab5e3c22cfa5174b58b2b6104e961b9ebe063674a21"
+    },
+    {
+      "path": "bridge-patch.diff",
+      "sha256": "e74f0f82cf97f6a11bbe0fdb2dadebf9ac67de9e55373059e8e3a44fb688d4ab"
+    },
+    {
+      "path": "recovery-receipt.json",
+      "sha256": "627b2cb49535ab2c06e9036d4c139b076e6e274ef9da8dc38dd0417b7071c1da"
+    },
+    {
+      "path": "bridge-observation.json",
+      "sha256": "daf3ff4db4d54355cac122e3f9fdde5b1c05c7a04272e3c15674935b42df84aa"
+    },
+    {
+      "path": "cold-backup-manifest.json",
+      "sha256": "3a6e3c30fc840c79518a89aed388dd78c58b5da11e842b0d28ebcf955ec8be91"
+    },
+    {
+      "path": "finally.json",
+      "sha256": "d8a4c9615b6ecdf1735e407b4cd58036bc39504b6ca611c97fc0d60ea93df3a0"
+    },
+    {
+      "path": "markers.json",
+      "sha256": "9a706c06918b112ff2593b3c827e0f591dab144cc0b16ed6827ab2f305882047"
+    },
+    {
+      "path": "actual-recovery.log",
+      "sha256": "1dbc1ccb3ef79f3ad0f3a1f1c44ae7b564c30e8506b54e5a3fc4868c6546e8a1"
+    },
+    {
+      "path": "bridge-fixed-source-integration.log",
+      "sha256": "93b5e7872bbd61aef5ef38765a25df068501240e47a76a5a9c9de8e0d88f80fc"
+    },
+    {
+      "path": "original-readonly-protection.json",
+      "sha256": "57ed31a0f1811d1b87337bc224230773c0ece30acc5bbded351e0b857db3262b"
+    },
+    {
+      "path": "node-tests.log",
+      "sha256": "317a14ebce46a6357c3b34ed2e63caf25c54da3049bcb76929c6b76b7e5b6c8f"
+    },
+    {
+      "path": "ready-after-finally.json",
+      "sha256": "beff0457f67d325d8a43cc6d15b659e8f5d666236f4d94c27db8e55c5df309ef"
+    }
+  ],
+  "driverFiles": {
+    "scripts/notification-approval/bridge.mjs": "592d92966af77d85d1545f541648414ba372f4031efa76f106d633f800139717",
+    "scripts/notification-approval/recovery.mjs": "bac18cbe42a63c85b3e91d1fda822e5843144d2569da73e99499d9201adb1f03",
+    "tests/notification-approval/recovery.test.mjs": "1e720f9aedf92b5cc81e5428f286a4f026fc1d3b4169f0db03f0dc496f18247e"
+  }
+}

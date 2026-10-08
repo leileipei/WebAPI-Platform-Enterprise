@@ -1,0 +1,48 @@
+✔ old worker default freeze is read from nested persisted policy (0.506959ms)
+✔ top level flag cannot conceal enabled policy (0.405042ms)
+✔ missing frozen policy fails closed (0.092959ms)
+✔ recovered SMTP and Webhook use their actual distinct acceptance fields (0.08175ms)
+✔ SMTP remoteAccepted alias cannot conceal a rejected DATA receipt (2.776041ms)
+✔ Webhook without verified HMAC cannot pass recovery (0.323542ms)
+✔ unrelated wire delivery cannot prove accepted tasks (0.148125ms)
+✔ bridge builder rejects different baseline before any build (0.271708ms)
+✔ bridge builder rejects missing owner before any build (0.140917ms)
+✔ bridge builder rejects mutable ref before any build (0.467209ms)
+✔ bridge builder rejects unchanged baseline before any build (0.161833ms)
+✔ bridge builder refuses original local runtime as build storage (0.153792ms)
+✔ valid pinned bridge receipt passes (0.344375ms)
+✔ wrong bridge identity (0.135542ms)
+✔ wrong baseline (0.104833ms)
+✔ wrong image (0.22475ms)
+✔ archive pollution (0.221875ms)
+✔ changed lock (0.207083ms)
+✔ unreviewed source (0.171417ms)
+✔ writable rule bridge (0.155208ms)
+✔ patch mismatch (0.090875ms)
+✔ newBusinessRowsAndNotificationDefinitionsSurvive (0.191375ms)
+✔ lost business (0.083458ms)
+✔ lost notification definitions (0.054167ms)
+✔ lost DP (0.044708ms)
+✔ lost secret backup (0.220208ms)
+✔ old DB overwrite (0.145417ms)
+✔ sending switch (0.112375ms)
+✔ wrong candidate (0.149083ms)
+✔ nonUUID original (0.087084ms)
+✔ original port (0.105834ms)
+✔ bridgeRejectsUnknownJsonAndRuleWrites (0.05925ms)
+✔ silent old worker sends (0.182875ms)
+✔ unverified backup (0.154417ms)
+✔ no real recovery (0.052542ms)
+✔ invalid owner UUID (0.088125ms)
+✔ invalid clone UUID (0.07675ms)
+✔ out of range port (0.084792ms)
+✔ missing observation archive (0.160791ms)
+✔ duplicate archive (0.136167ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 77.45625

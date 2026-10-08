@@ -46,11 +46,11 @@
 
 **Interfaces:** `buildNotificationBridge({baselineRevision,directory,owner}) -> Promise<BridgeReceipt>`，BridgeReceipt含基线/桥接40字符SHA、imageId、精确patch摘要及锁文件身份；`runDataPreservingRecovery({candidate,bridge,cloneDirectory,fixtureDirectory}) -> Promise<RecoveryReceipt>`。桥接 `CompatibilityNotificationMode.ReadOnly` 只在固定恢复模式启用；旧SettingsValueCodec接受精确原6或新9字段，验证三扩展字段的类型/枚举后投影原6读取；通知设置保存、全部规则更新/启停返回423 `notification_maintenance_mode`，避免旧UI写回覆盖扩展字段。其他原业务写入保留。
 
-- [ ] **Step 1：写门禁及桥接RED。** `bridgeRejectsUnknownJsonAndRuleWrites`、`recoveryRequiresExactBridgeAndCandidateIdentity`、`newBusinessRowsAndNotificationDefinitionsSurvive`；模拟错误桥接/归档污染/遗漏secret或DP manifest必须throw；真实旧镜像读取新JSON报错确认现有不兼容。Run `N --test tests/notification-approval/recovery.test.mjs`；桥接读写保护使用同SDK对应集成用例验证行为RED。
-- [ ] **Step 2：实现桥接并GREEN。** 原`c1c2715`隔离源码精确改动、独立提交，固定Gitarchive构建桥接。不移除新JSON键、不回写旧通知定义、不删除新表；桥接只读通知能力清晰标示。新增AlertEvent冻结列须有关闭默认，旧worker插入新行仍默认不发外部通知。
-- [ ] **Step 3：实际克隆恢复。** 候选运行→正常停止发送并等待当前尝试预算→桥接→候选。克隆里升级后创建的新业务标记、账号/附件、通知定义和投递历史精确保留；桥接可读取五组设置，通知/规则写423，原其他业务写入正常；旧worker新告警关闭冻结，候选恢复后不追溯发送。通知停启与临时运行状态变化写receipt，不变更平台持久开关替代原设置。
-- [ ] **Step 4：恢复验收。** 同门禁及实际RecoveryReceipt、全部coldbackup内部SHA回读、DP/SSO跨重启、SMTP/Webhook新任务在候选恢复后正常；没有真实证据则阻止D3升级。发布安装前结果明确桥接限于恢复且通知规则管理暂时只读。
-- [ ] **Step 5：提交。** 主执行分支只提交桥接/恢复驱动和脱敏结果，`test(delivery): verify data-preserving notification recovery bridge`；桥接自身源码提交单独记录，不能把它合并成候选功能实现。
+- [x] **Step 1：写门禁及桥接RED。** `bridgeRejectsUnknownJsonAndRuleWrites`、`recoveryRequiresExactBridgeAndCandidateIdentity`、`newBusinessRowsAndNotificationDefinitionsSurvive`；模拟错误桥接/归档污染/遗漏secret或DP manifest必须throw；真实旧镜像读取新JSON报错确认现有不兼容。Run `N --test tests/notification-approval/recovery.test.mjs`；桥接读写保护使用同SDK对应集成用例验证行为RED。
+- [x] **Step 2：实现桥接并GREEN。** 原`c1c2715`隔离源码精确改动、独立提交，固定Gitarchive构建桥接。不移除新JSON键、不回写旧通知定义、不删除新表；桥接只读通知能力清晰标示。新增AlertEvent冻结列须有关闭默认，旧worker插入新行仍默认不发外部通知。
+- [x] **Step 3：实际克隆恢复。** 候选运行→正常停止发送并等待当前尝试预算→桥接→候选。克隆里升级后创建的新业务标记、账号/附件、通知定义和投递历史精确保留；桥接可读取五组设置，通知/规则写423，原其他业务写入正常；旧worker新告警关闭冻结，候选恢复后不追溯发送。通知停启与临时运行状态变化写receipt，不变更平台持久开关替代原设置。
+- [x] **Step 4：恢复验收。** 同门禁及实际RecoveryReceipt、全部coldbackup内部SHA回读、DP/SSO跨重启、SMTP/Webhook新任务在候选恢复后正常；没有真实证据则阻止D3升级。发布安装前结果明确桥接限于恢复且通知规则管理暂时只读。
+- [x] **Step 5：提交。** 主执行分支只提交桥接/恢复驱动和脱敏结果，`test(delivery): verify data-preserving notification recovery bridge`；桥接自身源码提交单独记录，不能把它合并成候选功能实现。
 
 ## Task 2 (D2)：固定提交完整回归与唯一整分支审查
 

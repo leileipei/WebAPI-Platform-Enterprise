@@ -1,0 +1,6 @@
+{"step":"candidate-drain","projectName":"webapi-enterprise-local-test-f672e4a5-d9ad-4eb1-8401-c484d578a660"}
+{"step":"actual-old-image-rejects-nine","projectName":"webapi-enterprise-local-test-f672e4a5-d9ad-4eb1-8401-c484d578a660"}
+{"step":"bridge-readonly","projectName":"webapi-enterprise-local-test-f672e4a5-d9ad-4eb1-8401-c484d578a660"}
+{"step":"candidate-restored","projectName":"webapi-enterprise-local-test-f672e4a5-d9ad-4eb1-8401-c484d578a660"}
+{"step":"actual-recovery-gate-passed","projectName":"webapi-enterprise-local-test-f672e4a5-d9ad-4eb1-8401-c484d578a660"}
+{"passed":true,"sourceRevision":"cf2b4708c94362faf6cb5f891a7364e0799eac5a","imageId":"sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a","bridgeRevision":"cf41823b9a7bcac7f0ef2195b66c4efa058883ac","projectName":"webapi-enterprise-local-test-f672e4a5-d9ad-4eb1-8401-c484d578a660","manifestFilesVerified":36}
