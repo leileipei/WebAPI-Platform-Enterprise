@@ -1,0 +1,22 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "actual": true,
+  "port": 58631,
+  "newTestCredential": true,
+  "oldCredentialsUnchanged": true,
+  "permissionsUnchanged": true,
+  "retiredQaRoutes": [
+    "7b5d5c4e-8a1e-40c2-bc01-f76bffac12f7",
+    "b96be46d-adee-4e9a-9832-514248e0f8f3",
+    "c674ff01-567b-4be0-b940-fb9b5ce061dc"
+  ],
+  "historicalPoliciesUnchanged": true,
+  "jwtTrustNotModified": true,
+  "releaseId": "956a91cf-9e83-437d-9d8e-a64b17777037",
+  "dualIndependentApproval": true,
+  "dualAck": true,
+  "gatewayStatuses": [
+    200,
+    200
+  ]
+}

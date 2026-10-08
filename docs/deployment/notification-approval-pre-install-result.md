@@ -1,6 +1,6 @@
 # 通知与跨环境审批：安装前联合验收
 
-状态：D2 正在执行，原 4192 尚未升级。此文件不是安装成功回执。
+状态：D2 固定版本联合验收已通过，原 4192 尚未升级。此文件仅证明安装前独立克隆验收。
 
 已完成 A1–A3、N1–N8 及 D1 分别验收。D1 固定桥接源码 `cf41823b9a7bcac7f0ef2195b66c4efa058883ac`，候选历史运行源码 `cf2b4708c94362faf6cb5f891a7364e0799eac5a`；其公开材料见 [D1 manifest](../evidence/notification-approval/d1-cf2b470/manifest.json)。历史身份保持不变。
 
@@ -19,3 +19,17 @@
 第三轮 `b4e1322f0f54eec2c36b6b8810795f0c6b9afa69`：Console 205、feature Node 174、完整 runtime 114、domain 685 均零失败/跳过。integration 710 项中 709 通过、1 失败：历史契约迁移测试执行到了全部最新迁移，将通知新增表计入三表断言。现将其固定到 `_ContractManagement` 目标，仍保留“三张表、旧行字节等价、回退前一迁移”检查；定向实际数据库验证 1 项通过。全回归须在下一固定源码重新取得，不能把本轮标为通过。
 
 本轮独立 58631 UUID 实例已完成两级发布/双 ACK 与通知 fixture。独立 Keycloak 新 SSO 只读账号完成真实登录、重启 Cookie 保留、CSRF 403、只读写 403、注销后 401。实际回调是 303 至 `/auth/sso/complete`，该入口以 200 返回固定 Console 页面，由前端刷新会话/CSRF 并安全导航；原验收驱动先后误期望 302 回调和 302 完成跳转，失败记录保留。联合门禁现要求 303 回调、200 完成页与固定 index.html SHA、明确安全返回路径和实际登录审计增量，未放宽错误回调为成功。门禁/恢复测试 78 项通过。企业端点与生产验收仍未执行。
+
+## 当前固定候选与集中修复验收
+
+运行源码 `adbcbed56a7e465c483b7462e4f3de9ac1156669`，镜像 `sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b`。六套完整当前日志：domain 685、integration 720、gateway 138、console 206、runtime 114、features 179，合计 **2042 通过，0 失败，0 跳过**。日志和逐文件摘要见 [当前联合 manifest](../evidence/notification-approval/d2-adbcbed/manifest.json)。82 个内部文件通过材料和现场身份门禁；evidence.json、manifest.json 及验收结果另存。
+
+通知16项、审批7项、JWT/重试/缓存网关11项及真实Keycloak登录均通过。14项必需1440/1280 CUA全部重新采集，另有管理员仍合格时的跨步骤冲突2项：旧弹窗提交被禁用、API approve/reject均409且下一步骤未改变。冷恢复34文件回读、DP/8秘密/协议journal保留；实际在途Webhook收回为一次OutcomeUnknown，候选→确切桥接→候选后无隐藏重发，新SMTP250与HMAC/TLS Webhook202回执通过。
+
+唯一整分支审查已完成，四项Important集中修复绑定新固定源码，未新增第二次审查。关闭再开启Profile隔离、跨步骤预期条件、Manual/Recovery签名正文、停止Worker后的在途租约隔离均有数据库/API回归及对应现场证据。
+
+本轮失败尝试继续保留：首次Gateway100ms Redis冷连接Bypass，完整静默复跑138通过，未改阈值；N8秘密恢复漏stdin-i被摘要门禁拒绝，恢复确切自有备份字节后从头16+7通过；SSO并发重启/历史QA JWT白名单冲突改用新空白UUID完成11项，不修改历史JWT信任。CUA旧closure把新截图写入旧scratch，新门禁拒绝；错写材料归档、旧scratch由sealed原件恢复，当前14+2以新唯一常量重新采集并SHA回读。
+
+冷恢复后新网段首次尚未应用精确CIDR，以正式operateRuntime up协调部署后秘密不变。D1首次错误目录被归属门禁拒绝；随后旧Worker触发未收敛，诊断为过期QA API Key的401。只在本轮58631/58931创建24小时测试Key，保留过期凭据及权限，停用已结束QA路由并清空绑定，保留政策行/历史快照/JWT内容，经既有两级独立审批和双ACK发布后重跑完整桥接通过。上述调整均属测试环境，未向原4192写QA数据。若身份、SHA、预算、协议、数据保留或权限断言不符，联合门禁拒绝D3。
+
+主仓库七项原修改再次逐SHA一致。D3原安装安全窗口、精确合并、平台及Keycloak全冷备、新长期维护入口、原SSO与运行验收、ZIP仍待执行。企业SMTP/Webhook、企业IdP及生产验收未执行。

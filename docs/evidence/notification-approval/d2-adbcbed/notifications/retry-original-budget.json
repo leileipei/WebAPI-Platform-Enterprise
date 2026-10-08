@@ -1,0 +1,23 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "id": "retry-original-budget",
+  "source": "cua",
+  "actual": true,
+  "viewport": 1440,
+  "consolePort": 58631,
+  "url": "http://127.0.0.1:58631/observability/alerts?eventId=cf304428-c1b2-4e7d-8e90-31783ea9eeb8",
+  "staticFiles": {
+    "console/dist/assets/index-B6Hdfw5H.css": "8abfa82bb6c63e443e0fa290b38a0cbe8858c6d98960c3b8d03320db0629d8e7",
+    "console/dist/assets/index-CY5iPP_R.js": "3a191bf477966fd78bda928f4100b20312f6dde9c03f3d01d5202d927c325868",
+    "console/dist/index.html": "c84640f27154256a46dd38106f690fb030b726e12d69ab3820b4e9e9fc0f60e7"
+  },
+  "screenshotSha256": "27722bb8bdc34de4d1683a0707e06d2944e123aa6e7b70e2267cd62ba3b80848",
+  "details": {
+    "deliveryId": "b92d1fee-101b-45ec-98c5-6cec5f6efdce",
+    "originalAttempts": 1,
+    "maxAttempts": 3,
+    "originalDeadline": "2026-10-08T06:00:33.782764+00:00",
+    "originalNotBefore": "2026-10-08T05:05:37.492801+00:00"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "console",
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "passed": 206,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "0a8c80101d885de388756e045f2d1d2e31e62d8f47934da0a3a8c3128c5c7289",
+  "log": "suites/console.log"
+}

@@ -1,0 +1,41 @@
+{
+  "actual": true,
+  "imageId": "sha256:e6ef85d58930c55f79a802f7502c5b050201e51088c6d3d038db56ab001389e6",
+  "revision": "cf41823b9a7bcac7f0ef2195b66c4efa058883ac",
+  "checks": {
+    "settingsGroups": 5,
+    "notificationSave": 423,
+    "ruleCreate": 423,
+    "ruleUpdate": 423,
+    "ruleEnable": 423,
+    "ruleDisable": 423,
+    "notificationTest": 423,
+    "notificationRetry": 423,
+    "otherBusinessWrite": true,
+    "oldWorkerFrozenOff": true
+  },
+  "events": {
+    "interruptedTestId": "a3e55926-8f60-455f-aec1-350552927481",
+    "ruleId": "ea791cac-3d51-4cba-b798-dfbd392ce0d5",
+    "oldWorkerEventId": "afc6f70c-1570-4f52-9e46-6144982e62e0"
+  },
+  "frozenNotification": {
+    "policy": {
+      "inConsole": true,
+      "retryPolicy": {
+        "maxAttempts": 5,
+        "maxDelaySeconds": 900,
+        "baseDelaySeconds": 30,
+        "expiresAfterMinutes": 1440
+      },
+      "notifyRecovery": true,
+      "emailRecipients": [],
+      "externalEnabled": false,
+      "requestedChannels": []
+    },
+    "emailProfileId": null,
+    "webhookProfileId": null
+  },
+  "gatewayStatus": 200,
+  "cookieSurvived": true
+}

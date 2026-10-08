@@ -1,0 +1,21 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "id": "approval-dialog-keyboard",
+  "source": "cua",
+  "actual": true,
+  "viewport": 1440,
+  "consolePort": 58631,
+  "url": "http://127.0.0.1:58631/approvals?view=PendingMine&environmentId=798cbab8-4ca5-426b-a318-4d7fc24ca79f&page=1&pageSize=50",
+  "staticFiles": {
+    "console/dist/assets/index-B6Hdfw5H.css": "8abfa82bb6c63e443e0fa290b38a0cbe8858c6d98960c3b8d03320db0629d8e7",
+    "console/dist/assets/index-CY5iPP_R.js": "3a191bf477966fd78bda928f4100b20312f6dde9c03f3d01d5202d927c325868",
+    "console/dist/index.html": "c84640f27154256a46dd38106f690fb030b726e12d69ab3820b4e9e9fc0f60e7"
+  },
+  "screenshotSha256": "978bc9c111604873f91a024308f71c41d7cc147b30562e8b3b451489c8600ae0",
+  "details": {
+    "freshUiReleaseB": "e2ff57b3-c6ae-4d17-9485-57dbf4326d09",
+    "originalComment": "本轮步骤变化后保留原意见",
+    "keyboardUsed": true
+  }
+}

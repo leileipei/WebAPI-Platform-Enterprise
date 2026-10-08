@@ -1,0 +1,15 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "id": "worker-restart",
+  "source": "actual-clone",
+  "serviceResponse": true,
+  "actual": [
+    2,
+    true
+  ],
+  "expected": [
+    2,
+    true
+  ]
+}

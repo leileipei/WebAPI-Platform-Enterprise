@@ -1,0 +1,21 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "id": "admin-qualified-step-one",
+  "source": "cua",
+  "actual": true,
+  "viewport": 1440,
+  "consolePort": 58631,
+  "url": "http://127.0.0.1:58631/approvals?view=PendingMine&environmentId=479af015-b9c8-4136-8a21-5f301df80c29&page=1&pageSize=50",
+  "staticFiles": {
+    "console/dist/assets/index-B6Hdfw5H.css": "8abfa82bb6c63e443e0fa290b38a0cbe8858c6d98960c3b8d03320db0629d8e7",
+    "console/dist/assets/index-CY5iPP_R.js": "3a191bf477966fd78bda928f4100b20312f6dde9c03f3d01d5202d927c325868",
+    "console/dist/index.html": "c84640f27154256a46dd38106f690fb030b726e12d69ab3820b4e9e9fc0f60e7"
+  },
+  "screenshotSha256": "3b8010f0123973360a16a77f72c854bfff3458fec54770d745050e67e5a65616",
+  "details": {
+    "releaseId": "55703f23-18d0-4798-b93a-694d0dc9705c",
+    "adminQualified": true,
+    "frozenOpenedStep": 1
+  }
+}

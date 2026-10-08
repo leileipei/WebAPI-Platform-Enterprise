@@ -1,0 +1,62 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "source": "actual-clone",
+  "ownerId": "110e9f3e-c4d2-4dfc-90cc-aaba23c99d4c",
+  "projectName": "webapi-enterprise-local-test-808ce204-c0f9-4b79-b598-07c6b5167c7a",
+  "manifestSha256": "d6f0198f160920f477ace32875c957cfae87efd120b3ea87f01576b8b7fdf51c",
+  "manifestFilesVerified": 34,
+  "volumes": [
+    "pg",
+    "lkg-a",
+    "lkg-b",
+    "dp-keys",
+    "prometheus-data",
+    "loki-data",
+    "tempo-data",
+    "secrets-cache",
+    "notification-secrets",
+    "notification-fixture-secrets",
+    "notification-fixture-data"
+  ],
+  "finallyReady": true,
+  "restore": {
+    "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+    "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+    "actual": true,
+    "ownerVerified": true,
+    "ownerId": "78380ede-3da3-47b3-ad14-1bcd5a89134b",
+    "projectName": "webapi-enterprise-local-test-4d83bf8b-2377-4e85-b1dd-e67c854e60ef",
+    "consolePort": 58931,
+    "fixtureBinaryVerified": true,
+    "fixtureProtocolBefore": "cb9d011966c919826b5c037fa653f9b1bafe50e038fc9d3278da6b88894e030a",
+    "fixtureProtocolAfter": "cb9d011966c919826b5c037fa653f9b1bafe50e038fc9d3278da6b88894e030a",
+    "dpKeysBefore": {
+      "key-2d06d971-bfeb-4043-8bd4-4fad23e892e2.xml": "e4ba29e1ba55f5e8aa0586fba93617cd36ecbe63f3d4d5d507e9de774846484c"
+    },
+    "dpKeysAfter": {
+      "key-2d06d971-bfeb-4043-8bd4-4fad23e892e2.xml": "e4ba29e1ba55f5e8aa0586fba93617cd36ecbe63f3d4d5d507e9de774846484c"
+    },
+    "secretHashesBefore": {
+      "sender/ca.crt": "bfe438e9c63fc73af3f986690fa383a973dae795717f7015a5fdf581d8196ef6",
+      "sender/smtp.json": "54abbb6a3fee5173d8dc4dfc076153b82d567a9dc7bddf6a28d9fb2d87579349",
+      "sender/webhook.json": "7ab1c3f6819d2e6cb740301bc736696fc1a9afff6d9beecdbb00836a84f6eb14",
+      "fixture/owner-token": "a8f1e6c1cfaa4b49ee8c252466d398dbc8525145db864b9d4e23d4685e57d033",
+      "fixture/server.crt": "2b43ab8fff774490270f7e7a2ee0e7ab82c2158ef1028b541814fb807886bbe3",
+      "fixture/server.key": "41589ead80a468bd13f96f33133c3f993f39e355564dfbd0425632afbca667b3",
+      "fixture/smtp.json": "54abbb6a3fee5173d8dc4dfc076153b82d567a9dc7bddf6a28d9fb2d87579349",
+      "fixture/webhook.json": "7ab1c3f6819d2e6cb740301bc736696fc1a9afff6d9beecdbb00836a84f6eb14"
+    },
+    "secretHashesAfter": {
+      "sender/ca.crt": "bfe438e9c63fc73af3f986690fa383a973dae795717f7015a5fdf581d8196ef6",
+      "sender/smtp.json": "54abbb6a3fee5173d8dc4dfc076153b82d567a9dc7bddf6a28d9fb2d87579349",
+      "sender/webhook.json": "7ab1c3f6819d2e6cb740301bc736696fc1a9afff6d9beecdbb00836a84f6eb14",
+      "fixture/owner-token": "a8f1e6c1cfaa4b49ee8c252466d398dbc8525145db864b9d4e23d4685e57d033",
+      "fixture/server.crt": "2b43ab8fff774490270f7e7a2ee0e7ab82c2158ef1028b541814fb807886bbe3",
+      "fixture/server.key": "41589ead80a468bd13f96f33133c3f993f39e355564dfbd0425632afbca667b3",
+      "fixture/smtp.json": "54abbb6a3fee5173d8dc4dfc076153b82d567a9dc7bddf6a28d9fb2d87579349",
+      "fixture/webhook.json": "7ab1c3f6819d2e6cb740301bc736696fc1a9afff6d9beecdbb00836a84f6eb14"
+    },
+    "finallyReady": true
+  }
+}

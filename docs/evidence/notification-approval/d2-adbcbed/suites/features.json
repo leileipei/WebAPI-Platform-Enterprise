@@ -1,0 +1,10 @@
+{
+  "name": "features",
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "passed": 179,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "545d8792392b64033d0a8597e90bd6d9cd69f1357e445853bb20513d23aae84c",
+  "log": "suites/features.log"
+}

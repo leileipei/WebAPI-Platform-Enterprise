@@ -1,0 +1,10 @@
+{
+  "name": "domain",
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "passed": 685,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "af91fa75dccee6e4bb20689ff2ecc347c136888398a7275d87f20e6486fc48cb",
+  "log": "suites/domain.log"
+}

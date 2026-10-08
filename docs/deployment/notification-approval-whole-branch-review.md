@@ -24,3 +24,9 @@
 测试环境默认 Docker 地址池耗尽。本轮数据库测试仅使用已检查无重叠的自有临时子网，仍按 UUID 和所有权清理；未删除历史网络或改全局 Docker 配置。早期 UI 测试 socket 权限错误、维护用例定位目录错误、JSONB 查询和 xUnit 分析器错误日志均保留，不当作产品成功或使用跳过处理。
 
 D3 安全维护窗口、独立长期维护入口、原安装完整平台与 Keycloak 冷备、原 SSO 登录、最终 ZIP 扫描与清理仍待实施。企业 SMTP/Webhook、企业 IdP 和生产验收不在本机克隆证据结论中。
+
+## 集中修复后的当前验收
+
+`adbcbed56a7e465c483b7462e4f3de9ac1156669` 固定重建镜像 `e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b`。六套完整2042/2042、两模块16+7、网关11、真实SSO、14必需CUA及2管理员补充通过，82内部文件及现场身份门禁通过，见[当前安装前结果](notification-approval-pre-install-result.md)。
+
+四项Important已在同一修复批完成并重新验证。管理员仍可办下一步时旧approve/reject409且第二步席位未占用；实际延迟Webhook被维护收回为一次OutcomeUnknown，次数/期限保留、无隐藏重发、最后候选Ready。没有追加第二次整分支审查。此结论不代表原4192已安装。

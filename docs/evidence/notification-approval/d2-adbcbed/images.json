@@ -1,0 +1,94 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "ownerId": "110e9f3e-c4d2-4dfc-90cc-aaba23c99d4c",
+  "projectName": "webapi-enterprise-local-test-808ce204-c0f9-4b79-b598-07c6b5167c7a",
+  "resources": [
+    {
+      "Kind": "container",
+      "Id": "7bd257483dc626d884414959048cfd12b5fc3d7714f8f3fadedbcb20f35def09",
+      "Image": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.service": "control-plane",
+          "com.docker.compose.project": "webapi-enterprise-local-test-808ce204-c0f9-4b79-b598-07c6b5167c7a",
+          "com.webapi.runtime.owner": "110e9f3e-c4d2-4dfc-90cc-aaba23c99d4c"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "6cdd80aa77dd01e681125db6026dcf7f3777885a286769574bebfcf8ef664096",
+      "Image": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.service": "gateway-a",
+          "com.docker.compose.project": "webapi-enterprise-local-test-808ce204-c0f9-4b79-b598-07c6b5167c7a",
+          "com.webapi.runtime.owner": "110e9f3e-c4d2-4dfc-90cc-aaba23c99d4c"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "5d94cc00b0369e1a1b701a44a28c5c316a2c0fe1b13ea77503a4b018f81f7715",
+      "Image": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.service": "gateway-b",
+          "com.docker.compose.project": "webapi-enterprise-local-test-808ce204-c0f9-4b79-b598-07c6b5167c7a",
+          "com.webapi.runtime.owner": "110e9f3e-c4d2-4dfc-90cc-aaba23c99d4c"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "63ee9ae5cee333cb98b935a9c7b7f85e443ebea2f362f9f086a5c277f6209ef0",
+      "Image": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.service": "worker",
+          "com.docker.compose.project": "webapi-enterprise-local-test-808ce204-c0f9-4b79-b598-07c6b5167c7a",
+          "com.webapi.runtime.owner": "110e9f3e-c4d2-4dfc-90cc-aaba23c99d4c"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "3c1968448916a345a165300bd87d8d364d9654f5d8b74648bd9ee2167f302a9e",
+      "Image": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.service": "console",
+          "com.docker.compose.project": "webapi-enterprise-local-test-808ce204-c0f9-4b79-b598-07c6b5167c7a",
+          "com.webapi.runtime.owner": "110e9f3e-c4d2-4dfc-90cc-aaba23c99d4c"
+        }
+      }
+    }
+  ],
+  "images": [
+    {
+      "Id": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "Config": {
+        "User": "10001:10001",
+        "Labels": {
+          "org.opencontainers.image.revision": "adbcbed56a7e465c483b7462e4f3de9ac1156669"
+        }
+      }
+    }
+  ]
+}

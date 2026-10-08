@@ -1,0 +1,10 @@
+{
+  "name": "integration",
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "passed": 720,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "06db6b796408f9d770e1198fd99bb496d310095028da78c57b906e58cc320997",
+  "log": "suites/integration.log"
+}

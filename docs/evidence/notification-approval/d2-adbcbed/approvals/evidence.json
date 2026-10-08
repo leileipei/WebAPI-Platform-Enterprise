@@ -1,0 +1,2981 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "clone": {
+    "actual": true,
+    "ownerVerified": true,
+    "projectName": "webapi-enterprise-local-test-808ce204-c0f9-4b79-b598-07c6b5167c7a",
+    "ownerId": "110e9f3e-c4d2-4dfc-90cc-aaba23c99d4c",
+    "consolePort": 58631,
+    "applicationImages": [
+      {
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669"
+      },
+      {
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669"
+      },
+      {
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669"
+      },
+      {
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669"
+      },
+      {
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669"
+      }
+    ]
+  },
+  "environments": [
+    "479af015-b9c8-4136-8a21-5f301df80c29",
+    "798cbab8-4ca5-426b-a318-4d7fc24ca79f"
+  ],
+  "pagination": {
+    "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+    "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+    "total": 51,
+    "pageSize": 50,
+    "pendingMine": 1,
+    "actionableId": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+    "secondPageId": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+    "countsFromService": true
+  },
+  "checks": [
+    {
+      "id": "cross-environment",
+      "passed": true,
+      "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "evidence": {
+        "actual": "[\"479af015-b9c8-4136-8a21-5f301df80c29\",\"798cbab8-4ca5-426b-a318-4d7fc24ca79f\"]",
+        "expected": "[\"479af015-b9c8-4136-8a21-5f301df80c29\",\"798cbab8-4ca5-426b-a318-4d7fc24ca79f\"]",
+        "serviceResponse": {
+          "page": {
+            "items": [
+              {
+                "id": "111b5133-fff9-46dc-be4b-15b7ee40f63f",
+                "releaseNo": "REL-57ed1f3a915144d2ab02706608140fab",
+                "releaseType": "publish",
+                "state": "WaitingApproval",
+                "organization": {
+                  "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                  "code": "APPROVAL_dc0fc0be",
+                  "name": "跨环境审批验收 dc0fc0be"
+                },
+                "project": {
+                  "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                  "code": "APPROVAL_dc0fc0be",
+                  "name": "审批业务项目"
+                },
+                "environment": {
+                  "id": "798cbab8-4ca5-426b-a318-4d7fc24ca79f",
+                  "code": "PROD_B",
+                  "name": "生产环境 B"
+                },
+                "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                "applicantDisplayName": "审批验收 applicant",
+                "createdAt": "2026-10-08T04:13:26.899595+00:00",
+                "approvalEligibility": {
+                  "canAct": true,
+                  "currentStepOrder": 1,
+                  "reasonCode": null
+                },
+                "approvedCount": 0,
+                "requiredCount": 2,
+                "risk": {
+                  "visibility": "NoReviews",
+                  "coverage": null,
+                  "counts": null,
+                  "reviewCount": 0
+                }
+              },
+              {
+                "id": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+                "releaseNo": "REL-d9e100bce49c43198f8e066c8ff5435f",
+                "releaseType": "publish",
+                "state": "WaitingApproval",
+                "organization": {
+                  "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                  "code": "APPROVAL_dc0fc0be",
+                  "name": "跨环境审批验收 dc0fc0be"
+                },
+                "project": {
+                  "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                  "code": "APPROVAL_dc0fc0be",
+                  "name": "审批业务项目"
+                },
+                "environment": {
+                  "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                  "code": "PROD_A",
+                  "name": "生产环境 A"
+                },
+                "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                "applicantDisplayName": "审批验收 applicant",
+                "createdAt": "2026-10-08T04:13:26.787747+00:00",
+                "approvalEligibility": {
+                  "canAct": true,
+                  "currentStepOrder": 1,
+                  "reasonCode": null
+                },
+                "approvedCount": 0,
+                "requiredCount": 2,
+                "risk": {
+                  "visibility": "NoReviews",
+                  "coverage": null,
+                  "counts": null,
+                  "reviewCount": 0
+                }
+              }
+            ],
+            "total": 2,
+            "page": 1,
+            "pageSize": 50
+          },
+          "counts": {
+            "pendingMine": 2,
+            "handledMine": 0,
+            "allVisible": 2
+          },
+          "filter": {
+            "view": "PendingMine",
+            "organizationId": null,
+            "projectId": null,
+            "environmentId": null,
+            "status": null,
+            "page": 1,
+            "pageSize": 50
+          }
+        }
+      }
+    },
+    {
+      "id": "mixed-scope",
+      "passed": true,
+      "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "evidence": {
+        "actual": "[2,1,\"479af015-b9c8-4136-8a21-5f301df80c29\"]",
+        "expected": "[2,1,\"479af015-b9c8-4136-8a21-5f301df80c29\"]",
+        "serviceResponse": {
+          "mixedInbox": {
+            "page": {
+              "items": [
+                {
+                  "id": "111b5133-fff9-46dc-be4b-15b7ee40f63f",
+                  "releaseNo": "REL-57ed1f3a915144d2ab02706608140fab",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "798cbab8-4ca5-426b-a318-4d7fc24ca79f",
+                    "code": "PROD_B",
+                    "name": "生产环境 B"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:26.899595+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 2,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+                  "releaseNo": "REL-d9e100bce49c43198f8e066c8ff5435f",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:26.787747+00:00",
+                  "approvalEligibility": {
+                    "canAct": true,
+                    "currentStepOrder": 1,
+                    "reasonCode": null
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 2,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                }
+              ],
+              "total": 2,
+              "page": 1,
+              "pageSize": 50
+            },
+            "counts": {
+              "pendingMine": 1,
+              "handledMine": 0,
+              "allVisible": 2
+            },
+            "filter": {
+              "view": "AllVisible",
+              "organizationId": null,
+              "projectId": null,
+              "environmentId": null,
+              "status": null,
+              "page": 1,
+              "pageSize": 50
+            }
+          },
+          "mixedPending": {
+            "page": {
+              "items": [
+                {
+                  "id": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+                  "releaseNo": "REL-d9e100bce49c43198f8e066c8ff5435f",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:26.787747+00:00",
+                  "approvalEligibility": {
+                    "canAct": true,
+                    "currentStepOrder": 1,
+                    "reasonCode": null
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 2,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                }
+              ],
+              "total": 1,
+              "page": 1,
+              "pageSize": 50
+            },
+            "counts": {
+              "pendingMine": 1,
+              "handledMine": 0,
+              "allVisible": 2
+            },
+            "filter": {
+              "view": "PendingMine",
+              "organizationId": null,
+              "projectId": null,
+              "environmentId": null,
+              "status": null,
+              "page": 1,
+              "pageSize": 50
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "read-only",
+      "passed": true,
+      "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "evidence": {
+        "actual": "[2,0,403]",
+        "expected": "[2,0,403]",
+        "serviceResponse": {
+          "readonly": {
+            "page": {
+              "items": [
+                {
+                  "id": "111b5133-fff9-46dc-be4b-15b7ee40f63f",
+                  "releaseNo": "REL-57ed1f3a915144d2ab02706608140fab",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "798cbab8-4ca5-426b-a318-4d7fc24ca79f",
+                    "code": "PROD_B",
+                    "name": "生产环境 B"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:26.899595+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 2,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+                  "releaseNo": "REL-d9e100bce49c43198f8e066c8ff5435f",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:26.787747+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 2,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                }
+              ],
+              "total": 2,
+              "page": 1,
+              "pageSize": 50
+            },
+            "counts": {
+              "pendingMine": 0,
+              "handledMine": 0,
+              "allVisible": 2
+            },
+            "filter": {
+              "view": "AllVisible",
+              "organizationId": null,
+              "projectId": null,
+              "environmentId": null,
+              "status": null,
+              "page": 1,
+              "pageSize": 50
+            }
+          },
+          "readDenied": {
+            "status": 403,
+            "code": "scope_denied",
+            "traceId": "0HNP4U2AC92E5:000000A0"
+          }
+        }
+      }
+    },
+    {
+      "id": "self-approval",
+      "passed": true,
+      "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "evidence": {
+        "actual": "403",
+        "expected": "403",
+        "serviceResponse": {
+          "status": 403,
+          "code": "self_approval",
+          "traceId": "0HNP4U2AC92E5:000000A2"
+        }
+      }
+    },
+    {
+      "id": "second-page",
+      "passed": true,
+      "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "evidence": {
+        "actual": "[51,50,1,\"9ac7e0f0-b1cd-459b-b335-265e34f7f03d\",1]",
+        "expected": "[51,50,1,\"9ac7e0f0-b1cd-459b-b335-265e34f7f03d\",1]",
+        "serviceResponse": {
+          "all": {
+            "page": {
+              "items": [
+                {
+                  "id": "2bf070af-2734-4ee8-84f9-edbafda1588f",
+                  "releaseNo": "REL-227813b097114051927c37020a9bc7a6",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.831318+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "17cd34e6-97f6-4b36-ba50-9a6fe6ab07a1",
+                  "releaseNo": "REL-10b8c9136ed148fd82d14d2dee546925",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.781828+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "377dd767-ccbb-4836-b4cc-dfed1a266919",
+                  "releaseNo": "REL-39c654c10da5481cbbb45a1f2b484c1b",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.737382+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "5745fd21-7359-4367-9b4d-e4102b6aa194",
+                  "releaseNo": "REL-f99155637e264fa5abafb0a2f3b95447",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.686998+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "e778fed5-2c6a-44f4-a01c-4358f9905c0a",
+                  "releaseNo": "REL-cea694e62d35470392ab3a010d1a81f6",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.626545+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "4dadf803-bb34-4c15-92b7-e1c7d5bac8f9",
+                  "releaseNo": "REL-d0d874334d10425db2d58815b5f4146e",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.567328+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "edaf6435-2814-4bf5-8ed1-b3ab2f532207",
+                  "releaseNo": "REL-a8e13e6969994a958b457d519ea97754",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.516358+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "98b465d7-1f2c-41fc-bb9b-e1bffbbc752c",
+                  "releaseNo": "REL-ca700717db014e1a836171efaa4748ab",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.434799+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "dda07c33-cfe4-426c-b162-6bfb0fd31a93",
+                  "releaseNo": "REL-15ec394540db45ce960598fbf8d0ff67",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.381992+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "0af25351-5343-4300-8fcc-7e0dfa27c820",
+                  "releaseNo": "REL-17ffcf07fd8b48598a5bc29ff1005046",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.33237+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "097817b9-97cf-4026-a394-854cb740a41a",
+                  "releaseNo": "REL-cf4a6205213d40c1b07010405a04b174",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.283667+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "f58ed1a2-31d1-4aff-a2aa-31f6e8a9e90d",
+                  "releaseNo": "REL-1604bbbfe0194221a74ba10940f22fea",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.236967+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "0da285b7-a8c6-4dbe-b0ef-a286e509749a",
+                  "releaseNo": "REL-3fa6da87549b48889356d4a6ee2ee6f2",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.190261+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "f96d678d-16f8-4afc-b912-2fcb9c256441",
+                  "releaseNo": "REL-d9ffb729145c4f29a4533687de50c642",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.148028+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "8e397432-3905-47fe-83a9-894cb86ea44b",
+                  "releaseNo": "REL-b5affb6409c7451682c20188ded76c50",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.101724+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "c5a1dbd8-a921-452d-9da8-0799ee1d500d",
+                  "releaseNo": "REL-d0230c0849a14051843b99faa8b1caac",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.05856+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "c781a335-5286-45b9-9960-38cee868cb44",
+                  "releaseNo": "REL-fd7d70dfe20c4eed8cf7c6d3fd8fc264",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:29.014944+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "a5c2b5d9-37a1-4721-8ea4-ee678d31614e",
+                  "releaseNo": "REL-5c0d5c7fb4844a609c927639dfae007e",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.967289+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "6491c0a0-7b50-48a3-9673-795aa19ba526",
+                  "releaseNo": "REL-da7d042db9df4e74953194fbc5a25553",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.91782+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "d3423361-6711-48c4-abac-eeb1a0efb493",
+                  "releaseNo": "REL-7ec9a140897f486fa84c7d59b3bd3d77",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.859433+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "cfed7f03-2a43-4689-a7b0-4dff80f9b8b9",
+                  "releaseNo": "REL-9d2b68dbb91047b7a9c288c2bd8d8b72",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.810262+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "0edfec5c-30d9-481c-a3af-a5a819f20122",
+                  "releaseNo": "REL-c1fcb2a1e99743fe8708f09a577dea8d",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.756201+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "b3f0bb61-d529-4311-9eb6-352712b79a62",
+                  "releaseNo": "REL-f808291569a7477c8a0ea05e993b97cb",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.704958+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "172d3b64-cd11-4742-a6cd-ba288690c9b2",
+                  "releaseNo": "REL-b1694ff0f7ee42d7a607cc8b2a2d8c72",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.651265+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "dc621627-b446-47a3-bc44-288d58dba058",
+                  "releaseNo": "REL-9ab09cec36304e1c8c025370bbf5451f",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.603534+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "79262c0a-c5f4-4ea6-ae41-b8b76131d6cc",
+                  "releaseNo": "REL-42c48239216141dcba00e5fc39d347e3",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.555062+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "ca0d3a0f-1f43-4aee-abdf-ce1a608c9bab",
+                  "releaseNo": "REL-4fa2ab67ab7344df8be11459026d5988",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.49285+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "751c9453-b7b3-4987-a856-65753327cf86",
+                  "releaseNo": "REL-6763b935f44540b0b729ea7f943546b1",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.399896+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "5a9b27e5-a234-4c2f-bb44-2540a9584a6a",
+                  "releaseNo": "REL-e488a31d55f14dfe90a8c2d663b279d1",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.350388+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "db343d47-6475-4f22-b278-60f89dbaa231",
+                  "releaseNo": "REL-39d72e07785c4b209d94702046484bfe",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.304534+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "c83028e5-e2f1-4b86-b996-2baf8e3c34d2",
+                  "releaseNo": "REL-493add80a40549b684a2fea035361b09",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.248476+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "e2e398e5-52b6-4ab3-bc55-2800c91eb257",
+                  "releaseNo": "REL-46a2a19b3e20485298148371d1ba14de",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.19522+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "fabb7ef6-7d34-44b2-acc7-b4b0b9929756",
+                  "releaseNo": "REL-5ecb8dd65e0447b6a471ecbefc13f71d",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.14631+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "be94cc83-e137-423c-8fa1-3db0652476d3",
+                  "releaseNo": "REL-9dad16d815f2418293ebf0a757a5067f",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.101991+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "0fb1b192-3dc0-4a40-97dd-4810f4ed5fe2",
+                  "releaseNo": "REL-2116f999746f4fbdab6b32e2870bed4b",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:28.04119+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "e1d9edaf-5bfe-4b35-8d01-f69e6c1f795f",
+                  "releaseNo": "REL-6a29820f3f0b44b48d685b12492aa33b",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.973258+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "3883c1c7-f1b4-4e27-903a-3e7ce77cbf08",
+                  "releaseNo": "REL-f2210ab76186402a9dfbd0028d2de6b8",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.926405+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "a59d442b-6f74-48ba-a0e1-32f118ad14da",
+                  "releaseNo": "REL-b19a1d703d604033bf76e9e9e7774195",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.885254+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "d28a1783-69ff-4e2f-a273-62e708854c4a",
+                  "releaseNo": "REL-f632fbae62ef415baec4f6f19065353f",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.84533+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "a8294e70-0060-4a3a-a921-240259ddc527",
+                  "releaseNo": "REL-ce9e0baf223146328b1ad8bf07cd6da4",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.79483+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "b6205d64-50e7-4272-9f61-7a36893e418b",
+                  "releaseNo": "REL-f375b8f661b347d9830cfa625cfa7f4a",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.732416+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "2a2673e0-90d9-45fe-9f26-004dd786f0cf",
+                  "releaseNo": "REL-cb65c996c2af4290815742369f8655b0",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.673967+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "ace45e9a-4381-4b0e-892d-7193b69973c1",
+                  "releaseNo": "REL-5c8e5e024b9a42069c8f22ef9135b9c1",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.62066+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "2f69e137-4387-4c07-a9cd-53eae5ae2a75",
+                  "releaseNo": "REL-1fd7eaff15c1457d9e3ee57492328591",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.556137+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "dc1f2923-28ee-40c3-bf74-43eac0b0a6be",
+                  "releaseNo": "REL-3fa94f897f034b25bcaa11b90216e749",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.506507+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "9e764387-983d-442c-ab32-dbbf6d660f4e",
+                  "releaseNo": "REL-79f1eef08a0e488c93dacaff56c2e788",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.447764+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "c742dc12-9386-4564-a41d-27f11b9eca4f",
+                  "releaseNo": "REL-8fc2a04ac2824f4c8bc999e6362fefc2",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.373264+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "b99389f8-81f0-478e-a802-fa37b1230447",
+                  "releaseNo": "REL-47f33c93266247fab29c286b9eed6d27",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.308187+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "8a252e49-6a43-494e-99db-cfadabc2b082",
+                  "releaseNo": "REL-43cda2d9954440c28ada1a9b0d5847ef",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.255436+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                },
+                {
+                  "id": "09568808-a78e-49c8-ab5a-9d4bf8b972d9",
+                  "releaseNo": "REL-c3cbc4c281f849999a2847a72e5ff416",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:27.198635+00:00",
+                  "approvalEligibility": {
+                    "canAct": false,
+                    "currentStepOrder": 1,
+                    "reasonCode": "approval_not_available"
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 1,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                }
+              ],
+              "total": 51,
+              "page": 1,
+              "pageSize": 50
+            },
+            "counts": {
+              "pendingMine": 1,
+              "handledMine": 0,
+              "allVisible": 51
+            },
+            "filter": {
+              "view": "AllVisible",
+              "organizationId": null,
+              "projectId": null,
+              "environmentId": "479af015-b9c8-4136-8a21-5f301df80c29",
+              "status": null,
+              "page": 1,
+              "pageSize": 50
+            }
+          },
+          "last": {
+            "page": {
+              "items": [
+                {
+                  "id": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+                  "releaseNo": "REL-d9e100bce49c43198f8e066c8ff5435f",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:26.787747+00:00",
+                  "approvalEligibility": {
+                    "canAct": true,
+                    "currentStepOrder": 1,
+                    "reasonCode": null
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 2,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                }
+              ],
+              "total": 51,
+              "page": 2,
+              "pageSize": 50
+            },
+            "counts": {
+              "pendingMine": 1,
+              "handledMine": 0,
+              "allVisible": 51
+            },
+            "filter": {
+              "view": "AllVisible",
+              "organizationId": null,
+              "projectId": null,
+              "environmentId": "479af015-b9c8-4136-8a21-5f301df80c29",
+              "status": null,
+              "page": 2,
+              "pageSize": 50
+            }
+          },
+          "pending": {
+            "page": {
+              "items": [
+                {
+                  "id": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+                  "releaseNo": "REL-d9e100bce49c43198f8e066c8ff5435f",
+                  "releaseType": "publish",
+                  "state": "WaitingApproval",
+                  "organization": {
+                    "id": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "跨环境审批验收 dc0fc0be"
+                  },
+                  "project": {
+                    "id": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批业务项目"
+                  },
+                  "environment": {
+                    "id": "479af015-b9c8-4136-8a21-5f301df80c29",
+                    "code": "PROD_A",
+                    "name": "生产环境 A"
+                  },
+                  "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+                  "applicantDisplayName": "审批验收 applicant",
+                  "createdAt": "2026-10-08T04:13:26.787747+00:00",
+                  "approvalEligibility": {
+                    "canAct": true,
+                    "currentStepOrder": 1,
+                    "reasonCode": null
+                  },
+                  "approvedCount": 0,
+                  "requiredCount": 2,
+                  "risk": {
+                    "visibility": "NoReviews",
+                    "coverage": null,
+                    "counts": null,
+                    "reviewCount": 0
+                  }
+                }
+              ],
+              "total": 1,
+              "page": 1,
+              "pageSize": 50
+            },
+            "counts": {
+              "pendingMine": 1,
+              "handledMine": 0,
+              "allVisible": 51
+            },
+            "filter": {
+              "view": "PendingMine",
+              "organizationId": null,
+              "projectId": null,
+              "environmentId": "479af015-b9c8-4136-8a21-5f301df80c29",
+              "status": null,
+              "page": 1,
+              "pageSize": 50
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "independent-seats",
+      "passed": true,
+      "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "evidence": {
+        "actual": "[403,403,2,\"Ready\",3]",
+        "expected": "[403,403,2,\"Ready\",3]",
+        "serviceResponse": {
+          "duplicate": {
+            "status": 403,
+            "code": "independent_approval_required",
+            "traceId": "0HNP4U2AC929D:00000320"
+          },
+          "early": {
+            "status": 403,
+            "code": "approval_role_required",
+            "traceId": "0HNP4U2AC929D:00000322"
+          },
+          "step": {
+            "id": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+            "environmentId": "479af015-b9c8-4136-8a21-5f301df80c29",
+            "releaseNo": "REL-d9e100bce49c43198f8e066c8ff5435f",
+            "state": "WaitingApproval",
+            "releaseType": "publish",
+            "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+            "createdAt": "2026-10-08T04:13:26.787747+00:00",
+            "baselineConfigVersion": 0,
+            "targetConfigVersion": 0,
+            "deploymentSequence": 0,
+            "rollbackOf": null,
+            "frozenCandidate": {
+              "versions": [
+                {
+                  "api": {
+                    "id": "386745e1-a724-4613-8050-50fcf1e5a48e",
+                    "organizationId": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "projectId": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "groupId": null,
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批冻结候选接口",
+                    "description": null,
+                    "lifecycleStatus": "Draft",
+                    "ownerUserId": "4faea9da-c65f-4665-b648-2e4bf1cea307",
+                    "workingRevision": 1
+                  },
+                  "version": {
+                    "id": "3ba7b33e-942d-4170-a88e-5739a0845e01",
+                    "apiId": "386745e1-a724-4613-8050-50fcf1e5a48e",
+                    "version": "1.0.0",
+                    "status": "Draft",
+                    "changeType": "compatible",
+                    "openapiDocument": null,
+                    "openapiSource": null,
+                    "sourceFormat": null,
+                    "schemaHash": null,
+                    "createdBy": "4faea9da-c65f-4665-b648-2e4bf1cea307",
+                    "createdAt": "2026-10-08T04:13:26.474994+00:00",
+                    "sealedAt": null,
+                    "revision": 1
+                  },
+                  "parameters": [],
+                  "schemas": []
+                }
+              ],
+              "routes": [
+                {
+                  "id": "2267c2fe-3c08-455d-a342-a8f8ef7cbf35",
+                  "apiVersionId": "3ba7b33e-942d-4170-a88e-5739a0845e01",
+                  "environmentId": "479af015-b9c8-4136-8a21-5f301df80c29",
+                  "routeName": "Approval-dc0fc0be-PROD_A",
+                  "path": "/approval-dc0fc0be",
+                  "normalizedPath": "/approval-dc0fc0be",
+                  "methods": [
+                    "GET"
+                  ],
+                  "clusterId": "c1e3d00f-f627-4231-b2a1-1da8836b254c",
+                  "priority": 100,
+                  "matchOrder": -100,
+                  "enabled": true,
+                  "timeoutMs": 10000,
+                  "requireApiKey": true,
+                  "revision": 1,
+                  "effectiveTimeoutMs": null
+                }
+              ],
+              "clusters": [
+                {
+                  "id": "c1e3d00f-f627-4231-b2a1-1da8836b254c",
+                  "projectId": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                  "environmentId": "479af015-b9c8-4136-8a21-5f301df80c29",
+                  "name": "审批验收上游",
+                  "loadBalancingPolicy": "RoundRobin",
+                  "healthCheckEnabled": false,
+                  "healthCheckPath": "/health",
+                  "healthCheckIntervalSec": 30,
+                  "status": "Active",
+                  "revision": 1,
+                  "destinations": [
+                    {
+                      "id": "ec88f792-0a5e-45f1-9a2f-99c37af174d1",
+                      "clusterId": "c1e3d00f-f627-4231-b2a1-1da8836b254c",
+                      "name": "backend-a",
+                      "address": "http://backend-a:8080/",
+                      "weight": 1,
+                      "enabled": true,
+                      "metadata": null,
+                      "revision": 1
+                    }
+                  ]
+                }
+              ],
+              "applications": [],
+              "resourceRevisions": [
+                {
+                  "type": "version",
+                  "id": "3ba7b33e-942d-4170-a88e-5739a0845e01",
+                  "revision": 1
+                },
+                {
+                  "type": "api",
+                  "id": "386745e1-a724-4613-8050-50fcf1e5a48e",
+                  "revision": 1
+                },
+                {
+                  "type": "route",
+                  "id": "2267c2fe-3c08-455d-a342-a8f8ef7cbf35",
+                  "revision": 1
+                },
+                {
+                  "type": "cluster",
+                  "id": "c1e3d00f-f627-4231-b2a1-1da8836b254c",
+                  "revision": 1
+                },
+                {
+                  "type": "destination",
+                  "id": "ec88f792-0a5e-45f1-9a2f-99c37af174d1",
+                  "revision": 1
+                }
+              ],
+              "policies": [],
+              "bindings": [],
+              "preconditionsCurrent": null,
+              "riskReviews": null
+            },
+            "candidateHash": "04fca556144d3a708c2b48647b8f169c1040395ee8f4405037450399d057a231",
+            "approvalSteps": [
+              {
+                "id": "39b966e1-ba78-4963-979b-56b45d8c0202",
+                "stepOrder": 1,
+                "roleCode": "ApprovalReviewer_dc0fc0be",
+                "status": "Approved",
+                "actorId": "541ec913-ea30-4b7e-b55d-93cd9b501ef5",
+                "comment": "第一独立席位",
+                "actedAt": "2026-10-08T04:13:29.939285+00:00"
+              },
+              {
+                "id": "af0606ea-3419-48ef-be7f-a976bafa540a",
+                "stepOrder": 1,
+                "roleCode": "ApprovalReviewer_dc0fc0be",
+                "status": "Approved",
+                "actorId": "2705dbbf-1008-4547-b6f1-3ab8f1495529",
+                "comment": "第二独立席位",
+                "actedAt": "2026-10-08T04:13:29.984679+00:00"
+              },
+              {
+                "id": "79ceb1e6-ef9b-4f44-abc1-da7d6addaefb",
+                "stepOrder": 2,
+                "roleCode": "ApprovalSecurity_dc0fc0be",
+                "status": "Pending",
+                "actorId": null,
+                "comment": null,
+                "actedAt": null
+              }
+            ],
+            "targets": [],
+            "errors": [],
+            "recoveryOf": null,
+            "approvalEligibility": {
+              "canAct": true,
+              "currentStepOrder": 2,
+              "reasonCode": null
+            }
+          },
+          "ready": {
+            "id": "9ac7e0f0-b1cd-459b-b335-265e34f7f03d",
+            "environmentId": "479af015-b9c8-4136-8a21-5f301df80c29",
+            "releaseNo": "REL-d9e100bce49c43198f8e066c8ff5435f",
+            "state": "Ready",
+            "releaseType": "publish",
+            "requestedBy": "8670758f-e050-432e-b7ed-8e8813136241",
+            "createdAt": "2026-10-08T04:13:26.787747+00:00",
+            "baselineConfigVersion": 0,
+            "targetConfigVersion": 0,
+            "deploymentSequence": 0,
+            "rollbackOf": null,
+            "frozenCandidate": {
+              "versions": [
+                {
+                  "api": {
+                    "id": "386745e1-a724-4613-8050-50fcf1e5a48e",
+                    "organizationId": "3d801634-f45c-4578-8e01-c7848ef84887",
+                    "projectId": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                    "groupId": null,
+                    "code": "APPROVAL_dc0fc0be",
+                    "name": "审批冻结候选接口",
+                    "description": null,
+                    "lifecycleStatus": "Draft",
+                    "ownerUserId": "4faea9da-c65f-4665-b648-2e4bf1cea307",
+                    "workingRevision": 1
+                  },
+                  "version": {
+                    "id": "3ba7b33e-942d-4170-a88e-5739a0845e01",
+                    "apiId": "386745e1-a724-4613-8050-50fcf1e5a48e",
+                    "version": "1.0.0",
+                    "status": "Draft",
+                    "changeType": "compatible",
+                    "openapiDocument": null,
+                    "openapiSource": null,
+                    "sourceFormat": null,
+                    "schemaHash": null,
+                    "createdBy": "4faea9da-c65f-4665-b648-2e4bf1cea307",
+                    "createdAt": "2026-10-08T04:13:26.474994+00:00",
+                    "sealedAt": null,
+                    "revision": 1
+                  },
+                  "parameters": [],
+                  "schemas": []
+                }
+              ],
+              "routes": [
+                {
+                  "id": "2267c2fe-3c08-455d-a342-a8f8ef7cbf35",
+                  "apiVersionId": "3ba7b33e-942d-4170-a88e-5739a0845e01",
+                  "environmentId": "479af015-b9c8-4136-8a21-5f301df80c29",
+                  "routeName": "Approval-dc0fc0be-PROD_A",
+                  "path": "/approval-dc0fc0be",
+                  "normalizedPath": "/approval-dc0fc0be",
+                  "methods": [
+                    "GET"
+                  ],
+                  "clusterId": "c1e3d00f-f627-4231-b2a1-1da8836b254c",
+                  "priority": 100,
+                  "matchOrder": -100,
+                  "enabled": true,
+                  "timeoutMs": 10000,
+                  "requireApiKey": true,
+                  "revision": 1,
+                  "effectiveTimeoutMs": null
+                }
+              ],
+              "clusters": [
+                {
+                  "id": "c1e3d00f-f627-4231-b2a1-1da8836b254c",
+                  "projectId": "c6654e09-2392-415e-9ac0-57f3fe7098ec",
+                  "environmentId": "479af015-b9c8-4136-8a21-5f301df80c29",
+                  "name": "审批验收上游",
+                  "loadBalancingPolicy": "RoundRobin",
+                  "healthCheckEnabled": false,
+                  "healthCheckPath": "/health",
+                  "healthCheckIntervalSec": 30,
+                  "status": "Active",
+                  "revision": 1,
+                  "destinations": [
+                    {
+                      "id": "ec88f792-0a5e-45f1-9a2f-99c37af174d1",
+                      "clusterId": "c1e3d00f-f627-4231-b2a1-1da8836b254c",
+                      "name": "backend-a",
+                      "address": "http://backend-a:8080/",
+                      "weight": 1,
+                      "enabled": true,
+                      "metadata": null,
+                      "revision": 1
+                    }
+                  ]
+                }
+              ],
+              "applications": [],
+              "resourceRevisions": [
+                {
+                  "type": "version",
+                  "id": "3ba7b33e-942d-4170-a88e-5739a0845e01",
+                  "revision": 1
+                },
+                {
+                  "type": "api",
+                  "id": "386745e1-a724-4613-8050-50fcf1e5a48e",
+                  "revision": 1
+                },
+                {
+                  "type": "route",
+                  "id": "2267c2fe-3c08-455d-a342-a8f8ef7cbf35",
+                  "revision": 1
+                },
+                {
+                  "type": "cluster",
+                  "id": "c1e3d00f-f627-4231-b2a1-1da8836b254c",
+                  "revision": 1
+                },
+                {
+                  "type": "destination",
+                  "id": "ec88f792-0a5e-45f1-9a2f-99c37af174d1",
+                  "revision": 1
+                }
+              ],
+              "policies": [],
+              "bindings": [],
+              "preconditionsCurrent": null,
+              "riskReviews": null
+            },
+            "candidateHash": "04fca556144d3a708c2b48647b8f169c1040395ee8f4405037450399d057a231",
+            "approvalSteps": [
+              {
+                "id": "39b966e1-ba78-4963-979b-56b45d8c0202",
+                "stepOrder": 1,
+                "roleCode": "ApprovalReviewer_dc0fc0be",
+                "status": "Approved",
+                "actorId": "541ec913-ea30-4b7e-b55d-93cd9b501ef5",
+                "comment": "第一独立席位",
+                "actedAt": "2026-10-08T04:13:29.939285+00:00"
+              },
+              {
+                "id": "af0606ea-3419-48ef-be7f-a976bafa540a",
+                "stepOrder": 1,
+                "roleCode": "ApprovalReviewer_dc0fc0be",
+                "status": "Approved",
+                "actorId": "2705dbbf-1008-4547-b6f1-3ab8f1495529",
+                "comment": "第二独立席位",
+                "actedAt": "2026-10-08T04:13:29.984679+00:00"
+              },
+              {
+                "id": "79ceb1e6-ef9b-4f44-abc1-da7d6addaefb",
+                "stepOrder": 2,
+                "roleCode": "ApprovalSecurity_dc0fc0be",
+                "status": "Approved",
+                "actorId": "14f046fe-8a63-4d22-8ecd-beccd72d9105",
+                "comment": "独立二级审批",
+                "actedAt": "2026-10-08T04:13:30.019859+00:00"
+              }
+            ],
+            "targets": [],
+            "errors": [],
+            "recoveryOf": null,
+            "approvalEligibility": {
+              "canAct": false,
+              "currentStepOrder": null,
+              "reasonCode": "invalid_release_state"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "revocation",
+      "passed": true,
+      "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "evidence": {
+        "actual": "[0,404]",
+        "expected": "[0,404]",
+        "serviceResponse": {
+          "revoked": {
+            "page": {
+              "items": [],
+              "total": 0,
+              "page": 1,
+              "pageSize": 50
+            },
+            "counts": {
+              "pendingMine": 0,
+              "handledMine": 0,
+              "allVisible": 0
+            },
+            "filter": {
+              "view": "AllVisible",
+              "organizationId": null,
+              "projectId": null,
+              "environmentId": null,
+              "status": null,
+              "page": 1,
+              "pageSize": 50
+            }
+          },
+          "noRead": {
+            "status": 404,
+            "code": "resource_not_found",
+            "traceId": "0HNP4U2AC929D:0000032D"
+          }
+        }
+      }
+    }
+  ],
+  "originalInstallation": "not-upgraded",
+  "ui": {
+    "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+    "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+    "viewports": [
+      1440,
+      1280
+    ],
+    "actions": [
+      {
+        "id": "inbox-1440",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "passed": true,
+        "viewport": 1440,
+        "screenshot": "inbox-1440.jpg",
+        "observation": "inbox-1440.json"
+      },
+      {
+        "id": "filters-1280",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "passed": true,
+        "viewport": 1280,
+        "screenshot": "filters-1280.jpg",
+        "observation": "filters-1280.json"
+      },
+      {
+        "id": "approval-dialog-keyboard",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "passed": true,
+        "viewport": 1440,
+        "screenshot": "approval-dialog-keyboard.jpg",
+        "observation": "approval-dialog-keyboard.json"
+      },
+      {
+        "id": "conflict-comment",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "passed": true,
+        "viewport": 1440,
+        "screenshot": "conflict-comment.jpg",
+        "observation": "conflict-comment.json"
+      },
+      {
+        "id": "detail-return",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "passed": true,
+        "viewport": 1440,
+        "screenshot": "detail-return.jpg",
+        "observation": "detail-return.json"
+      },
+      {
+        "id": "scope-read-revoked",
+        "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+        "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+        "passed": true,
+        "viewport": 1440,
+        "screenshot": "scope-read-revoked.jpg",
+        "observation": "scope-read-revoked.json"
+      }
+    ],
+    "screenshots": [
+      "inbox-1440.jpg",
+      "filters-1280.jpg",
+      "approval-dialog-keyboard.jpg",
+      "conflict-comment.jpg",
+      "detail-return.jpg",
+      "scope-read-revoked.jpg"
+    ]
+  },
+  "manifest": [
+    {
+      "path": "approval-dialog-keyboard.jpg",
+      "sha256": "978bc9c111604873f91a024308f71c41d7cc147b30562e8b3b451489c8600ae0"
+    },
+    {
+      "path": "approval-dialog-keyboard.json",
+      "sha256": "c1f0db8a211b28958e9b63736fd212c1563061fdb21dd4dec308b35c4f41b117"
+    },
+    {
+      "path": "conflict-comment.jpg",
+      "sha256": "ba16260d7d686c6835e1ba9c22c0ac4510e4c8492d93c41428efd7150a31a6fb"
+    },
+    {
+      "path": "conflict-comment.json",
+      "sha256": "345663251603e987a67c89027436bb6e60a3015eef84c446a6e3a7d0210f7823"
+    },
+    {
+      "path": "detail-return.jpg",
+      "sha256": "839058c8d62fb096b21d1d3b91d502712187088a98ef6a7ed990bef780c1b3d2"
+    },
+    {
+      "path": "detail-return.json",
+      "sha256": "764df1d88381c3b85229b1fa3147da42394938b7f0515682f7e5e126ae3a895c"
+    },
+    {
+      "path": "filters-1280.jpg",
+      "sha256": "3f1213a45c4e601475e6250a34162050651c9b2ebf58fb64f38eb950982b959d"
+    },
+    {
+      "path": "filters-1280.json",
+      "sha256": "95ea8eb2e4af9fe95067e53463cd73b3f29eba0d7b99e0f006e23688e574485e"
+    },
+    {
+      "path": "inbox-1440.jpg",
+      "sha256": "43cb9e6fa2f40ed40c3ab6cda91308e4d1a796b39f64ae62533f4fe6cf7d44ef"
+    },
+    {
+      "path": "inbox-1440.json",
+      "sha256": "c3f1b5fea156c97debc6c7f84011e47d1a7fbabc6a8a286169f23792be9fd46a"
+    },
+    {
+      "path": "revoked-api.json",
+      "sha256": "84164db33afa2133c52d580ea55cf2ed160f112acd76be48b133a7930c346197"
+    },
+    {
+      "path": "scope-read-revoked.jpg",
+      "sha256": "3f6a69a35dda54b9345f00be0475286a8181bea2de403deeb54ee4fd458b6dae"
+    },
+    {
+      "path": "scope-read-revoked.json",
+      "sha256": "820fc313272f27404bea9bfd6dd6bbab22a5896596661eec05034280ed40c583"
+    },
+    {
+      "path": "step-change-api.json",
+      "sha256": "acd67ed8c93f189f7da3bd6a21e53a02483ffd3563a67fb0e1ff22af258c5661"
+    }
+  ]
+}

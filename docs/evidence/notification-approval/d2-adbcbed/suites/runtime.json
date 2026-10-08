@@ -1,0 +1,10 @@
+{
+  "name": "runtime",
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "passed": 114,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "ed99a40ef3ff2c8978e627a48fc08baa8f6a3669dc10720e1be02b60850a59f0",
+  "log": "suites/runtime.log"
+}

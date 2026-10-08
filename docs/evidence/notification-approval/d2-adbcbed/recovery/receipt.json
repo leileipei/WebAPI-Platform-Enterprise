@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 1,
+  "actual": true,
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "clone": {
+    "ownerVerified": true,
+    "ownerId": "78380ede-3da3-47b3-ad14-1bcd5a89134b",
+    "projectName": "webapi-enterprise-local-test-4d83bf8b-2377-4e85-b1dd-e67c854e60ef",
+    "consolePort": 58931
+  },
+  "bridge": {
+    "schemaVersion": 1,
+    "baselineRevision": "c1c271555e3a125d22184697c17320c94a4db07c",
+    "bridgeRevision": "cf41823b9a7bcac7f0ef2195b66c4efa058883ac",
+    "imageId": "sha256:e6ef85d58930c55f79a802f7502c5b050201e51088c6d3d038db56ab001389e6",
+    "imageLabel": "cf41823b9a7bcac7f0ef2195b66c4efa058883ac",
+    "patchSha256": "e74f0f82cf97f6a11bbe0fdb2dadebf9ac67de9e55373059e8e3a44fb688d4ab",
+    "lockFiles": {
+      "Directory.Packages.props": "7e5465d74ab19dd0e9871eb2a7834b4c9150853f0a99a13015aa09dffe3df53f",
+      "console/package.json": "635a503c47075c25f06aa9c6d25ba8e48a32592ce2dbb0649003fa79050d51f2",
+      "console/pnpm-lock.yaml": "5c42fdae9c029964343748c67e516e5d4b5f4a4f0268ed5ce9d71974efa57311",
+      "deploy/images.lock.json": "d519afd50a6363ec9b21950fb368299677b3c0ab431e9b5144483666849b8fbf",
+      "src/WebApi.ConsoleHost/packages.lock.json": "c0bc7b52320fc95d09d31ade66a17814f480831003cd67c6044fadd6d81920e2",
+      "src/WebApi.Contracts/packages.lock.json": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "src/WebApi.ControlPlane/packages.lock.json": "f8afa307bee74ea212c8da90f415bd296178c5c3607893bf0616ab4e1e73748f",
+      "src/WebApi.Domain/packages.lock.json": "a83092dcd661edb64a223c41cc92721c154df2eeebb515522487defeda9b0fa3",
+      "src/WebApi.Gateway/packages.lock.json": "4f1fac3d6935f04b47532b440bf3e1c5bc31c20e53d04262afaf85b63a1ffa5a",
+      "src/WebApi.Infrastructure/packages.lock.json": "e09488ff488d1f8461334e01150a8c46b36f91526b5f53450f14059d1a05683e",
+      "src/WebApi.Migrator/packages.lock.json": "3573f8d75bb089fc1b6f4f19bd03079ef19b655bafdce0ded3bab73a9a3e5fcd",
+      "src/WebApi.RuntimeTool/packages.lock.json": "3573f8d75bb089fc1b6f4f19bd03079ef19b655bafdce0ded3bab73a9a3e5fcd",
+      "src/WebApi.TestBackend/packages.lock.json": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "src/WebApi.Worker/packages.lock.json": "4fee729bbce0b8624dd5bd99515dcf29e0f507dd1f227708e20bba3a6bc44f4a",
+      "tests/WebApi.Domain.Tests/packages.lock.json": "3ff7605b2483e2e761be388d606b8705992050a4376575d4e9ec4038640b7f40",
+      "tests/WebApi.EndToEnd.Tests/packages.lock.json": "6a41a16d99049a719133fa8595b5b60bd8e49d502519001199a58d68090bc01a",
+      "tests/WebApi.Gateway.Tests/packages.lock.json": "289ff5f43f20a55b940cb671425d102ddc4ad75996138daed9bc56128e9c5de9",
+      "tests/WebApi.Integration.Tests/packages.lock.json": "e75b0bb87f61d0fe331141d2221a4c7f010964930bff3c9a492a8df12241091a",
+      "tests/WebApi.TestSupport/packages.lock.json": "12d50ad962fe1b02fd14ecb098edd81edc22b933cc49449a4e60e6134f723086",
+      "third_party/json-everything/src/Json.More/packages.lock.json": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46",
+      "third_party/json-everything/src/JsonPointer/packages.lock.json": "369cba97e49c48f5a09aedbb28c84a14b338fb6dcefcb736f927ca9d06c15044",
+      "third_party/json-everything/src/JsonSchema/packages.lock.json": "ce43327af2737eca53b2fea4083e1680e0ec77662778c47357c593c4ee2515cc"
+    },
+    "changedFiles": [
+      "src/WebApi.ControlPlane/ControlPlaneApp.cs",
+      "src/WebApi.Infrastructure/Alerts/AlertRuleService.cs",
+      "src/WebApi.Infrastructure/Notifications/CompatibilityNotificationMode.cs",
+      "src/WebApi.Infrastructure/Settings/SettingsValues.cs",
+      "src/WebApi.Infrastructure/Settings/SystemSettingsReader.cs",
+      "src/WebApi.Infrastructure/Settings/SystemSettingsService.cs",
+      "tests/WebApi.Integration.Tests/NotificationCompatibilityBridgeTests.cs"
+    ],
+    "readonlyMode": "ReadOnly",
+    "notificationsWritable": false,
+    "rulesWritable": false,
+    "buildSource": "git-archive",
+    "dirtyCheckoutIncluded": false,
+    "ownerId": "6da951d3-89e2-407a-a2c1-e4d96d7c2370"
+  },
+  "phases": [
+    {
+      "revision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b"
+    },
+    {
+      "revision": "cf41823b9a7bcac7f0ef2195b66c4efa058883ac",
+      "imageId": "sha256:e6ef85d58930c55f79a802f7502c5b050201e51088c6d3d038db56ab001389e6",
+      "mode": "ReadOnly"
+    },
+    {
+      "revision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b"
+    }
+  ],
+  "drained": true,
+  "maintenanceDrain": {
+    "initial": {
+      "workersStopped": true,
+      "incompleteAttempts": 1,
+      "unknownAttempts": 1,
+      "automaticRetryFrozen": true,
+      "originalBudgetRetained": true,
+      "noNewAttempts": true
+    },
+    "afterBackup": {
+      "workersStopped": true,
+      "incompleteAttempts": 0,
+      "unknownAttempts": 0,
+      "automaticRetryFrozen": true,
+      "originalBudgetRetained": true,
+      "noNewAttempts": true
+    }
+  },
+  "maintenanceInterrupted": {
+    "id": "a3e55926-8f60-455f-aec1-350552927481",
+    "remoteAccepted": true,
+    "localOutcome": "OutcomeUnknown",
+    "attemptCount": 1,
+    "maxAttempts": 1,
+    "expiryPreserved": true,
+    "noHiddenResend": true,
+    "canRetry": false
+  },
+  "sendingBeforeSwitch": 0,
+  "sourceDatabaseRestored": false,
+  "oldImageRejectsNine": true,
+  "protectedBefore": {
+    "business": "fd81fd3bcc9e6cdfc2b4c564e562afde4b42b4a3721be9c1565eb3b55bbd7c86",
+    "accounts": "3aaa71129073a264c3d2ce28db40de2fb6cd912f10937d17a8166c680939fb86",
+    "attachments": "7ad2d64849f465bb61f93f732624da259ac5c719b6862af76d3fc77edbcec47f",
+    "notificationDefinitions": "2494ab59ad328d45f80f680fd519818a3370a4b3dc9c61362228f93602d578d5",
+    "notificationHistory": "e0722e917cce0fbfff38c8a1b0f3383348814acefe9fd03f305b6b39520a2e8c",
+    "sso": "a42341ba2991841de6939d0301439ea49e27b53e066dea867ada33dbdcd01f94",
+    "dpKeys": "6117dadfc8bcccd0250928b63b5d13e9074f0afe9ff10dfef347c6a5df1e5d15"
+  },
+  "protectedAfter": {
+    "business": "fd81fd3bcc9e6cdfc2b4c564e562afde4b42b4a3721be9c1565eb3b55bbd7c86",
+    "accounts": "3aaa71129073a264c3d2ce28db40de2fb6cd912f10937d17a8166c680939fb86",
+    "attachments": "7ad2d64849f465bb61f93f732624da259ac5c719b6862af76d3fc77edbcec47f",
+    "notificationDefinitions": "2494ab59ad328d45f80f680fd519818a3370a4b3dc9c61362228f93602d578d5",
+    "notificationHistory": "e0722e917cce0fbfff38c8a1b0f3383348814acefe9fd03f305b6b39520a2e8c",
+    "sso": "a42341ba2991841de6939d0301439ea49e27b53e066dea867ada33dbdcd01f94",
+    "dpKeys": "6117dadfc8bcccd0250928b63b5d13e9074f0afe9ff10dfef347c6a5df1e5d15"
+  },
+  "protectedRowCounts": {
+    "business": {
+      "organizations": 4,
+      "projects": 10,
+      "environments": 8,
+      "apis": 8,
+      "api_versions": 8,
+      "api_groups": 0,
+      "api_routes": 10,
+      "route_methods": 7,
+      "upstream_clusters": 10,
+      "policies": 20,
+      "route_policy_bindings": 2,
+      "applications": 8,
+      "application_api_permissions": 4,
+      "release_records": 115,
+      "release_items": 123,
+      "approval_flows": 6,
+      "approval_steps": 12,
+      "approval_tasks": 238
+    },
+    "accounts": {
+      "users": 42,
+      "user_roles": 40,
+      "user_project_scopes": 35,
+      "roles": 16,
+      "role_permissions": 294,
+      "application_credentials": 2
+    },
+    "attachments": {
+      "api_version_contract_sources": 8,
+      "api_schemas": 2,
+      "api_parameters": 0
+    },
+    "notificationDefinitions": {
+      "system_settings": 1,
+      "alert_rules": 28,
+      "notification_channel_profiles": 18,
+      "notification_channel_states": 2
+    },
+    "notificationHistory": {
+      "notification_deliveries": 53,
+      "notification_delivery_attempts": 61
+    },
+    "sso": {
+      "sso_providers": 1,
+      "user_external_identities": 1
+    }
+  },
+  "backup": {
+    "actual": true,
+    "manifestVerified": true,
+    "manifestFilesVerified": 34,
+    "manifestSha256": "a49d4b6ce3f410c89ef6dc6dd7aef99147a68771cec6d7178aa1dfa131abb2c7",
+    "volumes": [
+      "pg",
+      "lkg-a",
+      "lkg-b",
+      "dp-keys",
+      "prometheus-data",
+      "loki-data",
+      "tempo-data",
+      "secrets-cache",
+      "notification-secrets",
+      "notification-fixture-secrets",
+      "notification-fixture-data"
+    ]
+  },
+  "bridgeChecks": {
+    "settingsGroups": 5,
+    "notificationSave": 423,
+    "ruleCreate": 423,
+    "ruleUpdate": 423,
+    "ruleEnable": 423,
+    "ruleDisable": 423,
+    "notificationTest": 423,
+    "notificationRetry": 423,
+    "otherBusinessWrite": true,
+    "oldWorkerFrozenOff": true
+  },
+  "candidateRestored": {
+    "ready": true,
+    "dpRetained": true,
+    "ssoRetained": true,
+    "noRetrospectiveSends": true,
+    "smtpAccepted": true,
+    "webhookAccepted": true
+  },
+  "markers": {
+    "projectId": "c254b24e-a960-4efa-b2d2-42fdb0e6b66d",
+    "accountId": "28b9ff48-7dd7-4251-8247-531132a1c91f",
+    "versionId": "01ac307c-5aed-4227-be84-59b160c6c51a",
+    "ruleId": "ea791cac-3d51-4cba-b798-dfbd392ce0d5",
+    "attachmentKind": "actual imported supporting YAML stored in contract sources"
+  },
+  "events": {
+    "interruptedTestId": "a3e55926-8f60-455f-aec1-350552927481",
+    "ruleId": "ea791cac-3d51-4cba-b798-dfbd392ce0d5",
+    "oldWorkerEventId": "afc6f70c-1570-4f52-9e46-6144982e62e0"
+  },
+  "fresh": {
+    "kind": "Test",
+    "createdVia": "shipped notification API",
+    "deliveries": [
+      {
+        "id": "241b47ef-2d40-4596-b705-7df74c21f921",
+        "channel": "Email",
+        "status": "Accepted",
+        "attemptCount": 1
+      },
+      {
+        "id": "e69b2bea-7c32-4b8e-a311-1f22aa28e52e",
+        "channel": "Webhook",
+        "status": "Accepted",
+        "attemptCount": 1
+      }
+    ],
+    "smtp": [
+      {
+        "sessionId": "2da51c60-7e60-4f69-86a2-b0a9c847c02a",
+        "deliveryId": "241b47ef-2d40-4596-b705-7df74c21f921",
+        "messageId": "241b47ef-2d40-4596-b705-7df74c21f921@webapi.invalid",
+        "recipientCount": 1,
+        "tls": true,
+        "authenticated": true,
+        "accepted": true,
+        "replyCode": 250,
+        "bodyHash": "3af4d57d5b0e0d8621ed2370b9bc475221ad2e9b0993c9f9178be4e2a710725a",
+        "ccCount": 0,
+        "bccCount": 0,
+        "observedAt": "2026-10-08T05:11:29.1050516+00:00"
+      }
+    ],
+    "webhook": [
+      {
+        "deliveryId": "e69b2bea-7c32-4b8e-a311-1f22aa28e52e",
+        "timestamp": "1791436289",
+        "signatureValid": true,
+        "tls": true,
+        "tlsProtocol": "Tls13",
+        "bodyHash": "7063d34b5f69c153aa1c67c43aab9b6ca377cb916b7abf7d03d71b7b48028c89",
+        "bodyBytes": 271,
+        "replyCode": 202,
+        "remoteAccepted": true,
+        "duplicate": false,
+        "observedAt": "2026-10-08T05:11:29.0214492+00:00"
+      }
+    ]
+  },
+  "ssoEvidence": {
+    "storedProviderAndBindingRowsUnchanged": true,
+    "deploymentConfigUnchanged": true,
+    "persistentDpKeysUnchanged": true,
+    "sessionCookieSurvived": true,
+    "newLocalAccountLoginPassed": true,
+    "liveOidcLoginPerformed": false
+  },
+  "temporarySwitchOnly": true,
+  "original4192Upgraded": false
+}

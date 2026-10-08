@@ -1,0 +1,10 @@
+{
+  "name": "gateway",
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "passed": 138,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "1985fb93d13146fa74f1ed306c3988dd7e36314eb83e289d167d8cb6bbb7f3f8",
+  "log": "suites/gateway.log"
+}

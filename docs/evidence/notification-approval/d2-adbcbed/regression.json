@@ -1,0 +1,51 @@
+{
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "actual": true,
+  "dualAck": true,
+  "keycloakLogin": true,
+  "csrfRejected": true,
+  "readOnlyRejected": true,
+  "logoutRejected": true,
+  "jwtRetryCache": true,
+  "gatewayStatuses": [
+    200,
+    200
+  ],
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available"
+    },
+    {
+      "name": "loki",
+      "state": "Available"
+    },
+    {
+      "name": "tempo",
+      "state": "Available"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "currentVersion": 6,
+      "currentSequence": 7,
+      "desiredVersion": 6,
+      "desiredSequence": 7,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-a",
+      "currentVersion": 6,
+      "currentSequence": 7,
+      "desiredVersion": 6,
+      "desiredSequence": 7,
+      "acknowledged": true
+    }
+  ]
+}
