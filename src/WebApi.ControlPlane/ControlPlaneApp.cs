@@ -1,4 +1,5 @@
 using WebApi.ControlPlane.Sso;
+using WebApi.Infrastructure.Notifications;
 using WebApi.ControlPlane.Comparisons;
 using WebApi.Infrastructure.Comparisons;
 using WebApi.Infrastructure.Sso;
@@ -40,6 +41,7 @@ public static class ControlPlaneApp
     public static WebApplication Build(string[] args, Action<WebApplicationBuilder>? configure = null)
     {
         var builder=WebApplication.CreateBuilder(args);configure?.Invoke(builder);
+        var compatibility=CompatibilityNotificationMode.Read(builder.Configuration);builder.Services.AddSingleton(compatibility);
         builder.WebHost.ConfigureKestrel(options=>options.Limits.MaxRequestBodySize=8*1024*1024);
         var connection=builder.Configuration.GetConnectionString("WebApi")??DatabaseSettings.ConnectionString();
         builder.Services.AddDbContext<WebApiDbContext>(options=>options.UseNpgsql(connection));
@@ -131,6 +133,15 @@ public static class ControlPlaneApp
             }
             await next();
         });
+        
+        if(compatibility.IsReadOnly)
+        {
+            app.Use(async(ctx,next)=>{ctx.Response.Headers["X-WebAPI-Compatibility-Mode"]="NotificationReadOnly";await next();});
+            // These candidate-only writes have no old handlers. Return an explicit lock,
+            // keeping normal authentication and CSRF middleware ahead of them.
+            app.MapPost("/api/v1/settings/system/notification/tests",()=>{compatibility.RequireWritable();return Results.NoContent();}).RequireAuthorization();
+            app.MapPost("/api/v1/notification-deliveries/{id:guid}/retry",(Guid id)=>{compatibility.RequireWritable();return Results.NoContent();}).RequireAuthorization();
+        }
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
         app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapCatalog();app.MapSchemaValidation();app.MapImportSourcePolicies();app.MapImportSessions();app.MapComparisons();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();return app;
     }

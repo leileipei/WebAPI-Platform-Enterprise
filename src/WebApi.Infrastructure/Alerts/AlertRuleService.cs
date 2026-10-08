@@ -1,4 +1,5 @@
 using System.Text;
+using WebApi.Infrastructure.Notifications;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Alerts;
@@ -12,7 +13,7 @@ using WebApi.Infrastructure.Observability;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 namespace WebApi.Infrastructure.Alerts;
-public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings)
+public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings,CompatibilityNotificationMode? compatibility=null)
 {
     public static SaveAlertRuleRequest Definition(AlertRule r)=>new(r.OrganizationId,r.ProjectId,r.EnvironmentId,r.Name,r.Metric,r.Expression,r.Severity,r.Enabled,r.ForSeconds,r.TargetType,r.TargetId,r.WindowSeconds,JsonSerializer.Deserialize<NotificationIntent>(r.Notification,CanonicalJson.Options)!);
     public static string ResourceKey(SaveAlertRuleRequest r)=>r.TargetType=="Environment"?"Environment":r.TargetType+":"+r.TargetId!.Value.ToString("D");
@@ -52,11 +53,13 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
     public Task<AlertRuleDto> UpdateAsync(ActorContext actor,Guid id,SaveAlertRuleRequest request,string etag,CancellationToken ct)=>SaveAsync(actor,id,request,etag,ct);
     public async Task<AlertRuleDto> SetEnabledAsync(ActorContext actor,Guid id,bool enabled,string etag,CancellationToken ct)
     {
+        compatibility?.RequireWritable();
         var rule=await db.Set<AlertRule>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw ScopeResolver.Missing();
         return await SaveAsync(actor,id,Definition(rule) with{Enabled=enabled},etag,ct);
     }
     private async Task<AlertRuleDto> SaveAsync(ActorContext actor,Guid? id,SaveAlertRuleRequest input,string? etag,CancellationToken ct)
     {
+        compatibility?.RequireWritable();
         var request=Validate(input);var old=id is Guid existing?await db.Set<AlertRule>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==existing,ct)??throw ScopeResolver.Missing():null;
         var initialScope=old is null?AlertRuleScopeResolver.Scope(request):AlertRuleScopeResolver.Scope(Definition(old));var operation=id is null?"alert.rule.create":"alert.rule.update";
         return await commands.ExecuteAsync(actor,initialScope,operation,async(_,token)=>{

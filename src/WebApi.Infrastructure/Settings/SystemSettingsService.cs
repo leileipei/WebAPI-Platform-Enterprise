@@ -1,4 +1,5 @@
 using WebApi.Infrastructure.Governance;
+using WebApi.Infrastructure.Notifications;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
@@ -10,7 +11,7 @@ using WebApi.Infrastructure.Security;
 using WebApi.Infrastructure.Commands;
 using WebApi.Infrastructure.Policies;
 namespace WebApi.Infrastructure.Settings;
-public sealed class SystemSettingsService(WebApiDbContext db,AuthorizationService auth,SystemSettingsReader reader,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,SettingsPreviewProtector protector,TimeProvider clock,ScopeResolver scopes)
+public sealed class SystemSettingsService(WebApiDbContext db,AuthorizationService auth,SystemSettingsReader reader,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,SettingsPreviewProtector protector,TimeProvider clock,ScopeResolver scopes,CompatibilityNotificationMode? compatibility=null)
 {
     private static readonly ScopeRef platform=new(Guid.Empty);
     private Task Require(ActorContext actor,CancellationToken ct)=>auth.RequireAsync(actor,"system.manage",new("system_settings",Guid.Empty,platform),ct);
@@ -19,7 +20,7 @@ public sealed class SystemSettingsService(WebApiDbContext db,AuthorizationServic
     public async Task<SettingsValidationDto> ValidateAsync(string group,SettingsMutation request,ActorContext actor,CancellationToken ct=default){await Require(actor,ct);var stored=await reader.ReadAsync(group,ct);SystemSettingsValidator.Resolve(group,request,stored.Value);return new("StructuralOnly","结构校验通过；未解析 SecretRef，未连接 SMTP/Webhook，未发送通知。");}
     public async Task<SettingsPreviewDto> PreviewAsync(string group,SettingsMutation request,string? tag,ActorContext actor,CancellationToken ct=default){await Require(actor,ct);var current=await reader.ReadAsync(group,ct);PolicyPreconditions.Require(tag,current.Revision);var validated=SystemSettingsValidator.Resolve(group,request,current.Value);var before=SafeJson(current.Value);var after=SafeJson(validated.Value);return new(validated.ChangedFields.Select(f=>new SettingsDifference(f,Display(before.GetProperty(f)),Display(after.GetProperty(f)))).ToArray(),SystemSettingsValidator.Fields[group].Select(Effect).Distinct().ToArray(),protector.Issue(actor.UserId,group,current.Revision,validated.ValueHash),clock.GetUtcNow().AddMinutes(5));}
     public Task<CommandResult<SettingsGroupDto>> SaveAsync(string group,SaveSettingsRequest request,string? tag,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,platform,"settings.system."+group+".update",async(_,token)=>{
-        await Require(actor,token);SettingsValueCodec.Default(group);
+        await Require(actor,token);if(group=="notification")compatibility?.RequireWritable();SettingsValueCodec.Default(group);
         return await idempotency.ExecuteAsync(new(actor.UserId,platform,"settings.system."+group,requestContext.IdempotencyKey),CanonicalJson.Serialize(new{group,values=request.Values,tag}),async commandToken=>{
             var current=await reader.ReadAsync(group,commandToken);PolicyPreconditions.Require(tag,current.Revision);var validated=SystemSettingsValidator.Resolve(group,new(request.Values),current.Value);protector.Require(request.ConfirmationToken,actor.UserId,group,current.Revision,validated.ValueHash);
             var key="system."+group;var row=await db.Set<SystemSetting>().SingleOrDefaultAsync(x=>x.Key==key,commandToken);if(row is null){row=new SystemSetting{Key=key};db.Add(row);}else row.Revision++;
