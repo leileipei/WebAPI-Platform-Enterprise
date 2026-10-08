@@ -1,0 +1,20 @@
+{
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "consoleContainerId": "c83b4d08b492a44cabc45b859574a5a5e5a01216f34e57609c57ffe8aa86ea5d",
+  "consolePort": 57531,
+  "staticFiles": {
+    "console/dist/assets/index-B6Hdfw5H.css": "8abfa82bb6c63e443e0fa290b38a0cbe8858c6d98960c3b8d03320db0629d8e7",
+    "console/dist/assets/index-DvR0sPyT.js": "8277eb7530dd5d9270244d72334a19dc8a8933e36d4cf698841109fd32a38200",
+    "console/dist/index.html": "e454a360a3490a76912af066896a0fdfcf1c1c663a285d8f3eb610531de5dda5"
+  },
+  "checkedAt": "2026-10-07T23:05:43.061Z",
+  "id": "rules-1280",
+  "source": "cua",
+  "viewport": 1280,
+  "screenshotSha256": "c30ea8fa6cd946e5241ca94005daaad5fe10c8d10f779af259390be5deef1310",
+  "actual": true,
+  "url": "http://127.0.0.1:57531/observability/alert-rules?edit=87b69afa-fdaf-4983-823a-ec1f2a5ed4df",
+  "notes": "1280×900 实际编辑：外部开关、Email/Webhook/企业IM意向、单项收件人、配对解决通知及四项原任务预算均可达；企业IM明确待接入。仅输入草稿，不保存业务改动。",
+  "axSha256": "0287238e1148f4d390da9c80048c7cc967dabd68cd93575733cf6fe44e7ee794"
+}

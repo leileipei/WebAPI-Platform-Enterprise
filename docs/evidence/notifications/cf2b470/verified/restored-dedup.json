@@ -1,0 +1,21 @@
+{
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "source": "actual-restored-clone",
+  "actual": true,
+  "ownerVerified": true,
+  "ownerId": "70c0d47f-77c0-4509-a234-0c8f8e304863",
+  "projectName": "webapi-enterprise-local-test-f672e4a5-d9ad-4eb1-8401-c484d578a660",
+  "deliveryId": "10f7eace-3e6b-4fd1-b1c1-7163a321bf65",
+  "tlsValidated": true,
+  "certificateHostname": "notification-fixture",
+  "beforeBusinessAcceptCount": 12,
+  "afterBusinessAcceptCount": 12,
+  "protocolCountBefore": 19,
+  "protocolCountAfter": 20,
+  "duplicate": true,
+  "signatureValid": true,
+  "status": 202,
+  "bodyHash": "9d2a7e9f328f747e2bd79e84d26a17c0a16f6f98910ca4af8ceb8b63ce9c356c",
+  "productSender": false
+}

@@ -1,0 +1,20 @@
+{
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "consoleContainerId": "c83b4d08b492a44cabc45b859574a5a5e5a01216f34e57609c57ffe8aa86ea5d",
+  "consolePort": 57531,
+  "staticFiles": {
+    "console/dist/assets/index-B6Hdfw5H.css": "8abfa82bb6c63e443e0fa290b38a0cbe8858c6d98960c3b8d03320db0629d8e7",
+    "console/dist/assets/index-DvR0sPyT.js": "8277eb7530dd5d9270244d72334a19dc8a8933e36d4cf698841109fd32a38200",
+    "console/dist/index.html": "e454a360a3490a76912af066896a0fdfcf1c1c663a285d8f3eb610531de5dda5"
+  },
+  "checkedAt": "2026-10-08T00:37:52.164Z",
+  "id": "revoked-clear",
+  "source": "cua",
+  "viewport": 1440,
+  "screenshotSha256": "7d4110d503461e9a715ade3e6becc098440d6ee1f010fb4c4a4d219cf261b1d0",
+  "actual": true,
+  "url": "http://127.0.0.1:57531/observability/alert-rules?edit=b3e49952-1381-4927-b5a7-b0cd70b50bc3",
+  "notes": "具体测试账号Scope撤权后会话刷新卸载编辑器并清除草稿。实际DOM视口1440×900；当前浏览器缩放1.1，物理覆盖1584×990。",
+  "axSha256": "d370d149fd5eae80564008f338c1e14b06352f60fa71e912d74a4090e91d817a"
+}

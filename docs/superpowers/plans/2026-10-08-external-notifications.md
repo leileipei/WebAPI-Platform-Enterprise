@@ -144,11 +144,11 @@
 
 新增私有 `notification-runtime.json` sidecar保存通知fixture开关、独立端口、秘密receipt引用和原owner/project identity；`loadNotificationRuntime(directory,coreState) -> Promise<NotificationRuntimeState>`必须核对原归属及私有文件权限。原 `runtime.json` 及 ports 对象的严格schema不添加字段，旧固定工具仍能解析原核心状态；完整新增服务维护使用本批入口。新端口冲突独立验证，不能借原三端口校验跳过。新冷备将sidecar与实际新增卷manifest一起保留。
 
-- [ ] **Step 1：写门禁用例。** 空SMTP回执/伪签名/错revision、旧截图改标、缺TLS/静默竞态、目录指向4192、目标非fixture、秘密出现在日志、卷遗漏冷备、旧工具被改、sidecar归属不符/新端口冲突均`assert.throws`；`LegacyCoreStateSchemaIsUnchanged`用原严格validator回读核心状态成功；Run `N --test tests/notifications/*.test.mjs`确认行为RED。
-- [ ] **Step 2：实现及GREEN。** 运行工具固定档案和归档源码；自动channel默认关闭，所有TCP/管理端口仅本机暴露。冷备/restore包含通知秘密和保留原dp-keys；状态报告区别未配置/禁用/可投递/fixture可用，不能用Health=200声称投递成功。
-- [ ] **Step 3：真实克隆验收。** 自有UUID实例中新建独立fixture账号/Scope，不改已有只读账号；保护原4192只做已授权冷备。运行实际Email单目标、TLS正负、Webhook签名/2xx/429/5xx/断连、跨Worker/restart、静默/恢复、引用轮换、平台配置测试，并从fixture观察次数和ID。完整实际1440/1280交互与截图绑定镜像和源码，保存全部失败尝试和最终结果。
-- [ ] **Step 4：验收门禁。** `N --test tests/notifications/*.test.mjs`及真实scenario验证结果必须全部成功/零缺项；本模块可在不实施审批模块的情况下工作和独立验收。全量/整分支审查/原4192升级由交付计划统一执行，不重复整分支审查。
-- [ ] **Step 5：封存提交。** `test(notifications): verify local SMTP webhook and recovery evidence`；只提交脱敏材料与驱动，记录实际计数，不沿用历史1629数字宣称本批通过。
+- [x] **Step 1：写门禁用例。** 空SMTP回执/伪签名/错revision、旧截图改标、缺TLS/静默竞态、目录指向4192、目标非fixture、秘密出现在日志、卷遗漏冷备、旧工具被改、sidecar归属不符/新端口冲突均`assert.throws`；`LegacyCoreStateSchemaIsUnchanged`用原严格validator回读核心状态成功；Run `N --test tests/notifications/*.test.mjs`确认行为RED。
+- [x] **Step 2：实现及GREEN。** 运行工具固定档案和归档源码；自动channel默认关闭，所有TCP/管理端口仅本机暴露。冷备/restore包含通知秘密和保留原dp-keys；状态报告区别未配置/禁用/可投递/fixture可用，不能用Health=200声称投递成功。
+- [x] **Step 3：真实克隆验收。** 自有UUID实例中新建独立fixture账号/Scope，不改已有只读账号；保护原4192只做已授权冷备。运行实际Email单目标、TLS正负、Webhook签名/2xx/429/5xx/断连、跨Worker/restart、静默/恢复、引用轮换、平台配置测试，并从fixture观察次数和ID。完整实际1440/1280交互与截图绑定镜像和源码，保存全部失败尝试和最终结果。
+- [x] **Step 4：验收门禁。** `N --test tests/notifications/*.test.mjs`及真实scenario验证结果必须全部成功/零缺项；本模块可在不实施审批模块的情况下工作和独立验收。全量/整分支审查/原4192升级由交付计划统一执行，不重复整分支审查。
+- [x] **Step 5：封存提交。** `test(notifications): verify local SMTP webhook and recovery evidence`；只提交脱敏材料与驱动，记录实际计数，不沿用历史1629数字宣称本批通过。
 
 ## 覆盖与自查
 

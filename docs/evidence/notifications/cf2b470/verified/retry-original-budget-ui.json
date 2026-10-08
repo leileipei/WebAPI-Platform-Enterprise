@@ -1,0 +1,20 @@
+{
+  "sourceRevision": "cf2b4708c94362faf6cb5f891a7364e0799eac5a",
+  "imageId": "sha256:7913178628551b74657cdfe95627844a0c304bf41378b3db91f6234ef315570a",
+  "consoleContainerId": "c83b4d08b492a44cabc45b859574a5a5e5a01216f34e57609c57ffe8aa86ea5d",
+  "consolePort": 57531,
+  "staticFiles": {
+    "console/dist/assets/index-B6Hdfw5H.css": "8abfa82bb6c63e443e0fa290b38a0cbe8858c6d98960c3b8d03320db0629d8e7",
+    "console/dist/assets/index-DvR0sPyT.js": "8277eb7530dd5d9270244d72334a19dc8a8933e36d4cf698841109fd32a38200",
+    "console/dist/index.html": "e454a360a3490a76912af066896a0fdfcf1c1c663a285d8f3eb610531de5dda5"
+  },
+  "checkedAt": "2026-10-07T23:05:43.061Z",
+  "id": "retry-original-budget",
+  "source": "cua",
+  "viewport": 1440,
+  "screenshotSha256": "70ebbd9a39678b509f80ef11c870f1e3a0a8dfb70596da5e232657c7cc0e2740",
+  "actual": true,
+  "url": "http://127.0.0.1:57531/observability/alerts?eventId=97985666-8345-4be7-b1f1-f26e81f56042",
+  "notes": "实际重试保留原任务 ID、1/3 次数、原下一次下界及到期时间；Worker 暂停期间仅更新重试修订，仍按原下界安排，不提前发送。",
+  "axSha256": "fa6295fc0f04b933bb8a981b34c7ba66a3d8e86a73330f854ba25d91805942b7"
+}
