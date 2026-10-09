@@ -372,7 +372,7 @@ test('authority identity includes stage attempt and profile', () => {
 
 **Interfaces:** Consumes P4/P5/P6/P9/P10 DTO和命令；Produces `pipelineStageActions(stage, actor): PipelineAction[]`纯资格投影、`acceptPipelineResponse(expectedKey, currentKey, response): boolean`异步隔离；`PipelineAction`为动作字串联合：prepare-promotion/mapping/precheck/submit/approve/publish/materialize-artifact/record-verification/request-acceptance/verify-production/pause-run/resume-run/cancel-run/reopen-stage；`PipelineStageActions` props `{stage:PipelineStageDto,onChanged:()=>void}`。生产验证复用既有接口及新增Attempt/Profile绑定，非生产用Stage端点，不替操作者隐式生成Artifact。
 
-- [ ] **Step 1:** Node测试暂停/超时/Publishing分别动作、stale上下文结果丢弃、历史Completed与当前节点分离、Restricted无0；Focus5对应用例：
+- [x] **Step 1:** Node测试暂停/超时/Publishing分别动作、stale上下文结果丢弃、历史Completed与当前节点分离、Restricted无0；Focus5对应用例：
 
 ```javascript
 test('delegate sees permitted current-stage action without chain details', () => {
@@ -385,10 +385,10 @@ test('old attempt response cannot populate a reopened stage', () => {
 });
 ```
 
-- [ ] **Step 2:** 跑`"$WEBAPI_NODE" --test console/tests/pipeline-run.test.mjs`行为RED；保持可导入stub，不把导入错误当行为失败。
-- [ ] **Step 3:** 实现线性进度与单Stage委托入口，展示当前阶段、等待原因/办理资格、阶段截止与ACK截止、实际配置/序列/节点、证据/验收、历史attempt/恢复。显式“继续测试”、人工映射/预检/审批/发布/verify、pause/resume/reopen/cancel；只展示服务端允许动作。旧页面以安全Trace链接Run/Stage，返回保留筛选，总览分独立晋级/流水线。阶段摘要更新使旧表单过期，409引导重新读取，412保留可编辑草稿，撤权和主体切换清空。表单label、错误关联、Tab/Enter/焦点遵循现有组件。
-- [ ] **Step 4:** 新类GREEN及`./scripts/check-console.sh`全量；P13的真实浏览器用例必须在1440/1280分别证明键盘、冲突、撤权、委托单阶段及旧页面返回。
-- [ ] **Step 5:** 提交 `feat(console): operate pipeline stages and trace actual delivery facts`。
+- [x] **Step 2:** 跑`"$WEBAPI_NODE" --test console/tests/pipeline-run.test.mjs`行为RED；保持可导入stub，不把导入错误当行为失败。
+- [x] **Step 3:** 实现线性进度与单Stage委托入口，展示当前阶段、等待原因/办理资格、阶段截止与ACK截止、实际配置/序列/节点、证据/验收、历史attempt/恢复。显式“继续测试”、人工映射/预检/审批/发布/verify、pause/resume/reopen/cancel；只展示服务端允许动作。旧页面以安全Trace链接Run/Stage，返回保留筛选，总览分独立晋级/流水线。阶段摘要更新使旧表单过期，409引导重新读取，412保留可编辑草稿，撤权和主体切换清空。表单label、错误关联、Tab/Enter/焦点遵循现有组件。
+- [x] **Step 4:** 新类GREEN及`./scripts/check-console.sh`全量；P13的真实浏览器用例必须在1440/1280分别证明键盘、冲突、撤权、委托单阶段及旧页面返回。
+- [x] **Step 5:** 提交 `feat(console): operate pipeline stages and trace actual delivery facts`。
 
 ## Task 13 (P13): 固定候选真实链、故障、冷备恢复与最终审查
 
