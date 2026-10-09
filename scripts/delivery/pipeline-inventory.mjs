@@ -10,7 +10,7 @@ export function canonicalPipelineRow(table,row,columns){
  for(const name of Object.keys(row).filter(k=>!columns.includes(k))){assert(Object.hasOwn(pipelineAddedDefaults[table]??{},name),'Unexpected added column: '+table+'.'+name);assert.deepEqual(row[name],pipelineAddedDefaults[table][name],'Migration changed prior delivery linkage: '+table+'.'+name);}
  return canonical(Object.fromEntries(columns.filter(k=>!pipelineDynamicColumns[table]?.includes(k)).map(k=>[k,row[k]])));
 }
-const receiptFields=['code','role_id','permission_id','user_id','actor_id','action','trace_id','resource_type','resource_id','operation','key','created_at','state','MigrationId','ProductVersion'];
+const receiptFields=['code','role_id','permission_id','user_id','actor_id','gateway_node_id','event_type','action','trace_id','resource_type','resource_id','operation','key','created_at','state','MigrationId','ProductVersion'];
 export function hashPipelineTables(schema,data,before=null){
  const result={};for(const [table,s]of Object.entries(schema)){
   assert(/^[a-zA-Z0-9_]+$/.test(table),'Unsafe table');assert(s.primaryKey?.length,'Table has no actual primary key: '+table);const columns=before?.[table]?.columns??s.columns;

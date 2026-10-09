@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';import {currentStage,recordStageTests,acceptStageTests,prepareStagePromotion,publishStage} from './pipeline-scenario.mjs';import {until} from '../runtime/acceptance-scenario.mjs';
 export async function runPipelineFaults(c){
  const results=[],admin=c.s.admin,post=async(url,body)=>{const guarded=/\/(pause|resume|cancel|reopen)$/.test(url),row=guarded?await admin.request(url.slice(0,url.lastIndexOf('/'))):null;return admin.request(url,{method:'POST',body,...(guarded?{headers:{'If-Match':`"${row.revision}"`}}:{})});},start=()=>post('/release-pipeline-runs',{pipelineVersionId:c.version.id,rootArtifactId:c.artifact.id}),cancel=run=>post('/release-pipeline-runs/'+run.id+'/cancel',{comment:'结束受控故障验收'});
+ c.pipelineProof.faults=results;
  const verify=async(name,action)=>{await c.checkpoint('pipeline_fault_'+name);const detail=await action();results.push({name,passed:true,actual:true,...detail});};
  const rejection=async(action,status)=>{let observed;await assert.rejects(action,e=>{observed=e.status;return (Array.isArray(status)?status:[status]).includes(e.status);});return observed;};
  const sql=async statement=>{assert(c.state.projectName.startsWith('webapi-enterprise-local-test-'),'fault injection is fixture only');return c.ctx.compose('exec','-T','postgres','psql','-U','webapi','-d','webapi','-v','ON_ERROR_STOP=1','-c',statement);};
