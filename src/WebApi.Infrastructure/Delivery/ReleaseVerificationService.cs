@@ -29,6 +29,7 @@ public sealed class ReleaseVerificationService(WebApiDbContext db, ReleaseArtifa
                 // Recheck visibility inside the governance transaction, then bind every runtime fact on the server.
                 var actual = await artifacts.GetAsync(artifactId, actor, inner);
                 var source = await artifacts.RequireSourceAsync(actual.SourceReleaseId, actor, inner);
+                if (source.Deployment.Release.CompletedAt is not DateTimeOffset completedAt || request.FinishedAt < completedAt) throw new ApiException(422, "verification_predates_deployment", "来源测试完成时间不能早于本次全节点确认。");
                 if (source.Deployment.Snapshot.Hash != actual.SourceSnapshotHash || ReleaseArtifactCanonicalizer.Hash(source.Content) != actual.ArtifactHash) throw new ApiException(409, "artifact_source_changed", "来源运行内容已变化，请重新生成制品。");
                 var policy = await db.Set<ProjectDeliveryPolicy>().AsNoTracking().SingleOrDefaultAsync(p => p.ProjectId == artifact.ProjectId, inner);
                 if (policy is not null && policy.SourceEnvironmentId != artifact.SourceEnvironmentId) throw new ApiException(422, "delivery_source_mismatch", "制品不属于当前项目连接的来源环境。");

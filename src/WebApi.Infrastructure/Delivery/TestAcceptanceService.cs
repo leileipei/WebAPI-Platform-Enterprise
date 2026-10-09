@@ -121,7 +121,7 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
         foreach(var fact in facts)
         {
             var latest=await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>v.ArtifactId==artifact.Id&&v.Phase=="SourceTest"&&v.Type==fact.Type).OrderByDescending(v=>v.CreatedAt).ThenByDescending(v=>v.Id).Select(v=>v.Id).FirstAsync(ct);
-            if(fact.Result!="Passed"||!fact.IsManual||fact.ExpiresAt<=now||fact.PolicyRevision!=revision||fact.ReleaseId!=artifact.SourceReleaseId||fact.ConfigVersion!=source.Deployment.Release.ToConfigVersion||fact.DeploymentSequence!=source.Deployment.Release.DeploymentSequence||fact.SnapshotHash!=artifact.SourceSnapshotHash||fact.AccessAddressRevision!=source.Deployment.Environment.AccessAddressRevision||latest!=fact.Id)throw Stale();
+            if(source.Deployment.Release.CompletedAt is not DateTimeOffset completedAt||fact.FinishedAt<completedAt||fact.StartedAt>fact.FinishedAt||fact.FinishedAt>now||fact.Result!="Passed"||!fact.IsManual||fact.ExpiresAt<=now||fact.PolicyRevision!=revision||fact.ReleaseId!=artifact.SourceReleaseId||fact.ConfigVersion!=source.Deployment.Release.ToConfigVersion||fact.DeploymentSequence!=source.Deployment.Release.DeploymentSequence||fact.SnapshotHash!=artifact.SourceSnapshotHash||fact.AccessAddressRevision!=source.Deployment.Environment.AccessAddressRevision||latest!=fact.Id)throw Stale();
         }
         return(facts,revision);
     }

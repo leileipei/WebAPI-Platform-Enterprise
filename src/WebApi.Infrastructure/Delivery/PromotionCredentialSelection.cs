@@ -15,13 +15,13 @@ public sealed class PromotionCredentialSelection(WebApiDbContext db,Authorizatio
 {
  public async Task ValidateAsync(ReleasePromotion p,ArtifactContent content,IReadOnlyList<PromotionApplicationMapping> selections,ActorContext actor,CancellationToken ct)
  {
-  var selectedApis=content.Apis.Select(a=>a.ApiId).ToHashSet();var covered=new HashSet<Guid>();var scope=await scopes.EnvironmentAsync(p.TargetEnvironmentId,ct);var now=DateTimeOffset.UtcNow;
-  foreach(var selection in selections){if(selection.CredentialIds.Count is <1 or >1000||selection.AuthorizationIds.Count is <1 or >1000||selection.CredentialIds.Distinct().Count()!=selection.CredentialIds.Count||selection.AuthorizationIds.Distinct().Count()!=selection.AuthorizationIds.Count)throw PromotionMappingService.Invalid();
+  var selectedApis=content.Apis.Select(a=>a.ApiId).ToHashSet();var covered=new HashSet<Guid>();var apiKeyCovered=new HashSet<Guid>();var scope=await scopes.EnvironmentAsync(p.TargetEnvironmentId,ct);var now=DateTimeOffset.UtcNow;
+  foreach(var selection in selections){if(selection.CredentialIds.Count>1000||selection.AuthorizationIds.Count is <1 or >1000||selection.CredentialIds.Distinct().Count()!=selection.CredentialIds.Count||selection.AuthorizationIds.Distinct().Count()!=selection.AuthorizationIds.Count)throw PromotionMappingService.Invalid();
    var app=await db.Set<ApplicationRecord>().AsNoTracking().SingleOrDefaultAsync(a=>a.Id==selection.ApplicationId,ct)??throw PromotionMappingService.Invalid();if(app.OrganizationId!=p.OrganizationId||app.ProjectId is Guid project&&project!=p.ProjectId||app.Status!="Active")throw PromotionMappingService.Invalid();await auth.RequireAsync(actor,"app.read",new("application",app.Id,scope),ct);
    var credentials=await db.Set<ApplicationCredential>().AsNoTracking().Where(c=>selection.CredentialIds.Contains(c.Id)&&c.ApplicationId==app.Id).ToArrayAsync(ct);if(credentials.Length!=selection.CredentialIds.Count||credentials.Any(c=>c.Status!="Active"||c.ValidFrom>now||c.ExpiresAt<=now))throw PromotionMappingService.Invalid();
-   var grants=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(g=>selection.AuthorizationIds.Contains(g.Id)&&g.ApplicationId==app.Id&&g.EnvironmentId==p.TargetEnvironmentId).ToArrayAsync(ct);if(grants.Length!=selection.AuthorizationIds.Count||grants.Any(g=>!selectedApis.Contains(g.ApiId)||g.ValidFrom>now||g.ExpiresAt<=now))throw PromotionMappingService.Invalid();foreach(var grant in grants)covered.Add(grant.ApiId);
+   var grants=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(g=>selection.AuthorizationIds.Contains(g.Id)&&g.ApplicationId==app.Id&&g.EnvironmentId==p.TargetEnvironmentId).ToArrayAsync(ct);if(grants.Length!=selection.AuthorizationIds.Count||grants.Any(g=>!selectedApis.Contains(g.ApiId)||g.ValidFrom>now||g.ExpiresAt<=now))throw PromotionMappingService.Invalid();foreach(var grant in grants){covered.Add(grant.ApiId);if(credentials.Length>0)apiKeyCovered.Add(grant.ApiId);}
   }
-  if(content.Routes.Where(r=>r.AuthenticationMode!="Anonymous").Any(r=>!covered.Contains(r.ApiId)))throw PromotionMappingService.Invalid();
+  if(content.Routes.Any(r=>r.AuthenticationMode=="ApiKey"?!apiKeyCovered.Contains(r.ApiId):r.AuthenticationMode!="Anonymous"&&!covered.Contains(r.ApiId)))throw PromotionMappingService.Invalid();
  }
  public async Task<PromotionCredentialResult> SelectAsync(ReleasePromotion p,ArtifactContent content,IReadOnlyList<PromotionApplicationMapping> selections,ActorContext actor,CancellationToken ct)
  {

@@ -23,7 +23,7 @@ public sealed class DeliveryScenario : IAsyncDisposable
         using var request=new HttpRequestMessage(HttpMethod.Post,"/api/v1/verification-reports?"+(promotion is Guid p?$"promotionId={p}":$"artifactId={artifact??Artifact.Id}")){Content=chunked?new ChunkedContent(bytes):new ByteArrayContent(bytes)};
         request.Content.Headers.ContentType=new(type);request.Headers.Add("X-CSRF-Token",await Api.CsrfAsync());request.Headers.Add("Idempotency-Key",key??Guid.NewGuid().ToString("N"));return await Api.Client.SendAsync(request);
     }
-    public Task<HttpResponseMessage> RecordAsync(string result="Passed",string type="InterfaceFunction",Guid? report=null,DateTimeOffset? started=null,DateTimeOffset? finished=null,string? key=null)=>ApiFixture.CommandAsync(Api.Client,$"/api/v1/release-artifacts/{Artifact.Id}/verifications",new RecordVerificationRequest(type,result,started??DateTimeOffset.UtcNow.AddMinutes(-5),finished??DateTimeOffset.UtcNow.AddMinutes(-1),report,"人工登记"),key);
+    public Task<HttpResponseMessage> RecordAsync(string result="Passed",string type="InterfaceFunction",Guid? report=null,DateTimeOffset? started=null,DateTimeOffset? finished=null,string? key=null)=>ApiFixture.CommandAsync(Api.Client,$"/api/v1/release-artifacts/{Artifact.Id}/verifications",new RecordVerificationRequest(type,result,started??DateTimeOffset.UtcNow,finished??DateTimeOffset.UtcNow,report,"人工登记"),key);
     public async ValueTask DisposeAsync()=>await Deployment.DisposeAsync();
     private sealed class ChunkedContent(byte[] bytes):HttpContent
     {
