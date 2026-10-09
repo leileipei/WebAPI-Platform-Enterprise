@@ -173,11 +173,11 @@
 
 **Interfaces:** GET `/delivery/overview?projectId=...` 的DTO含授权环境当前实际配置/待验证/失败晋级，分页预算10秒/默认50/最大100，授权后Count；`PromotionWizard({promotionId})` 六步消费B5/B6；`PromotionExecution({promotion})` 显示审批/下发/ACK/业务验证；审批列表新增可空申请类型、来源及制品安全摘要，资料无权时受限。
 
-- [ ] **Step 1：写断言。** TEST入口到PROD映射不能显示上一环境URL；预检失败不能提交；目标无Route准备后可继续；共享凭证影响必须展示确认；ACK全绿仍显示待生产验证；风险受限不显示0；跨环境返回URL不失筛选、409/412保留草稿、撤权清空。
-- [ ] **Step 2：RED。** Node promotion-flow测试及 integration `--filter 'FullyQualifiedName~ApprovalInboxTests|FullyQualifiedName~DeliveryOverviewTests'`（新建后者）。
-- [ ] **Step 3：实现。** 真实服务器资格、状态及修订控制操作，正文固定对应幂等键；总览不在浏览器逐环境拼接。执行页提供现有回滚申请入口，区别DeploymentFailed/VerificationFailed与部分节点事实，历史来源完整可追溯。
-- [ ] **Step 4：GREEN。** Node、integration、check-console；真实浏览器两独立审批者、一个独立验证者走完流程，51条分页/未授权Scope/1440/1280/键盘及原导航回归。
-- [ ] **Step 5：隔离提交。** `feat(console): guide environment promotion through production verification`。
+- [x] **Step 1：写断言。** TEST入口到PROD映射不能显示上一环境URL；预检失败不能提交；目标无Route准备后可继续；共享凭证影响必须展示确认；ACK全绿仍显示待生产验证；风险受限不显示0；跨环境返回URL不失筛选、409/412保留草稿、撤权清空。
+- [x] **Step 2：RED。** Node promotion-flow测试及 integration `--filter 'FullyQualifiedName~ApprovalInboxTests|FullyQualifiedName~DeliveryOverviewTests'`（新建后者）。
+- [x] **Step 3：实现。** 真实服务器资格、状态及修订控制操作，正文固定对应幂等键；总览不在浏览器逐环境拼接。执行页提供现有回滚申请入口，区别DeploymentFailed/VerificationFailed与部分节点事实，历史来源完整可追溯。
+- [x] **Step 4：GREEN。** Node、integration、check-console；真实浏览器两独立审批者、一个独立验证者走完流程，51条分页/未授权Scope/1440/1280/键盘及原导航回归。
+- [x] **Step 5：隔离提交。** `feat(console): guide environment promotion through production verification`。
 
 ## Task 11 (B11)：双环境真实验收、故障与安装交付
 

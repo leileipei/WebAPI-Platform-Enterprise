@@ -1,0 +1,232 @@
+{
+  "classification": "actual-isolated-dual-environment-promotion-browser",
+  "sourceRevision": "c0860c05426725c1ed7e58c1caf30f44410df0a3",
+  "projectName": "webapi-enterprise-local-test-a1bb200c-7823-449c-9a2d-5ae14173de8c",
+  "checks": [
+    {
+      "name": "legacy_real_production_baseline_before_enabling_promotion",
+      "passed": true,
+      "actual": true,
+      "releaseId": "365a0df9-09b1-4efe-aea5-f7ab602efc9b"
+    },
+    {
+      "name": "screenshot_environments-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/environments-1440.png"
+    },
+    {
+      "name": "screenshot_mapping-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/mapping-1440.png"
+    },
+    {
+      "name": "screenshot_precheck-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/precheck-1440.png"
+    },
+    {
+      "name": "screenshot_approval-first-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/approval-first-1440.png"
+    },
+    {
+      "name": "screenshot_approval-second-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/approval-second-1440.png"
+    },
+    {
+      "name": "screenshot_all-ack-await-verification-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/all-ack-await-verification-1440.png"
+    },
+    {
+      "name": "screenshot_verification-form-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/verification-form-1440.png"
+    },
+    {
+      "name": "screenshot_completed-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/completed-1440.png"
+    },
+    {
+      "name": "actual_browser_two_independent_approvals_publish_verify_1440",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_environments-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/environments-1280.png"
+    },
+    {
+      "name": "screenshot_mapping-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/mapping-1280.png"
+    },
+    {
+      "name": "screenshot_precheck-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/precheck-1280.png"
+    },
+    {
+      "name": "screenshot_approval-first-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/approval-first-1280.png"
+    },
+    {
+      "name": "screenshot_approval-second-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/approval-second-1280.png"
+    },
+    {
+      "name": "screenshot_all-ack-await-verification-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/all-ack-await-verification-1280.png"
+    },
+    {
+      "name": "screenshot_verification-form-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/verification-form-1280.png"
+    },
+    {
+      "name": "screenshot_completed-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/completed-1280.png"
+    },
+    {
+      "name": "actual_browser_two_independent_approvals_publish_verify_1280",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_pagination-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/pagination-1280.png"
+    },
+    {
+      "name": "actual51_authorized_pagination",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_source-only-overview-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/source-only-overview-1280.png"
+    }
+  ],
+  "sourceVerified": true,
+  "isolatedAcceptance": true,
+  "localInstalled": false,
+  "productionAcceptance": false,
+  "phase": "passed",
+  "imageId": "sha256:9a18edee983c7922e57cda33c62a4f8021e83ae0a9fc78643d8554ec2018fab0",
+  "source": {
+    "environmentId": "1e822c61-a1d9-457d-9f74-cf57681395dc",
+    "releaseId": "5d43680e-02bd-41d6-8cf2-8a366755d795",
+    "artifactId": "091052b7-c0f7-4f41-88d5-bce389fb6c59",
+    "artifactHash": "2d7ef2066395d8e62241615edfcb9d39a287c8a68d95a7724feea18562f0f62a",
+    "snapshotHash": "51a07933f07304a58a54d7cd4f2ef374b43a0a8fbfdc41d6a946946caa4718fa",
+    "configVersion": 1,
+    "sequence": 1,
+    "nodes": [
+      {
+        "nodeId": "47e8cdea-5a8a-4b52-8be2-bb902c8b3b82",
+        "instanceId": "f5f3d511-b2a9-4004-b2f7-2bc7ac095ec5",
+        "acknowledged": true
+      },
+      {
+        "nodeId": "63a47366-c5a2-49aa-9416-c6403fa31950",
+        "instanceId": "8889ce1e-8369-42e9-b2f6-1a75fb098e53",
+        "acknowledged": true
+      }
+    ]
+  },
+  "target": {
+    "environmentId": "7944be5f-47e7-49c8-b801-eced38e7cbc3",
+    "publicUrl": "https://127.0.0.1:57369",
+    "basePath": "/edge"
+  },
+  "actors": {
+    "applicant": "78ef3f54-a468-4358-be4c-efcbcdb21b30",
+    "acceptor": "8b77400c-acf6-4231-aa13-96cd0e135094",
+    "approvers": [
+      "b9f38773-9f1a-4be6-bc78-123408975f2b",
+      "70d5f959-8e97-4a0a-a370-a514140112d8"
+    ],
+    "verifier": "cb4bd7c7-3804-4de3-8450-c18c5b4d41e1"
+  },
+  "promotions": [
+    {
+      "id": "4d520724-9f80-4c77-bbb1-742871d942ac",
+      "releaseId": "37f54e17-e4e2-4381-a82c-4933c0034aa4",
+      "status": "Completed",
+      "actualNodeAcks": [
+        {
+          "nodeId": "3902a938-0013-4a4f-96bb-38e4c606fc5f",
+          "instanceId": "7c61e3ce-4be5-4b6b-97d1-1d32ca755f8c",
+          "acknowledged": true,
+          "configVersion": 2,
+          "deploymentSequence": 2,
+          "errorCode": null
+        },
+        {
+          "nodeId": "86c57da7-4a99-4ff8-9081-330641493b62",
+          "instanceId": "62c28a26-90ab-4619-8fb8-312b0841487c",
+          "acknowledged": true,
+          "configVersion": 2,
+          "deploymentSequence": 2,
+          "errorCode": null
+        }
+      ],
+      "verifiedBy": "cb4bd7c7-3804-4de3-8450-c18c5b4d41e1"
+    },
+    {
+      "id": "6cf457af-c1e2-42ee-91e8-e8ad006a2764",
+      "releaseId": "a460bb6f-53f9-456a-a233-5f791ecd4023",
+      "status": "Completed",
+      "actualNodeAcks": [
+        {
+          "nodeId": "3902a938-0013-4a4f-96bb-38e4c606fc5f",
+          "instanceId": "7c61e3ce-4be5-4b6b-97d1-1d32ca755f8c",
+          "acknowledged": true,
+          "configVersion": 3,
+          "deploymentSequence": 3,
+          "errorCode": null
+        },
+        {
+          "nodeId": "86c57da7-4a99-4ff8-9081-330641493b62",
+          "instanceId": "62c28a26-90ab-4619-8fb8-312b0841487c",
+          "acknowledged": true,
+          "configVersion": 3,
+          "deploymentSequence": 3,
+          "errorCode": null
+        }
+      ],
+      "verifiedBy": "cb4bd7c7-3804-4de3-8450-c18c5b4d41e1"
+    }
+  ],
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  }
+}

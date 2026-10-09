@@ -1,0 +1,97 @@
+{
+  "sourceRevision": "c0860c05426725c1ed7e58c1caf30f44410df0a3",
+  "visuallyInspected": true,
+  "files": [
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/environments-1440.png",
+      "sha256": "c40f86bc902c233f9bedb6125584949d37cb85da07c56e6a4e66658c90db1bd0",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/mapping-1440.png",
+      "sha256": "1e02aee7a5f65a49bfb80628be1970e2227b0817a460c5f2a3f9467d1dd46825",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/precheck-1440.png",
+      "sha256": "204e6d626ca15d75daf6613ca4c169035ef954f9b591abece05b9012e87a1740",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/approval-first-1440.png",
+      "sha256": "5136c93bcfa51a3ae5c5de69dd981ebd61106d1761c34a574cce6c4e5f7451bc",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/approval-second-1440.png",
+      "sha256": "6708b9d49b3352c9692e1466cb6b5f7731fde1c94ed1aba4376992426c733c82",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/all-ack-await-verification-1440.png",
+      "sha256": "f3c85e02181185d26b6efb5750f2debb3f85f2d02d86e9a34c44c1c76d38c054",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/verification-form-1440.png",
+      "sha256": "b15eb1a7f83d9a960edb77e1691b64a9f5729fbdb5e7624f27dc17e84a2d446a",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/completed-1440.png",
+      "sha256": "64c7ebfbe28c183db96ed39e618674b79a5ea99cf89f9034a0721a66f7414153",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/environments-1280.png",
+      "sha256": "69aa6bf87e86e02110cacc3f946f5c065bae7fbb5ae28f5c54c18a36566e2830",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/mapping-1280.png",
+      "sha256": "43646ec84bf03a88dbc39179362ff13f8951434f422fc110345a1c2379054e71",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/precheck-1280.png",
+      "sha256": "621e16cd0857fd707b5d7a2f9705d47228365c21235ed28391d40417d5c4f38b",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/approval-first-1280.png",
+      "sha256": "a97c3b60097cdacbef570f7e791c70cc32e662ff8f9b0d55cde3c5d917f1157f",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/approval-second-1280.png",
+      "sha256": "f5744cb9749286db9ce37ae46ae1279ca2c94d5e2cbb59fda01eb522a83422c0",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/all-ack-await-verification-1280.png",
+      "sha256": "486b80abf244d090b00019eaefd1eae4b114c60c3ed7546544cdec29692855de",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/verification-form-1280.png",
+      "sha256": "c152f1d65f7f88d9074e408d18ea9469e891279fc85b0a34d9a47f960757bede",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/completed-1280.png",
+      "sha256": "6f615cf8b32e76acc7ce3b1877a9f2b7c52963f68f603d94a47cf12e18cb02c1",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/pagination-1280.png",
+      "sha256": "b7b98c7627a9a8cba09aa74127e19f0518c24d2811bcb80d0f175561896a5e48",
+      "passed": true
+    },
+    {
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/source-only-overview-1280.png",
+      "sha256": "b2609c14eeaaa76ed08d1b40d7fbffd3e7f0dd13ec82d4ff20163df64e121fa9",
+      "passed": true
+    }
+  ],
+  "notes": "18 final fourth-attempt images individually inspected at1440/1280; loaded completion facts, no clipped controls or stale overlay positions. Diagnostic previous attempts are not accepted final screenshots."
+}
