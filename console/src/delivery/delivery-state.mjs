@@ -8,3 +8,5 @@ export function manualEvidenceLabel(row){return row.isManual?'人工登记 · '+
 export function deliveryPolicyLabel(policy){return policy?.mode==='PromotionRequired'?'生产晋级门禁已启用':'生产晋级门禁未启用（Legacy）';}
 export function verificationExpiryLabel(minutes){return `人工证据有效期：${minutes} 分钟，自测试结束时间起计算`;}
 export function mayAcceptTest(row,userId){return row.status==='Requested'&&row.canAccept===true&&row.requestedBy!==userId;}
+
+export function deliveryIsCurrent(state,context){return state.authorized!==false&&['actorAuthority','artifactId'].every(k=>state[k]===context[k]);}

@@ -2,7 +2,7 @@ import {useEffect,useReducer,useRef,useState} from 'react';
 import {apiRequest,ApiError} from '../api/client';
 import {refreshCsrfToken} from '../api/transport.mjs';
 import {useSession} from '../auth/SessionProvider';
-import {createDeliveryState,deliveryReducer,deliveryAuthorityKey} from './delivery-state.mjs';
+import {createDeliveryState,deliveryReducer,deliveryAuthorityKey,deliveryIsCurrent} from './delivery-state.mjs';
 export const deliveryCommand=(path:string,body?:unknown,key?:string,revision?:number,method='POST')=>apiRequest<any>(path,{method,body,idempotencyKey:key,etag:revision===undefined?undefined:`"${revision}"`});
 export function useDeliveryData(id:string,load:(signal:AbortSignal)=>Promise<any>){
  const {user,error:sessionError}=useSession(),authority=deliveryAuthorityKey(user),[state,dispatch]=useReducer(deliveryReducer,createDeliveryState()),[tick,setTick]=useState(0),[loading,setLoading]=useState(true),live=useRef<any>(undefined),loader=useRef(load);loader.current=load;
@@ -13,7 +13,7 @@ export function useDeliveryData(id:string,load:(signal:AbortSignal)=>Promise<any
  },[id,authority,sessionError,tick]);
  // Async work captures this lease before starting; a scope, identity or permission change invalidates it.
  const lease=()=>{const captured=live.current;return()=>captured===live.current&&state.authorized!==false&&!sessionError;};
- return {data:state.data,error:state.error,loading,conflict:state.conflict,reload:()=>setTick(t=>t+1),lease};
+ return {data:!sessionError&&deliveryIsCurrent(state,{actorAuthority:authority,artifactId:id})?state.data:undefined,error:state.error,loading,conflict:state.conflict,reload:()=>setTick(t=>t+1),lease};
 }
 export async function artifactPackage(id:string,signal:AbortSignal){const artifact=await apiRequest<any>(`/release-artifacts/${id}`,{signal});const [eligibility,verifications,acceptances]=await Promise.all([apiRequest<any>(`/release-artifacts/${id}/eligibility`,{signal}),apiRequest<any[]>(`/release-artifacts/${id}/verifications`,{signal}),apiRequest<any[]>(`/release-artifacts/${id}/test-acceptances`,{signal})]);return {artifact,eligibility,verifications,acceptances,sourceEnvironmentId:artifact.sourceEnvironmentId,targetEnvironmentId:eligibility.targetEnvironmentId};}
 export async function uploadReport(owner:{artifactId?:string;promotionId?:string},file:File,key:string,alive:()=>boolean){if(file.size<1||file.size>10*1024*1024)throw new Error('报告需为 1 字节至 10 MiB 的 PDF 或纯文本。');const type=file.name.toLowerCase().endsWith('.pdf')?'application/pdf':file.name.toLowerCase().endsWith('.txt')?'text/plain':'';if(!type)throw new Error('请选择 .pdf 或 .txt 报告。');const csrf=await refreshCsrfToken();if(!alive())throw new Error('访问范围已变化，请重新打开。');const response=await fetch('/api/v1/verification-reports?'+new URLSearchParams(owner),{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':type,'X-CSRF-Token':csrf,'Idempotency-Key':key},body:file});if(!response.ok){const problem=await response.json().catch(()=>({}));if(response.status===401)window.dispatchEvent(new Event('session-expired'));if([403,404].includes(response.status))window.dispatchEvent(new Event('permission-refresh'));throw new ApiError(response.status,problem.detail||'报告上传失败');}const data=await response.json();if(!alive())throw new Error('访问范围已变化，上传结果未显示；重新打开后可核对服务器记录。');return data;}

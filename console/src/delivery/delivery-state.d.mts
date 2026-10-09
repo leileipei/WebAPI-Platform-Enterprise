@@ -7,3 +7,5 @@ export function manualEvidenceLabel(row:any):string;
 export function deliveryPolicyLabel(policy:any):string;
 export function verificationExpiryLabel(minutes:number):string;
 export function mayAcceptTest(row:any,userId?:string):boolean;
+
+export function deliveryIsCurrent(state:any,context:any):boolean;
