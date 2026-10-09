@@ -65,7 +65,7 @@ public sealed class EnvironmentApiAddressService(WebApiDbContext db,Authorizatio
         return new(e,rows.OrderBy(r=>r.Path,StringComparer.Ordinal).ThenBy(r=>r.Method,StringComparer.Ordinal).ThenBy(r=>r.Id).ToArray(),versions,running,internalAllowed);
     }
     private static ApiException Unconfirmed()=>new(409,"running_state_unconfirmed","运行状态尚未确认：需要成功发布且全部启用节点在线、版本和部署序列一致。");
-    private static bool CurrentInstanceConfirmed(GatewayNode node,ReleaseRecord release,string hash)
+    internal static bool CurrentInstanceConfirmed(GatewayNode node,ReleaseRecord release,string hash)
     {
         try
         {

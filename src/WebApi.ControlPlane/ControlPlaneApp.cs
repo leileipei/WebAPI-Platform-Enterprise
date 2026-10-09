@@ -57,7 +57,7 @@ public static class ControlPlaneApp
         builder.Services.AddScoped(sp=>new CommandRequestContext(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Request.Headers["Idempotency-Key"].ToString()??""));builder.Services.AddScoped(sp=>new AuditRequestMetadata(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Connection.RemoteIpAddress));
         builder.Services.AddScoped<ApprovalFlowService>();builder.Services.AddScoped<ReleaseService>();builder.Services.AddScoped<ReleaseAccessContextService>();builder.Services.AddScoped<ApprovalEligibilityService>();builder.Services.AddScoped<ApprovalInboxService>();builder.Services.AddScoped<ReleaseCandidateBuilder>();
         builder.Services.AddScoped<PublishCoordinator>();builder.Services.AddScoped<SnapshotCompiler>();builder.Services.AddSingleton(new PublishSettings());
-        builder.Services.AddScoped<HistoricalSnapshotService>();builder.Services.AddScoped<RollbackService>();
+        builder.Services.AddScoped<RunningDeploymentReader>();builder.Services.AddScoped<WebApi.Infrastructure.Delivery.ReleaseArtifactService>();builder.Services.AddScoped<HistoricalSnapshotService>();builder.Services.AddScoped<RollbackService>();
         builder.Services.AddScoped<ReleaseRecoveryService>();
         builder.Services.AddSingleton(NodeEnrollmentSettings.Read(builder.Configuration));builder.Services.AddScoped<NodeIdentityService>();builder.Services.AddScoped<NodeRegistry>();builder.Services.AddScoped<AckService>();builder.Services.AddScoped<ReleaseTimeoutService>();
         builder.Services.AddScoped<GatewayReadService>();

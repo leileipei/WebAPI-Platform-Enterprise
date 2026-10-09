@@ -75,11 +75,11 @@
 
 类型允许环境参数：timeout=`TimeoutMs`；rate_limit=`RefillTokens/WindowMs/Burst`；authentication/JWT=`Issuer/Audiences/Jwks/ApplicationMappings`，所有取自目标已保存策略，不读网络JWK；Route级Timeout从目标映射获取。其它字段冻结，circuit_breaker/retry/cache全部冻结。JWT算法/tokenTypes/clockSkew/maxLifetime/applicationClaim/forwardBearer冻结，模板无公钥或ClaimValue→ApplicationId实际映射值。Anonymous/ApiKey模式无环境参数。模板仅表达存在的策略槽位、类型和顺序，不携带来源Policy ID。
 
-- [ ] **Step 1：写断言。** 输入集合重排Hash相同；Schema、Method、重试/缓存语义变化Hash不同；TEST地址/AccessKey/SecretHash/Jwks/秘密引用不在artifact字节；未知策略/参数422；新目标issuer不改冻结认证模式；制品只从Succeeded且SnapshotHash匹配来源产生；重复生成同Release/hash同ID。
-- [ ] **Step 2：RED。** 分别运行domain `--filter ReleaseArtifactTests`、integration `--filter ReleaseArtifactServiceTests`。
-- [ ] **Step 3：实现。** 使用强类型白名单和CanonicalJson，不做全JSON替换。来源冻结正文、所选版本、Snapshot对应关系和可见性都验证；artifact_hash和source_snapshot_hash分别保存，制品只读无更新接口。
-- [ ] **Step 4：GREEN。** 两命令及PolicyConfigurationTests/AdvancedPolicyConfigurationTests；目标Resolve仍交给原策略Validator验证，不放宽旧规则。
-- [ ] **Step 5：隔离提交。** `feat(delivery): freeze portable api release artifacts`。
+- [x] **Step 1：写断言。** 输入集合重排Hash相同；Schema、Method、重试/缓存语义变化Hash不同；TEST地址/AccessKey/SecretHash/Jwks/秘密引用不在artifact字节；未知策略/参数422；新目标issuer不改冻结认证模式；制品只从Succeeded且SnapshotHash匹配来源产生；重复生成同Release/hash同ID。
+- [x] **Step 2：RED。** 分别运行domain `--filter ReleaseArtifactTests`、integration `--filter ReleaseArtifactServiceTests`。
+- [x] **Step 3：实现。** 使用强类型白名单和CanonicalJson，不做全JSON替换。来源冻结正文、所选版本、Snapshot对应关系和可见性都验证；artifact_hash和source_snapshot_hash分别保存，制品只读无更新接口。
+- [x] **Step 4：GREEN。** 两命令及PolicyConfigurationTests/AdvancedPolicyConfigurationTests；目标Resolve仍交给原策略Validator验证，不放宽旧规则。
+- [x] **Step 5：隔离提交。** `feat(delivery): freeze portable api release artifacts`。
 
 ## Task 3 (B3)：人工验证证据与受控报告
 
