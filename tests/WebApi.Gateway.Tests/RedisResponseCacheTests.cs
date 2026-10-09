@@ -24,6 +24,21 @@ public sealed class RedisResponseCacheTests
         do { if((await store.GetAsync(Key(0),default)).Kind==CacheReadKind.Miss)return;await Task.Delay(25); } while(DateTime.UtcNow<deadline);
         throw new TimeoutException("Redis positive-control connection did not become available.");
     }
+    private sealed class TrackedRedisExecutor : IResponseCacheExecutor, IDisposable
+    {
+        private readonly ConnectionMultiplexer connection;
+        private readonly List<Task<string[]>> commands=[];
+        public TrackedRedisExecutor(ConnectionMultiplexer connection)=>this.connection=connection;
+        public Task<string[]> ExecuteAsync(string operation,string prefix,CacheLookupKey key,string? payload,long maxBytes,int maxEntries,int ttlMs,CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();var root=prefix+":{cache}:";
+            var command=Read(connection.GetDatabase().ScriptEvaluateAsync(ResponseCacheScripts.Text,[root+"bytes",root+"sizes",root+"expiry",root+"entry:"+key.Opaque,root+"seal"],[operation,key.Opaque,maxBytes,maxEntries,ttlMs,root+"entry:",payload??""]));
+            lock(commands)commands.Add(command);return command;
+        }
+        private static async Task<string[]> Read(Task<RedisResult> command)=>((RedisResult[])(await command)!).Select(v=>(string)v!).ToArray();
+        public Task DrainAsync(){lock(commands)return Task.WhenAll(commands.ToArray());}
+        public void Dispose()=>connection.Dispose();
+    }
     [Fact]
     public async Task TwoNodesReadSameCompleteEntryAndRejectCorruptPayload()
     {
@@ -33,12 +48,17 @@ public sealed class RedisResponseCacheTests
     [Theory] [InlineData(100)] [InlineData(40000)]
     public async Task ConcurrentWritesCannotExceed64MiBOr2000Entries(int bodyBytes)
     {
-        using var f = new CacheEligibilityTests.SettingsFixture(); using var mux = await ConnectionMultiplexer.ConnectAsync("redis:6379"); using var a = new RedisResponseCacheStore(f.Settings); using var b = new RedisResponseCacheStore(f.Settings);
+        using var f = new CacheEligibilityTests.SettingsFixture(); using var mux = await ConnectionMultiplexer.ConnectAsync("redis:6379");
+        using var executorA=new TrackedRedisExecutor(await ConnectionMultiplexer.ConnectAsync("redis:6379"));using var executorB=new TrackedRedisExecutor(await ConnectionMultiplexer.ConnectAsync("redis:6379"));
+        using var a=new RedisResponseCacheStore(executorA,f.Settings);using var b=new RedisResponseCacheStore(executorB,f.Settings);
         try
         {
             await WarmConnection(a); await WarmConnection(b);
             Assert.Equal(CacheWriteKind.Stored,(await a.PutAsync(Key(0),Entry(bodyBytes),default)).Kind);
             var results = await Task.WhenAll(Enumerable.Range(1, 2100).Select(i => (i % 2 == 0 ? a : b).PutAsync(Key(i), Entry(bodyBytes), default).AsTask())); Assert.All(results,r=>Assert.Contains(r.Kind,new[]{CacheWriteKind.Stored,CacheWriteKind.Bypass}));
+            // A bounded cache decision can return before its already-sent Lua command finishes.
+            // Observe every actual command before quota assertions and cleanup; keep 100ms decisions.
+            await Task.WhenAll(executorA.DrainAsync(),executorB.DrainAsync());
             var stats = (RedisResult[])(await mux.GetDatabase().ScriptEvaluateAsync("local sum=0; local rows=redis.call('HGETALL',KEYS[2]); for i=2,#rows,2 do sum=sum+tonumber(rows[i]) end; return {tonumber(redis.call('GET',KEYS[1]) or '0'),redis.call('HLEN',KEYS[2]),redis.call('ZCARD',KEYS[3]),sum}", new RedisKey[] { Wire(f.Prefix,"bytes"),Wire(f.Prefix,"sizes"),Wire(f.Prefix,"expiry") }))!;
             Assert.InRange((long)stats[0], 1, 64L * 1024 * 1024); Assert.InRange((long)stats[1], 1, 2000); Assert.Equal((long)stats[1], (long)stats[2]); Assert.Equal((long)stats[0], (long)stats[3]);
         } finally { await Cleanup(mux, f.Prefix); }

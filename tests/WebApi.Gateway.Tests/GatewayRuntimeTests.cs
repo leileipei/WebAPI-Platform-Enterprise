@@ -16,6 +16,21 @@ using Xunit;
 namespace WebApi.Gateway.Tests;
 public sealed class GatewayRuntimeTests
 {
+    [Fact] public async Task RunningEntryRemainsConfirmedAfterRealDualGatewayRestart()
+    {
+        await using var s=new GatewayFixture();await s.InitializeAsync();var config=await s.PublishAsync();await s.ApplyBothAsync(config);
+        using(var detail=await s.Control.Client.GetAsync($"/api/v1/environments/{s.Control.Environment.Id}"))
+        {
+            var e=await detail.Content.ReadFromJsonAsync<JsonElement>();using var saved=await s.Control.WriteAsync(HttpMethod.Put,$"/api/v1/environments/{s.Control.Environment.Id}",new {code=e.GetProperty("code").GetString(),name=e.GetProperty("name").GetString(),status="Active",isProduction=e.GetProperty("isProduction").GetBoolean(),releasePolicyId=e.GetProperty("releasePolicyId").ValueKind==JsonValueKind.Null?(Guid?)null:e.GetProperty("releasePolicyId").GetGuid(),sortOrder=0,gatewayPublicUrl="https://api.test",basePath="/gateway"},detail.Headers.ETag!.ToString());saved.EnsureSuccessStatusCode();
+        }
+        var endpoint=$"/api/v1/environments/{s.Control.Environment.Id}/apis/{s.Control.Api.Id}/access-addresses?view=running";
+        using(var before=await s.Control.Client.GetAsync(endpoint))before.EnsureSuccessStatusCode();
+        for(var i=0;i<2;i++){await s.RestartAsync(i);await WaitReadyAsync(s);var applied=await s.Gateways[i].Services.GetRequiredService<ConfigWatcher>().AcceptAsync(config);Assert.True(applied.Applied);}
+        using(var running=await s.Control.Client.GetAsync(endpoint)){running.EnsureSuccessStatusCode();Assert.Contains("https://api.test/gateway/orders",await running.Content.ReadAsStringAsync());}
+        await using var db=s.Control.Context();Assert.Equal(1,await db.Set<ReleaseRecord>().CountAsync());Assert.Equal(2,await db.Set<GatewayAck>().CountAsync());
+        var node=await db.Set<GatewayNode>().FirstAsync();var metadata=System.Text.Json.Nodes.JsonNode.Parse(node.Metadata!)!;metadata["runtimeApplication"]!["payloadHash"]="wrong-hash";node.Metadata=metadata.ToJsonString();await db.SaveChangesAsync();
+        using var invalid=await s.Control.Client.GetAsync(endpoint);Assert.Equal(HttpStatusCode.Conflict,invalid.StatusCode);
+    }
     [Fact] public async Task RealDoubleGatewayRestartConfirmsLkgWithoutRepublishing()
     {
         await using var s=new GatewayFixture();await s.InitializeAsync();var config=await s.PublishAsync();await s.ApplyBothAsync(config);

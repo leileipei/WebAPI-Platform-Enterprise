@@ -2385,3 +2385,84 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009010000_EnvironmentAccessAddresses') THEN
+    ALTER TABLE environments ADD access_address_revision bigint NOT NULL DEFAULT 1;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009010000_EnvironmentAccessAddresses') THEN
+    ALTER TABLE environments ADD base_path varchar(512) NOT NULL DEFAULT '/';
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009010000_EnvironmentAccessAddresses') THEN
+    ALTER TABLE environments ADD gateway_internal_url varchar(2048);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009010000_EnvironmentAccessAddresses') THEN
+    ALTER TABLE environments ADD gateway_public_url varchar(2048);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009010000_EnvironmentAccessAddresses') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261009010000_EnvironmentAccessAddresses', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009011000_ReleaseAccessContexts') THEN
+    ALTER TABLE release_records ADD CONSTRAINT "AK_release_records_id_environment_id" UNIQUE (id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009011000_ReleaseAccessContexts') THEN
+    CREATE TABLE release_access_contexts (
+        release_id uuid NOT NULL,
+        environment_id uuid NOT NULL,
+        access_address_revision bigint NOT NULL,
+        public_origin varchar(2048),
+        internal_origin varchar(2048),
+        base_path varchar(512) NOT NULL,
+        captured_at timestamptz NOT NULL,
+        CONSTRAINT "PK_release_access_contexts" PRIMARY KEY (release_id),
+        CONSTRAINT "FK_release_access_contexts_release_records_release_id_environm~" FOREIGN KEY (release_id, environment_id) REFERENCES release_records (id, environment_id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009011000_ReleaseAccessContexts') THEN
+    CREATE INDEX "IX_release_access_contexts_release_id_environment_id" ON release_access_contexts (release_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009011000_ReleaseAccessContexts') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261009011000_ReleaseAccessContexts', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;
