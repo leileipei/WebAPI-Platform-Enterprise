@@ -39,6 +39,13 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
     private static object Capture(EntityEntry e,bool original)
     {
         var captured=e.Properties.Where(p=>fields.Contains(p.Metadata.Name)||(e.Entity is Policy&&p.Metadata.Name is "Type" or "VersionNo")).ToDictionary(p=>p.Metadata.Name,p=>original?p.OriginalValue:p.CurrentValue);
+        if(e.Entity is EnvironmentRecord)
+        {
+            captured["AccessAddressRevision"]=original?e.Property("AccessAddressRevision").OriginalValue:e.Property("AccessAddressRevision").CurrentValue;
+            var values=new[]{"GatewayPublicUrl","GatewayInternalUrl","BasePath"}.ToDictionary(name=>name,name=>original?e.Property(name).OriginalValue:e.Property(name).CurrentValue);
+            captured["AccessAddressHash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(values)));
+            captured["ChangedFields"]=e.Properties.Where(p=>!Equals(p.OriginalValue,p.CurrentValue)).Select(p=>p.Metadata.Name).ToArray();
+        }
         if(e.Entity is AlertRule)
         {
             captured.Remove("Notification");var property=e.Property(nameof(AlertRule.Notification));var json=(string?)(original?property.OriginalValue:property.CurrentValue);

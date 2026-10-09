@@ -74,11 +74,11 @@
 
 **Interfaces:** `OptionalJsonProperty<T>(bool IsSpecified,T? Value)` 及转换器，只在属性出现时指定；创建/更新 request 追加三个 Optional 字段。`EnvironmentDto` 为公开投影；`EnvironmentDetailDto` 逐项保留 EnvironmentDto 的顶层字段并追加可选 GatewayInternalUrl，无权时 JSON 完全省略 internal 属性，不用 Environment 包装旧字段。`AccessAddressRevision` 独立递增；ETag 仍取环境 Revision。
 
-- [ ] **Step 1：写断言。** `OmittedPropertiesPreserveSavedAddress` 旧 PUT 保存名称后地址未变；`ExplicitNullClearsOnlySelectedOrigin` 清空公开入口保留内网入口；`ReadScopeNeverReceivesInternalOrigin` 检查 detail、list、scope-tree JSON 不含该属性和值；`ProductionFlagValidatesExistingOrigin` 非法转换422且不写库；412无审计副作用；非地址更新不递增地址修订。
-- [ ] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter EnvironmentAccessPersistenceTests`。
-- [ ] **Step 3：实现。** 属性存在性、A1规范化、权限投影、审计与迁移一起完成；普通 env PUT 沿用修订并发保护，不能声称新增幂等回执。迁移从旧结构增加空地址与默认前缀，不改 API/Route/Snapshot/节点行；规范化值相同时地址修订不增。
-- [ ] **Step 4：GREEN。** 同上及 `--filter GovernanceTests`；迁移前旧请求、迁移后显式清空和角色撤销全部通过；ModelSnapshot 与生成迁移匹配。
-- [ ] **Step 5：隔离提交。** `feat(environments): persist scoped gateway access metadata`。
+- [x] **Step 1：写断言。** `OmittedPropertiesPreserveSavedAddress` 旧 PUT 保存名称后地址未变；`ExplicitNullClearsOnlySelectedOrigin` 清空公开入口保留内网入口；`ReadScopeNeverReceivesInternalOrigin` 检查 detail、list、scope-tree JSON 不含该属性和值；`ProductionFlagValidatesExistingOrigin` 非法转换422且不写库；412无审计副作用；非地址更新不递增地址修订。
+- [x] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter EnvironmentAccessPersistenceTests`。
+- [x] **Step 3：实现。** 属性存在性、A1规范化、权限投影、审计与迁移一起完成；普通 env PUT 沿用修订并发保护，不能声称新增幂等回执。迁移从旧结构增加空地址与默认前缀，不改 API/Route/Snapshot/节点行；规范化值相同时地址修订不增。
+- [x] **Step 4：GREEN。** 同上及 `--filter GovernanceTests`；迁移前旧请求、迁移后显式清空和角色撤销全部通过；ModelSnapshot 与生成迁移匹配。
+- [x] **Step 5：隔离提交。** `feat(environments): persist scoped gateway access metadata`。
 
 ## Task 3 (A3)：真实 Route 地址、示例与环境文档
 
