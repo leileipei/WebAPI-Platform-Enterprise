@@ -87,11 +87,11 @@
 
 **Interfaces:** `RecordVerificationRequest(string Type,string Result,DateTimeOffset StartedAt,DateTimeOffset FinishedAt,Guid? ReportId,string Comment)`；`RecordSourceAsync(Guid artifactId,RecordVerificationRequest request,ActorContext actor,CancellationToken ct) -> Task<ReleaseVerificationDto>`；`StoreAsync(Stream input,string contentType,ScopeRef scope,ActorContext actor,CancellationToken ct) -> Task<VerificationReportDto>`；`OpenAsync(Guid reportId,ActorContext actor,CancellationToken ct) -> Task<Stream>`。报告POST `/verification-reports`需关联artifactId或promotionId之一，由服务器解析Scope并要求对应release.test.record或release.verify和写Scope；不接受客户端直接指定Scope。GET `/{id}/download`按同一实际资源读取权限重新核验，attachment+nosniff+no-store。
 
-- [ ] **Step 1：写断言。** report恰好10*1024*1024允许，多1字节413；MIME伪造/可执行HTML/非法UTF8拒绝；PDF识别头且仅下载；外Scope附件404；来源配置/序列/入口自动解析不信任请求伪造；Failed可登记但不满足门禁；过期时间按冻结连接政策计算。
-- [ ] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~ReleaseVerificationTests|FullyQualifiedName~VerificationReportTests'`。
-- [ ] **Step 3：实现。** 每Scope随机文件名、原子落盘+Hash后存元数据，数据库事务不等待网络/扫描；读文件重新授权。限制真实读取字节而非Content-Length；纯文本严格UTF8，PDF只检查格式头，不声明无恶意。卷只挂ControlPlane，新报告纳入备份；孤立失败文件按本次owner回收，不清理其他附件。
-- [ ] **Step 4：GREEN。** 同命令；检查公开证据不含全文/认证头/秘密，报告下载权限撤销后404；旧库/卷恢复可读。
-- [ ] **Step 5：隔离提交。** `feat(delivery): record bounded verification evidence`。
+- [x] **Step 1：写断言。** report恰好10*1024*1024允许，多1字节413；MIME伪造/可执行HTML/非法UTF8拒绝；PDF识别头且仅下载；外Scope附件404；来源配置/序列/入口自动解析不信任请求伪造；Failed可登记但不满足门禁；过期时间按冻结连接政策计算。
+- [x] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~ReleaseVerificationTests|FullyQualifiedName~VerificationReportTests'`。
+- [x] **Step 3：实现。** 每Scope随机文件名、原子落盘+Hash后存元数据，数据库事务不等待网络/扫描；读文件重新授权。限制真实读取字节而非Content-Length；纯文本严格UTF8，PDF只检查格式头，不声明无恶意。卷只挂ControlPlane，新报告纳入备份；孤立失败文件按本次owner回收，不清理其他附件。
+- [x] **Step 4：GREEN。** 同命令；检查公开证据不含全文/认证头/秘密，报告下载权限撤销后404；旧库/卷恢复可读。
+- [x] **Step 5：隔离提交。** `feat(delivery): record bounded verification evidence`。
 
 ## Task 4 (B4)：独立测试验收与撤销
 
