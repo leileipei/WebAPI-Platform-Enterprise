@@ -122,11 +122,11 @@
 
 **Interfaces:** shell入口 `domain|integration|gateway|console|e2e|browser|verify`；前三项委托隔离check-contracts；`runEnvironmentAccessScenario({sourceRevision,directory,ports}) -> Promise<EnvironmentAccessProof>`；proof保存实际源码/镜像/迁移/浏览器身份与逐检查结果。`validateEnvironmentAccessProof(proof,files) -> {passed:boolean,errors:string[]}`，无截图或未记录运行事实必须失败。
 
-- [ ] **Step 1：写证据拒绝测试。** `assert.equal(validateEnvironmentAccessProof(wrongSha,files).passed,false)`；伪截图、空检查、错误实例、原始凭证或无迁移证据失败。
-- [ ] **Step 2：RED。** `"$WEBAPI_NODE" --test tests/delivery/environment-access-evidence.test.mjs`。
-- [ ] **Step 3：实现。** UUID容器项目/随机本机端口/新测试账号，自有DB，清理按owner核验；使用实际公开入口配代理剥离前缀证明生成地址可调用；元数据保存本身不触发调用。固定提交构建、摘要和升级运行手册一并生成。
-- [ ] **Step 4：GREEN与交付。** 全部check-contracts、check-console各跑一次，新增e2e/browser/verify全部通过且零skip；记录旧核心发布回滚、SSO和节点回归；仅此时更新Coverage。文档注明本机证据不等于生产DNS/TLS验收。
-- [ ] **Step 5：隔离提交。** `test(environments): seal isolated access address delivery`。
+- [x] **Step 1：写证据拒绝测试。** `assert.equal(validateEnvironmentAccessProof(wrongSha,files).passed,false)`；伪截图、空检查、错误实例、原始凭证或无迁移证据失败。
+- [x] **Step 2：RED。** `"$WEBAPI_NODE" --test tests/delivery/environment-access-evidence.test.mjs`。
+- [x] **Step 3：实现。** UUID容器项目/随机本机端口/新测试账号，自有DB，清理按owner核验；使用实际公开入口配代理剥离前缀证明生成地址可调用；元数据保存本身不触发调用。固定提交构建、摘要和升级运行手册一并生成。
+- [x] **Step 4：GREEN与交付。** 全部check-contracts、check-console各跑一次，新增e2e/browser/verify全部通过且零skip；记录旧核心发布回滚、SSO和节点回归；仅此时更新Coverage。文档注明本机证据不等于生产DNS/TLS验收。
+- [x] **Step 5：隔离提交。** `test(environments): seal isolated access address delivery`。
 
 ## 安装和阶段完成门禁
 
