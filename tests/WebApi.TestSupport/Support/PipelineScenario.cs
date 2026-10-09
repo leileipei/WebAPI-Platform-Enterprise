@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Json;
 using WebApi.Contracts.Releases;
 using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence.Entities;
@@ -44,5 +45,8 @@ public sealed class PipelineScenario : IAsyncDisposable
         foreach(var permission in permissions)if(!await db.Set<RolePermission>().AnyAsync(r=>r.RoleId==roleId&&r.PermissionId==permission.Id))db.Add(new RolePermission{RoleId=roleId,PermissionId=permission.Id});
         await db.SaveChangesAsync();
     }
+    public Task<HttpResponseMessage> TryStartAsync(Guid versionId,string? key=null)=>ApiFixture.CommandAsync(Creator,"/api/v1/release-pipeline-runs",new CreatePipelineRunRequest(versionId,RootArtifactId),key);
+    public async Task<PipelineRunDto> StartAsync(Guid versionId,string? key=null){using var response=await TryStartAsync(versionId,key);response.EnsureSuccessStatusCode();return (await response.Content.ReadFromJsonAsync<PipelineRunDto>())!;}
+    public async Task<PipelineRunStageDto> CurrentStageAsync(Guid runId){using var response=await Creator.GetAsync($"/api/v1/release-pipeline-runs/{runId}");response.EnsureSuccessStatusCode();var run=(await response.Content.ReadFromJsonAsync<PipelineRunDto>())!;return run.Stages.Single(s=>s.StageOrder==run.CurrentStageOrder);}
     public ValueTask DisposeAsync()=>Source.DisposeAsync();
 }

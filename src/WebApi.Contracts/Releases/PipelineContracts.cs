@@ -17,3 +17,8 @@ public sealed record PipelineDto(Guid Id,Guid ProjectId,string Name,string Descr
 public sealed record PipelineVersionDto(Guid Id,Guid PipelineId,int VersionNo,string DefinitionHash,PipelineVersionContent? Content,
     DateTimeOffset CreatedAt,Guid CreatedBy);
 public sealed record PipelinePageDto<T>(IReadOnlyList<T> Items,int? Total,int Page,int Size,string Coverage);
+public sealed record PipelineRunStageDto(Guid Id,Guid RunId,int StageOrder,Guid EnvironmentId,Guid? SourceStageId,Guid? StageArtifactId,
+    string Status,long Revision,Guid? CurrentAttemptId,DateTimeOffset? ActivatedAt,DateTimeOffset? DeadlineAt,string ProfileHash,PipelineStageProfile? Profile);
+public sealed record PipelineRunDto(Guid Id,Guid ProjectId,Guid PipelineVersionId,string DefinitionHash,Guid RootArtifactId,string RootArtifactHash,
+    Guid SourceEnvironmentId,Guid SourceReleaseId,long SourceConfigVersion,long SourceDeploymentSequence,long PolicyRevision,
+    string Status,int CurrentStageOrder,long Revision,Guid CreatedBy,DateTimeOffset CreatedAt,IReadOnlyList<PipelineRunStageDto> Stages,string Coverage="Complete");

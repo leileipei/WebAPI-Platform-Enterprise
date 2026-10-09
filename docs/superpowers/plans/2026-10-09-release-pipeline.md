@@ -156,7 +156,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Produces `StartAsync(CreatePipelineRunRequest request, ActorContext actor, CancellationToken ct)`→`Task<PipelineRunDto>`；`PipelineStateRules.IsTerminal(string status)`及`CanWrite(string runStatus, string stageStatus, DateTimeOffset deadlineAt, DateTimeOffset now)`→bool。Consumes 生效版本、RunningDeploymentReader、既有Artifact核验、P3锁。测试支持新增`StartAsync`/`CurrentStageAsync`，安全完整版读取在P10完善。
 
-- [ ] **Step 1:** 测试当前root制品成功全ACK导入、不重发、2/4环境Pending链、rootHash冻结、前后同Run、同键回执；并发开始及Focus4：
+- [x] **Step 1:** 测试当前root制品成功全ACK导入、不重发、2/4环境Pending链、rootHash冻结、前后同Run、同键回执；并发开始及Focus4：
 
 ```csharp
 [Fact] async Task CancelledRunWithPublishingStillBlocksActivationAndNewRun() {
@@ -173,10 +173,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter FullyQualifiedName~PipelineRunTests`及`./scripts/check-contracts.sh domain --filter FullyQualifiedName~PipelineStateRulesTests`行为RED；过时/未成功/跨环境根制品、缺来源/任意链读取权限分别测试，不能只用管理员成功例。
-- [ ] **Step 3:** POST `/release-pipeline-runs`实现Start签名；锁内核验唯一Run、链内所有在途发布/恢复、当前成功实际来源、制品完整/hash/契约可见及启动人权限。一次事务保存版本摘要/规则修订、RootArtifact、来源Release/配置/序列和Stage链；仅来源开启尝试+UTC1440默认窗口。未来Pending不提前启动计时、不生成候选。P2的busy检查共享此在途判断，终态Run也不能掩盖实际Publishing。
-- [ ] **Step 4:** 新类GREEN，回归P2激活/切换及`ReleaseArtifactServiceTests`；并发不同幂等键仍至多一个非终态Run，来源发布计数不增加。
-- [ ] **Step 5:** 提交 `feat(pipeline): start frozen runs from actual source artifacts`。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter FullyQualifiedName~PipelineRunTests`及`./scripts/check-contracts.sh domain --filter FullyQualifiedName~PipelineStateRulesTests`行为RED；过时/未成功/跨环境根制品、缺来源/任意链读取权限分别测试，不能只用管理员成功例。
+- [x] **Step 3:** POST `/release-pipeline-runs`实现Start签名；锁内核验唯一Run、链内所有在途发布/恢复、当前成功实际来源、制品完整/hash/契约可见及启动人权限。一次事务保存版本摘要/规则修订、RootArtifact、来源Release/配置/序列和Stage链；仅来源开启尝试+UTC1440默认窗口。未来Pending不提前启动计时、不生成候选。P2的busy检查共享此在途判断，终态Run也不能掩盖实际Publishing。
+- [x] **Step 4:** 新类GREEN，回归P2激活/切换及`ReleaseArtifactServiceTests`；并发不同幂等键仍至多一个非终态Run，来源发布计数不增加。
+- [x] **Step 5:** 提交 `feat(pipeline): start frozen runs from actual source artifacts`。
 
 ## Task 5 (P5): 阶段制品、独立测试证据与验收
 
