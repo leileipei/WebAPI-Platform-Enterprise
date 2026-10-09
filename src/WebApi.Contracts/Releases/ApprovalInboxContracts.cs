@@ -12,4 +12,4 @@ public sealed record ApprovalInboxItemDto(Guid Id, string ReleaseNo, string Rele
     ApprovalEligibility ApprovalEligibility, int ApprovedCount, int RequiredCount, ApprovalRiskDto Risk,string? ApplicationKind=null,ApprovalDeliverySummaryDto? Delivery=null);
 public sealed record ApprovalInboxPageDto(WebApi.Contracts.Common.PageResult<ApprovalInboxItemDto> Page, ApprovalInboxCounts Counts, ApprovalInboxFilter? Filter = null);
 
-public sealed record ApprovalDeliverySummaryDto(string Visibility,Guid? PromotionId,Guid? ArtifactId,string? ArtifactHash,ApprovalScopeDto? SourceEnvironment);
+public sealed record ApprovalDeliverySummaryDto(string Visibility,Guid? PromotionId,Guid? ArtifactId,string? ArtifactHash,ApprovalScopeDto? SourceEnvironment,PipelineTraceDto? Pipeline=null);

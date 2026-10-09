@@ -12,7 +12,7 @@ using WebApi.Infrastructure.Persistence.Entities;
 
 namespace WebApi.Infrastructure.Releases;
 
-public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibilityService eligibility,WebApi.Infrastructure.Security.AuthorizationService auth,WebApi.Infrastructure.Governance.ScopeResolver scopes)
+public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibilityService eligibility,WebApi.Infrastructure.Security.AuthorizationService auth,WebApi.Infrastructure.Governance.ScopeResolver scopes,WebApi.Infrastructure.Delivery.Pipelines.PipelineReadService? pipelines=null)
 {
     private static readonly string[] states = ["Draft", "WaitingApproval", "Ready", "Building", "Publishing", "Succeeded", "Failed", "Cancelled", "Rejected", "RolledBack"];
 
@@ -84,7 +84,7 @@ public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibility
             return new ApprovalInboxItemDto(row.Id, row.ReleaseNo, row.ReleaseType, row.State,
                 new(scope.OrganizationId, scope.OrganizationCode, scope.OrganizationName), new(scope.ProjectId, scope.ProjectCode, scope.ProjectName),
                 new(scope.Id, scope.Code, scope.Name), row.RequestedBy, row.ApplicantDisplayName, row.CreatedAt,
-                new(row.CanAct, row.CurrentStep, row.CanAct ? null : "approval_not_available"), row.ApprovedCount, required, risks[row.Id],row.PromotionId is null?null:"Promotion",delivery.GetValueOrDefault(row.Id));
+                new(row.CanAct, row.CurrentStep, row.CanAct ? null : "approval_not_available"), row.ApprovedCount, required, risks[row.Id],row.PromotionId is null?null:delivery.TryGetValue(row.Id,out var trace)&&trace.Pipeline is not null?"PipelineStage":"Promotion",delivery.GetValueOrDefault(row.Id));
         }).ToArray();
         return new(new(items, total, filter.Page, filter.PageSize), counts, filter);
     }
@@ -92,11 +92,11 @@ public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibility
     private async Task<Dictionary<Guid,ApprovalDeliverySummaryDto>> DeliverySummariesAsync(InboxRow[] page,ActorContext actor,CancellationToken ct)
     {
         var ids=page.Where(p=>p.PromotionId!=null).Select(p=>p.PromotionId!.Value).ToArray();var result=new Dictionary<Guid,ApprovalDeliverySummaryDto>();if(ids.Length==0)return result;
-        var summaries=await (from p in db.Set<ReleasePromotion>() join a in db.Set<ReleaseArtifact>() on p.ArtifactId equals a.Id join source in db.Set<EnvironmentRecord>() on p.SourceEnvironmentId equals source.Id where ids.Contains(p.Id) select new{p.Id,p.ArtifactId,a.ArtifactHash,p.ProjectId,p.OrganizationId,p.SourceEnvironmentId,source.Code,source.Name}).ToArrayAsync(ct);
+        var summaries=await (from p in db.Set<ReleasePromotion>() join a in db.Set<ReleaseArtifact>() on p.ArtifactId equals a.Id join source in db.Set<EnvironmentRecord>() on p.SourceEnvironmentId equals source.Id where ids.Contains(p.Id) select new{p.Id,p.ArtifactId,a.ArtifactHash,p.ProjectId,p.OrganizationId,p.SourceEnvironmentId,source.Code,source.Name,p.PipelineRunStageId}).ToArrayAsync(ct);
         var permissionByEnvironment=new Dictionary<Guid,bool>();var policyByEnvironment=new Dictionary<Guid,bool>();
         var artifactIds=summaries.Select(s=>s.ArtifactId).Distinct().ToArray();var policyRows=await db.Database.SqlQuery<DeliveryPolicyProjection>($"""SELECT id AS "Id", jsonb_path_exists(canonical_content, '$.routes[*].policies[*]') AS "HasPolicy" FROM release_artifacts WHERE id=ANY({artifactIds})""").ToArrayAsync(ct);var policyArtifacts=policyRows.Where(p=>p.HasPolicy).Select(p=>p.Id).ToHashSet();
         foreach(var row in summaries){if(permissionByEnvironment.ContainsKey(row.SourceEnvironmentId))continue;var scope=await scopes.EnvironmentAsync(row.SourceEnvironmentId,ct);var allowed=scope.ProjectId==row.ProjectId&&scope.OrganizationId==row.OrganizationId;foreach(var code in new[]{"release.read","environment.read","route.read","api.read","api.version.read","api.schema.read"})allowed&=await auth.CanAsync(actor,code,new("environment",row.SourceEnvironmentId,scope),ct);permissionByEnvironment[row.SourceEnvironmentId]=allowed;policyByEnvironment[row.SourceEnvironmentId]=await auth.CanAsync(actor,"policy.read",new("environment",row.SourceEnvironmentId,scope),ct);}
-        foreach(var item in page.Where(p=>p.PromotionId!=null)){var summary=summaries.SingleOrDefault(s=>s.Id==item.PromotionId);var allowed=summary is not null&&permissionByEnvironment[summary.SourceEnvironmentId]&&(!policyArtifacts.Contains(summary.ArtifactId)||policyByEnvironment[summary.SourceEnvironmentId]);result[item.Id]=allowed?new("Visible",summary!.Id,summary.ArtifactId,summary.ArtifactHash,new(summary.SourceEnvironmentId,summary.Code,summary.Name)):new("Restricted",null,null,null,null);}
+        foreach(var item in page.Where(p=>p.PromotionId!=null)){var summary=summaries.SingleOrDefault(s=>s.Id==item.PromotionId);var allowed=summary is not null&&permissionByEnvironment[summary.SourceEnvironmentId]&&(!policyArtifacts.Contains(summary.ArtifactId)||policyByEnvironment[summary.SourceEnvironmentId]);result[item.Id]=allowed?new("Visible",summary!.Id,summary.ArtifactId,summary.ArtifactHash,new(summary.SourceEnvironmentId,summary.Code,summary.Name),summary.PipelineRunStageId is Guid stage&&pipelines is not null?await pipelines.TraceStageAsync(stage,actor,ct):null):new("Restricted",null,null,null,null);}
         return result;
     }
     private sealed class DeliveryPolicyProjection{public Guid Id{get;set;}public bool HasPolicy{get;set;}}

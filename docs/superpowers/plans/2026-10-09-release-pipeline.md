@@ -319,7 +319,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Read `ListPipelinesAsync(Guid projectId, int page, int size, ActorContext actor, CancellationToken ct)`→`Task<PipelinePageDto<PipelineDto>>`；`ListRunsAsync(Guid? projectId, int page, int size, ActorContext actor, CancellationToken ct)`→`Task<PipelinePageDto<PipelineRunDto>>`；`GetRunAsync(Guid id, ActorContext actor, CancellationToken ct)` / `GetStageAsync(Guid id, ActorContext actor, CancellationToken ct)`→对应DTO。`PipelinePageDto<T>(IReadOnlyList<T> Items, int? Total, int Page, int Size, string Coverage)`，默认50最大100；`PipelineTraceDto(Guid? PipelineId, Guid? RunId, Guid StageId, int Order, string Visibility)`用于原页面安全关联，未经授权不返回其他环境正文。`DeliveryOverviewDto`新增可空PipelineRuns/PipelineCounts及PipelineVisibility，`PipelineRunCounts(int Total,int Active,int Paused,int TimedOut,int Completed)`；旧Counts/Promotions仍保留，排除PipelineOrigin后含义为独立晋级。新StageEligibility含CanPrepare/CanMaterialize/CanRecord/CanRequestAcceptance/CanReopen/CanCancelRun和安全ReasonCodes；Run级Cancel资格须全链可见且项目read_write。
 
-- [ ] **Step 1:** 测试授权后计数、Full/Partial/Restricted、10秒503、默认/上限、隐藏名称URL角色凭证和报告下载；Focus5与统计去重：
+- [x] **Step 1:** 测试授权后计数、Full/Partial/Restricted、10秒503、默认/上限、隐藏名称URL角色凭证和报告下载；Focus5与统计去重：
 
 ```csharp
 [Fact] async Task StageDelegateCanActWithoutEarlierChainDisclosure() {
@@ -337,10 +337,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineReadTests|FullyQualifiedName~PipelineOverviewTests'`行为RED，范围组合包含仅项目/仅环境、缺source contract、委托不能全链cancel、HTTP直接访问和附件二次撤权；不能只测试角色名称。
-- [ ] **Step 3:** 实现GET列表/Run/Stage、no-store和数据库预算；先授权再分页/计数，Restricted字段null。Stage授权仅当前环境+直接来源（按所需契约/政策可见性），Run全貌需全链权限，Trace安全解析。旧Artifact可跨多个历史Stage使用，追溯分页不假定一对一。总览独立Promotion排除GateOrigin=PipelineRunStage，Pipeline按授权Run计数，不把每跳Release算独立交付；保留真实节点视图。错误只安全reason code，不返回无权资源信息。
-- [ ] **Step 4:** 新类GREEN，回归`DeliveryOverviewTests`、`DeliveryConsoleTests`、`ReleaseArtifactServiceTests`、`VerificationReportTests`及`ApprovalInboxTests`。
-- [ ] **Step 5:** 提交 `feat(pipeline): expose scoped runs stages and delivery trace`。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineReadTests|FullyQualifiedName~PipelineOverviewTests'`行为RED，范围组合包含仅项目/仅环境、缺source contract、委托不能全链cancel、HTTP直接访问和附件二次撤权；不能只测试角色名称。
+- [x] **Step 3:** 实现GET列表/Run/Stage、no-store和数据库预算；先授权再分页/计数，Restricted字段null。Stage授权仅当前环境+直接来源（按所需契约/政策可见性），Run全貌需全链权限，Trace安全解析。旧Artifact可跨多个历史Stage使用，追溯分页不假定一对一。总览独立Promotion排除GateOrigin=PipelineRunStage，Pipeline按授权Run计数，不把每跳Release算独立交付；保留真实节点视图。错误只安全reason code，不返回无权资源信息。
+- [x] **Step 4:** 新类GREEN，回归`DeliveryOverviewTests`、`DeliveryConsoleTests`、`ReleaseArtifactServiceTests`、`VerificationReportTests`及`ApprovalInboxTests`。
+- [x] **Step 5:** 提交 `feat(pipeline): expose scoped runs stages and delivery trace`。
 
 ## Task 11 (P11): Console流水线列表、编辑和显式激活
 

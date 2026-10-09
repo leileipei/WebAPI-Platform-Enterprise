@@ -73,6 +73,12 @@ public sealed class PipelineStageService(WebApiDbContext db,ScopeResolver scopes
    if(fact.ReportId is Guid reportId){var report=await reports.GetMetadataAsync(reportId,actor,ct);if(report.ArtifactId!=context.ArtifactId||report.PromotionId is not null||report.EnvironmentId!=fact.EnvironmentId||report.Sha256!=fact.ReportHash)throw Stale();}
   }return facts;
  }
+ internal async Task<bool> CanRequestAcceptanceAsync(Guid id,ActorContext actor,CancellationToken ct)
+ {
+  var context=await GetVerificationContextAsync(id,actor,ct);var ids=new List<Guid>();
+  foreach(var type in context.RequiredTypes){var latest=await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>v.PipelineRunStageId==id&&v.StageAttemptId==context.CurrentAttemptId&&v.ArtifactId==context.ArtifactId&&v.Phase=="SourceTest"&&v.Type==type).OrderByDescending(v=>v.CreatedAt).ThenByDescending(v=>v.Id).Select(v=>(Guid?)v.Id).FirstOrDefaultAsync(ct);if(latest is not Guid fact)return false;ids.Add(fact);}
+  await RequireEvidenceAsync(context,ids,actor,ct);return true;
+ }
  private static bool ContextMatches(string json,PipelineVerificationContextDto current)
  {try{var stored=System.Text.Json.JsonSerializer.Deserialize<PipelineVerificationContextDto>(json,CanonicalJson.Options);return stored is not null&&stored.ContextHash==current.ContextHash&&Hash(stored with{ContextHash=""})==current.ContextHash;}catch(System.Text.Json.JsonException){return false;}}
  private async Task RequireIndependentAsync(ReleaseTestAcceptance row,DeliveryGateContext gate,ActorContext actor,CancellationToken ct)

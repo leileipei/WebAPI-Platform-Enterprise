@@ -20,7 +20,7 @@ public static class ReleaseEndpoints
         g.MapGet("/environments/{id:guid}/releases",async(Guid id,HttpContext ctx,ReleaseService service,int? page,int? pageSize,CancellationToken ct)=>Results.Ok(await service.ListAsync(id,ctx.Actor(),page??1,pageSize??50,ct)));
         g.MapPost("/environments/{id:guid}/releases",async(Guid id,CreateReleaseRequest request,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.CreateAsync(id,request,ctx.Actor(),ct)));
         g.MapGet("/releases/{id:guid}/preview",async(Guid id,HttpContext ctx,ReleaseService service,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await service.PreviewAsync(id,ctx.Actor(),ct));});
-        g.MapGet("/releases/{id:guid}",async(Guid id,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.GetAsync(id,ctx.Actor(),ct)));
+        g.MapGet("/releases/{id:guid}",async(Guid id,HttpContext ctx,ReleaseService service,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await service.GetAsync(id,ctx.Actor(),ct));});
         g.MapPost("/releases/{id:guid}/submit",async(Guid id,HttpContext ctx,ReleaseService service,CancellationToken ct)=>Results.Ok(await service.SubmitAsync(id,ctx.Actor(),ct)));
         g.MapPost("/releases/{id:guid}/publish",async(Guid id,HttpContext ctx,PublishCoordinator service,CancellationToken ct)=>Results.Ok(await service.StartAsync(id,ctx.Actor(),ct)));
         g.MapPost("/releases/{id:guid}/rollback",async(Guid id,CreateRollbackRequest request,HttpContext ctx,RollbackService service,CancellationToken ct)=>Results.Ok(await service.CreateAsync(id,request.TargetConfigVersion,ctx.Actor(),ct)));
