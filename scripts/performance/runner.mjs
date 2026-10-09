@@ -13,7 +13,7 @@ import {validateClassificationManifest} from './classification.mjs';
 import {verifyBaselineCompletion} from './completion.mjs';
 import {runWithContainerResources,verifyResourceDiagnosticCompletion} from './resources.mjs';
 import {verifyExplainCompletion} from './explain.mjs';
-import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,waitReady,runPrivateWorkload,retainOwnerFailureDiagnostics} from "./runner-support.mjs";
+import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,waitReady,runPrivateWorkload,retainOwnerFailureDiagnostics,activateGatewayFixture} from "./runner-support.mjs";
 export async function runPerformance(options,repo){
   if(options.mode==='compare'||options.mode==='validate'&&options.diagnostic==='compare')return (await import('./comparison-runner.mjs')).runComparison(options,repo);
   if(options.mode==='migration'||options.mode==='validate'&&options.diagnostic==='migration')return (await import('./migration-runner.mjs')).runMigration(options,repo);
@@ -107,8 +107,7 @@ export async function runPerformance(options,repo){
       const profile=cell.auth==='api-key'||cell.auth==='missing-key'||cell.auth==='wrong-secret'?'apikey':cell.auth==='no-mapping'?'rs256':cell.auth;
       await fs.copyFile(path.join(manifest.directory,`scales/${cell.scale}/${profile}.json`),path.join(manifest.directory,profile+'.json'));await fs.chmod(path.join(manifest.directory,profile+'.json'),0o600);
       sequence++;for(const name of ['gateway-a','gateway-b']){
-        const response=await fetch(addresses[name]+'/__perf/apply',{method:'POST',headers:{'Content-Type':'application/json','X-Performance-Token':token},body:JSON.stringify({profile,sequence}),signal:AbortSignal.timeout(120000)});
-        if(!response.ok)throw Error('Real gateway activation failed: '+response.status);
+        await activateGatewayFixture({manifest,output:options.output,url:addresses[name],node:name,token,profile,sequence});
       }
       await privateJson(path.join(manifest.directory,'cell.json'),cell);
       results.push(await monitoredClient(cellKey(cell),cellKey(cell)+'.json'));

@@ -138,6 +138,15 @@ public sealed class PerformanceHostTests
                 }
                 using var traversal=new HttpRequestMessage(HttpMethod.Post,"/__perf/apply") {Content=JsonContent.Create(new {profile="../probe-token",sequence=99})};traversal.Headers.Add("X-Performance-Token",token);
                 Assert.Equal(HttpStatusCode.BadRequest,(await client.SendAsync(traversal)).StatusCode);
+                const string privateCanary="activation-private-canary";
+                await File.WriteAllTextAsync(Path.Combine(directory,"anonymous.json"),"{\""+privateCanary+"\":");
+                using var malformed=new HttpRequestMessage(HttpMethod.Post,"/__perf/apply") {Content=JsonContent.Create(new {profile="anonymous",sequence=100})};malformed.Headers.Add("X-Performance-Token",token);
+                using var rejected=await client.SendAsync(malformed);Assert.Equal(HttpStatusCode.BadRequest,rejected.StatusCode);
+                var diagnosticBody=await rejected.Content.ReadAsStringAsync();Assert.Contains("snapshot-parse",diagnosticBody);Assert.Contains("ApiException",diagnosticBody);Assert.DoesNotContain(privateCanary,diagnosticBody);Assert.DoesNotContain(token,diagnosticBody);
+                var restored=PerformanceDataset.BuildSnapshot(spec,AuthenticationMode.Anonymous,"RS256",keys);
+                restored=restored with {Clusters=restored.Clusters.Select(c=>c with {Destinations=c.Destinations.Select(d=>d with {Address=origin+"/"}).ToArray()}).ToArray()};await File.WriteAllBytesAsync(Path.Combine(directory,"anonymous.json"),CanonicalJson.Serialize(restored));
+                var diagnosticFiles=Directory.GetFiles(directory,"activation-failure-*.json");Assert.NotEmpty(diagnosticFiles);
+                Assert.All(diagnosticFiles,file=>{using var diagnostic=JsonDocument.Parse(File.ReadAllText(file));Assert.Equal("snapshot-parse",diagnostic.RootElement.GetProperty("stage").GetString());Assert.Equal("ApiException",diagnostic.RootElement.GetProperty("errorType").GetString());Assert.NotEmpty(diagnostic.RootElement.GetProperty("exception").GetString()!);if(!OperatingSystem.IsWindows())Assert.Equal(UnixFileMode.UserRead|UnixFileMode.UserWrite,File.GetUnixFileMode(file));});
             }
         }finally{Directory.Delete(directory,true);}
     }

@@ -71,16 +71,20 @@ internal sealed class PerformanceStartupFilter(IConfiguration configuration,Requ
                     await context.Response.WriteAsJsonAsync(explain.Read(id),context.RequestAborted);return;
                 }
                 if(context.Request.Method=="POST"&&context.Request.Path=="/__perf/apply"&&context.RequestServices.GetService<SnapshotActivation>() is { } activation) {
+                    var stage="request-parse";ApplyRequest? request=null;
                     try {
-                        var request=await context.Request.ReadFromJsonAsync<ApplyRequest>(context.RequestAborted);
+                        request=await context.Request.ReadFromJsonAsync<ApplyRequest>(context.RequestAborted);
                         if(request is null||request.Sequence<=0||request.Profile is not ("anonymous" or "apikey" or "rs256" or "es256" or "no-grant")){context.Response.StatusCode=400;return;}
-                        var file=Path.Combine(directory,request.Profile+".json");CheckPrivate(file,16*1024*1024);
-                        var bytes=await File.ReadAllBytesAsync(file,context.RequestAborted);
-                        var settings=context.RequestServices.GetRequiredService<GatewaySettings>();var snapshot=SnapshotValidator.ParsePayload(bytes,settings.EnvironmentId);
+                        var file=Path.Combine(directory,request.Profile+".json");stage="file-check";CheckPrivate(file,16*1024*1024);
+                        stage="file-read";var bytes=await File.ReadAllBytesAsync(file,context.RequestAborted);
+                        stage="snapshot-parse";var settings=context.RequestServices.GetRequiredService<GatewaySettings>();var snapshot=SnapshotValidator.ParsePayload(bytes,settings.EnvironmentId);
                         var envelope=new SnapshotEnvelope(Guid.NewGuid(),request.Sequence,snapshot.ConfigVersion,Convert.ToHexStringLower(SHA256.HashData(bytes)),bytes.Length);
-                        var result=await activation.ApplyAsync(envelope,bytes,context.RequestAborted);
+                        stage="activate";var result=await activation.ApplyAsync(envelope,bytes,context.RequestAborted);
                         context.Response.StatusCode=result.Applied?200:409;await context.Response.WriteAsJsonAsync(result,context.RequestAborted);return;
-                    }catch(Exception error)when(error is JsonException or IOException or InvalidDataException or ApiException or ArgumentException) {context.Response.StatusCode=400;return;}
+                    }catch(Exception error)when(error is JsonException or IOException or InvalidDataException or ApiException or ArgumentException) {
+                        var retained=await RetainActivationFailure(directory,stage,error,request?.Sequence);
+                        context.Response.StatusCode=400;await context.Response.WriteAsJsonAsync(new {stage,errorType=error.GetType().Name,diagnosticRetained=retained},context.RequestAborted);return;
+                    }
                 }
                 context.Response.StatusCode=404;return;
             }
@@ -90,9 +94,20 @@ internal sealed class PerformanceStartupFilter(IConfiguration configuration,Requ
             using(probe.Begin(requestId))using(diagnose?diagnostics.Explain?.Begin(requestId):null)await following();
         });next(app);
     };
+    private static async Task<bool> RetainActivationFailure(string directory,string stage,Exception error,long? sequence)
+    {
+        try {
+            var file=Path.Combine(directory,"activation-failure-"+Guid.NewGuid().ToString("N")+".json");
+            await using var stream=new FileStream(file,FileMode.CreateNew,FileAccess.Write,FileShare.None,81920,FileOptions.Asynchronous);
+            if(!OperatingSystem.IsWindows())File.SetUnixFileMode(file,UnixFileMode.UserRead|UnixFileMode.UserWrite);
+            await stream.WriteAsync(CanonicalJson.Serialize(new {stage,errorType=error.GetType().Name,sequence,time=DateTimeOffset.UtcNow,exception=error.ToString()}));return true;
+        }catch(Exception diagnosticError)when(diagnosticError is IOException or UnauthorizedAccessException){return false;}
+    }
     private static string ReadPrivate(string file,long maximum){CheckPrivate(file,maximum);var value=File.ReadAllText(file).Trim();if(value.Length is <32 or >128||value.Any(c=>!char.IsAsciiLetterOrDigit(c)&&c is not '-' and not '_'))throw new InvalidDataException("Invalid private probe token.");return value;}
     private static void CheckPrivate(string file,long maximum) {
-        var info=new FileInfo(file);if(!info.Exists||info.LinkTarget is not null||info.Length>maximum)throw new InvalidDataException("Invalid private fixture file.");
+        var info=new FileInfo(file);if(!info.Exists)throw new InvalidDataException("Private fixture file is missing.");
+        if(info.LinkTarget is not null)throw new InvalidDataException("Private fixture file is a symbolic link.");
+        if(info.Length>maximum)throw new InvalidDataException("Private fixture file exceeds its size limit.");
         if(!OperatingSystem.IsWindows()&&(File.GetUnixFileMode(file)&~(UnixFileMode.UserRead|UnixFileMode.UserWrite))!=0)throw new InvalidDataException("Fixture file is not private.");
     }
     private sealed record ApplyRequest(string Profile,long Sequence);

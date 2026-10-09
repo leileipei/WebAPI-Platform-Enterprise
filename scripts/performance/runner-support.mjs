@@ -86,3 +86,16 @@ export async function retainOwnerFailureDiagnostics(manifest,composeFile,environ
   }
   return {owner:manifest.owner,collected:true,containers:inspected.map(x=>({service:x.labels['com.docker.compose.service'],running:x.running,exitCode:x.exitCode,oomKilled:x.oomKilled,restartCount:x.restartCount})),privateLogsRetained:true};
 }
+
+export async function activateGatewayFixture({manifest,output,url,node,token,profile,sequence}){
+  if(!validateOwner(manifest,{'com.docker.compose.project':manifest.project,'com.webapi.performance.owner':manifest.owner})||!['gateway-a','gateway-b'].includes(node)||!['anonymous','apikey','rs256','es256','no-grant'].includes(profile)||!Number.isSafeInteger(sequence)||sequence<=0)throw Error('Invalid private activation operation');
+  const response=await fetch(url+'/__perf/apply',{method:'POST',headers:{'Content-Type':'application/json','X-Performance-Token':token},body:JSON.stringify({profile,sequence}),signal:AbortSignal.timeout(120000)});
+  if(response.ok)return;
+  const body=await response.text();await privateJson(path.join(manifest.directory,'activation-response-'+node+'-'+sequence+'.json'),{status:response.status,body});
+  let value;try{value=JSON.parse(body);}catch{}
+  const stages=['request-parse','file-check','file-read','snapshot-parse','activate'];
+  const types=['JsonException','IOException','FileNotFoundException','DirectoryNotFoundException','InvalidDataException','ApiException','ArgumentException','ArgumentNullException','ArgumentOutOfRangeException','PathTooLongException'];
+  const selected={owner:manifest.owner,node,profile,sequence,status:response.status,stage:stages.includes(value?.stage)?value.stage:null,errorType:types.includes(value?.errorType)?value.errorType:null,diagnosticRetained:value?.diagnosticRetained===true};
+  await evidence(path.join(output,'gateway-activation-failure.json'),selected);
+  throw Error('Real gateway activation failed: '+response.status+(selected.stage?' at '+selected.stage:''));
+}

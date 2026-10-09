@@ -13,7 +13,7 @@ import {validateClassificationManifest} from './classification.mjs';
 import {verifyEnvironment} from './environment.mjs';
 import {verifyBaselineCompletion} from './completion.mjs';
 import {runWithContainerResources} from './resources.mjs';
-import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,command,waitReady,runPrivateWorkload} from './runner-support.mjs';
+import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,command,waitReady,runPrivateWorkload,activateGatewayFixture} from './runner-support.mjs';
 const appServices=['controlplane','backend','gateway-a','gateway-b'];
 export async function runComparison(options,repo){
   const mutable=options.mode==='validate';
@@ -94,7 +94,7 @@ export async function runComparison(options,repo){
     const gateway=await executeComparisonPairs({pairs,switchVariant:c=>switchVariant(c.variant),measure:async cell=>{
       const profile=['api-key','missing-key','wrong-secret'].includes(cell.auth)?'apikey':cell.auth==='no-mapping'?'rs256':cell.auth;
       await fs.copyFile(path.join(owner.directory,`scales/${cell.scale}/${profile}.json`),path.join(owner.directory,profile+'.json'));await fs.chmod(path.join(owner.directory,profile+'.json'),0o600);sequence++;
-      for(const name of ['gateway-a','gateway-b']){const response=await fetch(addresses[name]+'/__perf/apply',{method:'POST',headers:{'Content-Type':'application/json','X-Performance-Token':token},body:JSON.stringify({profile,sequence}),signal:AbortSignal.timeout(120000)});if(!response.ok)throw Error('Comparison snapshot activation failed');}
+      for(const name of ['gateway-a','gateway-b'])await activateGatewayFixture({manifest:owner,output:path.join(options.output,currentVariant),url:addresses[name],node:name,token,profile,sequence});
       await privateJson(path.join(owner.directory,'cell.json'),cell);const result=await monitoredClient(cellKey(cell),cellKey(cell)+'.json');result.datasetFingerprint=variants[currentVariant].gatewayDatasets.find(d=>d.spec.scale===cell.scale).fingerprint;await evidence(path.join(options.output,currentVariant,cellKey(cell)+'.json'),result);variants[cell.variant].cells.push(result);return result;
     },onPair:receipt=>evidence(path.join(options.output,'gateway-pairs.json'),[...(status?.gatewayPairs??[]),receipt]).then(()=>{status??={gatewayPairs:[]};status.gatewayPairs.push(receipt);})});
     let sceneIndex=0;

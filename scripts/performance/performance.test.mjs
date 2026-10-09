@@ -293,3 +293,15 @@ test('startup_failure_diagnostics_validate_owner_before_logs_and_export_only_sel
   foreign=true;logs=0;await assert.rejects(()=>support.retainOwnerFailureDiagnostics({...manifest,directory},'compose.yml',{},run),/owner/i);assert.equal(logs,0);
  }finally{fs.rmSync(directory,{recursive:true,force:true});}
 });
+
+test('activation_failure_preserves_private_response_and_only_selected_public_metadata',async()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'performance-activation-')),owner=await createOwner(root),output=path.join(root,'public');fs.mkdirSync(output);
+ const canary='activation-private-canary',server=createServer((req,res)=>{res.writeHead(400,{'Content-Type':'application/json'});res.end(JSON.stringify({stage:'snapshot-parse',errorType:'ApiException',diagnosticRetained:true,exception:canary}));});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ try{
+  const {activateGatewayFixture}=await import('./runner-support.mjs');await assert.rejects(()=>activateGatewayFixture({manifest:owner,output,url:'http://127.0.0.1:'+server.address().port,node:'gateway-a',token:canary,profile:'no-grant',sequence:40}),/400/);
+  const file=path.join(output,'gateway-activation-failure.json');assert.equal(fs.existsSync(file),true,'Failed activation must retain selected public stage metadata');
+  const selected=JSON.parse(fs.readFileSync(file,'utf8'));assert.equal(selected.stage,'snapshot-parse');assert.equal(selected.errorType,'ApiException');assert.equal(selected.status,400);assert.equal(JSON.stringify(selected).includes(canary),false);
+  const privateFile=path.join(owner.directory,'activation-response-gateway-a-40.json');assert.equal(fs.statSync(privateFile).mode&0o777,0o600);assert.equal(JSON.parse(fs.readFileSync(privateFile,'utf8')).body.includes(canary),true);
+ }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));fs.rmSync(root,{recursive:true,force:true});}
+});
