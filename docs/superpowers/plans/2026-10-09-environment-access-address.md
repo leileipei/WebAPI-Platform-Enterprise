@@ -110,11 +110,11 @@
 
 **Interfaces:** `buildAddressTemplate(settings,routePath) -> string|null` 与A1向量相同；`accessReducer(state,event) -> state` 用identity/epoch丢弃旧响应；`EnvironmentAccessEditor({environment,onSaved,onClose})` 保留原环境字段；`ApiAccessPanel({environmentId,apiId,versionId,view})` 消费A3，复制仅公开无凭证文本。
 
-- [ ] **Step 1：写断言。** Node向量测试与A1同输出；`assert.equal(next.internalUrl,undefined)` 在撤权时清空；迟到其他环境响应被拒绝；未配置复制按钮禁用；412保留草稿；历史与当前地址不能混标；未知/未运行版本无可执行链接。
-- [ ] **Step 2：RED。** `"$WEBAPI_NODE" --test console/tests/environment-access.test.mjs`。
-- [ ] **Step 3：实现。** 复用已有Editor保存与冲突流程；样例路径预览注明样例，真实接口Panel显式选working/running；内网字段只有专用详情请求返回，永不写localStorage。成功文案“地址已配置，连通性未验证”；提供公开调用示例和环境文档下载。
-- [ ] **Step 4：GREEN。** 同命令与 `./scripts/check-console.sh`；UUID评审实例检查1440/1280、键盘、弹窗、地址清空、Scope切换、失权、模板复制，记录截图及API事实。
-- [ ] **Step 5：隔离提交。** `feat(console): configure and preview environment api entries`。
+- [x] **Step 1：写断言。** Node向量测试与A1同输出；`assert.equal(next.internalUrl,undefined)` 在撤权时清空；迟到其他环境响应被拒绝；未配置复制按钮禁用；412保留草稿；历史与当前地址不能混标；未知/未运行版本无可执行链接。
+- [x] **Step 2：RED。** `"$WEBAPI_NODE" --test console/tests/environment-access.test.mjs`。
+- [x] **Step 3：实现。** 复用已有Editor保存与冲突流程；样例路径预览注明样例，真实接口Panel显式选working/running；内网字段只有专用详情请求返回，永不写localStorage。成功文案“地址已配置，连通性未验证”；提供公开调用示例和环境文档下载。
+- [x] **Step 4：GREEN。** 同命令与 `./scripts/check-console.sh`；UUID评审实例检查1440/1280、键盘、弹窗、地址清空、Scope切换、失权、模板复制，记录截图及API事实。
+- [x] **Step 5：隔离提交。** `feat(console): configure and preview environment api entries`。
 
 ## Task 6 (A6)：真实隔离验收、交付与本机升级准备
 
