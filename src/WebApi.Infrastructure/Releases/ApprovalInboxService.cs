@@ -12,7 +12,7 @@ using WebApi.Infrastructure.Persistence.Entities;
 
 namespace WebApi.Infrastructure.Releases;
 
-public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibilityService eligibility)
+public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibilityService eligibility,WebApi.Infrastructure.Security.AuthorizationService auth,WebApi.Infrastructure.Governance.ScopeResolver scopes)
 {
     private static readonly string[] states = ["Draft", "WaitingApproval", "Ready", "Building", "Publishing", "Succeeded", "Failed", "Cancelled", "Rejected", "RolledBack"];
 
@@ -68,12 +68,13 @@ public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibility
             select new InboxRow
             {
                 Id = r.Id, EnvironmentId = r.EnvironmentId, ReleaseNo = r.ReleaseNo, State = r.Status,
-                ReleaseType = r.ReleaseType, RequestedBy = r.RequestedBy, ApplicantDisplayName = applicant.DisplayName,
+                ReleaseType = r.ReleaseType, PromotionId=r.PromotionId, RequestedBy = r.RequestedBy, ApplicantDisplayName = applicant.DisplayName,
                 CreatedAt = r.CreatedAt, Policy = r.ApprovalPolicy, CurrentStep = currentStep,
                 ApprovedCount = db.Set<ApprovalTask>().Count(t => t.ReleaseId == r.Id && t.Status == "Approved" && (currentStep == null || t.StepOrder == currentStep)),
                 CanAct = actionable.Contains(r.Id)
             }).TagWith("approval-inbox-bounded-page").ToArrayAsync(ct);
         var risks = await RisksAsync(page, visible, actor, ct);
+        var delivery=await DeliverySummariesAsync(page,actor,ct);
         var scopeByEnvironment = visible.ToDictionary(e => e.Id);
         var items = page.Select(row =>
         {
@@ -83,10 +84,22 @@ public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibility
             return new ApprovalInboxItemDto(row.Id, row.ReleaseNo, row.ReleaseType, row.State,
                 new(scope.OrganizationId, scope.OrganizationCode, scope.OrganizationName), new(scope.ProjectId, scope.ProjectCode, scope.ProjectName),
                 new(scope.Id, scope.Code, scope.Name), row.RequestedBy, row.ApplicantDisplayName, row.CreatedAt,
-                new(row.CanAct, row.CurrentStep, row.CanAct ? null : "approval_not_available"), row.ApprovedCount, required, risks[row.Id]);
+                new(row.CanAct, row.CurrentStep, row.CanAct ? null : "approval_not_available"), row.ApprovedCount, required, risks[row.Id],row.PromotionId is null?null:"Promotion",delivery.GetValueOrDefault(row.Id));
         }).ToArray();
         return new(new(items, total, filter.Page, filter.PageSize), counts, filter);
     }
+
+    private async Task<Dictionary<Guid,ApprovalDeliverySummaryDto>> DeliverySummariesAsync(InboxRow[] page,ActorContext actor,CancellationToken ct)
+    {
+        var ids=page.Where(p=>p.PromotionId!=null).Select(p=>p.PromotionId!.Value).ToArray();var result=new Dictionary<Guid,ApprovalDeliverySummaryDto>();if(ids.Length==0)return result;
+        var summaries=await (from p in db.Set<ReleasePromotion>() join a in db.Set<ReleaseArtifact>() on p.ArtifactId equals a.Id join source in db.Set<EnvironmentRecord>() on p.SourceEnvironmentId equals source.Id where ids.Contains(p.Id) select new{p.Id,p.ArtifactId,a.ArtifactHash,p.ProjectId,p.OrganizationId,p.SourceEnvironmentId,source.Code,source.Name}).ToArrayAsync(ct);
+        var permissionByEnvironment=new Dictionary<Guid,bool>();var policyByEnvironment=new Dictionary<Guid,bool>();
+        var artifactIds=summaries.Select(s=>s.ArtifactId).Distinct().ToArray();var policyRows=await db.Database.SqlQuery<DeliveryPolicyProjection>($"""SELECT id AS "Id", jsonb_path_exists(canonical_content, '$.routes[*].policies[*]') AS "HasPolicy" FROM release_artifacts WHERE id=ANY({artifactIds})""").ToArrayAsync(ct);var policyArtifacts=policyRows.Where(p=>p.HasPolicy).Select(p=>p.Id).ToHashSet();
+        foreach(var row in summaries){if(permissionByEnvironment.ContainsKey(row.SourceEnvironmentId))continue;var scope=await scopes.EnvironmentAsync(row.SourceEnvironmentId,ct);var allowed=scope.ProjectId==row.ProjectId&&scope.OrganizationId==row.OrganizationId;foreach(var code in new[]{"release.read","environment.read","route.read","api.read","api.version.read","api.schema.read"})allowed&=await auth.CanAsync(actor,code,new("environment",row.SourceEnvironmentId,scope),ct);permissionByEnvironment[row.SourceEnvironmentId]=allowed;policyByEnvironment[row.SourceEnvironmentId]=await auth.CanAsync(actor,"policy.read",new("environment",row.SourceEnvironmentId,scope),ct);}
+        foreach(var item in page.Where(p=>p.PromotionId!=null)){var summary=summaries.SingleOrDefault(s=>s.Id==item.PromotionId);var allowed=summary is not null&&permissionByEnvironment[summary.SourceEnvironmentId]&&(!policyArtifacts.Contains(summary.ArtifactId)||policyByEnvironment[summary.SourceEnvironmentId]);result[item.Id]=allowed?new("Visible",summary!.Id,summary.ArtifactId,summary.ArtifactHash,new(summary.SourceEnvironmentId,summary.Code,summary.Name)):new("Restricted",null,null,null,null);}
+        return result;
+    }
+    private sealed class DeliveryPolicyProjection{public Guid Id{get;set;}public bool HasPolicy{get;set;}}
 
     private IQueryable<ReadableEnvironment> ReadableEnvironments(ActorContext actor) =>
         from env in db.Set<EnvironmentRecord>() join project in db.Set<Project>() on env.ProjectId equals project.Id
@@ -175,6 +188,7 @@ public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibility
     {
         public Guid Id { get; set; } public Guid EnvironmentId { get; set; } public string ReleaseNo { get; set; } = "";
         public string ReleaseType { get; set; } = ""; public string State { get; set; } = ""; public Guid RequestedBy { get; set; }
+        public Guid? PromotionId {get;set;}
         public string ApplicantDisplayName { get; set; } = ""; public DateTimeOffset CreatedAt { get; set; } public string? Policy { get; set; }
         public int? CurrentStep { get; set; } public bool CanAct { get; set; } public int ApprovedCount { get; set; }
     }

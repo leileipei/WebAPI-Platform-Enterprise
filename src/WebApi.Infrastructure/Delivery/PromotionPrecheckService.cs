@@ -10,7 +10,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Releases;
 namespace WebApi.Infrastructure.Delivery;
-internal sealed record PromotionPrecheckState(PromotionPrecheckDto Result,PromotionPrecheckRequest Input,Guid ActorId,DateTimeOffset CreatedAt,long AcceptanceRevision,Guid ApprovalFlowId,long ApprovalFlowRevision,string ApprovalRulesHash,string? ReportHash);
+internal sealed record PromotionPrecheckState(PromotionPrecheckDto Result,PromotionPrecheckRequest Input,Guid ActorId,DateTimeOffset CreatedAt,long AcceptanceRevision,Guid ApprovalFlowId,long ApprovalFlowRevision,string ApprovalRulesHash,string? ReportHash,IReadOnlyList<SharedCredentialImpact>? CredentialImpact=null);
 public sealed class PromotionPrecheckService(WebApiDbContext db,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks,PromotionMappingService mapping,PromotionCandidateBuilder candidates,RunningDeploymentReader running,VerificationReportStore reports,VersionComparisonService comparisons,VersionRiskReviewService reviews,PublishSettings settings)
 {
  public Task<PromotionPrecheckDto> PrecheckAsync(Guid id,ActorContext actor,CancellationToken ct)=>PrecheckAsync(id,new(),actor,ct);
@@ -49,7 +49,7 @@ public sealed class PromotionPrecheckService(WebApiDbContext db,ScopeResolver sc
   var flow=target.ReleasePolicyId is Guid flowId?await db.Set<ApprovalFlow>().AsNoTracking().SingleOrDefaultAsync(f=>f.Id==flowId&&f.OrganizationId==p.OrganizationId&&f.Enabled,ct):null;
   var rules=flow is null?[]:await db.Set<ApprovalStep>().AsNoTracking().Where(s=>s.FlowId==flow.Id).OrderBy(s=>s.StepOrder).Select(s=>new ApprovalRule(s.StepOrder,s.RoleCode,s.RequiredCount)).ToArrayAsync(ct);var validFlow=flow is not null&&rules.Length==2&&rules[0].StepOrder==1&&rules[1].StepOrder==2&&rules.All(r=>r.RequiredCount is >=1 and <=5&&!string.IsNullOrWhiteSpace(r.RoleCode));checks.Add(new("production_approval",validFlow?"Passed":"Failed",!validFlow,validFlow?"two_level_independent_approval":"approval_policy_required"));
   var hash=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(candidate)));var acceptance=await db.Set<ReleaseTestAcceptance>().AsNoTracking().SingleAsync(a=>a.Id==p.AcceptanceId,ct);var canSubmit=checks.All(c=>!c.Blocking);var value=new PromotionPrecheckDto(p.Id,canSubmit?checks.Any(c=>c.Status=="Unknown")?"PassedWithRisk":"Passed":"Blocked",canSubmit,p.Revision,p.MappingRevision,policy.Revision,target.AccessAddressRevision,p.BaselineConfigVersion,hash,checks,candidate.ResourceRevisions);
-  return new(candidate,new(value,input,actor.UserId,DateTimeOffset.UtcNow,acceptance.Revision,flow?.Id??Guid.Empty,flow?.Revision??0,HashRules(rules),reportHash));
+  return new(candidate,new(value,input,actor.UserId,DateTimeOffset.UtcNow,acceptance.Revision,flow?.Id??Guid.Empty,flow?.Revision??0,HashRules(rules),reportHash,candidate.SharedCredentialImpact));
  }
  internal async Task<ProjectDeliveryPolicy> RequireContextAsync(ReleasePromotion p,CancellationToken ct)
  {

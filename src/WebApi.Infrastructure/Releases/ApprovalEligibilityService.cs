@@ -49,6 +49,7 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
     internal IQueryable<Guid> QueryActionableReleaseIds(ActorContext actor, IReadOnlyList<Guid> visibleEnvironmentIds)
     {
         var environments = visibleEnvironmentIds.ToArray();
+        string[] deliveryReadCodes = ["release.read", "environment.read", "route.read", "api.read", "api.version.read", "api.schema.read"];
         return db.Database.SqlQuery<Guid>($"""
             SELECT r.id AS "Value"
             FROM release_records r
@@ -73,6 +74,29 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
                 JOIN permissions permission ON permission.id = rp.permission_id
                 WHERE ur.user_id = {actor.UserId} AND permission.code = 'approval.act'
                   AND (role.organization_id IS NULL OR role.organization_id = organization.id))
+              AND (r.promotion_id IS NULL OR EXISTS (
+                SELECT 1 FROM release_promotions promotion
+                JOIN release_artifacts artifact ON artifact.id = promotion.artifact_id
+                JOIN environments source ON source.id = promotion.source_environment_id
+                JOIN projects source_project ON source_project.id = source.project_id
+                JOIN organizations source_org ON source_org.id = source_project.organization_id
+                WHERE promotion.id = r.promotion_id
+                  AND source.status = 'Active' AND source_project.status = 'Active' AND source_org.status = 'Active'
+                  AND EXISTS (SELECT 1 FROM user_project_scopes source_grant
+                    WHERE source_grant.user_id = {actor.UserId} AND source_grant.organization_id = source_org.id
+                      AND (source_grant.project_id IS NULL OR source_grant.project_id = source_project.id)
+                      AND (source_grant.environment_id IS NULL OR source_grant.environment_id = source.id))
+                  AND (SELECT COUNT(DISTINCT permission.code) FROM user_roles ur
+                    JOIN roles role ON role.id = ur.role_id
+                    JOIN role_permissions rp ON rp.role_id = role.id
+                    JOIN permissions permission ON permission.id = rp.permission_id
+                    WHERE ur.user_id = {actor.UserId} AND permission.code = ANY({deliveryReadCodes})
+                      AND (role.organization_id IS NULL OR role.organization_id = source_org.id)) = 6
+                  AND (NOT jsonb_path_exists(artifact.canonical_content, '$.routes[*].policies[*]') OR EXISTS (
+                    SELECT 1 FROM user_roles ur JOIN roles role ON role.id = ur.role_id
+                    JOIN role_permissions rp ON rp.role_id = role.id JOIN permissions permission ON permission.id = rp.permission_id
+                    WHERE ur.user_id = {actor.UserId} AND permission.code = 'policy.read'
+                      AND (role.organization_id IS NULL OR role.organization_id = source_org.id)))))
               AND NOT EXISTS (
                 SELECT 1 FROM approval_tasks used_seat WHERE used_seat.release_id = r.id
                   AND used_seat.status = 'Approved' AND used_seat.assignee_user_id = {actor.UserId})

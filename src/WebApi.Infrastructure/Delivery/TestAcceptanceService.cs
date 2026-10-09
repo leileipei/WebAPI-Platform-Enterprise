@@ -16,7 +16,10 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
     private static readonly string[] defaultTypes=["InterfaceFunction","Integration","ContractCompatibility"];
     private static ApiException Stale()=>new(409,"test_evidence_not_current","测试证据、来源运行状态、入口或连接规则已变化，请重新测试并申请验收。");
     public async Task<ArtifactEligibilityDto> EligibilityAsync(Guid artifactId,ActorContext actor,CancellationToken ct)
-    {var artifact=await artifacts.GetAsync(artifactId,actor,ct);return (await EligibilityFactsAsync(artifact,actor,ct)).Dto;}
+    {var artifact=await artifacts.GetAsync(artifactId,actor,ct);var dto=(await EligibilityFactsAsync(artifact,actor,ct)).Dto;var canCreate=false;
+     if(dto.TargetEnvironmentId is Guid target){var policy=await db.Set<ProjectDeliveryPolicy>().AsNoTracking().SingleOrDefaultAsync(p=>p.ProjectId==artifact.ProjectId&&p.SourceEnvironmentId==artifact.SourceEnvironmentId,ct);var accepted=await db.Set<ReleaseTestAcceptance>().AsNoTracking().Where(a=>a.ArtifactId==artifactId&&a.Status=="Accepted").OrderByDescending(a=>a.CreatedAt).ThenByDescending(a=>a.Id).Select(a=>(Guid?)a.Id).FirstOrDefaultAsync(ct);
+      if(policy is not null&&accepted is Guid acceptanceId)try{await RequireAcceptedCurrentAsync(acceptanceId,artifactId,actor,ct);canCreate=true;foreach(var env in new[]{artifact.SourceEnvironmentId,target}){var scope=await scopes.EnvironmentAsync(env,ct);canCreate&=await auth.CanAsync(actor,"release.create",new("environment",env,scope),ct)&&await auth.CanAsync(actor,"release.read",new("environment",env,scope),ct)&&await auth.CanAsync(actor,"environment.read",new("environment",env,scope),ct);}}catch(ApiException e)when(e.Status is 403 or 404 or 409 or 422){canCreate=false;}}
+     return dto with{CanCreatePromotion=canCreate};}
     private async Task<(ArtifactEligibilityDto Dto,ReleaseVerification[] Current)> EligibilityFactsAsync(ReleaseArtifactDto artifact,ActorContext actor,CancellationToken ct)
     {
         var scope=await scopes.EnvironmentAsync(artifact.SourceEnvironmentId,ct);
