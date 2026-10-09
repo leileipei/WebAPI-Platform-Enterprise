@@ -2466,3 +2466,659 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    ALTER TABLE release_records ADD artifact_id uuid;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    ALTER TABLE release_records ADD promotion_id uuid;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    ALTER TABLE release_records ADD source_release_id uuid;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    ALTER TABLE applications ADD CONSTRAINT "AK_applications_id_organization_id" UNIQUE (id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE TABLE project_delivery_policies (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        source_environment_id uuid NOT NULL,
+        target_environment_id uuid NOT NULL,
+        mode varchar(32) NOT NULL DEFAULT 'Legacy',
+        required_test_types text[] NOT NULL DEFAULT (ARRAY['InterfaceFunction','Integration','ContractCompatibility']::text[]),
+        verification_validity_minutes integer NOT NULL DEFAULT 1440,
+        revision bigint NOT NULL DEFAULT 1,
+        updated_by uuid NOT NULL,
+        updated_at timestamptz NOT NULL,
+        CONSTRAINT "PK_project_delivery_policies" PRIMARY KEY (id),
+        CONSTRAINT ck_delivery_policy CHECK (mode IN ('Legacy','PromotionRequired') AND source_environment_id <> target_environment_id AND verification_validity_minutes BETWEEN 1 AND 10080 AND revision >= 1 AND cardinality(required_test_types) BETWEEN 1 AND 3 AND required_test_types <@ ARRAY['InterfaceFunction','Integration','ContractCompatibility']::text[]),
+        CONSTRAINT "FK_project_delivery_policies_environments_source_environment_i~" FOREIGN KEY (source_environment_id, project_id) REFERENCES environments (id, project_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_project_delivery_policies_environments_target_environment_i~" FOREIGN KEY (target_environment_id, project_id) REFERENCES environments (id, project_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_project_delivery_policies_projects_project_id_organization_~" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_project_delivery_policies_users_updated_by" FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE TABLE release_artifacts (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        source_environment_id uuid NOT NULL,
+        source_release_id uuid NOT NULL,
+        canonical_content jsonb NOT NULL DEFAULT '{}',
+        artifact_hash varchar(64) NOT NULL DEFAULT '',
+        source_snapshot_hash varchar(64) NOT NULL DEFAULT '',
+        created_by uuid NOT NULL,
+        created_at timestamptz NOT NULL,
+        CONSTRAINT "PK_release_artifacts" PRIMARY KEY (id),
+        CONSTRAINT "AK_release_artifacts_id_project_id" UNIQUE (id, project_id),
+        CONSTRAINT "AK_release_artifacts_id_project_id_source_environment_id" UNIQUE (id, project_id, source_environment_id),
+        CONSTRAINT "AK_release_artifacts_id_project_id_source_environment_id_sourc~" UNIQUE (id, project_id, source_environment_id, source_release_id),
+        CONSTRAINT "FK_release_artifacts_environments_source_environment_id_projec~" FOREIGN KEY (source_environment_id, project_id) REFERENCES environments (id, project_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_artifacts_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_artifacts_release_records_source_release_id_source_~" FOREIGN KEY (source_release_id, source_environment_id) REFERENCES release_records (id, environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_artifacts_users_created_by" FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE TABLE release_test_acceptances (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        artifact_id uuid NOT NULL,
+        source_environment_id uuid NOT NULL,
+        verification_ids uuid[] NOT NULL DEFAULT (ARRAY[]::uuid[]),
+        evidence_hash varchar(64) NOT NULL DEFAULT '',
+        policy_revision bigint NOT NULL,
+        status varchar(32) NOT NULL DEFAULT 'Requested',
+        revision bigint NOT NULL DEFAULT 1,
+        requested_by uuid NOT NULL,
+        acted_by uuid,
+        comment text NOT NULL DEFAULT '',
+        created_at timestamptz NOT NULL,
+        acted_at timestamptz,
+        CONSTRAINT "PK_release_test_acceptances" PRIMARY KEY (id),
+        CONSTRAINT "AK_release_test_acceptances_id_project_id_source_environment_id" UNIQUE (id, project_id, source_environment_id),
+        CONSTRAINT ck_test_acceptance CHECK (status IN ('Requested','Accepted','Rejected','Revoked') AND revision >= 1 AND (acted_by IS NULL OR acted_by <> requested_by)),
+        CONSTRAINT "FK_release_test_acceptances_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_test_acceptances_release_artifacts_artifact_id_proj~" FOREIGN KEY (artifact_id, project_id, source_environment_id) REFERENCES release_artifacts (id, project_id, source_environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_test_acceptances_users_acted_by" FOREIGN KEY (acted_by) REFERENCES users (id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_test_acceptances_users_requested_by" FOREIGN KEY (requested_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE TABLE release_promotions (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        artifact_id uuid NOT NULL,
+        source_environment_id uuid NOT NULL,
+        target_environment_id uuid NOT NULL,
+        source_release_id uuid NOT NULL,
+        target_release_id uuid,
+        acceptance_id uuid,
+        status varchar(32) NOT NULL DEFAULT 'Draft',
+        baseline_config_version bigint NOT NULL DEFAULT 0,
+        mapping_revision bigint NOT NULL DEFAULT 0,
+        candidate_hash varchar(64),
+        resource_revisions_json jsonb NOT NULL DEFAULT '[]',
+        frozen_policy_json jsonb NOT NULL DEFAULT '{}',
+        precheck_json jsonb,
+        target_access_address_revision bigint NOT NULL DEFAULT 0,
+        verification_context_json jsonb,
+        revision bigint NOT NULL DEFAULT 1,
+        requested_by uuid NOT NULL,
+        created_at timestamptz NOT NULL,
+        completed_at timestamptz,
+        CONSTRAINT "PK_release_promotions" PRIMARY KEY (id),
+        CONSTRAINT "AK_release_promotions_id_artifact_id_source_release_id_target_~" UNIQUE (id, artifact_id, source_release_id, target_environment_id),
+        CONSTRAINT "AK_release_promotions_id_project_id_target_environment_id" UNIQUE (id, project_id, target_environment_id),
+        CONSTRAINT ck_promotion_state CHECK (source_environment_id <> target_environment_id AND revision >= 1 AND mapping_revision >= 0 AND status IN ('Draft','WaitingApproval','Ready','Deploying','Verifying','Completed','Rejected','Cancelled','Invalidated','DeploymentFailed','VerificationFailed','RolledBack')),
+        CONSTRAINT "FK_release_promotions_environments_target_environment_id_proje~" FOREIGN KEY (target_environment_id, project_id) REFERENCES environments (id, project_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotions_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotions_release_artifacts_artifact_id_project_id~" FOREIGN KEY (artifact_id, project_id, source_environment_id, source_release_id) REFERENCES release_artifacts (id, project_id, source_environment_id, source_release_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotions_release_records_target_release_id_target~" FOREIGN KEY (target_release_id, target_environment_id) REFERENCES release_records (id, environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotions_release_test_acceptances_acceptance_id_p~" FOREIGN KEY (acceptance_id, project_id, source_environment_id) REFERENCES release_test_acceptances (id, project_id, source_environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotions_users_requested_by" FOREIGN KEY (requested_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE TABLE release_promotion_mappings (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        promotion_id uuid NOT NULL,
+        target_environment_id uuid NOT NULL,
+        resource_key varchar(512) NOT NULL DEFAULT '',
+        kind varchar(32) NOT NULL DEFAULT '',
+        target_route_id uuid,
+        cluster_id uuid,
+        application_id uuid,
+        parameters_json jsonb NOT NULL DEFAULT '{}',
+        revision bigint NOT NULL DEFAULT 1,
+        CONSTRAINT "PK_release_promotion_mappings" PRIMARY KEY (id),
+        CONSTRAINT "FK_release_promotion_mappings_api_routes_target_route_id_targe~" FOREIGN KEY (target_route_id, target_environment_id) REFERENCES api_routes (id, environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotion_mappings_applications_application_id_orga~" FOREIGN KEY (application_id, organization_id) REFERENCES applications (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotion_mappings_projects_project_id_organization~" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotion_mappings_release_promotions_promotion_id_~" FOREIGN KEY (promotion_id, project_id, target_environment_id) REFERENCES release_promotions (id, project_id, target_environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotion_mappings_upstream_clusters_cluster_id_tar~" FOREIGN KEY (cluster_id, target_environment_id) REFERENCES upstream_clusters (id, environment_id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE TABLE verification_reports (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        environment_id uuid NOT NULL,
+        artifact_id uuid,
+        promotion_id uuid,
+        storage_key varchar(128) NOT NULL DEFAULT '',
+        content_type varchar(64) NOT NULL DEFAULT '',
+        size_bytes bigint NOT NULL,
+        sha256 varchar(64) NOT NULL DEFAULT '',
+        created_by uuid NOT NULL,
+        created_at timestamptz NOT NULL,
+        CONSTRAINT "PK_verification_reports" PRIMARY KEY (id),
+        CONSTRAINT "AK_verification_reports_id_project_id_environment_id" UNIQUE (id, project_id, environment_id),
+        CONSTRAINT ck_report CHECK (size_bytes BETWEEN 1 AND 10485760 AND content_type IN ('application/pdf','text/plain') AND (artifact_id IS NOT NULL)::int + (promotion_id IS NOT NULL)::int = 1),
+        CONSTRAINT "FK_verification_reports_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_verification_reports_release_artifacts_artifact_id_project_~" FOREIGN KEY (artifact_id, project_id, environment_id) REFERENCES release_artifacts (id, project_id, source_environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_verification_reports_release_promotions_promotion_id_projec~" FOREIGN KEY (promotion_id, project_id, environment_id) REFERENCES release_promotions (id, project_id, target_environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_verification_reports_users_created_by" FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE TABLE release_verifications (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        artifact_id uuid NOT NULL,
+        promotion_id uuid,
+        release_id uuid NOT NULL,
+        environment_id uuid NOT NULL,
+        config_version bigint NOT NULL,
+        deployment_sequence bigint NOT NULL,
+        snapshot_hash varchar(64) NOT NULL DEFAULT '',
+        access_address_revision bigint NOT NULL,
+        access_context_json jsonb NOT NULL DEFAULT '{}',
+        policy_revision bigint NOT NULL,
+        phase varchar(32) NOT NULL DEFAULT 'SourceTest',
+        type varchar(32) NOT NULL DEFAULT '',
+        result varchar(16) NOT NULL DEFAULT '',
+        is_manual boolean NOT NULL DEFAULT TRUE,
+        report_id uuid,
+        report_hash varchar(64),
+        comment text NOT NULL DEFAULT '',
+        started_at timestamptz NOT NULL,
+        finished_at timestamptz NOT NULL,
+        expires_at timestamptz NOT NULL,
+        created_by uuid NOT NULL,
+        created_at timestamptz NOT NULL,
+        CONSTRAINT "PK_release_verifications" PRIMARY KEY (id),
+        CONSTRAINT "AK_release_verifications_id_project_id_environment_id" UNIQUE (id, project_id, environment_id),
+        CONSTRAINT ck_verification_fact CHECK (phase IN ('SourceTest','Production') AND result IN ('Passed','Failed') AND is_manual AND config_version > 0 AND deployment_sequence > 0 AND access_address_revision >= 1 AND started_at <= finished_at AND finished_at <= created_at AND expires_at > finished_at AND ((phase='SourceTest' AND promotion_id IS NULL AND type IN ('InterfaceFunction','Integration','ContractCompatibility')) OR (phase='Production' AND promotion_id IS NOT NULL AND type IN ('EntryConnectivity','AuthenticationAuthorization','CriticalBusinessCall')))),
+        CONSTRAINT "FK_release_verifications_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_verifications_release_artifacts_artifact_id_project~" FOREIGN KEY (artifact_id, project_id) REFERENCES release_artifacts (id, project_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_verifications_release_promotions_promotion_id_proje~" FOREIGN KEY (promotion_id, project_id, environment_id) REFERENCES release_promotions (id, project_id, target_environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_verifications_release_records_release_id_environmen~" FOREIGN KEY (release_id, environment_id) REFERENCES release_records (id, environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_verifications_users_created_by" FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_verifications_verification_reports_report_id_projec~" FOREIGN KEY (report_id, project_id, environment_id) REFERENCES verification_reports (id, project_id, environment_id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE TABLE release_promotion_events (
+        id uuid NOT NULL,
+        organization_id uuid NOT NULL,
+        project_id uuid NOT NULL,
+        promotion_id uuid,
+        acceptance_id uuid,
+        environment_id uuid NOT NULL,
+        phase varchar(32) NOT NULL DEFAULT '',
+        from_status varchar(32),
+        to_status varchar(32) NOT NULL DEFAULT '',
+        reason_code varchar(128) NOT NULL DEFAULT '',
+        actor_id uuid,
+        release_id uuid,
+        verification_id uuid,
+        occurred_at timestamptz NOT NULL,
+        CONSTRAINT "PK_release_promotion_events" PRIMARY KEY (id),
+        CONSTRAINT ck_delivery_event_owner CHECK ((promotion_id IS NOT NULL)::int + (acceptance_id IS NOT NULL)::int = 1),
+        CONSTRAINT "FK_release_promotion_events_projects_project_id_organization_id" FOREIGN KEY (project_id, organization_id) REFERENCES projects (id, organization_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotion_events_release_promotions_promotion_id_pr~" FOREIGN KEY (promotion_id, project_id, environment_id) REFERENCES release_promotions (id, project_id, target_environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotion_events_release_records_release_id_environ~" FOREIGN KEY (release_id, environment_id) REFERENCES release_records (id, environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotion_events_release_test_acceptances_acceptanc~" FOREIGN KEY (acceptance_id, project_id, environment_id) REFERENCES release_test_acceptances (id, project_id, source_environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotion_events_release_verifications_verification~" FOREIGN KEY (verification_id, project_id, environment_id) REFERENCES release_verifications (id, project_id, environment_id) ON DELETE RESTRICT,
+        CONSTRAINT "FK_release_promotion_events_users_actor_id" FOREIGN KEY (actor_id) REFERENCES users (id) ON DELETE RESTRICT
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_records_artifact_id" ON release_records (artifact_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE UNIQUE INDEX "IX_release_records_promotion_id" ON release_records (promotion_id) WHERE promotion_id IS NOT NULL;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_records_promotion_id_artifact_id_source_release_id_~" ON release_records (promotion_id, artifact_id, source_release_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_records_source_release_id" ON release_records (source_release_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    ALTER TABLE release_records ADD CONSTRAINT ck_formal_promotion_link CHECK (promotion_id IS NULL OR (artifact_id IS NOT NULL AND source_release_id IS NOT NULL AND recovery_of IS NULL AND rollback_of IS NULL));
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE UNIQUE INDEX "IX_project_delivery_policies_project_id" ON project_delivery_policies (project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_project_delivery_policies_project_id_organization_id" ON project_delivery_policies (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_project_delivery_policies_source_environment_id_project_id" ON project_delivery_policies (source_environment_id, project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_project_delivery_policies_target_environment_id_project_id" ON project_delivery_policies (target_environment_id, project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_project_delivery_policies_updated_by" ON project_delivery_policies (updated_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_artifacts_created_by" ON release_artifacts (created_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_artifacts_project_id_organization_id" ON release_artifacts (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_artifacts_source_environment_id_project_id" ON release_artifacts (source_environment_id, project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE UNIQUE INDEX "IX_release_artifacts_source_release_id_artifact_hash" ON release_artifacts (source_release_id, artifact_hash);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_artifacts_source_release_id_source_environment_id" ON release_artifacts (source_release_id, source_environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_events_acceptance_id_project_id_environme~" ON release_promotion_events (acceptance_id, project_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_events_actor_id" ON release_promotion_events (actor_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_events_project_id_organization_id" ON release_promotion_events (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_events_promotion_id_project_id_environmen~" ON release_promotion_events (promotion_id, project_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_events_release_id_environment_id" ON release_promotion_events (release_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_events_verification_id_project_id_environ~" ON release_promotion_events (verification_id, project_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_mappings_application_id_organization_id" ON release_promotion_mappings (application_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_mappings_cluster_id_target_environment_id" ON release_promotion_mappings (cluster_id, target_environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_mappings_project_id_organization_id" ON release_promotion_mappings (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE UNIQUE INDEX "IX_release_promotion_mappings_promotion_id_kind_resource_key" ON release_promotion_mappings (promotion_id, kind, resource_key);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_mappings_promotion_id_project_id_target_e~" ON release_promotion_mappings (promotion_id, project_id, target_environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotion_mappings_target_route_id_target_environme~" ON release_promotion_mappings (target_route_id, target_environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotions_acceptance_id_project_id_source_environm~" ON release_promotions (acceptance_id, project_id, source_environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotions_artifact_id_project_id_source_environmen~" ON release_promotions (artifact_id, project_id, source_environment_id, source_release_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotions_project_id_created_at_id" ON release_promotions (project_id, created_at DESC, id DESC);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotions_project_id_organization_id" ON release_promotions (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotions_requested_by" ON release_promotions (requested_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotions_target_environment_id_project_id" ON release_promotions (target_environment_id, project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_promotions_target_release_id_target_environment_id" ON release_promotions (target_release_id, target_environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_test_acceptances_acted_by" ON release_test_acceptances (acted_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_test_acceptances_artifact_id_project_id_source_envi~" ON release_test_acceptances (artifact_id, project_id, source_environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_test_acceptances_project_id_organization_id" ON release_test_acceptances (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_test_acceptances_requested_by" ON release_test_acceptances (requested_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_verifications_artifact_id_phase_type_created_at" ON release_verifications (artifact_id, phase, type, created_at DESC);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_verifications_artifact_id_project_id" ON release_verifications (artifact_id, project_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_verifications_created_by" ON release_verifications (created_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_verifications_project_id_organization_id" ON release_verifications (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_verifications_promotion_id_project_id_environment_id" ON release_verifications (promotion_id, project_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_verifications_release_id_environment_id" ON release_verifications (release_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_release_verifications_report_id_project_id_environment_id" ON release_verifications (report_id, project_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_verification_reports_artifact_id_project_id_environment_id" ON verification_reports (artifact_id, project_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_verification_reports_created_by" ON verification_reports (created_by);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_verification_reports_project_id_organization_id" ON verification_reports (project_id, organization_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE INDEX "IX_verification_reports_promotion_id_project_id_environment_id" ON verification_reports (promotion_id, project_id, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    CREATE UNIQUE INDEX "IX_verification_reports_storage_key" ON verification_reports (storage_key);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    ALTER TABLE release_records ADD CONSTRAINT "FK_release_records_release_artifacts_artifact_id" FOREIGN KEY (artifact_id) REFERENCES release_artifacts (id) ON DELETE RESTRICT;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    ALTER TABLE release_records ADD CONSTRAINT "FK_release_records_release_promotions_promotion_id_artifact_id~" FOREIGN KEY (promotion_id, artifact_id, source_release_id, environment_id) REFERENCES release_promotions (id, artifact_id, source_release_id, target_environment_id) ON DELETE RESTRICT;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    ALTER TABLE release_records ADD CONSTRAINT "FK_release_records_release_records_source_release_id" FOREIGN KEY (source_release_id) REFERENCES release_records (id) ON DELETE RESTRICT;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261009020000_ReleaseDelivery') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261009020000_ReleaseDelivery', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;

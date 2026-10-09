@@ -61,11 +61,11 @@
 
 **Interfaces:** `SaveDeliveryPolicyRequest(Guid SourceEnvironmentId,Guid TargetEnvironmentId,string Mode,IReadOnlyList<string> RequiredTestTypes,int VerificationValidityMinutes)`；`DeliveryPolicyDto`补Id/ProjectId/Revision；`SaveAsync(Guid projectId,SaveDeliveryPolicyRequest request,string? etag,ActorContext actor,CancellationToken ct) -> Task<CommandResult<DeliveryPolicyDto>>`；`GetAsync(Guid projectId,ActorContext actor,CancellationToken ct) -> Task<DeliveryPolicyDto>`。新增权限`release.test.record/accept`、`release.verify`只默认授予PlatformAdmin；其他原角色默认定义显式排除三项，不删除用户已显式授予的权限。
 
-- [ ] **Step 1：写断言。** 迁移旧项目Get显示Legacy、不改变旧Release；跨项目/停用/错误生产标识422；生产入口未配/有进行中旧Release不能启用；有效期0/10081拒绝；重复Seed不扩给OrganizationAdmin/ProjectAdmin、已有显式授权保留；正式Promotion唯一目标Release，恢复行用RecoveryOf关联。
-- [ ] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter DeliveryPersistenceTests`。
-- [ ] **Step 3：实现。** 表约束/索引/全Scope外键核验及授权后分页；连接PUT沿用审计+幂等+ETag。Legacy的缺省策略通过Get稳定投影，不悄悄启用；新项目也默认Legacy。报告元数据表见B3，文件存储由B3管理。
-- [ ] **Step 4：GREEN。** 同上及GovernanceTests/ApprovalTests；升级旧库、重复初始化、ModelSnapshot一致性通过。
-- [ ] **Step 5：隔离提交。** `feat(delivery): persist scoped promotion governance`。
+- [x] **Step 1：写断言。** 迁移旧项目Get显示Legacy、不改变旧Release；跨项目/停用/错误生产标识422；生产入口未配/有进行中旧Release不能启用；有效期0/10081拒绝；重复Seed不扩给OrganizationAdmin/ProjectAdmin、已有显式授权保留；正式Promotion唯一目标Release，恢复行用RecoveryOf关联。
+- [x] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter DeliveryPersistenceTests`。
+- [x] **Step 3：实现。** 表约束/索引/全Scope外键核验及授权后分页；连接PUT沿用审计+幂等+ETag。Legacy的缺省策略通过Get稳定投影，不悄悄启用；新项目也默认Legacy。报告元数据表见B3，文件存储由B3管理。
+- [x] **Step 4：GREEN。** 同上及GovernanceTests/ApprovalTests；升级旧库、重复初始化、ModelSnapshot一致性通过。
+- [x] **Step 5：隔离提交。** `feat(delivery): persist scoped promotion governance`。
 
 ## Task 2 (B2)：不可变制品与策略环境参数拆分
 

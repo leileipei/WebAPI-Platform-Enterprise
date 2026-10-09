@@ -39,6 +39,8 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
     private static object Capture(EntityEntry e,bool original)
     {
         var captured=e.Properties.Where(p=>fields.Contains(p.Metadata.Name)||(e.Entity is Policy&&p.Metadata.Name is "Type" or "VersionNo")).ToDictionary(p=>p.Metadata.Name,p=>original?p.OriginalValue:p.CurrentValue);
+        if(e.Entity is ProjectDeliveryPolicy)
+            foreach(var name in new[]{"Mode","SourceEnvironmentId","TargetEnvironmentId","RequiredTestTypes","VerificationValidityMinutes"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
         if(e.Entity is EnvironmentRecord)
         {
             captured["AccessAddressRevision"]=original?e.Property("AccessAddressRevision").OriginalValue:e.Property("AccessAddressRevision").CurrentValue;
