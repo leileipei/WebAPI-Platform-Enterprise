@@ -17,7 +17,7 @@ export async function hashHarnessFiles(directory,files){
 export function parseArguments(args){
   const [mode,...rest]=args;
   if(!['validate','baseline','compare','explain','migration','cleanup'].includes(mode))throw Error('Invalid performance mode');
-  const parsed={mode};const allowed=new Set(['baseline','candidate','harness','output','owner-manifest','compose','sql-audit','classifications','diagnostic']);
+  const parsed={mode};const allowed=new Set(['baseline','candidate','harness','output','owner-manifest','compose','sql-audit','classifications','diagnostic','diagnostic-auth']);
   for(let i=0;i<rest.length;i+=2){
     const key=rest[i].startsWith('--')?rest[i].slice(2):'';
     if(!allowed.has(key)||key in parsed||!rest[i+1]||rest[i+1].startsWith('--'))throw Error('Invalid or duplicate performance argument');
@@ -26,6 +26,7 @@ export function parseArguments(args){
   if(parsed['sql-audit']&&mode!=='validate')throw Error('SQL audit is allowed only in validation, never measurement');
   if(parsed['sql-audit']&&['compare','migration','resources'].includes(parsed.diagnostic))throw Error('SQL audit is not supported by comparison/migration/resource diagnostics');
   if(parsed.diagnostic&&(mode!=='validate'||!['explain','migration','compare','resources'].includes(parsed.diagnostic)))throw Error('Diagnostic validation must be explicit EXPLAIN/migration/comparison/resource validation, never a performance window');
+  if(parsed['diagnostic-auth']&&(mode!=='validate'||parsed.diagnostic!=='resources'||!['anonymous','api-key','missing-key','rs256','es256','wrong-secret','no-mapping','no-grant'].includes(parsed['diagnostic-auth'])))throw Error('Diagnostic auth is allowed only for explicit resource diagnostics');
   if(mode==='cleanup'){if(!parsed['owner-manifest']||!parsed.compose)throw Error('Cleanup requires owner manifest and compose file');return parsed;}
   if(mode!=='validate')for(const key of mode==='baseline'?['baseline','harness']:['baseline','candidate','harness'])if(!commitPattern.test(parsed[key]??''))throw Error(`Immutable ${key} commit required`);
   if(!parsed.output)throw Error('Output directory required');parsed.output=path.resolve(parsed.output);

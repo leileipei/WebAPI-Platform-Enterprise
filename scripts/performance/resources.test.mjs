@@ -24,12 +24,12 @@ import path from 'node:path';
 import {quotas} from './environment.mjs';
 import {createOwner} from './owner.mjs';
 import {runWithContainerResources,waitForContainerSampler,verifyContainerResources} from './resources.mjs';
-async function fixtureApi({foreign=false,clockMs=Date.UTC(2026,9,9)}={}){
+async function fixtureApi({foreign=false,missingClient=false,clockMs=Date.UTC(2026,9,9)}={}){
   const root=await fs.mkdtemp('/private/tmp/webapi-resource-'),owner=await createOwner(root),output=path.join(root,'results');await fs.mkdir(output);
   const containers=Object.keys(quotas).map((service,i)=>({Id:String(i+1).repeat(64),Labels:{'com.docker.compose.project':owner.project,'com.webapi.performance.owner':foreign?'foreign':owner.owner,'com.docker.compose.service':service}}));let statsCalls=0;const responses=new Map();
   const server=createServer((request,response)=>{
     const url=new URL(request.url,'http://engine');response.setHeader('Content-Type','application/json');
-    if(url.pathname.endsWith('/containers/json')){response.end(JSON.stringify(containers));return;}
+    if(url.pathname.endsWith('/containers/json')){response.end(JSON.stringify(missingClient?containers.filter(c=>c.Labels['com.docker.compose.service']!=='client'):containers));return;}
     const target=containers.find(x=>url.pathname.includes(x.Id));
     if(url.pathname.endsWith('/json')){const quota=quotas[target.Labels['com.docker.compose.service']];response.end(JSON.stringify({Id:target.Id,Image:'sha256:'+'a'.repeat(64),Config:{Labels:target.Labels},HostConfig:{NanoCpus:quota.cpus*1e9,Memory:quota.memoryBytes},State:{Running:true},secret:'canary-not-for-evidence'}));return;}
     statsCalls++;response.writeHead(200);responses.set(target.Labels['com.docker.compose.service'],response);
@@ -101,7 +101,17 @@ test('resource_diagnostic_requires_three_distinct_full_windows_and_cleanup_witho
   });
   const input={cells,cleanup:{remaining:0,privateInputsDeleted:true},secretScan:{violations:0,filesScanned:1,findings:[]}};
   assert.equal(resources.verifyResourceDiagnosticCompletion(input),true);
+  const noMapping=structuredClone(input);noMapping.cells.forEach(c=>c.auth='no-mapping');assert.equal(resources.verifyResourceDiagnosticCompletion(noMapping),false);assert.equal(resources.verifyResourceDiagnosticCompletion({...noMapping,auth:'no-mapping'}),true);
   for(const mutate of [x=>x.cells.pop(),x=>x.cells[1].repeat=1,x=>x.cells[0].timeout=1,x=>x.cells[0].nodes[1].expected=0,x=>x.cells[0].containerResources.complete=false,x=>x.cells[0].durationMs=2500,x=>x.cleanup.privateInputsDeleted=false,x=>x.secretScan.violations=1,x=>x.cells[1].windowStartedAt=x.cells[0].windowStartedAt]){
     const broken=structuredClone(input);mutate(broken);assert.equal(resources.verifyResourceDiagnosticCompletion(broken),false);
   }
+});
+
+test('missing_client_retains_selected_startup_inventory_and_failure_code_without_exception_text',async()=>{
+ const f=await fixtureApi({missingClient:true}),key='missing-client';
+ try{
+  await assert.rejects(()=>runWithContainerResources({manifest:f.owner,dockerHost:'unix://'+f.socket,apiVersion:'1.54',output:f.output,key,resultFile:'cell.json'},async()=>{throw Object.assign(Error('private-canary-failure'),{code:9,signal:null});}),/missing/i);
+  const report=JSON.parse(await fs.readFile(path.join(f.output,key+'.resources.json'),'utf8'));
+  assert.equal(report.complete,false);assert.equal(report.startupInventory.lastRunningServices.length,6);assert.equal(report.startupInventory.lastRunningServices.includes('client'),false);assert.ok(report.startupInventory.polls>1);assert.equal(report.workloadFailure.exitCode,9);assert.equal(JSON.stringify(report).includes('private-canary-failure'),false);
+ }finally{f.server.closeAllConnections();await new Promise(resolve=>f.server.close(resolve));await fs.rm(f.root,{recursive:true,force:true});}
 });

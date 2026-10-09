@@ -264,3 +264,32 @@ test('resource_diagnostic_is_explicit_and_cannot_export_sql_audit',()=>{
   assert.throws(()=>parseArguments(['validate','--diagnostic','resources','--output','public','--sql-audit','private']),/audit/i);
   assert.throws(()=>parseArguments(['baseline','--diagnostic','resources','--baseline','a'.repeat(40),'--harness','b'.repeat(40),'--output','public']),/diagnostic/i);
 });
+
+test('failed_workload_details_are_private_and_keep_the_original_error',async()=>{
+ const support=await import('./runner-support.mjs');assert.equal(typeof support.runPrivateWorkload,'function');
+ const directory=fs.mkdtempSync(path.join(os.tmpdir(),'workload-failure-'));const failure=Object.assign(Error('private-canary-message'),{code:4,signal:null,stdout:'private-canary-stdout',stderr:'private-canary-stderr'});
+ try{
+  await assert.rejects(()=>support.runPrivateWorkload({directory},'cell-key',async()=>{throw failure;}),e=>e===failure);
+  const file=path.join(directory,'cell-key.workload-failure.json'),data=JSON.parse(fs.readFileSync(file,'utf8'));assert.equal(data.exitCode,4);assert.equal(data.stderr,'private-canary-stderr');assert.equal(fs.statSync(file).mode&0o777,0o600);
+ }finally{fs.rmSync(directory,{recursive:true,force:true});}
+});
+test('resource_diagnostic_auth_is_scoped_and_explicit',()=>{
+ assert.equal(parseArguments(['validate','--diagnostic','resources','--diagnostic-auth','no-mapping','--output','diagnostic'])['diagnostic-auth'],'no-mapping');
+ assert.throws(()=>parseArguments(['validate','--diagnostic-auth','no-mapping','--output','diagnostic']),/diagnostic/i);
+ assert.throws(()=>parseArguments(['validate','--diagnostic','resources','--diagnostic-auth','unsupported','--output','diagnostic']),/diagnostic/i);
+});
+
+test('startup_failure_diagnostics_validate_owner_before_logs_and_export_only_selected_state',async()=>{
+ const support=await import('./runner-support.mjs');assert.equal(typeof support.retainOwnerFailureDiagnostics,'function');
+ const directory=fs.mkdtempSync(path.join(os.tmpdir(),'owner-failure-')),id='a'.repeat(64),labels={'com.docker.compose.project':manifest.project,'com.webapi.performance.owner':manifest.owner,'com.docker.compose.service':'gateway-a'};let foreign=false,logs=0;
+ const run=async args=>{
+  if(args[0]==='compose')return {stdout:id+'\n',stderr:''};
+  if(args[0]==='inspect')return {stdout:JSON.stringify({id,labels:{...labels,'com.webapi.performance.owner':foreign?'foreign':manifest.owner},running:false,exitCode:137,oomKilled:true,restartCount:0})+'\n',stderr:''};
+  if(args[0]==='logs'){logs++;return {stdout:'private-log-canary',stderr:''};}throw Error('Unexpected command');
+ };
+ try{
+  const result=await support.retainOwnerFailureDiagnostics({...manifest,directory},'compose.yml',{},run);
+  assert.deepEqual(result.containers,[{service:'gateway-a',running:false,exitCode:137,oomKilled:true,restartCount:0}]);assert.equal(JSON.stringify(result).includes('private-log-canary'),false);assert.equal(fs.statSync(path.join(directory,'failure-gateway-a-'+id+'.log')).mode&0o777,0o600);
+  foreign=true;logs=0;await assert.rejects(()=>support.retainOwnerFailureDiagnostics({...manifest,directory},'compose.yml',{},run),/owner/i);assert.equal(logs,0);
+ }finally{fs.rmSync(directory,{recursive:true,force:true});}
+});

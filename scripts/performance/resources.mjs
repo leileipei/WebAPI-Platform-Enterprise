@@ -102,7 +102,8 @@ export async function runWithContainerResources({manifest,dockerHost,apiVersion,
   await fs.rm(readyFile,{force:true});
   // The workload blocks on readiness before opening its measured window. It can
   // warm up while the engine streams are established, without host exec polling.
-  const action=Promise.resolve().then(operation);action.catch(()=>{});
+  const startupInventory={startedAt:new Date().toISOString(),polls:0,lastSeenAt:null,lastRunningServices:[]};let actionFailure;
+  const action=Promise.resolve().then(operation);action.catch(error=>{actionFailure={observedAt:new Date().toISOString(),exitCode:Number.isInteger(error.code)?error.code:null,signal:/^SIG[A-Z0-9]+$/.test(error.signal??'')?error.signal:null};});
   let operationError;
   try{
     const filters=encodeURIComponent(JSON.stringify({label:[`com.docker.compose.project=${manifest.project}`,`com.webapi.performance.owner=${manifest.owner}`]}));
@@ -117,6 +118,7 @@ export async function runWithContainerResources({manifest,dockerHost,apiVersion,
         if(!quotas[service]||found.has(service)||!/^[a-f0-9]{64}$/.test(container.Id??''))throw Error('Container resource inventory invalid');
         found.set(service,container);
       }
+      startupInventory.polls++;startupInventory.lastSeenAt=new Date().toISOString();startupInventory.lastRunningServices=[...found.keys()].sort();
       if(found.size===Object.keys(quotas).length){containers=found;break;}await delay(50);
     }
     if(!containers)throw Error('Running container resource services missing');
@@ -145,7 +147,7 @@ export async function runWithContainerResources({manifest,dockerHost,apiVersion,
       event.disposition=completedClient?'after-completed-client-window':'sampling-failure';if(!completedClient)faults.push(event.kind);
     }
   }
-  const report={schemaVersion:1,workloadCompleted:!operationError&&measurement?.complete===true,source:'docker-engine-stats-stream',apiVersion,windowStartedAt:measurement?.windowStartedAt??null,windowEndedAt:measurement?.windowEndedAt??null,services,errors:[...new Set(faults)],complete:!faults.length&&Object.keys(services).length===7&&Object.values(services).every(s=>s.summary.complete),potentialClientOrBackendSaturation:['client','backend'].filter(s=>(services[s]?.summary.peakCpuQuotaFraction??0)>=.9),saturationThreshold:.9};
+  const report={schemaVersion:1,startupInventory,workloadFailure:actionFailure??null,workloadCompleted:!operationError&&measurement?.complete===true,source:'docker-engine-stats-stream',apiVersion,windowStartedAt:measurement?.windowStartedAt??null,windowEndedAt:measurement?.windowEndedAt??null,services,errors:[...new Set(faults)],complete:!faults.length&&Object.keys(services).length===7&&Object.values(services).every(s=>s.summary.complete),potentialClientOrBackendSaturation:['client','backend'].filter(s=>(services[s]?.summary.peakCpuQuotaFraction??0)>=.9),saturationThreshold:.9};
   await writeJson(reportFile,report);
   if(operationError)throw operationError;
   return report;
@@ -170,12 +172,12 @@ export function verifyContainerResources(report,{start,end}={}){
 }
 
 
-export function verifyResourceDiagnosticCompletion({cells=[],cleanup,secretScan}={}){
-  if(cells.length!==3||cleanup?.remaining!==0||cleanup?.privateInputsDeleted!==true||secretScan?.violations!==0||!(secretScan.filesScanned>0)||!Array.isArray(secretScan.findings)||secretScan.findings.length)return false;
+export function verifyResourceDiagnosticCompletion({cells=[],auth='api-key',cleanup,secretScan}={}){
+  if(!['anonymous','api-key','missing-key','rs256','es256','wrong-secret','no-mapping','no-grant'].includes(auth)||cells.length!==3||cleanup?.remaining!==0||cleanup?.privateInputsDeleted!==true||secretScan?.violations!==0||!(secretScan.filesScanned>0)||!Array.isArray(secretScan.findings)||secretScan.findings.length)return false;
   let previousEnd=-Infinity;
   return cells.every((c,index)=>{
     const start=Date.parse(c.windowStartedAt),end=Date.parse(c.windowEndedAt);
-    const valid=c.variant==='validation'&&c.scale===10000&&c.auth==='api-key'&&c.concurrency===32&&c.repeat===index+1&&c.nodeMode==='dual'&&c.complete===true&&c.expected>0&&c.unexpected===0&&c.timeout===0&&c.incomplete===0&&c.warmupMs===10000&&c.durationMs===20000&&end-start===20000&&start>=previousEnd&&Array.isArray(c.nodes)&&c.nodes.length===2&&c.nodes.every(n=>n.expected>0&&n.unexpected===0&&n.timeout===0&&n.incomplete===0)&&c.nodes.reduce((total,n)=>total+n.expected,0)===c.expected&&verifyContainerResources(c.containerResources,{start:c.windowStartedAt,end:c.windowEndedAt});
+    const valid=c.variant==='validation'&&c.scale===10000&&c.auth===auth&&c.concurrency===32&&c.repeat===index+1&&c.nodeMode==='dual'&&c.complete===true&&c.expected>0&&c.unexpected===0&&c.timeout===0&&c.incomplete===0&&c.warmupMs===10000&&c.durationMs===20000&&end-start===20000&&start>=previousEnd&&Array.isArray(c.nodes)&&c.nodes.length===2&&c.nodes.every(n=>n.expected>0&&n.unexpected===0&&n.timeout===0&&n.incomplete===0)&&c.nodes.reduce((total,n)=>total+n.expected,0)===c.expected&&verifyContainerResources(c.containerResources,{start:c.windowStartedAt,end:c.windowEndedAt});
     previousEnd=end;return valid;
   });
 }

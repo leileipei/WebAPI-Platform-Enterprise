@@ -4,6 +4,8 @@ import {execFile} from "node:child_process";
 import {promisify} from "node:util";
 import {createHash} from "node:crypto";
 import {hashHarnessFiles} from "./sources.mjs";
+import {validateOwner} from "./owner.mjs";
+import {quotas} from "./environment.mjs";
 const exec=promisify(execFile);
 const sdk='mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317';
 export async function privateJson(file,value){await fs.writeFile(file,JSON.stringify(value,null,2)+'\n',{mode:0o600});await fs.chmod(file,0o600);}
@@ -59,4 +61,28 @@ export async function waitReady(base,pathName='/health/live'){
     await new Promise(resolve=>setTimeout(resolve,250));
   }
   throw Error('Isolated host did not become ready');
+}
+
+export async function runPrivateWorkload(manifest,key,operation){
+  if(!/^[a-zA-Z0-9:-]+$/.test(key??''))throw Error('Invalid private workload key');
+  try{return await operation();}
+  catch(error){
+    await privateJson(path.join(manifest.directory,key+'.workload-failure.json'),{schemaVersion:1,recordedAt:new Date().toISOString(),exitCode:Number.isInteger(error.code)?error.code:null,signal:typeof error.signal==='string'?error.signal:null,stdout:error.stdout??null,stderr:error.stderr??null});
+    throw error;
+  }
+}
+
+export async function retainOwnerFailureDiagnostics(manifest,composeFile,environment,run=docker){
+  const ids=(await run(['compose','-p',manifest.project,'-f',composeFile,'ps','--all','--quiet'],{env:environment})).stdout.trim().split(/\s+/).filter(Boolean);
+  if(ids.some(id=>!/^[a-f0-9]{64}$/.test(id)))throw Error('Invalid failure container identity');
+  const format='{"id":{{json .Id}},"labels":{{json .Config.Labels}},"running":{{json .State.Running}},"exitCode":{{json .State.ExitCode}},"oomKilled":{{json .State.OOMKilled}},"restartCount":{{json .RestartCount}}}';
+  const inspected=ids.length?(await run(['inspect','--format',format,...ids])).stdout.trim().split('\n').map(line=>JSON.parse(line)):[];
+  if(inspected.length!==ids.length||new Set(inspected.map(x=>x.id)).size!==ids.length||inspected.some(x=>!ids.includes(x.id)||!validateOwner(manifest,x.labels)||!quotas[x.labels?.['com.docker.compose.service']]||typeof x.running!=='boolean'||typeof x.oomKilled!=='boolean'||!Number.isInteger(x.exitCode)||!Number.isSafeInteger(x.restartCount)||x.restartCount<0))throw Error('Failure diagnostic owner or state mismatch');
+  // Validate every identity before reading any log. Log bodies can contain
+  // credentials or request details, so retain them only in this owner-private directory.
+  for(const info of inspected){
+    const log=await run(['logs','--tail','100',info.id]);const file=path.join(manifest.directory,'failure-'+info.labels['com.docker.compose.service']+'-'+info.id+'.log');
+    await fs.writeFile(file,log.stdout+log.stderr,{mode:0o600});await fs.chmod(file,0o600);
+  }
+  return {owner:manifest.owner,collected:true,containers:inspected.map(x=>({service:x.labels['com.docker.compose.service'],running:x.running,exitCode:x.exitCode,oomKilled:x.oomKilled,restartCount:x.restartCount})),privateLogsRetained:true};
 }

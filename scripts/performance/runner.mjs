@@ -13,7 +13,7 @@ import {validateClassificationManifest} from './classification.mjs';
 import {verifyBaselineCompletion} from './completion.mjs';
 import {runWithContainerResources,verifyResourceDiagnosticCompletion} from './resources.mjs';
 import {verifyExplainCompletion} from './explain.mjs';
-import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,waitReady} from "./runner-support.mjs";
+import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,waitReady,runPrivateWorkload,retainOwnerFailureDiagnostics} from "./runner-support.mjs";
 export async function runPerformance(options,repo){
   if(options.mode==='compare'||options.mode==='validate'&&options.diagnostic==='compare')return (await import('./comparison-runner.mjs')).runComparison(options,repo);
   if(options.mode==='migration'||options.mode==='validate'&&options.diagnostic==='migration')return (await import('./migration-runner.mjs')).runMigration(options,repo);
@@ -95,14 +95,14 @@ export async function runPerformance(options,repo){
     actualEnvironment.containerSampler={source:'docker-engine-stats-stream',apiVersion,memoryPeakScope:'sampled-points-inside-window',cpuScope:'intervals-wholly-inside-window'};
     await evidence(path.join(options.output,'environment.json'),actualEnvironment);
     const monitoredClient=async(key,resultFile,args=[])=>{
-      const resources=await runWithContainerResources({manifest,dockerHost,apiVersion,output:options.output,key,resultFile},()=>compose('run','--rm','--no-deps','client',...args));
+      const resources=await runWithContainerResources({manifest,dockerHost,apiVersion,output:options.output,key,resultFile},()=>runPrivateWorkload(manifest,key,()=>compose('run','--rm','--no-deps','client',...args)));
       const measured=JSON.parse(await fs.readFile(path.join(options.output,resultFile),'utf8'));
       measured.containerResources=resources;
       await evidence(path.join(options.output,resultFile),measured);
       if(!resources.complete)throw Error('Container resource sampling incomplete; see '+key+'.resources.json');
       return measured;
     };
-    const cells=resourceDiagnostic?[1,2,3].map(repeat=>({variant:'validation',scale:10000,auth:'api-key',concurrency:32,repeat,nodeMode:'dual'})):diagnostic?[]:options.mode==='validate'?['anonymous','api-key','missing-key','rs256','es256','wrong-secret','no-mapping','no-grant'].flatMap(auth=>[1,2].map(concurrency=>({variant:'validation',scale:100,auth,concurrency,repeat:1,nodeMode:'dual',validation:true}))):buildMatrix({variants:['baseline']});
+    const cells=resourceDiagnostic?[1,2,3].map(repeat=>({variant:'validation',scale:10000,auth:options['diagnostic-auth']??'api-key',concurrency:32,repeat,nodeMode:'dual'})):diagnostic?[]:options.mode==='validate'?['anonymous','api-key','missing-key','rs256','es256','wrong-secret','no-mapping','no-grant'].flatMap(auth=>[1,2].map(concurrency=>({variant:'validation',scale:100,auth,concurrency,repeat:1,nodeMode:'dual',validation:true}))):buildMatrix({variants:['baseline']});
     for(const cell of cells){
       const profile=cell.auth==='api-key'||cell.auth==='missing-key'||cell.auth==='wrong-secret'?'apikey':cell.auth==='no-mapping'?'rs256':cell.auth;
       await fs.copyFile(path.join(manifest.directory,`scales/${cell.scale}/${profile}.json`),path.join(manifest.directory,profile+'.json'));await fs.chmod(path.join(manifest.directory,profile+'.json'),0o600);
@@ -145,11 +145,17 @@ export async function runPerformance(options,repo){
     const readScaleEvidence=async prefix=>Promise.all(scales.map(async scale=>JSON.parse(await fs.readFile(path.join(options.output,`${prefix}-${scale}.json`),'utf8'))));
     const microEntries=diagnostic||resourceDiagnostic?[]:await readScaleEvidence('micro'),generationEntries=diagnostic||resourceDiagnostic?[]:await readScaleEvidence('generation');
     if(diagnostic){status.measurementScope='explain-diagnostic-not-performance';status.variant=options.variant??'validation';status.scales=scales;status.diagnosticComplete=false;}
-    if(resourceDiagnostic){status.measurementScope='resource-window-diagnostic-not-performance';status.diagnosticComplete=false;}
+    if(resourceDiagnostic){status.measurementScope='resource-window-diagnostic-not-performance';status.diagnosticAuth=options['diagnostic-auth']??'api-key';status.diagnosticComplete=false;}
     completionInput={mode:options.mode,immutable:status.immutable,identity,environment:actualEnvironment,classificationManifestHash:classificationManifestHash,cells:results,gatewayDatasets:await readScaleEvidence('gateway'),management,scopeManagement,referenceManagement,micro:microEntries.map((entries,i)=>({scale:scales[i],entries})),generation:generationEntries.map((entry,i)=>({...entry,scale:scales[i]}))};
     await evidence(path.join(options.output,'manifest.json'),status);
     succeeded=true;
     return status;
+  }catch(error){
+    if(composeFile&&environment){
+      try{await evidence(path.join(options.output,'failure-diagnostics.json'),await retainOwnerFailureDiagnostics(manifest,composeFile,environment));}
+      catch{await evidence(path.join(options.output,'failure-diagnostics.json'),{owner:manifest.owner,collected:false,reason:'diagnostic-capture-failed'});}
+    }
+    throw error;
   }finally{
     {
       receipt=await cleanupOwned(manifest,composeFile);
@@ -162,7 +168,7 @@ export async function runPerformance(options,repo){
         // private-file removal succeed. Before this point manifest stays false.
         status.baselineVerification=verifyBaselineCompletion({...completionInput,cleanup:receipt,secretScan:scan});
         status.fullBaselineComplete=status.baselineVerification.complete;
-        if(resourceDiagnostic)status.diagnosticComplete=verifyResourceDiagnosticCompletion({cells:results,cleanup:receipt,secretScan:scan});
+        if(resourceDiagnostic)status.diagnosticComplete=verifyResourceDiagnosticCompletion({cells:results,auth:status.diagnosticAuth,cleanup:receipt,secretScan:scan});
         if(diagnostic)status.diagnosticComplete=verifyExplainCompletion({scales:status.scales,ordinary:completionInput.management,scope:completionInput.scopeManagement,reference:completionInput.referenceManagement,cleanup:receipt,secretScan:scan});
         await evidence(path.join(options.output,'cleanup.json'),receipt);
         await evidence(path.join(options.output,'manifest.json'),status);
