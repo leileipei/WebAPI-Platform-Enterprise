@@ -1,6 +1,9 @@
 namespace WebApi.Infrastructure.Persistence.Entities;
 public sealed class ReleaseTestAcceptance
 {
+    public Guid? PipelineRunStageId { get; set; }
+    public Guid? StageAttemptId { get; set; }
+    public string? ProfileHash { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid OrganizationId { get; set; }
     public Guid ProjectId { get; set; }

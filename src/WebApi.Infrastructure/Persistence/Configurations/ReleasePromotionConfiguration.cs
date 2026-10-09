@@ -6,6 +6,12 @@ public sealed class ReleasePromotionConfiguration : IEntityTypeConfiguration<Rel
 {
     public void Configure(EntityTypeBuilder<ReleasePromotion> b)
     {
+        b.Property(x=>x.PipelineRunStageId).HasColumnName("pipeline_run_stage_id").HasColumnType("uuid");
+        b.Property(x=>x.StageAttemptId).HasColumnName("stage_attempt_id").HasColumnType("uuid");
+        b.Property(x=>x.GateOrigin).HasColumnName("gate_origin").HasColumnType("varchar(32)").HasDefaultValue("ProjectConnection").IsRequired();
+        b.HasOne<ReleasePipelineRunStage>().WithMany().HasForeignKey(x=>new{x.PipelineRunStageId,x.ProjectId,x.TargetEnvironmentId}).HasPrincipalKey(x=>new{x.Id,x.ProjectId,x.EnvironmentId}).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<ReleasePipelineStageAttempt>().WithMany().HasForeignKey(x=>new{x.StageAttemptId,x.PipelineRunStageId}).HasPrincipalKey(x=>new{x.Id,x.RunStageId}).OnDelete(DeleteBehavior.Restrict);
+        b.ToTable(t=>t.HasCheckConstraint("ck_release_promotion_pipeline_context", "((gate_origin='ProjectConnection' AND pipeline_run_stage_id IS NULL AND stage_attempt_id IS NULL) OR (gate_origin='PipelineRunStage' AND pipeline_run_stage_id IS NOT NULL AND stage_attempt_id IS NOT NULL))"));
         b.ToTable("release_promotions");b.HasKey(x=>x.Id);
         b.Property(x=>x.Id).HasColumnName("id").HasColumnType("uuid");
         b.Property(x=>x.OrganizationId).HasColumnName("organization_id").HasColumnType("uuid");

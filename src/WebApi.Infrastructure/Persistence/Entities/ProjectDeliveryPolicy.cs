@@ -1,6 +1,7 @@
 namespace WebApi.Infrastructure.Persistence.Entities;
 public sealed class ProjectDeliveryPolicy
 {
+    public Guid? ActivePipelineVersionId { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid OrganizationId { get; set; }
     public Guid ProjectId { get; set; }

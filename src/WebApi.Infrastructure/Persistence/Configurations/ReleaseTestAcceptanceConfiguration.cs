@@ -6,6 +6,12 @@ public sealed class ReleaseTestAcceptanceConfiguration : IEntityTypeConfiguratio
 {
     public void Configure(EntityTypeBuilder<ReleaseTestAcceptance> b)
     {
+        b.Property(x=>x.PipelineRunStageId).HasColumnName("pipeline_run_stage_id").HasColumnType("uuid");
+        b.Property(x=>x.StageAttemptId).HasColumnName("stage_attempt_id").HasColumnType("uuid");
+        b.Property(x=>x.ProfileHash).HasColumnName("profile_hash").HasColumnType("varchar(64)");
+        b.HasOne<ReleasePipelineRunStage>().WithMany().HasForeignKey(x=>new{x.PipelineRunStageId,x.ProjectId,x.SourceEnvironmentId}).HasPrincipalKey(x=>new{x.Id,x.ProjectId,x.EnvironmentId}).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<ReleasePipelineStageAttempt>().WithMany().HasForeignKey(x=>new{x.StageAttemptId,x.PipelineRunStageId}).HasPrincipalKey(x=>new{x.Id,x.RunStageId}).OnDelete(DeleteBehavior.Restrict);
+        b.ToTable(t=>t.HasCheckConstraint("ck_release_test_acceptance_pipeline_context", "((pipeline_run_stage_id IS NULL AND stage_attempt_id IS NULL AND profile_hash IS NULL) OR (pipeline_run_stage_id IS NOT NULL AND stage_attempt_id IS NOT NULL AND profile_hash IS NOT NULL AND length(profile_hash)=64))"));
         b.ToTable("release_test_acceptances");b.HasKey(x=>x.Id);
         b.Property(x=>x.Id).HasColumnName("id").HasColumnType("uuid");
         b.Property(x=>x.OrganizationId).HasColumnName("organization_id").HasColumnType("uuid");

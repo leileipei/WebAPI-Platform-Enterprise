@@ -8,7 +8,7 @@
 
 **Tech Stack:** 现有 .NET 10、ASP.NET Core、EF Core/Npgsql、PostgreSQL、Redis、YARP、React/TypeScript、Node 测试和 Playwright；不新增服务、依赖或文件卷。
 
-**Spec:** [已批准规格](../specs/2026-10-09-release-pipeline-design.md)。本计划等待审阅，执行方式沿用用户已选 **Native**。
+**Spec:** [已批准规格](../specs/2026-10-09-release-pipeline-design.md)。用户回复“继续”批准本计划；2026-10-09开始按 **Native** 执行，进度见本期执行账本。
 
 ## Global Constraints
 
@@ -79,7 +79,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Produces `PipelineDefinitionRules.Validate(PipelineDefinition definition, IReadOnlyList<PipelineEnvironmentFact> environments)`（void，非法定义抛ArgumentException，基础设施转换为现有ApiException 422）；`PipelineEnvironmentFact(Guid Id, Guid ProjectId, bool Active, bool IsProduction)`；六实体及共享record供P2–P10使用。定义SHA在P2计算，数据库事实不要信任请求中的IsProduction。
 
-- [ ] **Step 1:** 编写参数/链、FK/唯一约束及权限升级测试，包括以下断言与2、8合法边界、重复/跨项目/停用/生产非末尾/源码阶段审批拒绝、1/10080合法、0/10081拒绝：
+- [x] **Step 1:** 编写参数/链、FK/唯一约束及权限升级测试，包括以下断言与2、8合法边界、重复/跨项目/停用/生产非末尾/源码阶段审批拒绝、1/10080合法、0/10081拒绝：
 
 ```csharp
 [Fact] void ProductionCannotDropMandatoryChecks() {
@@ -94,10 +94,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh domain --filter FullyQualifiedName~PipelineDefinitionRulesTests`及`./scripts/check-contracts.sh integration --filter FullyQualifiedName~PipelinePersistenceTests`；先加入可编译类型/空实现，要求实际规则或唯一性断言失败，记录RED；迁移的RED用旧模式数据库断言缺新约束，不能把查不存在表异常当行为失败。测试fixture不依赖尚未实现的Pipeline HTTP端点。
-- [ ] **Step 3:** 实现定义规则及迁移。数据库唯一约束含版本号、Run阶段顺序、同Run前置关联、尝试序号、Promotion/Release正式关联、一阶段一个进行中尝试、一项目一个非终态Run；跨组织/项目归属另由服务锁内验证。Recovery用OriginAttemptId，不能修改原Promotion.StageAttemptId。未激活的未来Stage使用内部`Pending`状态，无尝试/截止时间；旧记录上下文字段NULL、GateOrigin默认ProjectConnection。权限目录升级可重复执行，不覆盖旧授权。
-- [ ] **Step 4:** 上述两类GREEN，并运行既有`DeliveryPersistenceTests`、`CatalogTests`；验证从旧A+B数据库迁移，旧行字段及关系不变，回退脚本只作隔离验证，原实例不降级。
-- [ ] **Step 5:** 暂存本任务Files，提交 `feat(pipeline): persist linear definitions and stage facts`，记录迁移名、命中测试数、0失败0跳过。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh domain --filter FullyQualifiedName~PipelineDefinitionRulesTests`及`./scripts/check-contracts.sh integration --filter FullyQualifiedName~PipelinePersistenceTests`；先加入可编译类型/空实现，要求实际规则或唯一性断言失败，记录RED；迁移的RED用旧模式数据库断言缺新约束，不能把查不存在表异常当行为失败。测试fixture不依赖尚未实现的Pipeline HTTP端点。
+- [x] **Step 3:** 实现定义规则及迁移。数据库唯一约束含版本号、Run阶段顺序、同Run前置关联、尝试序号、Promotion/Release正式关联、一阶段一个进行中尝试、一项目一个非终态Run；跨组织/项目归属另由服务锁内验证。Recovery用OriginAttemptId，不能修改原Promotion.StageAttemptId。未激活的未来Stage使用内部`Pending`状态，无尝试/截止时间；旧记录上下文字段NULL、GateOrigin默认ProjectConnection。权限目录升级可重复执行，不覆盖旧授权。
+- [x] **Step 4:** 上述两类GREEN，并运行既有`DeliveryPersistenceTests`、`CatalogTests`；验证从旧A+B数据库迁移，旧行字段及关系不变，回退脚本只作隔离验证，原实例不降级。
+- [x] **Step 5:** 暂存本任务Files，提交 `feat(pipeline): persist linear definitions and stage facts`，记录迁移名、命中测试数、0失败0跳过。
 
 ## Task 2 (P2): 草稿、不可变版本及显式模式切换
 

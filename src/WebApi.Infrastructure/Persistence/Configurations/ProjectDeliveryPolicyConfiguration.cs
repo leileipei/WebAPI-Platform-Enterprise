@@ -6,6 +6,8 @@ public sealed class ProjectDeliveryPolicyConfiguration : IEntityTypeConfiguratio
 {
     public void Configure(EntityTypeBuilder<ProjectDeliveryPolicy> b)
     {
+        b.Property(x=>x.ActivePipelineVersionId).HasColumnName("active_pipeline_version_id").HasColumnType("uuid");
+        b.HasOne<ReleasePipelineVersion>().WithMany().HasForeignKey(x=>new{x.ActivePipelineVersionId,x.ProjectId}).HasPrincipalKey(x=>new{x.Id,x.ProjectId}).OnDelete(DeleteBehavior.Restrict);
         b.ToTable("project_delivery_policies");b.HasKey(x=>x.Id);
         b.Property(x=>x.Id).HasColumnName("id").HasColumnType("uuid");
         b.Property(x=>x.OrganizationId).HasColumnName("organization_id").HasColumnType("uuid");
@@ -23,6 +25,6 @@ public sealed class ProjectDeliveryPolicyConfiguration : IEntityTypeConfiguratio
         b.HasOne<EnvironmentRecord>().WithMany().HasForeignKey(x=>new{x.SourceEnvironmentId,x.ProjectId}).HasPrincipalKey(x=>new{x.Id,x.ProjectId}).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<EnvironmentRecord>().WithMany().HasForeignKey(x=>new{x.TargetEnvironmentId,x.ProjectId}).HasPrincipalKey(x=>new{x.Id,x.ProjectId}).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.UpdatedBy).OnDelete(DeleteBehavior.Restrict);
-        b.ToTable(t=>t.HasCheckConstraint("ck_delivery_policy", "mode IN ('Legacy','PromotionRequired') AND source_environment_id <> target_environment_id AND verification_validity_minutes BETWEEN 1 AND 10080 AND revision >= 1 AND cardinality(required_test_types) BETWEEN 1 AND 3 AND required_test_types <@ ARRAY['InterfaceFunction','Integration','ContractCompatibility']::text[]"));
+        b.ToTable(t=>t.HasCheckConstraint("ck_delivery_policy", "((mode IN ('Legacy','PromotionRequired') AND active_pipeline_version_id IS NULL) OR (mode='PipelineRequired' AND active_pipeline_version_id IS NOT NULL)) AND source_environment_id <> target_environment_id AND verification_validity_minutes BETWEEN 1 AND 10080 AND revision >= 1 AND cardinality(required_test_types) BETWEEN 1 AND 3 AND required_test_types <@ ARRAY['InterfaceFunction','Integration','ContractCompatibility']::text[]"));
     }
 }

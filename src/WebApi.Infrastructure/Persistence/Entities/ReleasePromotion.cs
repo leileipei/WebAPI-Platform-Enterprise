@@ -1,6 +1,9 @@
 namespace WebApi.Infrastructure.Persistence.Entities;
 public sealed class ReleasePromotion
 {
+    public Guid? PipelineRunStageId { get; set; }
+    public Guid? StageAttemptId { get; set; }
+    public string GateOrigin { get; set; } = "ProjectConnection";
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid OrganizationId { get; set; }
     public Guid ProjectId { get; set; }

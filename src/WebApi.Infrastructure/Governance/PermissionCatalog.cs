@@ -9,6 +9,7 @@ public static class PermissionCatalog
         "api.read","api.create","api.edit","api.version.read","api.version.write","api.schema.read","api.schema.write",
         "route.read","route.write","cluster.read","cluster.write","policy.read","policy.write",
         "app.read","app.write","credential.manage","app.permission.manage",
+        "pipeline.read","pipeline.manage","pipeline.run",
         "release.test.record","release.test.accept","release.verify","release.read","release.create","release.publish","release.rollback","approval.act","api.approve",
         "gateway.read","gateway.operate","gateway.config.read","audit.read","user.manage","role.manage","scope.manage","system.manage",
         "metrics.read","log.read","trace.read","alert.read","alert.operate","alert.rule.manage","system.sso.manage"
@@ -18,11 +19,11 @@ public static class PermissionCatalog
         await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
         var permissions=await db.Set<Permission>().ToDictionaryAsync(x=>x.Code,ct);
         foreach(var code in Codes) if(!permissions.ContainsKey(code)) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code,Description="源文档平台功能权限"};permissions.Add(code,p);db.Add(p);}
-        var read=Codes.Where(c=>c.EndsWith(".read",StringComparison.Ordinal)).ToArray();
+        var read=Codes.Where(c=>c.EndsWith(".read",StringComparison.Ordinal)&&!c.StartsWith("pipeline.",StringComparison.Ordinal)).ToArray();
         Dictionary<string,(string Name,string[] Permissions)> roles=new() {
             ["PlatformAdmin"]=("平台管理员",Codes),
-            ["OrganizationAdmin"]=("组织管理员",Codes.Except(["release.test.record","release.test.accept","release.verify","system.manage","system.sso.manage","user.manage","scope.manage"]).ToArray()),
-            ["ProjectAdmin"]=("项目管理员",Codes.Except(["release.test.record","release.test.accept","release.verify","organization.write","system.manage","system.sso.manage","user.manage","role.manage","scope.manage"]).ToArray()),
+            ["OrganizationAdmin"]=("组织管理员",Codes.Except(["pipeline.read","pipeline.manage","pipeline.run","release.test.record","release.test.accept","release.verify","system.manage","system.sso.manage","user.manage","scope.manage"]).ToArray()),
+            ["ProjectAdmin"]=("项目管理员",Codes.Except(["pipeline.read","pipeline.manage","pipeline.run","release.test.record","release.test.accept","release.verify","organization.write","system.manage","system.sso.manage","user.manage","role.manage","scope.manage"]).ToArray()),
             ["ApiDeveloper"]=("API开发人员",read.Concat(["api.create","api.edit","api.version.write","api.schema.write","route.write","cluster.write","policy.write","release.create","release.publish"]).Distinct().ToArray()),
             ["ApiApprover"]=("API审批人员",read.Concat(["approval.act","api.approve"]).ToArray()),
             ["SecurityReviewer"]=("安全审核人员",read.Concat(["approval.act"]).ToArray()),
