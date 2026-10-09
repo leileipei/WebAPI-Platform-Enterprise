@@ -86,11 +86,11 @@
 
 **Interfaces:** `AccessView=Working|Running`；`RouteAccessDto(Guid RouteId,string Method,string PathTemplate,string? PublicTemplate,string? InternalTemplate,long? RunningConfigVersion)`；`EnvironmentApiAccessDto(Guid EnvironmentId,long AccessAddressRevision,bool Configured,AccessView View,IReadOnlyList<RouteAccessDto> Routes)`。`GetAsync(Guid envId,Guid apiId,Guid? versionId,AccessView view,ActorContext actor,CancellationToken ct) -> Task<EnvironmentApiAccessDto>`；`EnvironmentApiDocumentService.BuildAsync` 同参数返回 `Task<JsonDocument>`。HTTP 默认 running，未知 view 422。
 
-- [ ] **Step 1：写断言。** `RunningUsesSnapshotAfterWorkingRouteDeletion` 发布后删工作路由，running仍有原方法路径；`VersionMismatchDoesNotSubstituteLatest` 指定非运行版本不返回其他版本；`DocumentCopyLeavesStoredContractUntouched` 原始文档/Revision/摘要相同；无地址409，多Route逐条输出，歧义422，外组织404，internal无权省略；示例无 Authorization/Secret。
-- [ ] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter EnvironmentApiAccessTests`。
-- [ ] **Step 3：实现。** running 读取数据库 Snapshot，并使用对应成功发布冻结版本契约；节点不一致标明运行状态不可确认，不把 desired 当全节点已应用。working读取授权 Route 与当前版本，返回明确工作标识。用已有契约解析器生成 OpenAPI 副本，servers=Origin+prefix、paths=真实路由；契约操作到路由不唯一时拒绝，不删操作伪造完整文档。两新GET no-store，满足规格§5全部权限。
-- [ ] **Step 4：GREEN。** 同上与 Catalog/ContractManagement 已有相关回归；检查输出文档路径和方法与对应视图一致，HTTP响应不产生外部请求。
-- [ ] **Step 5：隔离提交。** `feat(environments): generate route access and environment documents`。
+- [x] **Step 1：写断言。** `RunningUsesSnapshotAfterWorkingRouteDeletion` 发布后删工作路由，running仍有原方法路径；`VersionMismatchDoesNotSubstituteLatest` 指定非运行版本不返回其他版本；`DocumentCopyLeavesStoredContractUntouched` 原始文档/Revision/摘要相同；无地址409，多Route逐条输出，歧义422，外组织404，internal无权省略；示例无 Authorization/Secret。
+- [x] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter EnvironmentApiAccessTests`。
+- [x] **Step 3：实现。** running 读取数据库 Snapshot，并使用对应成功发布冻结版本契约；节点不一致标明运行状态不可确认，不把 desired 当全节点已应用。working读取授权 Route 与当前版本，返回明确工作标识。用已有契约解析器生成 OpenAPI 副本，servers=Origin+prefix、paths=真实路由；契约操作到路由不唯一时拒绝，不删操作伪造完整文档。两新GET no-store，满足规格§5全部权限。
+- [x] **Step 4：GREEN。** 同上与 Catalog/ContractManagement 已有相关回归；检查输出文档路径和方法与对应视图一致，HTTP响应不产生外部请求。
+- [x] **Step 5：隔离提交。** `feat(environments): generate route access and environment documents`。
 
 ## Task 4 (A4)：发布入口历史与重试保护
 
