@@ -19,7 +19,14 @@ public sealed class PipelineActivationService(WebApiDbContext db,ScopeResolver s
         string[] activeReleases=["Draft","WaitingApproval","Ready","Building","Publishing"];
         if(await (from r in db.Set<ReleaseRecord>() join e in db.Set<EnvironmentRecord>() on r.EnvironmentId equals e.Id where e.ProjectId==projectId&&activeReleases.Contains(r.Status) select r.Id).AnyAsync(ct))throw Busy();
         string[] pendingPromotions=["Draft","WaitingApproval","Ready","Deploying","Verifying","DeploymentFailed","VerificationFailed"];
-        if(await db.Set<ReleasePromotion>().AnyAsync(p=>p.ProjectId==projectId&&pendingPromotions.Contains(p.Status),ct))throw Busy();
+        string[] terminalRuns=["Completed","Cancelled","Invalidated"];
+        // Terminal Pipeline history retains its actual deployment/verification facts.
+        // Only a stage linked to its own terminal run leaves the independent queue;
+        // the release guard above still blocks any deployment that is publishing.
+        if(await db.Set<ReleasePromotion>().AnyAsync(p=>p.ProjectId==projectId&&pendingPromotions.Contains(p.Status)&&
+            !(p.GateOrigin=="PipelineRunStage"&&db.Set<ReleasePipelineRunStage>().Any(s=>
+                s.Id==p.PipelineRunStageId&&s.ProjectId==p.ProjectId&&db.Set<ReleasePipelineRun>().Any(r=>
+                    r.Id==s.RunId&&r.ProjectId==p.ProjectId&&terminalRuns.Contains(r.Status)))),ct))throw Busy();
     }
     private async Task<ScopeRef> RequireManageAsync(Guid projectId,ActorContext actor,CancellationToken ct)
     {var scope=await scopes.ProjectAsync(projectId,ct);await auth.RequireAsync(actor,"pipeline.manage",new("project",projectId,scope),ct);await auth.RequireAsync(actor,"project.write",new("project",projectId,scope),ct);return scope;}

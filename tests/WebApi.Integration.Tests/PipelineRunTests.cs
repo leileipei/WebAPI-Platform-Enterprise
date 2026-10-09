@@ -11,6 +11,21 @@ public sealed class PipelineRunTests
 {
  internal static async Task<Guid> ActivateVersionAsync(PipelineScenario s)
  {var version=await PipelineActivationTests.VersionAsync(s);await PipelineActivationTests.SeedBaselineAsync(s);using var activated=await PipelineActivationTests.ActivateAsync(s,version);Assert.Equal(HttpStatusCode.OK,activated.StatusCode);return version;}
+ [Theory][InlineData("Completed",false,false,true)][InlineData("Cancelled",false,false,true)][InlineData("Invalidated",false,false,true)][InlineData("Completed",true,false,false)][InlineData("Cancelled",false,true,false)]
+ public async Task TerminalPipelinePromotionHistoryDoesNotOccupyIndependentDeliveryQueue(string terminal,bool independent,bool publishing,bool canStart)
+ {
+  // Persisted lifecycle fixture; actual multi-Gateway acceptance is recorded separately in P13.
+  await using var s=new PipelineScenario();await s.InitializeEnvironmentsAsync(4);var version=await ActivateVersionAsync(s);var run=await s.StartAsync(version);
+  await using(var db=s.Api.Context()){
+   var old=await db.Set<ReleasePipelineRun>().SingleAsync(r=>r.Id==run.Id);old.Status=terminal;old.CompletedAt=DateTimeOffset.UtcNow;
+   var stage=await db.Set<ReleasePipelineRunStage>().SingleAsync(r=>r.Id==run.Stages[1].Id);stage.Status=terminal=="Completed"?"Passed":terminal;
+   var attempt=new ReleasePipelineStageAttempt{RunId=run.Id,ProjectId=run.ProjectId,RunStageId=stage.Id,EnvironmentId=stage.EnvironmentId,AttemptNo=1,ActivatedAt=DateTimeOffset.UtcNow,DeadlineAt=DateTimeOffset.UtcNow.AddHours(1),Status=terminal=="Completed"?"Passed":terminal};db.Add(attempt);await db.SaveChangesAsync();
+   var p=new ReleasePromotion{OrganizationId=s.Api.Organization.Id,ProjectId=run.ProjectId,ArtifactId=s.RootArtifactId,SourceEnvironmentId=run.SourceEnvironmentId!.Value,TargetEnvironmentId=stage.EnvironmentId,SourceReleaseId=s.Source.ReleaseId,RequestedBy=s.Api.User.Id,Status="Verifying",GateOrigin=independent?"ProjectConnection":"PipelineRunStage",PipelineRunStageId=independent?null:stage.Id,StageAttemptId=independent?null:attempt.Id};db.Add(p);await db.SaveChangesAsync();
+   if(publishing){db.Add(new ReleaseRecord{EnvironmentId=stage.EnvironmentId,ReleaseNo="terminal-history-publishing-guard",ReleaseType="publish",Status="Publishing",RequestedBy=s.Api.User.Id,ToConfigVersion=1,DeploymentSequence=2});await db.SaveChangesAsync();}
+  }
+  using var next=await s.TryStartAsync(version);Assert.Equal(canStart?HttpStatusCode.OK:HttpStatusCode.Conflict,next.StatusCode);
+  await using var verify=s.Api.Context();Assert.Equal("Verifying",(await verify.Set<ReleasePromotion>().SingleAsync()).Status);Assert.Equal(terminal,(await verify.Set<ReleasePipelineRun>().SingleAsync(r=>r.Id==run.Id)).Status);
+ }
  [Theory][InlineData(2)][InlineData(4)] public async Task StartImportsCurrentSourceWithoutAnotherRelease(int count)
  {await using var s=new PipelineScenario();await s.InitializeEnvironmentsAsync(count);var version=await ActivateVersionAsync(s);await using var db=s.Api.Context();var before=await db.Set<ReleaseRecord>().CountAsync();var run=await s.StartAsync(version);Assert.Equal(before,await db.Set<ReleaseRecord>().CountAsync());Assert.Equal(s.RootArtifactId,run.RootArtifactId);Assert.Equal(s.Source.Artifact.ArtifactHash,run.RootArtifactHash);Assert.Equal("Active",run.Status);Assert.Equal(count,run.Stages.Count);Assert.Equal("AwaitingEvidence",run.Stages[0].Status);Assert.Equal(s.RootArtifactId,run.Stages[0].StageArtifactId);Assert.NotNull(run.Stages[0].CurrentAttemptId);Assert.InRange((run.Stages[0].DeadlineAt!-run.Stages[0].ActivatedAt!).Value.TotalMinutes,1439.99,1440.01);Assert.All(run.Stages.Skip(1),stage=>{Assert.Equal("Pending",stage.Status);Assert.Null(stage.CurrentAttemptId);Assert.Null(stage.DeadlineAt);Assert.Null(stage.StageArtifactId);});for(var i=1;i<count;i++){Assert.Equal(run.Stages[i-1].Id,run.Stages[i].SourceStageId);Assert.Equal(run.Id,run.Stages[i].RunId);}Assert.Equal(1,await db.Set<ReleasePipelineStageAttempt>().CountAsync());Assert.Equal(run.Stages[0].Id,(await s.CurrentStageAsync(run.Id)).Id);}
  [Fact] public async Task SameKeyReplaysAndDifferentBodyConflicts()
