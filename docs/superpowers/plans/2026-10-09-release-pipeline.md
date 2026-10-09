@@ -265,7 +265,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Produces `ProjectRunAsync(Guid runId, CancellationToken ct)`→`Task`（事实驱动，不代人命令）；`ScanAsync(int batchSize, CancellationToken ct)`→`Task<int>`（本轮投影数，默认50，SKIP LOCKED或等价持久领取）。使用现有TimeProvider，投影本Run并按锁序追加唯一状态事件。P5/P6/P7事实为输入；测试支持PassSource/DeployCurrent/PassCurrent通过真实API+测试ACK+ProjectRun推进。
 
-- [ ] **Step 1:** 测试非生产ACK后仍等制品/证据/独立验收、生产ACK后仍需3验证、下一Stage激活才计时、两Worker重启/并发幂等；Focus2及独立超时：
+- [x] **Step 1:** 测试非生产ACK后仍等制品/证据/独立验收、生产ACK后仍需3验证、下一Stage激活才计时、两Worker重启/并发幂等；Focus2及独立超时：
 
 ```csharp
 [Fact] async Task RevokedEarlierAcceptanceStopsQueuedCandidateButPreservesEmittedFacts() {
@@ -283,10 +283,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineProjectionTests|FullyQualifiedName~PipelineTimeoutTests'`行为RED；使用可控TimeProvider和明确持久种子，绝不通过长时间sleep掩盖窗口判断。
-- [ ] **Step 3:** 实现投影/扫描；Active当前Stage依据实际ACK、Artifact、有效证据、验收资格判定Passed，开下一Pending尝试，最终生产验证才Completed。失败Rejected/DeploymentFailed/VerificationFailed→Paused；超时→TimedOut且阻止新操作，原ACK超时独立运行，迟到ACK保存。显式任一验收撤销在同事务阻止推进/取消尚未下发候选，保留已发节点及事件；不能等扫描间隔期间绕过P7门禁。普通更早环境变更/自然过期不改写Passed；Completed收到撤销只追加事件不改历史完成。多进程同事实只追加一次迁移事件，不持锁做网络调用。
-- [ ] **Step 4:** 两新类GREEN，跑P5/P7及`AckTests`及既有发布超时/领域制品状态回归（检查实际类名及命中数量）；测试ControlPlane/Worker新进程从数据库恢复、Paused/TimedOut不激活后续Stage。
-- [ ] **Step 5:** 提交 `feat(pipeline): project durable stage facts and independent timeouts`。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineProjectionTests|FullyQualifiedName~PipelineTimeoutTests'`行为RED；使用可控TimeProvider和明确持久种子，绝不通过长时间sleep掩盖窗口判断。
+- [x] **Step 3:** 实现投影/扫描；Active当前Stage依据实际ACK、Artifact、有效证据、验收资格判定Passed，开下一Pending尝试，最终生产验证才Completed。失败Rejected/DeploymentFailed/VerificationFailed→Paused；超时→TimedOut且阻止新操作，原ACK超时独立运行，迟到ACK保存。显式任一验收撤销在同事务阻止推进/取消尚未下发候选，保留已发节点及事件；不能等扫描间隔期间绕过P7门禁。普通更早环境变更/自然过期不改写Passed；Completed收到撤销只追加事件不改历史完成。多进程同事实只追加一次迁移事件，不持锁做网络调用。
+- [x] **Step 4:** 两新类GREEN，跑P5/P7及`AckTests`及既有发布超时/领域制品状态回归（检查实际类名及命中数量）；测试ControlPlane/Worker新进程从数据库恢复、Paused/TimedOut不激活后续Stage。
+- [x] **Step 5:** 提交 `feat(pipeline): project durable stage facts and independent timeouts`。
 
 ## Task 9 (P9): 暂停、重新办理、取消与恢复追溯
 

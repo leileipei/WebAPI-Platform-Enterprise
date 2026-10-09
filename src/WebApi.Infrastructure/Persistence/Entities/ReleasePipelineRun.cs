@@ -18,5 +18,6 @@ public sealed class ReleasePipelineRun
     public long Revision { get; set; } = 1;
     public Guid CreatedBy { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? ProjectionCheckedAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
 }

@@ -2976,6 +2976,10 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<DateTimeOffset?>("ProjectionCheckedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("projection_checked_at");
+
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("completed_at");
@@ -3059,6 +3063,9 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("varchar(32)")
                         .HasDefaultValue("Active")
                         .HasColumnName("status");
+
+                    b.HasIndex("Status", "ProjectionCheckedAt", "Id")
+                        .HasDatabaseName("ix_pipeline_projection_due");
 
                     b.HasKey("Id");
 

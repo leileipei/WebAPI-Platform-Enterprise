@@ -38,9 +38,11 @@ public sealed class ProductionVerificationService(WebApiDbContext db,PromotionRe
    },token);
   },ct);
  }
- public async Task<bool> TryCompleteAsync(Guid id,CancellationToken ct)
+ public Task<bool> TryCompleteAsync(Guid id,CancellationToken ct)=>EvaluateCompletionAsync(id,false,ct);
+ internal Task<bool> IsCurrentStageCompletedAsync(Guid id,CancellationToken ct)=>EvaluateCompletionAsync(id,true,ct);
+ private async Task<bool> EvaluateCompletionAsync(Guid id,bool requireCurrent,CancellationToken ct)
  {
-  if(db.Database.CurrentTransaction is null)throw new InvalidOperationException("Delivery completion requires an owning governance transaction.");var p=await db.Set<ReleasePromotion>().SingleAsync(p=>p.Id==id,ct);await locks.LockAsync(p.SourceEnvironmentId,p.TargetEnvironmentId,ct);if(p.Status=="Completed")return true;if(p.Status is not("Verifying" or "VerificationFailed"))return false;
+  if(db.Database.CurrentTransaction is null)throw new InvalidOperationException("Delivery completion requires an owning governance transaction.");var p=await db.Set<ReleasePromotion>().SingleAsync(p=>p.Id==id,ct);await locks.LockAsync(p.SourceEnvironmentId,p.TargetEnvironmentId,ct);var historicalComplete=p.Status=="Completed";if(historicalComplete&&!requireCurrent)return true;if(!historicalComplete&&p.Status is not("Verifying" or "VerificationFailed"))return false;
   var context=await RuntimeContextAsync(p,ct);if(context.Pipeline is{} binding){var run=await db.Set<ReleasePipelineRun>().AsNoTracking().SingleAsync(r=>r.Id==binding.RunId,ct);var stage=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleAsync(s=>s.Id==binding.StageId,ct);var attempt=await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().SingleAsync(a=>a.Id==binding.AttemptId,ct);if(run.Status!="Active"||run.CurrentStageOrder!=stage.StageOrder||stage.CurrentAttemptId!=attempt.Id||attempt.Status!="Active"||attempt.DeadlineAt<=DateTimeOffset.UtcNow)return false;try{await gates.ResolvePromotionFactsAsync(p,ct);}catch(ApiException e)when(e.Status==409){return false;}}var serialized=PromotionMappingService.Json(context);var facts=new List<ProductionEvidenceFact>();var authority=new Dictionary<Guid,bool>();var currentAttempt=context.Pipeline?.AttemptId;var stageId=context.Pipeline?.StageId;var profileHash=context.Pipeline?.ProfileHash;
   foreach(var type in PromotionCompletionRules.RequiredTypes){var row=await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>v.PromotionId==id&&v.Phase=="Production"&&v.Type==type&&v.ReleaseId==context.ReleaseId&&v.AccessContextJson==serialized&&v.StageAttemptId==currentAttempt&&v.PipelineRunStageId==stageId&&v.ProfileHash==profileHash).OrderByDescending(v=>v.CreatedAt).ThenByDescending(v=>v.Id).FirstOrDefaultAsync(ct);if(row is null)continue;
    if(!authority.TryGetValue(row.CreatedBy,out var qualified)){qualified=row.CreatedBy!=p.RequestedBy&&row.CreatedBy!=context.PublisherId&&row.CreatedBy!=context.Pipeline?.RunCreatedBy;try{if(qualified){var actor=new ActorContext(row.CreatedBy,"production-evidence-authority");await auth.RequireAsync(actor,"release.verify",new("environment",p.TargetEnvironmentId,await scopes.EnvironmentAsync(p.TargetEnvironmentId,ct)),ct);await artifacts.GetAsync(p.ArtifactId,actor,ct);}}catch(ApiException e)when(e.Status is 401 or 403 or 404 or 409){qualified=false;}authority[row.CreatedBy]=qualified;}
@@ -48,7 +50,7 @@ public sealed class ProductionVerificationService(WebApiDbContext db,PromotionRe
    if(row.ReportId is Guid reportId){var report=await db.Set<VerificationReport>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==reportId,ct);current&=report is not null&&report.PromotionId==id&&report.ArtifactId==null&&report.EnvironmentId==p.TargetEnvironmentId&&report.Sha256==row.ReportHash;}
    facts.Add(new(type,row.Result,qualified,current,row.ExpiresAt));
   }
-  var state=PromotionCompletionRules.Evaluate(facts,DateTimeOffset.UtcNow);if(state!=p.Status){db.Add(Event(p,state,"production_"+state.ToLowerInvariant(),null,context.ReleaseId));p.Status=state;p.Revision++;p.CompletedAt=state=="Completed"?DateTimeOffset.UtcNow:null;}return state=="Completed";
+  var state=PromotionCompletionRules.Evaluate(facts,DateTimeOffset.UtcNow);if(!historicalComplete&&state!=p.Status){db.Add(Event(p,state,"production_"+state.ToLowerInvariant(),null,context.ReleaseId));p.Status=state;p.Revision++;p.CompletedAt=state=="Completed"?DateTimeOffset.UtcNow:null;}return state=="Completed";
  }
  private async Task<ProductionContext> RuntimeContextAsync(ReleasePromotion p,CancellationToken ct)
  {

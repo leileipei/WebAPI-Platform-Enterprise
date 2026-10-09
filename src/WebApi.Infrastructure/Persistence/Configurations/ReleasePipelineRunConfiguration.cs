@@ -24,6 +24,8 @@ public sealed class ReleasePipelineRunConfiguration : IEntityTypeConfiguration<R
         b.Property(x=>x.Revision).HasColumnName("revision").HasColumnType("bigint").IsConcurrencyToken().HasDefaultValue(1L);
         b.Property(x=>x.CreatedBy).HasColumnName("created_by").HasColumnType("uuid");
         b.Property(x=>x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamptz").HasDefaultValueSql("now()");
+        b.Property(x=>x.ProjectionCheckedAt).HasColumnName("projection_checked_at").HasColumnType("timestamptz");
+        b.HasIndex(x=>new{x.Status,x.ProjectionCheckedAt,x.Id}).HasDatabaseName("ix_pipeline_projection_due");
         b.Property(x=>x.CompletedAt).HasColumnName("completed_at").HasColumnType("timestamptz");
         b.HasOne<Project>().WithMany().HasForeignKey(x=>new{x.ProjectId,x.OrganizationId}).HasPrincipalKey(x=>new{x.Id,x.OrganizationId}).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<ReleasePipelineVersion>().WithMany().HasForeignKey(x=>new{x.PipelineVersionId,x.ProjectId}).HasPrincipalKey(x=>new{x.Id,x.ProjectId}).OnDelete(DeleteBehavior.Restrict);

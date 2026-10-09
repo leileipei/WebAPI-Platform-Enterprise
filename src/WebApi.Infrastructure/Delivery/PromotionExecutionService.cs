@@ -8,6 +8,7 @@ public sealed class PromotionExecutionService(WebApiDbContext db,DeliveryLockCoo
 {
  public async Task LockReleaseAsync(ReleaseRecord release,CancellationToken ct)
  {await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);var p=await reads.ResolvePromotionAsync(release.Id,ct);if(p is not null)await locks.LockAsync(p.SourceEnvironmentId,p.TargetEnvironmentId,ct);else{var project=await db.Set<EnvironmentRecord>().Where(e=>e.Id==release.EnvironmentId).Select(e=>e.ProjectId).SingleAsync(ct);await locks.LockProjectAsync(project,ct);await locks.LockEnvironmentsAsync([release.EnvironmentId],ct);}}
+ public async Task<bool> IsPipelineReleaseAsync(Guid releaseId,CancellationToken ct)=> (await reads.ResolvePromotionAsync(releaseId,ct))?.GateOrigin=="PipelineRunStage";
  public async Task RequireExecutionAsync(ReleaseRecord release,ActorContext actor,CancellationToken ct)
  {
   await LockReleaseAsync(release,ct);if(release.ReleaseType=="publish"){await guard.RequireReadyAsync(release,actor,ct);return;}var p=await reads.ResolvePromotionAsync(release.Id,ct);if(p is null)return;await artifacts.GetAsync(p.ArtifactId,actor,ct);

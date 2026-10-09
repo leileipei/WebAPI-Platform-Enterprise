@@ -23,12 +23,11 @@ internal sealed class PipelinePromotionFixture : IAsyncDisposable
   var source=Run.Stages[0];var context=await PipelineStageEvidenceTests.ContextAsync(Scenario.Creator,source.Id);var ids=await PipelineStageEvidenceTests.EvidenceAsync(Scenario.Creator,source.Id,context);
   using(var response=await ApiFixture.CommandAsync(Scenario.Creator,$"/api/v1/release-pipeline-run-stages/{source.Id}/acceptance-requests",new PipelineAcceptanceRequest(context.ContextHash,ids))){response.EnsureSuccessStatusCode();AcceptanceId=(await response.Content.ReadFromJsonAsync<TestAcceptanceDto>())!.Id;}
   var acceptor=await PipelineStageEvidenceTests.DelegateAsync(Scenario);using(var response=await PipelineStageEvidenceTests.ActAsync(acceptor.Client,AcceptanceId,"accept"))response.EnsureSuccessStatusCode();
-  // Explicit persisted projection fixture while P8 is not implemented. Synthetic ACKs are not live Gateway proof.
+  await Scenario.ProjectAsync(Run.Id);
+  // Candidate metadata and target nodes are explicit test fixtures, not live Gateway proof.
   await using(var db=Scenario.Api.Context()){
    foreach(var baseline in await db.Set<ReleaseRecord>().Where(r=>r.EnvironmentId==Scenario.Environments[Scenario.Environments.Length-1]&&r.ReleaseType=="publish"&&r.ToConfigVersion==1&&r.CandidateBytes==null).ToArrayAsync()){baseline.CandidateBytes=CanonicalJson.Serialize(new FrozenReleaseCandidate(baseline.EnvironmentId,Scenario.Api.Organization.Id,Run.ProjectId,0,[],[],[],[],[],[],[],[]));baseline.ApprovalPolicy="[]";}
-   var first=await db.Set<ReleasePipelineRunStage>().SingleAsync(s=>s.Id==source.Id);first.Status="Passed";(await db.Set<ReleasePipelineStageAttempt>().SingleAsync(a=>a.Id==first.CurrentAttemptId)).Status="Passed";
-   (await db.Set<ReleasePipelineRun>().SingleAsync(r=>r.Id==Run.Id)).CurrentStageOrder=2;var target=await db.Set<ReleasePipelineRunStage>().SingleAsync(s=>s.Id==TargetStageId);target.Status="AwaitingMapping";
-   var attempt=new ReleasePipelineStageAttempt{RunId=Run.Id,RunStageId=target.Id,ProjectId=Run.ProjectId,EnvironmentId=target.EnvironmentId,AttemptNo=1,DeadlineAt=DateTimeOffset.UtcNow.AddDays(1)};db.Add(attempt);await db.SaveChangesAsync();target.CurrentAttemptId=attempt.Id;
+   var target=await db.Set<ReleasePipelineRunStage>().SingleAsync(s=>s.Id==TargetStageId);
    var cluster=new UpstreamCluster{ProjectId=Run.ProjectId,EnvironmentId=target.EnvironmentId,Name="Target backend",LoadBalancingPolicy="RoundRobin",HealthCheckPath="/health",HealthCheckIntervalSec=30};ClusterId=cluster.Id;db.Add(cluster);db.Add(new UpstreamDestination{ClusterId=cluster.Id,Name="Target destination",Address="http://test-backend:8080/target/",Weight=1});
    if(count>2)for(var i=0;i<2;i++){var instance=Guid.NewGuid();db.Add(new GatewayNode{EnvironmentId=target.EnvironmentId,NodeName="pipeline-middle-"+i,InstanceId=instance.ToString(),IdentityHash=new string('f',64),LastHeartbeatAt=DateTimeOffset.UtcNow,Metadata=WebApi.Infrastructure.Gateway.SnapshotSchemaCapabilities.Merge(null,instance,["2.0","2.1","2.2"])});}await db.SaveChangesAsync();
   }
