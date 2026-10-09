@@ -99,3 +99,7 @@
 49. Final: Ruling: original installation and its post-install cold clone remain unjudged until Task 14 actual receipts — isolated tests cannot certify original installation — cost if wrong: original users could receive an upgrade without preservation evidence; the installation gate remains closed.
 
 50. Final: Ruling: enterprise DNS/TLS/LB and business acceptance remain unexecuted — approved work is local delivery governance with environment metadata — cost if wrong: local success could be mistaken for an operational enterprise domain; no such claim will be made.
+
+51. Task 13: Ruling: actual database probe waits for a successful SELECT 1 in its named test database, rather than pg_isready — new load reproduced pg_isready success during temporary initialization before pipeline_probe existed; first actual new-candidate probe failed and owner cleanup was verified — cost if wrong: the isolated probe waits/fails within its existing bounded startup window; product/database behavior is not relaxed. Actual rerun pending.
+
+52. Task 14 preparation: Ruling: preserve independently observed preview listener availability, including an already-inactive 4193, rather than starting unrelated previews — read-only fresh preflight found 4193 ECONNREFUSED before any original mutation; 4194 IdP and 4180 are observed separately — cost if wrong: a prior preview outage remains outside this installation; it is disclosed rather than attributed to a successful preserved active preview.
