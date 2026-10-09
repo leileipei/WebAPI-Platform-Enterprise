@@ -1,0 +1,95 @@
+x-labels: &labels
+  com.webapi.performance.owner: ${PERF_OWNER:?required}
+x-app: &app
+  image: ${PERF_IMAGE:?required}
+  labels: *labels
+  cpus: '2.0'
+  mem_limit: 2048m
+  volumes:
+    - ${PERF_DIRECTORY:?required}:/private
+    - ${PERF_RESULT_DIRECTORY:?required}:/results
+  environment: &dotnet
+    DOTNET_gcServer: '1'
+    DOTNET_PROCESSOR_COUNT: '2'
+    DOTNET_GCHeapHardLimitPercent: '0x46'
+    DOTNET_EnableDiagnostics: '1'
+    WEBAPI_DB_HOST: postgres
+    WEBAPI_DB_USER: webapi
+    WEBAPI_DB_NAME: webapi_performance
+    WEBAPI_DB_PASSWORD_FILE: /run/secrets/postgres-password
+  secrets: [postgres-password]
+services:
+  postgres:
+    image: postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    labels: *labels
+    cpus: '2.0'
+    mem_limit: 3072m
+    environment:
+      POSTGRES_USER: webapi
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      POSTGRES_DB: webapi_performance
+    command: ['postgres','-c','max_connections=100','-c','shared_buffers=512MB','-c','work_mem=16MB','-c','maintenance_work_mem=256MB','-c','max_parallel_workers_per_gather=0','-c','timezone=UTC']
+    secrets: [postgres-password]
+    volumes: [pg-performance:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL','pg_isready -U webapi -d webapi_performance']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
+    labels: *labels
+    cpus: '0.5'
+    mem_limit: 256m
+    command: ['redis-server','--save','','--appendonly','no']
+    healthcheck:
+      test: ['CMD','redis-cli','ping']
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  controlplane:
+    <<: *app
+    command: ['dotnet','WebApi.PerformanceHost.dll','serve','--mode','controlplane','--config','/private/host-controlplane.json']
+    ports: ['127.0.0.1::8080']
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+  gateway-a:
+    <<: *app
+    command: ['dotnet','WebApi.PerformanceHost.dll','serve','--mode','gateway','--config','/private/host-gateway-a.json']
+    ports: ['127.0.0.1::8080']
+  gateway-b:
+    <<: *app
+    command: ['dotnet','WebApi.PerformanceHost.dll','serve','--mode','gateway','--config','/private/host-gateway-b.json']
+    ports: ['127.0.0.1::8080']
+  backend:
+    <<: *app
+    cpus: '1.0'
+    mem_limit: 256m
+    environment:
+      <<: *dotnet
+      DOTNET_PROCESSOR_COUNT: '1'
+    command: ['dotnet','WebApi.PerformanceHost.dll','serve','--mode','backend','--config','/private/host-backend.json']
+  client:
+    image: node@sha256:4a4884e8a44826194dff92ba316264f392056cbe243dcc9fd3551e71cea02b90
+    labels: *labels
+    cpus: '2.0'
+    mem_limit: 1024m
+    volumes:
+      - ${PERF_HARNESS_DIRECTORY:?required}:/harness:ro
+      - ${PERF_DIRECTORY:?required}:/private:ro
+      - ${PERF_RESULT_DIRECTORY:?required}:/results
+    working_dir: /harness
+    command: ['node','scripts/performance/load-client.mjs']
+secrets:
+  postgres-password:
+    file: ${PERF_DIRECTORY:?required}/postgres-password
+volumes:
+  pg-performance:
+    labels: *labels
+networks:
+  default:
+    labels: *labels
+    ipam:
+      config:
+        - subnet: ${PERF_SUBNET:?required}

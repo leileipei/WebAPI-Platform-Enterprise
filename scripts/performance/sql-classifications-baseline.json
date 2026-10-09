@@ -1,0 +1,946 @@
+{
+  "schemaVersion": 1,
+  "sourceCommits": [
+    "40759aac50f1a6281223b0ec0d45d58e6fb44cb5"
+  ],
+  "auditEvidence": {
+    "kind": "private-template-and-pinned-source-review",
+    "capturedTemplates": 66,
+    "measuredTemplates": 58,
+    "publicCaptureManifestHash": "42e4a98370f1d90c52ed5bb182328e812980a7271736ea0812349f6c049a0e4c",
+    "unmeasuredLoginTemplatesNotClassified": 8,
+    "scope": "13 ordinary lists plus scope and protected reference scenes at S scale"
+  },
+  "rules": {
+    "04b36a1c74ee8e81b25261e567ce79ee7ff2b0a2c4a732a5d0ad288fda0bf69d": {
+      "classification": "data",
+      "reason": "告警规则状态所需的预期环境数据，不是浏览器操作者授权",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Alerts/AlertRuleScopeResolver.cs",
+          "line": 33
+        }
+      ],
+      "observedOperations": [
+        "alert-rule"
+      ]
+    },
+    "098143ed297ae29c2826695f86e3e513502be699006ae43da54628a07de47a15": {
+      "classification": "data",
+      "reason": "用户页完整记录，LIMIT与OFFSET复用同一参数",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "line": 86
+        }
+      ],
+      "observedOperations": [
+        "user"
+      ]
+    },
+    "09e22f72319ad8d32be4d8d3155e4d0d8a3bd36770fffc872d59dad6374737b6": {
+      "classification": "data",
+      "reason": "用户页完整记录，LIMIT与OFFSET使用不同参数",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "line": 86
+        }
+      ],
+      "observedOperations": [
+        "user"
+      ]
+    },
+    "0cbb5b5eac7d506843ef38d858f3cd3a1a411027be4188be61aa754f97526cbf": {
+      "classification": "authorization",
+      "reason": "共享策略所属组织存在性范围校验",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyAccess.cs",
+          "line": 14
+        }
+      ],
+      "observedOperations": [
+        "policy"
+      ]
+    },
+    "0d58c77c90a69c670f02f0ed7514945f1f65f68f068d733323491c085fa8c027": {
+      "classification": "authorization",
+      "reason": "Cookie主体激活状态及SecurityStamp校验",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.ControlPlane/ControlPlaneApp.cs",
+          "line": 122
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule",
+        "api",
+        "application",
+        "cluster",
+        "node",
+        "node-event",
+        "policy",
+        "policy-reference",
+        "reference",
+        "release",
+        "route",
+        "snapshot",
+        "user"
+      ]
+    },
+    "0f4084c1a95536245a52de079bef2a5f0a43b4ef0d7bb2458860df965da0db57": {
+      "classification": "data",
+      "reason": "读取路由绑定及有效策略配置",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/RoutePolicyService.cs",
+          "line": 15
+        }
+      ],
+      "observedOperations": [
+        "route"
+      ]
+    },
+    "153f0c33add16b24fb6b35ba865307f4ae06d5a3f131a08f9455307919b8ade7": {
+      "classification": "authorization",
+      "reason": "请求指定环境是否属于授权项目的范围校验",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Observability/ObservationScopeResolver.cs",
+          "line": 31
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule"
+      ]
+    },
+    "196cbd7584dc08a16d186aff3ba77cda01a636585813e67dc62e8654dcbdda0a": {
+      "classification": "authorization",
+      "reason": "读取当前操作者的显式组织项目环境授权",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Security/AuthorizationService.cs",
+          "line": 24
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule",
+        "api",
+        "application",
+        "cluster",
+        "node",
+        "node-event",
+        "policy",
+        "policy-reference",
+        "reference",
+        "release",
+        "route",
+        "snapshot"
+      ]
+    },
+    "2a3e61e386ff07754c512ce5369592b52158e8eece23632a8d7eed461acfa275": {
+      "classification": "data",
+      "reason": "项目内API完整列表数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Catalog/CatalogService.cs",
+          "line": 21
+        }
+      ],
+      "observedOperations": [
+        "api"
+      ]
+    },
+    "2de0cf6ee8499788c49d651aaebf7b90ef62ca901549ea0d810d90d16d90ec03": {
+      "classification": "authorization",
+      "reason": "RequireAsync当前操作者激活状态检查",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Security/AuthorizationService.cs",
+          "line": 12
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule",
+        "api",
+        "application",
+        "cluster",
+        "node",
+        "node-event",
+        "policy",
+        "policy-reference",
+        "reference",
+        "release",
+        "route",
+        "snapshot",
+        "user"
+      ]
+    },
+    "31cea96ed2013ce89f56044f3cd80014f763f4e6aa5a567ba380b4ef664760e5": {
+      "classification": "data",
+      "reason": "用户DTO中的角色ID关联数据，不是操作者角色授权",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "line": 89
+        }
+      ],
+      "observedOperations": [
+        "user"
+      ]
+    },
+    "3302831913f086359bdc012f110925e8606d181b0d9ef1026768e5e6dd8daa22": {
+      "classification": "data",
+      "reason": "节点详情及事件页DTO所需环境运行版本状态",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "line": 20
+        }
+      ],
+      "observedOperations": [
+        "node-event"
+      ]
+    },
+    "3a94dab928b8cf933e68a78c54818d2a805275924205a0dc751c340d0d82d61c": {
+      "classification": "data",
+      "reason": "告警状态DTO时效性所需数据库时间读取",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Alerts/AlertEvaluationLeaseStore.cs",
+          "line": 18
+        }
+      ],
+      "observedOperations": [
+        "alert-rule"
+      ]
+    },
+    "3eb1055adeae15d47067b46d7a1704833467482b4ec8bed6b74f6a531c2b77a2": {
+      "classification": "authorization",
+      "reason": "操作者角色功能权限与组织匹配检查",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Security/AuthorizationService.cs",
+          "line": 14
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule",
+        "api",
+        "application",
+        "cluster",
+        "node",
+        "node-event",
+        "policy",
+        "policy-reference",
+        "reference",
+        "release",
+        "route",
+        "snapshot",
+        "user"
+      ]
+    },
+    "403af629a614468f0121b55d82002045608a7cfcd50bd61ba16225441f846400": {
+      "classification": "data",
+      "reason": "节点事件页读取被查询节点详情及所属环境",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "line": 20
+        }
+      ],
+      "observedOperations": [
+        "node-event"
+      ]
+    },
+    "42a6d84e68d869ad05f0aa32130a4305d55f8e287f725741dd6ad72fb766ac00": {
+      "classification": "data",
+      "reason": "发布完整DTO中的Gateway ACK数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Releases/ReleaseService.cs",
+          "line": 29
+        }
+      ],
+      "observedOperations": [
+        "release"
+      ]
+    },
+    "46fcafb6a1a5e7687f9cf1341c70b4863f42e968bdc723c09c28f0019bd19aa4": {
+      "classification": "authorization",
+      "reason": "所测列表通过ScopeResolver读取父环境以建立权限范围；DTO运行状态另有模板",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Governance/ScopeResolver.cs",
+          "line": 13
+        }
+      ],
+      "observedOperations": [
+        "cluster",
+        "node",
+        "node-event",
+        "policy",
+        "policy-reference",
+        "reference",
+        "release",
+        "route",
+        "snapshot"
+      ]
+    },
+    "479b0e0939c5062a34e0daf8313f4cbd1ecf179615a69a45c66f4be75966ba2a": {
+      "classification": "data",
+      "reason": "环境发布完整主记录与冻结候选列表",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Releases/ReleaseService.cs",
+          "line": 72
+        }
+      ],
+      "observedOperations": [
+        "release"
+      ]
+    },
+    "48e4d3afb8a37738c9fe826a8ca5214881f6d965645021129598d058c5999566": {
+      "classification": "data",
+      "reason": "策略保护引用的所有待审批冻结候选字节",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyReferenceService.cs",
+          "line": 29
+        }
+      ],
+      "observedOperations": [
+        "policy-reference",
+        "reference"
+      ]
+    },
+    "4f1da233bed6932e092a4c4511a347f52fdc48645fb629681901a38cf2735412": {
+      "classification": "authorization",
+      "reason": "平台资源操作要求系统PlatformAdmin角色",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Security/AuthorizationService.cs",
+          "line": 20
+        }
+      ],
+      "observedOperations": [
+        "user"
+      ]
+    },
+    "53f01dad346d93e7850fdc4e34139497e2ef0b3aeef965874ab8def1a95b7b71": {
+      "classification": "data",
+      "reason": "保护引用的desired环境配置版本描述数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyReferenceService.cs",
+          "line": 33
+        }
+      ],
+      "observedOperations": [
+        "policy-reference",
+        "reference"
+      ]
+    },
+    "5e3bf2a1abbf4946ac9c86d29f79e4c3c8e42fb2cbdaac13268e44105e944fb2": {
+      "classification": "data",
+      "reason": "Cluster DTO的Destination关联数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Routing/ClusterService.cs",
+          "line": 14
+        }
+      ],
+      "observedOperations": [
+        "cluster"
+      ]
+    },
+    "5ff9575eca3f9e9d7100f8e8a3a1b18c479392992372f60ec5af12366bc8eea1": {
+      "classification": "data",
+      "reason": "观测域中的完整API名称资源数据，保守计入数据而非授权",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Observability/ObservationScopeResolver.cs",
+          "line": 36
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule"
+      ]
+    },
+    "600a8f08735008018e5b7f357b165f2ff2e342e90bd026633315e4c8a4b59c50": {
+      "classification": "authorization",
+      "reason": "观测请求项目组织归属范围校验",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Observability/ObservationScopeResolver.cs",
+          "line": 15
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule"
+      ]
+    },
+    "61b1c180d20273c8771eeae0a423ade8c437e0837819481092497e85073fb05c": {
+      "classification": "authorization",
+      "reason": "所测列表通过ScopeResolver读取父项目以建立权限范围",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Governance/ScopeResolver.cs",
+          "line": 11
+        }
+      ],
+      "observedOperations": [
+        "api",
+        "cluster",
+        "node",
+        "node-event",
+        "policy",
+        "policy-reference",
+        "reference",
+        "release",
+        "route",
+        "snapshot"
+      ]
+    },
+    "63cc3ff4300c98fdf46d952f1c7abbc4a067762a248f051d7e4e30bb2d8f2141": {
+      "classification": "data",
+      "reason": "观测域Destination名称与Enabled资源数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Observability/ObservationScopeResolver.cs",
+          "line": 38
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule"
+      ]
+    },
+    "6b174959bc2abf5341bf6ec66e38e9f68446b53797d172f34a4de2197e2a5aa4": {
+      "classification": "data",
+      "reason": "完整发布DTO的审批步骤与意见数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Releases/ReleaseService.cs",
+          "line": 28
+        }
+      ],
+      "observedOperations": [
+        "release"
+      ]
+    },
+    "6ea1c84b92c2e2cfd96ff501e2237fdc8a1da74cb70be9744270eb8aa117cbe6": {
+      "classification": "data",
+      "reason": "保护引用的已应用节点配置版本描述数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyReferenceService.cs",
+          "line": 34
+        }
+      ],
+      "observedOperations": [
+        "policy-reference",
+        "reference"
+      ]
+    },
+    "6fba605b6f7c31c510097b2ba42a716d7df6ce08b5213858499c4a0fdf05fcce": {
+      "classification": "data",
+      "reason": "保护引用解析所需真实运行Snapshot字节",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyReferenceService.cs",
+          "line": 36
+        }
+      ],
+      "observedOperations": [
+        "policy-reference",
+        "reference"
+      ]
+    },
+    "7139272721c19b3488bdad9997bb93982a58df0b0438ced8e423fb601b54a421": {
+      "classification": "data",
+      "reason": "告警规则本页预期环境的评估状态数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Alerts/AlertRuleService.cs",
+          "line": 35
+        }
+      ],
+      "observedOperations": [
+        "alert-rule"
+      ]
+    },
+    "761e90f9f9dc6cdba21555f9294a4cefbc03e8b51edbcc23d6e4c38d0e62829d": {
+      "classification": "authorization",
+      "reason": "操作者授权Scope父项目Active状态与组织归属检查",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Security/AuthorizationService.cs",
+          "line": 30
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule",
+        "api",
+        "application",
+        "cluster",
+        "node",
+        "node-event",
+        "policy",
+        "policy-reference",
+        "reference",
+        "release",
+        "route",
+        "snapshot"
+      ]
+    },
+    "768d113807d8b1530301add58870bb8ddb72c81b79d77ce75d728c85427b54ea": {
+      "classification": "data",
+      "reason": "Working策略绑定路由和API引用数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyReferenceService.cs",
+          "line": 27
+        }
+      ],
+      "observedOperations": [
+        "policy-reference",
+        "reference"
+      ]
+    },
+    "76a92708dbecc33821d01c513de5f2eee066c0552a7ddf582fdf8b7d47ff47b1": {
+      "classification": "authorization",
+      "reason": "操作者授权Scope环境Active状态与父项目归属检查",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Security/AuthorizationService.cs",
+          "line": 31
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule",
+        "cluster",
+        "node",
+        "node-event",
+        "policy",
+        "policy-reference",
+        "reference",
+        "release",
+        "route",
+        "snapshot"
+      ]
+    },
+    "794e4f3a11b5e90dd68eaf05ebbc8d1d2922b588b822de74dc18054b60213afc": {
+      "classification": "data",
+      "reason": "观测域期望网关节点名数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Observability/ObservationScopeResolver.cs",
+          "line": 40
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule"
+      ]
+    },
+    "7d8d78f03c4a852d6bad5615503a50c48c54df1f3e1afcd6ae8e947cbb09102f": {
+      "classification": "data",
+      "reason": "环境内Cluster完整主列表数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Routing/ClusterService.cs",
+          "line": 18
+        }
+      ],
+      "observedOperations": [
+        "cluster"
+      ]
+    },
+    "835c18c0ca798cb6fd480605b628674f26c4706ca09cc51c6c9898228168b492": {
+      "classification": "authorization",
+      "reason": "操作者授权Scope组织Active状态检查",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Security/AuthorizationService.cs",
+          "line": 29
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule",
+        "api",
+        "application",
+        "cluster",
+        "node",
+        "node-event",
+        "policy",
+        "policy-reference",
+        "reference",
+        "release",
+        "route",
+        "snapshot"
+      ]
+    },
+    "85b7575ded74690ebe09391f815e3756fe2736b3f17fcdc78f1cd3c38bae7adb": {
+      "classification": "data",
+      "reason": "环境Snapshot版本主列表数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "line": 27
+        }
+      ],
+      "observedOperations": [
+        "snapshot"
+      ]
+    },
+    "89db0285cd36e90dcf875bf18552dd3329db8bca2cc1cbd60c0f9d864ccf3377": {
+      "classification": "data",
+      "reason": "引用服务读取策略主记录；同时用于保护读取，保守全部计入数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyReferenceService.cs",
+          "line": 17
+        }
+      ],
+      "observedOperations": [
+        "policy-reference",
+        "reference"
+      ]
+    },
+    "98d65f49534897ff27d1f034288bf18ad2e2036942fa7783bb6291443425450a": {
+      "classification": "data",
+      "reason": "告警事件完整主列表数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Alerts/AlertEventService.cs",
+          "line": 40
+        }
+      ],
+      "observedOperations": [
+        "alert-event"
+      ]
+    },
+    "9a1cee61e49d4e058bc0a3233722a4faba2ee283774254587f6c2f329be5c98f": {
+      "classification": "data",
+      "reason": "完整发布DTO的目标网关数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Releases/ReleaseService.cs",
+          "line": 29
+        }
+      ],
+      "observedOperations": [
+        "release"
+      ]
+    },
+    "9ac3deab901e96525bc8e1a096841ae7f799cbcef10aec58b26de5f0f56d9616": {
+      "classification": "data",
+      "reason": "观测域中的Working策略ID数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Observability/ObservationScopeResolver.cs",
+          "line": 41
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule"
+      ]
+    },
+    "a27f250a29125f2ecce071569f35b037658fea99f9e1bfdee782c844bcaca3d3": {
+      "classification": "data",
+      "reason": "节点事件列表最近10000条数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "line": 22
+        }
+      ],
+      "observedOperations": [
+        "node-event"
+      ]
+    },
+    "a91f21af4009fe703865429cfff6fa8695a47714c8cbbf2932020a159fe8c171": {
+      "classification": "data",
+      "reason": "组织内共享及项目策略完整主列表",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyService.cs",
+          "line": 21
+        }
+      ],
+      "observedOperations": [
+        "policy"
+      ]
+    },
+    "ab4552f9048560195beb2c27196f01a9513827943dd1faf181642c5aa72424de": {
+      "classification": "data",
+      "reason": "告警规则完整主列表数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Alerts/AlertRuleService.cs",
+          "line": 44
+        }
+      ],
+      "observedOperations": [
+        "alert-rule"
+      ]
+    },
+    "aba21d10bb5dc63747261900234549132ad84a07edbb2841abd6d40727579cd1": {
+      "classification": "data",
+      "reason": "环境路由完整主列表数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Routing/RouteService.cs",
+          "line": 29
+        }
+      ],
+      "observedOperations": [
+        "route"
+      ]
+    },
+    "ae82491b13f462a756c041e8a02f36dab66676fa45127da1e6d3e5fdab2c2d31": {
+      "classification": "data",
+      "reason": "路由DTO的基础Timeout数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Routing/RouteService.cs",
+          "line": 22
+        }
+      ],
+      "observedOperations": [
+        "route"
+      ]
+    },
+    "c0f763b9702964a32ed53cb29d3f9939b9d5bb83fb4b1afc66921458bc2bbecd": {
+      "classification": "data",
+      "reason": "告警事件DTO中的状态转换关联数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Alerts/AlertEventService.cs",
+          "line": 19
+        }
+      ],
+      "observedOperations": [
+        "alert-event"
+      ]
+    },
+    "ca4275fad970d2a0ade18763a13770b6a4a4b9397f383627e21568069d9b5772": {
+      "classification": "data",
+      "reason": "Snapshot DTO的最新发布记录关联数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "line": 28
+        }
+      ],
+      "observedOperations": [
+        "snapshot"
+      ]
+    },
+    "cd298facaae71aef9917b33a94866b649e2ad2c2dd4059181985ee014977f5ab": {
+      "classification": "data",
+      "reason": "规则系统运行状态所需组织Active数据，不是操作者授权",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Alerts/AlertRuleScopeResolver.cs",
+          "line": 30
+        }
+      ],
+      "observedOperations": [
+        "alert-rule"
+      ]
+    },
+    "dcb749bafcea18b10546edc5bfeba6e4582527c0210ed3188e1ae21754f74d1c": {
+      "classification": "data",
+      "reason": "Snapshot DTO的SizeBytes关联数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "line": 28
+        }
+      ],
+      "observedOperations": [
+        "snapshot"
+      ]
+    },
+    "de507ca94c8db049683dc5a5997366a440d867f75b4168ef83cc172ba5546592": {
+      "classification": "data",
+      "reason": "观测域完整Application名称数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Observability/ObservationScopeResolver.cs",
+          "line": 37
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule"
+      ]
+    },
+    "e49108db1b775da77758e759250c27761f799b5bf36221f47191154046214358": {
+      "classification": "data",
+      "reason": "观测域历史Snapshot策略ID JSON数据投影",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Observability/ObservationScopeResolver.cs",
+          "line": 45
+        }
+      ],
+      "observedOperations": [
+        "alert-event",
+        "alert-rule"
+      ]
+    },
+    "e87a900dcd502aa77d9e54eab0a54d65e145079d79db27a868910bf4b432a57c": {
+      "classification": "authorization",
+      "reason": "组织共享策略通过操作者显式后代Scope确认可读",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyAccess.cs",
+          "line": 21
+        }
+      ],
+      "observedOperations": [
+        "policy",
+        "reference"
+      ]
+    },
+    "f17c376593a80dcb0b0e6852d6d6887ae78ba877708e231d91e48db0ff69be5a": {
+      "classification": "data",
+      "reason": "用户主列表Total计数",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "line": 86
+        }
+      ],
+      "observedOperations": [
+        "user"
+      ]
+    },
+    "f7996f6a40f8d44f3e7c75855ea941ec08cea67aee60eccff870f33e3294e24a": {
+      "classification": "data",
+      "reason": "网关节点DTO的环境desired版本和部署序列数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "line": 18
+        }
+      ],
+      "observedOperations": [
+        "node"
+      ]
+    },
+    "f9c9ebb400466ea2ba7e84dc8331c640cff885cd322cd5f4be1a4371fd249a77": {
+      "classification": "data",
+      "reason": "应用完整主列表数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Applications/ApplicationService.cs",
+          "line": 20
+        }
+      ],
+      "observedOperations": [
+        "application"
+      ]
+    },
+    "fa2f1162102e9ef92b2098d528b5213ce949cadfac72c740532ad0e9d5ce75c8": {
+      "classification": "data",
+      "reason": "保护引用所有组织环境描述数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Policies/PolicyReferenceService.cs",
+          "line": 28
+        }
+      ],
+      "observedOperations": [
+        "policy-reference",
+        "reference"
+      ]
+    },
+    "ff5b0751b1646278a3d964917a069113d228d19bb97d7fa5bddad0755ec6d167": {
+      "classification": "data",
+      "reason": "环境网关节点完整主列表数据",
+      "sourceRefs": [
+        {
+          "commit": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "line": 18
+        }
+      ],
+      "observedOperations": [
+        "node"
+      ]
+    }
+  }
+}

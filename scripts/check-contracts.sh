@@ -12,6 +12,9 @@ esac
 contract_node=${WEBAPI_NODE:-$(command -v node || true)}
 if [ -z "$contract_node" ]; then contract_node=/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node; fi
 [ -x "$contract_node" ] || { echo 'Set WEBAPI_NODE to an existing Node executable.' >&2; exit 3; }
+if [ -n "${WEBAPI_CONTRACT_TEST_SUBNET:-}" ]; then
+  "$contract_node" --input-type=module -e 'const value=process.env.WEBAPI_CONTRACT_TEST_SUBNET;const match=/^10\.251\.(\d{1,3})\.0\/24$/.exec(value??"");if(!match||Number(match[1])>255){process.stderr.write("Invalid explicit contract test subnet; use an inspected free 10.251.x.0/24 subnet.\n");process.exit(3);}'
+fi
 export WEBAPI_CONTRACT_TEST_OWNER
 WEBAPI_CONTRACT_TEST_OWNER=$("$contract_node" -e 'process.stdout.write(crypto.randomUUID())')
 export WEBAPI_CONTRACT_TEST_PROJECT="webapi-contracts-test-$WEBAPI_CONTRACT_TEST_OWNER"
@@ -20,6 +23,16 @@ export WEBAPI_CONTRACT_TEST_DIRECTORY="$PWD/.runtime/$WEBAPI_CONTRACT_TEST_PROJE
 mkdir -m 700 "$WEBAPI_CONTRACT_TEST_DIRECTORY"
 "$contract_node" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";fs.writeFileSync(process.env.WEBAPI_CONTRACT_TEST_DIRECTORY+"/postgres-password",crypto.randomBytes(32).toString("base64url"),{mode:0o600});'
 compose_args=(-p "$WEBAPI_CONTRACT_TEST_PROJECT" -f deploy/compose.test.yml -f deploy/compose.contracts-test.yml)
+if [ -n "${WEBAPI_CONTRACT_TEST_SUBNET:-}" ]; then
+  cat > "$WEBAPI_CONTRACT_TEST_DIRECTORY/network.yml" <<YAML
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: $WEBAPI_CONTRACT_TEST_SUBNET
+YAML
+  compose_args+=(-f "$WEBAPI_CONTRACT_TEST_DIRECTORY/network.yml")
+fi
 contract_seed=${WEBAPI_CONTRACT_NUGET_SEED:-webapi-enterprise-core-test_nuget-test}
 seed_available=no
 if [[ "$contract_seed" =~ ^[a-zA-Z0-9_.-]+$ ]] && docker volume inspect "$contract_seed" >/dev/null 2>&1; then
@@ -50,7 +63,7 @@ cleanup(){
     fi
   done
   compose down --volumes --remove-orphans >/dev/null || exit 3
-  rm -f "$WEBAPI_CONTRACT_TEST_DIRECTORY/postgres-password" "$WEBAPI_CONTRACT_TEST_DIRECTORY/nuget-seed.yml"
+  rm -f "$WEBAPI_CONTRACT_TEST_DIRECTORY/postgres-password" "$WEBAPI_CONTRACT_TEST_DIRECTORY/nuget-seed.yml" "$WEBAPI_CONTRACT_TEST_DIRECTORY/network.yml"
   rmdir "$WEBAPI_CONTRACT_TEST_DIRECTORY"
   exit "$prior"
 }
@@ -59,7 +72,7 @@ compose up -d --wait postgres redis
 compose run --rm sdk bash -c '
   set -euo pipefail
   mkdir -p /test-src /root/.nuget/packages
-  tar --exclude=bin --exclude=obj --exclude=node_modules -cf - -C /workspace Directory.Build.props Directory.Packages.props WebApi.Enterprise.sln .config src tests third_party deploy scripts | tar -xf - -C /test-src
+  tar --exclude=bin --exclude=obj --exclude=node_modules -cf - -C /workspace Directory.Build.props Directory.Packages.props WebApi.Enterprise.sln .config src tests third_party deploy scripts tools | tar -xf - -C /test-src
   if [ -d /nuget-seed ]; then cp -a /nuget-seed/. /root/.nuget/packages/; fi
   cd /test-src
   dotnet restore WebApi.Enterprise.sln --locked-mode
