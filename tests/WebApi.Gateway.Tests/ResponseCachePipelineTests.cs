@@ -11,7 +11,7 @@ public sealed class ResponseCachePipelineTests
         await using var s=new CachePipelineFixture();await s.Init();using var first=await s.Get();Assert.Equal("business-data-1",await first.Content.ReadAsStringAsync());await s.WaitWrites(1);await Task.Delay(1100);
         using var second=await s.Get(1);Assert.Equal("business-data-1",await second.Content.ReadAsStringAsync());Assert.Equal(1,s.Calls);
         Assert.NotEqual(first.Headers.GetValues("X-WebApi-Trace-Id").Single(),second.Headers.GetValues("X-WebApi-Trace-Id").Single());Assert.NotEqual("upstream-private-trace",second.Headers.GetValues("X-WebApi-Trace-Id").Single());Assert.True(second.Headers.Age>=TimeSpan.FromSeconds(1));
-        Assert.Equal(first.Headers.GetValues("X-WebApi-Deployment-Sequence"),second.Headers.GetValues("X-WebApi-Deployment-Sequence"));
+        Assert.Equal(first.Headers.GetValues("X-WebApi-Deployment-Sequence"),second.Headers.GetValues("X-WebApi-Deployment-Sequence"));GatewayPlatformHeaderBoundaryTests.AssertPlatformResponse(first);GatewayPlatformHeaderBoundaryTests.AssertPlatformResponse(second);
     }
     [Theory][InlineData(false)][InlineData(true)]public async Task JwtUsersIsolatedAndBearerRefreshPartitionIsExplicit(bool forward)
     {

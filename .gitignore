@@ -9,3 +9,6 @@ node_modules/
 **/TestResults/
 console/dist/
 deliverables/
+
+# Also ignore linked dependency directories in isolated worktrees.
+console/node_modules

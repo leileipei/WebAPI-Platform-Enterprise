@@ -1,0 +1,244 @@
+{
+  "complete": true,
+  "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+  "imageId": "sha256:8c7f62d35af69e2fa5b12d0962916e28da0f1edc367571b3f764a81f396c522e",
+  "projectName": "webapi-enterprise-local-test-ce73f0c7-62d1-4c37-ba48-a3b6e5c7c30c",
+  "checks": {
+    "headerBoundary": true,
+    "sharedBudget": true,
+    "audit": true,
+    "redisFailure": true,
+    "proxyRecreation": true,
+    "backupRestore": true
+  },
+  "ui": {
+    "verified": true,
+    "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+    "recordedAt": "2026-10-09T00:44:30.806801+00:00",
+    "method": "actual Codex in-app browser on immutable isolated installation",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "checks": {
+      "quotaFieldsAndLoginEffect": true,
+      "previewDifference": true,
+      "saveSucceeded": true,
+      "revisionConflictRetainsInput": true,
+      "conflictRequiresReadAdoptRepreview": true,
+      "actual429WithRetrySeconds": true,
+      "actual503DuringRedisStop": true,
+      "unauthorizedFieldsClearedAndSaveDisabled": true,
+      "screenshotsExcludePasswordCookieCredential": true
+    },
+    "screenshots": [
+      {
+        "path": "docs/evidence/security-hardening/ui/login-429-1440.jpg",
+        "width": 1440,
+        "height": 1000,
+        "sha256": "67e048eac7ea381357d3647ca3ba5e47224a24c6094261fee0eb1d5811f4ed5e"
+      },
+      {
+        "path": "docs/evidence/security-hardening/ui/login-503-1440.jpg",
+        "width": 1440,
+        "height": 1000,
+        "sha256": "0395614fa565f5008530ed2dd14b4fe6cd279df8aac1f993c1646a05b4b7ffbd"
+      },
+      {
+        "path": "docs/evidence/security-hardening/ui/security-conflict-1440.jpg",
+        "width": 1440,
+        "height": 1000,
+        "sha256": "cda1cc871e16c363e51df6c73d0703ec7a9291758eb865c07f029be360bd558b"
+      },
+      {
+        "path": "docs/evidence/security-hardening/ui/security-permission-1440.jpg",
+        "width": 1440,
+        "height": 1000,
+        "sha256": "50fcb86ab8498b0a11c1c170e8981c30987b83d429999d0f2fcac624b4f40699"
+      },
+      {
+        "path": "docs/evidence/security-hardening/ui/security-preview-1440.jpg",
+        "width": 1440,
+        "height": 1000,
+        "sha256": "e062d1bccb28eb1b87d3ef853423152097e389af5053e927a0eeafd29bd829fa"
+      },
+      {
+        "path": "docs/evidence/security-hardening/ui/security-saved-1440.jpg",
+        "width": 1440,
+        "height": 1000,
+        "sha256": "43818bbb6ddd254a0d9103d09a4ca7fb3c6e8f037534d850591f23bad0563747"
+      },
+      {
+        "path": "docs/evidence/security-hardening/ui/security-settings-1440.jpg",
+        "width": 1440,
+        "height": 1000,
+        "sha256": "6e0b606aff60506e1d9234ee7d75b478888719bf4bc17617ddbe02ed0b6c7abf"
+      }
+    ],
+    "productionAcceptance": false
+  },
+  "review": {
+    "verified": true,
+    "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+    "independentSourceReview": true,
+    "critical": 0,
+    "important": 0,
+    "minorDeferred": 1,
+    "reviewedSourceFileCount": 78,
+    "sourceUnchangedSinceReview": true,
+    "report": "docs/evidence/security-hardening/source-review.md"
+  },
+  "classification": "isolated-local-security-acceptance",
+  "limitations": [
+    "Production TLS, real ingress proxies and enterprise infrastructure are not accepted here."
+  ],
+  "budget": {
+    "attempts": 100,
+    "admitted": 10,
+    "rejected": 90,
+    "instances": 2
+  },
+  "audit": {
+    "failed": 10,
+    "throttled": 1,
+    "anonymous": true
+  },
+  "missing": [],
+  "failureHistory": [
+    {
+      "stage": "coldRestoreNetworkCreation",
+      "reason": "Docker predefined address pools fully subnetted",
+      "originalAttemptPassed": false,
+      "ownedFailedRestoreEnvironmentsCleaned": 2
+    },
+    {
+      "stage": "crossGatewayCacheTestInput",
+      "reason": "Different request Host partitions; Node fetch ignored explicit Host override",
+      "originalAttemptPassed": false,
+      "correctedWith": "Node HTTP with exact common Host",
+      "sameSourceImage": true
+    }
+  ],
+  "restore": {
+    "verified": true,
+    "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+    "originalHmacPreserved": true,
+    "existingUserIdPreserved": true,
+    "hashesVerified": true,
+    "newOwner": true,
+    "cleanup": {
+      "containersRemaining": 0,
+      "volumesRemaining": 0,
+      "secretFilesRemaining": 0
+    }
+  },
+  "tests": {
+    "domain": {
+      "passed": 699,
+      "failed": 0,
+      "skipped": 0,
+      "command": "bash scripts/check-contracts.sh domain -p:RestoreLockedMode=true"
+    },
+    "integration": {
+      "passed": 744,
+      "failed": 0,
+      "skipped": 0,
+      "command": "bash scripts/check-contracts.sh integration -p:RestoreLockedMode=true"
+    },
+    "gateway": {
+      "passed": 141,
+      "failed": 0,
+      "skipped": 0,
+      "command": "bash scripts/check-contracts.sh gateway -p:RestoreLockedMode=true"
+    },
+    "console": {
+      "passed": 209,
+      "failed": 0,
+      "skipped": 0,
+      "buildPassed": true
+    },
+    "runtimeAndConsole": {
+      "passed": 327,
+      "failed": 0,
+      "skipped": 0,
+      "includesConsoleTests": true
+    }
+  },
+  "baselineRevision": "a11d41250c76eb42831797e9fabd5405906dc256",
+  "sourceCommit": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+  "recordedAt": "2026-10-09T00:45:21.032819+00:00",
+  "fixedImage": {
+    "verified": true,
+    "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+    "imageId": "sha256:8c7f62d35af69e2fa5b12d0962916e28da0f1edc367571b3f764a81f396c522e"
+  },
+  "runtimeProxyIntegration": {
+    "verified": true,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "consoleRecreationRestartAndSecretPreserved": true
+  },
+  "existing4192": {
+    "upgraded": false,
+    "testingAgainstExistingAccounts": false,
+    "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+    "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+    "readOnlyPreflightVerified": true
+  },
+  "productionAcceptance": {
+    "executed": false
+  },
+  "sourceFilesUnchangedSinceIndependentReview": true,
+  "cacheRetryRollback": {
+    "verified": true,
+    "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+    "imageId": "sha256:8c7f62d35af69e2fa5b12d0962916e28da0f1edc367571b3f764a81f396c522e",
+    "cacheHit": {
+      "verified": true,
+      "sharedAcrossGateways": true,
+      "currentTraceDifferent": true,
+      "backendAttempt": 1,
+      "age": "1"
+    },
+    "retry": {
+      "verified": true,
+      "attemptCount": 2
+    },
+    "rollback": {
+      "verified": true,
+      "fromSchema": "2.2",
+      "toSchema": "2.0",
+      "originalHash": "1ceeb951f09afb3faaa4eff0d1ccdbd80c9b5189d6519e9c4af696cbb4972ead",
+      "restoredHash": "1ceeb951f09afb3faaa4eff0d1ccdbd80c9b5189d6519e9c4af696cbb4972ead",
+      "gatewayRestartVerified": true
+    },
+    "headers": {
+      "requestAndResponseForgeryRemoved": true,
+      "credentialNotForwarded": true
+    }
+  },
+  "legacySecurityRow": {
+    "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+    "verified": true,
+    "seededPersistedFormat": "legacy-four-field-row",
+    "newImageReadsDefaults": true,
+    "persistedRowNotRewritten": true,
+    "originalRevision": 1
+  },
+  "deferredMinors": [
+    "Cold restore failure diagnostic lacks second owner fixture location",
+    "Leading --profile cleanup attempts missing secret volume probe on partial initialization"
+  ],
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  },
+  "upgradePreparation": {
+    "verified": true,
+    "executed": false,
+    "document": "docs/deployment/security-hardening-4192-upgrade-preparation.md",
+    "preflight": "docs/evidence/security-hardening/4192-upgrade-preflight.json"
+  }
+}

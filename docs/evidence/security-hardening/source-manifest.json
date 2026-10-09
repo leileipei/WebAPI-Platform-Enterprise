@@ -1,0 +1,318 @@
+{
+  "baseline": "a11d41250c76eb42831797e9fabd5405906dc256",
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "765b54783568217a8a0fc2e92329b2cb159c3b7af558a13042017b6d306cc44b"
+    },
+    {
+      "path": "WebApi.Enterprise.sln",
+      "sha256": "a3d42442176d3f2d0703890ebecd8d77c545994123163eb744f2cedbfa8248a2"
+    },
+    {
+      "path": "console/src/api/transport.d.mts",
+      "sha256": "b7166c12ae040f4534803784ed2de2dd7a3f31bc1b3027e8c93466a451ad4852"
+    },
+    {
+      "path": "console/src/api/transport.mjs",
+      "sha256": "40c937512245b80d890eb280e685bc5c6fa65fce4101a8488633ddaed796ecb4"
+    },
+    {
+      "path": "console/src/auth/login-protection.d.mts",
+      "sha256": "6c7cb2f86fd7a96d42db6b0b7a829ce5c0238d3cc0a4ef8c2561d41d9c40241a"
+    },
+    {
+      "path": "console/src/auth/login-protection.mjs",
+      "sha256": "5cbc051acf44e8a2996cf364a9c0f70900bbc7e265756c4fccd1ee32561e0a2a"
+    },
+    {
+      "path": "console/src/pages/Login.tsx",
+      "sha256": "2c884eb8f956452b92bb05a03a864f9c4605e3cd0d6f7281cca69ee1f4cbe975"
+    },
+    {
+      "path": "console/src/pages/SystemSettings.tsx",
+      "sha256": "e7f1aebfe56e18be27906c7b4fdc73b5f4325139f37be6d9cf49bf25eedb5880"
+    },
+    {
+      "path": "console/tests/login-protection.test.mjs",
+      "sha256": "c36c5e1d80dac68697c51519a4d6229e63d5d7fd6d910ff92a41c59bb541a482"
+    },
+    {
+      "path": "console/tests/system-settings.test.mjs",
+      "sha256": "19efae00e28a5c1deb8a05c6d7173628e2a7d7deda6c229820eab5ae2692831a"
+    },
+    {
+      "path": "deploy/compose.runtime.yml",
+      "sha256": "98899d3caac7946551cb69ea2a4ec36c91f24a68cffe6b976dc72ccef45da924"
+    },
+    {
+      "path": "deploy/runtime/init-volumes.sh",
+      "sha256": "90bce3e04a328ba59dd23d194b2d4d547ab48aad82b5db9509e332d7c26d3565"
+    },
+    {
+      "path": "docs/deployment/security-hardening-runbook.md",
+      "sha256": "716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"
+    },
+    {
+      "path": "docs/session-security.md",
+      "sha256": "a7dfe5780dbded468e12ecb1b0a6d3cb69eea7ef4019789427e46578a86e2efc"
+    },
+    {
+      "path": "scripts/runtime/acceptance-backup.mjs",
+      "sha256": "21f3e819df1663afa05b2e1813f80bed6d648ba05883ebec07af1a9de4bdba9f"
+    },
+    {
+      "path": "scripts/runtime/configure.mjs",
+      "sha256": "d57f8ee38d62f9fec79a02dfc0431dcaf7adc8cda5c4f50a867c1e41246db953"
+    },
+    {
+      "path": "scripts/runtime/context.mjs",
+      "sha256": "250d5de7c146cabdc41a7833985b7d335b0b239d1bb4f16126c73e8246b9e8d4"
+    },
+    {
+      "path": "scripts/runtime/lifecycle.mjs",
+      "sha256": "9982e45d3edf3b8e87e44c99ccfeec7e9b43c5f47031c77b453763daf1ada9e2"
+    },
+    {
+      "path": "scripts/runtime/status.mjs",
+      "sha256": "c3b0fd39a8ecb16e233389050e37a8735c8ba0205811d0354e6605884cd9ca16"
+    },
+    {
+      "path": "scripts/security/acceptance.mjs",
+      "sha256": "71877fda174491ef188344af3ced0205449bbb724bd91a1c328ecb1fc02eb3e4"
+    },
+    {
+      "path": "scripts/security/proxy-trust.mjs",
+      "sha256": "a4714ec70390f4de99ba366f10b722de1e56174c2db79e7f6bff5edb30979e65"
+    },
+    {
+      "path": "scripts/security/runtime-secrets.mjs",
+      "sha256": "e40c5faba2aa94ec2dc20b2a5988045b593239fa3284138cd5216b5c8d813e12"
+    },
+    {
+      "path": "src/WebApi.ConsoleHost/ConsoleHostApp.cs",
+      "sha256": "a1b935cd858f9a424fcc7cc2f495c7e8a3a52bf188a497460f11ed457ad7c5b5"
+    },
+    {
+      "path": "src/WebApi.ConsoleHost/WebApi.ConsoleHost.csproj",
+      "sha256": "86512952754392a616fa0b06330b34b1d9899d9dd368d634b943fbefef0ea382"
+    },
+    {
+      "path": "src/WebApi.ConsoleHost/packages.lock.json",
+      "sha256": "c41665e5285fc675c39a4e0231d3e11c98a970a617a1467a55f979585d4624bc"
+    },
+    {
+      "path": "src/WebApi.Contracts/Security/LoginProtectionContracts.cs",
+      "sha256": "b5b947c8596636e5ac591d8781c3967f85a4204f4fb4a4746e76a094c386a91f"
+    },
+    {
+      "path": "src/WebApi.ControlPlane/ControlPlaneApp.cs",
+      "sha256": "e1d87877b2ec0032656b9f6dad5ea9877aed94439fa1e540745a87b3ec77ee1c"
+    },
+    {
+      "path": "src/WebApi.ControlPlane/Security/SessionEndpoints.cs",
+      "sha256": "d6fb08743733144ba334e1ff0ae57bc24e5d6e01ac67a4bd9e6182ecf227f408"
+    },
+    {
+      "path": "src/WebApi.ControlPlane/WebApi.ControlPlane.csproj",
+      "sha256": "05ca273e8f1ee3fb3f3271c50644555d9a8662203313d6d7e2c456155e7a5431"
+    },
+    {
+      "path": "src/WebApi.ControlPlane/packages.lock.json",
+      "sha256": "37599e2de24c2c1c6a159040eb0dfd155bf73c253149fd95784f11f8d98e2ef2"
+    },
+    {
+      "path": "src/WebApi.Domain/Security/LoginProtectionRules.cs",
+      "sha256": "90dc4e0458a2fc8e9e4b1335c7a4dbd33922239a8681db7b1d702513b4a719d3"
+    },
+    {
+      "path": "src/WebApi.Gateway/GatewayApp.cs",
+      "sha256": "449edff2e24c3a4f0f3e37bd6c066167d079c2787a5c5a999e058e795c0f1a75"
+    },
+    {
+      "path": "src/WebApi.Gateway/Policies/CacheResponseMiddleware.cs",
+      "sha256": "32b75983c9b05a30597c30ef60e9bcc46469b33bb5469ef5886dabd6ad8ee62d"
+    },
+    {
+      "path": "src/WebApi.Gateway/Security/ApiKeyMiddleware.cs",
+      "sha256": "6279f82cf0fdce6900e45637afa37f4b1ce8dd0ec437e6abf4dbfc82a525c123"
+    },
+    {
+      "path": "src/WebApi.Gateway/Security/GatewayPlatformHeadersMiddleware.cs",
+      "sha256": "9335677720c145383e560d953efdad8adde50935d5dbc0cc669672c07ca0d7ea"
+    },
+    {
+      "path": "src/WebApi.Gateway/WebApi.Gateway.csproj",
+      "sha256": "c53d052f3f333eb493305c38072ff44c49b94d61f5cff6fd2b1f7f14ac69ff89"
+    },
+    {
+      "path": "src/WebApi.Gateway/packages.lock.json",
+      "sha256": "36e96f11bf85d9c4139c36c0936cfd533fd5ed8c89e582cecfcde2b30771b870"
+    },
+    {
+      "path": "src/WebApi.HttpSecurity/ForwardingHeaderSanitizer.cs",
+      "sha256": "3e4b4b748a43c9760584a1b71c8e2e98d00cc9e91b4c4eb6382dafaed5ecbca8"
+    },
+    {
+      "path": "src/WebApi.HttpSecurity/TrustedProxyExtensions.cs",
+      "sha256": "d68c7b52ff20c00287c7fea79bfa99a297ac4de66ee86acfd5c53d48a178d951"
+    },
+    {
+      "path": "src/WebApi.HttpSecurity/TrustedProxySettings.cs",
+      "sha256": "a4de192d1ee9aea8a2aba60d23c05d15a39e2e194349847ebcbb23ff43c63346"
+    },
+    {
+      "path": "src/WebApi.HttpSecurity/WebApi.HttpSecurity.csproj",
+      "sha256": "0ed71d97467a13c850e8f184a3012140951b64a16f156c0ce5339925648a9612"
+    },
+    {
+      "path": "src/WebApi.HttpSecurity/packages.lock.json",
+      "sha256": "03eeadc5ef377c17f787ab65f41fb4c8a9c936bb7f7f4171111fdeec8a81cb46"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Security/AuthenticationAuditWriter.cs",
+      "sha256": "3c833d870654632580e0def1d199aa6a9d2afd01f9cab26f2049ae7c571a1bae"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Security/LoginBudgetScript.cs",
+      "sha256": "5a1328beacb784adf033001be7c6e6f4b39bcfc4d79c16a7d9f93667c17c0798"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Security/LoginKeyHasher.cs",
+      "sha256": "118b0ae7051092e00c9c46b7106681b4f169ee543c35526eb2d95cde0ae5a3b8"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Security/LoginProtectionDeploymentSettings.cs",
+      "sha256": "feaf065b082052a1e646bb4bf9b5ed8ea283c66f45d3f447a268d0257918a93c"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Security/LoginProtectionStartupCheck.cs",
+      "sha256": "4b537de767de8c516d5f5144ff968eb036e4d71a9fe3ae6c2b1a7969e4e6a0a6"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Security/RedisAuthenticationAuditGate.cs",
+      "sha256": "896688096457cc6ed661d1863b27d9020fa0778d2703fa7e1fa8409fbaac1eb1"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Security/RedisLoginRateStore.cs",
+      "sha256": "d60b14bb8d878bb61e2f4816c192c6900fcd8549311902fa407a6adbaa84610b"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Settings/SettingsValues.cs",
+      "sha256": "357fe2912e61bef333f065b3cdb632b315f62678ab78a1590e58ce7d7927ffad"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Settings/SystemSettingsService.cs",
+      "sha256": "5ab2e30474bb7f647cd3028d1fb50fc1ff7acc9f20a55532e109ef4d94c61125"
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Settings/SystemSettingsValidator.cs",
+      "sha256": "253d7ed7eca5c2a178f3d61fc588c750e372665de6d372d4d514c3e1580fee8f"
+    },
+    {
+      "path": "tests/WebApi.Domain.Tests/LoginProtectionRulesTests.cs",
+      "sha256": "d5b6d7bb924a176ca47787b43a31e15a2194692adb40b87177396c58dc5e85d0"
+    },
+    {
+      "path": "tests/WebApi.Domain.Tests/SystemSettingsValidationTests.cs",
+      "sha256": "cba7c8fc6d864d75be8a6a8efaa020b2acecd510598171791acdc3692e654f4a"
+    },
+    {
+      "path": "tests/WebApi.Gateway.Tests/GatewayPlatformHeaderBoundaryTests.cs",
+      "sha256": "01503ec1ae1df154ab98ef4ca005d8c5bcbbaa907e11d59542e57c3c4b94d206"
+    },
+    {
+      "path": "tests/WebApi.Gateway.Tests/ResponseCachePipelineTests.cs",
+      "sha256": "bb3b45cab07214bdc120c5ffa0f60ec8726edbcc1e0e55364044a79351a64b3c"
+    },
+    {
+      "path": "tests/WebApi.Gateway.Tests/Support/CachePipelineFixture.cs",
+      "sha256": "a9803d6fb9a499dbcc9a626b97680e483b203ea6b5f2b089c0ad26fd14db6f71"
+    },
+    {
+      "path": "tests/WebApi.Gateway.Tests/packages.lock.json",
+      "sha256": "dda3b41e533b0bf6133fd983aca6ae91e48fab0c3649455d06139f5686a80084"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/AuthenticationAuditTests.cs",
+      "sha256": "cc79cede49ad1123b1bbff4754f38de040b8fa77103217d7fc663608025b4349"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/LoginProtectionPipelineTests.cs",
+      "sha256": "eb1e194bd6515df9d2563dfb316db5bc781b07745bb1f0617a96c7ab4bdf124d"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/LoginRateStoreTests.cs",
+      "sha256": "8ecf6d9cb4cd91dcd7c694c7bd8426879e0543c02a7a41cdaf0e90abd7fa6ea2"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/OidcProviderIsolationTests.cs",
+      "sha256": "550ef216603f15c17d32b84ade2921dde11784423f43673cf5e11f361678ce19"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/PersistentSessionTests.cs",
+      "sha256": "830e99af8e6b6a8fd38e4fb43e8daba66009497dc07a1c68bfe4296e33845348"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/SsoSessionRevocationTests.cs",
+      "sha256": "a68bffa7bd2a98018f78093f5247c147b781fa9c2ddb9e0f8ad8f7213da3e055"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/SystemSettingsCommandTests.cs",
+      "sha256": "401247c048004157aacc0540e942eca664e7900be8e720e3c6e3d99dbd84f9e4"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/SystemSettingsConsumerTests.cs",
+      "sha256": "c6c7f33fe722cd0c2380a8dc9adb752fb25e68a7e2765ac32f1a880008f55eab"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/SystemSettingsPersistenceTests.cs",
+      "sha256": "c231f62ff92e58a00d5fc68738e00284a0d1fb271ed0fc164d8547c606ce284b"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/TrustedProxyBoundaryTests.cs",
+      "sha256": "003d0341e55f805788b634b4d0952fe0e25306f29a9115f47c80530fadc35408"
+    },
+    {
+      "path": "tests/WebApi.Integration.Tests/packages.lock.json",
+      "sha256": "8bf81ee5e64b63628c725b21754f64669c907ad48e8ada8fa58b68cb08580353"
+    },
+    {
+      "path": "tests/WebApi.TestSupport/Support/ApiFixture.cs",
+      "sha256": "8da57ff10cf5cf7dd0a6ab1ac145b13ab1ee3125b8d506df2811d34848354599"
+    },
+    {
+      "path": "tests/WebApi.TestSupport/Support/LoginProtectionTestConfiguration.cs",
+      "sha256": "1635748bb1794e2727c4c6feef0ddd1b35b9c3d45278ec93c4e61cf40504a0b3"
+    },
+    {
+      "path": "tests/WebApi.TestSupport/packages.lock.json",
+      "sha256": "22906cbd48ae0c49db275fab6ff6bf0c7b01ecf6ac53a943617d6f10138f3beb"
+    },
+    {
+      "path": "tests/runtime/integration/security-proxy.test.mjs",
+      "sha256": "dfb7c5d7f244b0ea97b825a7155e45c540fd7e87f7f66f10cb558e5be2812bb3"
+    },
+    {
+      "path": "tests/runtime/lifecycle.test.mjs",
+      "sha256": "a06b66371e97c742cc185a3a6259475b66e4d8802c8d2470249f066fd6215c08"
+    },
+    {
+      "path": "tests/runtime/proxy-trust.test.mjs",
+      "sha256": "babf405f8c9d0957158503f4f09a10071f7a439e3e57488c275248f6e03cb34a"
+    },
+    {
+      "path": "tests/runtime/security-acceptance.test.mjs",
+      "sha256": "3852068c23df6ee69b1e77ae74c59533c4df4c73eb836510185e27d7d7585f38"
+    },
+    {
+      "path": "tests/runtime/security-secrets.test.mjs",
+      "sha256": "85c5e984389bd641126deeed3531a917d60bf867fad4bbfaad20e95ef032b325"
+    },
+    {
+      "path": "tests/runtime/status.test.mjs",
+      "sha256": "89576b208dbb09e4b420292a6ffd65f43de380d0762b52e57ff9905b30ce8a04"
+    }
+  ],
+  "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432"
+}

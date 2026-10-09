@@ -1,0 +1,28 @@
+{
+  "verified": true,
+  "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+  "imageId": "sha256:8c7f62d35af69e2fa5b12d0962916e28da0f1edc367571b3f764a81f396c522e",
+  "cacheHit": {
+    "verified": true,
+    "sharedAcrossGateways": true,
+    "currentTraceDifferent": true,
+    "backendAttempt": 1,
+    "age": "1"
+  },
+  "retry": {
+    "verified": true,
+    "attemptCount": 2
+  },
+  "rollback": {
+    "verified": true,
+    "fromSchema": "2.2",
+    "toSchema": "2.0",
+    "originalHash": "1ceeb951f09afb3faaa4eff0d1ccdbd80c9b5189d6519e9c4af696cbb4972ead",
+    "restoredHash": "1ceeb951f09afb3faaa4eff0d1ccdbd80c9b5189d6519e9c4af696cbb4972ead",
+    "gatewayRestartVerified": true
+  },
+  "headers": {
+    "requestAndResponseForgeryRemoved": true,
+    "credentialNotForwarded": true
+  }
+}

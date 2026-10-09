@@ -89,7 +89,9 @@
         "Observability__CursorSigningSecretFile": "/run/secrets/cursor-signing",
         "Observability__TraceSampleRatio": "0.1",
         "DataProtection__KeysDirectory": "/keys",
-        "DataProtection__ApplicationName": "WebApi.Enterprise.Local.v1"
+        "DataProtection__ApplicationName": "WebApi.Enterprise.Local.v1",
+        "Authentication__LoginProtection__HmacSecretFile": "/run/secrets/login-protection-hmac",
+        "Authentication__LoginProtection__RedisPrefix": "webapi:local-login"
       },
       "volumes": [
         "secrets-control-plane:/run/secrets:ro",

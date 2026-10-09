@@ -44,7 +44,7 @@ internal sealed class CachePipelineFixture : IAsyncDisposable
         },ConfigureBackendA=a=>a.Use(async(ctx,next)=>{
             if(ctx.Request.Path=="/health"){await next();return;}
             var n=Interlocked.Increment(ref Calls);
-            ctx.Response.Headers.CacheControl="public,max-age=60";ctx.Response.Headers["X-WebApi-Trace-Id"]="upstream-private-trace";
+            ctx.Response.Headers.CacheControl="public,max-age=60";ctx.Response.Headers["X-WebApi-Trace-Id"]="upstream-private-trace";ctx.Response.Headers["X-WebApi-Fake"]="upstream-fake";
             if(Respond is not null)await Respond(ctx,n);else await ctx.Response.WriteAsync("business-data-"+n);
         }) };
     }

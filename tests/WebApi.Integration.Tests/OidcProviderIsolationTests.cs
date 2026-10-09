@@ -96,7 +96,7 @@ public sealed class OidcProviderIsolationTests
     {
         await using var fixture=new OidcProtocolFixture();await fixture.InitializeAsync();await File.WriteAllTextAsync(fixture.SecretPath,"new-instance-unrotated-secret");
         await using var second=ControlPlaneApp.Build(["--environment","Development"],builder=>{
-            builder.WebHost.UseUrls("http://127.0.0.1:0");builder.Logging.ClearProviders();builder.Configuration["ConnectionStrings:WebApi"]=fixture.Api.Database.ConnectionString;
+            builder.WebHost.UseUrls("http://127.0.0.1:0");builder.Logging.ClearProviders();builder.Configuration["ConnectionStrings:WebApi"]=fixture.Api.Database.ConnectionString;LoginProtectionTestConfiguration.Apply(builder,fixture.Api.LoginProtectionDirectory,fixture.Api.LoginProtectionDeploymentId);
             builder.Configuration["DataProtection:KeysDirectory"]=fixture.DataProtectionDirectory;builder.Configuration["DataProtection:ApplicationName"]=fixture.DataProtectionApplication;
             builder.Services.Configure<SsoOptions>(options=>{options.FixtureEnabled=true;options.AllowedOrigins=[fixture.Identity.Origin];options.SecretFiles=new(){{"enterprise",fixture.SecretPath}};options.PublicBaseUrl=fixture.Api.Client.BaseAddress!.GetLeftPart(UriPartial.Authority);});
         });await second.StartAsync();var address=second.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();

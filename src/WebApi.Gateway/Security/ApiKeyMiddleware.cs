@@ -45,9 +45,6 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
             }
             var raw = ctx.Request.Headers["X-API-Key"].ToString();
             ctx.Request.Headers.Remove("X-API-Key");
-            if (mode == AuthenticationMode.JWT)
-                foreach (var name in ctx.Request.Headers.Keys.Where(k => k.StartsWith("X-WebApi-", StringComparison.OrdinalIgnoreCase)).ToArray())
-                    ctx.Request.Headers.Remove(name);
             ctx.Request.Headers["X-WebApi-Deployment-Sequence"] = generation.Envelope.DeploymentSequence.ToString(CultureInfo.InvariantCulture);
             ctx.Request.Headers["X-WebApi-Trace-Id"] = ctx.TraceIdentifier;
             var now = DateTimeOffset.UtcNow;

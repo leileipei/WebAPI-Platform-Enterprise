@@ -1,0 +1,134 @@
+{
+  "recordedAt": "2026-10-09T01:26:29.089428+00:00",
+  "complete": true,
+  "classification": "local-merge-verification",
+  "branch": "feature/core-loop",
+  "baseRevision": "a11d41250c76eb42831797e9fabd5405906dc256",
+  "fastForwardRevision": "89b1be070a017530fc964e27314231c630f2e373",
+  "productSourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+  "reviewedProductSourceFileCount": 78,
+  "reviewedProductSourceUnchanged": true,
+  "tests": {
+    "domain": {
+      "passed": 699,
+      "failed": 0,
+      "skipped": 0,
+      "command": "bash scripts/check-contracts.sh domain -p:RestoreLockedMode=true",
+      "logSha256": "16183a1fe6fc897a128081c7fa2532b016d348fe0353e7d33063c5a43f9bd1fb",
+      "localLog": ".superpowers/merge-security-hardening-20261009/logs/domain.log"
+    },
+    "integration": {
+      "passed": 744,
+      "failed": 0,
+      "skipped": 0,
+      "command": "bash scripts/check-contracts.sh integration -p:RestoreLockedMode=true",
+      "logSha256": "c90d0191e4b459841733ebf656bf0bc53bebaa77cf100752866783e0839e8266",
+      "localLog": ".superpowers/merge-security-hardening-20261009/logs/integration.log"
+    },
+    "gateway": {
+      "passed": 141,
+      "failed": 0,
+      "skipped": 0,
+      "command": "bash scripts/check-contracts.sh gateway -p:RestoreLockedMode=true",
+      "logSha256": "60f11a9eb3b84b61f369c30f1545e61257cab10e9182281dbdb2983301b34a91",
+      "localLog": ".superpowers/merge-security-hardening-20261009/logs/gateway-cache-isolated.log"
+    },
+    "runtimeAndConsole": {
+      "passed": 327,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "029b5fac0b07e669cd37c03ce3a111f9de822a339a8f44af13847634c0ace363",
+      "localLog": ".superpowers/merge-security-hardening-20261009/logs/runtime-unit-authorized.log",
+      "includesConsoleTests": true
+    },
+    "console": {
+      "passed": 209,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "e3f5e3a2cec583f61f5aa0ec02d414fc3db526733716d81cf99de7af93185636",
+      "localLog": ".superpowers/merge-security-hardening-20261009/logs/console-build-authorized.log",
+      "buildPassed": true
+    }
+  },
+  "uniqueTestsPassed": 1911,
+  "originalWorkingChanges": {
+    "files": 647,
+    "byteHashesUnchanged": 646,
+    "gitignoreOriginalDeltaPreserved": true,
+    "identicalUntrackedPlansNowTracked": 2,
+    "privateSafetyDirectory": ".superpowers/merge-security-hardening-20261009"
+  },
+  "correctiveTestChange": {
+    "path": "tests/WebApi.Gateway.Tests/RedisResponseCacheTests.cs",
+    "sha256": "9733f1111ace513c6092ba81ef23161d6923441a5c0d8cf3b281b70c166de11e",
+    "changes": [
+      "Bounded read-only readiness before positive controls and before constructing corrupted/expired indexes",
+      "Isolate cache test collection from unrelated test load; preserve internal two-client 2100-write concurrency"
+    ],
+    "productTimeoutUnchanged": true,
+    "writeRetriesAdded": false,
+    "independentReview": {
+      "reviewer": "merge_cache_readiness_review",
+      "critical": 0,
+      "important": 0,
+      "minor": 0
+    }
+  },
+  "failureHistory": [
+    {
+      "stage": "sandbox-test-launch",
+      "reason": "Loopback listener EPERM; authorized local rerun passed",
+      "productChange": false
+    },
+    {
+      "stage": "original-ignore-protection-check",
+      "reason": "Raw diff includes new blob hashes after fast-forward; exact expected bytes and original deltas verified",
+      "originalChangesLost": false
+    },
+    {
+      "stage": "gateway-initial",
+      "passed": 140,
+      "failed": 1,
+      "reason": "Initial cache Stored control returned Bypass before corrupted-index mutation"
+    },
+    {
+      "stage": "temporary-diagnostic-launch",
+      "reason": "Nested shell quote syntax; no tests ran; corrected isolated runner executed",
+      "passed": false
+    },
+    {
+      "stage": "isolated-cache-diagnostic",
+      "passed": 7,
+      "failed": 1,
+      "timeoutObserved": true,
+      "mainSourceInstrumented": false
+    },
+    {
+      "stage": "gateway-readiness-only",
+      "passed": 140,
+      "failed": 1,
+      "reason": "Concurrent-write initial Stored control still Bypass under shared host/test load"
+    },
+    {
+      "stage": "gateway-cache-isolated",
+      "passed": 141,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "cleanup": {
+    "privateScratchArchived": true,
+    "releaseManifestPreservedInMain": true,
+    "worktreeRemovalPending": false,
+    "worktreeRemoved": true,
+    "localFeatureBranchRemoved": true,
+    "recordedAt": "2026-10-09T01:26:58.946169+00:00"
+  },
+  "pushExecuted": false,
+  "deploymentExecuted": false,
+  "productionAcceptance": false,
+  "limitations": [
+    "Cache test isolation does not establish a high-load throughput baseline",
+    "Existing console bundle-size warning remains"
+  ]
+}

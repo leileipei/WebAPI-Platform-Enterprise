@@ -1,3 +1,5 @@
+using WebApi.Contracts.Security;
+using WebApi.HttpSecurity;
 using WebApi.ControlPlane.Sso;
 using WebApi.ControlPlane.Comparisons;
 using WebApi.Infrastructure.Comparisons;
@@ -40,11 +42,17 @@ public static class ControlPlaneApp
 {
     public static WebApplication Build(string[] args, Action<WebApplicationBuilder>? configure = null)
     {
-        var builder=WebApplication.CreateBuilder(args);configure?.Invoke(builder);
+        var builder=WebApplication.CreateBuilder(args);configure?.Invoke(builder);builder.Services.AddTrustedProxyBoundary(builder.Configuration);
         builder.WebHost.ConfigureKestrel(options=>options.Limits.MaxRequestBodySize=8*1024*1024);
         var connection=builder.Configuration.GetConnectionString("WebApi")??DatabaseSettings.ConnectionString();
         builder.Services.AddDbContext<WebApiDbContext>(options=>options.UseNpgsql(connection));
-        builder.Services.AddScoped<IPasswordHasher<UserRecord>,PasswordHasher<UserRecord>>();
+        builder.Services.TryAddScoped<IPasswordHasher<UserRecord>,PasswordHasher<UserRecord>>();
+        builder.Services.AddSingleton(sp=>LoginProtectionDeploymentSettings.Read(sp.GetRequiredService<IConfiguration>()));
+        builder.Services.AddSingleton(sp=>new LoginKeyHasher(sp.GetRequiredService<LoginProtectionDeploymentSettings>().HmacSecret));
+        builder.Services.TryAddSingleton<ILoginRateStore>(sp=>{var settings=sp.GetRequiredService<LoginProtectionDeploymentSettings>();return new RedisLoginRateStore(settings.RedisConnection,settings.RedisPrefix);});
+        builder.Services.TryAddSingleton<IAuthenticationAuditGate>(sp=>{var settings=sp.GetRequiredService<LoginProtectionDeploymentSettings>();return new RedisAuthenticationAuditGate(settings.RedisConnection,settings.RedisPrefix);});
+        builder.Services.TryAddScoped<IAuthenticationAuditWriter,AuthenticationAuditWriter>();
+        builder.Services.AddHostedService<LoginProtectionStartupCheck>();
         builder.Services.AddHttpContextAccessor();builder.Services.AddScoped<IdempotentCommandExecutor>();
         builder.Services.AddScoped(sp=>new CommandRequestContext(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Request.Headers["Idempotency-Key"].ToString()??""));builder.Services.AddScoped(sp=>new AuditRequestMetadata(sp.GetRequiredService<IHttpContextAccessor>().HttpContext?.Connection.RemoteIpAddress));
         builder.Services.AddScoped<ApprovalFlowService>();builder.Services.AddScoped<ReleaseService>();builder.Services.AddScoped<ApprovalEligibilityService>();builder.Services.AddScoped<ApprovalInboxService>();builder.Services.AddScoped<ReleaseCandidateBuilder>();
@@ -121,7 +129,7 @@ public static class ControlPlaneApp
         builder.Logging.AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics",LogLevel.Warning);
         builder.Services.AddAuthorization();
         builder.Services.AddAntiforgery(options=>{options.HeaderName="X-CSRF-Token";options.Cookie.Name=builder.Configuration["Antiforgery:CookieName"]??"WebApi.Csrf";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;options.Cookie.SecurePolicy=local?CookieSecurePolicy.SameAsRequest:CookieSecurePolicy.Always;});
-        var app=builder.Build();
+        var app=builder.Build();app.UseTrustedProxyBoundary();
         app.Use(ProblemDetailsMapping.HandleAsync);
         app.UseMiddleware<SsoProtocolMiddleware>();app.UseAuthentication();app.UseAuthorization();
         app.Use(async(ctx,next)=>{

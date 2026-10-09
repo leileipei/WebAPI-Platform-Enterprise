@@ -9,7 +9,7 @@ public static class SystemSettingsValidator
 {
     public static readonly string[] Groups=["security","release","gateway","audit","notification"];
     public static readonly IReadOnlyDictionary<string,string[]> Fields=new Dictionary<string,string[]> {
-        ["security"]=["sessionTtlMinutes","passwordMinLength","passwordComplexity","allowedOrigins"],
+        ["security"]=["sessionTtlMinutes","passwordMinLength","passwordComplexity","allowedOrigins","loginIpMaxAttempts","loginIpWindowSeconds","loginAccountMaxAttempts","loginAccountWindowSeconds"],
         ["release"]=["productionApprovalLevels","snapshotRetentionCount"],
         ["gateway"]=["defaultRouteTimeoutMs","maxRequestBodyMb","configRefreshIntervalSeconds"],
         ["audit"]=["auditRetentionDays","auditExportEnabled"],
@@ -39,7 +39,7 @@ public static class SystemSettingsValidator
         switch(group){
         case "security":
             var ttl=Number(v,"sessionTtlMinutes",5,1440);var length=Number(v,"passwordMinLength",16,128);var complexity=Text(v,"passwordComplexity",false)!;if(complexity is not ("LengthOnly" or "LettersAndDigits" or "UpperLowerDigitSpecial"))throw Invalid("passwordComplexity");
-            var origins=Get(v,"allowedOrigins");if(origins.ValueKind!=JsonValueKind.Array||origins.GetArrayLength()>32)throw Invalid("allowedOrigins");var list=new List<string>();foreach(var origin in origins.EnumerateArray()){if(origin.ValueKind!=JsonValueKind.String)throw Invalid("allowedOrigins");var text=origin.GetString()!;if(text.Length>2048||text.Any(char.IsControl)||text.Contains('*')||!Uri.TryCreate(text,UriKind.Absolute,out var uri)||uri.Scheme is not ("https" or "http")||uri.Host.Length==0||uri.UserInfo.Length>0||uri.Query.Length>0||uri.Fragment.Length>0||uri.AbsolutePath!="/")throw Invalid("allowedOrigins");list.Add(uri.GetLeftPart(UriPartial.Authority));}value=new SecuritySettings(ttl,length,complexity,list.Distinct(StringComparer.Ordinal).ToArray());break;
+            var origins=Get(v,"allowedOrigins");if(origins.ValueKind!=JsonValueKind.Array||origins.GetArrayLength()>32)throw Invalid("allowedOrigins");var list=new List<string>();foreach(var origin in origins.EnumerateArray()){if(origin.ValueKind!=JsonValueKind.String)throw Invalid("allowedOrigins");var text=origin.GetString()!;if(text.Length>2048||text.Any(char.IsControl)||text.Contains('*')||!Uri.TryCreate(text,UriKind.Absolute,out var uri)||uri.Scheme is not ("https" or "http")||uri.Host.Length==0||uri.UserInfo.Length>0||uri.Query.Length>0||uri.Fragment.Length>0||uri.AbsolutePath!="/")throw Invalid("allowedOrigins");list.Add(uri.GetLeftPart(UriPartial.Authority));}value=new SecuritySettings(ttl,length,complexity,list.Distinct(StringComparer.Ordinal).ToArray(),Number(v,"loginIpMaxAttempts",1,10000),Number(v,"loginIpWindowSeconds",1,3600),Number(v,"loginAccountMaxAttempts",1,10000),Number(v,"loginAccountWindowSeconds",1,3600));break;
         case "release":value=new ReleaseSettings(Number(v,"productionApprovalLevels",2,2),Number(v,"snapshotRetentionCount",10,10000));break;
         case "gateway":value=new GatewaySettings(Number(v,"defaultRouteTimeoutMs",1,300000),Number(v,"maxRequestBodyMb",1,256),Number(v,"configRefreshIntervalSeconds",1,60));break;
         case "audit":var enabled=Get(v,"auditExportEnabled");if(enabled.ValueKind is not (JsonValueKind.True or JsonValueKind.False))throw Invalid("auditExportEnabled");value=new AuditSettings(Number(v,"auditRetentionDays",30,3650),enabled.GetBoolean());break;
