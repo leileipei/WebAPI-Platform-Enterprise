@@ -103,9 +103,9 @@ record PipelineActionRequest(string Comment = "");
 
 **Files:** Create `Delivery/Pipelines/PipelineDefinitionService.cs`、`PipelineActivationService.cs`、`Releases/PipelineEndpoints.cs`；Modify `Delivery/ProjectDeliveryPolicyService.cs`、`Delivery/DeliveryLockCoordinator.cs`、`Contracts/Releases/DeliveryContracts.cs`、`ControlPlaneApp.cs`；Test `tests/WebApi.Integration.Tests/PipelineDefinitionTests.cs`、`PipelineActivationTests.cs`。基础设施与控制平面路径使用前述src目录。ETag传递及命令回执复用现有模式；PublishVersion与Archive端点要求If-Match。
 
-**Interfaces:** Produces `CreateAsync(Guid projectId, PipelineDefinition request, ActorContext actor, CancellationToken ct)` / `SaveAsync(Guid id, PipelineDefinition request, string? etag, ActorContext actor, CancellationToken ct)`→`Task<PipelineDto>`；`PublishVersionAsync(Guid id, string? etag, ActorContext actor, CancellationToken ct)`→`Task<PipelineVersionDto>`；`ArchiveAsync(Guid id, string? etag, ActorContext actor, CancellationToken ct)`→`Task<PipelineDto>`；Activation `ActivateAsync(Guid projectId, ActivatePipelineRequest request, ActorContext actor, CancellationToken ct)` / `RestoreAsync(Guid projectId, RestoreDeliveryPolicyRequest request, ActorContext actor, CancellationToken ct)`→现有policy回执。P3完善全部共用路径锁序，本任务激活已遵守完整顺序。
+**Interfaces:** Produces `CreateAsync(Guid projectId, PipelineDefinition request, ActorContext actor, CancellationToken ct)` / `SaveAsync(Guid id, PipelineDefinition request, string? etag, ActorContext actor, CancellationToken ct)`→`Task<PipelineDto>`；`PublishVersionAsync(Guid id, string? etag, ActorContext actor, CancellationToken ct)`→`Task<PipelineVersionDto>`；`ArchiveAsync(Guid id, string? etag, ActorContext actor, CancellationToken ct)`→`Task<PipelineDto>`；Activation `ActivateAsync(Guid projectId, ActivatePipelineRequest request, string? etag, ActorContext actor, CancellationToken ct)` / `RestoreAsync(Guid projectId, RestoreDeliveryPolicyRequest request, string? etag, ActorContext actor, CancellationToken ct)`→现有policy回执。P3完善全部共用路径锁序，本任务激活已遵守完整顺序。
 
-- [ ] **Step 1:** 写`PublishDoesNotActivateAndVersionNeverMutates`、`ActivateRequiresProductionEntryFlowAndRealBaseline`、`PausedAndTimedOutRunBlockModeSwitch`、`LegacyPutCannotDisablePipelineMode`；覆盖archive/幂等/ETag/模板修订和切规则并发：
+- [x] **Step 1:** 写`PublishDoesNotActivateAndVersionNeverMutates`、`ActivateRequiresProductionEntryFlowAndRealBaseline`、`PausedAndTimedOutRunBlockModeSwitch`、`LegacyPutCannotDisablePipelineMode`；覆盖archive/幂等/ETag/模板修订和切规则并发：
 
 ```csharp
 [Fact] async Task PublishDoesNotActivateAndVersionNeverMutates() {
@@ -120,10 +120,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineDefinitionTests|FullyQualifiedName~PipelineActivationTests'`，新端点404/旧普通PUT绕过等行为断言须RED；不以端点编译失败代替。
-- [ ] **Step 3:** 实现上述签名、canonical内容+SHA-256和冻结审批Profile；GET/POST项目列表、GET/PUT定义、POST versions、POST archive（选定`/release-pipelines/{id}/archive`）、activate-pipeline及`/projects/{id}/delivery-policy/restore-connection`。激活核验所有目标写权限、当前模板、生产入口/真实基线、任何非终态Run及未结束发布/旧晋级/恢复；持治理→项目锁重新读，再UUID环境锁。摘要来源/目标为最后非生产→生产。发布和草稿编辑不激活，不自动迁移Legacy项目。
-- [ ] **Step 4:** 两个新类GREEN，回归`DeliveryPersistenceTests`、`PromotionSubmissionTests`；并发两次激活只产生一次有效规则修订，错误412/409及幂等异正文符合原规范。
-- [ ] **Step 5:** 提交 `feat(pipeline): version definitions and activate project delivery policy`，只包含本任务文件及测试支持扩展。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineDefinitionTests|FullyQualifiedName~PipelineActivationTests'`，新端点404/旧普通PUT绕过等行为断言须RED；不以端点编译失败代替。
+- [x] **Step 3:** 实现上述签名、canonical内容+SHA-256和冻结审批Profile；GET/POST项目列表、GET/PUT定义、POST versions、POST archive（选定`/release-pipelines/{id}/archive`）、activate-pipeline及`/projects/{id}/delivery-policy/restore-connection`。激活核验所有目标写权限、当前模板、生产入口/真实基线、任何非终态Run及未结束发布/旧晋级/恢复；持治理→项目锁重新读，再UUID环境锁。摘要来源/目标为最后非生产→生产。发布和草稿编辑不激活，不自动迁移Legacy项目。
+- [x] **Step 4:** 两个新类GREEN，回归`DeliveryPersistenceTests`、`PromotionSubmissionTests`；并发两次激活只产生一次有效规则修订，错误412/409及幂等异正文符合原规范。
+- [x] **Step 5:** 提交 `feat(pipeline): version definitions and activate project delivery policy`，只包含本任务文件及测试支持扩展。
 
 ## Task 3 (P3): 类型化门禁上下文与共用锁序
 
