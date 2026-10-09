@@ -294,7 +294,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Produces `PauseAsync(Guid runId, PipelineActionRequest request, string? etag, ActorContext actor, CancellationToken ct)` / `ResumeAsync(...)` / `CancelAsync(...)`→`Task<PipelineRunDto>`；`ReopenAsync(Guid stageId, PipelineActionRequest request, string? etag, ActorContext actor, CancellationToken ct)`→`Task<PipelineStageDto>`。每个签名参数相同，Resume/Cancel仅替换方法名；Run级要求全链可见及项目read_write，阶段Reopen只要求真实当前阶段/相邻授权。
 
-- [ ] **Step 1:** 覆盖未发新候选/已发失败原快照retry/已ACK新验证窗口三支、Publishing拒绝、取消不rollback、终态不可恢复；Focus1：
+- [x] **Step 1:** 覆盖未发新候选/已发失败原快照retry/已ACK新验证窗口三支、Publishing拒绝、取消不rollback、终态不可恢复；Focus1：
 
 ```csharp
 [Fact] async Task ReopenSameDeploymentRejectsOldContextAndEarlyEvidence() {
@@ -308,10 +308,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter FullyQualifiedName~PipelineRecoveryTests`，确认RED发生在attempt/context/时间/快照断言；并发reopen只一个新进行中attempt，相同键只同一回执。
-- [ ] **Step 3:** 实现方法及对应POST（pause/resume/cancel/reopen都带If-Match）。手动Paused只有未过期且前提合法才能resume；失败/超时须reopen，新窗口后RunActive。未发取消旧候选新mapping/precheck/approval；已发失败沿原目标精确快照恢复链；已ACK保持实际配置重新验证。OriginAttemptId→原正式申请，Promotion.StageAttemptId不重写，证据存CurrentAttempt；已有在途Publishing先等真实结果。取消保留事实、取消未执行候选，不自动回滚，恢复必须合法当前权限和实际目标；来源不合法不阻断已发精确恢复，但阻断后续新候选。定义/行为不可保全则Invalidated，终态只保留原合法恢复/回滚和历史事件。
-- [ ] **Step 4:** 新类GREEN，跑P2/P4/P5/P7/P8；验证曾Completed/Passed的普通后续发布仍保留原历史、原人工回滚只影响选定环境且不回滚访问地址。
-- [ ] **Step 5:** 提交 `feat(pipeline): reopen stage attempts without rewriting deployment history`。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter FullyQualifiedName~PipelineRecoveryTests`，确认RED发生在attempt/context/时间/快照断言；并发reopen只一个新进行中attempt，相同键只同一回执。
+- [x] **Step 3:** 实现方法及对应POST（pause/resume/cancel/reopen都带If-Match）。手动Paused只有未过期且前提合法才能resume；失败/超时须reopen，新窗口后RunActive。未发取消旧候选新mapping/precheck/approval；已发失败沿原目标精确快照恢复链；已ACK保持实际配置重新验证。OriginAttemptId→原正式申请，Promotion.StageAttemptId不重写，证据存CurrentAttempt；已有在途Publishing先等真实结果。取消保留事实、取消未执行候选，不自动回滚，恢复必须合法当前权限和实际目标；来源不合法不阻断已发精确恢复，但阻断后续新候选。定义/行为不可保全则Invalidated，终态只保留原合法恢复/回滚和历史事件。
+- [x] **Step 4:** 新类GREEN，跑P2/P4/P5/P7/P8；验证曾Completed/Passed的普通后续发布仍保留原历史、原人工回滚只影响选定环境且不回滚访问地址。
+- [x] **Step 5:** 提交 `feat(pipeline): reopen stage attempts without rewriting deployment history`。
 
 ## Task 10 (P10): 授权读取、委托入口、追溯与总览
 
