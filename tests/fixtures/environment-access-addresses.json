@@ -1,0 +1,6 @@
+[
+  {"origin":"HTTPS://API.TEST:443/","prefix":"/gateway/","route":"/mes/orders/{id}","normalizedOrigin":"https://api.test","normalizedPrefix":"/gateway","template":"https://api.test/gateway/mes/orders/{id}"},
+  {"origin":"http://[::1]:4196/","prefix":"/","route":"/orders","normalizedOrigin":"http://[::1]:4196","normalizedPrefix":"/","template":"http://[::1]:4196/orders"},
+  {"origin":"https://例子.测试/","prefix":"","route":"/orders","normalizedOrigin":"https://xn--fsqu00a.xn--0zwm56d","normalizedPrefix":"/","template":"https://xn--fsqu00a.xn--0zwm56d/orders"},
+  {"origin":"https://api.test","prefix":"/gateway","route":"/gateway/orders","normalizedOrigin":"https://api.test","normalizedPrefix":"/gateway","template":"https://api.test/gateway/gateway/orders"}
+]
