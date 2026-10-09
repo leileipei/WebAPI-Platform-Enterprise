@@ -11,7 +11,7 @@ import {verifyEnvironment} from './environment.mjs';
 import {retainSqlAudit} from './audit.mjs';
 import {validateClassificationManifest} from './classification.mjs';
 import {verifyBaselineCompletion} from './completion.mjs';
-import {runWithContainerResources} from './resources.mjs';
+import {runWithContainerResources,verifyResourceDiagnosticCompletion} from './resources.mjs';
 import {verifyExplainCompletion} from './explain.mjs';
 import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,waitReady} from "./runner-support.mjs";
 export async function runPerformance(options,repo){
@@ -25,7 +25,7 @@ export async function runPerformance(options,repo){
     await evidence(path.join(options.output,'manifest.json'),summary);return summary;
   }
   if(!['validate','baseline','explain-one'].includes(options.mode))throw Error('Unsupported performance runner mode; no measurement started');
-  const diagnostic=options.mode==='explain-one'||options.diagnostic==='explain';
+  const diagnostic=options.mode==='explain-one'||options.diagnostic==='explain',resourceDiagnostic=options.mode==='validate'&&options.diagnostic==='resources';
   await fs.mkdir(path.join(repo,'.runtime','performance'),{recursive:true,mode:0o700});
   await fs.mkdir(options.output,{recursive:true});
   if((await fs.readdir(options.output)).length)throw Error('Performance output directory must be empty');
@@ -34,11 +34,16 @@ export async function runPerformance(options,repo){
   try {
     const sourceDirectory=path.join(buildDirectory,'source');
     const identity=options.mode==='validate'?await assembleValidation(repo,sourceDirectory):await exportInputs({repo,source:options.source??options.baseline,harness:options.harness,directory:sourceDirectory});
-    const classificationPath=options.classifications??path.join(sourceDirectory,'scripts/performance/sql-classifications-baseline.json');
-    const classificationInfo=await fs.lstat(classificationPath);if(!classificationInfo.isFile()||classificationInfo.isSymbolicLink()||classificationInfo.size>1024*1024)throw Error('Invalid SQL classification input file');
-    const manifestJson=await fs.readFile(classificationPath,'utf8'),classificationManifest=validateClassificationManifest(JSON.parse(manifestJson),identity.source),classificationManifestHash=createHash('sha256').update(manifestJson).digest('hex');
-    await privateJson(path.join(manifest.directory,'sql-classification-input.json'),{manifestJson,manifestHash:classificationManifestHash,sourceCommit:identity.source});
-    await evidence(path.join(options.output,'sql-classification-manifest.json'),classificationManifest);
+    let classificationManifestHash=null;
+    // A resources-only lifecycle check issues no management queries and makes
+    // no SQL classification claim; SQL-producing modes retain strict source binding.
+    if(!resourceDiagnostic){
+      const classificationPath=options.classifications??path.join(sourceDirectory,'scripts/performance/sql-classifications-baseline.json');
+      const classificationInfo=await fs.lstat(classificationPath);if(!classificationInfo.isFile()||classificationInfo.isSymbolicLink()||classificationInfo.size>1024*1024)throw Error('Invalid SQL classification input file');
+      const manifestJson=await fs.readFile(classificationPath,'utf8'),classificationManifest=validateClassificationManifest(JSON.parse(manifestJson),identity.source);classificationManifestHash=createHash('sha256').update(manifestJson).digest('hex');
+      await privateJson(path.join(manifest.directory,'sql-classification-input.json'),{manifestJson,manifestHash:classificationManifestHash,sourceCommit:identity.source});
+      await evidence(path.join(options.output,'sql-classification-manifest.json'),classificationManifest);
+    }
     const image=await build(manifest,sourceDirectory,identity,options.output);
     composeFile=path.join(sourceDirectory,'deploy/compose.performance.yml');
     environment={...process.env,PERF_OWNER:manifest.owner,PERF_DIRECTORY:manifest.directory,PERF_RESULT_DIRECTORY:options.output,PERF_HARNESS_DIRECTORY:sourceDirectory,PERF_IMAGE:image.imageId,PERF_SUBNET:await pickSubnet()};
@@ -57,7 +62,7 @@ export async function runPerformance(options,repo){
     await privateJson(path.join(manifest.directory,'host-controlplane.json'),{...common,...auditConfig,'ConnectionStrings:WebApi':connection,'Authentication:LoginProtection:HmacSecretFile':'/private/login-hmac','Authentication:LoginProtection:RedisPrefix':'performance-'+manifest.owner,'DataProtection:KeysDirectory':'/private/data-protection','DataProtection:ApplicationName':manifest.project});
     for(const name of ['gateway-a','gateway-b'])await privateJson(path.join(manifest.directory,`host-${name}.json`),{...common,'Gateway:EnvironmentId':envId,'Gateway:NodeName':name,'Gateway:SecretFile':'/private/gateway-secret','Gateway:LkgDirectory':'/private/lkg-'+name,'Gateway:ControlPlaneUrl':'http://controlplane:8080','Gateway:AutomaticUpdates':'false'});
     await compose('up','-d','--wait','postgres','redis');
-    const scales=options.mode==='validate'?[100]:diagnostic?[100,10000]:[100,1000,10000];
+    const scales=resourceDiagnostic?[100,10000]:options.mode==='validate'?[100]:diagnostic?[100,10000]:[100,1000,10000];
     for(const scale of scales){
       await privateJson(path.join(manifest.directory,`spec-${scale}.json`),{scale,seed,windowStart:cryptoStart,windowEnd:cryptoEnd});
       await compose('run','--rm','--no-deps','controlplane','dotnet','WebApi.PerformanceHost.dll','prepare','--spec',`/private/spec-${scale}.json`,'--directory',`/private/scales/${scale}`,'--output',`/results/gateway-${scale}.json`);
@@ -97,7 +102,7 @@ export async function runPerformance(options,repo){
       if(!resources.complete)throw Error('Container resource sampling incomplete; see '+key+'.resources.json');
       return measured;
     };
-    const cells=diagnostic?[]:options.mode==='validate'?['anonymous','api-key','missing-key','rs256','es256','wrong-secret','no-mapping','no-grant'].flatMap(auth=>[1,2].map(concurrency=>({variant:'validation',scale:100,auth,concurrency,repeat:1,nodeMode:'dual',validation:true}))):buildMatrix({variants:['baseline']});
+    const cells=resourceDiagnostic?[1,2,3].map(repeat=>({variant:'validation',scale:10000,auth:'api-key',concurrency:32,repeat,nodeMode:'dual'})):diagnostic?[]:options.mode==='validate'?['anonymous','api-key','missing-key','rs256','es256','wrong-secret','no-mapping','no-grant'].flatMap(auth=>[1,2].map(concurrency=>({variant:'validation',scale:100,auth,concurrency,repeat:1,nodeMode:'dual',validation:true}))):buildMatrix({variants:['baseline']});
     for(const cell of cells){
       const profile=cell.auth==='api-key'||cell.auth==='missing-key'||cell.auth==='wrong-secret'?'apikey':cell.auth==='no-mapping'?'rs256':cell.auth;
       await fs.copyFile(path.join(manifest.directory,`scales/${cell.scale}/${profile}.json`),path.join(manifest.directory,profile+'.json'));await fs.chmod(path.join(manifest.directory,profile+'.json'),0o600);
@@ -109,7 +114,7 @@ export async function runPerformance(options,repo){
       results.push(await monitoredClient(cellKey(cell),cellKey(cell)+'.json'));
     }
     const management=[],scopeManagement=[],referenceManagement=[];
-    for(const scale of scales){
+    for(const scale of resourceDiagnostic?[]:scales){
       if(scale!==100){
         await compose('stop','controlplane');
         // These commands address only the database inside this random owner project.
@@ -136,10 +141,11 @@ export async function runPerformance(options,repo){
       referenceManagement.push(await monitoredClient(`reference-${scale}`,`reference-queries-${scale}.json`,['node','scripts/performance/management-client.mjs','reference',String(scale),String(options.mode==='validate'||diagnostic),String(diagnostic)]));
     }
     const sqlAudit=options['sql-audit']?await retainSqlAudit(path.join(manifest.directory,'sql-audit'),options['sql-audit']):null;
-    status={mode:options.mode,immutable:options.mode!=='validate',identity,image,environment:actualEnvironment.fingerprint,owner:manifest.owner,gatewayCells:results.length,gatewayCellsComplete:results.length>0&&results.every(r=>r.complete&&r.expected>0&&!r.unexpected&&!r.timeout&&!r.incomplete),fullBaselineComplete:false,managementBaselineComplete:!diagnostic&&management.every(m=>m.complete),scopeBaselineComplete:!diagnostic&&scopeManagement.every(m=>m.complete),referenceBaselineComplete:!diagnostic&&referenceManagement.every(m=>m.complete),sqlClassificationComplete:[...management,...scopeManagement,...referenceManagement].every(m=>m.classificationComplete),sqlClassificationManifestHash:classificationManifestHash,containerResourcesComplete:[...results,...management,...scopeManagement,...referenceManagement].every(m=>m.containerResources?.complete===true),sqlAudit};
+    status={mode:options.mode,immutable:options.mode!=='validate',identity,image,environment:actualEnvironment.fingerprint,owner:manifest.owner,gatewayCells:results.length,gatewayCellsComplete:results.length>0&&results.every(r=>r.complete&&r.expected>0&&!r.unexpected&&!r.timeout&&!r.incomplete),fullBaselineComplete:false,managementBaselineComplete:!resourceDiagnostic&&!diagnostic&&management.every(m=>m.complete),scopeBaselineComplete:!resourceDiagnostic&&!diagnostic&&scopeManagement.every(m=>m.complete),referenceBaselineComplete:!resourceDiagnostic&&!diagnostic&&referenceManagement.every(m=>m.complete),sqlClassificationComplete:!resourceDiagnostic&&[...management,...scopeManagement,...referenceManagement].every(m=>m.classificationComplete),sqlClassificationManifestHash:classificationManifestHash,containerResourcesComplete:[...results,...management,...scopeManagement,...referenceManagement].every(m=>m.containerResources?.complete===true),sqlAudit};
     const readScaleEvidence=async prefix=>Promise.all(scales.map(async scale=>JSON.parse(await fs.readFile(path.join(options.output,`${prefix}-${scale}.json`),'utf8'))));
-    const microEntries=diagnostic?[]:await readScaleEvidence('micro'),generationEntries=diagnostic?[]:await readScaleEvidence('generation');
+    const microEntries=diagnostic||resourceDiagnostic?[]:await readScaleEvidence('micro'),generationEntries=diagnostic||resourceDiagnostic?[]:await readScaleEvidence('generation');
     if(diagnostic){status.measurementScope='explain-diagnostic-not-performance';status.variant=options.variant??'validation';status.scales=scales;status.diagnosticComplete=false;}
+    if(resourceDiagnostic){status.measurementScope='resource-window-diagnostic-not-performance';status.diagnosticComplete=false;}
     completionInput={mode:options.mode,immutable:status.immutable,identity,environment:actualEnvironment,classificationManifestHash:classificationManifestHash,cells:results,gatewayDatasets:await readScaleEvidence('gateway'),management,scopeManagement,referenceManagement,micro:microEntries.map((entries,i)=>({scale:scales[i],entries})),generation:generationEntries.map((entry,i)=>({...entry,scale:scales[i]}))};
     await evidence(path.join(options.output,'manifest.json'),status);
     succeeded=true;
@@ -156,6 +162,7 @@ export async function runPerformance(options,repo){
         // private-file removal succeed. Before this point manifest stays false.
         status.baselineVerification=verifyBaselineCompletion({...completionInput,cleanup:receipt,secretScan:scan});
         status.fullBaselineComplete=status.baselineVerification.complete;
+        if(resourceDiagnostic)status.diagnosticComplete=verifyResourceDiagnosticCompletion({cells:results,cleanup:receipt,secretScan:scan});
         if(diagnostic)status.diagnosticComplete=verifyExplainCompletion({scales:status.scales,ordinary:completionInput.management,scope:completionInput.scopeManagement,reference:completionInput.referenceManagement,cleanup:receipt,secretScan:scan});
         await evidence(path.join(options.output,'cleanup.json'),receipt);
         await evidence(path.join(options.output,'manifest.json'),status);

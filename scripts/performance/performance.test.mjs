@@ -258,3 +258,9 @@ test('reference_probe_checks_every_dto_field_and_exact_page_order',async()=>{
     corrupt=false;missingField=true;await assert.rejects(()=>measureReferenceManagement(options),/DTO|reference/i);
   }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 });
+
+test('resource_diagnostic_is_explicit_and_cannot_export_sql_audit',()=>{
+  assert.equal(parseArguments(['validate','--diagnostic','resources','--output','resource-diagnostic']).diagnostic,'resources');
+  assert.throws(()=>parseArguments(['validate','--diagnostic','resources','--output','public','--sql-audit','private']),/audit/i);
+  assert.throws(()=>parseArguments(['baseline','--diagnostic','resources','--baseline','a'.repeat(40),'--harness','b'.repeat(40),'--output','public']),/diagnostic/i);
+});

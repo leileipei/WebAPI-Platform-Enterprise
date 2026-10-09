@@ -24,8 +24,8 @@ export function parseArguments(args){
     parsed[key]=rest[i+1];
   }
   if(parsed['sql-audit']&&mode!=='validate')throw Error('SQL audit is allowed only in validation, never measurement');
-  if(parsed['sql-audit']&&['compare','migration'].includes(parsed.diagnostic))throw Error('SQL audit is not supported by comparison/migration diagnostics');
-  if(parsed.diagnostic&&(mode!=='validate'||!['explain','migration','compare'].includes(parsed.diagnostic)))throw Error('Diagnostic validation must be explicit EXPLAIN/migration/comparison validation, never a performance window');
+  if(parsed['sql-audit']&&['compare','migration','resources'].includes(parsed.diagnostic))throw Error('SQL audit is not supported by comparison/migration/resource diagnostics');
+  if(parsed.diagnostic&&(mode!=='validate'||!['explain','migration','compare','resources'].includes(parsed.diagnostic)))throw Error('Diagnostic validation must be explicit EXPLAIN/migration/comparison/resource validation, never a performance window');
   if(mode==='cleanup'){if(!parsed['owner-manifest']||!parsed.compose)throw Error('Cleanup requires owner manifest and compose file');return parsed;}
   if(mode!=='validate')for(const key of mode==='baseline'?['baseline','harness']:['baseline','candidate','harness'])if(!commitPattern.test(parsed[key]??''))throw Error(`Immutable ${key} commit required`);
   if(!parsed.output)throw Error('Output directory required');parsed.output=path.resolve(parsed.output);

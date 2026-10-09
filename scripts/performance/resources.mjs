@@ -68,6 +68,7 @@ async function apiJson(connection,url,signal){
   });
 }
 function subscribeStats(connection,id,entry,signal,faults){
+  const streamError=(kind,error)=>{(entry.streamErrors??=[]).push({kind,time:new Date().toISOString(),code:/^[A-Z0-9_]{1,64}$/.test(error?.code??'')?error.code:null});};
   let firstResolve,firstReject;
   const first=new Promise((resolve,reject)=>{firstResolve=resolve;firstReject=reject;});
   const request=http.get({socketPath:connection.socketPath,path:connection.prefix+`/containers/${id}/stats?stream=true`,signal},response=>{
@@ -87,10 +88,10 @@ function subscribeStats(connection,id,entry,signal,faults){
       }catch{faults.push('invalid-stats-stream');firstReject(Error('Container stats stream invalid'));request.destroy();}
     });
     response.on('end',()=>{entry.streamEndedAt=new Date().toISOString();if(!entry.samples.length)firstReject(Error('Container stats stream empty'));});
-    response.on('error',()=>{if(!signal.aborted){faults.push('stats-stream-read-failed');firstReject(Error('Container stats read failed'));}});
+    response.on('error',error=>{if(!signal.aborted){streamError('stats-stream-read-failed',error);firstReject(Error('Container stats read failed'));}});
   });
   request.setTimeout(5000,()=>request.destroy(Error('Container stats timeout')));
-  request.on('error',()=>{if(!signal.aborted){faults.push('stats-stream-connect-failed');firstReject(Error('Container stats connection failed'));}});
+  request.on('error',error=>{if(!signal.aborted){streamError('stats-stream-connect-failed',error);firstReject(Error('Container stats connection failed'));}});
   signal.addEventListener('abort',()=>firstReject(Error('Container stats stopped')),{once:true});
   return first;
 }
@@ -138,9 +139,13 @@ export async function runWithContainerResources({manifest,dockerHost,apiVersion,
   try{measurement=JSON.parse(await fs.readFile(path.join(output,resultFile),'utf8'));}catch{faults.push('measurement-window-unavailable');}
   for(const [service,entry] of Object.entries(services)){
     entry.summary=summarizeContainerWindow(entry.samples,{start:measurement?.windowStartedAt,end:measurement?.windowEndedAt,cpus:entry.cpus,memoryBytes:entry.memoryBytes});
-    if(service!=='client'&&entry.streamEndedAt&&Date.parse(entry.streamEndedAt)<Date.parse(measurement?.windowEndedAt)){faults.push('server-stream-ended-early');entry.summary.complete=false;}
+    if(entry.streamEndedAt&&Date.parse(entry.streamEndedAt)<Date.parse(measurement?.windowEndedAt)){faults.push(service==='client'?'client-stream-ended-early':'server-stream-ended-early');entry.summary.complete=false;}
+    for(const event of entry.streamErrors??[]){
+      const completedClient=service==='client'&&!operationError&&measurement?.complete===true&&entry.summary.complete&&Date.parse(event.time)>=Date.parse(measurement.windowEndedAt);
+      event.disposition=completedClient?'after-completed-client-window':'sampling-failure';if(!completedClient)faults.push(event.kind);
+    }
   }
-  const report={schemaVersion:1,source:'docker-engine-stats-stream',apiVersion,windowStartedAt:measurement?.windowStartedAt??null,windowEndedAt:measurement?.windowEndedAt??null,services,errors:[...new Set(faults)],complete:!faults.length&&Object.keys(services).length===7&&Object.values(services).every(s=>s.summary.complete),potentialClientOrBackendSaturation:['client','backend'].filter(s=>(services[s]?.summary.peakCpuQuotaFraction??0)>=.9),saturationThreshold:.9};
+  const report={schemaVersion:1,workloadCompleted:!operationError&&measurement?.complete===true,source:'docker-engine-stats-stream',apiVersion,windowStartedAt:measurement?.windowStartedAt??null,windowEndedAt:measurement?.windowEndedAt??null,services,errors:[...new Set(faults)],complete:!faults.length&&Object.keys(services).length===7&&Object.values(services).every(s=>s.summary.complete),potentialClientOrBackendSaturation:['client','backend'].filter(s=>(services[s]?.summary.peakCpuQuotaFraction??0)>=.9),saturationThreshold:.9};
   await writeJson(reportFile,report);
   if(operationError)throw operationError;
   return report;
@@ -156,9 +161,21 @@ export function verifyContainerResources(report,{start,end}={}){
       if(!entry||!/^[a-f0-9]{64}$/.test(entry.containerId??'')||!/^sha256:[a-f0-9]{64}$/.test(entry.imageId??'')||entry.cpus!==quota.cpus||entry.memoryBytes!==quota.memoryBytes)return false;
       const calculated=summarizeContainerWindow(entry.samples,{start,end,...quota});
       if(!calculated.complete||JSON.stringify(calculated)!==JSON.stringify(entry.summary))return false;
-      if(name!=='client'&&entry.streamEndedAt&&Date.parse(entry.streamEndedAt)<Date.parse(end))return false;
+      if(entry.streamEndedAt&&Date.parse(entry.streamEndedAt)<Date.parse(end))return false;
+      if(entry.streamErrors!==undefined&&(!Array.isArray(entry.streamErrors)||entry.streamErrors.some(e=>name!=='client'||report.workloadCompleted!==true||!['stats-stream-read-failed','stats-stream-connect-failed'].includes(e.kind)||!Number.isFinite(Date.parse(e.time))||Date.parse(e.time)<Date.parse(end)||e.code!==null&&!/^[A-Z0-9_]{1,64}$/.test(e.code??'')||e.disposition!=='after-completed-client-window')))return false;
     }
     const nearQuota=['client','backend'].filter(name=>services[name].summary.peakCpuQuotaFraction>=.9);
     return JSON.stringify(nearQuota)===JSON.stringify(report.potentialClientOrBackendSaturation);
   }catch{return false;}
+}
+
+
+export function verifyResourceDiagnosticCompletion({cells=[],cleanup,secretScan}={}){
+  if(cells.length!==3||cleanup?.remaining!==0||cleanup?.privateInputsDeleted!==true||secretScan?.violations!==0||!(secretScan.filesScanned>0)||!Array.isArray(secretScan.findings)||secretScan.findings.length)return false;
+  let previousEnd=-Infinity;
+  return cells.every((c,index)=>{
+    const start=Date.parse(c.windowStartedAt),end=Date.parse(c.windowEndedAt);
+    const valid=c.variant==='validation'&&c.scale===10000&&c.auth==='api-key'&&c.concurrency===32&&c.repeat===index+1&&c.nodeMode==='dual'&&c.complete===true&&c.expected>0&&c.unexpected===0&&c.timeout===0&&c.incomplete===0&&c.warmupMs===10000&&c.durationMs===20000&&end-start===20000&&start>=previousEnd&&Array.isArray(c.nodes)&&c.nodes.length===2&&c.nodes.every(n=>n.expected>0&&n.unexpected===0&&n.timeout===0&&n.incomplete===0)&&c.nodes.reduce((total,n)=>total+n.expected,0)===c.expected&&verifyContainerResources(c.containerResources,{start:c.windowStartedAt,end:c.windowEndedAt});
+    previousEnd=end;return valid;
+  });
 }
