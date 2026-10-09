@@ -1,6 +1,6 @@
 # P14 受控执行边界（供唯一最终审查者同时评估）
 
-状态：准备，未对原实例安装。最终审查修正候选 71183e941eef99efb3ad4328abd7c91d02938a1d / sha256:3677ee6b11cc1ebe6ce646ab673257c8bc7b51d1913e0802554c013011ccfc22。全部测试与实际整体验收已通过，最终审查C1/I1–I5已闭环，允许受控安装。原实例安装仍未执行。
+状态：准备，未对原实例安装。最终审查修正候选 71183e941eef99efb3ad4328abd7c91d02938a1d / sha256:3677ee6b11cc1ebe6ce646ab673257c8bc7b51d1913e0802554c013011ccfc22。全部测试与实际整体验收已通过，最终审查C1/I1–I5已闭环，产品已获安装资格。P14首次实际安装触发四个监控容器重建，已恢复旧包/旧库与原数据；容器ID例外等待用户确认，修正后的独立验证进行中。原本机安装尚未完成。
 
 - 原 owner 6d7e3fda-88ea-4315-a8ef-df9e7cd995c8，项目 webapi-enterprise-local，目录主仓库 .runtime/local；4192/4196/4197。原已装源码 a445534f82f11ae9a45c3b2904bd07108bd165a9，原主仓库 HEAD 40759aac50f1a6281223b0ec0d45d58e6fb44cb5 及 dirty 内容不合并、不提交、不推送。
 - P13 prove/verify、全量测试以及 Critical/Important 最终审查处置闭环才可进入维护。原实例不得自动激活、新建运行或产生业务发布。
@@ -17,3 +17,5 @@
 - 最终 verifyPipelineInstallation 必须通过：旧行/报告/私密文件/旧工具/身份/原 vseq/显式授权保全，固定新源包/镜像/静态文件/Ready、精确新增回执、仅 Admin 三项新权限。企业 DNS/TLS/LB 和真实企业业务验收仍未执行。
 
 实现/检查接口：scripts/delivery/pipeline-installation.mjs、pipeline-inventory.mjs、pipeline-maintenance.mjs、pipeline-preservation.mjs；沿用 scripts/runtime/lifecycle.mjs、acceptance-backup.mjs、keycloak-demo.mjs 和 gateway-policies/delivery.mjs 的原 owner/锁机制。实际执行记录必须据实封存；此协议不充当安装证据。
+
+P14中断记录：标准维护的固定源码路径导致 collector/Prometheus/Loki/Tempo 配置 bind 源路径变化并重建容器。原937旧行、秘密、配置、报告、数据卷及原版本/序列4经冷恢复及逐行检查保持，四个监控旧ID无法恢复。原实例目前为a445 Ready。已请求明确接受该四项身份例外，未取得答复前不再升级原实例。新增可选配置固定上下文只用于本期入口，核验四项owner/ID/image/原源路径/旧新字节及服务定义一致；其他资源不放行。行为8项和入口委托1项RED→GREEN，全量脚本227/227通过，实际独立升级/冷备检查进行中。

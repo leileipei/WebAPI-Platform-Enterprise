@@ -1,7 +1,7 @@
 {
   "productRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
   "imageId": "sha256:3677ee6b11cc1ebe6ce646ab673257c8bc7b51d1913e0802554c013011ccfc22",
-  "status": "full-suites-isolated-acceptance-and-final-review-passed-original-install-pending",
+  "status": "fixed-product-accepted-original-recovered-monitoring-exception-pending",
   "toolingRevision": "aa9a91f",
   "suites": [
     {
@@ -51,16 +51,19 @@
     },
     {
       "suite": "runtime-delivery scripts",
-      "passed": 218,
+      "passed": 227,
       "failed": 0,
       "skipped": 0,
-      "logSha256": "5b464d5183a448abb0873a7fa2d281f6dd6718234220e933b94af97b1bfa87a3",
+      "logSha256": "2182b58eeb67005273de3e9204727fad59db93f781646072f06a08fb0bef0f9b",
       "summary": [
-        "ℹ tests 218",
-        "ℹ pass 218",
+        "ℹ tests 227",
+        "ℹ suites 0",
+        "ℹ pass 227",
         "ℹ fail 0",
+        "ℹ cancelled 0",
         "ℹ skipped 0",
-        "ℹ duration_ms 2106.694042"
+        "ℹ todo 0",
+        "ℹ duration_ms 2020.728667"
       ]
     },
     {
