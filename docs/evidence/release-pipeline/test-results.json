@@ -1,0 +1,96 @@
+{
+  "productRevision": "b1323c3a41dfdeb2008e0c9fdc811e4004067ac8",
+  "status": "suites-and-isolated-acceptance-passed-review-install-pending",
+  "domainGatewaySourceUnchangedSince": "51b233932865f9f42f70007311440b839e6d8f7c",
+  "backupRegressionRevision": "14be64f56df34a59ec50ef081ab8c5dd67aef3f4",
+  "suites": [
+    {
+      "suite": "Domain",
+      "passed": 811,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "0c511941cd88e96f8a3ee765db18f88ceb96b898f2c0e247fa7280743a2ee05b",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:   811, Skipped:     0, Total:   811, Duration: 11 s - WebApi.Domain.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "suite": "Integration",
+      "passed": 1176,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "627d7c7c683725f75009306f621f908d6fc379635999c3d712c58ab044f419ec",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:  1176, Skipped:     0, Total:  1176, Duration: 14 m 22 s - WebApi.Integration.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "suite": "Gateway",
+      "passed": 142,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "a966b7b33f01eea6d20cf77f7fb49e28e627c575c0895a5d56d171c198a7593c",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:   142, Skipped:     0, Total:   142, Duration: 1 m 54 s - WebApi.Gateway.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "suite": "Console",
+      "passed": 269,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "06ff996bcbf7d152176757efde1b158890118b2373c070fdeccab428b4d25b17",
+      "summary": [
+        "ℹ tests 269",
+        "ℹ pass 269",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 604.249041",
+        "✓ built in 3.51s"
+      ]
+    },
+    {
+      "suite": "runtime-delivery scripts",
+      "passed": 212,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "47e02be65a2b570bd56acf8e35d16b8a93107870d16e80b05c21a722aafe4ea6",
+      "summary": [
+        "ℹ tests 212",
+        "ℹ pass 212",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 2193.520667"
+      ]
+    },
+    {
+      "suite": "actual PostgreSQL clock",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "19d87d5e85f6736e03359b8657ec77802e97cce02694a97180dbd9782976f1c7",
+      "summary": [
+        "ℹ tests 1",
+        "ℹ pass 1",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 4107.872375"
+      ]
+    },
+    {
+      "suite": "actual cold backup regression",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "e1523a2d553757aff9cee1fbe5085b457b93e58f80d6d0eed0e9147b4cc175c9",
+      "summary": [
+        "ℹ tests 2",
+        "ℹ pass 2",
+        "ℹ fail 0",
+        "ℹ skipped 0",
+        "ℹ duration_ms 492462.974792"
+      ]
+    }
+  ],
+  "toolingRevision": "746247c72f557e9a3d1b3362ae84b62b388fd1bb"
+}
