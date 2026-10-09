@@ -1,6 +1,4 @@
-# 本期执行裁决（按发生顺序）
-
-这些裁决及误判代价来自本计划执行记录。最终审查和安装结果尚未闭环；后续裁决将继续追加。
+# 执行裁决账本
 
 1. - P13/P14 final review boundary: P13 reviews implementation and proof package before installation; P14 only preservation wrapper/installation evidence. Final branch reviewer must also include P14 wrapper code before installation; stage its tests/code during P13 review and seal installation facts in P14. Ruling: finalize P14 installation wrapper code before the single P13 reviewer, then install/seal in P14 — prevents unreviewed security-sensitive deployment code without a second review — cost if wrong: review gate would miss wrapper changes; any later wrapper change reruns relevant tests and is explicitly audited.
 
@@ -95,3 +93,9 @@
 46. Task 13: Ruling: partial-application/late-ACK fixture now pauses/unpauses the same real Gateway process and asserts current instances still equal frozen targets — stopping/restarting exercises a different, correctly rejected replacement-generation case rather than a valid late receipt — cost if wrong: paused process may remain blocked on an early failure, so finally explicitly unpauses before own-resource cleanup; strict production instance validation remains unchanged.
 
 47. Task 13: Ruling: wait for persisted Pipeline evidence eligibility after actual release ACK before fixture materialization/production evidence — release ACK and stage projection commit independently, so immediate next command may correctly conflict — cost if wrong: disposable acceptance waits up to 90 seconds and fails instead of loosening the server gate or replaying a rejected command.
+
+48. Final: Ruling: retain fourth/seventh prior acceptance failures as unexplained reliability risks, and use existing private run/stage checkpoints instead of adding unrelated worker telemetry in this fix pass — later passes do not establish a root cause — cost if wrong: a recurring projection/concurrency failure needs further diagnosis and blocks acceptance.
+
+49. Final: Ruling: original installation and its post-install cold clone remain unjudged until Task 14 actual receipts — isolated tests cannot certify original installation — cost if wrong: original users could receive an upgrade without preservation evidence; the installation gate remains closed.
+
+50. Final: Ruling: enterprise DNS/TLS/LB and business acceptance remain unexecuted — approved work is local delivery governance with environment metadata — cost if wrong: local success could be mistaken for an operational enterprise domain; no such claim will be made.

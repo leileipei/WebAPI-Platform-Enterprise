@@ -41,9 +41,9 @@ public sealed class PipelineProjectionService(WebApiDbContext db,DeliveryLockCoo
   if(attempt.DeadlineAt<=now&&run.Status is "Active" or "Paused"){Stop(run,stage,attempt,"TimedOut","TimedOut","stage_wait_timeout",now);return;}
   if(run.Status!="Active"||attempt.Status!="Active")return;
   var profile=System.Text.Json.JsonSerializer.Deserialize<PipelineStageProfile>(stage.ProfileJson,CanonicalJson.Options)!;
-  ReleasePromotion? promotion=null;var origin=attempt;while(origin.PromotionId is null&&origin.OriginAttemptId is Guid prior)origin=await db.Set<ReleasePipelineStageAttempt>().SingleAsync(a=>a.Id==prior&&a.RunStageId==stage.Id,ct);
-  if(origin.PromotionId is Guid promotionId)promotion=await db.Set<ReleasePromotion>().SingleAsync(p=>p.Id==promotionId&&p.PipelineRunStageId==stage.Id,ct);
+  var promotion=await PipelineAttemptFacts.FormalAsync(db,attempt,ct);
   ReleaseRecord? release=attempt.ActualReleaseId is Guid releaseId?await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==releaseId&&r.EnvironmentId==stage.EnvironmentId,ct):null;
+  if((promotion?.Status=="Cancelled"||release?.Status=="Cancelled")&&release?.DeploymentSequence is not >0){Stop(run,stage,attempt,"Paused","Rejected","stage_candidate_cancelled",now);return;}
   if(promotion?.Status=="Rejected"||release?.Status=="Rejected"){Stop(run,stage,attempt,"Paused","Rejected","stage_approval_rejected",now);return;}
   if(release?.Status=="Failed"){Stop(run,stage,attempt,"Paused","DeploymentFailed","stage_deployment_failed",now);return;}
   if(release?.Status is "Building" or "Publishing"){Change(stage,attempt,"Deploying","stage_deploying",now,release.Id);return;}

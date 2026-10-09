@@ -26,7 +26,7 @@ public sealed class PipelineReadService(WebApiDbContext db,ScopeResolver scopes,
   var visible=ReadableEnvironments(actor,["pipeline.read","environment.read","release.read"]);
   if(projectId is Guid project){await scopes.ProjectAsync(project,token);if(!await visible.AnyAsync(e=>e.ProjectId==project,token))throw ScopeResolver.Missing();}
   var query=db.Set<ReleasePipelineRun>().AsNoTracking().Where(r=>(projectId==null||r.ProjectId==projectId)&&db.Set<ReleasePipelineRunStage>().Any(s=>s.RunId==r.Id&&visible.Select(e=>e.Id).Contains(s.EnvironmentId)));
-  var access=await AccessAsync(actor,projectId,token);var fullIds=FullQuery(access).Select(f=>f.Id);var coverage=access.Basic.Length==0||access.Documents.Length==0?"Restricted":await query.AnyAsync(r=>!fullIds.Contains(r.Id),token)?"Partial":"Full";
+  var access=await AccessAsync(actor,projectId,token);var fullIds=FullQuery(access).Select(f=>f.Id);var completeScope=await HasCompleteReadScopeAsync(actor,projectId,access,token);var coverage=access.Basic.Length==0||access.Documents.Length==0?"Restricted":!completeScope||await query.AnyAsync(r=>!fullIds.Contains(r.Id),token)?"Partial":"Full";
   var total=coverage=="Full"?await query.TagWith("pipeline-authorized-run-count").CountAsync(token):(int?)null;
   page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);var rows=await query.OrderByDescending(r=>r.CreatedAt).ThenBy(r=>r.Id).Skip((page-1)*size).Take(size).TagWith("pipeline-run-bounded-page").ToArrayAsync(token);
   var result=new List<PipelineRunDto>();foreach(var row in rows)result.Add(await RunProjectionAsync(row,access,actor,token));return new PipelinePageDto<PipelineRunDto>(result,total,page,size,coverage);
@@ -42,6 +42,12 @@ public sealed class PipelineReadService(WebApiDbContext db,ScopeResolver scopes,
   var documents=await ReadableEnvironments(actor,["environment.read","release.read","route.read","api.read","api.version.read","api.schema.read"]).Where(e=>project==null||e.ProjectId==project).Select(e=>e.Id).ToArrayAsync(ct);
   var policy=await ReadableEnvironments(actor,["policy.read"]).Where(e=>project==null||e.ProjectId==project).Select(e=>e.Id).ToArrayAsync(ct);
   return new(basic,documents,policy);
+ }
+ private async Task<bool> HasCompleteReadScopeAsync(ActorContext actor,Guid? project,Access access,CancellationToken ct)
+ {
+  Guid[] projects=project is Guid id?[id]:await db.Set<EnvironmentRecord>().Where(e=>access.Basic.Contains(e.Id)).Select(e=>e.ProjectId).Distinct().ToArrayAsync(ct);
+  foreach(var projectId in projects){var scope=await scopes.ProjectAsync(projectId,ct);foreach(var code in new[]{"pipeline.read","environment.read","release.read","route.read","api.read","api.version.read","api.schema.read"})if(!await auth.CanAsync(actor,code,new("project",projectId,scope),ct))return false;}
+  return projects.Length>0;
  }
  private IQueryable<ReleaseArtifact> ArtifactQuery(Access access)=>db.Set<ReleaseArtifact>().FromSqlInterpolated($"SELECT a.* FROM release_artifacts a WHERE a.source_environment_id=ANY({access.Documents}) AND (a.source_environment_id=ANY({access.Policy}) OR NOT jsonb_path_exists(a.canonical_content, '$.routes[*].policies[*]'))").AsNoTracking();
  private IQueryable<ReleasePipelineRun> FullQuery(Access access)
@@ -64,8 +70,7 @@ public sealed class PipelineReadService(WebApiDbContext db,ScopeResolver scopes,
   try{
    var actual=attempt.ActualReleaseId is Guid id?await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id,ct):null;
    if(actual?.Status is "Failed" or "Rejected" or "Cancelled")return false;
-   var origin=attempt;for(var depth=0;origin.PromotionId==null&&origin.OriginAttemptId is Guid prior;depth++){if(depth>=100)return false;var previous=await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().SingleAsync(a=>a.Id==prior&&a.RunStageId==stage.Id,ct);if(previous.AttemptNo>=origin.AttemptNo)return false;origin=previous;}
-   var formal=origin.PromotionId is Guid promotion?await db.Set<ReleasePromotion>().AsNoTracking().SingleAsync(p=>p.Id==promotion,ct):null;
+   var formal=await PipelineAttemptFacts.FormalAsync(db,attempt,ct);
    if(formal?.Status is "Rejected" or "DeploymentFailed" or "VerificationFailed" or "Cancelled" or "Invalidated")return false;
    await gates!.ResolveStageFactsAsync(stage.Id,null,ct);var profile=JsonSerializer.Deserialize<PipelineStageProfile>(stage.ProfileJson,CanonicalJson.Options)!;var environment=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==stage.EnvironmentId,ct);if(environment.IsProduction!=profile.IsProduction)return false;
    if(actual?.Status=="Succeeded"){
@@ -84,9 +89,8 @@ public sealed class PipelineReadService(WebApiDbContext db,ScopeResolver scopes,
   var stage=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleOrDefaultAsync(s=>s.Id==id,token)??throw ScopeResolver.Missing();var access=await AccessAsync(actor,stage.ProjectId,token);
   if(!await StageQuery(access).AnyAsync(s=>s.Id==id,token))throw ScopeResolver.Missing();await RequireStageArtifactsAsync(stage,actor,token);
   var run=await db.Set<ReleasePipelineRun>().AsNoTracking().SingleAsync(r=>r.Id==stage.RunId,token);var environment=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==stage.EnvironmentId,token);var profile=JsonSerializer.Deserialize<PipelineStageProfile>(stage.ProfileJson,CanonicalJson.Options)!;
-  var attempts=await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().Where(a=>a.RunStageId==id).OrderByDescending(a=>a.AttemptNo).Take(100).ToArrayAsync(token);var current=attempts.FirstOrDefault(a=>a.Id==stage.CurrentAttemptId);var origin=current;
-  while(origin?.PromotionId is null&&origin?.OriginAttemptId is Guid previous)origin=await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().SingleAsync(a=>a.Id==previous&&a.RunStageId==id,token);
-  var formal=origin?.PromotionId is Guid promotion?await db.Set<ReleasePromotion>().AsNoTracking().SingleAsync(p=>p.Id==promotion,token):null;
+  var attempts=await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().Where(a=>a.RunStageId==id).OrderByDescending(a=>a.AttemptNo).Take(100).ToArrayAsync(token);var current=attempts.FirstOrDefault(a=>a.Id==stage.CurrentAttemptId);
+  var formal=current is null?null:await PipelineAttemptFacts.FormalAsync(db,current,token);
   var actual=current?.ActualReleaseId is Guid release?await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==release&&r.EnvironmentId==stage.EnvironmentId,token):null;
   var scope=await scopes.EnvironmentAsync(stage.EnvironmentId,token);var nodes=await auth.CanAsync(actor,"gateway.read",new("environment",stage.EnvironmentId,scope),token)?await db.Set<GatewayNode>().AsNoTracking().Where(n=>n.EnvironmentId==stage.EnvironmentId&&n.Enabled).OrderBy(n=>n.Id).Select(n=>new PromotionNodeState(n.Id,n.NodeName,n.CurrentConfigVersion,n.CurrentDeploymentSequence,n.Status,n.LastHeartbeatAt)).ToArrayAsync(token):null;
   var facts=await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>v.PipelineRunStageId==id&&v.StageAttemptId==stage.CurrentAttemptId).OrderByDescending(v=>v.CreatedAt).ThenBy(v=>v.Id).Take(100).ToArrayAsync(token);
@@ -109,7 +113,7 @@ public sealed class PipelineReadService(WebApiDbContext db,ScopeResolver scopes,
   if(record)try{await evidence!.GetVerificationContextAsync(stage.Id,actor,ct);}catch(ApiException e)when(e.Status is 403 or 404 or 409 or 422){record=false;reasons.Add(e.Code);}
   var requestAcceptance=false;if(record)try{requestAcceptance=await evidence!.CanRequestAcceptanceAsync(stage.Id,actor,ct);}catch(ApiException e)when(e.Status is 401 or 403 or 404 or 409 or 422){reasons.Add(e.Code);}
   var publishing=await db.Set<ReleaseRecord>().AnyAsync(r=>r.EnvironmentId==stage.EnvironmentId&&r.Status=="Publishing",ct);
-  var canReopen=!WebApi.Domain.Delivery.Pipelines.PipelineStateRules.IsTerminal(run.Status)&&run.CurrentStageOrder==stage.StageOrder&&attempt!=null&&advance&&!publishing&&(attempt.Status!="Active"||attempt.DeadlineAt<=DateTimeOffset.UtcNow||actual?.Status is "Failed" or "Rejected"||formal?.Status is "Rejected" or "VerificationFailed" or "DeploymentFailed");
+  var canReopen=!WebApi.Domain.Delivery.Pipelines.PipelineStateRules.IsTerminal(run.Status)&&run.CurrentStageOrder==stage.StageOrder&&attempt!=null&&advance&&!publishing&&(attempt.Status!="Active"||attempt.DeadlineAt<=DateTimeOffset.UtcNow||actual?.Status is "Failed" or "Rejected" or "Cancelled"||formal?.Status is "Rejected" or "VerificationFailed" or "DeploymentFailed" or "Cancelled");
   var control=await FullQuery(access).AnyAsync(r=>r.Id==run.Id,ct)&&await CanControlAsync(run,actor,ct);
   var verify=writable&&profile.IsProduction&&currentDelivery&&formal!=null&&actor.UserId!=run.CreatedBy&&actor.UserId!=formal.RequestedBy&&actor.UserId!=actual!.PublishRequestedBy&&await auth.CanAsync(actor,"release.verify",new("environment",stage.EnvironmentId,scope),ct);
   return new(writable&&advance&&stage.SourceStageId!=null&&freshSource&&attempt?.PromotionId==null,writable&&advance&&!profile.IsProduction&&currentDelivery&&stage.StageArtifactId==null,record,requestAcceptance,canReopen,control&&!WebApi.Domain.Delivery.Pipelines.PipelineStateRules.IsTerminal(run.Status),reasons.Distinct().ToArray(),verify);

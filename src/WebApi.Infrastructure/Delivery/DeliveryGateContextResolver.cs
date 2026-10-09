@@ -25,6 +25,12 @@ public sealed class DeliveryGateContextResolver(WebApiDbContext db,ScopeResolver
  }
  public Task<DeliveryGateContext> ResolveStageAsync(Guid stageId,ActorContext actor,CancellationToken ct)=>ReadStageAsync(stageId,actor,ct,true);
  internal Task<DeliveryGateContext> ResolveHistoricalStageAsync(Guid stageId,ActorContext actor,CancellationToken ct)=>ReadStageAsync(stageId,actor,ct,false);
+ internal async Task<DeliveryGateContext> ResolveStageAcceptanceAsync(Guid stageId,ActorContext actor,CancellationToken ct)
+ {
+  var stage=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleOrDefaultAsync(s=>s.Id==stageId,ct)??throw ScopeResolver.Missing();
+  await RequireReadsAsync(stage.ProjectId,[stage.EnvironmentId],actor,ct);
+  return await ResolveStageFactsAsync(stageId,null,ct,false);
+ }
  private async Task<DeliveryGateContext> ReadStageAsync(Guid stageId,ActorContext actor,CancellationToken ct,bool requireActivePolicy)
  {
   var stage=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleOrDefaultAsync(s=>s.Id==stageId,ct)??throw ScopeResolver.Missing();

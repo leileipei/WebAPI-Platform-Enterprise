@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';import path from 'node:path';import assert from 'node:assert/strict';
+import {validateFixture} from '../runtime/fixture-guard.mjs';
 import {prepareDeliveryContext} from './promotion-scenario.mjs';
 import {prepareContext} from '../runtime/context.mjs';import {loadState,writePrivate} from '../runtime/state.mjs';import {docker,inspectResources,assertOwnership} from '../runtime/docker.mjs';import {validatePipelineContext,pipelineServices,backupVolumeNames} from '../runtime/acceptance-backup.mjs';
 export async function preparePipelineContext(directory,state,release){
@@ -14,8 +15,8 @@ export async function preparePipelineContext(directory,state,release){
  }
  services['control-plane']=cp;const overlay=path.join(directory,'pipeline-overlay.json');await writePrivate(overlay,{services,volumes});ctx.files.push('-f',overlay);return ctx;
 }
-export async function cleanupPipelineContext(directory,release){
- const state=await loadState(directory),resources=await inspectResources(state);assertOwnership(state,resources);let ctx;try{await fs.access(path.join(directory,'pipeline-runtime.json'));ctx=await preparePipelineContext(directory,state,release);}catch(e){if(e.code!=='ENOENT')throw e;ctx=await prepareContext(directory,state,release);}
- const allowed=new Set([...backupVolumeNames(ctx),'bootstrap-password',...['postgres','control-plane','worker','gateway-a','gateway-b','migrator'].map(n=>'secrets-'+n)]);for(const r of resources)if(r.Kind==='volume')assert([...allowed].some(n=>r.Name===state.projectName+'_'+n),'Unexpected owned pipeline volume');await ctx.compose('--profile','tools','down','--volumes','--remove-orphans');const remaining=(await inspectResources(state)).length;assert.equal(remaining,0);await fs.rm(directory,{recursive:true,force:true});return {remainingOwnedResources:remaining,ownerVerified:true,originalRuntimeUntouched:true};
+export async function cleanupPipelineContext(directory,release,{expectedOwner,inspect=inspectResources,prepare=prepareContext,preparePipeline=preparePipelineContext,remove=fs.rm}={}){
+ const state=await loadState(directory);validateFixture(state.projectName,directory);if(!expectedOwner||state.ownerId!==expectedOwner)throw Error('Expected disposable cleanup owner mismatch');const resources=await inspect(state);assertOwnership(state,resources);let ctx;try{await fs.access(path.join(directory,'pipeline-runtime.json'));ctx=await preparePipeline(directory,state,release);}catch(e){if(e.code!=='ENOENT')throw e;ctx=await prepare(directory,state,release);}
+ const allowed=new Set([...backupVolumeNames(ctx),'bootstrap-password',...['postgres','control-plane','worker','gateway-a','gateway-b','migrator'].map(n=>'secrets-'+n)]);for(const r of resources)if(r.Kind==='volume')assert([...allowed].some(n=>r.Name===state.projectName+'_'+n),'Unexpected owned pipeline volume');await ctx.compose('--profile','tools','down','--volumes','--remove-orphans');const remaining=(await inspect(state)).length;assert.equal(remaining,0);await remove(directory,{recursive:true,force:true});return {remainingOwnedResources:remaining,ownerVerified:true,originalRuntimeUntouched:true};
 }
 export const pipelineRuntimeServices=ctx=>[...new Set([...pipelineServices(ctx),...(ctx.pipeline?.stageGroups.filter(g=>g.kind==='Middle').map(g=>`pipeline-stage-${g.order}-backend`)||[])])];
