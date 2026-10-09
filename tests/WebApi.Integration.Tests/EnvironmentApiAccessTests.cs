@@ -61,4 +61,22 @@ public sealed class EnvironmentApiAccessTests
     {
         await using var s=new DeploymentScenario();await s.InitializeAsync();await Configure(s.Api);await s.PublishAsync(false);using var response=await s.Api.Client.GetAsync(Entry(s.Api,query:""));Assert.Equal(HttpStatusCode.Conflict,response.StatusCode);Assert.Contains("running_state_unconfirmed",await response.Content.ReadAsStringAsync());
     }
+    [Fact] public async Task MultiFileImportedDocumentCannotDownloadWithMissingDependencies()
+    {
+        await using var api=await ImportSessionTests.Setup();await Configure(api);
+        var text=ImportAndCredentialTests.Source.Replace("#/components/schemas/Order","schemas/order.json");
+        var preview=await ImportSessionTests.Preview(api,ImportSessionTests.Input(api,text,[new{name="schemas/order.json",content="{\"$id\":\"order.json\",\"type\":\"object\",\"properties\":{\"child\":{\"$ref\":\"order.json\"}}}",format="json"}]));
+        using var committed=await api.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{preview.PreviewId}/commit",ImportSessionTests.Commit(preview));committed.EnsureSuccessStatusCode();
+        Guid importedId;string before;await using(var db=api.Context()){importedId=(await db.Set<Api>().SingleAsync(x=>x.Code=="SESSION")).Id;before=(await db.Set<ApiVersionContractSources>().SingleAsync()).BundleJson;}
+        using var response=await api.Client.GetAsync($"/api/v1/environments/{api.Environment.Id}/apis/{importedId}/openapi?view=working");Assert.Equal(HttpStatusCode.UnprocessableEntity,response.StatusCode);Assert.Contains("environment_document_requires_single_file",await response.Content.ReadAsStringAsync());
+        await using var after=api.Context();Assert.Equal(before,(await after.Set<ApiVersionContractSources>().SingleAsync()).BundleJson);
+    }
+
+    [Fact] public async Task SingleFileRecursiveReferencesRemainClosedInDownloadedCopy()
+    {
+        await using var api=await Working();var document=Document.Replace("\"paths\":","\"components\":{\"schemas\":{\"Order\":{\"type\":\"object\",\"properties\":{\"child\":{\"$ref\":\"#/components/schemas/Order\"}}}}},\"paths\":");
+        await using(var db=api.Context()){var v=await db.Set<ApiVersion>().SingleAsync();v.OpenapiDocument=document;v.OpenapiSource=document;await db.SaveChangesAsync();}
+        using var response=await api.Client.GetAsync(Entry(api,"openapi"));response.EnsureSuccessStatusCode();var raw=await response.Content.ReadAsStringAsync();var uri=new Uri("https://downloaded-copy.test/openapi.json");var reader=new WebApi.Infrastructure.Contracts.ContractDocumentReader();var bundle=WebApi.Infrastructure.Contracts.ContractBundleCodec.Create(uri,[reader.Read(new(uri,raw,"json"),new(),default)]);var registry=new WebApi.Infrastructure.Contracts.ContractReferenceRegistry(bundle,new());Assert.NotEmpty(registry.References);foreach(var reference in registry.References)registry.Resolve(reference.ResourceUri,reference.Reference);
+    }
+
 }

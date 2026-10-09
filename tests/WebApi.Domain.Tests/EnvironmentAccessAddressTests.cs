@@ -65,4 +65,10 @@ public sealed class EnvironmentAccessAddressTests
         Assert.Equal("https://api.test/orders/{id}",ClientApiAddressBuilder.BuildExample("https://api.test","/","/orders/{id}",new Dictionary<string,string>()));
         Assert.Equal("https://api.test/files/{**path}",ClientApiAddressBuilder.BuildExample("https://api.test","/","/files/{**path}",new Dictionary<string,string>{{"path","a/b"}}));
     }
+    [Fact] public void SharedControlCharacterPrefixesAreRejected()
+    {
+        var values=System.Text.Json.JsonSerializer.Deserialize<string[]>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"fixtures","environment-access-prefix-rejections.json")))!;
+        foreach(var value in values)Assert.Equal(422,Assert.Throws<ApiException>(()=>EnvironmentAccessAddressValidator.Normalize(new(null,null,value),false)).Status);
+    }
+
 }

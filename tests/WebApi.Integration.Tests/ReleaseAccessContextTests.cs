@@ -9,10 +9,10 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class ReleaseAccessContextTests
 {
-    private static async Task SetOrigin(ApiFixture api,string origin)
+    private static async Task SetOrigin(ApiFixture api,string origin,string prefix="/gateway")
     {
         using var response=await api.Client.GetAsync($"/api/v1/environments/{api.Environment.Id}");response.EnsureSuccessStatusCode();using var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync());var e=json.RootElement;
-        using var save=await api.WriteAsync(HttpMethod.Put,$"/api/v1/environments/{api.Environment.Id}",new {code=e.GetProperty("code").GetString(),name=e.GetProperty("name").GetString(),status="Active",isProduction=e.GetProperty("isProduction").GetBoolean(),releasePolicyId=e.GetProperty("releasePolicyId").GetGuid(),sortOrder=0,gatewayPublicUrl=origin,gatewayInternalUrl="http://private.test",basePath="/gateway"},response.Headers.ETag!.ToString());save.EnsureSuccessStatusCode();
+        using var save=await api.WriteAsync(HttpMethod.Put,$"/api/v1/environments/{api.Environment.Id}",new {code=e.GetProperty("code").GetString(),name=e.GetProperty("name").GetString(),status="Active",isProduction=e.GetProperty("isProduction").GetBoolean(),releasePolicyId=e.GetProperty("releasePolicyId").GetGuid(),sortOrder=0,gatewayPublicUrl=origin,gatewayInternalUrl="http://private.test",basePath=prefix},response.Headers.ETag!.ToString());save.EnsureSuccessStatusCode();
     }
     private static async Task<JsonDocument> Release(ApiFixture api,Guid id)
     {using var response=await api.Client.GetAsync($"/api/v1/releases/{id}");response.EnsureSuccessStatusCode();return JsonDocument.Parse(await response.Content.ReadAsStringAsync());}
@@ -51,4 +51,11 @@ public sealed class ReleaseAccessContextTests
         await using var s=new DeploymentScenario();await s.InitializeAsync();var id=await s.ReadyAsync();await using(var db=s.Api.Context()){await db.Set<GatewayNode>().ExecuteUpdateAsync(p=>p.SetProperty(x=>x.LastHeartbeatAt,DateTimeOffset.UtcNow.AddHours(-1)));}
         using var response=await ApiFixture.CommandAsync(s.Api.Client,$"/api/v1/releases/{id}/publish");Assert.Equal(HttpStatusCode.Conflict,response.StatusCode);using var read=await Release(s.Api,id);Assert.Equal(JsonValueKind.Null,read.RootElement.GetProperty("accessContext").ValueKind);Assert.Equal(0L,await Count(s.Api));
     }
+    [Fact] public async Task CurrentEntryTracksPrefixOnlyChangesAndKeepsHistoricalPrefix()
+    {
+        await using var s=new DeploymentScenario();await s.InitializeAsync();await SetOrigin(s.Api,"https://api.test");var id=await s.PublishAsync();
+        using(var same=await Release(s.Api,id)){Assert.Equal("/gateway",same.RootElement.GetProperty("currentBasePath").GetString());Assert.False(same.RootElement.GetProperty("accessAddressChanged").GetBoolean());}
+        await SetOrigin(s.Api,"https://api.test","/new-entry");using var changed=await Release(s.Api,id);Assert.Equal("/gateway",changed.RootElement.GetProperty("accessContext").GetProperty("basePath").GetString());Assert.Equal("/new-entry",changed.RootElement.GetProperty("currentBasePath").GetString());Assert.True(changed.RootElement.GetProperty("accessAddressChanged").GetBoolean());
+    }
+
 }

@@ -8,4 +8,4 @@ export function accessReducer(state,event){
  return state;
 }
 export function mayCopyAddress(result,address){return !!result?.configured&&!result.error&&typeof address==='string'&&address.length>0;}
-export function releaseEntrySummary(release){const context=release.accessContext;return {recorded:context?context.publicOrigin?context.publicOrigin+(context.basePath==='/'?'':context.basePath):'当时未配置':'历史未记录',current:release.currentPublicOrigin||'尚未配置',changed:!!context&&release.accessAddressChanged===true};}
+export function releaseEntrySummary(release){const context=release.accessContext;return {recorded:context?context.publicOrigin?context.publicOrigin+(context.basePath==='/'?'':context.basePath):'当时未配置':'历史未记录',current:release.currentPublicOrigin?release.currentPublicOrigin+(!release.currentBasePath||release.currentBasePath==='/'?'':release.currentBasePath):'尚未配置',changed:!!context&&release.accessAddressChanged===true};}

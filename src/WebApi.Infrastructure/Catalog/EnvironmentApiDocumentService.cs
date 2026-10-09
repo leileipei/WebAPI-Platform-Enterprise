@@ -42,6 +42,17 @@ public sealed class EnvironmentApiDocumentService(EnvironmentApiAddressService a
         root["servers"]=new JsonArray(new JsonObject{["url"]=e.GatewayPublicUrl+(e.BasePath=="/"?"":e.BasePath)});
         foreach(var(_,path)in (JsonObject)root["paths"]!)if(path is JsonObject item){item.Remove("servers");foreach(var(_,operation)in item)if(operation is JsonObject op)op.Remove("servers");}
         root["x-environment-view"]=view.ToString().ToLowerInvariant();root["x-access-address-revision"]=e.AccessAddressRevision;
+        // A download contains one JSON document: validate it without the stored companion files.
+        // A fresh root URI also catches absolute references back to the original source location.
+        var exportedUri=new Uri("https://environment-document.invalid/openapi.json");
+        var exported=reader.Read(new(exportedUri,root.ToJsonString(),"json"),new(),ct);
+        try
+        {
+            var standalone=new ContractReferenceRegistry(ContractBundleCodec.Create(exportedUri,[exported]),new());
+            foreach(var reference in standalone.References)standalone.Resolve(reference.ResourceUri,reference.Reference);
+        }
+        catch(ApiException exception) when(exception.Code=="missing_contract_reference")
+        {throw new ApiException(422,"environment_document_requires_single_file","当前契约引用了单文件下载中不可用的依赖；请先提供引用完整的单文件契约。原固定来源包保留不变。");}
         return JsonDocument.Parse(root.ToJsonString());
     }
     private static ApiException Mapping()=>new(422,"ambiguous_route_contract","契约操作与该视图的实际路由无法一一匹配；请明确版本及方法路径，不生成不完整文档。");

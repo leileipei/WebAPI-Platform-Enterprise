@@ -45,3 +45,13 @@ test('release entry labels keep immutable history separate from current metadata
 test('curl example quotes route literals without turning them into shell commands',async()=>{
  const {buildCurlExample}=await import('../src/environments/access-address.mjs');assert.equal(buildCurlExample('GET',"https://api.test/a'b"),"curl --request GET 'https://api.test/a'\\''b'");assert.throws(()=>buildCurlExample('GET;echo bad','https://api.test/orders'));
 });
+
+test('shared control character prefix rejection vectors',()=>{
+ const values=JSON.parse(fs.readFileSync(new URL('../../tests/fixtures/environment-access-prefix-rejections.json',import.meta.url),'utf8'));
+ for(const basePath of values)assert.throws(()=>normalizeAccessSettings({gatewayPublicUrl:'https://api.test',basePath}));
+});
+test('current and historical entry use the same prefix rule including prefix-only changes',()=>{
+ const same={accessContext:{publicOrigin:'https://api.test',basePath:'/gateway'},currentPublicOrigin:'https://api.test',currentBasePath:'/gateway',accessAddressChanged:false};
+ assert.deepEqual(releaseEntrySummary(same),{recorded:'https://api.test/gateway',current:'https://api.test/gateway',changed:false});
+ assert.deepEqual(releaseEntrySummary({...same,currentBasePath:'/new-entry',accessAddressChanged:true}),{recorded:'https://api.test/gateway',current:'https://api.test/new-entry',changed:true});
+});

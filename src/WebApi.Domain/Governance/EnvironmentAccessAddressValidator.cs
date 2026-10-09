@@ -5,7 +5,7 @@ namespace WebApi.Domain.Governance;
 public static class EnvironmentAccessAddressValidator
 {
     private static readonly Regex originShape=new("^https?://[^/]+/?$",RegexOptions.IgnoreCase|RegexOptions.CultureInvariant);
-    private static readonly Regex prefixShape=new("^/[A-Za-z0-9._~-]+(?:/[A-Za-z0-9._~-]+)*$",RegexOptions.CultureInvariant);
+    private static readonly Regex prefixShape=new("^/[A-Za-z0-9._~-]+(?:/[A-Za-z0-9._~-]+)*\\z",RegexOptions.CultureInvariant);
     private static ApiException Invalid(string message)=>new(422,"invalid_access_address",message);
     public static EnvironmentAccessSettings Normalize(EnvironmentAccessSettings input,bool isProduction)
     {
@@ -30,7 +30,7 @@ public static class EnvironmentAccessAddressValidator
     private static string Prefix(string? value)
     {
         if(string.IsNullOrEmpty(value)||value=="/")return "/";
-        if(value.Length>512||value.EndsWith("//",StringComparison.Ordinal))throw Invalid("外部路径前缀不合法或超过长度限制。");
+        if(value.Length>512||value.Any(char.IsControl)||value.EndsWith("//",StringComparison.Ordinal))throw Invalid("外部路径前缀不合法或超过长度限制。");
         var normalized=value.EndsWith('/')?value[..^1]:value;
         if(!prefixShape.IsMatch(normalized)||normalized.Split('/').Skip(1).Any(p=>p is "." or ".."))
             throw Invalid("外部路径前缀必须以 / 开头，仅允许安全路径段；不能包含空段、编码、查询或相对路径。");
