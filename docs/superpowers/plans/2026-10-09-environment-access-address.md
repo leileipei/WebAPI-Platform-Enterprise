@@ -98,11 +98,11 @@
 
 **Interfaces:** `CaptureAsync(ReleaseRecord release,EnvironmentRecord environment,CancellationToken ct) -> Task<ReleaseAccessContext>` 调用者已持环境锁/现有命令事务；`ReadAsync(Guid releaseId,ActorContext actor,CancellationToken ct) -> Task<ReleaseAccessContextDto?>`，内网额外投影。ReleaseDto 末尾追加可选 `AccessContext`、当前公开地址及 `AccessAddressChanged`，旧候选字节不变。
 
-- [ ] **Step 1：写断言。** `DuplicatePublishKeepsFirstContext` 同幂等键发布仅一行；`AddressEditDoesNotRewriteReleaseHistory` 当前地址与历史分开；`LegacyHistoryRemainsUnknown` 旧Release为null；`RollbackCapturesCurrentEntry` 回滚不恢复旧地址；失败任务和并发捕获不留两行；SnapshotHash及CandidateHash与未加入元数据时一致。
-- [ ] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter ReleaseAccessContextTests`。
-- [ ] **Step 3：实现。** 在 StartAsync 从 Ready 进入 Building 的同事务捕获，重入只读原行；恢复重试创建新Release时新记录注明 RecoveryOf，上一次上下文仍不可变；普通命令幂等重试与失败恢复是不同语义，测试分别覆盖。历史读取从关联Release权限取得Scope。
-- [ ] **Step 4：GREEN。** 同上与 `--filter 'FullyQualifiedName~ApprovalTests|FullyQualifiedName~RollbackTests|FullyQualifiedName~ComparisonReleaseTests'`；旧发布/回滚、DI ControlPlane/Worker 均可启动。
-- [ ] **Step 5：隔离提交。** `feat(releases): retain immutable gateway entry context`。
+- [x] **Step 1：写断言。** `DuplicatePublishKeepsFirstContext` 同幂等键发布仅一行；`AddressEditDoesNotRewriteReleaseHistory` 当前地址与历史分开；`LegacyHistoryRemainsUnknown` 旧Release为null；`RollbackCapturesCurrentEntry` 回滚不恢复旧地址；失败任务和并发捕获不留两行；SnapshotHash及CandidateHash与未加入元数据时一致。
+- [x] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter ReleaseAccessContextTests`。
+- [x] **Step 3：实现。** 在 StartAsync 从 Ready 进入 Building 的同事务捕获，重入只读原行；恢复重试创建新Release时新记录注明 RecoveryOf，上一次上下文仍不可变；普通命令幂等重试与失败恢复是不同语义，测试分别覆盖。历史读取从关联Release权限取得Scope。
+- [x] **Step 4：GREEN。** 同上与 `--filter 'FullyQualifiedName~ApprovalTests|FullyQualifiedName~RollbackTests|FullyQualifiedName~ComparisonReleaseTests'`；旧发布/回滚、DI ControlPlane/Worker 均可启动。
+- [x] **Step 5：隔离提交。** `feat(releases): retain immutable gateway entry context`。
 
 ## Task 5 (A5)：环境编辑与调用入口 UI
 

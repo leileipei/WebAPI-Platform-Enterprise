@@ -8,7 +8,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Releases;
-public sealed class ReleaseRecoveryService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,HistoricalSnapshotService history,PublishCoordinator publish)
+public sealed class ReleaseRecoveryService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,HistoricalSnapshotService history,PublishCoordinator publish,ReleaseAccessContextService accessContexts)
 {
     public async Task<ReleaseDto> RetryAsync(Guid failedId,ActorContext actor,CancellationToken ct=default)
     {
@@ -19,7 +19,7 @@ public sealed class ReleaseRecoveryService(WebApiDbContext db,AuthorizationServi
                 await publish.LockEnvironmentAsync(initial.EnvironmentId,inner);var failed=await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==failedId,inner);var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==failed.EnvironmentId,inner);
                 if(failed.Status!="Failed"||failed.ToConfigVersion<=0||failed.DeploymentSequence!=env.DeploymentSequence||failed.ToConfigVersion!=env.DesiredConfigVersion) throw new ApiException(409,"stale_retry_target","失败记录已过时或尚未生成可重试快照。");
                 if(await db.Set<ReleaseRecord>().AnyAsync(r=>r.EnvironmentId==env.Id&&(r.Status=="Building"||r.Status=="Publishing"),inner)) throw new ApiException(409,"environment_busy","环境已有正在下发的记录。");await publish.ValidateTargetSchemaAsync(env.Id,failed.ToConfigVersion,inner);var candidate=await history.CandidateAsync(env.Id,failed.ToConfigVersion,failed.ToConfigVersion,inner);
-                var record=new ReleaseRecord {EnvironmentId=env.Id,ReleaseNo="RTY-"+Guid.NewGuid().ToString("N"),ReleaseType="retry",Status="Building",RequestedBy=actor.UserId,PublishRequestedBy=actor.UserId,PublishTraceId=actor.TraceId,RecoveryOf=failed.Id,BaselineConfigVersion=failed.ToConfigVersion,FromConfigVersion=failed.ToConfigVersion,ToConfigVersion=failed.ToConfigVersion,CandidateBytes=CanonicalJson.Serialize(candidate),ApprovalPolicy="[]"};db.Add(record);return await releases.DtoAsync(record,inner);
+                var record=new ReleaseRecord {EnvironmentId=env.Id,ReleaseNo="RTY-"+Guid.NewGuid().ToString("N"),ReleaseType="retry",Status="Building",RequestedBy=actor.UserId,PublishRequestedBy=actor.UserId,PublishTraceId=actor.TraceId,RecoveryOf=failed.Id,BaselineConfigVersion=failed.ToConfigVersion,FromConfigVersion=failed.ToConfigVersion,ToConfigVersion=failed.ToConfigVersion,CandidateBytes=CanonicalJson.Serialize(candidate),ApprovalPolicy="[]"};db.Add(record);await accessContexts.CaptureAsync(record,env,inner);return await releases.DtoAsync(record,inner);
             },token);
         },ct);
     }

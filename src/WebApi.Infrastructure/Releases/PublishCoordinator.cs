@@ -16,7 +16,7 @@ using WebApi.Infrastructure.Security;
 using WebApi.Infrastructure.Gateway;
 namespace WebApi.Infrastructure.Releases;
 public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSeconds=120,int AckTimeoutSeconds=120);
-public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews)
+public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews,ReleaseAccessContextService accessContexts)
 {
     public async Task<ReleaseDto> StartAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
@@ -26,7 +26,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             return await idempotency.ExecuteAsync(new(actor.UserId,scope,"release.publish",requestContext.IdempotencyKey),CanonicalJson.Serialize(new {releaseId=id}),async inner=>{
                 await LockEnvironmentAsync(initial.EnvironmentId,inner);var r=await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id,inner);ReleaseStateMachine.Require(r.Status,"Ready");
                 await VerifyBaselineAsync(r,inner);if(await db.Set<ReleaseRecord>().AnyAsync(x=>x.EnvironmentId==r.EnvironmentId&&x.Id!=id&&(x.Status=="Building"||x.Status=="Publishing"),inner)) throw new ApiException(409,"environment_busy","该环境已有正在下发的发布。");
-                var nodes=await TargetsAsync(r.EnvironmentId,inner);await VerifyVersionsAsync(r,inner);SnapshotSchemaCapabilities.RequireSupported(nodes,await TargetSchemaAsync(r,inner));await ValidateReviewsAsync(r,actor,scope,inner);r.Status="Building";r.PublishRequestedBy=actor.UserId;r.PublishTraceId=actor.TraceId;
+                var nodes=await TargetsAsync(r.EnvironmentId,inner);await VerifyVersionsAsync(r,inner);SnapshotSchemaCapabilities.RequireSupported(nodes,await TargetSchemaAsync(r,inner));await ValidateReviewsAsync(r,actor,scope,inner);var entry=await db.Set<EnvironmentRecord>().SingleAsync(x=>x.Id==r.EnvironmentId,inner);await accessContexts.CaptureAsync(r,entry,inner);r.Status="Building";r.PublishRequestedBy=actor.UserId;r.PublishTraceId=actor.TraceId;
                 return await releases.DtoAsync(r,inner);
             },token);
         },ct);
