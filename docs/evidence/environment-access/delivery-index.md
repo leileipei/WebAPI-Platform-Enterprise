@@ -1,18 +1,16 @@
 # 环境访问地址交付记录
 
-候选源码：`ab6337eefad1a6b34f15510965f47c3c1c5753a6`，镜像：`sha256:358a1ef99079f5784e5c36132e6c7633740b937b5a5aa106f49273b9718716f0`。本批只在隔离工作区提交，原目录修改未合并。
+已安装源码：`8908281db8129860cfdf4104a02904a25d6c9b1b`，镜像：`sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed`。本批在隔离工作区提交；原源码目录的本地修改核对未变。
 
 |验证|实际结果|
 |---|---|
-|Domain|735/735，零跳过|
-|Integration|764/764，零跳过；运行入口重启修正后相关8/8|
-|Gateway|142/142，零跳过，包含实际双节点重启和错误摘要拒绝|
-|Console|221/221及生产构建；既有大包提示|
+|Domain / Integration / Gateway / Console|736 / 767 / 142 / 223 全通过，共1,868项，零跳过；控制台构建通过|
 |证据拒绝检查|7/7|
-|实际隔离闭环|8项运行检查及8项浏览器检查，7张截图逐张查看|
-|代理与回滚|严格信任测试证书的TLS请求200，前缀剥离至实际上游；双节点真实ACK，独立审批回滚|
-|原实例保全|43张业务表冷备前后不变，17个平台卷及4个IdP卷归档；旧软件恢复副本登录/SSO/双Gateway通过|
+|实际隔离闭环|8项运行及8项浏览器检查；7张截图逐张查看；TLS前缀代理、双节点ACK和审批回滚通过|
+|原数据演练|17个平台卷、4个IdP卷冷备；原43张表恢复后升级、旧软件回退、再升级及真实登录调用均通过|
+|原4192安装|固定源码/实际镜像与二进制匹配；43张表、既有秘密、端口和绑定保留；原管理员、Keycloak Viewer及双网关调用通过；4个观测源Available|
+|独立审查|3项Important集中修复并RED→GREEN；Critical0，剩余Important0，Minor0|
 
-[运行闭环证据](ab6337eefad1a6b34f15510965f47c3c1c5753a6/verification.json)、[浏览器记录](ab6337eefad1a6b34f15510965f47c3c1c5753a6/ui/qa.json)、[回归摘要](ab6337eefad1a6b34f15510965f47c3c1c5753a6/regression.json)。早期16bbe62候选证据记录前一运行包，不作为当前安装身份。
+[运行闭环](8908281db8129860cfdf4104a02904a25d6c9b1b/verification.json)、[浏览器记录](8908281db8129860cfdf4104a02904a25d6c9b1b/ui/qa.json)、[完整回归](8908281db8129860cfdf4104a02904a25d6c9b1b/regression.json)、[原数据演练](8908281db8129860cfdf4104a02904a25d6c9b1b/original-data-rehearsal.json)、[原4192安装](8908281db8129860cfdf4104a02904a25d6c9b1b/original-4192/installation.json)、[审查记录](final-review.md)、[执行裁定](decisions.md)。早期候选证据仅为对应旧包的历史记录。
 
-状态：sourceVerified=true，isolatedAcceptance=true，localInstalled=false，productionAcceptance=false。独立审查、升级与回退演练及原4192安装仍在进行。生产DNS/TLS/LB、企业上游和容量验收未执行。
+状态：sourceVerified=true，isolatedAcceptance=true，localInstalled=true，productionAcceptance=false。环境地址保存为元数据，DNS/TLS/LB仍需另行配置；完整跨环境发布晋级按B计划继续。

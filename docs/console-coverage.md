@@ -8,11 +8,11 @@
 |2|企业工作台|`/dashboard`|真实只读聚合；当前项目 API、当前环境24h指标/节点/告警/最近发布；待审批仅最近50条|
 |3|组织|/organizations|已接入|
 |4|项目|/projects|已接入；负责人由创建者记录|
-|5|环境|/environments|已接入；环境访问地址、前缀及授权内网入口完成固定源码实际隔离验收，本机安装待独立审查|
+|5|环境|/environments|已接入；环境访问地址、前缀及授权内网入口已完成独立审查并安装至4192|
 |6|API目录|/apis|已接入；完整标签与指标后续|
 |7|六步向导|/apis/{id}/wizard|已接入逐步保存与发布Review|
 |8|OpenAPI导入|/imports|已接入3 JSON原文、Operation映射；URL/YAML后续|
-|9|API详情|/apis/{id}|已接入工作/运行/待发布事实；实际路由地址、无凭证示例及环境OpenAPI副本已隔离验收|
+|9|API详情|/apis/{id}|已接入工作/运行/待发布事实；实际路由地址、无凭证示例及环境OpenAPI副本已安装至4192|
 |10|版本|/apis/{id}|已接入版本Tab|
 |11|版本比较与风险评审|/apis/{id}/versions/compare|真实比较、历史/导出、追加风险评审和可选发布证据已完成固定源码隔离验收及1440px UI QA；规则覆盖受限，4192未升级|
 |12|Route|/routes|已接入环境专属路由|
@@ -26,7 +26,7 @@
 |20|凭证|/applications/{id}|已接入凭证Tab，一次性Secret及有效期/撤销|
 |21|API授权|/applications/{id}|已接入授权Tab及环境/窗口|
 |22|发布中心|/releases|已接入核心发布|
-|23|发布详情|/releases/{id}|已接入审批/真实ACK/回滚/重试；不可变历史入口及当前地址变化提示已隔离验收|
+|23|发布详情|/releases/{id}|已接入审批/真实ACK/回滚/重试；不可变历史入口及当前地址变化提示已安装至4192|
 |24|审批中心|/approvals|已接入当前环境待审批；跨环境集中收件箱后续|
 |25|Snapshot|/snapshots|已接入脱敏管理视图和下载|
 |26|网关节点|/nodes|已接入实际/目标版本及sequence|
@@ -49,4 +49,4 @@
 
 工作台范围与验证说明见 [企业工作台](workbench.md)。
 
-环境访问地址固定提交验收见 [交付索引](evidence/environment-access/delivery-index.md)与[运行手册](deployment/environment-access-runbook.md)。本批尚未升级原4192；独立审查和原数据副本演练通过后按批准计划安装。
+环境访问地址固定提交验收见 [交付索引](evidence/environment-access/delivery-index.md)与[运行手册](deployment/environment-access-runbook.md)。本批已完成独立审查、原数据升级/回退演练和原4192实际安装。

@@ -1,6 +1,6 @@
 # 环境访问地址 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 提供环境级公开/内网入口配置、外部前缀、真实 Route 地址和环境文档，并保留发布入口历史。
 
@@ -130,12 +130,12 @@
 
 ## 安装和阶段完成门禁
 
-- [ ] 独立整分支审查：源码、迁移、权限、旧客户端及实际证据均检查；问题修复后仅重跑相关项。
-- [ ] 在原4192实例只读核对实际源码/镜像身份、业务数据、SSO、观测和卷；执行时再次查明实际路径，不猜测旧交付记录仍是当前状态。
-- [ ] 在获准本机安装范围内，固定候选包、原卷/附件冷备及保留新数据的恢复路径，验证后按运行手册维护窗口升级；不重置环境和账号。原入口截图与真实请求必须证明实际安装成功。
-- [ ] 记录 `sourceVerified`、`isolatedAcceptance`、`localInstalled`、`productionAcceptance` 分别为实际状态，禁止用测试通过代替安装；生产验收默认false。
-- [ ] A阶段完成后从其已验证提交建立B阶段基线；A可以独立交付，B不影响A已完成能力。
+- [x] 独立整分支审查：源码、迁移、权限、旧客户端及实际证据均检查；问题修复后仅重跑相关项。
+- [x] 在原4192实例只读核对实际源码/镜像身份、业务数据、SSO、观测和卷；执行时再次查明实际路径，不猜测旧交付记录仍是当前状态。
+- [x] 在获准本机安装范围内，固定候选包、原卷/附件冷备及保留新数据的恢复路径，验证后按运行手册维护窗口升级；不重置环境和账号。原入口截图与真实请求必须证明实际安装成功。
+- [x] 记录 `sourceVerified`、`isolatedAcceptance`、`localInstalled`、`productionAcceptance` 分别为实际状态，禁止用测试通过代替安装；生产验收默认false。
+- [x] A阶段完成后从其已验证提交建立B阶段基线；A可以独立交付，B不影响A已完成能力。
 
 ## 规格覆盖自查
 
-§1/2边界→全局约束；§3模型→A2/A4；§4规则→A1；§5接口→A2/A3；§6页面→A5；§7历史/晋级接口→A4及B计划；§8验收→A6/安装门禁；§9后续→保持延期。五项Review Focus均有明确行为测试。当前只完成计划自查，所有执行复选框保持未勾选。
+§1/2边界→全局约束；§3模型→A2/A4；§4规则→A1；§5接口→A2/A3；§6页面→A5；§7历史/晋级接口→A4及B计划；§8验收→A6/安装门禁；§9后续→保持延期。五项Review Focus均有明确行为测试。2026-10-09：A任务及安装门禁已完成，实际源码与安装证据见环境访问地址交付索引；B任务另行执行。

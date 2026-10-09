@@ -1,0 +1,40 @@
+{
+  "classification": "actual-executed-regression-summary",
+  "candidateSourceRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+  "suites": [
+    {
+      "name": "domain",
+      "passed": 736,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "1c2d3c31e6c545d02a2114cae34ceda9583636cfc68d0e3482da2b90b8120b4c"
+    },
+    {
+      "name": "integration",
+      "passed": 767,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "fb1347f423b77576e25ff6f9537dabd5ca7dd88a6e1e4b8d5b38dc76eb19268c"
+    },
+    {
+      "name": "gateway",
+      "passed": 142,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "e2f0daf9745f13ef0f80047488bb56ea75c4cf6b6af37dff5531a470afa817a7"
+    },
+    {
+      "name": "console",
+      "passed": 223,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "c966f40f1fe1230d94637dfc1dfa57797117117b227e71169006839ea4bf40af"
+    }
+  ],
+  "evidenceValidatorTestsPassed": 7,
+  "consoleBuildPassed": true,
+  "sourceVerified": true,
+  "isolatedAcceptance": true,
+  "localInstalled": true,
+  "productionAcceptance": false
+}

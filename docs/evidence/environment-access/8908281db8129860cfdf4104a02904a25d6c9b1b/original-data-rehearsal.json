@@ -1,0 +1,48 @@
+{
+  "classification": "actual-original-data-software-upgrade-and-revert-rehearsal",
+  "projectName": "webapi-enterprise-local-test-a0e271b6-f317-4983-9356-4558bc4109b1",
+  "ownerId": "29654643-039e-41dd-81f1-d610e67e01d6",
+  "sourceRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+  "imageId": "sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed",
+  "checks": [
+    {
+      "name": "candidate-first",
+      "actual": true,
+      "passed": true,
+      "sourceRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+      "imageId": "sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed",
+      "protectedTableCount": 43,
+      "phase": "Ready",
+      "sourceCount": 4,
+      "visualReviewComplete": true
+    },
+    {
+      "name": "software-revert",
+      "actual": true,
+      "passed": true,
+      "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+      "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+      "protectedTableCount": 43,
+      "phase": "Ready",
+      "sourceCount": 4,
+      "visualReviewComplete": true
+    },
+    {
+      "name": "candidate-final",
+      "actual": true,
+      "passed": true,
+      "sourceRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+      "imageId": "sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed",
+      "protectedTableCount": 43,
+      "phase": "Ready",
+      "sourceCount": 4,
+      "visualReviewComplete": true
+    }
+  ],
+  "complete": true,
+  "migrationDefaults": {
+    "environmentCount": 4,
+    "defaultCount": 4,
+    "contextCount": 0
+  }
+}
