@@ -16,4 +16,4 @@
 |固定源码、应用包和静态文件、资源所有权|pipeline-cli/evidence/runtime/network 测试|容器镜像与实际文件摘要、所有隔离资源清理为 0|
 |原实例历史数据、授权、Secret、旧工具保全|pipeline-installation/inventory/maintenance 测试|P14 安装前后真实主键清单、固定包、SSO、原版本/序列及冷备恢复|
 
-当前状态：P1–P12 已完成；P13 新候选真实闭环与最终审查进行中；P14 已准备保全工具，实际安装尚未执行。本文件不作为完成或企业验收声明，最终结果以封存验证报告和安装报告为准。
+当前状态：P1–P13完成，最终审查C1/I1–I5在一次修正中全部RED→GREEN并通过新固定候选实际验收。P14保全工具已准备，原实例安装尚未执行；企业验收尚未执行。新增审查回归归属PipelineReviewRegressionTests、generated maintenance/cleanup行为测试及第三阶段两宽度真实浏览器映射/预检。

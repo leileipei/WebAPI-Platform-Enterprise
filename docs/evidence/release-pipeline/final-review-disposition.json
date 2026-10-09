@@ -1,0 +1,30 @@
+{
+  "reviewedRange": "e42b5d0..cf34fd5",
+  "freshReviewer": true,
+  "secondReview": false,
+  "oneFixPass": true,
+  "productRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
+  "imageId": "sha256:3677ee6b11cc1ebe6ce646ab673257c8bc7b51d1913e0802554c013011ccfc22",
+  "fixed": [
+    "C1",
+    "I1",
+    "I2",
+    "I3",
+    "I4",
+    "I5"
+  ],
+  "unresolvedCriticalImportant": 0,
+  "deferredMinors": [
+    "M1"
+  ],
+  "fullSuiteTests": 2628,
+  "actualCompleteChains": [
+    2,
+    4
+  ],
+  "actualFaults": 23,
+  "visuallyInspectedScreenshots": 13,
+  "readonlyProofVerified": true,
+  "approvedForInstallation": true,
+  "originalInstallationExecuted": false
+}

@@ -1,6 +1,6 @@
 # P14 受控执行边界（供唯一最终审查者同时评估）
 
-状态：准备，未对原实例安装。产品候选 b1323c3a41dfdeb2008e0c9fdc811e4004067ac8 / sha256:f801fb31f83253d372bc7b7cfbaa3097324971df1929d31bbe1dddfeea622b42。若最终审查需要产品修复，必须改为重新全量验证和真实验收的新固定候选。
+状态：准备，未对原实例安装。最终审查修正候选 71183e941eef99efb3ad4328abd7c91d02938a1d / sha256:3677ee6b11cc1ebe6ce646ab673257c8bc7b51d1913e0802554c013011ccfc22。全部测试与实际整体验收已通过，最终审查C1/I1–I5已闭环，允许受控安装。原实例安装仍未执行。
 
 - 原 owner 6d7e3fda-88ea-4315-a8ef-df9e7cd995c8，项目 webapi-enterprise-local，目录主仓库 .runtime/local；4192/4196/4197。原已装源码 a445534f82f11ae9a45c3b2904bd07108bd165a9，原主仓库 HEAD 40759aac50f1a6281223b0ec0d45d58e6fb44cb5 及 dirty 内容不合并、不提交、不推送。
 - P13 prove/verify、全量测试以及 Critical/Important 最终审查处置闭环才可进入维护。原实例不得自动激活、新建运行或产生业务发布。

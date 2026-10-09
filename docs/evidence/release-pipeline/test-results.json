@@ -1,8 +1,8 @@
 {
   "productRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
   "imageId": "sha256:3677ee6b11cc1ebe6ce646ab673257c8bc7b51d1913e0802554c013011ccfc22",
-  "status": "full-suites-passed-fixed-candidate-actual-acceptance-pending",
-  "toolingRevision": "0d84f74b8c2bd51719a1edf360e8496a50b8945a",
+  "status": "full-suites-isolated-acceptance-and-final-review-passed-original-install-pending",
+  "toolingRevision": "aa9a91f",
   "suites": [
     {
       "suite": "Domain",

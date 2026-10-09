@@ -396,7 +396,7 @@ test('old attempt response cannot populate a reopened stage', () => {
 
 **Interfaces:** Shell `check-pipeline.sh domain|integration|gateway|console|e2e|faults|browser|verify [revision-or-directory]`，前四复用既有脚本；`runPipelineScenario({sourceRevision,directory,chains:[2,4],browser,nodeRuntime,chromiumExecutable})`→Promise证明对象；`validatePipelineProof(proof, files)`→`{passed:boolean,errors:string[]}`。证明schema记录固定源码SHA/镜像/包文件、环境实际部署/每跳hash/证据、故障与截图、报告冷恢复、owner清理、企业验收字段。e2e/faults/browser分清所执行范围，verify只读已有证明，不暗中重跑或把空范围当通过。
 
-- [ ] **Step 1:** 写证明拒绝测试和受控备份扩展测试；固定2/4链的场景断言为：
+- [x] **Step 1:** 写证明拒绝测试和受控备份扩展测试；固定2/4链的场景断言为：
 
 ```javascript
 test('proof rejects incomplete actual multi-environment delivery', () => {
@@ -413,10 +413,10 @@ assert.ok(chain.stages.every(s => s.behaviorHash === chain.rootArtifactHash));
 assert.ok(chain.stages.every(s => s.actualCallsPassed && s.allNodesAcknowledged));
 ```
 
-- [ ] **Step 2:** 跑`"$WEBAPI_NODE" --test tests/delivery/pipeline-evidence.test.mjs tests/runtime/backup.test.mjs`，先可编译验证器stub，缺ACK/错报告摘要/外来资源owner/漏Stage组必须behavior RED；不在原4192制造故障。
-- [ ] **Step 3:** 实现场景/证明脚本和类型化备份扩展。使用获准隔离资源、固定commit源码构建，2链TEST→PROD及4链DEV→TEST→UAT→PROD，各环境两个实际Gateway、独立后端/访问入口/凭证授权，真实调用与ACK；初始来源和生产回滚基线也实际发布。非生产至少覆盖无审批和有两级审批，三类测试人工登记与验收、生产独立3验证；说明自建本机测试业务内容。备份限定`PipelineStageGroup`有序2–8组及受控服务/卷类型，Manifest含环境/Stage、owner及报告；禁止任意卷名/借用外来资源，不改原备份所有权规则。真实故障覆盖跳阶段/旧API绕过、错根hash/映射修订/共享凭证、错Profile/时间/过期/显式撤销、队列撤权/Run申请人、并发Run/attempt、Stage超时+部分应用/迟到ACK、Worker重启、三支reopen及精确retry/人工rollback、受限委托和异步旧表单。浏览器场景包含实际SSO、1440/1280、键盘、412/409、撤权及旧页面联动；每张截图人工查看，不以文件存在算验收。
-- [ ] **Step 4:** 固定P1–P12候选SHA后跑Domain/Integration/Gateway/Console全量、runtime/delivery脚本测试及新增完整`check-pipeline.sh e2e "$PIPELINE_REVISION"`，附故障/浏览器/verify、真实冷备恢复（所有Stage Gateway及报告下载hash）和owner清理0残留。Native方法在此请求一次新最终审查者，审查全分支规格/安全/证据；所有Critical/Important修复并重跑受影响测试、生成新固定候选，Minor明确处置。没有绿灯或审查未闭环不安装；真实企业DNS/TLS/LB、企业业务验收仍分别标未执行。
-- [ ] **Step 5:** 提交 `test(pipeline): verify fixed multi-environment delivery and recovery`，封存审查rulings与覆盖账本，记录最终产品候选SHA和镜像digest；本提交只封证据时注明应用源码仍为其所验证产品SHA。P14使用此候选，不从主目录工作树构建。
+- [x] **Step 2:** 跑`"$WEBAPI_NODE" --test tests/delivery/pipeline-evidence.test.mjs tests/runtime/backup.test.mjs`，先可编译验证器stub，缺ACK/错报告摘要/外来资源owner/漏Stage组必须behavior RED；不在原4192制造故障。
+- [x] **Step 3:** 实现场景/证明脚本和类型化备份扩展。使用获准隔离资源、固定commit源码构建，2链TEST→PROD及4链DEV→TEST→UAT→PROD，各环境两个实际Gateway、独立后端/访问入口/凭证授权，真实调用与ACK；初始来源和生产回滚基线也实际发布。非生产至少覆盖无审批和有两级审批，三类测试人工登记与验收、生产独立3验证；说明自建本机测试业务内容。备份限定`PipelineStageGroup`有序2–8组及受控服务/卷类型，Manifest含环境/Stage、owner及报告；禁止任意卷名/借用外来资源，不改原备份所有权规则。真实故障覆盖跳阶段/旧API绕过、错根hash/映射修订/共享凭证、错Profile/时间/过期/显式撤销、队列撤权/Run申请人、并发Run/attempt、Stage超时+部分应用/迟到ACK、Worker重启、三支reopen及精确retry/人工rollback、受限委托和异步旧表单。浏览器场景包含实际SSO、1440/1280、键盘、412/409、撤权及旧页面联动；每张截图人工查看，不以文件存在算验收。
+- [x] **Step 4:** 固定P1–P12候选SHA后跑Domain/Integration/Gateway/Console全量、runtime/delivery脚本测试及新增完整`check-pipeline.sh e2e "$PIPELINE_REVISION"`，附故障/浏览器/verify、真实冷备恢复（所有Stage Gateway及报告下载hash）和owner清理0残留。Native方法在此请求一次新最终审查者，审查全分支规格/安全/证据；所有Critical/Important修复并重跑受影响测试、生成新固定候选，Minor明确处置。没有绿灯或审查未闭环不安装；真实企业DNS/TLS/LB、企业业务验收仍分别标未执行。
+- [x] **Step 5:** 提交 `test(pipeline): verify fixed multi-environment delivery and recovery`，封存审查rulings与覆盖账本，记录最终产品候选SHA和镜像digest；本提交只封证据时注明应用源码仍为其所验证产品SHA。P14使用此候选，不从主目录工作树构建。
 
 ## Task 14 (P14): 原本机实例保全安装及交付封存
 
