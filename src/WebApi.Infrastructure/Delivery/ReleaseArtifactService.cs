@@ -45,6 +45,19 @@ public sealed class ReleaseArtifactService(WebApiDbContext db, ScopeResolver sco
         }, ct);
     }
 
+    public async Task<PageResult<ReleaseArtifactSummaryDto>> ListAsync(Guid environmentId,int page,int size,ActorContext actor,CancellationToken ct)
+    {
+        var scope=await scopes.EnvironmentAsync(environmentId,ct);
+        foreach(var permission in new[]{"release.read","environment.read","route.read","api.read","api.version.read","api.schema.read"})if(!await auth.CanAsync(actor,permission,new("environment",environmentId,scope),ct))throw ScopeResolver.Missing();
+        using var budget=CancellationTokenSource.CreateLinkedTokenSource(ct);budget.CancelAfter(TimeSpan.FromSeconds(10));var token=budget.Token;
+        IQueryable<ReleaseArtifact> query=db.Set<ReleaseArtifact>().AsNoTracking();
+        if(!await policyAccess.CanReadAsync(scope,actor,token))query=db.Set<ReleaseArtifact>().FromSqlInterpolated($"SELECT * FROM release_artifacts WHERE source_environment_id={environmentId} AND NOT jsonb_path_exists(canonical_content, '$.routes[*].policies[*]')").AsNoTracking();
+        query=query.Where(a=>a.SourceEnvironmentId==environmentId&&a.ProjectId==scope.ProjectId&&a.OrganizationId==scope.OrganizationId);
+        var total=await query.CountAsync(token);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
+        var items=await query.OrderByDescending(a=>a.CreatedAt).ThenBy(a=>a.Id).Skip((page-1)*size).Take(size).Select(a=>new ReleaseArtifactSummaryDto(a.Id,a.SourceEnvironmentId,a.SourceReleaseId,a.ArtifactHash,a.SourceSnapshotHash,a.CreatedBy,a.CreatedAt)).ToArrayAsync(token);
+        return new(items,total,page,size);
+    }
+
     public async Task<ReleaseArtifactDto> GetAsync(Guid id, ActorContext actor, CancellationToken ct)
     {
         var row = await db.Set<ReleaseArtifact>().AsNoTracking().SingleOrDefaultAsync(a => a.Id == id, ct) ?? throw ScopeResolver.Missing();

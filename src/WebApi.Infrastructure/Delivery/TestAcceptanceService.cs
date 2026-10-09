@@ -15,6 +15,33 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
 {
     private static readonly string[] defaultTypes=["InterfaceFunction","Integration","ContractCompatibility"];
     private static ApiException Stale()=>new(409,"test_evidence_not_current","测试证据、来源运行状态、入口或连接规则已变化，请重新测试并申请验收。");
+    public async Task<ArtifactEligibilityDto> EligibilityAsync(Guid artifactId,ActorContext actor,CancellationToken ct)
+    {var artifact=await artifacts.GetAsync(artifactId,actor,ct);return (await EligibilityFactsAsync(artifact,actor,ct)).Dto;}
+    private async Task<(ArtifactEligibilityDto Dto,ReleaseVerification[] Current)> EligibilityFactsAsync(ReleaseArtifactDto artifact,ActorContext actor,CancellationToken ct)
+    {
+        var scope=await scopes.EnvironmentAsync(artifact.SourceEnvironmentId,ct);
+        var policy=await db.Set<ProjectDeliveryPolicy>().AsNoTracking().SingleOrDefaultAsync(p=>p.ProjectId==artifact.ProjectId,ct);
+        var required=policy?.RequiredTestTypes??defaultTypes;var revision=policy?.Revision??0;var reasons=new List<string>();
+        var writable=await auth.CanAsync(actor,"release.test.record",new("environment",artifact.SourceEnvironmentId,scope),ct);
+        if(!writable)reasons.Add("release_test_record_or_write_scope_required");
+        Guid? target=null;var restricted=false;
+        if(policy is not null){if(await auth.CanAsync(actor,"environment.read",new("environment",policy.TargetEnvironmentId,scope with{EnvironmentId=policy.TargetEnvironmentId}),ct))target=policy.TargetEnvironmentId;else restricted=true;if(policy.SourceEnvironmentId!=artifact.SourceEnvironmentId)reasons.Add("delivery_source_mismatch");}
+        var current=new List<ReleaseVerification>();var sourceCurrent=false;
+        try{
+            var source=await artifacts.RequireSourceAsync(artifact.SourceReleaseId,actor,ct);
+            sourceCurrent=source.Deployment.Snapshot.Hash==artifact.SourceSnapshotHash&&WebApi.Domain.Delivery.ReleaseArtifactCanonicalizer.Hash(source.Content)==artifact.ArtifactHash&&(policy is null||policy.SourceEnvironmentId==artifact.SourceEnvironmentId);
+            if(sourceCurrent)foreach(var type in defaultTypes){var row=await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>v.ArtifactId==artifact.Id&&v.Phase=="SourceTest"&&v.Type==type).OrderByDescending(v=>v.CreatedAt).ThenByDescending(v=>v.Id).FirstOrDefaultAsync(ct);if(row is not null&&row.Result=="Passed"&&row.IsManual&&row.ExpiresAt>DateTimeOffset.UtcNow&&row.PolicyRevision==revision&&row.ReleaseId==artifact.SourceReleaseId&&row.EnvironmentId==artifact.SourceEnvironmentId&&row.ConfigVersion==source.Deployment.Release.ToConfigVersion&&row.DeploymentSequence==source.Deployment.Release.DeploymentSequence&&row.SnapshotHash==artifact.SourceSnapshotHash&&row.AccessAddressRevision==source.Deployment.Environment.AccessAddressRevision)current.Add(row);}
+        }catch(ApiException e)when(e.Status is 409 or 422){reasons.Add(e.Code);}
+        if(!sourceCurrent)reasons.Add("artifact_source_not_current");var complete=required.All(type=>current.Any(v=>v.Type==type));if(!complete)reasons.Add("current_required_passed_evidence_incomplete");
+        return(new(artifact.Id,artifact.SourceEnvironmentId,target,restricted,policy?.Mode??"Legacy",required,policy?.VerificationValidityMinutes??1440,revision,writable&&sourceCurrent,writable,writable&&sourceCurrent&&complete,current.Where(v=>required.Contains(v.Type)).Select(v=>v.Id).Order().ToArray(),reasons.Distinct().ToArray()),current.ToArray());
+    }
+    private TestAcceptanceDto AuthorityView(ReleaseTestAcceptance row,ReleaseArtifactDto artifact,IReadOnlyList<ReleaseVerification> evidence,(ArtifactEligibilityDto Dto,ReleaseVerification[] Current) eligibility,bool canAct,ActorContext actor)
+    {
+        var independent=row.RequestedBy!=actor.UserId;var eligible=independent&&canAct;
+        var current=row.PolicyRevision==eligibility.Dto.PolicyRevision&&evidence.Count==row.VerificationIds.Length&&eligibility.Dto.RequiredTestTypes.All(t=>evidence.Any(v=>v.Type==t))&&evidence.All(v=>eligibility.Current.Any(c=>c.Id==v.Id))&&row.EvidenceHash==EvidenceHash(artifact,evidence);
+        var reasons=new List<string>();if(!independent)reasons.Add("independent_test_acceptor_required");if(!canAct)reasons.Add("test_accept_permission_or_write_scope_required");if(!current)reasons.Add("test_evidence_not_current");
+        return View(row,artifact,evidence) with{CanAccept=eligible&&row.Status=="Requested"&&current,CanReject=eligible&&row.Status=="Requested",CanRevoke=eligible&&row.Status=="Accepted",ReasonCodes=reasons};
+    }
     public async Task<TestAcceptanceDto> RequestAsync(Guid artifactId,IReadOnlyList<Guid> verificationIds,ActorContext actor,CancellationToken ct)
     {
         var artifact=await artifacts.GetAsync(artifactId,actor,ct);var scope=await scopes.EnvironmentAsync(artifact.SourceEnvironmentId,ct);
@@ -34,7 +61,9 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
     {
         var row=await db.Set<ReleaseTestAcceptance>().AsNoTracking().SingleOrDefaultAsync(a=>a.Id==id,ct)??throw ScopeResolver.Missing();var artifact=await artifacts.GetAsync(row.ArtifactId,actor,ct);
         if(artifact.ProjectId!=row.ProjectId||artifact.OrganizationId!=row.OrganizationId||artifact.SourceEnvironmentId!=row.SourceEnvironmentId)throw ScopeResolver.Missing();
-        return View(row,artifact,await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>row.VerificationIds.Contains(v.Id)&&v.ArtifactId==row.ArtifactId&&v.Phase=="SourceTest").ToArrayAsync(ct));
+        var evidence=await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>row.VerificationIds.Contains(v.Id)&&v.ArtifactId==row.ArtifactId&&v.Phase=="SourceTest").ToArrayAsync(ct);
+        var eligible=await EligibilityFactsAsync(artifact,actor,ct);var scope=await scopes.EnvironmentAsync(artifact.SourceEnvironmentId,ct);var canAct=await auth.CanAsync(actor,"release.test.accept",new("environment",artifact.SourceEnvironmentId,scope),ct);
+        return AuthorityView(row,artifact,evidence,eligible,canAct,actor);
     }
     public async Task<IReadOnlyList<TestAcceptanceDto>> ListAsync(Guid artifactId,ActorContext actor,CancellationToken ct)
     {
@@ -42,7 +71,8 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
         var rows=await db.Set<ReleaseTestAcceptance>().AsNoTracking().Where(a=>a.ArtifactId==artifactId).OrderByDescending(a=>a.CreatedAt).ThenBy(a=>a.Id).Take(100).ToArrayAsync(ct);
         var ids=rows.SelectMany(a=>a.VerificationIds).Distinct().ToArray();
         var evidence=await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>ids.Contains(v.Id)&&v.ArtifactId==artifactId&&v.Phase=="SourceTest").ToArrayAsync(ct);
-        return rows.Select(row=>View(row,artifact,evidence.Where(v=>row.VerificationIds.Contains(v.Id)).ToArray())).ToArray();
+        var eligible=await EligibilityFactsAsync(artifact,actor,ct);var scope=await scopes.EnvironmentAsync(artifact.SourceEnvironmentId,ct);var canAct=await auth.CanAsync(actor,"release.test.accept",new("environment",artifact.SourceEnvironmentId,scope),ct);
+        return rows.Select(row=>AuthorityView(row,artifact,evidence.Where(v=>row.VerificationIds.Contains(v.Id)).ToArray(),eligible,canAct,actor)).ToArray();
     }
     public async Task<TestAcceptanceDto> ActAsync(Guid acceptanceId,string action,string comment,string? etag,ActorContext actor,CancellationToken ct)
     {

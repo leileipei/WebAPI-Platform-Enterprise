@@ -13,6 +13,7 @@ const definitions={
  'app.read':['查看应用','read'],'app.write':['维护应用','configure'],
  'credential.manage':['管理应用凭证','manage'],'app.permission.manage':['管理应用 API 授权','manage'],
  'release.read':['查看发布','read'],'release.create':['创建发布','configure'],
+ 'release.test.record':['登记来源测试','configure'],'release.test.accept':['独立测试验收','release'],'release.verify':['登记生产验证','release'],
  'release.publish':['执行发布','release'],'release.rollback':['执行回滚','release'],
  'approval.act':['处理发布审批','release'],'api.approve':['审批 API','release'],
  'gateway.read':['查看网关','read'],'gateway.operate':['执行网关运维','manage'],'gateway.config.read':['查看网关配置','read'],

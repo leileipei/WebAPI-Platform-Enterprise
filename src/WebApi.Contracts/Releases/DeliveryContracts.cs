@@ -11,7 +11,7 @@ public sealed record ReleaseVerificationDto(Guid Id,Guid ArtifactId,Guid? Promot
 public sealed record VerificationReportDto(Guid Id,Guid? ArtifactId,Guid? PromotionId,string ContentType,long SizeBytes,string Sha256,Guid CreatedBy,DateTimeOffset CreatedAt);
 public sealed record RequestTestAcceptanceRequest(IReadOnlyList<Guid> VerificationIds);
 public sealed record TestAcceptanceActionRequest(string Comment="");
-public sealed record TestAcceptanceDto(Guid Id,Guid ArtifactId,Guid SourceEnvironmentId,string ArtifactHash,IReadOnlyList<Guid> VerificationIds,string EvidenceHash,long PolicyRevision,string Status,long Revision,Guid RequestedBy,Guid? ActedBy,string Comment,DateTimeOffset CreatedAt,DateTimeOffset? ActedAt,DateTimeOffset? ExpiresAt);
+public sealed record TestAcceptanceDto(Guid Id,Guid ArtifactId,Guid SourceEnvironmentId,string ArtifactHash,IReadOnlyList<Guid> VerificationIds,string EvidenceHash,long PolicyRevision,string Status,long Revision,Guid RequestedBy,Guid? ActedBy,string Comment,DateTimeOffset CreatedAt,DateTimeOffset? ActedAt,DateTimeOffset? ExpiresAt,bool CanAccept=false,bool CanReject=false,bool CanRevoke=false,IReadOnlyList<string>? ReasonCodes=null);
 public sealed record PromotionPolicyMapping(string Type,int Priority,Guid? TargetPolicyId=null,long? TargetPolicyRevision=null);
 public sealed record PromotionRouteMapping(string ArtifactRouteKey,Guid? TargetRouteId,Guid ClusterId,int TimeoutMs,IReadOnlyList<PromotionPolicyMapping> Policies);
 public sealed record PromotionApplicationMapping(Guid ApplicationId,IReadOnlyList<Guid> CredentialIds,IReadOnlyList<Guid> AuthorizationIds,bool ConfirmSharedCredentialImpact=false);
@@ -27,3 +27,6 @@ public sealed record PromotionNodeState(Guid NodeId,string NodeName,long? Config
 public sealed record PromotionDeploymentState(Guid? ReleaseId,IReadOnlyList<PromotionNodeState> Nodes);
 
 public sealed record ProductionVerificationContextDto(string Hash,Guid ReleaseId,long ConfigVersion,long DeploymentSequence,string SnapshotHash,long AccessAddressRevision,string PublicOrigin,string BasePath,long PolicyRevision,Guid PublisherId);
+
+public sealed record ReleaseArtifactSummaryDto(Guid Id,Guid SourceEnvironmentId,Guid SourceReleaseId,string ArtifactHash,string SourceSnapshotHash,Guid CreatedBy,DateTimeOffset CreatedAt);
+public sealed record ArtifactEligibilityDto(Guid ArtifactId,Guid SourceEnvironmentId,Guid? TargetEnvironmentId,bool TargetRestricted,string Mode,IReadOnlyList<string> RequiredTestTypes,int VerificationValidityMinutes,long PolicyRevision,bool CanRecord,bool CanUploadReport,bool CanRequestAcceptance,IReadOnlyList<Guid> VerificationIds,IReadOnlyList<string> ReasonCodes);
