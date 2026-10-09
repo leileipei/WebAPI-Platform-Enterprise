@@ -4,3 +4,7 @@ test('heartbeat exclusion retains protected gateway deployment',()=>{const colum
 test('old column disappearance is rejected rather than normalized away',()=>{assert.throws(()=>canonicalPipelineRow('release_records',{id:'old'},['id','status']));});
 test('inventory uses actual composite primary keys and rejects duplicates',()=>{const schema={role_permissions:{columns:['role_id','permission_id'],primaryKey:['role_id','permission_id']}},rows={role_permissions:[{role_id:'r',permission_id:'p'}]},result=hashPipelineTables(schema,rows);assert.deepEqual(Object.keys(result.role_permissions.rows),['["r","p"]']);assert.throws(()=>hashPipelineTables(schema,{role_permissions:[...rows.role_permissions,...rows.role_permissions]}));assert.throws(()=>hashPipelineTables({role_permissions:{...schema.role_permissions,primaryKey:[]}},rows));});
 test('empty tables still reject unrelated schema changes',()=>{const before={release_promotions:{columns:['id','status'],primaryKey:['id'],rows:{}}};assert.throws(()=>hashPipelineTables({release_promotions:{columns:['id','status','surprise'],primaryKey:['id']}},{release_promotions:[]},before));});
+test('empty prior table cannot disappear from installation inventory',()=>{
+ const before={release_records:{columns:['id'],primaryKey:['id'],rows:{}}};
+ assert.throws(()=>hashPipelineTables({}, {},before),/Protected table disappeared/);
+});

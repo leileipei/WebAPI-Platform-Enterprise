@@ -12,6 +12,7 @@ export function canonicalPipelineRow(table,row,columns){
 }
 const receiptFields=['code','role_id','permission_id','user_id','actor_id','gateway_node_id','event_type','action','trace_id','resource_type','resource_id','operation','key','created_at','state','MigrationId','ProductVersion'];
 export function hashPipelineTables(schema,data,before=null){
+ for(const table of Object.keys(before??{}))assert(Object.hasOwn(schema,table),'Protected table disappeared: '+table);
  const result={};for(const [table,s]of Object.entries(schema)){
   assert(/^[a-zA-Z0-9_]+$/.test(table),'Unsafe table');assert(s.primaryKey?.length,'Table has no actual primary key: '+table);const columns=before?.[table]?.columns??s.columns;
   assert(columns.every(k=>s.columns.includes(k)),'Protected schema lost column: '+table);
