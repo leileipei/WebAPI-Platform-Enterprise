@@ -348,7 +348,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Produces `validatePipelineDefinition(definition, environments): string[]`与`pipelineAuthorityKey(actor, resourceId, attemptId, profileHash, epoch): string`纯函数；`PipelineDefinitionEditor` props `{value:PipelineDefinition, environments:EnvironmentChoice[], readOnly:boolean, onChange:(value)=>void}`，实际DTO类型与P1同名TypeScript映射；`EnvironmentChoice`为编辑器只读选项 `{id:string,projectId:string,name:string,active:boolean,isProduction:boolean}`，从实际环境DTO显式映射。列表/详情使用P2/P10端点。旧deliveryPolicyLabel新增PipelineRequired标签；此模式旧连接表单显示只读摘要、生效版本链接及显式退出命令。
 
-- [ ] **Step 1:** 添加Node行为测试（生产三项不能删除、2–8/参数界限、草稿保留、相同域不同阶段上下文key不同）、路由/权限导航回归：
+- [x] **Step 1:** 添加Node行为测试（生产三项不能删除、2–8/参数界限、草稿保留、相同域不同阶段上下文key不同）、路由/权限导航回归：
 
 ```javascript
 test('production requirements cannot be removed', () => {
@@ -361,10 +361,10 @@ test('authority identity includes stage attempt and profile', () => {
 });
 ```
 
-- [ ] **Step 2:** `"$WEBAPI_NODE" --test console/tests/pipeline-definition.test.mjs console/tests/sidebar.test.mjs`实际断言RED；模块尚未存在先写可导入stub，模块错误不计RED。
-- [ ] **Step 3:** 实现标准表单：环境排序、必需类型、独立有效期/等待时限、审批模板和只读ACK时限；发布版本与激活明确分开，immutable版本只读、归档前先合法停用。显示当前授权和安全错误、412保留草稿供重新载入，主体/资源/epoch隔离异步响应、撤权清空。生产要求不能删；不展示脚本/分支配置。请求仍需服务端全部鉴权，前端校验仅帮助编辑。
-- [ ] **Step 4:** 两文件GREEN及`./scripts/check-console.sh`通过Node测试与TypeScript/build；以P10真实API验证草稿/版本/激活回执，界面外观最终在P13逐张验收。
-- [ ] **Step 5:** 提交 `feat(console): configure and activate standard delivery pipelines`。
+- [x] **Step 2:** `"$WEBAPI_NODE" --test console/tests/pipeline-definition.test.mjs console/tests/sidebar.test.mjs`实际断言RED；模块尚未存在先写可导入stub，模块错误不计RED。
+- [x] **Step 3:** 实现标准表单：环境排序、必需类型、独立有效期/等待时限、审批模板和只读ACK时限；发布版本与激活明确分开，immutable版本只读、归档前先合法停用。显示当前授权和安全错误、412保留草稿供重新载入，主体/资源/epoch隔离异步响应、撤权清空。生产要求不能删；不展示脚本/分支配置。请求仍需服务端全部鉴权，前端校验仅帮助编辑。
+- [x] **Step 4:** 两文件GREEN及`./scripts/check-console.sh`通过Node测试与TypeScript/build；以P10真实API验证草稿/版本/激活回执，界面外观最终在P13逐张验收。
+- [x] **Step 5:** 提交 `feat(console): configure and activate standard delivery pipelines`。
 
 ## Task 12 (P12): Console运行、阶段办理及原页面联动
 

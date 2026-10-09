@@ -112,6 +112,15 @@ public sealed class PipelineDefinitionService(WebApiDbContext db,ScopeResolver s
     {var scope=await scopes.ProjectAsync(row.ProjectId,ct);foreach(var code in new[]{"pipeline.read","project.read"})if(!await auth.CanAsync(actor,code,new("project",row.ProjectId,scope),ct))throw ScopeResolver.Missing();await RequireEnvironmentReadsAsync(row.ProjectId,Draft(row),actor,ct,hide:true);}
     public async Task<PipelineDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct)
     {var row=await RowAsync(id,ct);await RequireReadAsync(row,actor,ct);var latest=await LatestAsync(id,ct);if(latest is not null)await RequireEnvironmentReadsAsync(row.ProjectId,Content(latest).Definition,actor,ct,hide:true);return View(row,latest);}
+    public async Task<PipelineVersionDto> GetVersionAsync(Guid id,ActorContext actor,CancellationToken ct)
+    {
+        using var budget=CancellationTokenSource.CreateLinkedTokenSource(ct);budget.CancelAfter(TimeSpan.FromSeconds(10));
+        try{
+            var version=await db.Set<ReleasePipelineVersion>().AsNoTracking().SingleOrDefaultAsync(v=>v.Id==id,budget.Token)??throw ScopeResolver.Missing();
+            var row=await RowAsync(version.PipelineId,budget.Token);await RequireReadAsync(row,actor,budget.Token);
+            await RequireEnvironmentReadsAsync(row.ProjectId,Content(version).Definition,actor,budget.Token,hide:true);return View(version);
+        }catch(OperationCanceledException)when(!ct.IsCancellationRequested){throw new ApiException(503,"query_budget_exceeded","查询超出预算，请缩小范围重试。");}
+    }
     public async Task<IReadOnlyList<PipelineVersionDto>> VersionsAsync(Guid id,ActorContext actor,CancellationToken ct)
     {var row=await RowAsync(id,ct);await RequireReadAsync(row,actor,ct);var versions=await db.Set<ReleasePipelineVersion>().AsNoTracking().Where(v=>v.PipelineId==id).OrderByDescending(v=>v.VersionNo).Take(100).ToArrayAsync(ct);foreach(var v in versions)await RequireEnvironmentReadsAsync(row.ProjectId,Content(v).Definition,actor,ct,hide:true);return versions.Select(View).ToArray();}
     public async Task<PipelinePageDto<PipelineDto>> ListAsync(Guid projectId,int page,int size,ActorContext actor,CancellationToken ct)

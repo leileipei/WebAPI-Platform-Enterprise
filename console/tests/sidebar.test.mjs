@@ -78,3 +78,5 @@ test('workbench navigation opens the dashboard while root keeps organization sel
   assert.match(html, /href="\/dashboard"[^>]*aria-current="page"/);
   assert.equal(sidebarGroupForPath('/'), 'organization');
 });
+
+test('pipeline definitions runs and stage detail stay in delivery navigation',()=>{for(const path of ['/delivery/pipelines','/delivery/pipelines/p1','/delivery/pipeline-runs/r1','/delivery/pipeline-stages/s1'])assert.equal(sidebarGroupForPath(path),'release',path);});

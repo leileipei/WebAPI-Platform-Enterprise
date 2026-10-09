@@ -21,6 +21,14 @@ public sealed class PipelineDefinitionTests
         request.Headers.Add("X-CSRF-Token",await s.Api.CsrfAsync());request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("N"));request.Headers.Add("If-Match",$"\"{revision}\"");
         using var response=await s.Creator.SendAsync(request);Assert.Equal(HttpStatusCode.OK,response.StatusCode);return await response.Content.ReadFromJsonAsync<JsonElement>();
     }
+    [Fact] public async Task ExactHistoricalVersionIsNoStoreAndStillChecksDefinitionAuthority()
+    {
+        await using var s=new PipelineScenario();await s.InitializeEnvironmentsAsync();var draft=await DraftAsync(s);var version=await PublishAsync(s,draft.Id);var id=version.GetProperty("id").GetGuid();
+        using var edit=await s.Api.WriteAsync(HttpMethod.Put,$"/api/v1/release-pipelines/{draft.Id}",s.Definition with{Name="版本2"},"\"2\"");Assert.Equal(HttpStatusCode.OK,edit.StatusCode);await PublishAsync(s,draft.Id,3);
+        using var read=await s.Creator.GetAsync($"/api/v1/release-pipeline-versions/{id}");Assert.Equal(HttpStatusCode.OK,read.StatusCode);Assert.Equal("no-store",read.Headers.CacheControl?.ToString());var actual=await read.Content.ReadFromJsonAsync<JsonElement>();Assert.Equal(draft.Id,actual.GetProperty("pipelineId").GetGuid());Assert.Equal(1,actual.GetProperty("versionNo").GetInt32());
+        await using(var db=s.Api.Context()){var permission=await db.Set<Permission>().SingleAsync(p=>p.Code=="pipeline.read");await db.Set<RolePermission>().Where(r=>r.PermissionId==permission.Id).ExecuteDeleteAsync();}
+        using var denied=await s.Creator.GetAsync($"/api/v1/release-pipeline-versions/{id}");Assert.Equal(HttpStatusCode.NotFound,denied.StatusCode);
+    }
     [Fact] public async Task PublishDoesNotActivateAndVersionNeverMutates()
     {
         await using var s=new PipelineScenario();await s.InitializeEnvironmentsAsync();var draft=await DraftAsync(s);var version=await PublishAsync(s,draft.Id);
