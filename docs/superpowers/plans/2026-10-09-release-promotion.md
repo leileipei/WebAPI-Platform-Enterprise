@@ -149,11 +149,11 @@
 
 **Interfaces:** `RecordAsync(Guid promotionId,RecordVerificationRequest request,ActorContext actor,CancellationToken ct) -> Task<PromotionDto>` 从服务端解析目标实际版本与入口；`TryCompleteAsync(Guid promotionId,CancellationToken ct) -> Task<bool>` 在已持治理/目标环境锁的事务检查三类独立Passed、有效期、全节点实际序列和冻结入口。Failed证据进入VerificationFailed，后续重新验证追加事实；只有当前全部必需类型有效且各最新结果Passed才可完成。
 
-- [ ] **Step 1：写断言。** 申请人/发布人即管理员也不可验证；缺权限403、缺项/过期不Completed；旧Snapshot/部署序列/入口证据拒绝；Failed不触发回滚Outbox；已有审批回滚全ACK后RolledBack且目标地址不还原；Completed历史不会因新部署改写为失败。
-- [ ] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter ProductionVerificationTests`。
-- [ ] **Step 3：实现。** A4执行入口为首次验证绑定；若仅入口已改、实际目标版本/序列仍在，追加明确重新验证上下文并收齐三类证据，不复用旧Passed；若实际版本/序列已换为其他部署，本次晋级不能凭新版本完成，保留历史并显示已被替代，需要新晋级或其合法恢复执行重新验证。成功回滚取B7可追溯链更新状态。
-- [ ] **Step 4：GREEN。** 本测试及B7/RollbackTests；并发最后一条验证和回滚不能同时完成旧交付。
-- [ ] **Step 5：隔离提交。** `feat(delivery): verify production outcomes separately from node ack`。
+- [x] **Step 1：写断言。** 申请人/发布人即管理员也不可验证；缺权限403、缺项/过期不Completed；旧Snapshot/部署序列/入口证据拒绝；Failed不触发回滚Outbox；已有审批回滚全ACK后RolledBack且目标地址不还原；Completed历史不会因新部署改写为失败。
+- [x] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter ProductionVerificationTests`。
+- [x] **Step 3：实现。** A4执行入口为首次验证绑定；若仅入口已改、实际目标版本/序列仍在，追加明确重新验证上下文并收齐三类证据，不复用旧Passed；若实际版本/序列已换为其他部署，本次晋级不能凭新版本完成，保留历史并显示已被替代，需要新晋级或其合法恢复执行重新验证。成功回滚取B7可追溯链更新状态。
+- [x] **Step 4：GREEN。** 本测试及B7/RollbackTests；并发最后一条验证和回滚不能同时完成旧交付。
+- [x] **Step 5：隔离提交。** `feat(delivery): verify production outcomes separately from node ack`。
 
 ## Task 9 (B9)：制品、验收与交付连接页面
 

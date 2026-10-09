@@ -6,7 +6,7 @@ public sealed record ArtifactRoute(string Key,Guid ApiId,Guid VersionId,string P
 public sealed record ArtifactApiContract(Guid ApiId,Guid VersionId,string Version,long SourceRevision,IReadOnlyList<WebApi.Contracts.Catalog.ParameterDto> Parameters,IReadOnlyList<WebApi.Contracts.Catalog.SchemaDto> Schemas);
 public sealed record ArtifactContent(IReadOnlyList<ArtifactApiContract> Apis,IReadOnlyList<ArtifactRoute> Routes);
 public sealed record ReleaseArtifactDto(Guid Id,Guid OrganizationId,Guid ProjectId,Guid SourceEnvironmentId,Guid SourceReleaseId,string ArtifactHash,string SourceSnapshotHash,Guid CreatedBy,DateTimeOffset CreatedAt,ArtifactContent Content);
-public sealed record RecordVerificationRequest(string Type,string Result,DateTimeOffset StartedAt,DateTimeOffset FinishedAt,Guid? ReportId=null,string Comment="");
+public sealed record RecordVerificationRequest(string Type,string Result,DateTimeOffset StartedAt,DateTimeOffset FinishedAt,Guid? ReportId=null,string Comment="",[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? ExpectedContextHash=null);
 public sealed record ReleaseVerificationDto(Guid Id,Guid ArtifactId,Guid? PromotionId,Guid ReleaseId,Guid EnvironmentId,long ConfigVersion,long DeploymentSequence,string SnapshotHash,long AccessAddressRevision,long PolicyRevision,string Phase,string Type,string Result,bool IsManual,Guid? ReportId,string? ReportHash,string Comment,DateTimeOffset StartedAt,DateTimeOffset FinishedAt,DateTimeOffset ExpiresAt,Guid CreatedBy,DateTimeOffset CreatedAt);
 public sealed record VerificationReportDto(Guid Id,Guid? ArtifactId,Guid? PromotionId,string ContentType,long SizeBytes,string Sha256,Guid CreatedBy,DateTimeOffset CreatedAt);
 public sealed record RequestTestAcceptanceRequest(IReadOnlyList<Guid> VerificationIds);
@@ -25,3 +25,5 @@ public sealed record PromotionPrecheckDto(Guid PromotionId,string Status,bool Ca
 
 public sealed record PromotionNodeState(Guid NodeId,string NodeName,long? ConfigVersion,long? DeploymentSequence,string Status,DateTimeOffset? LastHeartbeatAt);
 public sealed record PromotionDeploymentState(Guid? ReleaseId,IReadOnlyList<PromotionNodeState> Nodes);
+
+public sealed record ProductionVerificationContextDto(string Hash,Guid ReleaseId,long ConfigVersion,long DeploymentSequence,string SnapshotHash,long AccessAddressRevision,string PublicOrigin,string BasePath,long PolicyRevision,Guid PublisherId);
