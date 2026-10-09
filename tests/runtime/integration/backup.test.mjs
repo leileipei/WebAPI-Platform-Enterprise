@@ -17,17 +17,17 @@ test('real backups cover unbound, bound without demo and bound with demo',async(
  const servers=await Promise.all([0,1,2].map(async()=>{const s=net.createServer();await new Promise(r=>s.listen(0,'127.0.0.1',r));return s;}));
  const [consolePort,gatewayA,gatewayB]=servers.map(s=>s.address().port);await Promise.all(servers.map(s=>new Promise(r=>s.close(r))));
  let state;
- const context=async()=>prepareContext(directory,state,JSON.parse(await fs.readFile(path.join(directory,'release.json'),'utf8')));
+ const context=async()=>prepareContext(directory,state,JSON.parse(await fs.readFile(path.join(directory,'release.json'),'utf8').catch(e=>{if(e.code==='ENOENT')return fs.readFile(path.resolve(process.env.WEBAPI_RUNTIME_RELEASE_FILE??'.runtime/local-build/release.json'),'utf8');throw e;})));
  const backup=async label=>{const ctx=await context(),target=path.join(directory,'backup-'+label);await createBackup(ctx,target);const m=JSON.parse(await fs.readFile(path.join(target,'backup-manifest.json'),'utf8'));for(const name of dataVolumes)assert.ok((await fs.stat(path.join(target,name+'.tar'))).size>0);assert.ok(m.files['postgres.dump']);assert.equal(!!m.files['verification-reports.tar'],ctx.reportsSupported);if(ctx.reportsSupported)assert.ok((await fs.stat(path.join(target,'verification-reports.tar'))).size>0);const after=await inspectResources(state);for(const name of runtimeServices(state)){const service=after.find(r=>r.Kind==='container'&&r.Config?.Labels?.['com.docker.compose.service']===name&&r.Config.Labels['com.docker.compose.oneoff']!=='True');assert(service?.State.Running,'Cold backup finally must resume '+name);}const result=await operateRuntime('start',state,{directory});assert.equal(result.phase,state.binding?'Registered':'Unconfigured');};
  try{
-  state=await initializeRuntime({directory,projectName:project,ports:{console:consolePort,gatewayA,gatewayB},bootstrapUsername:'backup-test-admin',releaseFile:path.resolve('.runtime/local-build/release.json')});
+  state=await initializeRuntime({directory,projectName:project,ports:{console:consolePort,gatewayA,gatewayB},bootstrapUsername:'backup-test-admin',releaseFile:path.resolve(process.env.WEBAPI_RUNTIME_RELEASE_FILE??'.runtime/local-build/release.json')});
   await operateRuntime('stop',state,{directory});await backup('unbound-already-stopped');
   const passwordFile=path.join(directory,'secrets/bootstrap-password'),client=new LocalClient('http://127.0.0.1:'+consolePort);await client.login(state.bootstrapUsername,(await fs.readFile(passwordFile,'utf8')).trimEnd());
   const org=await client.request('/organizations',{method:'POST',body:{code:'BACKUP_TEST',name:'Backup test'}}),projectRow=await client.request('/organizations/'+org.id+'/projects',{method:'POST',body:{code:'BACKUP_TEST',name:'Backup test'}}),environment=await client.request('/projects/'+projectRow.id+'/environments',{method:'POST',body:{code:'BACKUP_TEST',name:'Backup test'}});
   const options={environmentId:environment.id,allowedOrigins:['http://backend-a:8080','http://backend-b:8080'],demoEnabled:false,username:state.bootstrapUsername,passwordFile};
   state=await configureRuntime(state,options,{directory});await backup('bound-without-demo');
   state=await configureRuntime(state,{...options,demoEnabled:true},{directory});await backup('bound-with-demo');
- }finally{
+ }catch(error){console.error('Backup fixture initial error:',error.message,error.result?.stderr??'');throw error;}finally{
   state??=await loadState(directory);assertOwnership(state,await inspectResources(state));const ctx=await context();await ctx.compose('--profile','tools','down','--volumes','--remove-orphans');assert.equal((await inspectResources(state)).length,0);await fs.rm(directory,{recursive:true,force:true});
  }
 });

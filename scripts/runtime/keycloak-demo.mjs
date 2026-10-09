@@ -1,3 +1,4 @@
+import {addFixtureNetwork} from './fixture-network.mjs';
 import {prepareContext} from './context.mjs';
 import {loadRelease} from './lifecycle.mjs';
 import fs from 'node:fs/promises';
@@ -54,7 +55,8 @@ export async function idpContext(runtimeDirectory,directory){
  const runtime=await loadState(runtimeDirectory);directory=await ownedDirectory(directory);await safeFile(path.join(directory,'owner.json'));await safeFile(path.join(directory,'idp.json'));const state=validateIdpState(JSON.parse(await fs.readFile(path.join(directory,'idp.json'),'utf8')),runtime),owner=JSON.parse(await fs.readFile(path.join(directory,'owner.json'),'utf8'));
  if(owner.ownerId!==state.ownerId||owner.projectName!==state.projectName)throw new RuntimeError('Foreign IdP directory owner.',3);
  const locked=await images();const config=path.join(directory,'compose.json');await writePrivate(config,renderIdpCompose(directory,state,locked));
- const compose=async(...args)=>{assertOwnership(runtime,await inspectResources(runtime));await inspectIdpResources(state);return docker(['compose','-p',state.projectName,'-f',config,...args]);};
+ const networkFiles=[];await addFixtureNetwork({directory,state:{projectName:runtime.projectName,ownerId:state.ownerId},files:networkFiles});
+ const compose=async(...args)=>{assertOwnership(runtime,await inspectResources(runtime));await inspectIdpResources(state);return docker(['compose','-p',state.projectName,'-f',config,...networkFiles,...args]);};
  return {runtimeDirectory,directory,runtime,state,images:locked,compose};
 }
 async function writeRealm(ctx){
