@@ -95,7 +95,7 @@ export async function runPerformance(options,repo){
     actualEnvironment.containerSampler={source:'docker-engine-stats-stream',apiVersion,memoryPeakScope:'sampled-points-inside-window',cpuScope:'intervals-wholly-inside-window'};
     await evidence(path.join(options.output,'environment.json'),actualEnvironment);
     const monitoredClient=async(key,resultFile,args=[])=>{
-      const resources=await runWithContainerResources({manifest,dockerHost,apiVersion,output:options.output,key,resultFile},()=>runPrivateWorkload(manifest,key,()=>compose('run','--rm','--no-deps','client',...args)));
+      const resources=await runWithContainerResources({manifest,dockerHost,apiVersion,output:options.output,key,resultFile,holdClientUntilSampled:true},()=>runPrivateWorkload(manifest,key,()=>compose('run','--rm','--no-deps','client',...args)));
       const measured=JSON.parse(await fs.readFile(path.join(options.output,resultFile),'utf8'));
       measured.containerResources=resources;
       await evidence(path.join(options.output,resultFile),measured);

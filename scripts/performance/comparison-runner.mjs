@@ -13,7 +13,7 @@ import {validateClassificationManifest} from './classification.mjs';
 import {verifyEnvironment} from './environment.mjs';
 import {verifyBaselineCompletion} from './completion.mjs';
 import {runWithContainerResources} from './resources.mjs';
-import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,command,waitReady} from './runner-support.mjs';
+import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,command,waitReady,runPrivateWorkload} from './runner-support.mjs';
 const appServices=['controlplane','backend','gateway-a','gateway-b'];
 export async function runComparison(options,repo){
   const mutable=options.mode==='validate';
@@ -86,7 +86,7 @@ export async function runComparison(options,repo){
       environments[variant]=verified;variants[variant].environment=verified;variants[variant].classificationManifestHash=classificationManifestHash;await evidence(path.join(options.output,variant,'environment.json'),verified);currentVariant=variant;
     };
     const monitoredClient=async(key,resultFile,args=[])=>{
-      const output=path.join(options.output,currentVariant),resources=await runWithContainerResources({manifest:owner,dockerHost,apiVersion,output,key,resultFile},()=>compose('run','--rm','--no-deps','client',...args));
+      const output=path.join(options.output,currentVariant),resources=await runWithContainerResources({manifest:owner,dockerHost,apiVersion,output,key,resultFile,holdClientUntilSampled:true},()=>runPrivateWorkload(owner,key,()=>compose('run','--rm','--no-deps','client',...args)));
       const result=JSON.parse(await fs.readFile(path.join(output,resultFile),'utf8'));Object.assign(result,{containerResources:resources,sourceCommit:identities[currentVariant].source,harnessFingerprint:identities[currentVariant].harnessFingerprint,environmentFingerprint:environments[currentVariant].fingerprint,imageId:images[currentVariant].imageId});
       await evidence(path.join(output,resultFile),result);if(!resources.complete)throw Error('Comparison container resource window incomplete');return result;
     };

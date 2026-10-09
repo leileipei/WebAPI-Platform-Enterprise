@@ -26,6 +26,7 @@ try {
   const cpu=process.cpuUsage(before),wallMs=performance.now()-start;
   measured.client={version:process.version,architecture:process.arch,peakRssBytes,cpuUserUs:cpu.user,cpuSystemUs:cpu.system,cpuCores:(cpu.user+cpu.system)/(wallMs*1000),eventLoopP95Ms:delays.percentile(95)/1e6,wallMs};
   await fs.writeFile(`/results/${scene==='ordinary'?'management':scene}-queries-${scale}.json`,JSON.stringify(measured,null,2)+'\n');
+  await waitForContainerSampler(`/results/${scene}-${scale}.resources-finished.json`);
   if(!measured.complete)process.exitCode=4;
 }catch(error){process.stderr.write('Management fixture failed: '+error.message+'\n');process.exitCode=4;}
 finally{clearInterval(timer);delays.disable();}

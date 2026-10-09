@@ -24,7 +24,7 @@ import path from 'node:path';
 import {quotas} from './environment.mjs';
 import {createOwner} from './owner.mjs';
 import {runWithContainerResources,waitForContainerSampler,verifyContainerResources} from './resources.mjs';
-async function fixtureApi({foreign=false,missingClient=false,clockMs=Date.UTC(2026,9,9)}={}){
+async function fixtureApi({foreign=false,missingClient=false,invalidClientFrame=false,clockMs=Date.UTC(2026,9,9)}={}){
   const root=await fs.mkdtemp('/private/tmp/webapi-resource-'),owner=await createOwner(root),output=path.join(root,'results');await fs.mkdir(output);
   const containers=Object.keys(quotas).map((service,i)=>({Id:String(i+1).repeat(64),Labels:{'com.docker.compose.project':owner.project,'com.webapi.performance.owner':foreign?'foreign':owner.owner,'com.docker.compose.service':service}}));let statsCalls=0;const responses=new Map();
   const server=createServer((request,response)=>{
@@ -33,10 +33,10 @@ async function fixtureApi({foreign=false,missingClient=false,clockMs=Date.UTC(20
     const target=containers.find(x=>url.pathname.includes(x.Id));
     if(url.pathname.endsWith('/json')){const quota=quotas[target.Labels['com.docker.compose.service']];response.end(JSON.stringify({Id:target.Id,Image:'sha256:'+'a'.repeat(64),Config:{Labels:target.Labels},HostConfig:{NanoCpus:quota.cpus*1e9,Memory:quota.memoryBytes},State:{Running:true},secret:'canary-not-for-evidence'}));return;}
     statsCalls++;response.writeHead(200);responses.set(target.Labels['com.docker.compose.service'],response);
-    for(const seconds of [0,1,2,3,4]){const x=frame(new Date(clockMs+seconds*1000).toISOString(),seconds*1000000000);x.id=target.Id;x.memory_stats.limit=quotas[target.Labels['com.docker.compose.service']].memoryBytes;const text=JSON.stringify(x)+'\n';for(let offset=0;offset<text.length;offset+=13)response.write(text.slice(offset,offset+13));}
+    for(const seconds of [0,1,2,3,4]){const x=frame(new Date(clockMs+seconds*1000).toISOString(),seconds*1000000000);x.id=target.Id;x.memory_stats.limit=quotas[target.Labels['com.docker.compose.service']].memoryBytes;if(invalidClientFrame&&target.Labels['com.docker.compose.service']==='client')x.memory_stats.limit=0;const text=JSON.stringify(x)+'\n';for(let offset=0;offset<text.length;offset+=13)response.write(text.slice(offset,offset+13));}
     // A real stream remains open until the operation has completed.
   });const socket=path.join(root,'engine.sock');await new Promise(resolve=>server.listen(socket,resolve));
-  return {root,owner,output,server,socket,statsCalls:()=>statsCalls,disconnect:service=>responses.get(service).destroy(),end:service=>responses.get(service).end()};
+  return {root,owner,output,server,socket,streamsClosed:()=>[...responses.values()].every(r=>r.destroyed),injectInvalidClient:()=>{const c=containers.find(x=>x.Labels['com.docker.compose.service']==='client'),x=frame();x.id=c.Id;x.memory_stats.limit=0;responses.get('client').write(JSON.stringify(x)+'\n');},statsCalls:()=>statsCalls,disconnect:service=>responses.get(service).destroy(),end:service=>responses.get(service).end()};
 }
 test('unix_engine_stream_binds_all_actual_owner_containers_and_exports_only_selected_metrics',async()=>{
   const f=await fixtureApi(),key='test-cell';
@@ -113,5 +113,35 @@ test('missing_client_retains_selected_startup_inventory_and_failure_code_without
   await assert.rejects(()=>runWithContainerResources({manifest:f.owner,dockerHost:'unix://'+f.socket,apiVersion:'1.54',output:f.output,key,resultFile:'cell.json'},async()=>{throw Object.assign(Error('private-canary-failure'),{code:9,signal:null});}),/missing/i);
   const report=JSON.parse(await fs.readFile(path.join(f.output,key+'.resources.json'),'utf8'));
   assert.equal(report.complete,false);assert.equal(report.startupInventory.lastRunningServices.length,6);assert.equal(report.startupInventory.lastRunningServices.includes('client'),false);assert.ok(report.startupInventory.polls>1);assert.equal(report.workloadFailure.exitCode,9);assert.equal(JSON.stringify(report).includes('private-canary-failure'),false);
+ }finally{f.server.closeAllConnections();await new Promise(resolve=>f.server.close(resolve));await fs.rm(f.root,{recursive:true,force:true});}
+});
+
+test('invalid_stats_frame_is_retained_privately_with_service_time_metadata',async()=>{
+ const f=await fixtureApi({invalidClientFrame:true}),key='invalid-frame';
+ try{
+  await assert.rejects(()=>runWithContainerResources({manifest:f.owner,dockerHost:'unix://'+f.socket,apiVersion:'1.54',output:f.output,key,resultFile:'cell.json'},()=>waitForContainerSampler(path.join(f.output,key+'.resources-ready.json'))),/invalid/i);
+  const report=JSON.parse(await fs.readFile(path.join(f.output,key+'.resources.json'),'utf8'));assert.equal(report.complete,false);assert.ok(report.services.client.frameFailures[0].time);assert.equal(JSON.stringify(report).includes('canary-not-for-evidence'),false);
+  const file=path.join(f.owner.directory,key+'.client.invalid-frame.json');assert.equal((await fs.stat(file)).mode&0o777,0o600);assert.equal(JSON.parse(await fs.readFile(file,'utf8')).frame.memory_stats.limit,0);
+ }finally{f.server.closeAllConnections();await new Promise(resolve=>f.server.close(resolve));await fs.rm(f.root,{recursive:true,force:true});}
+});
+
+test('client_completion_barrier_closes_stats_before_allowing_workload_exit',async()=>{
+ const f=await fixtureApi(),key='held-client';
+ try{
+  const report=await runWithContainerResources({manifest:f.owner,dockerHost:'unix://'+f.socket,apiVersion:'1.54',output:f.output,key,resultFile:'cell.json',holdClientUntilSampled:true},async()=>{
+   await waitForContainerSampler(path.join(f.output,key+'.resources-ready.json'));
+   await fs.writeFile(path.join(f.output,'cell.json'),JSON.stringify({complete:true,windowStartedAt:'2026-10-09T00:00:00Z',windowEndedAt:'2026-10-09T00:00:04Z'}));
+   await waitForContainerSampler(path.join(f.output,key+'.resources-finished.json'));assert.equal(f.streamsClosed(),true);
+  });assert.equal(report.complete,true);assert.equal(report.workloadCompleted,true);
+ }finally{f.server.closeAllConnections();await new Promise(resolve=>f.server.close(resolve));await fs.rm(f.root,{recursive:true,force:true});}
+});
+
+test('client_completion_barrier_still_rejects_invalid_frame_before_sampler_stop',async()=>{
+ const f=await fixtureApi(),key='held-client-invalid';
+ try{
+  const report=await runWithContainerResources({manifest:f.owner,dockerHost:'unix://'+f.socket,apiVersion:'1.54',output:f.output,key,resultFile:'cell.json',holdClientUntilSampled:true},async()=>{
+   await waitForContainerSampler(path.join(f.output,key+'.resources-ready.json'));f.injectInvalidClient();await new Promise(r=>setTimeout(r,50));
+   await fs.writeFile(path.join(f.output,'cell.json'),JSON.stringify({complete:true,windowStartedAt:'2026-10-09T00:00:00Z',windowEndedAt:'2026-10-09T00:00:04Z'}));await waitForContainerSampler(path.join(f.output,key+'.resources-finished.json'));
+  });assert.equal(report.complete,false);assert.ok(report.errors.includes('invalid-stats-stream'));assert.equal(report.workloadCompleted,true);
  }finally{f.server.closeAllConnections();await new Promise(resolve=>f.server.close(resolve));await fs.rm(f.root,{recursive:true,force:true});}
 });

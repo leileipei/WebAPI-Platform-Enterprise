@@ -27,4 +27,5 @@ const result=await measureCell({urls,requests,concurrency:cell.concurrency,warmu
 const measuredSamples=samples.filter(s=>s.time&&s.time>=result.windowStartedAt&&s.time<=result.windowEndedAt);
 const output={...cell,...result,servers,samples,measuredSamples,serverCounterScope:'before-measurement-through-drain',samplingComplete:!samples.some(s=>s.failed)};
 await fs.writeFile(`/results/${cellKey(cell)}.json`,JSON.stringify(output,null,2)+'\n');
+await waitForContainerSampler(`/results/${cellKey(cell)}.resources-finished.json`);
 if(result.unexpected||result.timeout||result.incomplete||!result.complete||result.expected===0||!output.samplingComplete)process.exitCode=4;
