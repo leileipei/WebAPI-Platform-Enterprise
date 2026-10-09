@@ -9,7 +9,7 @@ using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Releases;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Delivery;
-public sealed class ReleasePromotionService(WebApiDbContext db,ScopeResolver scopes,AuthorizationService auth,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks,ReleaseArtifactService artifacts,TestAcceptanceService acceptances,PromotionMappingService mapping,PromotionPrecheckService prechecks,ReleaseService releases)
+public sealed class ReleasePromotionService(WebApiDbContext db,ScopeResolver scopes,AuthorizationService auth,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks,ReleaseArtifactService artifacts,TestAcceptanceService acceptances,PromotionMappingService mapping,PromotionPrecheckService prechecks,ReleaseService releases,PromotionReadService reads)
 {
  public async Task<PromotionDto> CreateAsync(Guid artifactId,ActorContext actor,CancellationToken ct)
  {
@@ -24,8 +24,7 @@ public sealed class ReleasePromotionService(WebApiDbContext db,ScopeResolver sco
    },token);
   },ct);
  }
- public async Task<PromotionDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct)
- {var p=await ReadAsync(id,actor,ct);var artifact=await artifacts.GetAsync(p.ArtifactId,actor,ct);return PromotionMappingService.View(p,artifact.ArtifactHash,await mapping.LoadAsync(id,ct));}
+ public Task<PromotionDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct)=>reads.ReadAsync(id,actor,ct);
  internal async Task<ReleasePromotion> ReadAsync(Guid id,ActorContext actor,CancellationToken ct)
  {var p=await db.Set<ReleasePromotion>().AsNoTracking().SingleOrDefaultAsync(p=>p.Id==id,ct)??throw ScopeResolver.Missing();foreach(var environment in new[]{p.SourceEnvironmentId,p.TargetEnvironmentId}){var scope=await scopes.EnvironmentAsync(environment,ct);if(scope.OrganizationId!=p.OrganizationId||scope.ProjectId!=p.ProjectId||!await auth.CanAsync(actor,"release.read",new("environment",environment,scope),ct)||!await auth.CanAsync(actor,"environment.read",new("environment",environment,scope),ct))throw ScopeResolver.Missing();}await artifacts.GetAsync(p.ArtifactId,actor,ct);return p;}
  public async Task<PromotionDto> SubmitAsync(Guid id,string? etag,ActorContext actor,CancellationToken ct)

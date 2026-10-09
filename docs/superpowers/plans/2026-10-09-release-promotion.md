@@ -137,11 +137,11 @@
 
 **Interfaces:** `RequireExecutionAsync(ReleaseRecord release,ActorContext actor,CancellationToken ct) -> Task`；`RecordDeploymentStateAsync(ReleaseRecord release,CancellationToken ct) -> Task`；`ResolvePromotionAsync(Guid releaseId,CancellationToken ct) -> Task<ReleasePromotion?>`，正式Release由PromotionId，恢复/回滚由RecoveryOf/RollbackOf链解析，检测循环和跨环境拒绝；`ReadAsync(Guid id,ActorContext actor,CancellationToken ct) -> Task<PromotionDto>` 投影实时审批阶段而非前端写状态。
 
-- [ ] **Step 1：写断言。** Ready后资源/入口/连接/身份变化不能启动；启动后Worker执行前撤销/过期同样阻断；部分ACK/超时=DeploymentFailed且实际已应用节点可读；恢复新Release不冲突唯一PromotionId，保留原候选/制品；新序列拒绝晚到旧ACK；全ACK时Promotion=Verifying、Release=Succeeded，非Completed。
-- [ ] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter PromotionExecutionTests`。
-- [ ] **Step 3：实现。** 原事务和Worker路径接入B6 Guard及统一锁序；凭原发布身份重鉴权。新失败重试仅复用已存在目标Snapshot，不可恢复成任意新内容；其PromotionId留NULL由RecoveryOf追溯，原正式目标关联不改。ACK、timeout、构建失败在同事务追加Promotion事件，重启可从持久Release状态恢复投影，不依赖进程内回调。
-- [ ] **Step 4：GREEN。** 本测试、原RollbackTests/网关ACK相关integration、gateway全回归；故障fixture验证Worker/ControlPlane重启状态恢复。
-- [ ] **Step 5：隔离提交。** `feat(delivery): coordinate promotion deployment and recovery`。
+- [x] **Step 1：写断言。** Ready后资源/入口/连接/身份变化不能启动；启动后Worker执行前撤销/过期同样阻断；部分ACK/超时=DeploymentFailed且实际已应用节点可读；恢复新Release不冲突唯一PromotionId，保留原候选/制品；新序列拒绝晚到旧ACK；全ACK时Promotion=Verifying、Release=Succeeded，非Completed。
+- [x] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter PromotionExecutionTests`。
+- [x] **Step 3：实现。** 原事务和Worker路径接入B6 Guard及统一锁序；凭原发布身份重鉴权。新失败重试仅复用已存在目标Snapshot，不可恢复成任意新内容；其PromotionId留NULL由RecoveryOf追溯，原正式目标关联不改。ACK、timeout、构建失败在同事务追加Promotion事件，重启可从持久Release状态恢复投影，不依赖进程内回调。
+- [x] **Step 4：GREEN。** 本测试、原RollbackTests/网关ACK相关integration、gateway全回归；故障fixture验证Worker/ControlPlane重启状态恢复。
+- [x] **Step 5：隔离提交。** `feat(delivery): coordinate promotion deployment and recovery`。
 
 ## Task 8 (B8)：生产验证与人工回滚完成
 

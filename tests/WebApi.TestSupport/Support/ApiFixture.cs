@@ -22,6 +22,7 @@ public sealed class ApiFixture : IAsyncDisposable
     public string LoginProtectionDirectory { get; } = Path.Combine(Path.GetTempPath(),"webapi-login-"+Guid.NewGuid().ToString("N"));
     public string LoginProtectionDeploymentId { get; } = Guid.NewGuid().ToString("N");
     private WebApplication? app;
+    private Action<WebApplicationBuilder>? serverConfiguration;
     public HttpClient Client { get; private set; } = null!;
     public WebApiDbContext Context() => Database.Context();
     public IServiceScope Services() => app!.Services.CreateScope();
@@ -29,17 +30,26 @@ public sealed class ApiFixture : IAsyncDisposable
     {
         await Database.InitializeAsync();
         await using(var db=Context()) { await db.Database.MigrateAsync(); User.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(User,Password); db.Add(User); await db.SaveChangesAsync(); }
+        serverConfiguration=configure;
+        await StartServerAsync();
+    }
+    private async Task StartServerAsync()
+    {
         app=ControlPlaneApp.Build(["--environment","Development"],builder=>{
             builder.WebHost.UseUrls("http://127.0.0.1:0");
             builder.Configuration["ConnectionStrings:WebApi"]=Database.ConnectionString;
             builder.Configuration["VerificationReports:Directory"]=Path.Combine(LoginProtectionDirectory,"verification-reports");
             builder.Logging.ClearProviders();
             LoginProtectionTestConfiguration.Apply(builder,LoginProtectionDirectory,LoginProtectionDeploymentId);
-            configure?.Invoke(builder);
+            serverConfiguration?.Invoke(builder);
         });
         await app.StartAsync();
         var url=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
         Client=new HttpClient(new HttpClientHandler { CookieContainer=new CookieContainer(), AllowAutoRedirect=false }) { BaseAddress=new Uri(url) };
+    }
+    public async Task RestartServerAsync()
+    {
+        await app!.StopAsync();await app.DisposeAsync();Client.Dispose();await StartServerAsync();using var login=await LoginAsync();login.EnsureSuccessStatusCode();
     }
     public async Task<string> CsrfAsync()
     {

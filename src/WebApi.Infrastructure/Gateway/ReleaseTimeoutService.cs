@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 namespace WebApi.Infrastructure.Gateway;
-public sealed class ReleaseTimeoutService(WebApiDbContext db)
+public sealed class ReleaseTimeoutService(WebApiDbContext db,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution)
 {
     public async Task<int> ExpireAsync(CancellationToken ct=default)
     {
         var now=DateTimeOffset.UtcNow;var rows=await db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.Status=="Publishing"&&r.DeadlineAt<=now).Select(r=>new {r.Id,r.EnvironmentId}).Take(100).ToArrayAsync(ct);var count=0;
         foreach(var item in rows)
-        {await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={item.EnvironmentId} FOR UPDATE",ct);var r=await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==item.Id,ct);if(r.Status=="Publishing"&&r.DeadlineAt<=DateTimeOffset.UtcNow) {await FailAsync(db,r,"ack_timeout",ct);count++;}await tx.CommitAsync(ct);db.ChangeTracker.Clear();}return count;
+        {await using var tx=await db.Database.BeginTransactionAsync(ct);var initial=await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==item.Id,ct);await deliveryExecution.LockReleaseAsync(initial,ct);var r=await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==item.Id,ct);if(r.Status=="Publishing"&&r.DeadlineAt<=DateTimeOffset.UtcNow) {await FailAsync(db,r,"ack_timeout",ct);await deliveryExecution.RecordDeploymentStateAsync(r,ct);await db.SaveChangesAsync(ct);count++;}await tx.CommitAsync(ct);db.ChangeTracker.Clear();}return count;
     }
     internal static async Task FailAsync(WebApiDbContext db,ReleaseRecord r,string code,CancellationToken ct)
     {

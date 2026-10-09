@@ -16,17 +16,17 @@ using WebApi.Infrastructure.Security;
 using WebApi.Infrastructure.Gateway;
 namespace WebApi.Infrastructure.Releases;
 public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSeconds=120,int AckTimeoutSeconds=120);
-public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.DeliveryReleaseGuard deliveryGuard)
+public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution)
 {
     public async Task<ReleaseDto> StartAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
         var initial=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(initial.EnvironmentId,ct);
         return await commands.ExecuteAsync(actor,scope,"release.publish",async(_,token)=>{
-            await RequirePublishAsync(initial,actor,scope,token);await deliveryGuard.RequireReadyAsync(initial,actor,token);
+            await RequirePublishAsync(initial,actor,scope,token);await deliveryExecution.RequireRecoveryVisibilityAsync(initial,actor,token);
             return await idempotency.ExecuteAsync(new(actor.UserId,scope,"release.publish",requestContext.IdempotencyKey),CanonicalJson.Serialize(new {releaseId=id}),async inner=>{
-                await LockEnvironmentAsync(initial.EnvironmentId,inner);var r=await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id,inner);ReleaseStateMachine.Require(r.Status,"Ready");
+                var r=await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id,inner);await deliveryExecution.RequireExecutionAsync(r,actor,inner);ReleaseStateMachine.Require(r.Status,"Ready");
                 await VerifyBaselineAsync(r,inner);if(await db.Set<ReleaseRecord>().AnyAsync(x=>x.EnvironmentId==r.EnvironmentId&&x.Id!=id&&(x.Status=="Building"||x.Status=="Publishing"),inner)) throw new ApiException(409,"environment_busy","该环境已有正在下发的发布。");
-                var nodes=await TargetsAsync(r.EnvironmentId,inner);await VerifyVersionsAsync(r,inner);SnapshotSchemaCapabilities.RequireSupported(nodes,await TargetSchemaAsync(r,inner));await ValidateReviewsAsync(r,actor,scope,inner);var entry=await db.Set<EnvironmentRecord>().SingleAsync(x=>x.Id==r.EnvironmentId,inner);await accessContexts.CaptureAsync(r,entry,inner);r.Status="Building";r.PublishRequestedBy=actor.UserId;r.PublishTraceId=actor.TraceId;
+                var nodes=await TargetsAsync(r.EnvironmentId,inner);await VerifyVersionsAsync(r,inner);SnapshotSchemaCapabilities.RequireSupported(nodes,await TargetSchemaAsync(r,inner));await ValidateReviewsAsync(r,actor,scope,inner);var entry=await db.Set<EnvironmentRecord>().SingleAsync(x=>x.Id==r.EnvironmentId,inner);await accessContexts.CaptureAsync(r,entry,inner);r.Status="Building";r.PublishRequestedBy=actor.UserId;r.PublishTraceId=actor.TraceId;await deliveryExecution.RecordDeploymentStateAsync(r,inner);
                 return await releases.DtoAsync(r,inner);
             },token);
         },ct);
@@ -67,11 +67,11 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
         var r=await db.Set<ReleaseRecord>().FromSqlRaw("SELECT * FROM release_records WHERE status='Building' ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
         if(r is null) {await tx.CommitAsync(ct);return false;}
-        await LockEnvironmentAsync(r.EnvironmentId,ct);var scope=await scopes.EnvironmentAsync(r.EnvironmentId,ct);
+        var scope=await scopes.EnvironmentAsync(r.EnvironmentId,ct);
         try
         {
             if(r.PublishRequestedBy is not Guid publisher) throw new ApiException(409,"publisher_missing","发布身份缺失。");
-            await RequirePublishAsync(r,new(publisher,r.PublishTraceId??r.Id.ToString()),scope,ct);await VerifyBaselineAsync(r,ct);await VerifyVersionsAsync(r,ct);var nodes=await TargetsAsync(r.EnvironmentId,ct);
+            await deliveryExecution.RequireExecutionAsync(r,new(publisher,r.PublishTraceId??r.Id.ToString()),ct);await RequirePublishAsync(r,new(publisher,r.PublishTraceId??r.Id.ToString()),scope,ct);await VerifyBaselineAsync(r,ct);await VerifyVersionsAsync(r,ct);var nodes=await TargetsAsync(r.EnvironmentId,ct);
             await ValidateReviewsAsync(r,new(publisher,r.PublishTraceId??r.Id.ToString()),scope,ct);
             var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==r.EnvironmentId,ct);var baseline=new RuntimeSnapshot("2.0",env.Id,0,DateTimeOffset.UtcNow,[],[],[],[]);
             if(r.BaselineConfigVersion>0)
@@ -88,7 +88,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             Audit(r,scope,"release.snapshot.persisted",new {configVersion=next,deploymentSequence=env.DeploymentSequence,payloadHash=compiled.Hash,targetCount=nodes.Length});
         }
         catch(ApiException error) {r.Status="Failed";r.FailureCode=error.Code;r.CompletedAt=DateTimeOffset.UtcNow;Audit(r,scope,"release.build.failed",new {error=error.Code});}
-        await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);return true;
+        await deliveryExecution.RecordDeploymentStateAsync(r,ct);await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);return true;
     }
     private void Audit(ReleaseRecord r,ScopeRef scope,string action,object after)=>db.Add(new AuditLog {OrganizationId=scope.OrganizationId,ProjectId=scope.ProjectId,EnvironmentId=r.EnvironmentId,UserId=r.PublishRequestedBy,Action=action,ResourceType="ReleaseRecord",ResourceId=r.Id.ToString(),TraceId=r.PublishTraceId,AfterJson=JsonSerializer.Serialize(after,CanonicalJson.Options)});
 }
