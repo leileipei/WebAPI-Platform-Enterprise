@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-10-09T00:48:43.145688+00:00",
+  "projectName": "webapi-enterprise-local",
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "sourceRevision": "adbcbed56a7e465c483b7462e4f3de9ac1156669",
+  "imageId": "sha256:e7b9c1324e0f880ea1813c69fa0b4ee8782ea8dcbcfd71a1212800bb1e7b902b",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "consoleHealthy": true,
+  "ssoEnabled": true,
+  "notificationEnabled": true,
+  "readOnlyInspection": true,
+  "upgraded": false,
+  "originalAccountsTested": false,
+  "coldBackupExecuted": false,
+  "keycloakBackupRestoreExecuted": false,
+  "candidateSourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+  "candidateImageId": "sha256:8c7f62d35af69e2fa5b12d0962916e28da0f1edc367571b3f764a81f396c522e",
+  "newDatabaseMigrationFiles": 0,
+  "preflightFileHashes": {
+    "runtime.json": "6d92c9b477bb13773237498a2c71a8d713db9974e9358aee20d9656ff6243766",
+    "release.json": "ab065a7bc50175406d57d4bffcb90db902c799ea0f095683219f5d83ae2d3c65",
+    "sso-deployment.json": "b79401d32a03e9a5abe6c533558b18034edb76541247b1ea9dd203b1f42cae30",
+    "notification-runtime.json": "b36098224f19d77e2d6908d11823162b44d95db7aea2460808073363b21053c4"
+  }
+}

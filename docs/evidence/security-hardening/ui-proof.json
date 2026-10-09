@@ -1,0 +1,66 @@
+{
+  "verified": true,
+  "sourceRevision": "2a7bcf5f54af168a3f90f33a75f9770333c2d432",
+  "recordedAt": "2026-10-09T00:44:30.806801+00:00",
+  "method": "actual Codex in-app browser on immutable isolated installation",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "checks": {
+    "quotaFieldsAndLoginEffect": true,
+    "previewDifference": true,
+    "saveSucceeded": true,
+    "revisionConflictRetainsInput": true,
+    "conflictRequiresReadAdoptRepreview": true,
+    "actual429WithRetrySeconds": true,
+    "actual503DuringRedisStop": true,
+    "unauthorizedFieldsClearedAndSaveDisabled": true,
+    "screenshotsExcludePasswordCookieCredential": true
+  },
+  "screenshots": [
+    {
+      "path": "docs/evidence/security-hardening/ui/login-429-1440.jpg",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "67e048eac7ea381357d3647ca3ba5e47224a24c6094261fee0eb1d5811f4ed5e"
+    },
+    {
+      "path": "docs/evidence/security-hardening/ui/login-503-1440.jpg",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "0395614fa565f5008530ed2dd14b4fe6cd279df8aac1f993c1646a05b4b7ffbd"
+    },
+    {
+      "path": "docs/evidence/security-hardening/ui/security-conflict-1440.jpg",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "cda1cc871e16c363e51df6c73d0703ec7a9291758eb865c07f029be360bd558b"
+    },
+    {
+      "path": "docs/evidence/security-hardening/ui/security-permission-1440.jpg",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "50fcb86ab8498b0a11c1c170e8981c30987b83d429999d0f2fcac624b4f40699"
+    },
+    {
+      "path": "docs/evidence/security-hardening/ui/security-preview-1440.jpg",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "e062d1bccb28eb1b87d3ef853423152097e389af5053e927a0eeafd29bd829fa"
+    },
+    {
+      "path": "docs/evidence/security-hardening/ui/security-saved-1440.jpg",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "43818bbb6ddd254a0d9103d09a4ca7fb3c6e8f037534d850591f23bad0563747"
+    },
+    {
+      "path": "docs/evidence/security-hardening/ui/security-settings-1440.jpg",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "6e0b606aff60506e1d9234ee7d75b478888719bf4bc17617ddbe02ed0b6c7abf"
+    }
+  ],
+  "productionAcceptance": false
+}
