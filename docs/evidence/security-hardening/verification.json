@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "complete": false,
+  "classification": "verified-worktree-source-regressions-awaiting-immutable-installation",
+  "recordedAt": "2026-10-08T16:49:29.363822+00:00",
+  "baselineRevision": "a11d41250c76eb42831797e9fabd5405906dc256",
+  "sourceCommit": null,
+  "worktreeSourceManifestSha256": "78a3ddbff8b6977042c70b3a34f099371240b38c7b577baa347c8055b4749086",
+  "tests": {
+    "domain": {
+      "passed": 699,
+      "failed": 0,
+      "skipped": 0,
+      "command": "bash scripts/check-contracts.sh domain -p:RestoreLockedMode=true"
+    },
+    "integration": {
+      "passed": 744,
+      "failed": 0,
+      "skipped": 0,
+      "command": "bash scripts/check-contracts.sh integration -p:RestoreLockedMode=true"
+    },
+    "gateway": {
+      "passed": 141,
+      "failed": 0,
+      "skipped": 0,
+      "command": "bash scripts/check-contracts.sh gateway -p:RestoreLockedMode=true"
+    },
+    "console": {
+      "passed": 209,
+      "failed": 0,
+      "skipped": 0,
+      "buildPassed": true
+    },
+    "runtimeAndConsole": {
+      "passed": 327,
+      "failed": 0,
+      "skipped": 0,
+      "includesConsoleTests": true
+    }
+  },
+  "review": {
+    "state": "CompletedSourceOnly",
+    "independent": true,
+    "critical": 0,
+    "important": 0,
+    "minorDeferred": 1,
+    "sourceFilesMatched": 78,
+    "report": "docs/evidence/security-hardening/source-review.md",
+    "installationJudged": false
+  },
+  "fixedImage": {
+    "verified": false
+  },
+  "ui": {
+    "verified": false
+  },
+  "runtimeProxyIntegration": {
+    "verified": false
+  },
+  "coldRestoreInstallation": {
+    "verified": false
+  },
+  "existing4192": {
+    "upgraded": false,
+    "testingAgainstExistingAccounts": false
+  },
+  "productionAcceptance": {
+    "executed": false
+  },
+  "pending": [
+    "Current-batch local commit authorization",
+    "Immutable image and isolated installation",
+    "1440px actual UI QA",
+    "Actual proxy rebuild and cold restore proof"
+  ]
+}

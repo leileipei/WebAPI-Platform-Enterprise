@@ -55,7 +55,7 @@ public sealed class SsoSessionRevocationTests
         using var localLogin=await fixture.Api.LoginAsync();localLogin.EnsureSuccessStatusCode();var cookie=localLogin.Headers.GetValues("Set-Cookie").Single(value=>value.StartsWith("WebApi.Session=",StringComparison.Ordinal)).Split(';')[0]["WebApi.Session=".Length..];
         using var services=fixture.Api.Services();var format=services.ServiceProvider.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>().Get("Cookies").TicketDataFormat;var expiry=format.Unprotect(cookie)!.Properties.ExpiresUtc;
         await using var second=ControlPlaneApp.Build(["--environment","Development"],builder=>{
-            builder.WebHost.UseUrls("http://127.0.0.1:0");builder.Logging.ClearProviders();builder.Configuration["ConnectionStrings:WebApi"]=fixture.Api.Database.ConnectionString;
+            builder.WebHost.UseUrls("http://127.0.0.1:0");builder.Logging.ClearProviders();builder.Configuration["ConnectionStrings:WebApi"]=fixture.Api.Database.ConnectionString;LoginProtectionTestConfiguration.Apply(builder,fixture.Api.LoginProtectionDirectory,fixture.Api.LoginProtectionDeploymentId);
             builder.Configuration["DataProtection:KeysDirectory"]=fixture.DataProtectionDirectory;builder.Configuration["DataProtection:ApplicationName"]=fixture.DataProtectionApplication;
         });await second.StartAsync();var address=second.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
         Assert.Equal(HttpStatusCode.OK,(await fixture.Browser.GetAsync(address+"/api/v1/auth/me")).StatusCode);

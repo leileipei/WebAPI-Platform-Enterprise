@@ -10,7 +10,6 @@ public sealed class CacheResponseMiddleware(RequestDelegate next)
         var policy=execution.Generation.PoliciesById[binding.PolicyId];string? readPhase=null,writePhase=null,reason=null;
         try
         {
-            context.Response.OnStarting(()=>{context.Response.Headers["X-WebApi-Trace-Id"]=context.TraceIdentifier;context.Response.Headers["X-WebApi-Deployment-Sequence"]=execution.Generation.Envelope.DeploymentSequence.ToString(CultureInfo.InvariantCulture);return Task.CompletedTask;});
             var config=execution.Generation.Cache[binding.PolicyId];
             if(execution.VerifiedIdentity is null||!CacheEligibility.Request(context,execution.VerifiedIdentity,config,settings).Eligible)
             {execution.CacheDisposition=readPhase="Bypass";reason="unsafe_request";await next(context);return;}

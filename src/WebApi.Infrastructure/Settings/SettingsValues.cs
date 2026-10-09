@@ -2,7 +2,7 @@ using System.Text.Json;
 using WebApi.Contracts.Common;
 namespace WebApi.Infrastructure.Settings;
 public abstract record SettingsValues;
-public sealed record SecuritySettings(int SessionTtlMinutes,int PasswordMinLength,string PasswordComplexity,string[] AllowedOrigins):SettingsValues;
+public sealed record SecuritySettings(int SessionTtlMinutes,int PasswordMinLength,string PasswordComplexity,string[] AllowedOrigins,int LoginIpMaxAttempts=60,int LoginIpWindowSeconds=60,int LoginAccountMaxAttempts=10,int LoginAccountWindowSeconds=300):SettingsValues;
 public sealed record ReleaseSettings(int ProductionApprovalLevels,int SnapshotRetentionCount):SettingsValues;
 public sealed record GatewaySettings(int DefaultRouteTimeoutMs,int MaxRequestBodyMb,int ConfigRefreshIntervalSeconds):SettingsValues;
 public sealed record AuditSettings(int AuditRetentionDays,bool AuditExportEnabled):SettingsValues;
@@ -20,9 +20,10 @@ public static class SettingsValueCodec
         try
         {
             using var document=JsonDocument.Parse(json,new JsonDocumentOptions{MaxDepth=16});
-            var properties=document.RootElement.EnumerateObject().ToArray();var expected=group=="notification"&&properties.Length==6?SystemSettingsValidator.Fields[group][..6]:SystemSettingsValidator.Fields[group];
+            var properties=document.RootElement.EnumerateObject().ToArray();var legacySecurity=group=="security"&&properties.Length==4;var expected=legacySecurity?SystemSettingsValidator.Fields[group][..4]:group=="notification"&&properties.Length==6?SystemSettingsValidator.Fields[group][..6]:SystemSettingsValidator.Fields[group];
             if(properties.Length!=expected.Length||properties.Select(p=>p.Name).Distinct(StringComparer.Ordinal).Count()!=expected.Length||properties.Any(p=>!expected.Contains(p.Name)))throw new JsonException();
             var input=properties.ToDictionary(p=>p.Name,p=>(object?)p.Value.Clone());
+            if(legacySecurity)foreach(var field in new[]{"loginIpMaxAttempts","loginIpWindowSeconds","loginAccountMaxAttempts","loginAccountWindowSeconds"})input[field]=SettingsValueCodec.Json(Default("security")).GetProperty(field).Clone();
             if(group=="notification")foreach(var key in new[]{"smtpSecretRef","webhookSecretRef"})
             {var value=document.RootElement.GetProperty(key);input[key]=value.ValueKind==JsonValueKind.Null?new Dictionary<string,object?>{{"operation","Clear"}}:new Dictionary<string,object?>{{"operation","Replace"},{"reference",value.GetString()}};}
             return SystemSettingsValidator.Resolve(group,new(JsonSerializer.SerializeToElement(input,CanonicalJson.Options)),Default(group)).Value;

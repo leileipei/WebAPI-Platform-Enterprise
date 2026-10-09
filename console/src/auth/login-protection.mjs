@@ -1,0 +1,2 @@
+export function loginRetryAfterSeconds(value){if(typeof value!=='string'||!/^\d{1,4}$/.test(value))return undefined;const seconds=Number(value);return seconds>=1&&seconds<=3600?seconds:undefined;}
+export function loginProtectionMessage(code,retryAfterSeconds){if(code==='login_rate_limited')return Number.isInteger(retryAfterSeconds)&&retryAfterSeconds>=1&&retryAfterSeconds<=3600?`登录尝试过于频繁，请在 ${retryAfterSeconds} 秒后重试。`:'登录尝试过于频繁，请稍后重试。';if(code==='login_protection_unavailable'||code==='authentication_audit_unavailable')return '登录保护暂不可用，请稍后重试。';}

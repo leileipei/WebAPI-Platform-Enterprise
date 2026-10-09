@@ -19,6 +19,8 @@ public sealed class ApiFixture : IAsyncDisposable
     public PostgresDatabase Database { get; } = new();
     public UserRecord User { get; } = new() { Username = "actor_"+Guid.NewGuid().ToString("N"), DisplayName="测试用户", SecurityStamp=Guid.NewGuid().ToString("N") };
     public string Password { get; } = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    public string LoginProtectionDirectory { get; } = Path.Combine(Path.GetTempPath(),"webapi-login-"+Guid.NewGuid().ToString("N"));
+    public string LoginProtectionDeploymentId { get; } = Guid.NewGuid().ToString("N");
     private WebApplication? app;
     public HttpClient Client { get; private set; } = null!;
     public WebApiDbContext Context() => Database.Context();
@@ -31,6 +33,7 @@ public sealed class ApiFixture : IAsyncDisposable
             builder.WebHost.UseUrls("http://127.0.0.1:0");
             builder.Configuration["ConnectionStrings:WebApi"]=Database.ConnectionString;
             builder.Logging.ClearProviders();
+            LoginProtectionTestConfiguration.Apply(builder,LoginProtectionDirectory,LoginProtectionDeploymentId);
             configure?.Invoke(builder);
         });
         await app.StartAsync();
@@ -117,7 +120,7 @@ public sealed class ApiFixture : IAsyncDisposable
     }
     public async ValueTask DisposeAsync()
     {
-        foreach(var client in extraClients) client.Dispose();Client?.Dispose(); if(app is not null) {await app.StopAsync(); await app.DisposeAsync();} await Database.DisposeAsync();
+        foreach(var client in extraClients) client.Dispose();Client?.Dispose(); if(app is not null) {await app.StopAsync(); await app.DisposeAsync();} await Database.DisposeAsync();if(Directory.Exists(LoginProtectionDirectory))Directory.Delete(LoginProtectionDirectory,true);
     }
     public Task StopServerAsync() => app!.StopAsync();
 }

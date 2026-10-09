@@ -165,6 +165,9 @@
           "WebApi.Contracts": "[1.0.0, )"
         }
       },
+      "webapi.httpsecurity": {
+        "type": "Project"
+      },
       "webapi.infrastructure": {
         "type": "Project",
         "dependencies": {

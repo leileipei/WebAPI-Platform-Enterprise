@@ -18,7 +18,7 @@ for role in postgres control-plane worker gateway-a gateway-b migrator; do
   chown "$uid:$uid" "/volumes/secrets-$role"; chmod 700 "/volumes/secrets-$role"
   case "$role" in
     postgres|migrator) copy_secret postgres-password "$role" "$uid" ;;
-    control-plane) for secret in postgres-password node-a node-b ip-hmac cursor-signing; do copy_secret "$secret" "$role" "$uid"; done ;;
+    control-plane) for secret in postgres-password node-a node-b ip-hmac cursor-signing login-protection-hmac; do copy_secret "$secret" "$role" "$uid"; done ;;
     worker) for secret in postgres-password ip-hmac cursor-signing; do copy_secret "$secret" "$role" "$uid"; done ;;
     gateway-a) for secret in node-a ip-hmac; do copy_secret "$secret" "$role" "$uid"; done ;;
     gateway-b) for secret in node-b ip-hmac; do copy_secret "$secret" "$role" "$uid"; done ;;

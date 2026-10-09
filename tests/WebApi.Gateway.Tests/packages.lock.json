@@ -358,6 +358,7 @@
       "webapi.consolehost": {
         "type": "Project",
         "dependencies": {
+          "WebApi.HttpSecurity": "[1.0.0, )",
           "Yarp.ReverseProxy": "[2.3.0, )"
         }
       },
@@ -368,6 +369,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.AspNetCore.Authentication.OpenIdConnect": "[10.0.12, )",
+          "WebApi.HttpSecurity": "[1.0.0, )",
           "WebApi.Infrastructure": "[1.0.0, )"
         }
       },
@@ -384,9 +386,13 @@
           "Microsoft.IdentityModel.Tokens": "[8.19.2, )",
           "OpenTelemetry.Instrumentation.AspNetCore": "[1.19.0, )",
           "OpenTelemetry.Instrumentation.Http": "[1.19.0, )",
+          "WebApi.HttpSecurity": "[1.0.0, )",
           "WebApi.Infrastructure": "[1.0.0, )",
           "Yarp.ReverseProxy": "[2.3.0, )"
         }
+      },
+      "webapi.httpsecurity": {
+        "type": "Project"
       },
       "webapi.infrastructure": {
         "type": "Project",

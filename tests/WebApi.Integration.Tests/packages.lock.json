@@ -358,6 +358,7 @@
       "webapi.consolehost": {
         "type": "Project",
         "dependencies": {
+          "WebApi.HttpSecurity": "[1.0.0, )",
           "Yarp.ReverseProxy": "[2.3.0, )"
         }
       },
@@ -368,6 +369,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.AspNetCore.Authentication.OpenIdConnect": "[10.0.12, )",
+          "WebApi.HttpSecurity": "[1.0.0, )",
           "WebApi.Infrastructure": "[1.0.0, )"
         }
       },
@@ -376,6 +378,9 @@
         "dependencies": {
           "WebApi.Contracts": "[1.0.0, )"
         }
+      },
+      "webapi.httpsecurity": {
+        "type": "Project"
       },
       "webapi.infrastructure": {
         "type": "Project",
