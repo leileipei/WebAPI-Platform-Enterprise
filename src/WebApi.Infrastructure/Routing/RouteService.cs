@@ -54,9 +54,7 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
             if(request.Enabled&&await db.Set<RouteMethod>().AnyAsync(m=>m.EnvironmentId==environmentId&&m.NormalizedPath==normalized&&verbs.Contains(m.Method)&&m.RouteId!=r.Id,token)) throw new ApiException(409,"route_conflict","同一环境、方法和同形路径已有启用路由。");
             if(request.Id is null) db.Add(r);else r.Revision++;
             r.ApiVersionId=request.ApiVersionId;r.RouteName=request.RouteName;r.Path=request.Path=="/"?"/":request.Path.TrimEnd('/');r.NormalizedPath=normalized;r.Methods=verbs;r.ClusterId=request.ClusterId;r.Priority=request.Priority;r.Enabled=request.Enabled;r.TimeoutMs=timeout;r.UpdatedAt=DateTimeOffset.UtcNow;
-            var previous=await db.Set<RouteMethod>().Where(m=>m.RouteId==r.Id).ToArrayAsync(token);var desired=request.Enabled?verbs:Array.Empty<string>();
-            db.RemoveRange(previous.Where(m=>!desired.Contains(m.Method)));foreach(var item in previous.Where(m=>desired.Contains(m.Method))) {item.EnvironmentId=environmentId;item.NormalizedPath=normalized;}
-            foreach(var verb in desired.Where(v=>!previous.Any(m=>m.Method==v))) db.Add(new RouteMethod {RouteId=r.Id,EnvironmentId=environmentId,Method=verb,NormalizedPath=normalized});
+            await ReplaceMethodsAsync(db,r,token);
             var updatedBindings=oldBindings.ToList();
             if(authChanged) {
                 var existingAuthIds=oldBindings.Where(b=>b.Type=="authentication").Select(b=>b.PolicyId).ToArray();
@@ -68,6 +66,13 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
             var effective=PolicyBindingRules.Validate(updatedBindings,true,timeout);
             return new CommandResult<RouteDto>(Dto(r,effective.RequireApiKey) with {EffectiveTimeoutMs=effective.TimeoutMs??r.TimeoutMs,EffectiveAuthenticationMode=effective.Authentication?.Mode==AuthenticationMode.JWT?"JWT":null},RevisionTag.Format(r.Revision));
         },ct);
+    }
+    internal static async Task ReplaceMethodsAsync(WebApiDbContext db,ApiRoute route,CancellationToken ct)
+    {
+        if(db.Database.CurrentTransaction is null)throw new InvalidOperationException("Route writes require an owning transaction.");
+        var previous=await db.Set<RouteMethod>().Where(m=>m.RouteId==route.Id).ToArrayAsync(ct);var desired=route.Enabled?route.Methods:Array.Empty<string>();
+        db.RemoveRange(previous.Where(m=>!desired.Contains(m.Method)));foreach(var item in previous.Where(m=>desired.Contains(m.Method))){item.EnvironmentId=route.EnvironmentId;item.NormalizedPath=route.NormalizedPath;}
+        foreach(var verb in desired.Where(v=>!previous.Any(m=>m.Method==v)))db.Add(new RouteMethod{RouteId=route.Id,EnvironmentId=route.EnvironmentId,Method=verb,NormalizedPath=route.NormalizedPath});
     }
     public async Task DeleteAsync(Guid id,string? tag,ActorContext actor,CancellationToken ct=default)
     {

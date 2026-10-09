@@ -113,11 +113,11 @@
 
 给原Builder增加明确`BuildPromotionAsync`入口，原BuildAsync签名行为保留；新入口接收批准的凭证选择集合。保留基线其他API授权所需应用，若共享应用则选择集合必须覆盖保留业务需要的现有运行凭证；删除凭证必须作为单独受审影响，不能为本晋级隐含删除。
 
-- [ ] **Step 1：写断言。** 目标无Route创建草稿、已有Route正确更新；不可写/外项目资源拒绝；制品Path/Method/认证模式无法被映射更改；共享策略不原地修改；TEST凭证不自动复制；共享应用遗漏基线凭证409，明确共享影响需审批确认；未选API路由/授权保持。
-- [ ] **Step 2：RED。** integration筛选PromotionMappingTests/PromotionCredentialTests。
-- [ ] **Step 3：实现。** 仅Draft可编辑。准备事务创建目标独立策略副本/绑定与Route，不覆盖共享策略，使用B2 Resolve和旧地址/策略验证；不得调用带独立事务的普通服务导致嵌套事务，抽取只在持锁事务运行的内部写入原语并保留原外部接口。共享凭证影响写入Candidate评审摘要。
-- [ ] **Step 4：GREEN。** 两测试及SnapshotCompilerTests/PolicyReleaseTests/RoutePolicyBindingTests；目标准备不创建Outbox、DesiredConfigVersion不变。
-- [ ] **Step 5：隔离提交。** `feat(delivery): prepare target scoped promotion candidates`。
+- [x] **Step 1：写断言。** 目标无Route创建草稿、已有Route正确更新；不可写/外项目资源拒绝；制品Path/Method/认证模式无法被映射更改；共享策略不原地修改；TEST凭证不自动复制；共享应用遗漏基线凭证409，明确共享影响需审批确认；未选API路由/授权保持。
+- [x] **Step 2：RED。** integration筛选PromotionMappingTests/PromotionCredentialTests。
+- [x] **Step 3：实现。** 仅Draft可编辑。准备事务创建目标独立策略副本/绑定与Route，不覆盖共享策略，使用B2 Resolve和旧地址/策略验证；不得调用带独立事务的普通服务导致嵌套事务，抽取只在持锁事务运行的内部写入原语并保留原外部接口。共享凭证影响写入Candidate评审摘要。
+- [x] **Step 4：GREEN。** 两测试及SnapshotCompilerTests/PolicyReleaseTests/RoutePolicyBindingTests；目标准备不创建Outbox、DesiredConfigVersion不变。
+- [x] **Step 5：隔离提交。** `feat(delivery): prepare target scoped promotion candidates`。
 
 ## Task 6 (B6)：预检、冻结提交与生产直发门禁
 

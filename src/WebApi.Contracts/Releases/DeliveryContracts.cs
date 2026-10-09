@@ -12,3 +12,9 @@ public sealed record VerificationReportDto(Guid Id,Guid? ArtifactId,Guid? Promot
 public sealed record RequestTestAcceptanceRequest(IReadOnlyList<Guid> VerificationIds);
 public sealed record TestAcceptanceActionRequest(string Comment="");
 public sealed record TestAcceptanceDto(Guid Id,Guid ArtifactId,Guid SourceEnvironmentId,string ArtifactHash,IReadOnlyList<Guid> VerificationIds,string EvidenceHash,long PolicyRevision,string Status,long Revision,Guid RequestedBy,Guid? ActedBy,string Comment,DateTimeOffset CreatedAt,DateTimeOffset? ActedAt,DateTimeOffset? ExpiresAt);
+public sealed record PromotionPolicyMapping(string Type,int Priority,Guid? TargetPolicyId=null,long? TargetPolicyRevision=null);
+public sealed record PromotionRouteMapping(string ArtifactRouteKey,Guid? TargetRouteId,Guid ClusterId,int TimeoutMs,IReadOnlyList<PromotionPolicyMapping> Policies);
+public sealed record PromotionApplicationMapping(Guid ApplicationId,IReadOnlyList<Guid> CredentialIds,IReadOnlyList<Guid> AuthorizationIds,bool ConfirmSharedCredentialImpact=false);
+public sealed record PromotionMappingRequest(IReadOnlyList<PromotionRouteMapping> Routes,IReadOnlyList<PromotionApplicationMapping> Applications);
+public sealed record SharedCredentialImpact(Guid ApplicationId,IReadOnlyList<Guid> RetainedApiIds,IReadOnlyList<Guid> RequiredCredentialIds,bool Acknowledged,bool SharedAcrossEnvironments=false);
+public sealed record PromotionDto(Guid Id,Guid OrganizationId,Guid ProjectId,Guid ArtifactId,string ArtifactHash,Guid SourceEnvironmentId,Guid TargetEnvironmentId,Guid SourceReleaseId,Guid? TargetReleaseId,Guid? AcceptanceId,string Status,long BaselineConfigVersion,long MappingRevision,string? CandidateHash,long Revision,Guid RequestedBy,DateTimeOffset CreatedAt,DateTimeOffset? CompletedAt,PromotionMappingRequest? Mapping=null,IReadOnlyList<SharedCredentialImpact>? CredentialImpact=null);

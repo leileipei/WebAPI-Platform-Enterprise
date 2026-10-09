@@ -10,10 +10,11 @@ public sealed class DeliveryScenario : IAsyncDisposable
     public ApiFixture Api=>Deployment.Api;
     public ReleaseArtifactDto Artifact {get;private set;}=null!;
     public Guid ReleaseId {get;private set;}
-    public async Task InitializeAsync(bool canRecord=true,Action<Microsoft.AspNetCore.Builder.WebApplicationBuilder>? configure=null)
+    public async Task InitializeAsync(bool canRecord=true,Action<Microsoft.AspNetCore.Builder.WebApplicationBuilder>? configure=null,Func<ApiFixture,Task>? beforePublish=null)
     {
         await Deployment.InitializeAsync(configure);
         if(canRecord){await using var db=Api.Context();var permission=new Permission{Code="release.test.record",Module="release",Name="登记人工测试"};db.Add(permission);db.Add(new RolePermission{RoleId=await db.Set<UserRole>().Where(x=>x.UserId==Api.User.Id).Select(x=>x.RoleId).SingleAsync(),PermissionId=permission.Id});await db.SaveChangesAsync();}
+        if(beforePublish is not null)await beforePublish(Api);
         ReleaseId=await Deployment.PublishAsync();await using(var db=Api.Context()){var environment=await db.Set<EnvironmentRecord>().SingleAsync();environment.IsProduction=false;environment.GatewayPublicUrl="https://source-gateway.example";environment.BasePath="/api";await db.SaveChangesAsync();}
         using var created=await ApiFixture.CommandAsync(Api.Client,$"/api/v1/releases/{ReleaseId}/artifacts");created.EnsureSuccessStatusCode();Artifact=(await created.Content.ReadFromJsonAsync<ReleaseArtifactDto>())!;
     }
