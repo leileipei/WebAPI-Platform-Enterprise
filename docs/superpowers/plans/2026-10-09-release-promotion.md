@@ -125,11 +125,11 @@
 
 **Interfaces:** `PrecheckAsync(Guid promotionId,ActorContext actor,CancellationToken ct) -> Task<PromotionPrecheckDto>`（各检查含Passed/Failed/Unknown及阻断原因）；`CreateAsync(Guid artifactId,ActorContext actor,CancellationToken ct) -> Task<PromotionDto>`；`SubmitAsync(Guid promotionId,string? etag,ActorContext actor,CancellationToken ct) -> Task<PromotionDto>`；`RequireReadyAsync(ReleaseRecord release,ActorContext actor,CancellationToken ct) -> Task`；`LockAsync(Guid sourceEnvironmentId,Guid targetEnvironmentId,CancellationToken ct) -> Task` 按Guid排序，包含统一治理锁顺序约定。
 
-- [ ] **Step 1：写断言。** 未测试/撤销/过期/来源已换版本阻断；目标基线/映射/地址/连接修订改变需要新申请；并发Submit只一个目标Release+一次ApprovalTasks；合法重复键返回原ID、不同正文冲突；Legacy旧直发有效，PromotionRequired新直发/伪造promotionId拒绝；回滚仍按原批准路径。
-- [ ] **Step 2：RED。** integration筛选PromotionSubmissionTests/PromotionConcurrencyTests。
-- [ ] **Step 3：实现。** precheck生成持久结果和修订摘要但不写运行配置，submit锁内复算与B5准备并冻结，创建正式目标Release和既有两级席位；审批投影沿用原流程。新直发门禁在创建/提交/执行分别检查，不只禁前端按钮。预检契约Unknown需关联人工评审，不转为零风险；上游健康用B3显式人工证据。
-- [ ] **Step 4：GREEN。** 两测试及ApprovalTests/ComparisonReleaseTests/RollbackTests；故意并发撤销验收、准备资源和Submit验证事务一致性及无死锁。
-- [ ] **Step 5：隔离提交。** `feat(delivery): freeze promotion approval and enforce production gates`。
+- [x] **Step 1：写断言。** 未测试/撤销/过期/来源已换版本阻断；目标基线/映射/地址/连接修订改变需要新申请；并发Submit只一个目标Release+一次ApprovalTasks；合法重复键返回原ID、不同正文冲突；Legacy旧直发有效，PromotionRequired新直发/伪造promotionId拒绝；回滚仍按原批准路径。
+- [x] **Step 2：RED。** integration筛选PromotionSubmissionTests/PromotionConcurrencyTests。
+- [x] **Step 3：实现。** precheck生成持久结果和修订摘要但不写运行配置，submit锁内复算与B5准备并冻结，创建正式目标Release和既有两级席位；审批投影沿用原流程。新直发门禁在创建/提交/执行分别检查，不只禁前端按钮。预检契约Unknown需关联人工评审，不转为零风险；上游健康用B3显式人工证据。
+- [x] **Step 4：GREEN。** 两测试及ApprovalTests/ComparisonReleaseTests/RollbackTests；故意并发撤销验收、准备资源和Submit验证事务一致性及无死锁。
+- [x] **Step 5：隔离提交。** `feat(delivery): freeze promotion approval and enforce production gates`。
 
 ## Task 7 (B7)：发布执行、后台复检与恢复追溯
 

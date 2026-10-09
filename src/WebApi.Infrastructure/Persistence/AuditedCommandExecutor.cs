@@ -43,6 +43,15 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             foreach(var property in e.Properties.Where(p=>new[]{"ArtifactId","PromotionId","SourceReleaseId","SourceEnvironmentId","ArtifactHash","SourceSnapshotHash","SnapshotHash","PolicyRevision","AccessAddressRevision","Result","Type","IsManual","ReportId","ReportHash","ContentType","SizeBytes","Sha256"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
         if(e.Entity is ReleaseTestAcceptance or ReleasePromotionEvent)
             foreach(var property in e.Properties.Where(p=>new[]{"ArtifactId","SourceEnvironmentId","AcceptanceId","PromotionId","EvidenceHash","PolicyRevision","VerificationIds","RequestedBy","ActedBy","ReasonCode"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
+        if(e.Entity is ReleasePromotion)
+        {
+            foreach(var name in new[]{"ArtifactId","SourceReleaseId","TargetReleaseId","AcceptanceId","SourceEnvironmentId","TargetEnvironmentId","MappingRevision","BaselineConfigVersion","TargetAccessAddressRevision","CandidateHash","RequestedBy"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
+            foreach(var name in new[]{"PrecheckJson","FrozenPolicyJson","ResourceRevisionsJson"}){
+                var value=(string?)(original?e.Property(name).OriginalValue:e.Property(name).CurrentValue);
+                if(value is null)captured[name+"Hash"]=null;
+                else{using var document=JsonDocument.Parse(value);captured[name+"Hash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(document.RootElement)));}
+            }
+        }
         if(e.Entity is ProjectDeliveryPolicy)
             foreach(var name in new[]{"Mode","SourceEnvironmentId","TargetEnvironmentId","RequiredTestTypes","VerificationValidityMinutes"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
         if(e.Entity is EnvironmentRecord)

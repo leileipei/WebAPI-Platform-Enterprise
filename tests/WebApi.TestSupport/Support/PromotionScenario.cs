@@ -15,6 +15,7 @@ namespace WebApi.Integration.Tests.Support;
 public sealed class PromotionScenario:IAsyncDisposable
 {
     public DeliveryScenario Source {get;}=new();public ApiFixture Api=>Source.Api;
+    public (UserRecord User,HttpClient Client) TestAcceptor {get;private set;}
     public Guid TargetEnvironmentId,TargetClusterId,TargetApplicationId,TargetCredentialId,TargetAuthorizationId,PromotionId,TargetPolicyId;
     public async Task InitializeAsync(bool timeout=false,bool anonymous=false)
     {
@@ -35,7 +36,7 @@ public sealed class PromotionScenario:IAsyncDisposable
         var policyBody=new SaveDeliveryPolicyRequest(Api.Environment.Id,TargetEnvironmentId,"PromotionRequired",["InterfaceFunction","Integration","ContractCompatibility"],1440);using(var policy=await Api.WriteAsync(HttpMethod.Put,$"/api/v1/projects/{Api.Project.Id}/delivery-policy",policyBody,"\"0\""))policy.EnsureSuccessStatusCode();
         var ids=new List<Guid>();foreach(var type in new[]{"InterfaceFunction","Integration","ContractCompatibility"}){using var evidence=await Source.RecordAsync(type:type);evidence.EnsureSuccessStatusCode();ids.Add((await evidence.Content.ReadFromJsonAsync<ReleaseVerificationDto>())!.Id);}
         using var requested=await ApiFixture.CommandAsync(Api.Client,$"/api/v1/release-artifacts/{Source.Artifact.Id}/test-acceptances",new RequestTestAcceptanceRequest(ids));requested.EnsureSuccessStatusCode();var acceptance=(await requested.Content.ReadFromJsonAsync<TestAcceptanceDto>())!;
-        var reviewer=await Api.NewReviewerAsync("TestAcceptor");await Grant(Api,reviewer.User.Id,"release.test.accept","environment.read","route.read","api.read","api.version.read","api.schema.read","policy.read");
+        var reviewer=await Api.NewReviewerAsync("TestAcceptor");TestAcceptor=reviewer;await Grant(Api,reviewer.User.Id,"release.test.accept","environment.read","route.read","api.read","api.version.read","api.schema.read","policy.read");
         var csrf=await reviewer.Client.GetFromJsonAsync<Dictionary<string,string>>("/api/v1/auth/csrf");using var action=new HttpRequestMessage(HttpMethod.Post,$"/api/v1/test-acceptances/{acceptance.Id}/accept"){Content=JsonContent.Create(new TestAcceptanceActionRequest("独立验收"))};action.Headers.Add("X-CSRF-Token",csrf!["token"]);action.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("N"));action.Headers.Add("If-Match","\"1\"");using var accepted=await reviewer.Client.SendAsync(action);accepted.EnsureSuccessStatusCode();
         await using var context=Api.Context();var promotion=new ReleasePromotion{OrganizationId=Api.Organization.Id,ProjectId=Api.Project.Id,ArtifactId=Source.Artifact.Id,SourceEnvironmentId=Api.Environment.Id,TargetEnvironmentId=TargetEnvironmentId,SourceReleaseId=Source.ReleaseId,AcceptanceId=acceptance.Id,RequestedBy=Api.User.Id};PromotionId=promotion.Id;context.Add(promotion);await context.SaveChangesAsync();
     }
@@ -50,6 +51,17 @@ public sealed class PromotionScenario:IAsyncDisposable
         var promotion=await db.Set<ReleasePromotion>().SingleAsync(p=>p.Id==PromotionId);
         var prepared=await services.ServiceProvider.GetRequiredService<WebApi.Infrastructure.Delivery.PromotionCandidateBuilder>().PrepareAsync(promotion,new ActorContext(Api.User.Id,"mapping-real-service-test"),CancellationToken.None);
         var candidate=prepared.Candidate;await db.SaveChangesAsync();await transaction.CommitAsync();return candidate;
+    }
+    public async Task<(UserRecord User,HttpClient Client)> NewProductionApproverAsync(string role,bool sourceVisibility=true)
+    {var reviewer=await Api.NewReviewerAsync(role);if(sourceVisibility)await Grant(Api,reviewer.User.Id,"environment.read","api.read","api.version.read","api.schema.read","route.read","policy.read","cluster.read","app.read");return reviewer;}
+    public async Task SeedProductionBaselineAsync(Guid? baselineVersionId=null)
+    {
+        await using(var db=Api.Context()){var source=Source.Artifact.Content.Routes[0];db.Add(new ApiRoute{EnvironmentId=TargetEnvironmentId,ApiVersionId=baselineVersionId??source.VersionId,RouteName="Bootstrap baseline",Path=source.Path,NormalizedPath=WebApi.Domain.Routing.RouteNormalizer.Normalize(source.Path),Methods=source.Methods.ToArray(),Priority=source.Priority,ClusterId=TargetClusterId,TimeoutMs=30000});await db.SaveChangesAsync();}
+        using var services=Api.Services();var db2=services.ServiceProvider.GetRequiredService<WebApiDbContext>();var candidate=await services.ServiceProvider.GetRequiredService<ReleaseCandidateBuilder>().PreviewAsync(TargetEnvironmentId,new(0,[baselineVersionId??Api.Version.Id]),CancellationToken.None);var compiled=services.ServiceProvider.GetRequiredService<SnapshotCompiler>().Compile(candidate,new RuntimeSnapshot("2.0",TargetEnvironmentId,0,DateTimeOffset.UtcNow,[],[],[],[]),1,DateTimeOffset.UtcNow);
+        var config=new GatewayConfigVersion{EnvironmentId=TargetEnvironmentId,VersionNo=1,SnapshotHash=compiled.Hash,CreatedBy=Api.User.Id};db2.Add(config);db2.Add(new GatewayConfigSnapshot{ConfigVersionId=config.Id,Payload=Encoding.UTF8.GetString(compiled.Payload.Span),PayloadBytes=compiled.Payload.ToArray(),SizeBytes=compiled.Size});
+        var release=new ReleaseRecord{EnvironmentId=TargetEnvironmentId,ReleaseNo="bootstrap-baseline",ReleaseType="publish",Status="Succeeded",RequestedBy=Api.User.Id,ToConfigVersion=1,DeploymentSequence=1,CandidateBytes=CanonicalJson.Serialize(candidate),ApprovalPolicy="[]"};db2.Add(release);var env=await db2.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==TargetEnvironmentId);env.DesiredConfigVersion=1;env.DeploymentSequence=1;
+        foreach(var node in await db2.Set<GatewayNode>().Where(n=>n.EnvironmentId==TargetEnvironmentId).ToArrayAsync()){node.CurrentConfigVersion=1;node.CurrentDeploymentSequence=1;db2.Add(new ReleaseTarget{ReleaseId=release.Id,NodeId=node.Id,InstanceId=node.InstanceId});db2.Add(new GatewayAck{ReleaseId=release.Id,NodeId=node.Id,InstanceId=node.InstanceId,ConfigVersion=1,DeploymentSequence=1,PayloadHash=compiled.Hash,Success=true});}
+        await db2.SaveChangesAsync();
     }
     public async Task<(Guid ApiId,Guid CredentialId)> SeedRetainedBusinessAsync()
     {
