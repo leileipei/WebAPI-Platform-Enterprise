@@ -12,5 +12,7 @@ public static class DeliveryEndpoints
         g.MapPut("/projects/{id:guid}/delivery-policy",async(Guid id,SaveDeliveryPolicyRequest request,HttpContext ctx,ProjectDeliveryPolicyService service,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return GovernanceEndpoints.Command(ctx,await service.SaveAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct));});
         g.MapPost("/releases/{id:guid}/artifacts",async(Guid id,HttpContext ctx,ReleaseArtifactService service,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await service.CreateAsync(id,ctx.Actor(),ct));});
         g.MapGet("/release-artifacts/{id:guid}",async(Guid id,HttpContext ctx,ReleaseArtifactService service,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await service.GetAsync(id,ctx.Actor(),ct));});
+        g.MapPost("/release-artifacts/{id:guid}/verifications",async(Guid id,RecordVerificationRequest request,HttpContext ctx,ReleaseVerificationService service,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await service.RecordSourceAsync(id,request,ctx.Actor(),ct));});
+        g.MapGet("/release-artifacts/{id:guid}/verifications",async(Guid id,HttpContext ctx,ReleaseVerificationService service,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await service.ListSourceAsync(id,ctx.Actor(),ct));});
     }
 }

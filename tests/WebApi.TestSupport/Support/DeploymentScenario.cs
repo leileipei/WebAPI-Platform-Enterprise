@@ -11,10 +11,10 @@ namespace WebApi.Integration.Tests.Support;
 public sealed class DeploymentScenario : IAsyncDisposable
 {
     public ApiFixture Api {get;}=new();public Guid[] NodeIds=new Guid[2];public Guid[] Instances=[Guid.NewGuid(),Guid.NewGuid()];private string[] secrets=[Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)),Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))];private string[] files=[Path.GetTempFileName(),Path.GetTempFileName()];private Guid routeId;private int version=1;
-    public async Task InitializeAsync()
+    public async Task InitializeAsync(Action<Microsoft.AspNetCore.Builder.WebApplicationBuilder>? configure=null)
     {
         for(var i=0;i<2;i++) {await File.WriteAllTextAsync(files[i],secrets[i]);if(!OperatingSystem.IsWindows()) File.SetUnixFileMode(files[i],UnixFileMode.UserRead|UnixFileMode.UserWrite);}
-        await Api.InitializeAsync(b=>{for(var i=0;i<2;i++) {b.Configuration[$"Nodes:Enrollments:{i}:EnvironmentId"]=Api.Environment.Id.ToString();b.Configuration[$"Nodes:Enrollments:{i}:NodeName"]="node-"+i;b.Configuration[$"Nodes:Enrollments:{i}:SecretFile"]=files[i];}});await Api.SeedReleaseAsync();using var login=await Api.LoginAsync();login.EnsureSuccessStatusCode();
+        await Api.InitializeAsync(b=>{for(var i=0;i<2;i++) {b.Configuration[$"Nodes:Enrollments:{i}:EnvironmentId"]=Api.Environment.Id.ToString();b.Configuration[$"Nodes:Enrollments:{i}:NodeName"]="node-"+i;b.Configuration[$"Nodes:Enrollments:{i}:SecretFile"]=files[i];}configure?.Invoke(b);});await Api.SeedReleaseAsync();using var login=await Api.LoginAsync();login.EnsureSuccessStatusCode();
         await using(var db=Api.Context()) {var roleId=await db.Set<UserRole>().Where(r=>r.UserId==Api.User.Id).Select(r=>r.RoleId).SingleAsync();foreach(var code in new[]{"gateway.read","gateway.operate","gateway.config.read"}) {var p=new Permission {Code=code,Module="gateway",Name=code};db.Add(p);db.Add(new RolePermission {RoleId=roleId,PermissionId=p.Id});}await db.SaveChangesAsync();}
         for(var i=0;i<2;i++) {using var registered=await NodeAsync(i,"/internal/v1/nodes/register",new RegisterNodeRequest(Api.Environment.Id,"node-"+i,Instances[i],"test"));registered.EnsureSuccessStatusCode();NodeIds[i]=(await registered.Content.ReadFromJsonAsync<RegisteredNode>())!.NodeId;}
         using var route=await Api.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{Api.Environment.Id}/routes",Api.RouteBody("/orders"));route.EnsureSuccessStatusCode();routeId=(await route.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();

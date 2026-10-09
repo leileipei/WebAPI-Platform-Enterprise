@@ -32,6 +32,7 @@ public sealed class ApiFixture : IAsyncDisposable
         app=ControlPlaneApp.Build(["--environment","Development"],builder=>{
             builder.WebHost.UseUrls("http://127.0.0.1:0");
             builder.Configuration["ConnectionStrings:WebApi"]=Database.ConnectionString;
+            builder.Configuration["VerificationReports:Directory"]=Path.Combine(LoginProtectionDirectory,"verification-reports");
             builder.Logging.ClearProviders();
             LoginProtectionTestConfiguration.Apply(builder,LoginProtectionDirectory,LoginProtectionDeploymentId);
             configure?.Invoke(builder);
