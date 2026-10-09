@@ -18,6 +18,7 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
         if (release.Status != "WaitingApproval") return new(false, null, "invalid_release_state");
         var step = await CurrentStepAsync(release.Id, ct);
         if (release.RequestedBy == actor.UserId) return new(false, step, "self_approval");
+        if(await IsPipelineRunCreatorAsync(release,actor.UserId,ct))return new(false,step,"pipeline_run_creator_approval");
         if (await HasUsedSeatAsync(release.Id, actor.UserId, ct)) return new(false, step, "independent_approval_required");
         var canAct = await QueryActionableReleaseIds(actor, [release.EnvironmentId]).AnyAsync(id => id == release.Id, ct);
         return new(canAct, step, canAct ? null : "approval_role_required");
@@ -30,6 +31,7 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
         await auth.RequireAsync(actor, "approval.act", new("release", release.Id, scope), ct);
         ReleaseStateMachine.Require(release.Status, "WaitingApproval");
         if (release.RequestedBy == actor.UserId) throw new ApiException(403, "self_approval", "申请人不能审批自己的申请。");
+        if(await IsPipelineRunCreatorAsync(release,actor.UserId,ct))throw new ApiException(403,"pipeline_run_creator_approval","运行创建人不能通过委托办理审批自己的生产交付。");
         if (await HasUsedSeatAsync(release.Id, actor.UserId, ct)) throw new ApiException(403, "independent_approval_required", "同一人不能再次占用审批步骤。");
         if (!await QueryActionableReleaseIds(actor, [release.EnvironmentId]).AnyAsync(id => id == release.Id, ct))
             throw new ApiException(403, "approval_role_required", "用户不属于当前审批角色。");
@@ -37,6 +39,8 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
             .OrderBy(t => t.StepOrder).ThenBy(t => t.Id).FirstAsync(ct);
     }
 
+    private Task<bool> IsPipelineRunCreatorAsync(ReleaseRecord release,Guid user,CancellationToken ct)=>
+        (from p in db.Set<ReleasePromotion>() join stage in db.Set<ReleasePipelineRunStage>() on p.PipelineRunStageId equals (Guid?)stage.Id join run in db.Set<ReleasePipelineRun>() on stage.RunId equals run.Id join environment in db.Set<EnvironmentRecord>() on release.EnvironmentId equals environment.Id where p.Id==release.PromotionId&&p.TargetReleaseId==release.Id&&p.GateOrigin=="PipelineRunStage"&&environment.IsProduction&&run.CreatedBy==user select run.Id).AnyAsync(ct);
     private Task<bool> HasUsedSeatAsync(Guid releaseId, Guid actorId, CancellationToken ct) =>
         db.Set<ApprovalTask>().AnyAsync(t => t.ReleaseId == releaseId && t.Status == "Approved" && t.AssigneeUserId == actorId, ct);
 
@@ -97,6 +101,12 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
                     JOIN role_permissions rp ON rp.role_id = role.id JOIN permissions permission ON permission.id = rp.permission_id
                     WHERE ur.user_id = {actor.UserId} AND permission.code = 'policy.read'
                       AND (role.organization_id IS NULL OR role.organization_id = source_org.id)))))
+              AND NOT EXISTS (
+                SELECT 1 FROM release_promotions pipeline_promotion
+                JOIN release_pipeline_run_stages pipeline_stage ON pipeline_stage.id = pipeline_promotion.pipeline_run_stage_id
+                JOIN release_pipeline_runs pipeline_run ON pipeline_run.id = pipeline_stage.run_id
+                WHERE pipeline_promotion.id = r.promotion_id AND pipeline_promotion.gate_origin = 'PipelineRunStage'
+                  AND e.is_production AND pipeline_run.created_by = {actor.UserId})
               AND NOT EXISTS (
                 SELECT 1 FROM approval_tasks used_seat WHERE used_seat.release_id = r.id
                   AND used_seat.status = 'Approved' AND used_seat.assignee_user_id = {actor.UserId})

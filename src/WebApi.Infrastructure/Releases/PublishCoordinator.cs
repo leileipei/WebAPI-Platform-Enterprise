@@ -41,6 +41,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
     private async Task RequirePublishAsync(ReleaseRecord r,ActorContext actor,ScopeRef scope,CancellationToken ct)
     {
         await auth.RequireAsync(actor,"release.publish",new("environment",r.EnvironmentId,scope),ct);
+        if(r.ReleaseType=="publish"&&r.PromotionId is Guid promotionId&&await db.Set<WebApi.Infrastructure.Persistence.Entities.ReleasePromotion>().AsNoTracking().AnyAsync(p=>p.Id==promotionId&&p.GateOrigin=="PipelineRunStage",ct))await auth.RequireAsync(actor,"pipeline.run",new("environment",r.EnvironmentId,scope),ct);
         if(r.ApprovalPolicy is null) return;
         foreach(var version in Candidate(r).Versions)
         {var actual=await scopes.ApiAsync(version.Api.Id,ct);if(actual.OrganizationId!=scope.OrganizationId||actual.ProjectId!=scope.ProjectId) throw new ApiException(409,"candidate_scope_changed","候选资源范围已变化。");await auth.RequireAsync(actor,"release.publish",new("api",version.Api.Id,actual with {EnvironmentId=r.EnvironmentId}),ct);}
@@ -65,8 +66,11 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
     {
         await using var tx=await db.Database.BeginTransactionAsync(ct);
         await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
-        var r=await db.Set<ReleaseRecord>().FromSqlRaw("SELECT * FROM release_records WHERE status='Building' ORDER BY created_at LIMIT 1 FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
-        if(r is null) {await tx.CommitAsync(ct);return false;}
+        var selected=await db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.Status=="Building").OrderBy(r=>r.CreatedAt).ThenBy(r=>r.Id).FirstOrDefaultAsync(ct);
+        if(selected is null){await tx.CommitAsync(ct);return false;}
+        await deliveryExecution.LockReleaseAsync(selected,ct);
+        var r=await db.Set<ReleaseRecord>().FromSqlInterpolated($"SELECT * FROM release_records WHERE id={selected.Id} AND status='Building' FOR UPDATE SKIP LOCKED").SingleOrDefaultAsync(ct);
+        if(r is null){await tx.CommitAsync(ct);return false;}
         var scope=await scopes.EnvironmentAsync(r.EnvironmentId,ct);
         try
         {

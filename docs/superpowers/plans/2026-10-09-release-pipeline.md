@@ -238,7 +238,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Consumes `DeliveryGateContextResolver.ResolvePromotionAsync`和`RequireStageWritableAsync`；Produces guard `RequirePipelineExecutionAsync(Guid releaseId, ActorContext actor, CancellationToken ct)`→`Task<DeliveryGateContext?>`（旧合法记录返回null），由submit、approval、publish、Worker实际构建共用。既有生产verification-context增加可空AttemptId/ProfileHash，只对Pipeline要求完整摘要；普通历史恢复采用专用原快照判定，不调用“新候选来源当前”门禁。
 
-- [ ] **Step 1:** 测试提前Stage/旧HTTP创建提交/普通生产直发/伪造Run、模板变更、队列撤权或来源改变、2级不同人、实际发布人不得验证、Focus3：
+- [x] **Step 1:** 测试提前Stage/旧HTTP创建提交/普通生产直发/伪造Run、模板变更、队列撤权或来源改变、2级不同人、实际发布人不得验证、Focus3：
 
 ```csharp
 [Fact] async Task DelegatedRequesterCannotHideRunCreatorForApprovalOrVerification() {
@@ -254,10 +254,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineExecutionTests|FullyQualifiedName~PipelineApprovalTests'`，行为RED要求能证明绕过/自批或错误恢复阻断；Worker断言检查真实持久构建结果及无新增下发序列，不只HTTP按钮状态。
-- [ ] **Step 3:** 实现guard并接入全部既有入口；按真实FK确定Run→Stage→正式申请→当前尝试→唯一Release，当前规则/直接来源验收/当前权限、资源修订及模板重查。生产审批排除Run创建人和正式申请人、跨级独立；生产验证再排除实际发布人，管理员同样适用。非生产可选审批冻结沿P6。PipelineRequired禁止独立晋级与普通生产发布；旧Legacy/PromotionRequired和精确快照恢复/回滚保持原授权批准链，可处理已终态Run的已发快照，不能从无效来源创建新候选或推进。
-- [ ] **Step 4:** 新类GREEN，回归`PromotionExecutionTests`、`PromotionConcurrencyTests`、`ProductionVerificationTests`及既有发布/恢复类（使用`rg --files tests/WebApi.Integration.Tests`确定Release相关类，禁止空过滤）；检查恢复配置Hash不变、序列递增、无重复正式Release、旧独立发布的人员规则未收紧。
-- [ ] **Step 5:** 提交 `feat(pipeline): enforce stage gates across approval and release execution`。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineExecutionTests|FullyQualifiedName~PipelineApprovalTests'`，行为RED要求能证明绕过/自批或错误恢复阻断；Worker断言检查真实持久构建结果及无新增下发序列，不只HTTP按钮状态。
+- [x] **Step 3:** 实现guard并接入全部既有入口；按真实FK确定Run→Stage→正式申请→当前尝试→唯一Release，当前规则/直接来源验收/当前权限、资源修订及模板重查。生产审批排除Run创建人和正式申请人、跨级独立；生产验证再排除实际发布人，管理员同样适用。非生产可选审批冻结沿P6。PipelineRequired禁止独立晋级与普通生产发布；旧Legacy/PromotionRequired和精确快照恢复/回滚保持原授权批准链，可处理已终态Run的已发快照，不能从无效来源创建新候选或推进。
+- [x] **Step 4:** 新类GREEN，回归`PromotionExecutionTests`、`PromotionConcurrencyTests`、`ProductionVerificationTests`及既有发布/恢复类（使用`rg --files tests/WebApi.Integration.Tests`确定Release相关类，禁止空过滤）；检查恢复配置Hash不变、序列递增、无重复正式Release、旧独立发布的人员规则未收紧。
+- [x] **Step 5:** 提交 `feat(pipeline): enforce stage gates across approval and release execution`。
 
 ## Task 8 (P8): 持久状态投影、超时及撤销传播
 

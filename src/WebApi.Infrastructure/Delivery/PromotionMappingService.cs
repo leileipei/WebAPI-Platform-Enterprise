@@ -36,7 +36,7 @@ public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver sco
  internal async Task<ReleaseArtifactDto> RequireAsync(ReleasePromotion p,ActorContext actor,CancellationToken ct)
  {
   var artifact=await artifacts.GetAsync(p.ArtifactId,actor,ct);var target=await scopes.EnvironmentAsync(p.TargetEnvironmentId,ct);
-  if(p.GateOrigin=="PipelineRunStage"){var gate=await gates.ResolvePromotionAsync(p.Id,actor,ct);await gates.RequireStageWritableAsync(gate,actor,ct);await auth.RequireAsync(actor,"pipeline.run",new("environment",p.TargetEnvironmentId,target),ct);}
+  if(p.GateOrigin=="PipelineRunStage"){var gate=await gates.ResolvePromotionAsync(p.Id,actor,ct);await gates.RequireStageWritableAsync(gate,actor,ct);await gates.RequirePassedPredecessorAsync(gate,p.AcceptanceId,ct);await auth.RequireAsync(actor,"pipeline.run",new("environment",p.TargetEnvironmentId,target),ct);}
   if(artifact.OrganizationId!=p.OrganizationId||artifact.ProjectId!=p.ProjectId||artifact.SourceEnvironmentId!=p.SourceEnvironmentId||artifact.SourceReleaseId!=p.SourceReleaseId||target.OrganizationId!=p.OrganizationId||target.ProjectId!=p.ProjectId)throw ScopeResolver.Missing();
   await auth.RequireAsync(actor,"release.create",new("environment",p.TargetEnvironmentId,target),ct);await auth.RequireAsync(actor,"route.write",new("environment",p.TargetEnvironmentId,target),ct);return artifact;
  }

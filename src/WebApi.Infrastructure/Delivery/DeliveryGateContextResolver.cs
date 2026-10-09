@@ -103,13 +103,21 @@ public sealed class DeliveryGateContextResolver(WebApiDbContext db,ScopeResolver
   var content=Read<PipelineVersionContent>(version.ContentJson);var profile=Read<PipelineStageProfile>(stage.ProfileJson);if(content.Profiles is null||content.Definition is null||profile.RequiredTypes is null)throw Changed();var matches=content.Profiles.Where(p=>p.Order==stage.StageOrder).ToArray();if(matches.Length!=1)throw Changed();var frozen=matches[0];
   if(Hash(content)!=version.DefinitionHash||run.DefinitionHash!=version.DefinitionHash||frozen is null||Hash(frozen)!=stage.ProfileHash||Hash(profile)!=stage.ProfileHash||profile.Order!=stage.StageOrder||profile.EnvironmentId!=stage.EnvironmentId)throw Changed();return profile;
  }
- public async Task RequireStageWritableAsync(DeliveryGateContext context,ActorContext actor,CancellationToken ct)
+ internal async Task RequirePassedPredecessorAsync(DeliveryGateContext context,Guid? acceptanceId,CancellationToken ct)
+ {
+  if(context.Pipeline is not{} binding)return;var stage=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleAsync(s=>s.Id==binding.StageId,ct);
+  if(stage.SourceStageId is not Guid sourceId||acceptanceId is not Guid accepted)throw Changed();var source=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleAsync(s=>s.Id==sourceId,ct);
+  if(source.RunId!=stage.RunId||source.ProjectId!=stage.ProjectId||source.StageOrder!=stage.StageOrder-1||source.Status!="Passed"||source.CurrentAttemptId is not Guid attemptId||source.StageArtifactId is not Guid artifactId||!await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().AnyAsync(a=>a.Id==attemptId&&a.RunStageId==source.Id&&a.RunId==stage.RunId&&a.Status=="Passed"&&a.ArtifactId==artifactId&&a.AcceptanceId==accepted,ct)||!await db.Set<ReleaseTestAcceptance>().AsNoTracking().AnyAsync(a=>a.Id==accepted&&a.PipelineRunStageId==source.Id&&a.StageAttemptId==attemptId&&a.ArtifactId==artifactId&&a.Status=="Accepted",ct))throw new ApiException(409,"pipeline_predecessor_not_passed","当前正式申请的直接前置阶段及有效验收不再允许推进。");
+ }
+ public Task RequireStageWritableAsync(DeliveryGateContext context,ActorContext actor,CancellationToken ct)=>RequireStageCommandAsync(context,actor,ct,false);
+ internal Task RequireStageBuildWritableAsync(DeliveryGateContext context,ActorContext actor,CancellationToken ct)=>RequireStageCommandAsync(context,actor,ct,true);
+ private async Task RequireStageCommandAsync(DeliveryGateContext context,ActorContext actor,CancellationToken ct,bool queuedBuild)
  {
   if(context.Pipeline is not{} binding)throw Changed();var actual=await ResolveStageAsync(binding.StageId,actor,ct);
   if(actual.Origin!=context.Origin||actual.ProjectId!=context.ProjectId||actual.TargetEnvironmentId!=context.TargetEnvironmentId||actual.PolicyRevision!=context.PolicyRevision||actual.Pipeline!.RunId!=binding.RunId||actual.Pipeline.DefinitionHash!=binding.DefinitionHash||actual.Pipeline.RootArtifactHash!=binding.RootArtifactHash||actual.Pipeline.RunCreatedBy!=binding.RunCreatedBy||actual.Pipeline.CurrentAttemptId!=binding.CurrentAttemptId||actual.TargetEvidence.ProfileHash!=context.TargetEvidence.ProfileHash)throw Changed();
   var run=await db.Set<ReleasePipelineRun>().AsNoTracking().SingleAsync(r=>r.Id==binding.RunId,ct);var stage=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleAsync(s=>s.Id==binding.StageId,ct);
   if(run.Status!="Active"||run.CurrentStageOrder!=stage.StageOrder||stage.CurrentAttemptId is not Guid attemptId)throw new ApiException(409,"pipeline_stage_not_writable","当前运行或阶段不允许新操作。");
-  var attempt=await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().SingleAsync(a=>a.Id==attemptId,ct);if(attempt.Status!="Active"||!PipelineStateRules.CanWrite(run.Status,stage.Status,attempt.DeadlineAt,DateTimeOffset.UtcNow))throw new ApiException(409,"pipeline_attempt_not_writable","当前阶段尝试已结束或超时，请重新办理。");
+  var attempt=await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().SingleAsync(a=>a.Id==attemptId,ct);if(attempt.Status!="Active"||!PipelineStateRules.CanWrite(run.Status,queuedBuild&&stage.Status=="Deploying"?"ReadyToDeploy":stage.Status,attempt.DeadlineAt,DateTimeOffset.UtcNow))throw new ApiException(409,"pipeline_attempt_not_writable","当前阶段尝试已结束或超时，请重新办理。");
   var scope=await scopes.EnvironmentAsync(stage.EnvironmentId,ct);
   if(!await db.Set<UserProjectScope>().AsNoTracking().AnyAsync(g=>g.UserId==actor.UserId&&g.OrganizationId==scope.OrganizationId&&(g.ProjectId==null||g.ProjectId==scope.ProjectId)&&(g.EnvironmentId==null||g.EnvironmentId==scope.EnvironmentId)&&g.AccessMode=="read_write",ct))throw new ApiException(403,"scope_denied","当前阶段需要该环境的写入范围。");
   // The command owns its functional permission: pipeline.run for advancement, or the

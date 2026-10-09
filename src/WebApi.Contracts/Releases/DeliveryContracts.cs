@@ -26,7 +26,7 @@ public sealed record PromotionPrecheckDto(Guid PromotionId,string Status,bool Ca
 public sealed record PromotionNodeState(Guid NodeId,string NodeName,long? ConfigVersion,long? DeploymentSequence,string Status,DateTimeOffset? LastHeartbeatAt);
 public sealed record PromotionDeploymentState(Guid? ReleaseId,IReadOnlyList<PromotionNodeState> Nodes);
 
-public sealed record ProductionVerificationContextDto(string Hash,Guid ReleaseId,long ConfigVersion,long DeploymentSequence,string SnapshotHash,long AccessAddressRevision,string PublicOrigin,string BasePath,long PolicyRevision,Guid PublisherId);
+public sealed record ProductionVerificationContextDto(string Hash,Guid ReleaseId,long ConfigVersion,long DeploymentSequence,string SnapshotHash,long AccessAddressRevision,string PublicOrigin,string BasePath,long PolicyRevision,Guid PublisherId,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Guid? StageAttemptId=null,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? ProfileHash=null);
 
 public sealed record ReleaseArtifactSummaryDto(Guid Id,Guid SourceEnvironmentId,Guid SourceReleaseId,string ArtifactHash,string SourceSnapshotHash,Guid CreatedBy,DateTimeOffset CreatedAt);
 public sealed record ArtifactEligibilityDto(Guid ArtifactId,Guid SourceEnvironmentId,Guid? TargetEnvironmentId,bool TargetRestricted,string Mode,IReadOnlyList<string> RequiredTestTypes,int VerificationValidityMinutes,long PolicyRevision,bool CanRecord,bool CanUploadReport,bool CanRequestAcceptance,IReadOnlyList<Guid> VerificationIds,IReadOnlyList<string> ReasonCodes,bool CanCreatePromotion=false);
