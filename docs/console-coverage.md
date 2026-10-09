@@ -25,9 +25,9 @@
 |19|应用详情|/applications/{id}|已接入|
 |20|凭证|/applications/{id}|已接入凭证Tab，一次性Secret及有效期/撤销|
 |21|API授权|/applications/{id}|已接入授权Tab及环境/窗口|
-|22|发布中心|/releases|已接入核心发布|
-|23|发布详情|/releases/{id}|已接入审批/真实ACK/回滚/重试；不可变历史入口及当前地址变化提示已安装至4192|
-|24|审批中心|/approvals|已接入当前环境待审批；跨环境集中收件箱后续|
+|22|发布与交付中心|/releases；/delivery/overview|已接入原发布及跨环境交付总览、不可变制品与TEST→PROD晋级；原4192已安装，任意Stage编排后续|
+|23|发布详情|/releases/{id}|已接入审批/真实ACK/回滚/重试、生成制品及正式/恢复晋级追溯；ACK与生产业务验证完成分别呈现，已安装4192|
+|24|审批中心|/approvals|已接入授权范围集中收件箱、晋级来源/制品摘要与两级生产审批；独立测试验收在制品详情处理；受限资料不当零风险|
 |25|Snapshot|/snapshots|已接入脱敏管理视图和下载|
 |26|网关节点|/nodes|已接入实际/目标版本及sequence|
 |27|节点详情|/nodes/{id}|已接入事实事件|
@@ -45,8 +45,19 @@
 |39|SSO/OIDC|/settings/sso|已接入Provider治理、显式账号绑定、修订保护与审计；本机独立Keycloak登录已验证；企业IdP与生产TLS待验收|
 |40|系统设置|/settings/system|已接入平台五组17字段、保存/预览/引用/修订保护与审计；登录、账号、路由和审计CSV有实际消费者；部署参数、保留目标及通知仅配置意向|
 
-28–33真实范围见 [观测验收](evidence/observability/verification.json)、[数据字典](observability-data-dictionary.md)与[运行手册](deployment/observability-runbook.md)。原40页高保真原型仍完整保留；四类流量策略证据见 [策略交付](evidence/policies/delivery-index.md)；OIDC SSO 与系统设置已部署至本机4192，独立Keycloak位于4194。完整 OpenAPI 兼容性覆盖、JWT/重试/缓存与外部通知仍为后续能力；企业实际身份源、TLS/HA和容量需单独验收。当前入口、维护方式和验收边界见 [本机运行摘要](deployment/current-local-status.md)。
+28–33真实范围见 [观测验收](evidence/observability/verification.json)、[数据字典](observability-data-dictionary.md)与[运行手册](deployment/observability-runbook.md)。原40页高保真原型仍完整保留；四类流量策略证据见 [策略交付](evidence/policies/delivery-index.md)；OIDC SSO 与系统设置已部署至本机4192，独立Keycloak位于4194。完整 OpenAPI 兼容性覆盖和企业外部通知投递仍需对应证据；企业实际身份源、TLS/HA和容量需单独验收。当前入口、维护方式和验收边界见 [本机运行摘要](deployment/current-local-status.md)。
 
 工作台范围与验证说明见 [企业工作台](workbench.md)。
 
 环境访问地址固定提交验收见 [交付索引](evidence/environment-access/delivery-index.md)与[运行手册](deployment/environment-access-runbook.md)。本批已完成独立审查、原数据升级/回退演练和原4192实际安装。
+
+## 发布与交付新增页面（2026-10-09）
+
+|功能|真实入口|当前范围|
+|---|---|---|
+|交付总览|`/delivery/overview`|真实授权聚合，实际配置/待验证/失败与部分可见范围；不以受限计数表示0|
+|制品与测试验收|`/delivery/artifacts`、`/delivery/artifacts/{id}`|冻结制品、PDF/TXT报告、人工证据登记、独立验收/撤销；不代执行外部测试|
+|交付连接|`/delivery/policy`|同项目非生产来源→生产目标、Legacy/PromotionRequired、必需测试类型与有效期；原业务默认Legacy|
+|发布晋级|`/delivery/promotions`、`/delivery/promotions/{id}`|目标映射、环境差异、预检、两级审批、真实下发、ACK及独立生产验证；人工回滚沿用原发布入口|
+
+以上固定源码、整分支审查与唯一修复批次、2266项回归、真实双环境故障及原4192安装证据见[交付索引](evidence/release-promotion/delivery-index.md)。任意流水线/Stage编排、CI/CD接入、紧急免审发布、灰度或自动回滚仍是后续能力，界面不提供模拟成功入口。

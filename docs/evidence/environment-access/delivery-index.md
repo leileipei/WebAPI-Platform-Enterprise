@@ -1,6 +1,6 @@
 # 环境访问地址交付记录
 
-已安装源码：`8908281db8129860cfdf4104a02904a25d6c9b1b`，镜像：`sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed`。本批在隔离工作区提交；原源码目录的本地修改核对未变。
+本阶段安装时源码：`8908281db8129860cfdf4104a02904a25d6c9b1b`，镜像：`sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed`。本批在隔离工作区提交；原源码目录的本地修改核对未变。
 
 |验证|实际结果|
 |---|---|
@@ -13,4 +13,4 @@
 
 [运行闭环](8908281db8129860cfdf4104a02904a25d6c9b1b/verification.json)、[浏览器记录](8908281db8129860cfdf4104a02904a25d6c9b1b/ui/qa.json)、[完整回归](8908281db8129860cfdf4104a02904a25d6c9b1b/regression.json)、[原数据演练](8908281db8129860cfdf4104a02904a25d6c9b1b/original-data-rehearsal.json)、[原4192安装](8908281db8129860cfdf4104a02904a25d6c9b1b/original-4192/installation.json)、[审查记录](final-review.md)、[执行裁定](decisions.md)。早期候选证据仅为对应旧包的历史记录。
 
-状态：sourceVerified=true，isolatedAcceptance=true，localInstalled=true，productionAcceptance=false。环境地址保存为元数据，DNS/TLS/LB仍需另行配置；完整跨环境发布晋级按B计划继续。
+状态：sourceVerified=true，isolatedAcceptance=true，localInstalled=true，productionAcceptance=false。环境地址保存为元数据，DNS/TLS/LB仍需另行配置；本阶段记录保留当时身份；A+B已随后安装固定源码`a445534f82f11ae9a45c3b2904bd07108bd165a9`，完整跨环境晋级当前结果见[最终交付索引](../release-promotion/delivery-index.md)。

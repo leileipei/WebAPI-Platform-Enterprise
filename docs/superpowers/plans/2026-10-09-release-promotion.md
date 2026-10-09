@@ -10,7 +10,7 @@
 
 **Spec:** [用户已确认的发布晋级设计](../specs/2026-10-09-release-promotion-design.md)，前置[环境地址计划](2026-10-09-environment-access-address.md)。2026-10-09 用户回复“确认设计”。
 
-状态：用户已回复“确认计划，按推荐执行”；选定 Native，正在隔离工作区执行。
+状态：用户已回复“确认计划，按推荐执行”；Native隔离执行已完成。固定源码与实际原4192安装证据见[交付索引](../../evidence/release-promotion/delivery-index.md)。
 
 ## Global Constraints
 
@@ -185,19 +185,19 @@
 
 **Interfaces:** shell `domain|integration|gateway|console|e2e|faults|browser|verify`；`runPromotionScenario({sourceRevision,directory,ports}) -> Promise<PromotionProof>`；`runPromotionFaults(context) -> Promise<PromotionFaultProof>`；`validatePromotionProof(proof,files) -> {passed:boolean,errors:string[]}`。proof包括两环境真实节点Scope、不同上游/入口、源与目标SnapshotHash、artifact_hash、测试验收/两级审批/执行人/独立验证人、实际响应、回滚序列及附件备份恢复事实。
 
-- [ ] **Step 1：写证据断言。** 缺TEST真实请求/PROD实际响应、只ACK无业务验证、相同人员自验、错SHA/镜像、未测试恢复附件、含秘密的proof全部false。
-- [ ] **Step 2：RED。** Node promotion-evidence及runtime备份恢复测试。
-- [ ] **Step 3：实现。** 自有UUID项目随机本机端口，TEST和PROD各独立Gateway组/后端；新账号仅fixture Scope，两个生产审核者及独立业务验证者。报告卷纳入冷备与隔离恢复工具；不删共享卷或读企业服务。故障含部分ACK、超时、Worker重启、排队撤销、连接修订、共享应用、验证失败和人工审批回滚。
-- [ ] **Step 4：GREEN。** 三类后端全回归、Console、e2e/faults/browser/verify和runtime备份恢复各一次，通过/零skip；封存固定SHA/镜像/包逐文件摘要及1440/1280截图。先完成独立整分支审查与问题修复，再更新Coverage。
-- [ ] **Step 5：隔离提交。** `test(delivery): seal cross environment promotion acceptance`。
+- [x] **Step 1：写证据断言。** 缺TEST真实请求/PROD实际响应、只ACK无业务验证、相同人员自验、错SHA/镜像、未测试恢复附件、含秘密的proof全部false。
+- [x] **Step 2：RED。** Node promotion-evidence及runtime备份恢复测试。
+- [x] **Step 3：实现。** 自有UUID项目随机本机端口，TEST和PROD各独立Gateway组/后端；新账号仅fixture Scope，两个生产审核者及独立业务验证者。报告卷纳入冷备与隔离恢复工具；不删共享卷或读企业服务。故障含部分ACK、超时、Worker重启、排队撤销、连接修订、共享应用、验证失败和人工审批回滚。
+- [x] **Step 4：GREEN。** 三类后端全回归、Console、e2e/faults/browser/verify和runtime备份恢复各一次，通过/零skip；封存固定SHA/镜像/包逐文件摘要及1440/1280截图。先完成独立整分支审查与问题修复，再更新Coverage。
+- [x] **Step 5：隔离提交。** `test(delivery): seal cross environment promotion acceptance`。
 
 ## 原本机安装及完成条件
 
-- [ ] 确认A已安装事实或将A+B候选作为一个明确固定包升级；代码验收和原实例安装身份分别记录。
-- [ ] 原4192只读核对当前镜像/数据/卷/账号/SSO/通知/监控。冷备数据库、受控报告、既有附件及私有卷，隔离恢复并读取验证；不公开密钥。
-- [ ] 新迁移不能直接以旧库覆盖恢复；保留新增交付事实。候选出故障时优先修复前进，兼容旧软件需独立验证，不能宣称无条件降级。
-- [ ] 在已批准安装范围内执行维护升级；默认保留原项目Legacy，不擅自启用真实业务PromotionRequired。演示连接用独立合成项目验证。
-- [ ] 复验原业务、账户/SSO、双网关、监控/通知及报告恢复，记录原4192页面和实际API响应；证明本机安装成功后才标`localInstalled=true`。`productionAcceptance=false`直到实际企业环境取得证据。
+- [x] 确认A已安装事实或将A+B候选作为一个明确固定包升级；代码验收和原实例安装身份分别记录。
+- [x] 原4192只读核对当前镜像/数据/卷/账号/SSO/通知/监控。冷备数据库、受控报告、既有附件及私有卷，隔离恢复并读取验证；不公开密钥。
+- [x] 新迁移不能直接以旧库覆盖恢复；保留新增交付事实。候选出故障时优先修复前进，兼容旧软件需独立验证，不能宣称无条件降级。
+- [x] 在已批准安装范围内执行维护升级；默认保留原项目Legacy，不擅自启用真实业务PromotionRequired。演示连接用独立合成项目验证。
+- [x] 复验原业务、账户/SSO、双网关、监控/通知及报告恢复，记录原4192页面和实际API响应；证明本机安装成功后才标`localInstalled=true`。`productionAcceptance=false`直到实际企业环境取得证据。
 
 ## 规格覆盖自查与执行选择
 

@@ -39,3 +39,13 @@
 `e2e|faults|browser <完整固定SHA>` 均运行一个完整、独立的双环境验收，包含真实浏览器、故障和受控报告冷备恢复。三个名称为同一完整入口，避免拆分后丢失真实部署上下文；完成一次完整运行即可取得三部分证据。固定源码通过 `git archive` 构建，核对实际镜像和应用逐文件摘要；人工逐张检查1440/1280截图后才封档。`verify <证据目录>` 校验文件摘要、实际节点/请求/身份/验证/恢复记录和清理结果。
 
 隔离项目使用合成业务、验收账号和人工证据登记；本机 TLS 使用单独证书和代理。这能验证软件行为，不能替代企业 DNS/TLS/LB、企业上游、生产容量或 HA 验收。`sourceVerified`、`isolatedAcceptance`、`localInstalled`、`productionAcceptance` 分别记录，原4192实际升级并复验后才标本机已安装。
+
+## 原4192固定维护入口（2026-10-09）
+
+当前原实例固定源码为 `a445534f82f11ae9a45c3b2904bd07108bd165a9`。平台日常维护使用原目录新增的 `.runtime/local/manage-delivery.sh`，它校验工具摘要及原实例归属，支持 `status`、`start`、`stop`、`restart`、`up`。备份使用 `backup <绝对目录>`，目录必须是原 `.runtime/backups/` 下尚不存在的专用目录；包含受控报告卷，并在冷备后恢复服务。原353个历史维护文件保留原样，旧工具不能替代本入口的报告备份。
+
+本次最终备份为私有运行目录内的 `platform-final-after-catalog`，39个文件摘要、12个卷归档；原IdP备份单独保留。私有账号、秘密、完整数据基线与归档不能放入公开证据或Git。原业务维持v4/seq4和Legacy；演示TEST/PROD连接只属于独立合成项目。
+
+**后续维护升级必须显式刷新权限目录。** 已初始化实例的 `init/up` 只执行迁移，不自动执行权限目录Seed。本次在校验原owner/项目/4192端口、固定源码及镜像后，经固定部署上下文运行既有 migrator：`dotnet /app/migrator/WebApi.Migrator.dll --seed-catalog`（对应 `ctx.compose('run','--rm','--no-deps','migrator','dotnet','/app/migrator/WebApi.Migrator.dll','--seed-catalog')`）。不运行密码bootstrap。之后核验三个新权限，仅平台管理员增加三条默认授权，其他角色新增默认授权为0、既有显式权限和账号不变；实际重新登录检查，再保存含报告的最终冷备。迁移完成不能代替权限激活核验。
+
+[当前交付索引](../evidence/release-promotion/delivery-index.md)分别保存固定源码回归、实际隔离交付、原4192安装、失败尝试和审查修复。原冷备恢复演练与实际安装的静态旧行基线分别为885/891；完整主键保全，动态运行列另列，不能混合计数。旧软件兼容只在没有新增交付事实的隔离恢复库验证；出现新事实后优先修复前进。

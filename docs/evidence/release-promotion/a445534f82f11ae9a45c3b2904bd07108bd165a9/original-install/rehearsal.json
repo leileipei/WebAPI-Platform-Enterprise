@@ -1,0 +1,133 @@
+{
+  "classification": "actual-original-backup-disposable-upgrade-rehearsal",
+  "originalDatabaseRestored": false,
+  "originalModified": false,
+  "sourceRevision": "a445534f82f11ae9a45c3b2904bd07108bd165a9",
+  "checks": [
+    {
+      "phase": "old-software-restored",
+      "sourceRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+      "protectedTables": 57,
+      "protectedRows": 885,
+      "additionalTables": [],
+      "allOldRowsPreserved": true,
+      "compositeKeysVerified": true,
+      "gatewayResponses": [
+        200,
+        200
+      ],
+      "sequence": 4
+    },
+    {
+      "phase": "candidate-upgrade",
+      "protectedTables": 57,
+      "protectedRows": 885,
+      "additionalTables": [
+        "project_delivery_policies",
+        "release_artifacts",
+        "release_promotion_events",
+        "release_promotion_mappings",
+        "release_promotions",
+        "release_test_acceptances",
+        "release_verifications",
+        "verification_reports"
+      ],
+      "allOldRowsPreserved": true,
+      "compositeKeysVerified": true,
+      "gatewayResponses": [
+        200,
+        200
+      ],
+      "sequence": 4
+    },
+    {
+      "phase": "conditional-old-software-compatible-no-new-delivery-facts",
+      "protectedTables": 57,
+      "protectedRows": 885,
+      "additionalTables": [
+        "project_delivery_policies",
+        "release_artifacts",
+        "release_promotion_events",
+        "release_promotion_mappings",
+        "release_promotions",
+        "release_test_acceptances",
+        "release_verifications",
+        "verification_reports"
+      ],
+      "allOldRowsPreserved": true,
+      "compositeKeysVerified": true,
+      "gatewayResponses": [
+        200,
+        200
+      ],
+      "sequence": 4,
+      "newDeliveryFacts": false,
+      "unconditionalDowngrade": false
+    },
+    {
+      "phase": "candidate-restored-forward",
+      "protectedTables": 57,
+      "protectedRows": 885,
+      "additionalTables": [
+        "project_delivery_policies",
+        "release_artifacts",
+        "release_promotion_events",
+        "release_promotion_mappings",
+        "release_promotions",
+        "release_test_acceptances",
+        "release_verifications",
+        "verification_reports"
+      ],
+      "allOldRowsPreserved": true,
+      "compositeKeysVerified": true,
+      "gatewayResponses": [
+        200,
+        200
+      ],
+      "sequence": 4
+    },
+    {
+      "phase": "actual-idp-restored",
+      "freshOwner": true,
+      "subjectPreserved": true,
+      "viewerId": "cfc402c9-e891-4822-9e8e-932ec907f90f",
+      "newProviderId": "b002f357-44d8-479a-9d04-7b4ba0be796d",
+      "controlledCloneRebind": true,
+      "privateVolumes": 4
+    }
+  ],
+  "restoredBaseline": {
+    "tables": 57,
+    "rows": 888,
+    "compositeKeysUnique": true,
+    "originalBusinessHashesMatched": true
+  },
+  "sso": {
+    "passed": true,
+    "actualOidcBrowserLogin": true,
+    "viewerId": "cfc402c9-e891-4822-9e8e-932ec907f90f",
+    "viewerUsername": "sso-demo-viewer",
+    "threeNewPermissionsNotGranted": true,
+    "deliveryReturnPathPreserved": true,
+    "browserErrors": [],
+    "screenshots": [
+      {
+        "path": "browser/restored-idp-viewer.png",
+        "width": 1440,
+        "sha256": "0c7022681f81aa880987a5fe7f241d0edc377d763246fbe190d25ff5b2feb8d3",
+        "visuallyInspected": true
+      }
+    ],
+    "originalUnmodified": true
+  },
+  "passed": true,
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  },
+  "originalPreserved": {
+    "protectedFiles": 802,
+    "ownerPortsBindingPreserved": true
+  }
+}

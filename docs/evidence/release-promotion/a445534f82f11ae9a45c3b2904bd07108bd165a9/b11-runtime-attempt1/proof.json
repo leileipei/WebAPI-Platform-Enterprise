@@ -1,0 +1,850 @@
+{
+  "schemaVersion": 1,
+  "classification": "actual-isolated-cross-environment-promotion",
+  "sourceRevision": "a445534f82f11ae9a45c3b2904bd07108bd165a9",
+  "projectName": "webapi-enterprise-local-test-1e113b52-78b1-4295-a6f8-07c77f083462",
+  "checks": [
+    {
+      "name": "legacy_real_production_baseline_before_enabling_promotion",
+      "passed": true,
+      "actual": true,
+      "releaseId": "38a5222d-241d-4ae1-8fdb-f50d5e36ca93"
+    },
+    {
+      "name": "screenshot_environments-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/environments-1440.png"
+    },
+    {
+      "name": "screenshot_mapping-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/mapping-1440.png"
+    },
+    {
+      "name": "screenshot_precheck-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/precheck-1440.png"
+    },
+    {
+      "name": "screenshot_approval-first-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/approval-first-1440.png"
+    },
+    {
+      "name": "screenshot_approval-second-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/approval-second-1440.png"
+    },
+    {
+      "name": "screenshot_all-ack-await-verification-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/all-ack-await-verification-1440.png"
+    },
+    {
+      "name": "screenshot_verification-form-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/verification-form-1440.png"
+    },
+    {
+      "name": "screenshot_completed-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/completed-1440.png"
+    },
+    {
+      "name": "actual_browser_two_independent_approvals_publish_verify_1440",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_environments-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/environments-1280.png"
+    },
+    {
+      "name": "screenshot_mapping-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/mapping-1280.png"
+    },
+    {
+      "name": "screenshot_precheck-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/precheck-1280.png"
+    },
+    {
+      "name": "screenshot_approval-first-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/approval-first-1280.png"
+    },
+    {
+      "name": "screenshot_approval-second-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/approval-second-1280.png"
+    },
+    {
+      "name": "screenshot_all-ack-await-verification-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/all-ack-await-verification-1280.png"
+    },
+    {
+      "name": "screenshot_verification-form-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/verification-form-1280.png"
+    },
+    {
+      "name": "screenshot_completed-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/completed-1280.png"
+    },
+    {
+      "name": "actual_browser_two_independent_approvals_publish_verify_1280",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_pagination-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/pagination-1280.png"
+    },
+    {
+      "name": "actual_cross_environment_trace_retains_approval_filters",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "original_snapshot_gateway_environment_publish_navigation",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "actual51_authorized_pagination",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_source-only-overview-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/browser/source-only-overview-1280.png"
+    }
+  ],
+  "sourceVerified": true,
+  "isolatedAcceptance": false,
+  "localInstalled": false,
+  "productionAcceptance": false,
+  "imageId": "sha256:02a1c8782a00a04e6ad1c065560360efccffbee6db1a2039699c9cb8e3c14378",
+  "source": {
+    "environmentId": "3d019f59-9a2d-4fe6-8f60-2b2540c430ea",
+    "releaseId": "b7e7116f-20b4-459b-b6b0-5cabfee6f405",
+    "artifactId": "44406ad0-7eb6-4e5c-9677-b6a48cfc4ba4",
+    "artifactHash": "bcb44c827f6e19c15da3b4c1beaaa82e00c9df50189c581788c07520849ef463",
+    "snapshotHash": "e03e6ec02454b84d43dfc450b6332dc3e7aeb236a79d52985b2aad468cf075ef",
+    "configVersion": 1,
+    "sequence": 1,
+    "nodes": [
+      {
+        "environmentId": "3d019f59-9a2d-4fe6-8f60-2b2540c430ea",
+        "nodeId": "d9046c7f-3b1f-4b10-a75b-9db076506605",
+        "instanceId": "4828fc9b-82b7-4342-9d81-8edb31fa4303",
+        "configVersion": 1,
+        "deploymentSequence": 1,
+        "snapshotHash": "e03e6ec02454b84d43dfc450b6332dc3e7aeb236a79d52985b2aad468cf075ef",
+        "acknowledged": true
+      },
+      {
+        "environmentId": "3d019f59-9a2d-4fe6-8f60-2b2540c430ea",
+        "nodeId": "d2930879-578a-4f87-96e7-f6f88218264d",
+        "instanceId": "494fed69-754d-4676-bf7e-d30602adfd5e",
+        "configVersion": 1,
+        "deploymentSequence": 1,
+        "snapshotHash": "e03e6ec02454b84d43dfc450b6332dc3e7aeb236a79d52985b2aad468cf075ef",
+        "acknowledged": true
+      }
+    ],
+    "publicUrl": "http://127.0.0.1:62014"
+  },
+  "target": {
+    "environmentId": "ce653cff-d783-4e31-8e93-b4cdb9ce4d11",
+    "publicUrl": "https://127.0.0.1:63378/edge",
+    "basePath": "/edge",
+    "snapshotHash": "76726d6565b00ea6aee6fb47f3d0891d6820c268424ef76958f703a5224df2df",
+    "nodes": [
+      {
+        "environmentId": "ce653cff-d783-4e31-8e93-b4cdb9ce4d11",
+        "nodeId": "868ceb17-3bd9-4c43-9278-de3fa1da48ea",
+        "instanceId": "f9140e80-7c62-4e09-80d9-ed43ae5f3292",
+        "configVersion": 4,
+        "deploymentSequence": 4,
+        "snapshotHash": "76726d6565b00ea6aee6fb47f3d0891d6820c268424ef76958f703a5224df2df",
+        "acknowledged": true
+      },
+      {
+        "environmentId": "ce653cff-d783-4e31-8e93-b4cdb9ce4d11",
+        "nodeId": "804661d0-9413-4fb1-b181-0f53cc804684",
+        "instanceId": "dacdee2e-ba72-44ab-9ba5-cc84eeefa8dd",
+        "configVersion": 4,
+        "deploymentSequence": 4,
+        "snapshotHash": "76726d6565b00ea6aee6fb47f3d0891d6820c268424ef76958f703a5224df2df",
+        "acknowledged": true
+      }
+    ]
+  },
+  "actors": {
+    "applicant": "6f6bba42-020f-4177-a111-e1b76ccedb6d",
+    "publisher": "6f6bba42-020f-4177-a111-e1b76ccedb6d",
+    "acceptor": "961dd000-7278-4fc4-8a1c-3c72443956ac",
+    "approvers": [
+      "3884a888-8ae3-4d93-861e-504bf4d176de",
+      "db3decfd-885b-4bfc-aad9-8a02f5ae9a68"
+    ],
+    "verifier": "1b060e15-d778-4626-a08d-012154abe3fc"
+  },
+  "acceptance": {
+    "status": "Accepted",
+    "acceptedBy": "961dd000-7278-4fc4-8a1c-3c72443956ac",
+    "id": "935eb876-04a6-4355-bc55-db3663c129b9"
+  },
+  "build": {
+    "sourceRevision": "a445534f82f11ae9a45c3b2904bd07108bd165a9",
+    "imageId": "sha256:02a1c8782a00a04e6ad1c065560360efccffbee6db1a2039699c9cb8e3c14378",
+    "observedImageId": "sha256:02a1c8782a00a04e6ad1c065560360efccffbee6db1a2039699c9cb8e3c14378",
+    "applications": {
+      "binaries/control-plane/WebApi.ControlPlane.dll": "4be8c6da8355c77b27e56b65268252805ee65158e8a128885244718326c3235b",
+      "binaries/gateway/WebApi.Gateway.dll": "4a4d43c516aeca7b629d19fcc1d9fc956627b5e9aec0b0a91b56b60f0f4c548b"
+    },
+    "observedApplications": {
+      "binaries/control-plane/WebApi.ControlPlane.dll": "4be8c6da8355c77b27e56b65268252805ee65158e8a128885244718326c3235b",
+      "binaries/gateway/WebApi.Gateway.dll": "4a4d43c516aeca7b629d19fcc1d9fc956627b5e9aec0b0a91b56b60f0f4c548b"
+    },
+    "packageDigests": {
+      "console-host/System.IO.Hashing.dll": "53726755857b538b3676cabc39989874be072028fd5b39360a7580d73a14e562",
+      "console-host/WebApi.ConsoleHost.dll": "0042f3f58bcfc5070f834f921b1a26ccefb9b233a5a059520cd4d27e334242e9",
+      "console-host/WebApi.HttpSecurity.dll": "8eeee04ce11a7dbf8a7a05c557965c71f052c16ba60af14e066c1461bfb57146",
+      "console-host/Yarp.ReverseProxy.dll": "9605717516fe01c60d2a32d5a891f8d253ac83b50fb2434f0db36151c7662ada",
+      "control-plane/BouncyCastle.Cryptography.dll": "e5eeaf6d263c493619982fd3638e6135077311d08c961e1fe128f9107d29ebc6",
+      "control-plane/Humanizer.dll": "2769ed8265b691a5482c72506ed274dc52446fa1641997a8c12c66f5b9263d39",
+      "control-plane/Json.More.dll": "10e6f68bc5fc481c752eae0523fd3d04e46ffc3d4d8f2b41e8342c89d24c8c88",
+      "control-plane/JsonPointer.Net.dll": "20f7025fd30cc76ef5f7c2af4e5f59e6f346a09cd1896b49f89d571c368c7e53",
+      "control-plane/JsonSchema.Net.dll": "6baf93a81ad6f37966344b55cf178aba9a4474a6c202d9579a520c4a71562dfa",
+      "control-plane/MailKit.dll": "2cb259e17621ed8c608b530ded7bc9d6f42a3d1d23c63c03b16c5c4a422c815f",
+      "control-plane/Microsoft.AspNetCore.Authentication.OpenIdConnect.dll": "cdfc499638805ad451402cb58cbbb0678a345fe20834d38e64a144d75e293b9a",
+      "control-plane/Microsoft.Bcl.Cryptography.dll": "91c6bab93638c268569a38bc87770a5e3ef9932676f5b7a6d47aef4208062925",
+      "control-plane/Microsoft.EntityFrameworkCore.Abstractions.dll": "74bc17c936d66ea090b6a5b4cc4307d2154c9692e57edd4c55d68dd4a99c11b6",
+      "control-plane/Microsoft.EntityFrameworkCore.Relational.dll": "a1e4f36208650b15b75a4b01a5821d61d5be417ac2e86ec3c65e2560a87e0d7d",
+      "control-plane/Microsoft.EntityFrameworkCore.dll": "f5b1703d608e241314952b2ede8dcdd1b8d8adda8c91a13cb7e6b1007414cef4",
+      "control-plane/Microsoft.IdentityModel.Abstractions.dll": "84a6c307fe84453c9fc3a1af45bf2302b5d2aba4d5b9bfb7d581d6a28787461f",
+      "control-plane/Microsoft.IdentityModel.JsonWebTokens.dll": "4f61fd3d3f5003951a09cdd27ffdc3c4841a158d27a6d7247be3e5939e7dab32",
+      "control-plane/Microsoft.IdentityModel.Logging.dll": "2bc4582ae62236f066901a7dcb2a88d04a181ad1978f2db2f4314df6ae1a50c6",
+      "control-plane/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll": "7921aef6fa1da2e563a237dda129b12407ac6c56448bb0eb7eebc59bb6c6babb",
+      "control-plane/Microsoft.IdentityModel.Protocols.dll": "40ada0b98384788970117cadf63863edd99bd5bd6fb8076f6da68d65f6dbda4f",
+      "control-plane/Microsoft.IdentityModel.Tokens.dll": "106db045348a9b767f3002d4ec3bb582c9141f6d8e9966e1e0ad58a71ba42b8b",
+      "control-plane/MimeKit.dll": "cd0304ecd585d241b7928e69372dec02d820041af5004316821b17f31ddb2e0a",
+      "control-plane/Npgsql.EntityFrameworkCore.PostgreSQL.dll": "94fcf66e8e953fdb02c40c72ca89821dd5eed5324d4c0f12a7219ea8cd3d5a5e",
+      "control-plane/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2",
+      "control-plane/OpenTelemetry.Api.ProviderBuilderExtensions.dll": "dec906a34dbafcfd2c23b73fd05e58defc7f8c1627890fad4e4461c23b8de989",
+      "control-plane/OpenTelemetry.Api.dll": "b92d1b32ba9f7ddf4f06a7efab22c6424beba8760976f0eb5811ed3713d81f4c",
+      "control-plane/OpenTelemetry.Exporter.OpenTelemetryProtocol.dll": "be37059eb65a9f4af95081c2d4795afd198a657dbf2e35363cca6444fd75b2ab",
+      "control-plane/OpenTelemetry.Extensions.Hosting.dll": "5f5157a8042853b21077855d5888ef0178bfda07a1fac815b8e6145b283f72a7",
+      "control-plane/OpenTelemetry.dll": "6623430269ed62f1a8e097e3909b9c8d778ae72b9b69f096140c71d06e0eb043",
+      "control-plane/RESPite.dll": "c12704def103a2391c70cb4faf96a839c22d50d32aa0d65528e89926a968daa3",
+      "control-plane/StackExchange.Redis.dll": "b23e03f4f8b4264060074e1c0cb2ff2461d02611ae705ab28273d32db6c59078",
+      "control-plane/System.IO.Hashing.dll": "cea6795cf9f7b139b2215ff6de794a6f6e44e78640fb30fa4c0d5fa8472df8e5",
+      "control-plane/System.IdentityModel.Tokens.Jwt.dll": "3d55b14eabadaf18aefea2c4eb085428e0485063ae3ea91cac072e3b5f951a83",
+      "control-plane/WebApi.Contracts.dll": "990ffd5dd1bf27b2d4414889f242da349a1a57f3727aaeca4b627963019ca000",
+      "control-plane/WebApi.ControlPlane.dll": "4be8c6da8355c77b27e56b65268252805ee65158e8a128885244718326c3235b",
+      "control-plane/WebApi.Domain.dll": "77c53742de004702755fce7cf7f00f657cad34bbaabc91cfa56bb9c1909a71ad",
+      "control-plane/WebApi.HttpSecurity.dll": "8eeee04ce11a7dbf8a7a05c557965c71f052c16ba60af14e066c1461bfb57146",
+      "control-plane/WebApi.Infrastructure.dll": "2b00de942b8b026d8378cfd33450e3d0698829a9bf1221874b13d31ff50bc4c7",
+      "control-plane/YamlDotNet.dll": "d618138109a40e4a7250e49e2abad8c450e3636bee18d7499ab231e37fa9150a",
+      "control-plane/de/JsonSchema.Net.resources.dll": "2a14b56020df4719b44e9e827be93acc6462470e506cac12926ada306fd76990",
+      "control-plane/es/JsonSchema.Net.resources.dll": "c2a2860195a9ac39ec3561aceeaf8f152a25f5006dd79f834f14291948858f06",
+      "control-plane/it/JsonSchema.Net.resources.dll": "f4cb2113440fca378d6a7f3358cf9fa62eeed4efab6e6001e77fe49bbde592cf",
+      "control-plane/ko/JsonSchema.Net.resources.dll": "dcf1e04dd63c731d41f261836bc6570a151f964dcffe990c87c27ea57ef60e32",
+      "control-plane/nb-NO/JsonSchema.Net.resources.dll": "9f7a7d24682256d1ba36a207cc24ef6ca155fe37c1161c15d268871bed2f1bbf",
+      "control-plane/pl-PL/JsonSchema.Net.resources.dll": "ed6a5e9ca9b7e79b6b8936eec1a6a3bb5fe6d99bf45c967ee3a5845281efbea4",
+      "control-plane/pt/JsonSchema.Net.resources.dll": "c8b7d629f472ca5f07c51f9eec74a6f20a756a345d4ca2e18ebc4038731b4193",
+      "control-plane/ru/JsonSchema.Net.resources.dll": "d8dc60619bcb06295c873effb53a25a5b1893dc03d767931e952aefb417fe65a",
+      "control-plane/sv-SE/JsonSchema.Net.resources.dll": "08b9bb6a78ad3e25a329bbe624bac6e59ff5e0e7545821090f5ba851a27c435a",
+      "control-plane/tr-TR/JsonSchema.Net.resources.dll": "17d504f9b064a7d40518fb6f3661848d83cfe969ed95a9a50bf051b9cbdd7cc9",
+      "demo-backend/WebApi.TestBackend.dll": "f1e3eaec3297bc053be04079b626685aa64b5a92a3877f94c14507679c6188e0",
+      "gateway/BouncyCastle.Cryptography.dll": "e5eeaf6d263c493619982fd3638e6135077311d08c961e1fe128f9107d29ebc6",
+      "gateway/Humanizer.dll": "2769ed8265b691a5482c72506ed274dc52446fa1641997a8c12c66f5b9263d39",
+      "gateway/Json.More.dll": "10e6f68bc5fc481c752eae0523fd3d04e46ffc3d4d8f2b41e8342c89d24c8c88",
+      "gateway/JsonPointer.Net.dll": "20f7025fd30cc76ef5f7c2af4e5f59e6f346a09cd1896b49f89d571c368c7e53",
+      "gateway/JsonSchema.Net.dll": "6baf93a81ad6f37966344b55cf178aba9a4474a6c202d9579a520c4a71562dfa",
+      "gateway/MailKit.dll": "2cb259e17621ed8c608b530ded7bc9d6f42a3d1d23c63c03b16c5c4a422c815f",
+      "gateway/Microsoft.Bcl.Cryptography.dll": "91c6bab93638c268569a38bc87770a5e3ef9932676f5b7a6d47aef4208062925",
+      "gateway/Microsoft.EntityFrameworkCore.Abstractions.dll": "74bc17c936d66ea090b6a5b4cc4307d2154c9692e57edd4c55d68dd4a99c11b6",
+      "gateway/Microsoft.EntityFrameworkCore.Relational.dll": "a1e4f36208650b15b75a4b01a5821d61d5be417ac2e86ec3c65e2560a87e0d7d",
+      "gateway/Microsoft.EntityFrameworkCore.dll": "f5b1703d608e241314952b2ede8dcdd1b8d8adda8c91a13cb7e6b1007414cef4",
+      "gateway/Microsoft.IdentityModel.Abstractions.dll": "84a6c307fe84453c9fc3a1af45bf2302b5d2aba4d5b9bfb7d581d6a28787461f",
+      "gateway/Microsoft.IdentityModel.JsonWebTokens.dll": "4f61fd3d3f5003951a09cdd27ffdc3c4841a158d27a6d7247be3e5939e7dab32",
+      "gateway/Microsoft.IdentityModel.Logging.dll": "2bc4582ae62236f066901a7dcb2a88d04a181ad1978f2db2f4314df6ae1a50c6",
+      "gateway/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll": "7921aef6fa1da2e563a237dda129b12407ac6c56448bb0eb7eebc59bb6c6babb",
+      "gateway/Microsoft.IdentityModel.Protocols.dll": "40ada0b98384788970117cadf63863edd99bd5bd6fb8076f6da68d65f6dbda4f",
+      "gateway/Microsoft.IdentityModel.Tokens.dll": "106db045348a9b767f3002d4ec3bb582c9141f6d8e9966e1e0ad58a71ba42b8b",
+      "gateway/MimeKit.dll": "cd0304ecd585d241b7928e69372dec02d820041af5004316821b17f31ddb2e0a",
+      "gateway/Npgsql.EntityFrameworkCore.PostgreSQL.dll": "94fcf66e8e953fdb02c40c72ca89821dd5eed5324d4c0f12a7219ea8cd3d5a5e",
+      "gateway/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2",
+      "gateway/OpenTelemetry.Api.ProviderBuilderExtensions.dll": "dec906a34dbafcfd2c23b73fd05e58defc7f8c1627890fad4e4461c23b8de989",
+      "gateway/OpenTelemetry.Api.dll": "b92d1b32ba9f7ddf4f06a7efab22c6424beba8760976f0eb5811ed3713d81f4c",
+      "gateway/OpenTelemetry.Exporter.OpenTelemetryProtocol.dll": "be37059eb65a9f4af95081c2d4795afd198a657dbf2e35363cca6444fd75b2ab",
+      "gateway/OpenTelemetry.Extensions.Hosting.dll": "5f5157a8042853b21077855d5888ef0178bfda07a1fac815b8e6145b283f72a7",
+      "gateway/OpenTelemetry.Instrumentation.AspNetCore.dll": "61447a9a879187724a73129c61277ef9ff01f360ab5ca6ec3d022413ebc4726d",
+      "gateway/OpenTelemetry.Instrumentation.Http.dll": "b75143059235ae9cd079bb6c83f4641b39679d599de23dcdc6914fcd447f7d7c",
+      "gateway/OpenTelemetry.dll": "6623430269ed62f1a8e097e3909b9c8d778ae72b9b69f096140c71d06e0eb043",
+      "gateway/RESPite.dll": "c12704def103a2391c70cb4faf96a839c22d50d32aa0d65528e89926a968daa3",
+      "gateway/StackExchange.Redis.dll": "b23e03f4f8b4264060074e1c0cb2ff2461d02611ae705ab28273d32db6c59078",
+      "gateway/System.IO.Hashing.dll": "cea6795cf9f7b139b2215ff6de794a6f6e44e78640fb30fa4c0d5fa8472df8e5",
+      "gateway/System.IdentityModel.Tokens.Jwt.dll": "3d55b14eabadaf18aefea2c4eb085428e0485063ae3ea91cac072e3b5f951a83",
+      "gateway/WebApi.Contracts.dll": "990ffd5dd1bf27b2d4414889f242da349a1a57f3727aaeca4b627963019ca000",
+      "gateway/WebApi.Domain.dll": "77c53742de004702755fce7cf7f00f657cad34bbaabc91cfa56bb9c1909a71ad",
+      "gateway/WebApi.Gateway.dll": "4a4d43c516aeca7b629d19fcc1d9fc956627b5e9aec0b0a91b56b60f0f4c548b",
+      "gateway/WebApi.HttpSecurity.dll": "8eeee04ce11a7dbf8a7a05c557965c71f052c16ba60af14e066c1461bfb57146",
+      "gateway/WebApi.Infrastructure.dll": "2b00de942b8b026d8378cfd33450e3d0698829a9bf1221874b13d31ff50bc4c7",
+      "gateway/YamlDotNet.dll": "d618138109a40e4a7250e49e2abad8c450e3636bee18d7499ab231e37fa9150a",
+      "gateway/Yarp.ReverseProxy.dll": "9605717516fe01c60d2a32d5a891f8d253ac83b50fb2434f0db36151c7662ada",
+      "gateway/de/JsonSchema.Net.resources.dll": "2a14b56020df4719b44e9e827be93acc6462470e506cac12926ada306fd76990",
+      "gateway/es/JsonSchema.Net.resources.dll": "c2a2860195a9ac39ec3561aceeaf8f152a25f5006dd79f834f14291948858f06",
+      "gateway/it/JsonSchema.Net.resources.dll": "f4cb2113440fca378d6a7f3358cf9fa62eeed4efab6e6001e77fe49bbde592cf",
+      "gateway/ko/JsonSchema.Net.resources.dll": "dcf1e04dd63c731d41f261836bc6570a151f964dcffe990c87c27ea57ef60e32",
+      "gateway/nb-NO/JsonSchema.Net.resources.dll": "9f7a7d24682256d1ba36a207cc24ef6ca155fe37c1161c15d268871bed2f1bbf",
+      "gateway/pl-PL/JsonSchema.Net.resources.dll": "ed6a5e9ca9b7e79b6b8936eec1a6a3bb5fe6d99bf45c967ee3a5845281efbea4",
+      "gateway/pt/JsonSchema.Net.resources.dll": "c8b7d629f472ca5f07c51f9eec74a6f20a756a345d4ca2e18ebc4038731b4193",
+      "gateway/ru/JsonSchema.Net.resources.dll": "d8dc60619bcb06295c873effb53a25a5b1893dc03d767931e952aefb417fe65a",
+      "gateway/sv-SE/JsonSchema.Net.resources.dll": "08b9bb6a78ad3e25a329bbe624bac6e59ff5e0e7545821090f5ba851a27c435a",
+      "gateway/tr-TR/JsonSchema.Net.resources.dll": "17d504f9b064a7d40518fb6f3661848d83cfe969ed95a9a50bf051b9cbdd7cc9",
+      "migrator/BouncyCastle.Cryptography.dll": "e5eeaf6d263c493619982fd3638e6135077311d08c961e1fe128f9107d29ebc6",
+      "migrator/Humanizer.dll": "2769ed8265b691a5482c72506ed274dc52446fa1641997a8c12c66f5b9263d39",
+      "migrator/Json.More.dll": "10e6f68bc5fc481c752eae0523fd3d04e46ffc3d4d8f2b41e8342c89d24c8c88",
+      "migrator/JsonPointer.Net.dll": "20f7025fd30cc76ef5f7c2af4e5f59e6f346a09cd1896b49f89d571c368c7e53",
+      "migrator/JsonSchema.Net.dll": "6baf93a81ad6f37966344b55cf178aba9a4474a6c202d9579a520c4a71562dfa",
+      "migrator/MailKit.dll": "2cb259e17621ed8c608b530ded7bc9d6f42a3d1d23c63c03b16c5c4a422c815f",
+      "migrator/Microsoft.Bcl.Cryptography.dll": "91c6bab93638c268569a38bc87770a5e3ef9932676f5b7a6d47aef4208062925",
+      "migrator/Microsoft.EntityFrameworkCore.Abstractions.dll": "74bc17c936d66ea090b6a5b4cc4307d2154c9692e57edd4c55d68dd4a99c11b6",
+      "migrator/Microsoft.EntityFrameworkCore.Relational.dll": "a1e4f36208650b15b75a4b01a5821d61d5be417ac2e86ec3c65e2560a87e0d7d",
+      "migrator/Microsoft.EntityFrameworkCore.dll": "f5b1703d608e241314952b2ede8dcdd1b8d8adda8c91a13cb7e6b1007414cef4",
+      "migrator/Microsoft.IdentityModel.Abstractions.dll": "84a6c307fe84453c9fc3a1af45bf2302b5d2aba4d5b9bfb7d581d6a28787461f",
+      "migrator/Microsoft.IdentityModel.JsonWebTokens.dll": "4f61fd3d3f5003951a09cdd27ffdc3c4841a158d27a6d7247be3e5939e7dab32",
+      "migrator/Microsoft.IdentityModel.Logging.dll": "2bc4582ae62236f066901a7dcb2a88d04a181ad1978f2db2f4314df6ae1a50c6",
+      "migrator/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll": "7921aef6fa1da2e563a237dda129b12407ac6c56448bb0eb7eebc59bb6c6babb",
+      "migrator/Microsoft.IdentityModel.Protocols.dll": "40ada0b98384788970117cadf63863edd99bd5bd6fb8076f6da68d65f6dbda4f",
+      "migrator/Microsoft.IdentityModel.Tokens.dll": "106db045348a9b767f3002d4ec3bb582c9141f6d8e9966e1e0ad58a71ba42b8b",
+      "migrator/MimeKit.dll": "cd0304ecd585d241b7928e69372dec02d820041af5004316821b17f31ddb2e0a",
+      "migrator/Npgsql.EntityFrameworkCore.PostgreSQL.dll": "94fcf66e8e953fdb02c40c72ca89821dd5eed5324d4c0f12a7219ea8cd3d5a5e",
+      "migrator/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2",
+      "migrator/OpenTelemetry.Api.ProviderBuilderExtensions.dll": "dec906a34dbafcfd2c23b73fd05e58defc7f8c1627890fad4e4461c23b8de989",
+      "migrator/OpenTelemetry.Api.dll": "b92d1b32ba9f7ddf4f06a7efab22c6424beba8760976f0eb5811ed3713d81f4c",
+      "migrator/OpenTelemetry.Exporter.OpenTelemetryProtocol.dll": "be37059eb65a9f4af95081c2d4795afd198a657dbf2e35363cca6444fd75b2ab",
+      "migrator/OpenTelemetry.Extensions.Hosting.dll": "5f5157a8042853b21077855d5888ef0178bfda07a1fac815b8e6145b283f72a7",
+      "migrator/OpenTelemetry.dll": "6623430269ed62f1a8e097e3909b9c8d778ae72b9b69f096140c71d06e0eb043",
+      "migrator/RESPite.dll": "c12704def103a2391c70cb4faf96a839c22d50d32aa0d65528e89926a968daa3",
+      "migrator/StackExchange.Redis.dll": "b23e03f4f8b4264060074e1c0cb2ff2461d02611ae705ab28273d32db6c59078",
+      "migrator/System.IO.Hashing.dll": "cea6795cf9f7b139b2215ff6de794a6f6e44e78640fb30fa4c0d5fa8472df8e5",
+      "migrator/System.IdentityModel.Tokens.Jwt.dll": "3d55b14eabadaf18aefea2c4eb085428e0485063ae3ea91cac072e3b5f951a83",
+      "migrator/WebApi.Contracts.dll": "990ffd5dd1bf27b2d4414889f242da349a1a57f3727aaeca4b627963019ca000",
+      "migrator/WebApi.Domain.dll": "77c53742de004702755fce7cf7f00f657cad34bbaabc91cfa56bb9c1909a71ad",
+      "migrator/WebApi.Infrastructure.dll": "2b00de942b8b026d8378cfd33450e3d0698829a9bf1221874b13d31ff50bc4c7",
+      "migrator/WebApi.Migrator.dll": "0a8390628a2915ae5a4f154f49da54f378b97f0e2c796b7e735bc7edfd992c0d",
+      "migrator/YamlDotNet.dll": "d618138109a40e4a7250e49e2abad8c450e3636bee18d7499ab231e37fa9150a",
+      "migrator/de/JsonSchema.Net.resources.dll": "2a14b56020df4719b44e9e827be93acc6462470e506cac12926ada306fd76990",
+      "migrator/es/JsonSchema.Net.resources.dll": "c2a2860195a9ac39ec3561aceeaf8f152a25f5006dd79f834f14291948858f06",
+      "migrator/it/JsonSchema.Net.resources.dll": "f4cb2113440fca378d6a7f3358cf9fa62eeed4efab6e6001e77fe49bbde592cf",
+      "migrator/ko/JsonSchema.Net.resources.dll": "dcf1e04dd63c731d41f261836bc6570a151f964dcffe990c87c27ea57ef60e32",
+      "migrator/nb-NO/JsonSchema.Net.resources.dll": "9f7a7d24682256d1ba36a207cc24ef6ca155fe37c1161c15d268871bed2f1bbf",
+      "migrator/pl-PL/JsonSchema.Net.resources.dll": "ed6a5e9ca9b7e79b6b8936eec1a6a3bb5fe6d99bf45c967ee3a5845281efbea4",
+      "migrator/pt/JsonSchema.Net.resources.dll": "c8b7d629f472ca5f07c51f9eec74a6f20a756a345d4ca2e18ebc4038731b4193",
+      "migrator/ru/JsonSchema.Net.resources.dll": "d8dc60619bcb06295c873effb53a25a5b1893dc03d767931e952aefb417fe65a",
+      "migrator/sv-SE/JsonSchema.Net.resources.dll": "08b9bb6a78ad3e25a329bbe624bac6e59ff5e0e7545821090f5ba851a27c435a",
+      "migrator/tr-TR/JsonSchema.Net.resources.dll": "17d504f9b064a7d40518fb6f3661848d83cfe969ed95a9a50bf051b9cbdd7cc9",
+      "notification-fixture/BouncyCastle.Cryptography.dll": "e5eeaf6d263c493619982fd3638e6135077311d08c961e1fe128f9107d29ebc6",
+      "notification-fixture/Humanizer.dll": "2769ed8265b691a5482c72506ed274dc52446fa1641997a8c12c66f5b9263d39",
+      "notification-fixture/Json.More.dll": "10e6f68bc5fc481c752eae0523fd3d04e46ffc3d4d8f2b41e8342c89d24c8c88",
+      "notification-fixture/JsonPointer.Net.dll": "20f7025fd30cc76ef5f7c2af4e5f59e6f346a09cd1896b49f89d571c368c7e53",
+      "notification-fixture/JsonSchema.Net.dll": "6baf93a81ad6f37966344b55cf178aba9a4474a6c202d9579a520c4a71562dfa",
+      "notification-fixture/MailKit.dll": "2cb259e17621ed8c608b530ded7bc9d6f42a3d1d23c63c03b16c5c4a422c815f",
+      "notification-fixture/Microsoft.Bcl.Cryptography.dll": "91c6bab93638c268569a38bc87770a5e3ef9932676f5b7a6d47aef4208062925",
+      "notification-fixture/Microsoft.EntityFrameworkCore.Abstractions.dll": "74bc17c936d66ea090b6a5b4cc4307d2154c9692e57edd4c55d68dd4a99c11b6",
+      "notification-fixture/Microsoft.EntityFrameworkCore.Relational.dll": "a1e4f36208650b15b75a4b01a5821d61d5be417ac2e86ec3c65e2560a87e0d7d",
+      "notification-fixture/Microsoft.EntityFrameworkCore.dll": "f5b1703d608e241314952b2ede8dcdd1b8d8adda8c91a13cb7e6b1007414cef4",
+      "notification-fixture/Microsoft.IdentityModel.Abstractions.dll": "84a6c307fe84453c9fc3a1af45bf2302b5d2aba4d5b9bfb7d581d6a28787461f",
+      "notification-fixture/Microsoft.IdentityModel.JsonWebTokens.dll": "4f61fd3d3f5003951a09cdd27ffdc3c4841a158d27a6d7247be3e5939e7dab32",
+      "notification-fixture/Microsoft.IdentityModel.Logging.dll": "2bc4582ae62236f066901a7dcb2a88d04a181ad1978f2db2f4314df6ae1a50c6",
+      "notification-fixture/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll": "7921aef6fa1da2e563a237dda129b12407ac6c56448bb0eb7eebc59bb6c6babb",
+      "notification-fixture/Microsoft.IdentityModel.Protocols.dll": "40ada0b98384788970117cadf63863edd99bd5bd6fb8076f6da68d65f6dbda4f",
+      "notification-fixture/Microsoft.IdentityModel.Tokens.dll": "106db045348a9b767f3002d4ec3bb582c9141f6d8e9966e1e0ad58a71ba42b8b",
+      "notification-fixture/MimeKit.dll": "cd0304ecd585d241b7928e69372dec02d820041af5004316821b17f31ddb2e0a",
+      "notification-fixture/Npgsql.EntityFrameworkCore.PostgreSQL.dll": "94fcf66e8e953fdb02c40c72ca89821dd5eed5324d4c0f12a7219ea8cd3d5a5e",
+      "notification-fixture/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2",
+      "notification-fixture/OpenTelemetry.Api.ProviderBuilderExtensions.dll": "dec906a34dbafcfd2c23b73fd05e58defc7f8c1627890fad4e4461c23b8de989",
+      "notification-fixture/OpenTelemetry.Api.dll": "b92d1b32ba9f7ddf4f06a7efab22c6424beba8760976f0eb5811ed3713d81f4c",
+      "notification-fixture/OpenTelemetry.Exporter.OpenTelemetryProtocol.dll": "be37059eb65a9f4af95081c2d4795afd198a657dbf2e35363cca6444fd75b2ab",
+      "notification-fixture/OpenTelemetry.Extensions.Hosting.dll": "5f5157a8042853b21077855d5888ef0178bfda07a1fac815b8e6145b283f72a7",
+      "notification-fixture/OpenTelemetry.dll": "6623430269ed62f1a8e097e3909b9c8d778ae72b9b69f096140c71d06e0eb043",
+      "notification-fixture/RESPite.dll": "c12704def103a2391c70cb4faf96a839c22d50d32aa0d65528e89926a968daa3",
+      "notification-fixture/StackExchange.Redis.dll": "b23e03f4f8b4264060074e1c0cb2ff2461d02611ae705ab28273d32db6c59078",
+      "notification-fixture/System.IO.Hashing.dll": "cea6795cf9f7b139b2215ff6de794a6f6e44e78640fb30fa4c0d5fa8472df8e5",
+      "notification-fixture/System.IdentityModel.Tokens.Jwt.dll": "3d55b14eabadaf18aefea2c4eb085428e0485063ae3ea91cac072e3b5f951a83",
+      "notification-fixture/WebApi.Contracts.dll": "990ffd5dd1bf27b2d4414889f242da349a1a57f3727aaeca4b627963019ca000",
+      "notification-fixture/WebApi.Domain.dll": "77c53742de004702755fce7cf7f00f657cad34bbaabc91cfa56bb9c1909a71ad",
+      "notification-fixture/WebApi.Infrastructure.dll": "2b00de942b8b026d8378cfd33450e3d0698829a9bf1221874b13d31ff50bc4c7",
+      "notification-fixture/WebApi.NotificationFixtureHost.dll": "800781dcb11d1f5e628f3ff578e8e75086d8beaafeabb5fb7106281af851c329",
+      "notification-fixture/YamlDotNet.dll": "d618138109a40e4a7250e49e2abad8c450e3636bee18d7499ab231e37fa9150a",
+      "notification-fixture/de/JsonSchema.Net.resources.dll": "2a14b56020df4719b44e9e827be93acc6462470e506cac12926ada306fd76990",
+      "notification-fixture/es/JsonSchema.Net.resources.dll": "c2a2860195a9ac39ec3561aceeaf8f152a25f5006dd79f834f14291948858f06",
+      "notification-fixture/it/JsonSchema.Net.resources.dll": "f4cb2113440fca378d6a7f3358cf9fa62eeed4efab6e6001e77fe49bbde592cf",
+      "notification-fixture/ko/JsonSchema.Net.resources.dll": "dcf1e04dd63c731d41f261836bc6570a151f964dcffe990c87c27ea57ef60e32",
+      "notification-fixture/nb-NO/JsonSchema.Net.resources.dll": "9f7a7d24682256d1ba36a207cc24ef6ca155fe37c1161c15d268871bed2f1bbf",
+      "notification-fixture/pl-PL/JsonSchema.Net.resources.dll": "ed6a5e9ca9b7e79b6b8936eec1a6a3bb5fe6d99bf45c967ee3a5845281efbea4",
+      "notification-fixture/pt/JsonSchema.Net.resources.dll": "c8b7d629f472ca5f07c51f9eec74a6f20a756a345d4ca2e18ebc4038731b4193",
+      "notification-fixture/ru/JsonSchema.Net.resources.dll": "d8dc60619bcb06295c873effb53a25a5b1893dc03d767931e952aefb417fe65a",
+      "notification-fixture/sv-SE/JsonSchema.Net.resources.dll": "08b9bb6a78ad3e25a329bbe624bac6e59ff5e0e7545821090f5ba851a27c435a",
+      "notification-fixture/tr-TR/JsonSchema.Net.resources.dll": "17d504f9b064a7d40518fb6f3661848d83cfe969ed95a9a50bf051b9cbdd7cc9",
+      "runtime-tool/BouncyCastle.Cryptography.dll": "e5eeaf6d263c493619982fd3638e6135077311d08c961e1fe128f9107d29ebc6",
+      "runtime-tool/Humanizer.dll": "2769ed8265b691a5482c72506ed274dc52446fa1641997a8c12c66f5b9263d39",
+      "runtime-tool/Json.More.dll": "10e6f68bc5fc481c752eae0523fd3d04e46ffc3d4d8f2b41e8342c89d24c8c88",
+      "runtime-tool/JsonPointer.Net.dll": "20f7025fd30cc76ef5f7c2af4e5f59e6f346a09cd1896b49f89d571c368c7e53",
+      "runtime-tool/JsonSchema.Net.dll": "6baf93a81ad6f37966344b55cf178aba9a4474a6c202d9579a520c4a71562dfa",
+      "runtime-tool/MailKit.dll": "2cb259e17621ed8c608b530ded7bc9d6f42a3d1d23c63c03b16c5c4a422c815f",
+      "runtime-tool/Microsoft.Bcl.Cryptography.dll": "91c6bab93638c268569a38bc87770a5e3ef9932676f5b7a6d47aef4208062925",
+      "runtime-tool/Microsoft.EntityFrameworkCore.Abstractions.dll": "74bc17c936d66ea090b6a5b4cc4307d2154c9692e57edd4c55d68dd4a99c11b6",
+      "runtime-tool/Microsoft.EntityFrameworkCore.Relational.dll": "a1e4f36208650b15b75a4b01a5821d61d5be417ac2e86ec3c65e2560a87e0d7d",
+      "runtime-tool/Microsoft.EntityFrameworkCore.dll": "f5b1703d608e241314952b2ede8dcdd1b8d8adda8c91a13cb7e6b1007414cef4",
+      "runtime-tool/Microsoft.IdentityModel.Abstractions.dll": "84a6c307fe84453c9fc3a1af45bf2302b5d2aba4d5b9bfb7d581d6a28787461f",
+      "runtime-tool/Microsoft.IdentityModel.JsonWebTokens.dll": "4f61fd3d3f5003951a09cdd27ffdc3c4841a158d27a6d7247be3e5939e7dab32",
+      "runtime-tool/Microsoft.IdentityModel.Logging.dll": "2bc4582ae62236f066901a7dcb2a88d04a181ad1978f2db2f4314df6ae1a50c6",
+      "runtime-tool/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll": "7921aef6fa1da2e563a237dda129b12407ac6c56448bb0eb7eebc59bb6c6babb",
+      "runtime-tool/Microsoft.IdentityModel.Protocols.dll": "40ada0b98384788970117cadf63863edd99bd5bd6fb8076f6da68d65f6dbda4f",
+      "runtime-tool/Microsoft.IdentityModel.Tokens.dll": "106db045348a9b767f3002d4ec3bb582c9141f6d8e9966e1e0ad58a71ba42b8b",
+      "runtime-tool/MimeKit.dll": "cd0304ecd585d241b7928e69372dec02d820041af5004316821b17f31ddb2e0a",
+      "runtime-tool/Npgsql.EntityFrameworkCore.PostgreSQL.dll": "94fcf66e8e953fdb02c40c72ca89821dd5eed5324d4c0f12a7219ea8cd3d5a5e",
+      "runtime-tool/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2",
+      "runtime-tool/OpenTelemetry.Api.ProviderBuilderExtensions.dll": "dec906a34dbafcfd2c23b73fd05e58defc7f8c1627890fad4e4461c23b8de989",
+      "runtime-tool/OpenTelemetry.Api.dll": "b92d1b32ba9f7ddf4f06a7efab22c6424beba8760976f0eb5811ed3713d81f4c",
+      "runtime-tool/OpenTelemetry.Exporter.OpenTelemetryProtocol.dll": "be37059eb65a9f4af95081c2d4795afd198a657dbf2e35363cca6444fd75b2ab",
+      "runtime-tool/OpenTelemetry.Extensions.Hosting.dll": "5f5157a8042853b21077855d5888ef0178bfda07a1fac815b8e6145b283f72a7",
+      "runtime-tool/OpenTelemetry.dll": "6623430269ed62f1a8e097e3909b9c8d778ae72b9b69f096140c71d06e0eb043",
+      "runtime-tool/RESPite.dll": "c12704def103a2391c70cb4faf96a839c22d50d32aa0d65528e89926a968daa3",
+      "runtime-tool/StackExchange.Redis.dll": "b23e03f4f8b4264060074e1c0cb2ff2461d02611ae705ab28273d32db6c59078",
+      "runtime-tool/System.IO.Hashing.dll": "cea6795cf9f7b139b2215ff6de794a6f6e44e78640fb30fa4c0d5fa8472df8e5",
+      "runtime-tool/System.IdentityModel.Tokens.Jwt.dll": "3d55b14eabadaf18aefea2c4eb085428e0485063ae3ea91cac072e3b5f951a83",
+      "runtime-tool/WebApi.Contracts.dll": "990ffd5dd1bf27b2d4414889f242da349a1a57f3727aaeca4b627963019ca000",
+      "runtime-tool/WebApi.Domain.dll": "77c53742de004702755fce7cf7f00f657cad34bbaabc91cfa56bb9c1909a71ad",
+      "runtime-tool/WebApi.Infrastructure.dll": "2b00de942b8b026d8378cfd33450e3d0698829a9bf1221874b13d31ff50bc4c7",
+      "runtime-tool/WebApi.RuntimeTool.dll": "49b8358d16e3bd4d73b7f050499054dac84a08b4f1ad07f0e07e69eb09836526",
+      "runtime-tool/YamlDotNet.dll": "d618138109a40e4a7250e49e2abad8c450e3636bee18d7499ab231e37fa9150a",
+      "runtime-tool/de/JsonSchema.Net.resources.dll": "2a14b56020df4719b44e9e827be93acc6462470e506cac12926ada306fd76990",
+      "runtime-tool/es/JsonSchema.Net.resources.dll": "c2a2860195a9ac39ec3561aceeaf8f152a25f5006dd79f834f14291948858f06",
+      "runtime-tool/it/JsonSchema.Net.resources.dll": "f4cb2113440fca378d6a7f3358cf9fa62eeed4efab6e6001e77fe49bbde592cf",
+      "runtime-tool/ko/JsonSchema.Net.resources.dll": "dcf1e04dd63c731d41f261836bc6570a151f964dcffe990c87c27ea57ef60e32",
+      "runtime-tool/nb-NO/JsonSchema.Net.resources.dll": "9f7a7d24682256d1ba36a207cc24ef6ca155fe37c1161c15d268871bed2f1bbf",
+      "runtime-tool/pl-PL/JsonSchema.Net.resources.dll": "ed6a5e9ca9b7e79b6b8936eec1a6a3bb5fe6d99bf45c967ee3a5845281efbea4",
+      "runtime-tool/pt/JsonSchema.Net.resources.dll": "c8b7d629f472ca5f07c51f9eec74a6f20a756a345d4ca2e18ebc4038731b4193",
+      "runtime-tool/ru/JsonSchema.Net.resources.dll": "d8dc60619bcb06295c873effb53a25a5b1893dc03d767931e952aefb417fe65a",
+      "runtime-tool/sv-SE/JsonSchema.Net.resources.dll": "08b9bb6a78ad3e25a329bbe624bac6e59ff5e0e7545821090f5ba851a27c435a",
+      "runtime-tool/tr-TR/JsonSchema.Net.resources.dll": "17d504f9b064a7d40518fb6f3661848d83cfe969ed95a9a50bf051b9cbdd7cc9",
+      "worker/BouncyCastle.Cryptography.dll": "e5eeaf6d263c493619982fd3638e6135077311d08c961e1fe128f9107d29ebc6",
+      "worker/Humanizer.dll": "2769ed8265b691a5482c72506ed274dc52446fa1641997a8c12c66f5b9263d39",
+      "worker/Json.More.dll": "10e6f68bc5fc481c752eae0523fd3d04e46ffc3d4d8f2b41e8342c89d24c8c88",
+      "worker/JsonPointer.Net.dll": "20f7025fd30cc76ef5f7c2af4e5f59e6f346a09cd1896b49f89d571c368c7e53",
+      "worker/JsonSchema.Net.dll": "6baf93a81ad6f37966344b55cf178aba9a4474a6c202d9579a520c4a71562dfa",
+      "worker/MailKit.dll": "2cb259e17621ed8c608b530ded7bc9d6f42a3d1d23c63c03b16c5c4a422c815f",
+      "worker/Microsoft.Bcl.Cryptography.dll": "91c6bab93638c268569a38bc87770a5e3ef9932676f5b7a6d47aef4208062925",
+      "worker/Microsoft.EntityFrameworkCore.Abstractions.dll": "74bc17c936d66ea090b6a5b4cc4307d2154c9692e57edd4c55d68dd4a99c11b6",
+      "worker/Microsoft.EntityFrameworkCore.Relational.dll": "a1e4f36208650b15b75a4b01a5821d61d5be417ac2e86ec3c65e2560a87e0d7d",
+      "worker/Microsoft.EntityFrameworkCore.dll": "f5b1703d608e241314952b2ede8dcdd1b8d8adda8c91a13cb7e6b1007414cef4",
+      "worker/Microsoft.IdentityModel.Abstractions.dll": "84a6c307fe84453c9fc3a1af45bf2302b5d2aba4d5b9bfb7d581d6a28787461f",
+      "worker/Microsoft.IdentityModel.JsonWebTokens.dll": "4f61fd3d3f5003951a09cdd27ffdc3c4841a158d27a6d7247be3e5939e7dab32",
+      "worker/Microsoft.IdentityModel.Logging.dll": "2bc4582ae62236f066901a7dcb2a88d04a181ad1978f2db2f4314df6ae1a50c6",
+      "worker/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll": "7921aef6fa1da2e563a237dda129b12407ac6c56448bb0eb7eebc59bb6c6babb",
+      "worker/Microsoft.IdentityModel.Protocols.dll": "40ada0b98384788970117cadf63863edd99bd5bd6fb8076f6da68d65f6dbda4f",
+      "worker/Microsoft.IdentityModel.Tokens.dll": "106db045348a9b767f3002d4ec3bb582c9141f6d8e9966e1e0ad58a71ba42b8b",
+      "worker/MimeKit.dll": "cd0304ecd585d241b7928e69372dec02d820041af5004316821b17f31ddb2e0a",
+      "worker/Npgsql.EntityFrameworkCore.PostgreSQL.dll": "94fcf66e8e953fdb02c40c72ca89821dd5eed5324d4c0f12a7219ea8cd3d5a5e",
+      "worker/Npgsql.dll": "e2bcafe1660fe4543fe9dfcabed972ec8d32259e5ea8009462ce1de23c7034c2",
+      "worker/OpenTelemetry.Api.ProviderBuilderExtensions.dll": "dec906a34dbafcfd2c23b73fd05e58defc7f8c1627890fad4e4461c23b8de989",
+      "worker/OpenTelemetry.Api.dll": "b92d1b32ba9f7ddf4f06a7efab22c6424beba8760976f0eb5811ed3713d81f4c",
+      "worker/OpenTelemetry.Exporter.OpenTelemetryProtocol.dll": "be37059eb65a9f4af95081c2d4795afd198a657dbf2e35363cca6444fd75b2ab",
+      "worker/OpenTelemetry.Extensions.Hosting.dll": "5f5157a8042853b21077855d5888ef0178bfda07a1fac815b8e6145b283f72a7",
+      "worker/OpenTelemetry.dll": "6623430269ed62f1a8e097e3909b9c8d778ae72b9b69f096140c71d06e0eb043",
+      "worker/RESPite.dll": "c12704def103a2391c70cb4faf96a839c22d50d32aa0d65528e89926a968daa3",
+      "worker/StackExchange.Redis.dll": "b23e03f4f8b4264060074e1c0cb2ff2461d02611ae705ab28273d32db6c59078",
+      "worker/System.IO.Hashing.dll": "cea6795cf9f7b139b2215ff6de794a6f6e44e78640fb30fa4c0d5fa8472df8e5",
+      "worker/System.IdentityModel.Tokens.Jwt.dll": "3d55b14eabadaf18aefea2c4eb085428e0485063ae3ea91cac072e3b5f951a83",
+      "worker/WebApi.Contracts.dll": "990ffd5dd1bf27b2d4414889f242da349a1a57f3727aaeca4b627963019ca000",
+      "worker/WebApi.Domain.dll": "77c53742de004702755fce7cf7f00f657cad34bbaabc91cfa56bb9c1909a71ad",
+      "worker/WebApi.Infrastructure.dll": "2b00de942b8b026d8378cfd33450e3d0698829a9bf1221874b13d31ff50bc4c7",
+      "worker/WebApi.Worker.dll": "d9f3dbb01bc6e72278187137f9a440b65c3552842db2c87d8448f8e03d6d25eb",
+      "worker/YamlDotNet.dll": "d618138109a40e4a7250e49e2abad8c450e3636bee18d7499ab231e37fa9150a",
+      "worker/de/JsonSchema.Net.resources.dll": "2a14b56020df4719b44e9e827be93acc6462470e506cac12926ada306fd76990",
+      "worker/es/JsonSchema.Net.resources.dll": "c2a2860195a9ac39ec3561aceeaf8f152a25f5006dd79f834f14291948858f06",
+      "worker/it/JsonSchema.Net.resources.dll": "f4cb2113440fca378d6a7f3358cf9fa62eeed4efab6e6001e77fe49bbde592cf",
+      "worker/ko/JsonSchema.Net.resources.dll": "dcf1e04dd63c731d41f261836bc6570a151f964dcffe990c87c27ea57ef60e32",
+      "worker/nb-NO/JsonSchema.Net.resources.dll": "9f7a7d24682256d1ba36a207cc24ef6ca155fe37c1161c15d268871bed2f1bbf",
+      "worker/pl-PL/JsonSchema.Net.resources.dll": "ed6a5e9ca9b7e79b6b8936eec1a6a3bb5fe6d99bf45c967ee3a5845281efbea4",
+      "worker/pt/JsonSchema.Net.resources.dll": "c8b7d629f472ca5f07c51f9eec74a6f20a756a345d4ca2e18ebc4038731b4193",
+      "worker/ru/JsonSchema.Net.resources.dll": "d8dc60619bcb06295c873effb53a25a5b1893dc03d767931e952aefb417fe65a",
+      "worker/sv-SE/JsonSchema.Net.resources.dll": "08b9bb6a78ad3e25a329bbe624bac6e59ff5e0e7545821090f5ba851a27c435a",
+      "worker/tr-TR/JsonSchema.Net.resources.dll": "17d504f9b064a7d40518fb6f3661848d83cfe969ed95a9a50bf051b9cbdd7cc9"
+    },
+    "staticDigests": {
+      "console/dist/assets/index-BV_6AtdS.js": "12e1c8fea3c735de5b0edb250e122eff22e62f73dee6a8400b916ccb7917d0e1",
+      "console/dist/assets/index-srHLilcy.css": "e29b25a6c52f3c8016de0b54517f26d1773737ed418f3cadc3da2e48f9a4ddea",
+      "console/dist/index.html": "98e73dec0be5fdb5f4258db14895a43608814ad0021d71c8ac90db797de332c3"
+    }
+  },
+  "promotions": [
+    {
+      "id": "fde70bc5-db95-40b3-9fed-913c05989448",
+      "releaseId": "18ec171b-6f21-4a2b-80c0-c2350989b2f5",
+      "status": "Completed",
+      "actualNodeAcks": [
+        {
+          "nodeId": "804661d0-9413-4fb1-b181-0f53cc804684",
+          "instanceId": "dacdee2e-ba72-44ab-9ba5-cc84eeefa8dd",
+          "acknowledged": true,
+          "configVersion": 2,
+          "deploymentSequence": 2,
+          "errorCode": null
+        },
+        {
+          "nodeId": "868ceb17-3bd9-4c43-9278-de3fa1da48ea",
+          "instanceId": "f9140e80-7c62-4e09-80d9-ed43ae5f3292",
+          "acknowledged": true,
+          "configVersion": 2,
+          "deploymentSequence": 2,
+          "errorCode": null
+        }
+      ],
+      "verifiedBy": "1b060e15-d778-4626-a08d-012154abe3fc"
+    },
+    {
+      "id": "f8f8213e-3130-4be8-9357-0174400d5e1c",
+      "releaseId": "56980367-5a01-4871-8014-f06e43c56397",
+      "status": "Completed",
+      "actualNodeAcks": [
+        {
+          "nodeId": "804661d0-9413-4fb1-b181-0f53cc804684",
+          "instanceId": "dacdee2e-ba72-44ab-9ba5-cc84eeefa8dd",
+          "acknowledged": true,
+          "configVersion": 3,
+          "deploymentSequence": 3,
+          "errorCode": null
+        },
+        {
+          "nodeId": "868ceb17-3bd9-4c43-9278-de3fa1da48ea",
+          "instanceId": "f9140e80-7c62-4e09-80d9-ed43ae5f3292",
+          "acknowledged": true,
+          "configVersion": 3,
+          "deploymentSequence": 3,
+          "errorCode": null
+        }
+      ],
+      "verifiedBy": "1b060e15-d778-4626-a08d-012154abe3fc"
+    }
+  ],
+  "browserErrors": [],
+  "responses": [
+    {
+      "environmentId": "3d019f59-9a2d-4fe6-8f60-2b2540c430ea",
+      "nodeId": "d9046c7f-3b1f-4b10-a75b-9db076506605",
+      "status": 200,
+      "backendId": "A",
+      "consumerPath": "/orders",
+      "sequence": 1
+    },
+    {
+      "environmentId": "3d019f59-9a2d-4fe6-8f60-2b2540c430ea",
+      "nodeId": "d2930879-578a-4f87-96e7-f6f88218264d",
+      "status": 200,
+      "backendId": "A",
+      "consumerPath": "/orders",
+      "sequence": 1
+    },
+    {
+      "environmentId": "ce653cff-d783-4e31-8e93-b4cdb9ce4d11",
+      "nodeId": "868ceb17-3bd9-4c43-9278-de3fa1da48ea",
+      "status": 200,
+      "backendId": "B",
+      "consumerPath": "/orders",
+      "sequence": 4
+    },
+    {
+      "environmentId": "ce653cff-d783-4e31-8e93-b4cdb9ce4d11",
+      "nodeId": "804661d0-9413-4fb1-b181-0f53cc804684",
+      "status": 200,
+      "backendId": "B",
+      "consumerPath": "/orders",
+      "sequence": 4
+    },
+    {
+      "environmentId": "ce653cff-d783-4e31-8e93-b4cdb9ce4d11",
+      "status": 200,
+      "backendId": "B",
+      "tlsVerified": true
+    },
+    {
+      "environmentId": "ce653cff-d783-4e31-8e93-b4cdb9ce4d11",
+      "status": 401,
+      "rejectedSourceCredential": true
+    }
+  ],
+  "verifications": [
+    {
+      "id": "85614674-0c1e-4aea-8871-dcf45c481125",
+      "type": "CriticalBusinessCall",
+      "result": "Passed",
+      "actorId": "1b060e15-d778-4626-a08d-012154abe3fc",
+      "configVersion": 4,
+      "deploymentSequence": 4,
+      "contextHash": "17af952b94d9525fd7c004c63a0e4e2be3ffb754305f236a681738735ebe591c",
+      "reportId": "e349e378-07e0-49a5-9ac9-3a8c7bfa2922",
+      "reportHash": "7d18736cd7974075e763d6601da772b83caa026c6b825ce6916520ac24b00396"
+    },
+    {
+      "id": "9144f71a-56d1-4793-96b7-e6d0406f57a3",
+      "type": "AuthenticationAuthorization",
+      "result": "Passed",
+      "actorId": "1b060e15-d778-4626-a08d-012154abe3fc",
+      "configVersion": 4,
+      "deploymentSequence": 4,
+      "contextHash": "17af952b94d9525fd7c004c63a0e4e2be3ffb754305f236a681738735ebe591c",
+      "reportId": "e349e378-07e0-49a5-9ac9-3a8c7bfa2922",
+      "reportHash": "7d18736cd7974075e763d6601da772b83caa026c6b825ce6916520ac24b00396"
+    },
+    {
+      "id": "40f142ee-84c8-4c20-8eb7-ff732f9ae3f2",
+      "type": "EntryConnectivity",
+      "result": "Passed",
+      "actorId": "1b060e15-d778-4626-a08d-012154abe3fc",
+      "configVersion": 4,
+      "deploymentSequence": 4,
+      "contextHash": "17af952b94d9525fd7c004c63a0e4e2be3ffb754305f236a681738735ebe591c",
+      "reportId": "e349e378-07e0-49a5-9ac9-3a8c7bfa2922",
+      "reportHash": "7d18736cd7974075e763d6601da772b83caa026c6b825ce6916520ac24b00396"
+    }
+  ],
+  "approvals": [
+    {
+      "status": "Approved",
+      "actorId": "3884a888-8ae3-4d93-861e-504bf4d176de",
+      "stepOrder": 1
+    },
+    {
+      "status": "Approved",
+      "actorId": "db3decfd-885b-4bfc-aad9-8a02f5ae9a68",
+      "stepOrder": 2
+    }
+  ],
+  "completedPromotionId": "29780ade-5306-4c11-8c04-61e2cfd3c28e",
+  "completedReleaseId": "b43feeec-ad63-4493-8ee0-e0529756330f",
+  "faults": {
+    "partialAck": {
+      "passed": true,
+      "actual": true,
+      "releaseId": "37b23b8f-6987-4504-940d-96d9a6e87e68",
+      "sequence": 5,
+      "targets": [
+        {
+          "nodeId": "804661d0-9413-4fb1-b181-0f53cc804684",
+          "instanceId": "dacdee2e-ba72-44ab-9ba5-cc84eeefa8dd",
+          "acknowledged": false,
+          "configVersion": null,
+          "deploymentSequence": null,
+          "errorCode": null
+        },
+        {
+          "nodeId": "868ceb17-3bd9-4c43-9278-de3fa1da48ea",
+          "instanceId": "f9140e80-7c62-4e09-80d9-ed43ae5f3292",
+          "acknowledged": true,
+          "configVersion": 5,
+          "deploymentSequence": 5,
+          "errorCode": null
+        }
+      ]
+    },
+    "workerRestart": {
+      "passed": true,
+      "actual": true,
+      "releaseId": "37b23b8f-6987-4504-940d-96d9a6e87e68",
+      "sequence": 5,
+      "persistedState": "Publishing"
+    },
+    "timeout": {
+      "passed": true,
+      "actual": true,
+      "releaseId": "37b23b8f-6987-4504-940d-96d9a6e87e68",
+      "targets": [
+        {
+          "nodeId": "804661d0-9413-4fb1-b181-0f53cc804684",
+          "instanceId": "dacdee2e-ba72-44ab-9ba5-cc84eeefa8dd",
+          "acknowledged": false,
+          "configVersion": null,
+          "deploymentSequence": null,
+          "errorCode": null
+        },
+        {
+          "nodeId": "868ceb17-3bd9-4c43-9278-de3fa1da48ea",
+          "instanceId": "f9140e80-7c62-4e09-80d9-ed43ae5f3292",
+          "acknowledged": true,
+          "configVersion": 5,
+          "deploymentSequence": 5,
+          "errorCode": null
+        }
+      ],
+      "errors": [
+        "ack_timeout"
+      ],
+      "recovery": {
+        "releaseId": "46f55668-87d2-4276-a2a0-1e95ab2ef9a3",
+        "sequence": 6,
+        "targets": [
+          {
+            "nodeId": "804661d0-9413-4fb1-b181-0f53cc804684",
+            "instanceId": "ecf20ba9-df40-458d-a413-369915b0e140",
+            "acknowledged": true,
+            "configVersion": 5,
+            "deploymentSequence": 6,
+            "errorCode": null
+          },
+          {
+            "nodeId": "868ceb17-3bd9-4c43-9278-de3fa1da48ea",
+            "instanceId": "f9140e80-7c62-4e09-80d9-ed43ae5f3292",
+            "acknowledged": true,
+            "configVersion": 5,
+            "deploymentSequence": 6,
+            "errorCode": null
+          }
+        ]
+      }
+    },
+    "verificationFailure": {
+      "passed": true,
+      "actual": true,
+      "promotionId": "5f5cf895-7ba7-4576-a326-03842be807f0",
+      "status": "VerificationFailed",
+      "responseStatus": 502,
+      "noAutomaticRollbackSequence": 6
+    },
+    "approvedRollback": {
+      "passed": true,
+      "actual": true,
+      "promotionId": "5f5cf895-7ba7-4576-a326-03842be807f0",
+      "releaseId": "2a055ef8-915b-45f2-a946-a618a0293dc8",
+      "sequence": 7,
+      "targetConfigVersion": 4,
+      "approvals": [
+        {
+          "id": "4c36152d-1d93-423f-99c6-3be80d3092cd",
+          "stepOrder": 1,
+          "roleCode": "DeliveryFirst",
+          "status": "Approved",
+          "actorId": "3884a888-8ae3-4d93-861e-504bf4d176de",
+          "comment": "人工审批恢复此前已验证目标快照",
+          "actedAt": "2026-10-09T10:47:27.697334+00:00"
+        },
+        {
+          "id": "905df2e9-3d6a-4bbd-a5ea-56f8db04eee4",
+          "stepOrder": 2,
+          "roleCode": "DeliverySecond",
+          "status": "Approved",
+          "actorId": "db3decfd-885b-4bfc-aad9-8a02f5ae9a68",
+          "comment": "人工审批恢复此前已验证目标快照",
+          "actedAt": "2026-10-09T10:47:27.724455+00:00"
+        }
+      ],
+      "targets": [
+        {
+          "nodeId": "804661d0-9413-4fb1-b181-0f53cc804684",
+          "instanceId": "ecf20ba9-df40-458d-a413-369915b0e140",
+          "acknowledged": true,
+          "configVersion": 4,
+          "deploymentSequence": 7,
+          "errorCode": null
+        },
+        {
+          "nodeId": "868ceb17-3bd9-4c43-9278-de3fa1da48ea",
+          "instanceId": "f9140e80-7c62-4e09-80d9-ed43ae5f3292",
+          "acknowledged": true,
+          "configVersion": 4,
+          "deploymentSequence": 7,
+          "errorCode": null
+        }
+      ],
+      "addressPreserved": true,
+      "historicalCompletedPreserved": true
+    },
+    "sharedApplication": {
+      "passed": true,
+      "actual": true,
+      "blockedPromotionId": "13834e46-666c-43ff-8f28-2d3bfe6a1159",
+      "confirmedPromotionId": "cc029b9d-6520-41df-b793-42dccf498843",
+      "impact": [
+        {
+          "applicationId": "fd79bffa-b50f-4151-b5f2-4965bcecc413",
+          "retainedApiIds": [],
+          "requiredCredentialIds": [],
+          "acknowledged": true,
+          "sharedAcrossEnvironments": true
+        }
+      ]
+    },
+    "queuedAuthority": {
+      "passed": true,
+      "actual": true,
+      "promotionId": "a3623809-3ede-4f9e-9f28-782ad08392c7",
+      "publisherId": "7cda8162-a8cf-40c2-b362-bde17e54d56a",
+      "status": "DeploymentFailed",
+      "sequenceUnchanged": 7
+    },
+    "queuedRevocation": {
+      "passed": true,
+      "actual": true,
+      "promotionId": "7e17f8f5-6355-42e5-9979-16337a49f0b0",
+      "status": "Invalidated",
+      "releaseId": "167d2962-a1e5-46d1-845b-cb700b039dd5",
+      "sequenceUnchanged": 7
+    },
+    "policyRevision": {
+      "passed": true,
+      "actual": true,
+      "promotionId": "62db9e4e-d0de-438d-8ecc-52c2eec9373d",
+      "oldPolicyRevision": 1,
+      "newPolicyRevision": 2,
+      "noFormalRelease": true,
+      "sequenceUnchanged": 7,
+      "queuedExecution": {
+        "promotionId": "2a39f95f-12f7-4dbe-a613-92ce039396db",
+        "status": "DeploymentFailed",
+        "sequenceUnchanged": 7
+      }
+    }
+  },
+  "phase": "failed",
+  "failure": {
+    "message": "Docker operation failed; inspect the owned project before retry.",
+    "status": null,
+    "diagnostic": " Network webapi-enterprise-local-test-2c85de39-686f-4401-9274-e8b413bc37ef_default Creating \n Network webapi-enterprise-local-test-2c85de39-686f-4401-9274-e8b413bc37ef_default Error Error response from daemon: all predefined address pools have been fully subnetted\nfailed to create network webapi-enterprise-local-test-2c85de39-686f-4401-9274-e8b413bc37ef_default: Error response from daemon: all predefined address pools have been fully subnetted\n"
+  },
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  }
+}
