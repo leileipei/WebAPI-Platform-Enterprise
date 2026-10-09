@@ -13,7 +13,7 @@ using WebApi.Infrastructure.Policies;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Delivery;
 internal sealed record PromotionRouteState(PromotionRouteMapping Mapping,Guid? PreparedRouteId=null,IReadOnlyList<Guid>? PrivatePolicyIds=null,long PreparedRevision=0);
-public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver scopes,AuthorizationService auth,ReleaseArtifactService artifacts,PolicyAccess policyAccess,PromotionCredentialSelection credentials,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext)
+public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver scopes,AuthorizationService auth,ReleaseArtifactService artifacts,PolicyAccess policyAccess,PromotionCredentialSelection credentials,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks)
 {
  internal static ApiException Invalid()=>new(422,"invalid_promotion_mapping","映射须完整且引用本项目目标环境的有效资源与制品策略槽位。");
  internal static ApiException NotDraft()=>new(409,"promotion_not_draft","只有草稿晋级可编辑或准备映射。");
@@ -63,7 +63,7 @@ public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver sco
   var policy=await db.Set<Policy>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==mapping.TargetPolicyId,ct)??throw Invalid();if(policy.OrganizationId!=p.OrganizationId||policy.ProjectId is Guid project&&project!=p.ProjectId||policy.Type!=template.Type||!policy.Enabled||mapping.TargetPolicyRevision!=policy.VersionNo)throw Invalid();
   if(!await policyAccess.CanReadAsync(new(policy.OrganizationId,policy.ProjectId),actor,ct))throw ScopeResolver.Missing();using var doc=JsonDocument.Parse(policy.Config);var selected=doc.RootElement.EnumerateObject().Where(x=>template.EnvironmentFields.Contains(x.Name)).ToDictionary(x=>x.Name,x=>x.Value.Clone());return ArtifactPolicyTemplates.Resolve(template,JsonSerializer.SerializeToElement(selected));
  }
- internal async Task LockAsync(ReleasePromotion p,CancellationToken ct){foreach(var id in new[]{p.SourceEnvironmentId,p.TargetEnvironmentId}.Distinct().Order())await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={id} FOR UPDATE",ct);}
+ internal Task LockAsync(ReleasePromotion p,CancellationToken ct)=>locks.LockAsync(p.SourceEnvironmentId,p.TargetEnvironmentId,ct);
  internal static ReleasePromotionMapping New(ReleasePromotion p,string kind,string key)=>new(){OrganizationId=p.OrganizationId,ProjectId=p.ProjectId,PromotionId=p.Id,TargetEnvironmentId=p.TargetEnvironmentId,Kind=kind,ResourceKey=key};
  internal static string Json<T>(T value)=>System.Text.Encoding.UTF8.GetString(CanonicalJson.Serialize(value));
  internal static PromotionDto View(ReleasePromotion p,string hash,PromotionMappingRequest? mapping=null,IReadOnlyList<SharedCredentialImpact>? impact=null)=>new(p.Id,p.OrganizationId,p.ProjectId,p.ArtifactId,hash,p.SourceEnvironmentId,p.TargetEnvironmentId,p.SourceReleaseId,p.TargetReleaseId,p.AcceptanceId,p.Status,p.BaselineConfigVersion,p.MappingRevision,p.CandidateHash,p.Revision,p.RequestedBy,p.CreatedAt,p.CompletedAt,mapping,impact);

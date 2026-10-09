@@ -131,7 +131,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Produces resolver `ResolvePromotionAsync(Guid promotionId, ActorContext actor, CancellationToken ct)` / `ResolveStageAsync(Guid stageId, ActorContext actor, CancellationToken ct)`→`Task<DeliveryGateContext>`；`ResolveConnectionAsync(Guid projectId, ActorContext actor, CancellationToken ct)`只解析原连接；`RequireStageWritableAsync(DeliveryGateContext context, ActorContext actor, CancellationToken ct)`。锁协调器新增`LockProjectAsync(Guid projectId, CancellationToken ct)`及`LockEnvironmentsAsync(IReadOnlyCollection<Guid> environmentIds, CancellationToken ct)`，caller先持治理锁，项目锁后才能进入环境/业务行。Consumes P1实体、P2生效修订。
 
-- [ ] **Step 1:** 用明确`SeedPipelineFactsAsync`持久种子测试两种Origin、伪造FK/项目/阶段、来源有效期30与目标1440不同、ProfileHash和正式/当前恢复尝试分离；增加旧连接完整对照及锁并发测试：
+- [x] **Step 1:** 用明确`SeedPipelineFactsAsync`持久种子测试两种Origin、伪造FK/项目/阶段、来源有效期30与目标1440不同、ProfileHash和正式/当前恢复尝试分离；增加旧连接完整对照及锁并发测试：
 
 ```csharp
 [Fact] async Task AdjacentProfilesDoNotCollapseIntoProjectSummary() {
@@ -145,10 +145,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineGateContextTests|FullyQualifiedName~PipelineLockOrderTests'`，行为RED须是错误上下文/锁序断言；可编译resolver stub不能冒充实现。
-- [ ] **Step 3:** 实现resolver及旧服务适配。直接Stage解析其自身Profile；Promotion解析直接前置SourceProfile与本StageTargetProfile。可空绑定只在旧事实合法，无客户端切Origin。共用路径统一锁序，避免旧验收先锁环境再进入项目；使用caller-owned事务，不通过HTTP或嵌套公开命令调用。P6/P7再补非生产候选及执行约束，本任务只改规则来源，保持旧行为。
-- [ ] **Step 4:** 新类GREEN及`PromotionConcurrencyTests`、`PromotionSubmissionTests`、`PromotionExecutionTests`、`ReleaseVerificationTests`、`TestAcceptanceTests`、`ProductionVerificationTests`，确认Legacy/PromotionRequired全部旧断言未改变；多个Worker注册解析器可启动。
-- [ ] **Step 5:** 提交 `refactor(delivery): resolve typed pipeline gates with consistent locks`，接口变动和所有消费者同一提交。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelineGateContextTests|FullyQualifiedName~PipelineLockOrderTests'`，行为RED须是错误上下文/锁序断言；可编译resolver stub不能冒充实现。
+- [x] **Step 3:** 实现resolver及旧服务适配。直接Stage解析其自身Profile；Promotion解析直接前置SourceProfile与本StageTargetProfile。可空绑定只在旧事实合法，无客户端切Origin。共用路径统一锁序，避免旧验收先锁环境再进入项目；使用caller-owned事务，不通过HTTP或嵌套公开命令调用。P6/P7再补非生产候选及执行约束，本任务只改规则来源，保持旧行为。
+- [x] **Step 4:** 新类GREEN及`PromotionConcurrencyTests`、`PromotionSubmissionTests`、`PromotionExecutionTests`、`ReleaseVerificationTests`、`TestAcceptanceTests`、`ProductionVerificationTests`，确认Legacy/PromotionRequired全部旧断言未改变；多个Worker注册解析器可启动。
+- [x] **Step 5:** 提交 `refactor(delivery): resolve typed pipeline gates with consistent locks`，接口变动和所有消费者同一提交。
 
 ## Task 4 (P4): 开始Run、来源事实导入及当前阶段
 

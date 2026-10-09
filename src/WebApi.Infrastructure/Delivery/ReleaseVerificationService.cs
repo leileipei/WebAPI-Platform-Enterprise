@@ -12,7 +12,7 @@ using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Delivery;
 
 public sealed class ReleaseVerificationService(WebApiDbContext db, ReleaseArtifactService artifacts, VerificationReportStore reports,
-    ScopeResolver scopes, AuthorizationService auth, AuditedCommandExecutor commands, IdempotentCommandExecutor idempotency, CommandRequestContext requestContext)
+    ScopeResolver scopes, AuthorizationService auth, AuditedCommandExecutor commands, IdempotentCommandExecutor idempotency, CommandRequestContext requestContext,DeliveryLockCoordinator locks,DeliveryGateContextResolver gates)
 {
     private static readonly string[] sourceTypes = ["InterfaceFunction", "Integration", "ContractCompatibility"];
     public async Task<ReleaseVerificationDto> RecordSourceAsync(Guid artifactId, RecordVerificationRequest request, ActorContext actor, CancellationToken ct)
@@ -25,14 +25,13 @@ public sealed class ReleaseVerificationService(WebApiDbContext db, ReleaseArtifa
             Validate(request, sourceTypes);
             return await idempotency.ExecuteAsync(new(actor.UserId, scope, "release.verification.source", requestContext.IdempotencyKey), CanonicalJson.Serialize(new { artifactId, request }), async inner =>
             {
-                await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={artifact.SourceEnvironmentId} FOR UPDATE", inner);
+                await locks.LockProjectAsync(artifact.ProjectId,inner);await locks.LockEnvironmentsAsync([artifact.SourceEnvironmentId],inner);
                 // Recheck visibility inside the governance transaction, then bind every runtime fact on the server.
                 var actual = await artifacts.GetAsync(artifactId, actor, inner);
                 var source = await artifacts.RequireSourceAsync(actual.SourceReleaseId, actor, inner);
                 if (source.Deployment.Release.CompletedAt is not DateTimeOffset completedAt || request.FinishedAt < completedAt) throw new ApiException(422, "verification_predates_deployment", "来源测试完成时间不能早于本次全节点确认。");
                 if (source.Deployment.Snapshot.Hash != actual.SourceSnapshotHash || ReleaseArtifactCanonicalizer.Hash(source.Content) != actual.ArtifactHash) throw new ApiException(409, "artifact_source_changed", "来源运行内容已变化，请重新生成制品。");
-                var policy = await db.Set<ProjectDeliveryPolicy>().AsNoTracking().SingleOrDefaultAsync(p => p.ProjectId == artifact.ProjectId, inner);
-                if (policy is not null && policy.SourceEnvironmentId != artifact.SourceEnvironmentId) throw new ApiException(422, "delivery_source_mismatch", "制品不属于当前项目连接的来源环境。");
+                var gate=await gates.ResolveSourceConnectionFactsAsync(artifact.ProjectId,artifact.SourceEnvironmentId,inner);
                 VerificationReport? report = null;
                 if (request.ReportId is Guid reportId)
                 {
@@ -47,10 +46,10 @@ public sealed class ReleaseVerificationService(WebApiDbContext db, ReleaseArtifa
                     ConfigVersion = source.Deployment.Release.ToConfigVersion, DeploymentSequence = source.Deployment.Release.DeploymentSequence!.Value,
                     SnapshotHash = source.Deployment.Snapshot.Hash, AccessAddressRevision = environment.AccessAddressRevision,
                     AccessContextJson = System.Text.Encoding.UTF8.GetString(CanonicalJson.Serialize(new { environmentId = environment.Id, accessAddressRevision = environment.AccessAddressRevision, publicOrigin = environment.GatewayPublicUrl, basePath = environment.BasePath })),
-                    PolicyRevision = policy?.Revision ?? 0, Phase = "SourceTest", Type = request.Type, Result = request.Result, IsManual = true,
+                    PolicyRevision = gate.PolicyRevision, Phase = "SourceTest", Type = request.Type, Result = request.Result, IsManual = true,
                     ReportId = report?.Id, ReportHash = report?.Sha256, Comment = request.Comment ?? "",
                     StartedAt = request.StartedAt.ToUniversalTime(), FinishedAt = request.FinishedAt.ToUniversalTime(),
-                    ExpiresAt = request.FinishedAt.ToUniversalTime().AddMinutes(policy?.VerificationValidityMinutes ?? 1440), CreatedBy = actor.UserId
+                    ExpiresAt = request.FinishedAt.ToUniversalTime().AddMinutes(gate.SourceEvidence.ValidityMinutes), CreatedBy = actor.UserId
                 };
                 db.Add(row); return View(row);
             }, token);
@@ -59,7 +58,7 @@ public sealed class ReleaseVerificationService(WebApiDbContext db, ReleaseArtifa
     public async Task<IReadOnlyList<ReleaseVerificationDto>> ListSourceAsync(Guid artifactId, ActorContext actor, CancellationToken ct)
     {
         await artifacts.GetAsync(artifactId, actor, ct);
-        var rows = await db.Set<ReleaseVerification>().AsNoTracking().Where(v => v.ArtifactId == artifactId && v.Phase == "SourceTest").OrderByDescending(v => v.CreatedAt).ThenBy(v => v.Id).Take(100).ToArrayAsync(ct);
+        var rows = await db.Set<ReleaseVerification>().AsNoTracking().Where(v => v.ArtifactId == artifactId && v.Phase == "SourceTest" && v.PipelineRunStageId == null).OrderByDescending(v => v.CreatedAt).ThenBy(v => v.Id).Take(100).ToArrayAsync(ct);
         return rows.Select(View).ToArray();
     }
     internal static void Validate(RecordVerificationRequest request, IReadOnlyCollection<string> allowed)
