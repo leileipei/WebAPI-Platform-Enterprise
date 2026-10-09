@@ -13,7 +13,7 @@ using WebApi.Infrastructure.Policies;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Delivery;
 internal sealed record PromotionRouteState(PromotionRouteMapping Mapping,Guid? PreparedRouteId=null,IReadOnlyList<Guid>? PrivatePolicyIds=null,long PreparedRevision=0);
-public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver scopes,AuthorizationService auth,ReleaseArtifactService artifacts,PolicyAccess policyAccess,PromotionCredentialSelection credentials,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks)
+public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver scopes,AuthorizationService auth,ReleaseArtifactService artifacts,PolicyAccess policyAccess,PromotionCredentialSelection credentials,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks,DeliveryGateContextResolver gates)
 {
  internal static ApiException Invalid()=>new(422,"invalid_promotion_mapping","映射须完整且引用本项目目标环境的有效资源与制品策略槽位。");
  internal static ApiException NotDraft()=>new(409,"promotion_not_draft","只有草稿晋级可编辑或准备映射。");
@@ -36,6 +36,7 @@ public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver sco
  internal async Task<ReleaseArtifactDto> RequireAsync(ReleasePromotion p,ActorContext actor,CancellationToken ct)
  {
   var artifact=await artifacts.GetAsync(p.ArtifactId,actor,ct);var target=await scopes.EnvironmentAsync(p.TargetEnvironmentId,ct);
+  if(p.GateOrigin=="PipelineRunStage"){var gate=await gates.ResolvePromotionAsync(p.Id,actor,ct);await gates.RequireStageWritableAsync(gate,actor,ct);await auth.RequireAsync(actor,"pipeline.run",new("environment",p.TargetEnvironmentId,target),ct);}
   if(artifact.OrganizationId!=p.OrganizationId||artifact.ProjectId!=p.ProjectId||artifact.SourceEnvironmentId!=p.SourceEnvironmentId||artifact.SourceReleaseId!=p.SourceReleaseId||target.OrganizationId!=p.OrganizationId||target.ProjectId!=p.ProjectId)throw ScopeResolver.Missing();
   await auth.RequireAsync(actor,"release.create",new("environment",p.TargetEnvironmentId,target),ct);await auth.RequireAsync(actor,"route.write",new("environment",p.TargetEnvironmentId,target),ct);return artifact;
  }

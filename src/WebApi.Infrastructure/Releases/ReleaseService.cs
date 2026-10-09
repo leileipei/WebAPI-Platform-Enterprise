@@ -97,10 +97,13 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
             await SnapshotSchemaCapabilities.RequireOnline22Async(db,publishSettings,r.EnvironmentId,token);
         return await FreezeApprovalAsync(r,scope,env,candidate,token);
     },ct);
-    internal async Task<ReleaseDto> FreezeApprovalAsync(ReleaseRecord r,ScopeRef scope,EnvironmentRecord env,FrozenReleaseCandidate candidate,CancellationToken token)
+    internal async Task<ReleaseDto> FreezeApprovalAsync(ReleaseRecord r,ScopeRef scope,EnvironmentRecord env,FrozenReleaseCandidate candidate,CancellationToken token,PipelineApprovalProfile? pipelineApproval=null)
     {
         if(db.Database.CurrentTransaction is null)throw new InvalidOperationException("Approval freeze requires the owning business transaction.");
-        var rules=Array.Empty<ApprovalRule>();if(env.IsProduction)
+        var rules=Array.Empty<ApprovalRule>();if(pipelineApproval is not null)
+        {
+            rules=(await RequirePipelineApprovalAsync(db,scope.OrganizationId,env,pipelineApproval,token)).ToArray();foreach(var rule in rules)for(var n=0;n<rule.RequiredCount;n++)db.Add(new ApprovalTask{FlowId=pipelineApproval.FlowId,ReleaseId=r.Id,StepOrder=rule.StepOrder,Status="Pending"});r.Status="WaitingApproval";
+        }else if(env.IsProduction)
         {
             if(env.ReleasePolicyId is not Guid flowId) throw new ApiException(422,"approval_policy_required","生产环境必须配置两级审批流程。");var flow=await db.Set<ApprovalFlow>().AsNoTracking().SingleOrDefaultAsync(f=>f.Id==flowId&&f.OrganizationId==scope.OrganizationId&&f.Enabled,token)??throw new ApiException(422,"invalid_approval_policy","生产审批流程不可用。");
             rules=await db.Set<ApprovalStep>().Where(s=>s.FlowId==flowId).OrderBy(s=>s.StepOrder).Select(s=>new ApprovalRule(s.StepOrder,s.RoleCode,s.RequiredCount)).ToArrayAsync(token);ValidateRules(rules);
@@ -113,6 +116,12 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
     }
     private async Task<ReleaseDto> DtoWithPendingAsync(ReleaseRecord r,IReadOnlyList<ApprovalRule> rules,CancellationToken ct)
     {var dto=await DtoAsync(r,ct);var added=db.ChangeTracker.Entries<ApprovalTask>().Where(e=>e.State==EntityState.Added&&e.Entity.ReleaseId==r.Id).Select(e=>e.Entity).ToArray();return dto with {ApprovalSteps=dto.ApprovalSteps.Concat(added.Select(t=>new ApprovalTaskDto(t.Id,t.StepOrder,rules.Single(s=>s.StepOrder==t.StepOrder).RoleCode,t.Status,t.AssigneeUserId,t.Comment,t.ActedAt))).OrderBy(t=>t.StepOrder).ThenBy(t=>t.Id).ToArray()};}
+    internal static async Task<IReadOnlyList<ApprovalRule>> RequirePipelineApprovalAsync(WebApiDbContext db,Guid organizationId,EnvironmentRecord env,PipelineApprovalProfile? frozen,CancellationToken ct)
+    {
+        if(frozen is null){if(env.IsProduction)throw new ApiException(409,"pipeline_approval_changed","生产阶段必须保留冻结的两级审批配置。");return [];}
+        var flow=await db.Set<ApprovalFlow>().AsNoTracking().SingleOrDefaultAsync(f=>f.Id==frozen.FlowId&&f.OrganizationId==organizationId&&f.Enabled,ct);var rules=await db.Set<ApprovalStep>().AsNoTracking().Where(s=>s.FlowId==frozen.FlowId).OrderBy(s=>s.StepOrder).Select(s=>new ApprovalRule(s.StepOrder,s.RoleCode,s.RequiredCount)).ToArrayAsync(ct);
+        if(flow is null||flow.Revision!=frozen.FlowRevision||(env.IsProduction&&env.ReleasePolicyId!=flow.Id)||rules.Length!=2||rules[0].StepOrder!=1||rules[1].StepOrder!=2||rules.Any(r=>r.RequiredCount is <1 or >5||string.IsNullOrWhiteSpace(r.RoleCode))||!CanonicalJson.Serialize(rules).AsSpan().SequenceEqual(CanonicalJson.Serialize(frozen.Rules)))throw new ApiException(409,"pipeline_approval_changed","阶段冻结的审批模板、修订、角色或席位已变化，请重新办理。");return rules;
+    }
     private static void ValidateRules(IReadOnlyList<ApprovalRule> rules) {if(rules.Count!=2||rules[0].StepOrder!=1||rules[1].StepOrder!=2||rules.Any(r=>r.RequiredCount is <1 or >5||string.IsNullOrWhiteSpace(r.RoleCode))) throw new ApiException(422,"invalid_approval_policy","首期生产审批需要顺序1和2两级，每级1到5名独立审核人。");}
     private static void RequireExpectedApproval(ReleaseRecord release,ApprovalTask task,int? step,string? hash)
     {

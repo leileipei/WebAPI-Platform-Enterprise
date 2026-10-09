@@ -212,7 +212,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Produces Stage `PreparePromotionAsync(Guid stageId, ActorContext actor, CancellationToken ct)`→`Task<PromotionDto>`；Promotion内部`CreateForStageWithinTransactionAsync(Guid stageId, DeliveryGateContext context, ActorContext actor, CancellationToken ct)`→`Task<ReleasePromotion>`，不对外接受任意关联；`ReleaseService.FreezeApprovalAsync`内部增加可空`PipelineApprovalProfile`参数，旧caller传null保持既有行为。Consumes P3直接前置Profile/P5阶段Artifact，P7补执行时重查。
 
-- [ ] **Step 1:** 测试严格相邻、rootHash等值、一次正式申请、非生产0基线合法/生产0拒绝、非生产无审批/两级模板、共享应用/纯JWT：
+- [x] **Step 1:** 测试严格相邻、rootHash等值、一次正式申请、非生产0基线合法/生产0拒绝、非生产无审批/两级模板、共享应用/纯JWT：
 
 ```csharp
 [Fact] async Task EmptyNonProductionCanInitializeButProductionCannot() {
@@ -227,10 +227,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelinePromotionTests|FullyQualifiedName~PipelineNonProductionApprovalTests'`行为RED，非生产0基线是真实规则例外而非放宽生产规则；错关联请求不能靠客户端设置GateOrigin通过。
-- [ ] **Step 3:** 实现Prepare事务内相邻创建和旧接口门禁。只当前ActiveStage、直接前置Passed/current/有效验收、同根hash；保存唯一Promotion和正式Attempt关联。旧mapping实际URL为`/release-promotions/{id}/mapping`，预检/submit沿用原URL及Revision。非生产无基线允许明确初始化，有基线仍验证；目标凭证/应用显式选择，禁止来源Secret复制。冻结非生产可选2级模板，源Stage不得部署审批；生产必须目标当前模板ID+修订一致，无审批仅免部署审批。冻结后候选编辑须新尝试，不复用批准。
-- [ ] **Step 4:** 两新类GREEN，完整`PromotionMappingTests`、`PromotionCredentialTests`、`PromotionSubmissionTests`；测试共享业务保留及JWT零APIKey已批准例外仍成立。
-- [ ] **Step 5:** 提交 `feat(pipeline): prepare adjacent environment promotions and stage approvals`。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter 'FullyQualifiedName~PipelinePromotionTests|FullyQualifiedName~PipelineNonProductionApprovalTests'`行为RED，非生产0基线是真实规则例外而非放宽生产规则；错关联请求不能靠客户端设置GateOrigin通过。
+- [x] **Step 3:** 实现Prepare事务内相邻创建和旧接口门禁。只当前ActiveStage、直接前置Passed/current/有效验收、同根hash；保存唯一Promotion和正式Attempt关联。旧mapping实际URL为`/release-promotions/{id}/mapping`，预检/submit沿用原URL及Revision。非生产无基线允许明确初始化，有基线仍验证；目标凭证/应用显式选择，禁止来源Secret复制。冻结非生产可选2级模板，源Stage不得部署审批；生产必须目标当前模板ID+修订一致，无审批仅免部署审批。冻结后候选编辑须新尝试，不复用批准。
+- [x] **Step 4:** 两新类GREEN，完整`PromotionMappingTests`、`PromotionCredentialTests`、`PromotionSubmissionTests`；测试共享业务保留及JWT零APIKey已批准例外仍成立。
+- [x] **Step 5:** 提交 `feat(pipeline): prepare adjacent environment promotions and stage approvals`。
 
 ## Task 7 (P7): 审批、下发与所有旧入口的执行门禁
 

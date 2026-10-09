@@ -119,5 +119,24 @@ public sealed class PipelineStageService(WebApiDbContext db,ScopeResolver scopes
   // The invalidation fact must commit before the caller receives the conflict.
   if(result.Artifact is null)throw new ApiException(409,result.FailureCode!,"阶段制品行为与根制品不一致，运行已失效，请重新建立流水线运行。");return result.Artifact;
  }
+ public async Task<PromotionDto> PreparePromotionAsync(Guid stageId,ActorContext actor,CancellationToken ct)
+ {
+  var initial=await StageAsync(stageId,ct);var scope=await scopes.EnvironmentAsync(initial.EnvironmentId,ct);
+  return await commands.ExecuteAsync(actor,scope,"pipeline.stage.prepare",async(_,token)=>{
+   await LockAsync(initial,token);var gate=await gates.ResolveStageAsync(stageId,actor,token);await gates.RequireStageWritableAsync(gate,actor,token);
+   await auth.RequireAsync(actor,"pipeline.run",new("environment",initial.EnvironmentId,scope),token);await auth.RequireAsync(actor,"release.create",new("environment",initial.EnvironmentId,scope),token);
+   if(initial.SourceStageId is not Guid sourceId)throw new ApiException(409,"pipeline_source_imported","来源阶段已导入实际发布，不建立部署晋级申请。");
+   var source=await StageAsync(sourceId,token);if(source.RunId!=initial.RunId||source.ProjectId!=initial.ProjectId||source.StageOrder!=initial.StageOrder-1||source.Status!="Passed"||source.StageArtifactId is not Guid artifactId||source.CurrentAttemptId is not Guid sourceAttemptId)throw new ApiException(409,"pipeline_predecessor_not_passed","只允许当前阶段的直接前置已通过阶段推进。");
+   var sourceAttempt=await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().SingleAsync(a=>a.Id==sourceAttemptId&&a.RunStageId==source.Id,token);
+   if(sourceAttempt.Status!="Passed"||sourceAttempt.AcceptanceId is not Guid acceptanceId)throw Stale();
+   var acceptance=await db.Set<ReleaseTestAcceptance>().AsNoTracking().SingleAsync(a=>a.Id==acceptanceId&&a.PipelineRunStageId==source.Id,token);await RequireAcceptedCurrentAsync(acceptance,actor,token);
+   var artifact=await artifacts.GetAsync(artifactId,actor,token);if(artifact.ArtifactHash!=gate.Pipeline!.RootArtifactHash||artifact.SourceEnvironmentId!=source.EnvironmentId)throw Stale();
+   return await idempotency.ExecuteAsync(new(actor.UserId,scope,"pipeline.stage.prepare",requestContext.IdempotencyKey),CanonicalJson.Serialize(new{stageId,gate.Pipeline.CurrentAttemptId}),async inner=>{
+    var attempt=await db.Set<ReleasePipelineStageAttempt>().SingleAsync(a=>a.Id==gate.Pipeline.CurrentAttemptId&&a.RunStageId==stageId,inner);
+    if(attempt.PromotionId is Guid existing){var prior=await db.Set<ReleasePromotion>().SingleAsync(p=>p.Id==existing&&p.PipelineRunStageId==stageId&&p.StageAttemptId==attempt.Id,inner);return PromotionMappingService.View(prior,artifact.ArtifactHash);}
+    var promotion=await ReleasePromotionService.CreateForStageWithinTransactionAsync(db,stageId,gate,artifact,acceptance,actor,inner);attempt.PromotionId=promotion.Id;attempt.Revision++;Append(initial,attempt.Id,"stage_promotion_prepared",actor.UserId,promotion.Id);return PromotionMappingService.View(promotion,artifact.ArtifactHash);
+   },token);
+  },ct);
+ }
  private void Append(ReleasePipelineRunStage stage,Guid? attempt,string reason,Guid actor,Guid related,string? from=null)=>db.Add(new ReleasePipelineEvent{RunId=stage.RunId,ProjectId=stage.ProjectId,StageId=stage.Id,AttemptId=attempt,FromStatus=from??stage.Status,ToStatus=stage.Status,ReasonCode=reason,ActorId=actor,RelatedId=related});
 }
