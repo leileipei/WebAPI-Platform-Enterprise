@@ -41,6 +41,8 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
         var captured=e.Properties.Where(p=>fields.Contains(p.Metadata.Name)||(e.Entity is Policy&&p.Metadata.Name is "Type" or "VersionNo")).ToDictionary(p=>p.Metadata.Name,p=>original?p.OriginalValue:p.CurrentValue);
         if(e.Entity is ReleaseArtifact or ReleaseVerification or VerificationReport)
             foreach(var property in e.Properties.Where(p=>new[]{"ArtifactId","PromotionId","SourceReleaseId","SourceEnvironmentId","ArtifactHash","SourceSnapshotHash","SnapshotHash","PolicyRevision","AccessAddressRevision","Result","Type","IsManual","ReportId","ReportHash","ContentType","SizeBytes","Sha256"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
+        if(e.Entity is ReleaseTestAcceptance or ReleasePromotionEvent)
+            foreach(var property in e.Properties.Where(p=>new[]{"ArtifactId","SourceEnvironmentId","AcceptanceId","PromotionId","EvidenceHash","PolicyRevision","VerificationIds","RequestedBy","ActedBy","ReasonCode"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
         if(e.Entity is ProjectDeliveryPolicy)
             foreach(var name in new[]{"Mode","SourceEnvironmentId","TargetEnvironmentId","RequiredTestTypes","VerificationValidityMinutes"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
         if(e.Entity is EnvironmentRecord)

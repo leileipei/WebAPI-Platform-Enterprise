@@ -99,11 +99,11 @@
 
 **Interfaces:** `RequestAsync(Guid artifactId,IReadOnlyList<Guid> verificationIds,ActorContext actor,CancellationToken ct) -> Task<TestAcceptanceDto>`；`ActAsync(Guid acceptanceId,string action,string comment,string? etag,ActorContext actor,CancellationToken ct) -> Task<TestAcceptanceDto>`，action=accept/reject/revoke。验收固定证据集合摘要；撤销新增事件不更改证据原记录。
 
-- [ ] **Step 1：写断言。** 缺必需类型、不同制品/来源、失败或过期证据拒绝；管理员申请人自批403；缺release.test.accept/来源写Scope/资料可见性拒绝；连接规则改变要重新申请；拒绝、撤销留原事实，重复命令不重复事件。
-- [ ] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter TestAcceptanceTests`。
-- [ ] **Step 3：实现。** 当前来源成功Release/运行配置/序列和入口需与证据一致；验收、撤销在治理事务持相同来源锁，B6/B7复用检查；不创建旧生产ApprovalTask替代测试验收。
-- [ ] **Step 4：GREEN。** 同命令和ApprovalEligibilityTests；确认测试验收不会赋予生产审批或发布权限。
-- [ ] **Step 5：隔离提交。** `feat(delivery): gate artifacts on independent test acceptance`。
+- [x] **Step 1：写断言。** 缺必需类型、不同制品/来源、失败或过期证据拒绝；管理员申请人自批403；缺release.test.accept/来源写Scope/资料可见性拒绝；连接规则改变要重新申请；拒绝、撤销留原事实，重复命令不重复事件。
+- [x] **Step 2：RED。** `./scripts/check-contracts.sh integration --filter TestAcceptanceTests`。
+- [x] **Step 3：实现。** 当前来源成功Release/运行配置/序列和入口需与证据一致；验收、撤销在治理事务持相同来源锁，B6/B7复用检查；不创建旧生产ApprovalTask替代测试验收。
+- [x] **Step 4：GREEN。** 同命令和ApprovalEligibilityTests；确认测试验收不会赋予生产审批或发布权限。
+- [x] **Step 5：隔离提交。** `feat(delivery): gate artifacts on independent test acceptance`。
 
 ## Task 5 (B5)：目标映射、资源准备与显式凭证候选
 

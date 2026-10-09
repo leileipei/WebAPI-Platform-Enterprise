@@ -9,3 +9,6 @@ public sealed record ReleaseArtifactDto(Guid Id,Guid OrganizationId,Guid Project
 public sealed record RecordVerificationRequest(string Type,string Result,DateTimeOffset StartedAt,DateTimeOffset FinishedAt,Guid? ReportId=null,string Comment="");
 public sealed record ReleaseVerificationDto(Guid Id,Guid ArtifactId,Guid? PromotionId,Guid ReleaseId,Guid EnvironmentId,long ConfigVersion,long DeploymentSequence,string SnapshotHash,long AccessAddressRevision,long PolicyRevision,string Phase,string Type,string Result,bool IsManual,Guid? ReportId,string? ReportHash,string Comment,DateTimeOffset StartedAt,DateTimeOffset FinishedAt,DateTimeOffset ExpiresAt,Guid CreatedBy,DateTimeOffset CreatedAt);
 public sealed record VerificationReportDto(Guid Id,Guid? ArtifactId,Guid? PromotionId,string ContentType,long SizeBytes,string Sha256,Guid CreatedBy,DateTimeOffset CreatedAt);
+public sealed record RequestTestAcceptanceRequest(IReadOnlyList<Guid> VerificationIds);
+public sealed record TestAcceptanceActionRequest(string Comment="");
+public sealed record TestAcceptanceDto(Guid Id,Guid ArtifactId,Guid SourceEnvironmentId,string ArtifactHash,IReadOnlyList<Guid> VerificationIds,string EvidenceHash,long PolicyRevision,string Status,long Revision,Guid RequestedBy,Guid? ActedBy,string Comment,DateTimeOffset CreatedAt,DateTimeOffset? ActedAt,DateTimeOffset? ExpiresAt);
