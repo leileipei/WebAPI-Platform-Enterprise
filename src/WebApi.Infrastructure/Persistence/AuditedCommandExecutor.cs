@@ -43,6 +43,8 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             foreach(var property in e.Properties.Where(p=>new[]{"ArtifactId","PromotionId","SourceReleaseId","SourceEnvironmentId","ArtifactHash","SourceSnapshotHash","SnapshotHash","PolicyRevision","AccessAddressRevision","Result","Type","IsManual","ReportId","ReportHash","ContentType","SizeBytes","Sha256"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
         if(e.Entity is ReleaseTestAcceptance or ReleasePromotionEvent)
             foreach(var property in e.Properties.Where(p=>new[]{"ArtifactId","SourceEnvironmentId","AcceptanceId","PromotionId","EvidenceHash","PolicyRevision","VerificationIds","RequestedBy","ActedBy","ReasonCode"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
+        if(e.Entity is ReleaseVerification or ReleaseTestAcceptance or ReleasePromotion && e.Property("PipelineRunStageId").CurrentValue is not null)
+            foreach(var property in e.Properties.Where(p=>new[]{"PipelineRunStageId","StageAttemptId","ProfileHash","GateOrigin"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
         if(e.Entity is ReleasePromotion)
         {
             foreach(var name in new[]{"ArtifactId","SourceReleaseId","TargetReleaseId","AcceptanceId","SourceEnvironmentId","TargetEnvironmentId","MappingRevision","BaselineConfigVersion","TargetAccessAddressRevision","CandidateHash","RequestedBy"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
@@ -53,7 +55,7 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             }
         }
         if(e.Entity is ReleasePipeline or ReleasePipelineVersion or ReleasePipelineRun or ReleasePipelineRunStage or ReleasePipelineStageAttempt or ReleasePipelineEvent)
-            foreach(var property in e.Properties.Where(p=>new[]{"PipelineId","PipelineVersionId","DefinitionHash","VersionNo","RunId","StageId","RunStageId","StageOrder","CurrentStageOrder","CurrentAttemptId","OriginAttemptId","AttemptNo","RootArtifactId","RootArtifactHash","SourceReleaseId","SourceEnvironmentId","StageArtifactId","ArtifactId","AcceptanceId","PromotionId","ActualReleaseId","PolicyRevision","ProfileHash","ActivatedAt","ReasonCode","RelatedId"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
+            foreach(var property in e.Properties.Where(p=>new[]{"PipelineId","PipelineVersionId","DefinitionHash","VersionNo","RunId","StageId","AttemptId","RunStageId","StageOrder","CurrentStageOrder","CurrentAttemptId","OriginAttemptId","AttemptNo","RootArtifactId","RootArtifactHash","SourceReleaseId","SourceEnvironmentId","StageArtifactId","ArtifactId","AcceptanceId","PromotionId","ActualReleaseId","PolicyRevision","ProfileHash","ActivatedAt","ReasonCode","RelatedId"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
         if(e.Entity is ProjectDeliveryPolicy)
             foreach(var name in new[]{"Mode","SourceEnvironmentId","TargetEnvironmentId","RequiredTestTypes","VerificationValidityMinutes","ActivePipelineVersionId"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
         if(e.Entity is EnvironmentRecord)

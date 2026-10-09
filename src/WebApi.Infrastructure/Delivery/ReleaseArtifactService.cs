@@ -18,7 +18,7 @@ namespace WebApi.Infrastructure.Delivery;
 
 public sealed class ReleaseArtifactService(WebApiDbContext db, ScopeResolver scopes, AuthorizationService auth,
     AuditedCommandExecutor commands, IdempotentCommandExecutor idempotency, CommandRequestContext requestContext,
-    RunningDeploymentReader running, HistoricalSnapshotService history, SnapshotCompiler compiler, PolicyAccess policyAccess)
+    RunningDeploymentReader running, HistoricalSnapshotService history, SnapshotCompiler compiler, PolicyAccess policyAccess,DeliveryLockCoordinator locks)
 {
     public async Task<ReleaseArtifactDto> CreateAsync(Guid sourceReleaseId, ActorContext actor, CancellationToken ct)
     {
@@ -26,23 +26,22 @@ public sealed class ReleaseArtifactService(WebApiDbContext db, ScopeResolver sco
         var scope = await scopes.EnvironmentAsync(initial.EnvironmentId, ct);
         return await commands.ExecuteAsync(actor, scope, "release.artifact.create", async (_, token) =>
         {
-            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={initial.EnvironmentId} FOR UPDATE", token);
+            await locks.LockProjectAsync(scope.ProjectId!.Value,token);await locks.LockEnvironmentsAsync([initial.EnvironmentId],token);
             await auth.RequireAsync(actor, "release.create", new("environment", initial.EnvironmentId, scope), token);
-            var source = await RequireSourceAsync(sourceReleaseId, actor, token);
-            var bytes = ReleaseArtifactCanonicalizer.Serialize(source.Content);
-            var hash = ReleaseArtifactCanonicalizer.Hash(source.Content);
-            return await idempotency.ExecuteAsync(new(actor.UserId, scope, "release.artifact.create", requestContext.IdempotencyKey), CanonicalJson.Serialize(new { sourceReleaseId }), async inner =>
-            {
-                var row = await db.Set<ReleaseArtifact>().SingleOrDefaultAsync(a => a.SourceReleaseId == sourceReleaseId && a.ArtifactHash == hash, inner);
-                if (row is null)
-                {
-                    row = new() { OrganizationId = scope.OrganizationId, ProjectId = scope.ProjectId!.Value, SourceEnvironmentId = initial.EnvironmentId, SourceReleaseId = sourceReleaseId, CanonicalContent = Encoding.UTF8.GetString(bytes), ArtifactHash = hash, SourceSnapshotHash = source.Deployment.Snapshot.Hash, CreatedBy = actor.UserId };
-                    db.Add(row);
-                }
-                else if (row.SourceSnapshotHash != source.Deployment.Snapshot.Hash) throw Invalid();
-                return View(row);
-            }, token);
+            await RequireSourceAsync(sourceReleaseId, actor, token);
+            return await idempotency.ExecuteAsync(new(actor.UserId, scope, "release.artifact.create", requestContext.IdempotencyKey), CanonicalJson.Serialize(new { sourceReleaseId }), inner=>CreateWithinTransactionAsync(sourceReleaseId,actor,inner),token);
         }, ct);
+    }
+
+    internal async Task<ReleaseArtifactDto> CreateWithinTransactionAsync(Guid releaseId,ActorContext actor,CancellationToken ct)
+    {
+        if(db.Database.CurrentTransaction is null)throw new InvalidOperationException("Artifact materialization requires its caller's governance transaction.");
+        var release=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==releaseId,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(release.EnvironmentId,ct);
+        await auth.RequireAsync(actor,"release.create",new("environment",release.EnvironmentId,scope),ct);var source=await RequireSourceAsync(releaseId,actor,ct);
+        var bytes=ReleaseArtifactCanonicalizer.Serialize(source.Content);var hash=ReleaseArtifactCanonicalizer.Hash(source.Content);
+        var row=await db.Set<ReleaseArtifact>().SingleOrDefaultAsync(a=>a.SourceReleaseId==releaseId&&a.ArtifactHash==hash,ct);
+        if(row is null){row=new(){OrganizationId=scope.OrganizationId,ProjectId=scope.ProjectId!.Value,SourceEnvironmentId=release.EnvironmentId,SourceReleaseId=releaseId,CanonicalContent=Encoding.UTF8.GetString(bytes),ArtifactHash=hash,SourceSnapshotHash=source.Deployment.Snapshot.Hash,CreatedBy=actor.UserId};db.Add(row);}
+        else if(row.SourceSnapshotHash!=source.Deployment.Snapshot.Hash)throw Invalid();return View(row);
     }
 
     public async Task<PageResult<ReleaseArtifactSummaryDto>> ListAsync(Guid environmentId,int page,int size,ActorContext actor,CancellationToken ct)

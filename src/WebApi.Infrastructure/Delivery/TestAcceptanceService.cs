@@ -11,7 +11,7 @@ using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Delivery;
 
 public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactService artifacts,ScopeResolver scopes,AuthorizationService auth,
-    AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks,DeliveryGateContextResolver gates)
+    AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks,DeliveryGateContextResolver gates,WebApi.Infrastructure.Delivery.Pipelines.PipelineStageService stages)
 {
     private static readonly string[] defaultTypes=["InterfaceFunction","Integration","ContractCompatibility"];
     private static ApiException Stale()=>new(409,"test_evidence_not_current","测试证据、来源运行状态、入口或连接规则已变化，请重新测试并申请验收。");
@@ -63,7 +63,7 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
     }
     public async Task<TestAcceptanceDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct)
     {
-        var row=await db.Set<ReleaseTestAcceptance>().AsNoTracking().SingleOrDefaultAsync(a=>a.Id==id,ct)??throw ScopeResolver.Missing();var artifact=await artifacts.GetAsync(row.ArtifactId,actor,ct);
+        var row=await db.Set<ReleaseTestAcceptance>().AsNoTracking().SingleOrDefaultAsync(a=>a.Id==id,ct)??throw ScopeResolver.Missing();if(row.PipelineRunStageId is not null)return await stages.AcceptanceViewAsync(row,actor,ct);var artifact=await artifacts.GetAsync(row.ArtifactId,actor,ct);
         if(artifact.ProjectId!=row.ProjectId||artifact.OrganizationId!=row.OrganizationId||artifact.SourceEnvironmentId!=row.SourceEnvironmentId)throw ScopeResolver.Missing();
         var evidence=await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>row.VerificationIds.Contains(v.Id)&&v.ArtifactId==row.ArtifactId&&v.Phase=="SourceTest"&&v.PipelineRunStageId==null).ToArrayAsync(ct);
         var eligible=await EligibilityFactsAsync(artifact,actor,ct);var scope=await scopes.EnvironmentAsync(artifact.SourceEnvironmentId,ct);var canAct=await auth.CanAsync(actor,"release.test.accept",new("environment",artifact.SourceEnvironmentId,scope),ct);
@@ -72,7 +72,7 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
     public async Task<IReadOnlyList<TestAcceptanceDto>> ListAsync(Guid artifactId,ActorContext actor,CancellationToken ct)
     {
         var artifact=await artifacts.GetAsync(artifactId,actor,ct);
-        var rows=await db.Set<ReleaseTestAcceptance>().AsNoTracking().Where(a=>a.ArtifactId==artifactId).OrderByDescending(a=>a.CreatedAt).ThenBy(a=>a.Id).Take(100).ToArrayAsync(ct);
+        var rows=await db.Set<ReleaseTestAcceptance>().AsNoTracking().Where(a=>a.ArtifactId==artifactId&&a.PipelineRunStageId==null).OrderByDescending(a=>a.CreatedAt).ThenBy(a=>a.Id).Take(100).ToArrayAsync(ct);
         var ids=rows.SelectMany(a=>a.VerificationIds).Distinct().ToArray();
         var evidence=await db.Set<ReleaseVerification>().AsNoTracking().Where(v=>ids.Contains(v.Id)&&v.ArtifactId==artifactId&&v.Phase=="SourceTest"&&v.PipelineRunStageId==null).ToArrayAsync(ct);
         var eligible=await EligibilityFactsAsync(artifact,actor,ct);var scope=await scopes.EnvironmentAsync(artifact.SourceEnvironmentId,ct);var canAct=await auth.CanAsync(actor,"release.test.accept",new("environment",artifact.SourceEnvironmentId,scope),ct);
@@ -88,6 +88,7 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
             return await idempotency.ExecuteAsync(new(actor.UserId,scope,"test_acceptance."+action,requestContext.IdempotencyKey),CanonicalJson.Serialize(new{acceptanceId,action,comment=comment??"",etag}),async inner=>{
                 await LockAsync(initial.SourceEnvironmentId,scope.ProjectId!.Value,acceptanceId,inner);
                 var row=await db.Set<ReleaseTestAcceptance>().SingleAsync(a=>a.Id==acceptanceId,inner);RevisionTag.Require(etag,row.Revision);
+                if(row.PipelineRunStageId is not null)return await stages.ActAcceptanceWithinTransactionAsync(row,action,comment??"",actor,inner);
                 if(action=="revoke"?row.Status!="Accepted":row.Status!="Requested")throw new ApiException(409,"test_acceptance_state","当前验收状态不允许此操作。");
                 var artifact=await artifacts.GetAsync(row.ArtifactId,actor,inner);
                 ReleaseVerification[] evidence;
@@ -105,6 +106,7 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
     public async Task<ReleaseTestAcceptance> RequireAcceptedCurrentAsync(Guid acceptanceId,Guid artifactId,ActorContext actor,CancellationToken ct)
     {
         var row=await db.Set<ReleaseTestAcceptance>().AsNoTracking().SingleOrDefaultAsync(a=>a.Id==acceptanceId&&a.ArtifactId==artifactId,ct)??throw ScopeResolver.Missing();
+        if(row.PipelineRunStageId is not null)return await stages.RequireAcceptedCurrentAsync(row,actor,ct);
         if(row.Status!="Accepted"||row.ActedBy is not Guid acceptedBy||acceptedBy==row.RequestedBy)throw Stale();
         var artifact=await artifacts.GetAsync(artifactId,actor,ct);var evidence=await RequireEvidenceAsync(artifact,row.VerificationIds,actor,ct);
         if(row.PolicyRevision!=evidence.PolicyRevision||row.EvidenceHash!=EvidenceHash(artifact,evidence.Rows))throw Stale();
@@ -146,6 +148,6 @@ public sealed class TestAcceptanceService(WebApiDbContext db,ReleaseArtifactServ
         }
     }
     private void Append(ReleaseTestAcceptance row,string? before,string status,string reason,Guid actor)=>db.Add(new ReleasePromotionEvent{OrganizationId=row.OrganizationId,ProjectId=row.ProjectId,AcceptanceId=row.Id,EnvironmentId=row.SourceEnvironmentId,Phase="TestAcceptance",FromStatus=before,ToStatus=status,ReasonCode=reason,ActorId=actor});
-    private static string EvidenceHash(ReleaseArtifactDto artifact,IReadOnlyList<ReleaseVerification> facts)=>Convert.ToHexStringLower(SHA256.HashData(CanonicalJson.Serialize(new{artifactHash=artifact.ArtifactHash,evidence=facts.OrderBy(v=>v.Id).Select(v=>new{v.Id,v.ArtifactId,v.ReleaseId,v.EnvironmentId,v.ConfigVersion,v.DeploymentSequence,v.SnapshotHash,v.AccessAddressRevision,v.AccessContextJson,v.PolicyRevision,v.Type,v.Result,v.IsManual,v.ReportId,v.ReportHash,v.StartedAt,v.FinishedAt,v.ExpiresAt,v.CreatedBy})})));
-    private static TestAcceptanceDto View(ReleaseTestAcceptance row,ReleaseArtifactDto artifact,IReadOnlyList<ReleaseVerification> evidence)=>new(row.Id,row.ArtifactId,row.SourceEnvironmentId,artifact.ArtifactHash,row.VerificationIds,row.EvidenceHash,row.PolicyRevision,row.Status,row.Revision,row.RequestedBy,row.ActedBy,row.Comment,row.CreatedAt,row.ActedAt,evidence.Count==0?null:evidence.Min(v=>v.ExpiresAt));
+    internal static string EvidenceHash(ReleaseArtifactDto artifact,IReadOnlyList<ReleaseVerification> facts)=>Convert.ToHexStringLower(SHA256.HashData(CanonicalJson.Serialize(new{artifactHash=artifact.ArtifactHash,evidence=facts.OrderBy(v=>v.Id).Select(v=>new{v.Id,v.ArtifactId,v.ReleaseId,v.EnvironmentId,v.ConfigVersion,v.DeploymentSequence,v.SnapshotHash,v.AccessAddressRevision,v.AccessContextJson,v.PolicyRevision,v.Type,v.Result,v.IsManual,v.ReportId,v.ReportHash,v.StartedAt,v.FinishedAt,v.ExpiresAt,v.CreatedBy})})));
+    internal static TestAcceptanceDto View(ReleaseTestAcceptance row,ReleaseArtifactDto artifact,IReadOnlyList<ReleaseVerification> evidence)=>new(row.Id,row.ArtifactId,row.SourceEnvironmentId,artifact.ArtifactHash,row.VerificationIds,row.EvidenceHash,row.PolicyRevision,row.Status,row.Revision,row.RequestedBy,row.ActedBy,row.Comment,row.CreatedAt,row.ActedAt,evidence.Count==0?null:evidence.Min(v=>v.ExpiresAt));
 }

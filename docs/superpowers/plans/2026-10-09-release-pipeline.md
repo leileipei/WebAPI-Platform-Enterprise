@@ -184,7 +184,7 @@ record PipelineActionRequest(string Comment = "");
 
 **Interfaces:** Stage `MaterializeArtifactAsync(Guid stageId, ActorContext actor, CancellationToken ct)`→`Task<ReleaseArtifactDto>`；`RecordVerificationAsync(Guid stageId, PipelineStageVerificationRequest request, ActorContext actor, CancellationToken ct)`→现有verification回执；`RequestAcceptanceAsync(Guid stageId, PipelineAcceptanceRequest request, ActorContext actor, CancellationToken ct)`→现有acceptance回执；`GetVerificationContextAsync(Guid stageId, ActorContext actor, CancellationToken ct)`→`Task<PipelineVerificationContextDto>`。Artifact抽取`CreateWithinTransactionAsync(Guid releaseId, ActorContext actor, CancellationToken ct)`共用内核，caller拥有事务，仍核验原release.create。验收处理/撤销仍走既有ID端点，P8投影后果。
 
-- [ ] **Step 1:** 编写来源/中间阶段不同类型与时限、未绑定制品拒绝、hash不等失效、报告实际归属、不同Profile/过期/早于部署拒绝、独立申请人、旧接口不选择Profile：
+- [x] **Step 1:** 编写来源/中间阶段不同类型与时限、未绑定制品拒绝、hash不等失效、报告实际归属、不同Profile/过期/早于部署拒绝、独立申请人、旧接口不选择Profile：
 
 ```csharp
 [Fact] async Task FirstSourceMayRegisterRealTestsBeforeRunStartedButAfterDeployment() {
@@ -201,10 +201,10 @@ record PipelineActionRequest(string Comment = "");
 }
 ```
 
-- [ ] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter FullyQualifiedName~PipelineStageEvidenceTests`，必须在实际请求/授权/时间断言处RED；种子分别说明已部署但非真实Gateway证据。
-- [ ] **Step 3:** 实现新Stage上下文/证据/acceptance-requests/materialize-artifact端点，非生产制品生成须全ACK、pipeline.run+release.create及实际可见，当前Artifact hash=rootHash；幂等重试只绑定同一事实。摘要含CurrentAttemptId/实际Release、配置、序列、入口、ProfileHash；缺失422/过旧409；wrapper摘要为唯一输入，若Evidence内原可空ExpectedContextHash另填不同值则422。时间下限第一尝试部署完成、第二次起max(部署完成,ActivatedAt)。非生产验收排除Run创建人/验收请求人/Stage正式发布申请人；现有连接保持原规则。证据/验收存当前尝试，附件Owner不扩展。
-- [ ] **Step 4:** 新类GREEN，加`ReleaseVerificationTests`、`TestAcceptanceTests`、`VerificationReportTests`；确认三类测试每个环境独立，人工报告链接不会被访问。
-- [ ] **Step 5:** 提交 `feat(pipeline): bind stage artifacts evidence and independent acceptance`。
+- [x] **Step 2:** 运行`./scripts/check-contracts.sh integration --filter FullyQualifiedName~PipelineStageEvidenceTests`，必须在实际请求/授权/时间断言处RED；种子分别说明已部署但非真实Gateway证据。
+- [x] **Step 3:** 实现新Stage上下文/证据/acceptance-requests/materialize-artifact端点，非生产制品生成须全ACK、pipeline.run+release.create及实际可见，当前Artifact hash=rootHash；幂等重试只绑定同一事实。摘要含CurrentAttemptId/实际Release、配置、序列、入口、ProfileHash；缺失422/过旧409；wrapper摘要为唯一输入，若Evidence内原可空ExpectedContextHash另填不同值则422。时间下限第一尝试部署完成、第二次起max(部署完成,ActivatedAt)。非生产验收排除Run创建人/验收请求人/Stage正式发布申请人；现有连接保持原规则。证据/验收存当前尝试，附件Owner不扩展。
+- [x] **Step 4:** 新类GREEN，加`ReleaseVerificationTests`、`TestAcceptanceTests`、`VerificationReportTests`；确认三类测试每个环境独立，人工报告链接不会被访问。
+- [x] **Step 5:** 提交 `feat(pipeline): bind stage artifacts evidence and independent acceptance`。
 
 ## Task 6 (P6): 相邻晋级、非生产初始基线及可选审批
 

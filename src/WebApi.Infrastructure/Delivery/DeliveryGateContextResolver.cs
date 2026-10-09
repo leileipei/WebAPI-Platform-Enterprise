@@ -23,13 +23,15 @@ public sealed class DeliveryGateContextResolver(WebApiDbContext db,ScopeResolver
   await RequireReadsAsync(promotion.ProjectId,[promotion.SourceEnvironmentId,promotion.TargetEnvironmentId],actor,ct);
   return await ResolvePromotionFactsAsync(promotion,ct);
  }
- public async Task<DeliveryGateContext> ResolveStageAsync(Guid stageId,ActorContext actor,CancellationToken ct)
+ public Task<DeliveryGateContext> ResolveStageAsync(Guid stageId,ActorContext actor,CancellationToken ct)=>ReadStageAsync(stageId,actor,ct,true);
+ internal Task<DeliveryGateContext> ResolveHistoricalStageAsync(Guid stageId,ActorContext actor,CancellationToken ct)=>ReadStageAsync(stageId,actor,ct,false);
+ private async Task<DeliveryGateContext> ReadStageAsync(Guid stageId,ActorContext actor,CancellationToken ct,bool requireActivePolicy)
  {
   var stage=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleOrDefaultAsync(s=>s.Id==stageId,ct)??throw ScopeResolver.Missing();
   var environments=new List<Guid>{stage.EnvironmentId};
   if(stage.SourceStageId is Guid sourceId){var source=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleOrDefaultAsync(s=>s.Id==sourceId&&s.RunId==stage.RunId,ct)??throw Changed();environments.Add(source.EnvironmentId);}
   await RequireReadsAsync(stage.ProjectId,environments,actor,ct);
-  return await ResolveStageFactsAsync(stageId,null,ct);
+  return await ResolveStageFactsAsync(stageId,null,ct,requireActivePolicy);
  }
  public async Task<DeliveryGateContext> ResolveConnectionAsync(Guid projectId,ActorContext actor,CancellationToken ct)
  {

@@ -22,3 +22,6 @@ public sealed record PipelineRunStageDto(Guid Id,Guid RunId,int StageOrder,Guid 
 public sealed record PipelineRunDto(Guid Id,Guid ProjectId,Guid PipelineVersionId,string DefinitionHash,Guid RootArtifactId,string RootArtifactHash,
     Guid SourceEnvironmentId,Guid SourceReleaseId,long SourceConfigVersion,long SourceDeploymentSequence,long PolicyRevision,
     string Status,int CurrentStageOrder,long Revision,Guid CreatedBy,DateTimeOffset CreatedAt,IReadOnlyList<PipelineRunStageDto> Stages,string Coverage="Complete");
+public sealed record PipelineVerificationContextDto(string ContextHash,Guid RunId,Guid StageId,Guid CurrentAttemptId,Guid ArtifactId,
+    long PolicyRevision,string DefinitionHash,string RootArtifactHash,Guid ReleaseId,long ConfigVersion,long DeploymentSequence,string SnapshotHash,long AccessAddressRevision,string PublicOrigin,
+    string BasePath,string ProfileHash,IReadOnlyList<string> RequiredTypes,int EvidenceValidityMinutes,DateTimeOffset EvidenceNotBefore,DateTimeOffset DeadlineAt);
