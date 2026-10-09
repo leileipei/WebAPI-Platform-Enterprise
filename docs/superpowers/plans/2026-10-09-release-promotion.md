@@ -161,11 +161,11 @@
 
 **Interfaces:** `deliveryReducer(state,event) -> state` 同时绑定actorAuthority、真实Source/Target、epoch；新路由`/delivery/artifacts`、`/delivery/artifacts/{id}`、`/delivery/policy`。表单消费真实资格与B3/B4接口，上传/登记、申请/验收分开动作，服务器实际ID作为关联。
 
-- [ ] **Step 1：写断言。** 人工报告明确标识；缺权限/申请人验收按钮不可用但服务端也拒绝；规则Legacy显示未启用门禁；旧响应不覆盖其他制品，撤权清空报告与资料；真实证据默认三类与有效期显示。
-- [ ] **Step 2：RED。** `"$WEBAPI_NODE" --test console/tests/delivery-artifact.test.mjs`。
-- [ ] **Step 3：实现。** 新增制品列表/详情、报告下载与验收记录、连接规则编辑；原发布详情保留字段和动作，只增生成制品与追溯入口。侧栏更名而旧路由保留，无任意Stage编辑器假入口。
-- [ ] **Step 4：GREEN。** 新测试与check-console；实际浏览器1440/1280完成报告上传和独立验收，键盘焦点/失权/冲突检查。
-- [ ] **Step 5：隔离提交。** `feat(console): manage verified artifacts and delivery policy`。
+- [x] **Step 1：写断言。** 人工报告明确标识；缺权限/申请人验收按钮不可用但服务端也拒绝；规则Legacy显示未启用门禁；旧响应不覆盖其他制品，撤权清空报告与资料；真实证据默认三类与有效期显示。
+- [x] **Step 2：RED。** `"$WEBAPI_NODE" --test console/tests/delivery-artifact.test.mjs`。
+- [x] **Step 3：实现。** 新增制品列表/详情、报告下载与验收记录、连接规则编辑；原发布详情保留字段和动作，只增生成制品与追溯入口。侧栏更名而旧路由保留，无任意Stage编辑器假入口。
+- [x] **Step 4：GREEN。** 新测试与check-console；实际浏览器1440/1280完成报告上传和独立验收，键盘焦点/失权/冲突检查。
+- [x] **Step 5：隔离提交。** `feat(console): manage verified artifacts and delivery policy`。
 
 ## Task 10 (B10)：晋级向导、审批差异和交付总览
 
