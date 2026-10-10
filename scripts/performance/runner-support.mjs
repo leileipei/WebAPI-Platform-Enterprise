@@ -37,20 +37,20 @@ export async function assembleValidation(repo,directory){
   for(const root of roots)await walk(root);
   return {source:revision,harness:'working-tree-validation',productTree:(await command('git',['-C',repo,'rev-parse',revision+':src'])).stdout.trim(),immutable:false,...await hashHarnessFiles(directory,files)};
 }
-export async function build(manifest,directory,identity,resultDirectory){
+export async function build(manifest,directory,identity,resultDirectory,run=docker){
   const project=manifest.project,context=path.dirname(directory),publish=path.join(context,'publish');await fs.mkdir(publish);
-  const seed='webapi-enterprise-core-test_nuget-test';await docker(['volume','inspect',seed]);
+  const seed='webapi-enterprise-core-test_nuget-test';await run(['volume','inspect',seed]);
   const script=['set -eu','export DOTNET_CLI_TELEMETRY_OPTOUT=1 NUGET_PACKAGES=/build/.nuget','mkdir -p /build/.nuget','cp -a /nuget-seed/. /build/.nuget/',
     'dotnet restore tools/WebApi.PerformanceHost/WebApi.PerformanceHost.csproj --locked-mode',
     'dotnet publish tools/WebApi.PerformanceHost/WebApi.PerformanceHost.csproj --configuration Release --no-restore --output /build/publish -p:SourceRevisionId='+identity.source].join('\n');
   let built;
-  try {built=await docker(['run','--rm','--cpus','4','--memory','4g','--label','com.docker.compose.project='+project,'--label','com.webapi.performance.owner='+manifest.owner,'--workdir','/build/source','--mount',`type=bind,src=${context},dst=/build`,'--mount',`type=volume,src=${seed},dst=/nuget-seed,readonly`,sdk,'bash','-c',script]);}
+  try {built=await run(['run','--rm','--cpus','4','--memory','4g','--label','com.docker.compose.project='+project,'--label','com.webapi.performance.owner='+manifest.owner,'--workdir','/build/source','--mount',`type=bind,src=${context},dst=/build`,'--mount',`type=volume,src=${seed},dst=/nuget-seed,readonly`,sdk,'bash','-c',script]);}
   catch(error){await fs.writeFile(path.join(resultDirectory,'build.log'),(error.stdout??'')+(error.stderr??''));throw Error('Fixture build failed; see build.log');}
   await fs.writeFile(path.join(resultDirectory,'build.log'),built.stdout+built.stderr);
   await fs.copyFile(path.join(directory,'deploy/performance/Dockerfile'),path.join(context,'Dockerfile'));
-  const tag=`webapi-performance:${manifest.owner}`;
-  await docker(['build','--build-arg','SDK_IMAGE='+sdk,'--build-arg','SOURCE_REVISION='+identity.source,'--build-arg','HARNESS_REVISION='+identity.harness,'--tag',tag,context]);
-  const image=JSON.parse((await docker(['image','inspect',tag])).stdout)[0];
+  const tag=`webapi-performance:${manifest.owner}-${identity.source}-${identity.harness}`;
+  await run(['build','--build-arg','SDK_IMAGE='+sdk,'--build-arg','SOURCE_REVISION='+identity.source,'--build-arg','HARNESS_REVISION='+identity.harness,'--tag',tag,context]);
+  const image=JSON.parse((await run(['image','inspect',tag])).stdout)[0];
   if(image.Config.Labels['org.opencontainers.image.revision']!==identity.source||image.Config.Labels['com.webapi.performance.harness']!==identity.harness)throw Error('Image source identity mismatch');
   const hashes={};for(const file of await fs.readdir(publish))if(file.endsWith('.dll'))hashes[file]=createHash('sha256').update(await fs.readFile(path.join(publish,file))).digest('hex');
   return {imageId:image.Id,sdk,runtimeBase:sdk,fixtureUid:image.Config.User,assemblies:hashes};
