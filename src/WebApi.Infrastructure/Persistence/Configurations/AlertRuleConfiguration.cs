@@ -25,6 +25,7 @@ public sealed class AlertRuleConfiguration:IEntityTypeConfiguration<AlertRule>
         b.Property(x=>x.Name).HasMaxLength(128);b.Property(x=>x.NormalizedName).HasMaxLength(128);
         b.Property(x=>x.Expression).HasMaxLength(256);
         b.HasIndex(x=>new{x.OrganizationId,x.ProjectId,x.EnvironmentId,x.NormalizedName}).IsUnique().AreNullsDistinct(false);
+        b.HasIndex(x=>new{x.OrganizationId,x.NormalizedName,x.Id}).HasDatabaseName("ix_alert_rules_organization_name_id");
         b.HasAlternateKey(x=>new{x.Id,x.OrganizationId});
         b.ToTable(t=>{
             t.HasCheckConstraint("ck_alert_rule_scope","environment_id IS NULL OR project_id IS NOT NULL");

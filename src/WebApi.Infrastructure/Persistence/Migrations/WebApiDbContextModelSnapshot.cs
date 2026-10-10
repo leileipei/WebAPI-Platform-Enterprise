@@ -307,6 +307,10 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("status <> 'Resolved'");
 
+                    b.HasIndex("OrganizationId", "ProjectId", "StartedAt", "Id")
+                        .IsDescending(false, false, true, true)
+                        .HasDatabaseName("ix_alert_events_organization_project_started_id");
+
                     b.HasIndex("RuleId", "LogicRevision", "EnvironmentId", "ResourceKey", "OccurrenceNo")
                         .IsUnique();
 
@@ -483,6 +487,9 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasIndex("EnvironmentId", "ProjectId");
 
                     b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("OrganizationId", "NormalizedName", "Id")
+                        .HasDatabaseName("ix_alert_rules_organization_name_id");
 
                     b.HasIndex("OrganizationId", "ProjectId", "EnvironmentId", "NormalizedName")
                         .IsUnique();
@@ -868,6 +875,8 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("ck_route_methods_timeout", "cardinality(methods) > 0 AND timeout_ms > 0");
                         });
+
+                    b.HasAnnotation("WebApi:ManagedRouteOrderIndexDefinition", "a552f9d4edb81648f93a204b59d85e4e1db041439f35a7d4d9885949e18b89cd");
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ApiSchema", b =>
@@ -2458,6 +2467,9 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrganizationId");
 
                     b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("OrganizationId", "Name", "Id")
+                        .HasDatabaseName("ix_policies_organization_name_id");
 
                     b.ToTable("policies", (string)null);
                 });

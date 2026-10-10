@@ -2385,3 +2385,42 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261010091247_GatewayQueryIndexes') THEN
+    CREATE INDEX ix_api_routes_environment_order_path_id ON api_routes (environment_id, ((CASE WHEN normalized_path LIKE '%{*}%' THEN 2 WHEN normalized_path LIKE '%{}%' THEN 1 ELSE 0 END) * 2000000 - priority), path, id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261010091247_GatewayQueryIndexes') THEN
+    CREATE INDEX ix_policies_organization_name_id ON policies (organization_id, name, id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261010091247_GatewayQueryIndexes') THEN
+    CREATE INDEX ix_alert_rules_organization_name_id ON alert_rules (organization_id, normalized_name, id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261010091247_GatewayQueryIndexes') THEN
+    CREATE INDEX ix_alert_events_organization_project_started_id ON alert_events (organization_id, project_id, started_at DESC, id DESC);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261010091247_GatewayQueryIndexes') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261010091247_GatewayQueryIndexes', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;

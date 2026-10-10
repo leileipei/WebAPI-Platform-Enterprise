@@ -7,6 +7,9 @@ public sealed class PolicyConfiguration : IEntityTypeConfiguration<Policy>
     public void Configure(EntityTypeBuilder<Policy> b)
     {
         b.ToTable("policies"); b.HasKey(x => x.Id);
+        // Keep the existing FK index; this migration only adds measured indexes.
+        b.HasIndex(x => x.OrganizationId);
+        b.HasIndex(x => new { x.OrganizationId, x.Name, x.Id }).HasDatabaseName("ix_policies_organization_name_id");
         b.Property(x => x.Id).HasColumnName("id").HasColumnType("uuid").IsRequired().HasDefaultValueSql("gen_random_uuid()");
         b.Property(x => x.OrganizationId).HasColumnName("organization_id").HasColumnType("uuid").IsRequired();
         b.Property(x => x.ProjectId).HasColumnName("project_id").HasColumnType("uuid");

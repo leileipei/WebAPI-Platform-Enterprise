@@ -14,6 +14,7 @@ public sealed class AlertEventConfiguration:IEntityTypeConfiguration<AlertEvent>
         b.HasIndex(x=>new{x.RuleId,x.LogicRevision,x.EnvironmentId,x.ResourceKey,x.OccurrenceNo}).IsUnique();
         b.HasIndex(x=>new{x.RuleId,x.EnvironmentId,x.ResourceKey}).IsUnique().HasFilter("status <> 'Resolved'");
         b.HasIndex(x=>new{x.EnvironmentId,x.Status,x.StartedAt});
+        b.HasIndex(x=>new{x.OrganizationId,x.ProjectId,x.StartedAt,x.Id}).IsDescending(false,false,true,true).HasDatabaseName("ix_alert_events_organization_project_started_id");
         b.ToTable(t=>{
             t.HasCheckConstraint("ck_alert_event_status","status IN ('Open','Ack','Silenced','Resolved') AND evaluation_state IN ('Known','Unknown','ScopeInactive')");
             t.HasCheckConstraint("ck_alert_event_resource","length(resource_key) BETWEEN 1 AND 128 AND ((resource_type='Environment' AND resource_id IS NULL) OR (resource_type IN ('Api','Destination') AND resource_id IS NOT NULL))");

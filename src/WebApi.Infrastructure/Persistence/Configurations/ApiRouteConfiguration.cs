@@ -7,6 +7,9 @@ public sealed class ApiRouteConfiguration : IEntityTypeConfiguration<ApiRoute>
     public void Configure(EntityTypeBuilder<ApiRoute> b)
     {
         b.ToTable("api_routes"); b.HasKey(x => x.Id);
+        // The migration owns this expression index; the diagnostic model gate
+        // checks its actual PostgreSQL definition, including the existing CASE sort.
+        b.HasAnnotation("WebApi:ManagedRouteOrderIndexDefinition", "a552f9d4edb81648f93a204b59d85e4e1db041439f35a7d4d9885949e18b89cd");
         b.Property(x => x.Id).HasColumnName("id").HasColumnType("uuid").IsRequired().HasDefaultValueSql("gen_random_uuid()");
         b.Property(x => x.ApiVersionId).HasColumnName("api_version_id").HasColumnType("uuid").IsRequired();
         b.Property(x => x.EnvironmentId).HasColumnName("environment_id").HasColumnType("uuid").IsRequired();
