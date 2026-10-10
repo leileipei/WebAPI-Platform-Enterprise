@@ -424,7 +424,7 @@ assert.ok(chain.stages.every(s => s.actualCallsPassed && s.allNodesAcknowledged)
 
 **Interfaces:** `verifyPipelineInstallation(before, after, candidate)`→`{passed:boolean, errors:string[]}`：before/after含数据库旧表按PK规范化行hash、报告文件hash、原入口/端口/卷/身份配置、旧维护工具清单和实际应用文件清单；candidate含P13源码SHA/digest/迁移/权限目录及预期变更允许集。允许集仅新增Pipeline表、旧表新增NULL/default列、明确迁移元数据/权限catalog、应用包工具升级和本次真实命令的新增审计/幂等/登录回执，不授权重写历史业务行。心跳、队列租约等持续变化列按现有保全规则单独记录，不混入静态行hash；新增回执须精确ID/命令关联，不泛化放行整表。部署沿用原.owner验证维护机制，不生成绕过备份的新一键工具。
 
-- [ ] **Step 1:** 编写保全验证器行为测试：旧业务行/报告/Secret配置/第三方工具改变拒绝，新增3权限仅Admin合法、旧显式授权保留、旧A+B发布事实及运行v/seq不得变动：
+- [x] **Step 1:** 编写保全验证器行为测试：旧业务行/报告/Secret配置/第三方工具改变拒绝，新增3权限仅Admin合法、旧显式授权保留、旧A+B发布事实及运行v/seq不得变动：
 
 ```javascript
 test('installation rejects rewriting prior delivery history', () => {
@@ -437,10 +437,10 @@ test('installation rejects accidental default grants outside admin', () => {
 });
 ```
 
-- [ ] **Step 2:** 跑`"$WEBAPI_NODE" --test tests/delivery/pipeline-installation.test.mjs`behavior RED，所有损坏数据只在fixture；维护生成器增加错owner/缺报告卷/旧工具覆盖拒绝断言，原实例仍Ready，不提前停机。
-- [ ] **Step 3:** 实现只读保全验证器和受控安装采证：先采原源码dirty状态、数据库旧行/业务关系、全部受保护报告/配置/秘密文件摘要、维护工具及owner容器/卷清单，生成私密含报告冷备；按现有维护流程用P13固定包替换已授权应用，迁移+`dotnet /app/migrator/WebApi.Migrator.dll --seed-catalog`受控刷新目录，再Ready/源包文件摘要核验。原项目不自动激活Pipeline、不新增业务发布；保留4192/4196/4197、4194 IdP及独立4193/4180实例配置。新增维护入口若确有需要使用本期固定摘要包装器，不能覆盖/丢弃旧已登记工具；不碰原源码本地改动。安装失败按已验证私密备份恢复固定旧包及库，先保护事实再报告。
-- [ ] **Step 4:** 安装验证器GREEN；实际安装后核验旧A+B业务行/报告/秘密与授权保全、权限仅Admin新增3项、真实应用文件与固定包一致、原实例Ready且原v/seq保持。原4192实际SSO及授权UI、只读定义/运行入口和Viewer受限显示逐张检查；闭环发布仍以P13隔离证据为准，不冒用原业务。再作本期安装后冷备及独立恢复读取证据，按owner清理本期测试资源，确认原源码dirty清单未变。记录本机安装通过/隔离闭环通过/企业验收未执行三种事实。
-- [ ] **Step 5:** 提交 `docs(pipeline): seal reviewed local installation and preservation evidence`，只提交脱敏文档/脚本/测试与状态记录；生成最终交付索引和完整任务/审查处置账本。保留用户分支/工作区，不自动合并、推送或删除；清理仅本期明确owner临时资源，私密备份保留。
+- [x] **Step 2:** 跑`"$WEBAPI_NODE" --test tests/delivery/pipeline-installation.test.mjs`behavior RED，所有损坏数据只在fixture；维护生成器增加错owner/缺报告卷/旧工具覆盖拒绝断言，原实例仍Ready，不提前停机。
+- [x] **Step 3:** 实现只读保全验证器和受控安装采证：先采原源码dirty状态、数据库旧行/业务关系、全部受保护报告/配置/秘密文件摘要、维护工具及owner容器/卷清单，生成私密含报告冷备；按现有维护流程用P13固定包替换已授权应用，迁移+`dotnet /app/migrator/WebApi.Migrator.dll --seed-catalog`受控刷新目录，再Ready/源包文件摘要核验。原项目不自动激活Pipeline、不新增业务发布；保留4192/4196/4197、4194 IdP及独立4193/4180实例配置。新增维护入口若确有需要使用本期固定摘要包装器，不能覆盖/丢弃旧已登记工具；不碰原源码本地改动。安装失败按已验证私密备份恢复固定旧包及库，先保护事实再报告。
+- [x] **Step 4:** 安装验证器GREEN；实际安装后核验旧A+B业务行/报告/秘密与授权保全、权限仅Admin新增3项、真实应用文件与固定包一致、原实例Ready且原v/seq保持。原4192实际SSO及授权UI、只读定义/运行入口和Viewer受限显示逐张检查；闭环发布仍以P13隔离证据为准，不冒用原业务。再作本期安装后冷备及独立恢复读取证据，按owner清理本期测试资源，确认原源码dirty清单未变。记录本机安装通过/隔离闭环通过/企业验收未执行三种事实。
+- [x] **Step 5:** 提交 `docs(pipeline): seal reviewed local installation and preservation evidence`，只提交脱敏文档/脚本/测试与状态记录；生成最终交付索引和完整任务/审查处置账本。保留用户分支/工作区，不自动合并、推送或删除；清理仅本期明确owner临时资源，私密备份保留。
 
 ## 自查与执行交接
 

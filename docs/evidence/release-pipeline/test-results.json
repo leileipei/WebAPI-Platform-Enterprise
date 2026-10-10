@@ -1,8 +1,8 @@
 {
   "productRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
   "imageId": "sha256:3677ee6b11cc1ebe6ce646ab673257c8bc7b51d1913e0802554c013011ccfc22",
-  "status": "fixed-product-accepted-original-recovered-monitoring-exception-pending",
-  "toolingRevision": "0ba71ca",
+  "status": "actual-local-installation-passed-with-explicit-four-monitoring-identity-exceptions",
+  "toolingRevision": "0ecdb46e1891045fcdfdb571e70d884d35661095",
   "suites": [
     {
       "suite": "Domain",
@@ -94,5 +94,7 @@
         "ℹ duration_ms 735342.54375"
       ]
     }
-  ]
+  ],
+  "totalPassed": 2637,
+  "finalInstallationBoundaryTests": 13
 }

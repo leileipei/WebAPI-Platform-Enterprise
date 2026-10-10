@@ -17,7 +17,7 @@
   "deferredMinors": [
     "M1"
   ],
-  "fullSuiteTests": 2628,
+  "fullSuiteTests": 2637,
   "actualCompleteChains": [
     2,
     4
@@ -26,5 +26,9 @@
   "visuallyInspectedScreenshots": 13,
   "readonlyProofVerified": true,
   "approvedForInstallation": true,
-  "originalInstallationExecuted": false
+  "originalInstallationExecuted": true,
+  "originalInstallationPassed": true,
+  "approvedMonitoringIdentityExceptions": 4,
+  "installationBoundaryTests": 13,
+  "toolingRevision": "0ecdb46e1891045fcdfdb571e70d884d35661095"
 }
