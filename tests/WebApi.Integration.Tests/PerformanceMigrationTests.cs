@@ -11,6 +11,46 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class PerformanceMigrationTests
 {
+    private const string ApprovedRouteIndexSql="CREATE INDEX ix_api_routes_environment_order_path_id ON api_routes (environment_id, ((CASE WHEN normalized_path LIKE '%{*}%' THEN 2 WHEN normalized_path LIKE '%{}%' THEN 1 ELSE 0 END) * 2000000 - priority), path, id);";
+    [Fact]
+    public async Task ApprovedExpressionIndexUsesActualTransactionalDdlAndRollsBackOnFault()
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();
+        await db.GetService<IMigrator>().MigrateAsync("20261008030000_ExternalNotifications");
+        db.Add(new Organization{Code="expression-probe",Name="Keep expression record"});await db.SaveChangesAsync();
+        var before=await MigrationProbe.InspectAsync(db);
+        var fault=await MigrationProbe.FailAfterFirstIndexAsync(db,new MigrationOperation[]{new SqlOperation{Sql=ApprovedRouteIndexSql}});
+        Assert.False(fault.NoMigrationNeeded);Assert.True(fault.FailureInjected);Assert.Equal("42601",fault.SqlState);Assert.True(fault.Complete);
+        var after=await MigrationProbe.InspectAsync(db);Assert.Equal(before.BusinessFingerprint,after.BusinessFingerprint);
+        Assert.DoesNotContain(after.Indexes,i=>i.Name=="ix_api_routes_environment_order_path_id");
+    }
+    [Theory]
+    [InlineData("UPDATE organizations SET name='bad-write'",false)]
+    [InlineData("CREATE INDEX arbitrary_index ON organizations(name)",false)]
+    [InlineData("CREATE INDEX ix_api_routes_environment_order_path_id ON api_routes (environment_id, (priority * 2000000), path, id)",false)]
+    [InlineData(ApprovedRouteIndexSql+" DROP TABLE organizations",false)]
+    [InlineData(ApprovedRouteIndexSql,true)]
+    public async Task ExpressionGateRejectsAllUnapprovedOrNontransactionalSqlBeforeAnyMutation(string sql,bool nontransactional)
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();
+        await db.GetService<IMigrator>().MigrateAsync("20261008030000_ExternalNotifications");
+        db.Add(new Organization{Code="gate-probe",Name="Keep gate record"});await db.SaveChangesAsync();var before=await MigrationProbe.InspectAsync(db);
+        MigrationOperation[] batch=[new CreateIndexOperation{Name="gate_first_org_name",Table="organizations",Columns=["name"]},new SqlOperation{Sql=sql,SuppressTransaction=nontransactional}];
+        await Assert.ThrowsAsync<InvalidDataException>(()=>MigrationProbe.FailAfterFirstIndexAsync(db,batch));
+        var after=await MigrationProbe.InspectAsync(db);Assert.Equal(before.BusinessFingerprint,after.BusinessFingerprint);
+        Assert.DoesNotContain(after.Indexes,i=>i.Name=="gate_first_org_name");
+    }
+    [Fact]
+    public async Task AtomicIndexGateChecksLaterConcurrentIndexesBeforeExecutingFirst()
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();await db.GetService<IMigrator>().MigrateAsync("20261008030000_ExternalNotifications");
+        var later=new CreateIndexOperation{Name="gate_later_org_code",Table="organizations",Columns=["code"]};later["Npgsql:CreatedConcurrently"]=true;
+        var before=await MigrationProbe.InspectAsync(db);
+        MigrationOperation[] batch=[new CreateIndexOperation{Name="gate_first_org_name",Table="organizations",Columns=["name"]},later];
+        await Assert.ThrowsAsync<InvalidDataException>(()=>MigrationProbe.FailAfterFirstIndexAsync(db,batch));
+        var after=await MigrationProbe.InspectAsync(db);Assert.Equal(before.BusinessFingerprint,after.BusinessFingerprint);
+        Assert.DoesNotContain(after.Indexes,i=>i.Name=="gate_first_org_name"||i.Name=="gate_later_org_code");
+    }
     [Fact]
     public async Task EmptyInstallMatchesActualModelIndexesAndMigrationHistory()
     {

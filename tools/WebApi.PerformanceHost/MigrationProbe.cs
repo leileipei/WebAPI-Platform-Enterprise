@@ -20,6 +20,11 @@ public sealed record MigrationApplyEvidence(DatabaseInspection Before,DatabaseIn
 public sealed record MigrationFailureEvidence(bool NoMigrationNeeded,bool FailureInjected,string? SqlState,bool DataUnchanged,bool IndexesUnchanged,bool Complete);
 public static class MigrationProbe
 {
+    private const string RouteIndexName="ix_api_routes_environment_order_path_id";
+    private const string RouteIndexAnnotation="WebApi:ManagedRouteOrderIndexDefinition";
+    private const string RouteIndexDefinitionHash="a552f9d4edb81648f93a204b59d85e4e1db041439f35a7d4d9885949e18b89cd";
+    // One reviewed, transactional expression index. No raw DDL parser or prefix allow-list.
+    private const string RouteIndexSql="CREATE INDEX ix_api_routes_environment_order_path_id ON api_routes (environment_id, ((CASE WHEN normalized_path LIKE '%{*}%' THEN 2 WHEN normalized_path LIKE '%{}%' THEN 1 ELSE 0 END) * 2000000 - priority), path, id);";
     private static string Quote(string identifier){if(!Regex.IsMatch(identifier,"^[A-Za-z_][A-Za-z0-9_]{0,126}~?$",RegexOptions.CultureInvariant))throw new InvalidDataException("Invalid diagnostic identifier.");return "\""+identifier+"\"";}
     private static string Hash(byte[] bytes)=>Convert.ToHexStringLower(SHA256.HashData(bytes));
     private static IReadOnlyList<TableModel> Models(WebApiDbContext db)=>db.GetService<IDesignTimeModel>().Model.GetEntityTypes().Where(e=>e.GetTableName()!=null).GroupBy(e=>e.GetTableName()!,StringComparer.Ordinal).OrderBy(g=>g.Key,StringComparer.Ordinal).Select(group=>{
@@ -28,7 +33,9 @@ public static class MigrationProbe
         var key=entities[0].FindPrimaryKey()??throw new InvalidDataException("Diagnostic table primary key required.");
         var primary=key.Properties.Select(p=>p.GetColumnName(table)??throw new InvalidDataException()).ToArray();
         var indexes=entities.SelectMany(e=>e.GetIndexes()).Select(i=>new ExpectedIndex(i.GetDatabaseName(table)??throw new InvalidDataException(),i.Properties.Select(p=>p.GetColumnName(table)??throw new InvalidDataException()).ToArray(),i.IsDescending is null?new bool[i.Properties.Count]:i.IsDescending.Count==0?Enumerable.Repeat(true,i.Properties.Count).ToArray():i.IsDescending.ToArray(),i.IsUnique)).ToArray();
-        return new TableModel(group.Key,columns,primary,indexes);
+        var managed=entities.Select(e=>e.FindAnnotation(RouteIndexAnnotation)?.Value).Where(v=>v is not null).ToArray();
+        if(managed.Any(v=>group.Key!="api_routes"||v is not string value||value!=RouteIndexDefinitionHash))throw new InvalidDataException("Unapproved managed expression index metadata.");
+        return new TableModel(group.Key,columns,primary,indexes,managed.Length>0);
     }).ToArray();
     public static async Task<DatabaseInspection> InspectAsync(WebApiDbContext db,CancellationToken ct=default){
         if(db.Database.CurrentTransaction is not null)throw new InvalidDataException("Diagnostic inspection requires its own snapshot.");
@@ -63,18 +70,31 @@ public static class MigrationProbe
             tables.Add(new(model.Name,available[model.Name].Columns,rows,available[model.Name].Bytes,Convert.ToHexStringLower(hash.GetHashAndReset())));
         }
         var fingerprint=Hash(CanonicalJson.Serialize(tables.Select(t=>new{t.Name,t.Columns,t.Rows,t.DataHash}).ToArray()));
-        var matched=models.All(m=>available.TryGetValue(m.Name,out var actual)&&m.Columns.SequenceEqual(actual.Columns,StringComparer.Ordinal)&&m.Indexes.All(expected=>indexes.Any(i=>i.Table==m.Name&&i.Name==expected.Name&&i.Unique==expected.Unique&&i.Valid&&i.Ready&&i.Columns.SequenceEqual(expected.Columns)&&i.Descending.SequenceEqual(expected.Descending))));
+        var matched=models.All(m=>available.TryGetValue(m.Name,out var actual)&&m.Columns.SequenceEqual(actual.Columns,StringComparer.Ordinal)&&m.Indexes.All(expected=>indexes.Any(i=>i.Table==m.Name&&i.Name==expected.Name&&i.Unique==expected.Unique&&i.Valid&&i.Ready&&i.Columns.SequenceEqual(expected.Columns)&&i.Descending.SequenceEqual(expected.Descending)))
+            &&(!m.ManagedRouteIndex||indexes.Any(i=>i.Table=="api_routes"&&i.Name==RouteIndexName&&!i.Unique&&i.Valid&&i.Ready&&i.DefinitionHash==RouteIndexDefinitionHash&&i.Columns.SequenceEqual(new string?[]{"environment_id",null,"path","id"})&&i.Descending.SequenceEqual(new[]{false,false,false,false}))));
         await transaction.RollbackAsync(ct);
         return new(applied,pending,db.Database.HasPendingModelChanges(),matched,tables,indexes,fingerprint);
     }
-    private static async Task<IReadOnlyList<CreateIndexOperation>> PendingIndexesAsync(WebApiDbContext db,CancellationToken ct){
-        var assembly=db.GetService<IMigrationsAssembly>();var operations=new List<CreateIndexOperation>();
+    private static async Task<IReadOnlyList<MigrationOperation>> PendingIndexesAsync(WebApiDbContext db,CancellationToken ct){
+        var assembly=db.GetService<IMigrationsAssembly>();var operations=new List<MigrationOperation>();
         foreach(var id in await db.Database.GetPendingMigrationsAsync(ct)){
             var migration=assembly.CreateMigration(assembly.Migrations[id],db.Database.ProviderName!);
-            if(migration.UpOperations.Any(o=>o is not CreateIndexOperation))throw new InvalidDataException("Incremental diagnostic accepts index-only migrations.");
-            operations.AddRange(migration.UpOperations.Cast<CreateIndexOperation>());
+            operations.AddRange(migration.UpOperations);
         }
-        ValidateIndexes(db,operations);return operations;
+        ValidateOperations(db,operations);return operations;
+    }
+    private static void ValidateOperations(WebApiDbContext db,IReadOnlyList<MigrationOperation> operations){
+        var models=Models(db);
+        foreach(var operation in operations){
+            if(operation is CreateIndexOperation)continue;
+            if(operation is not SqlOperation sql||sql.SuppressTransaction||sql.Sql!=RouteIndexSql
+                ||!models.Any(m=>m.Name=="api_routes"&&new[]{"environment_id","normalized_path","priority","path","id"}.All(c=>m.Columns.Contains(c,StringComparer.Ordinal))))
+                throw new InvalidDataException("Incremental diagnostic accepts only approved transactional index DDL.");
+        }
+        ValidateIndexes(db,operations.OfType<CreateIndexOperation>().ToArray());
+        // Validate the whole batch, including later operations, before any mutation.
+        var commands=db.GetService<IMigrationsSqlGenerator>().Generate(operations,db.GetService<IDesignTimeModel>().Model);
+        if(commands.Any(c=>c.TransactionSuppressed))throw new InvalidDataException("Atomic diagnostic rejects nontransactional index DDL.");
     }
     private static void ValidateIndexes(WebApiDbContext db,IReadOnlyList<CreateIndexOperation> operations){
         var models=Models(db);foreach(var operation in operations){
@@ -89,13 +109,19 @@ public static class MigrationProbe
         var after=await InspectAsync(db,ct);var complete=after.ModelMatched&&!after.PendingModelChanges&&after.PendingMigrations.Count==0&&(!indexOnly||before.BusinessFingerprint==after.BusinessFingerprint);
         return new(before,after,indexOnly,complete);
     }
-    public static async Task<MigrationFailureEvidence> FailAfterFirstIndexAsync(WebApiDbContext db,IReadOnlyList<CreateIndexOperation> operations,CancellationToken ct=default){
-        ValidateIndexes(db,operations);var before=await InspectAsync(db,ct);
+    public static async Task<MigrationFailureEvidence> FailAfterFirstIndexAsync(WebApiDbContext db,IReadOnlyList<MigrationOperation> operations,CancellationToken ct=default){
+        ValidateOperations(db,operations);var before=await InspectAsync(db,ct);
         if(operations.Count==0)return new(true,false,null,true,true,true);
         var commands=db.GetService<IMigrationsSqlGenerator>().Generate([operations[0]],db.GetService<IDesignTimeModel>().Model);
         if(commands.Any(c=>c.TransactionSuppressed))throw new InvalidDataException("Atomic failure diagnostic rejects nontransactional index DDL.");
         string? state=null;await using(var transaction=await db.Database.BeginTransactionAsync(ct)){
-            foreach(var command in commands)await db.Database.ExecuteSqlRawAsync(command.CommandText,ct);
+            // The SQL generator already rendered the DDL. Execute it verbatim;
+            // ExecuteSqlRaw would interpret route tokens such as {*} as format items.
+            foreach(var command in commands){
+                await using var ddl=new NpgsqlCommand(command.CommandText,(NpgsqlConnection)db.Database.GetDbConnection(),(NpgsqlTransaction)transaction.GetDbTransaction());
+                if(db.Database.GetCommandTimeout() is int timeout)ddl.CommandTimeout=timeout;
+                await ddl.ExecuteNonQueryAsync(ct);
+            }
             try{await db.Database.ExecuteSqlRawAsync("CREATE INDEX",ct);throw new InvalidDataException("Injected DDL did not fail.");}
             catch(PostgresException error)when(error.SqlState=="42601"){state=error.SqlState;}
             await transaction.RollbackAsync(ct);
@@ -106,5 +132,5 @@ public static class MigrationProbe
     }
     public static async Task<MigrationFailureEvidence> FailPendingIndexesAsync(WebApiDbContext db,CancellationToken ct=default)=>await FailAfterFirstIndexAsync(db,await PendingIndexesAsync(db,ct),ct);
     private sealed record ExpectedIndex(string Name,string[] Columns,bool[] Descending,bool Unique);
-    private sealed record TableModel(string Name,string[] Columns,string[] Primary,ExpectedIndex[] Indexes);
+    private sealed record TableModel(string Name,string[] Columns,string[] Primary,ExpectedIndex[] Indexes,bool ManagedRouteIndex);
 }
