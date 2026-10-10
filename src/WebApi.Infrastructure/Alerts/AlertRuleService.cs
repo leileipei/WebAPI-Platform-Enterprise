@@ -13,8 +13,9 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Domain.Notifications;
 using WebApi.Infrastructure.Notifications;
+using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Alerts;
-public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings,NotificationDeploymentSettings notificationSettings,NotificationPlanner notifications)
+public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver scopes,ObservationScopeResolver observations,PrometheusMetricSource source,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,AlertEvaluationSettings settings,NotificationDeploymentSettings notificationSettings,NotificationPlanner notifications,CollectionAuthorizationQuery visibility,AlertListReader listReader)
 {
     public static SaveAlertRuleRequest Definition(AlertRule r)=>new(r.OrganizationId,r.ProjectId,r.EnvironmentId,r.Name,r.Metric,r.Expression,r.Severity,r.Enabled,r.ForSeconds,r.TargetType,r.TargetId,r.WindowSeconds,JsonSerializer.Deserialize<NotificationIntent>(r.Notification,CanonicalJson.Options)!);
     public static string ResourceKey(SaveAlertRuleRequest r)=>r.TargetType=="Environment"?"Environment":r.TargetType+":"+r.TargetId!.Value.ToString("D");
@@ -41,9 +42,12 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
     public async Task<PageResult<AlertRuleDto>> ListAsync(ActorContext actor,ObservationScopeRequest scope,int page,int pageSize,CancellationToken ct)
     {
         var trusted=await observations.ResolveAsync(actor,"alert.rule.manage",scope,null,null,null,ct);
-        var candidates=await db.Set<AlertRule>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&(x.ProjectId==null||x.ProjectId==scope.ProjectId)&&(x.EnvironmentId==null||trusted.EnvironmentIds.Contains(x.EnvironmentId.Value))).OrderBy(x=>x.NormalizedName).ThenBy(x=>x.Id).ToArrayAsync(ct);
-        var visible=new List<AlertRule>();foreach(var r in candidates){try{await scopes.AuthorizeExistingAsync(actor,r,ct);visible.Add(r);}catch(ApiException e)when(e.Status is 403 or 404 or 409){}}
-        var slice=Pagination.Slice(visible,page,pageSize);var results=new List<AlertRuleDto>();foreach(var r in slice.Items)results.Add(await DtoAsync(r,ct));return new(results,slice.Total,slice.Page,slice.PageSize);
+        var visible=visibility.Scopes(actor,"alert.rule.manage");
+        var query=db.Set<AlertRule>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&(x.ProjectId==null||x.ProjectId==scope.ProjectId)&&(x.EnvironmentId==null||trusted.EnvironmentIds.Contains(x.EnvironmentId.Value))
+            &&visible.Any(s=>s.OrganizationId==x.OrganizationId&&s.ProjectId==x.ProjectId&&s.EnvironmentId==x.EnvironmentId));
+        page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var total=await query.CountAsync(ct);
+        var rows=await query.OrderBy(x=>x.NormalizedName).ThenBy(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).ToArrayAsync(ct);
+        return new(await listReader.ReadRulesAsync(rows,ct),total,page,pageSize);
     }
     public async Task<AlertRuleDto> DetailAsync(ActorContext actor,Guid id,CancellationToken ct)
     {

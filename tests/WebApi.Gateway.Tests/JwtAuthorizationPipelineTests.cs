@@ -45,6 +45,26 @@ public sealed class JwtAuthorizationPipelineTests
     { Assert.Equal(status, response.StatusCode); Assert.Equal(code, (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString()); }
 
     [Fact]
+    public async Task JwtSameClaimDifferentPoliciesDoNotCrossMap()
+    {
+        using var key=new SigningKey();var limiter=new Limiter();await using var f=new GatewayFixture {ConfigureGateway=b=>b.Services.AddSingleton<IRateLimitStore>(limiter)};
+        await f.InitializeAsync();await Bind(f,key,rate:true);
+        using var created=await f.Control.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{f.Control.Environment.Id}/routes",f.Control.RouteBody("/other-orders"));created.EnsureSuccessStatusCode();var routeId=(await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        var otherApp=new ApplicationRecord {OrganizationId=f.Control.Organization.Id,ProjectId=f.Control.Project.Id,Code="jwt-other",Name="JWT other",Status="Active"};
+        await using(var db=f.Control.Context()) {
+            db.Add(otherApp);db.Add(new ApplicationApiPermission {ApplicationId=otherApp.Id,ApiId=f.Control.Api.Id,EnvironmentId=f.Control.Environment.Id,ValidFrom=DateTimeOffset.UtcNow.AddDays(-1),ExpiresAt=null,CreatedBy=(await db.Set<ApplicationApiPermission>().SingleAsync()).CreatedBy});
+            db.RemoveRange(await db.Set<RoutePolicyBinding>().Where(b=>b.RouteId==routeId).ToArrayAsync());
+            var policy=new Policy {OrganizationId=f.Control.Organization.Id,ProjectId=f.Control.Project.Id,Name="JWT other",Type="authentication",Config=Config(key,otherApp.Id)};db.Add(policy);db.Add(new RoutePolicyBinding {RouteId=routeId,PolicyId=policy.Id});
+            var rate=await db.Set<Policy>().SingleAsync(p=>p.Type=="rate_limit");db.Add(new RoutePolicyBinding {RouteId=routeId,PolicyId=rate.Id});await db.SaveChangesAsync();
+        }
+        await f.ApplyBothAsync(await f.PublishAsync());foreach(var node in new[]{0,1})foreach(var path in new[]{"/orders","/other-orders"}) {
+            using var request=new HttpRequestMessage(HttpMethod.Get,path);request.Headers.Authorization=new("Bearer",Token(key));using var response=await f.Clients[node].SendAsync(request);Assert.Equal(HttpStatusCode.OK,response.StatusCode);
+        }
+        Assert.Equal(4,limiter.Requests.Count);Assert.All(limiter.Requests.Where(r=>r.RouteId==f.RouteId),r=>Assert.Equal(f.Control.Application.Id,r.ApplicationId));Assert.All(limiter.Requests.Where(r=>r.RouteId==routeId),r=>Assert.Equal(otherApp.Id,r.ApplicationId));
+        Assert.Equal(2,limiter.Requests.Count(r=>r.RouteId==f.RouteId));Assert.Equal(2,limiter.Requests.Count(r=>r.RouteId==routeId));
+    }
+
+    [Fact]
     public async Task JwtValidAppGrantAllowsAndAppRateReceivesIdentity()
     {
         using var key = new SigningKey(); var limiter = new Limiter();

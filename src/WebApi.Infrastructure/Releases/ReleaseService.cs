@@ -15,7 +15,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Releases;
-public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseCandidateBuilder candidates,VersionRiskReviewService reviews,PublishSettings publishSettings,ApprovalEligibilityService approvalEligibility)
+public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseCandidateBuilder candidates,VersionRiskReviewService reviews,PublishSettings publishSettings,ApprovalEligibilityService approvalEligibility,ReleaseListReader listReader)
 {
     public async Task<ScopeRef> ReadScopeAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {var r=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(r.EnvironmentId,ct);if(!await auth.CanAsync(actor,"release.read",new("release",id,scope),ct)) throw ScopeResolver.Missing();return scope;}
@@ -30,7 +30,7 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
         var eligibility=actor is null?null:await approvalEligibility.EvaluateAsync(r,await scopes.EnvironmentAsync(r.EnvironmentId,ct),actor,ct);
         return new(r.Id,r.EnvironmentId,r.ReleaseNo,r.Status,r.ReleaseType,r.RequestedBy,r.CreatedAt,r.BaselineConfigVersion,r.ToConfigVersion,r.DeploymentSequence,r.RollbackOf,view,hash,tasks.Select(t=>new ApprovalTaskDto(t.Id,t.StepOrder,rules.Single(x=>x.StepOrder==t.StepOrder).RoleCode,t.Status,t.AssigneeUserId,t.Comment,t.ActedAt)).ToArray(),targetEntities.Select(t=>{var ack=acks.SingleOrDefault(a=>a.NodeId==t.NodeId);return new ReleaseTargetDto(t.NodeId,t.InstanceId,ack?.Success==true,ack?.ConfigVersion,ack?.DeploymentSequence,ack?.ErrorCode);}).ToArray(),r.FailureCode is null?Array.Empty<string>():[r.FailureCode],r.RecoveryOf,eligibility);
     }
-    private static FrozenCandidateView SafeView(FrozenReleaseCandidate c)=>new(c.Versions,c.Routes,c.Clusters,c.Applications.Select(a=>new FrozenApplicationView(a.Application,a.Credentials.Select(k=>new CredentialDto(k.Id,a.Application.Id,k.AccessKey,k.SecretLast4,k.Status,k.ValidFrom,k.ExpiresAt,null,null,k.Revision)).ToArray(),a.Permissions)).ToArray(),c.ResourceRevisions,c.Policies,c.Bindings,RiskReviews:c.RiskReviewReferences?.Select(r=>r.Summary with {Comment=null}).ToArray());
+    internal static FrozenCandidateView SafeView(FrozenReleaseCandidate c)=>new(c.Versions,c.Routes,c.Clusters,c.Applications.Select(a=>new FrozenApplicationView(a.Application,a.Credentials.Select(k=>new CredentialDto(k.Id,a.Application.Id,k.AccessKey,k.SecretLast4,k.Status,k.ValidFrom,k.ExpiresAt,null,null,k.Revision)).ToArray(),a.Permissions)).ToArray(),c.ResourceRevisions,c.Policies,c.Bindings,RiskReviews:c.RiskReviewReferences?.Select(r=>r.Summary with {Comment=null}).ToArray());
     private async Task<FrozenCandidateView> AuthorizedViewAsync(FrozenReleaseCandidate c,ActorContext? actor,CancellationToken ct)
     {
         var view=SafeView(c);if(actor is null||c.RiskReviewReferences is not {Count:>0})return view;
@@ -69,7 +69,13 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
     },ct);
     public async Task<ReleaseDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct=default) {await ReadScopeAsync(id,actor,ct);return await DtoAsync(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id,ct),ct,actor);}
     public async Task<PageResult<ReleaseDto>> ListAsync(Guid envId,ActorContext actor,int page,int size,CancellationToken ct=default)
-    {var scope=await scopes.EnvironmentAsync(envId,ct);if(!await auth.CanAsync(actor,"release.read",new("environment",envId,scope),ct)) throw ScopeResolver.Missing();var rows=await db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.EnvironmentId==envId).OrderByDescending(r=>r.CreatedAt).ToArrayAsync(ct);var slice=Pagination.Slice(rows,page,size);var items=new List<ReleaseDto>();foreach(var r in slice.Items) items.Add(await DtoAsync(r,ct,actor));return new(items,slice.Total,slice.Page,slice.PageSize);}
+    {
+        var scope=await scopes.EnvironmentAsync(envId,ct);if(!await auth.CanAsync(actor,"release.read",new("environment",envId,scope),ct)) throw ScopeResolver.Missing();
+        page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
+        var query=db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.EnvironmentId==envId);var total=await query.CountAsync(ct);
+        var rows=await query.OrderByDescending(r=>r.CreatedAt).ThenByDescending(r=>r.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
+        return new(await listReader.ReadAsync(rows,actor,ct),total,page,size);
+    }
     private async Task<ReleaseDto> RunCommandAsync(Guid id,ActorContext actor,string operation,string permission,object normalized,Func<ReleaseRecord,ScopeRef,CancellationToken,Task<ReleaseDto>> command,CancellationToken ct)
     {
         var original=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(original.EnvironmentId,ct);

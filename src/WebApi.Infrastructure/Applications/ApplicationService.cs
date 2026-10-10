@@ -8,7 +8,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Applications;
-public sealed class ApplicationService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,JwtApplicationBindingService mappings)
+public sealed class ApplicationService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,JwtApplicationBindingService mappings,CollectionAuthorizationQuery visibility)
 {
     public static ApplicationDto Dto(ApplicationRecord a)=>new(a.Id,a.OrganizationId,a.ProjectId,a.Code,a.Name,a.Owner,a.Status,a.Revision);
     public static CredentialDto Dto(ApplicationCredential c)=>new(c.Id,c.ApplicationId,c.AccessKey,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,c.LastUsedAt,c.RevokedAt,c.Revision);
@@ -17,7 +17,14 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
     {if(request.ProjectId is Guid id) {var actual=await scopes.ProjectAsync(id,ct);if(actual.OrganizationId!=request.OrganizationId) throw new ApiException(422,"foreign_project","应用项目不属于组织。");return actual;}if(!await db.Set<Organization>().AnyAsync(o=>o.Id==request.OrganizationId,ct)) throw new ApiException(422,"invalid_organization","组织不存在。");return new(request.OrganizationId);}
     private static void Validate(SaveApplicationRequest r) {GovernanceService.Validate(r.Code,r.Name,r.Status);if(string.IsNullOrWhiteSpace(r.Owner)||r.Owner.Length>128) throw new ApiException(422,"invalid_owner","应用Owner不合法。");}
     public async Task<PageResult<ApplicationDto>> ListAsync(ActorContext actor,int page,int size,CancellationToken ct=default)
-    {var apps=await db.Set<ApplicationRecord>().AsNoTracking().OrderBy(a=>a.Code).ToArrayAsync(ct);var result=new List<ApplicationDto>();foreach(var a in apps) if(await auth.CanAsync(actor,"app.read",new("application",a.Id,new(a.OrganizationId,a.ProjectId)),ct)) result.Add(Dto(a));return Pagination.Slice(result,page,size);}
+    {
+        await visibility.RequireActiveActorAsync(actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
+        var visible=visibility.Scopes(actor,"app.read");
+        var query=db.Set<ApplicationRecord>().AsNoTracking().Where(a=>visible.Any(s=>s.OrganizationId==a.OrganizationId&&s.ProjectId==a.ProjectId&&s.EnvironmentId==null));
+        var total=await query.CountAsync(ct);
+        var rows=await query.OrderBy(a=>a.Code).ThenBy(a=>a.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
+        return new(rows.Select(Dto).ToArray(),total,page,size);
+    }
     public async Task<ApplicationDetailDto> DetailAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
         var scope=await scopes.ApplicationAsync(id,ct);if(!await auth.CanAsync(actor,"app.read",new("application",id,scope),ct)) throw ScopeResolver.Missing();var app=await db.Set<ApplicationRecord>().AsNoTracking().SingleAsync(a=>a.Id==id,ct);

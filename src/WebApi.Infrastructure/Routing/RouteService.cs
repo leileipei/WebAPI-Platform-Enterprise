@@ -13,7 +13,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Routing;
-public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,SystemSettingsReader settings)
+public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,SystemSettingsReader settings,RouteListReader listReader)
 {
     private static readonly string[] methods=["GET","POST","PUT","PATCH","DELETE","HEAD","OPTIONS"];
     public static RouteDto Dto(ApiRoute r,bool key=true)=>new(r.Id,r.ApiVersionId,r.EnvironmentId,r.RouteName,r.Path,r.NormalizedPath,r.Methods,r.ClusterId,r.Priority,RouteNormalizer.MatchOrder(r.Path,r.Priority),r.Enabled,r.TimeoutMs,key,r.Revision);
@@ -26,7 +26,16 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
     private async Task<RouteDto> EffectiveDtoAsync(ApiRoute route,CancellationToken ct)
     {var effective=await EffectiveAsync(route.Id,ct);return Dto(route,effective.RequireApiKey) with {EffectiveTimeoutMs=effective.TimeoutMs??route.TimeoutMs,EffectiveAuthenticationMode=effective.Authentication?.Mode==AuthenticationMode.JWT?"JWT":null};}
     public async Task<PageResult<RouteDto>> ListAsync(Guid environmentId,ActorContext actor,int page,int size,CancellationToken ct=default)
-    {var scope=await scopes.EnvironmentAsync(environmentId,ct);if(!await auth.CanAsync(actor,"route.read",new("environment",environmentId,scope),ct)) throw ScopeResolver.Missing();var routes=await db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId).ToArrayAsync(ct);var result=new List<RouteDto>();foreach(var r in routes) result.Add(await EffectiveDtoAsync(r,ct));return Pagination.Slice(result.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Path).ToArray(),page,size);}
+    {
+        var scope=await scopes.EnvironmentAsync(environmentId,ct);if(!await auth.CanAsync(actor,"route.read",new("environment",environmentId,scope),ct)) throw ScopeResolver.Missing();
+        page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
+        var query=db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId);var total=await query.CountAsync(ct);
+        var routes=await query.OrderBy(r=>(r.NormalizedPath.Contains("{*}")?2:r.NormalizedPath.Contains("{}")?1:0)*2000000-r.Priority)
+            .ThenBy(r=>r.Path).ThenBy(r=>r.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
+        var effective=await listReader.ReadEffectiveAsync(routes,ct);
+        var result=routes.Select(r=>Dto(r,effective[r.Id].RequireApiKey) with {EffectiveTimeoutMs=effective[r.Id].TimeoutMs??r.TimeoutMs,EffectiveAuthenticationMode=effective[r.Id].Authentication?.Mode==AuthenticationMode.JWT?"JWT":null}).ToArray();
+        return new(result,total,page,size);
+    }
     public async Task<RouteDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {var route=await db.Set<ApiRoute>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(route.EnvironmentId,ct);if(!await auth.CanAsync(actor,"route.read",new("route",id,scope),ct)) throw ScopeResolver.Missing();return await EffectiveDtoAsync(route,ct);}
     public async Task<CommandResult<RouteDto>> SaveAsync(Guid environmentId,SaveRouteRequest request,string? ifMatch,ActorContext actor,CancellationToken ct=default)

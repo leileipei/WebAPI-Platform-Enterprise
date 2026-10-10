@@ -18,7 +18,13 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
     public async Task<ScopeRef> ReadAsync(Guid apiId,string permission,ActorContext actor,CancellationToken ct)
     {var scope=await scopes.ApiAsync(apiId,ct);if(!await auth.CanAsync(actor,permission,new("api",apiId,scope),ct)) throw ScopeResolver.Missing();return scope;}
     public async Task<PageResult<ApiDto>> ListAsync(Guid projectId,ActorContext actor,int page,int size,CancellationToken ct=default)
-    {var scope=await scopes.ProjectAsync(projectId,ct);if(!await auth.CanAsync(actor,"api.read",new("project",projectId,scope),ct)) throw ScopeResolver.Missing();var all=await db.Set<Api>().AsNoTracking().Where(x=>x.ProjectId==projectId).OrderBy(x=>x.Code).Select(x=>Dto(x)).ToArrayAsync(ct);return Pagination.Slice(all,page,size);}
+    {
+        var scope=await scopes.ProjectAsync(projectId,ct);if(!await auth.CanAsync(actor,"api.read",new("project",projectId,scope),ct)) throw ScopeResolver.Missing();
+        page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
+        var query=db.Set<Api>().AsNoTracking().Where(x=>x.ProjectId==projectId);var total=await query.CountAsync(ct);
+        var rows=await query.OrderBy(x=>x.Code).ThenBy(x=>x.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
+        return new(rows.Select(Dto).ToArray(),total,page,size);
+    }
     public async Task<ApiDetailDto> DetailAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
         var scope=await ReadAsync(id,"api.read",actor,ct);var api=await db.Set<Api>().AsNoTracking().SingleAsync(x=>x.Id==id,ct);

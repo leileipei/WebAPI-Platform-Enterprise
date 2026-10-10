@@ -22,7 +22,9 @@ public sealed class CacheKeyTests
         var config = identity.Mode == AuthenticationMode.JWT ? JsonSerializer.Serialize(jwt, new JsonSerializerOptions(JsonSerializerDefaults.Web)) : JsonSerializer.Serialize(new { mode = identity.Mode });
         var policies = new[] { new RuntimePolicy(Auth, "authentication", PolicyConfigurationValidator.Normalize("authentication", config), Auth, 1), new RuntimePolicy(Cache, "cache", JsonSerializer.Serialize(CacheEligibilityTests.Config, new JsonSerializerOptions(JsonSerializerDefaults.Web)), Cache, 1) };
         var route = new RuntimeRoute(Route, Api, Api, Cluster, "/orders", ["GET"], 0, 30000, identity.Mode == AuthenticationMode.ApiKey, [new(Auth, 0), new(Cache, 1)], identity.Mode);
-        var snapshot = new RuntimeSnapshot("2.2", Env, 1, DateTimeOffset.UtcNow, [route], [], policies, []);
+        var cluster = new RuntimeCluster(Cluster, Env, "RoundRobin", false, "/health", 30, [new(Guid.NewGuid(), "http://127.0.0.1:8080/", 1)]);
+        var application = new RuntimeApplication(App, "Active", [], [new(Api, DateTimeOffset.UnixEpoch, null)]);
+        var snapshot = new RuntimeSnapshot("2.2", Env, 1, DateTimeOffset.UtcNow, [route], [cluster], policies, [application]);
         var generation = new RuntimeGeneration(new(Guid.NewGuid(), sequence, 1, new string('a', 64), 0), [], snapshot);
         return new(generation, route) { ApplicationId = identity.ApplicationId, VerifiedIdentity = identity };
     }

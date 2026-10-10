@@ -5,15 +5,27 @@ using WebApi.Contracts.Policies;
 using WebApi.Domain.Policies;
 using WebApi.Gateway.Policies;
 namespace WebApi.Gateway.Configuration;
-public sealed class RuntimeGeneration(SnapshotEnvelope envelope,byte[] payload,RuntimeSnapshot snapshot)
+public sealed class RuntimeGeneration
 {
-    public SnapshotEnvelope Envelope {get;}=envelope;public ReadOnlyMemory<byte> Payload {get;}=payload.ToArray();public RuntimeSnapshot Snapshot {get;}=Freeze(snapshot);
-    public IReadOnlyDictionary<Guid,RuntimePolicy> PoliciesById {get;}=new ReadOnlyDictionary<Guid,RuntimePolicy>(snapshot.Policies.ToDictionary(p=>p.Id));
-    public IReadOnlyDictionary<Guid,RateLimitConfiguration> RateLimits {get;}=new ReadOnlyDictionary<Guid,RateLimitConfiguration>(snapshot.Policies.Where(p=>p.Type=="rate_limit").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseRate(p.Config)));
-    public IReadOnlyDictionary<Guid,CircuitBreakerConfiguration> CircuitConfigurations {get;}=new ReadOnlyDictionary<Guid,CircuitBreakerConfiguration>(snapshot.Policies.Where(p=>p.Type=="circuit_breaker").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseCircuit(p.Config)));
-    public IReadOnlyDictionary<Guid,AuthenticationConfiguration> Authentication {get;}=new ReadOnlyDictionary<Guid,AuthenticationConfiguration>(snapshot.Policies.Where(p=>p.Type=="authentication").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseAuthentication(p.Config)));
-    public IReadOnlyDictionary<Guid,RetryConfiguration> Retry {get;}=new ReadOnlyDictionary<Guid,RetryConfiguration>(snapshot.Policies.Where(p=>p.Type=="retry").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseRetry(p.Config)));
-    public IReadOnlyDictionary<Guid,CacheConfiguration> Cache {get;}=new ReadOnlyDictionary<Guid,CacheConfiguration>(snapshot.Policies.Where(p=>p.Type=="cache").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseCache(p.Config)));
+    public RuntimeGeneration(SnapshotEnvelope envelope,byte[] payload,RuntimeSnapshot snapshot)
+    {
+        Envelope=envelope;Payload=payload.ToArray();Snapshot=Freeze(snapshot);
+        PoliciesById=new ReadOnlyDictionary<Guid,RuntimePolicy>(Snapshot.Policies.ToDictionary(p=>p.Id));
+        RateLimits=new ReadOnlyDictionary<Guid,RateLimitConfiguration>(Snapshot.Policies.Where(p=>p.Type=="rate_limit").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseRate(p.Config)));
+        CircuitConfigurations=new ReadOnlyDictionary<Guid,CircuitBreakerConfiguration>(Snapshot.Policies.Where(p=>p.Type=="circuit_breaker").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseCircuit(p.Config)));
+        Authentication=new ReadOnlyDictionary<Guid,AuthenticationConfiguration>(Snapshot.Policies.Where(p=>p.Type=="authentication").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseAuthentication(p.Config)));
+        Retry=new ReadOnlyDictionary<Guid,RetryConfiguration>(Snapshot.Policies.Where(p=>p.Type=="retry").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseRetry(p.Config)));
+        Cache=new ReadOnlyDictionary<Guid,CacheConfiguration>(Snapshot.Policies.Where(p=>p.Type=="cache").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseCache(p.Config)));
+        Indexes=RuntimeLookupIndex.Build(Snapshot,Authentication);
+    }
+    public RuntimeLookupIndex Indexes {get;}
+    public SnapshotEnvelope Envelope {get;}public ReadOnlyMemory<byte> Payload {get;}public RuntimeSnapshot Snapshot {get;}
+    public IReadOnlyDictionary<Guid,RuntimePolicy> PoliciesById {get;}
+    public IReadOnlyDictionary<Guid,RateLimitConfiguration> RateLimits {get;}
+    public IReadOnlyDictionary<Guid,CircuitBreakerConfiguration> CircuitConfigurations {get;}
+    public IReadOnlyDictionary<Guid,AuthenticationConfiguration> Authentication {get;}
+    public IReadOnlyDictionary<Guid,RetryConfiguration> Retry {get;}
+    public IReadOnlyDictionary<Guid,CacheConfiguration> Cache {get;}
     internal Dictionary<Guid,CircuitStateLease> CircuitLeases {get;}=[];
     private static RuntimeSnapshot Freeze(RuntimeSnapshot snapshot)=>snapshot with
     {

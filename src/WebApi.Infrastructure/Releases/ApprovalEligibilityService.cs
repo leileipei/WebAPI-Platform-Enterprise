@@ -11,6 +11,26 @@ namespace WebApi.Infrastructure.Releases;
 
 public sealed class ApprovalEligibilityService(WebApiDbContext db, AuthorizationService auth)
 {
+    public async Task<IReadOnlyDictionary<Guid,ApprovalEligibility>> EvaluateBatchAsync(IReadOnlyList<ReleaseRecord> releases,ScopeRef scope,ActorContext actor,CancellationToken ct)
+    {
+        if(releases.Count==0)return new Dictionary<Guid,ApprovalEligibility>();
+        if(releases.Any(r=>r.EnvironmentId!=scope.EnvironmentId))throw new ArgumentException("A release page must use one environment scope.",nameof(releases));
+        try {await auth.RequireAsync(actor,"approval.act",new("release",releases[0].Id,scope),ct);}
+        catch(ApiException e)when(e.Status is 403 or 409){return releases.ToDictionary(r=>r.Id,_=>new ApprovalEligibility(false,null,e.Code));}
+        var ids=releases.Select(r=>r.Id).ToArray();
+        var steps=await db.Set<ApprovalTask>().AsNoTracking().Where(t=>ids.Contains(t.ReleaseId)&&t.Status=="Pending")
+            .GroupBy(t=>t.ReleaseId).Select(g=>new {ReleaseId=g.Key,Step=(int?)g.Min(t=>t.StepOrder)}).ToDictionaryAsync(t=>t.ReleaseId,t=>t.Step,ct);
+        var used=(await db.Set<ApprovalTask>().AsNoTracking().Where(t=>ids.Contains(t.ReleaseId)&&t.Status=="Approved"&&t.AssigneeUserId==actor.UserId).Select(t=>t.ReleaseId).Distinct().ToArrayAsync(ct)).ToHashSet();
+        var actionable=(await QueryActionableReleaseIds(actor,[releases[0].EnvironmentId]).Where(id=>ids.Contains(id)).ToArrayAsync(ct)).ToHashSet();
+        return releases.ToDictionary(r=>r.Id,r=>{
+            if(r.Status!="WaitingApproval")return new ApprovalEligibility(false,null,"invalid_release_state");
+            steps.TryGetValue(r.Id,out var step);
+            if(r.RequestedBy==actor.UserId)return new(false,step,"self_approval");
+            if(used.Contains(r.Id))return new(false,step,"independent_approval_required");
+            var canAct=actionable.Contains(r.Id);return new(canAct,step,canAct?null:"approval_role_required");
+        });
+    }
+
     public async Task<ApprovalEligibility> EvaluateAsync(ReleaseRecord release, ScopeRef scope, ActorContext actor, CancellationToken ct)
     {
         try { await auth.RequireAsync(actor, "approval.act", new("release", release.Id, scope), ct); }

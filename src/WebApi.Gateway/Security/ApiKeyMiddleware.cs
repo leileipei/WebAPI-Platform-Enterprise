@@ -18,22 +18,23 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
         var metadata = feature.Route.Config.Metadata!;
         using var lease = store.Acquire(long.Parse(metadata["deploymentSequence"], CultureInfo.InvariantCulture));
         var generation = lease.Generation;
+        var indexes = generation.Indexes;
         ctx.Items[GenerationItem] = generation;
         // Release admission after capturing the complete route/auth generation, before I/O.
         if (ctx.Items.TryGetValue(AdmissionGate.Item, out var ticket)) ((AdmissionGate.Ticket)ticket!).Dispose();
         try
         {
-            var route = generation.Snapshot.Routes.Single(r => r.Id == Guid.Parse(metadata["runtimeRouteId"]));
+            var route = indexes.Routes[Guid.Parse(metadata["runtimeRouteId"])];
             var execution = TrafficExecutionContext.Attach(ctx, generation, route);
-            var authentication = (route.PolicyBindings ?? []).Where(b => generation.Authentication.ContainsKey(b.PolicyId))
-                .Select(b => generation.Authentication[b.PolicyId]).SingleOrDefault();
-            var authPolicy=(route.PolicyBindings??[]).Select(b=>generation.PoliciesById[b.PolicyId]).SingleOrDefault(p=>p.Type=="authentication");
+            var routeAuthentication = indexes.RouteAuthentication[route.Id];
+            var authentication = routeAuthentication.Configuration;
+            var authPolicy = routeAuthentication.Policy;
             void AuthDecision(string decision,string? reason=null){if(authentication?.Mode==AuthenticationMode.JWT&&authPolicy?.SourcePolicyId is not null&&authPolicy.SourceRevision is >0)execution.Record(authPolicy,decision,reason);}
             var mode = authentication?.Mode ?? (route.RequireApiKey ? AuthenticationMode.ApiKey : AuthenticationMode.Anonymous);
             var telemetry = RequestTelemetryState.From(ctx);
             if (telemetry is not null)
             {
-                var cluster = generation.Snapshot.Clusters.Single(c => c.Id == route.ClusterId);
+                var cluster = indexes.Clusters[route.ClusterId];
                 telemetry.Context = telemetry.Context with
                 {
                     ApiId = route.ApiId, ApiVersionId = route.ApiVersionId, RouteId = route.Id,
@@ -60,25 +61,27 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
                 if (result?.Success != true || result.Claims is null)
                 { AuthDecision("Rejected","invalid_jwt"); await Reject(ctx, telemetry, 401, "invalid_jwt", true); return; }
                 claims = result.Claims;
-                var mapping = jwt!.ApplicationMappings.SingleOrDefault(m => string.Equals(m.ClaimValue, claims.ApplicationClaimValue, StringComparison.Ordinal));
-                if (mapping is null) { AuthDecision("Rejected","invalid_jwt"); await Reject(ctx, telemetry, 401, "invalid_jwt", true); return; }
-                app = generation.Snapshot.Applications.SingleOrDefault(a => a.Id == mapping.ApplicationId);
+                if (authPolicy is null || !indexes.JwtApplications.TryGetValue((authPolicy.Id, claims.ApplicationClaimValue), out var applicationId))
+                { AuthDecision("Rejected","invalid_jwt"); await Reject(ctx, telemetry, 401, "invalid_jwt", true); return; }
+                indexes.Applications.TryGetValue(applicationId, out app);
                 if (app?.Status != "Active") { AuthDecision("Rejected","api_not_granted"); await Reject(ctx, telemetry, 403, "api_not_granted"); return; }
-                if (jwt.ForwardBearer) ctx.Request.Headers.Authorization = "Bearer " + claims.ValidatedBearer;
+                if (jwt!.ForwardBearer) ctx.Request.Headers.Authorization = "Bearer " + claims.ValidatedBearer;
                 else ctx.Request.Headers.Remove("Authorization");
             }
             else if (mode == AuthenticationMode.ApiKey)
             {
                 var parts = raw.Split('.');
-                app = parts.Length == 2 ? generation.Snapshot.Applications.SingleOrDefault(a => a.Credentials.Any(k => k.AccessKey == parts[0])) : null;
-                var key = app?.Credentials.Single(k => k.AccessKey == parts[0]);
+                RuntimeCredential? key = null;
+                if (parts.Length == 2 && indexes.Credentials.TryGetValue(parts[0], out var credential))
+                { app = credential.Application; key = credential.Credential; }
                 if (app?.Status != "Active" || key?.Status != "Active" || now < key.ValidFrom || now >= key.ExpiresAt || !ApiKeySecret.Verify(key.Hash, parts[1]))
                 { await Reject(ctx, telemetry, 401, "invalid_api_key"); return; }
             }
             if (app is not null)
             {
                 if (telemetry is not null) telemetry.Context = telemetry.Context with { ApplicationKey = app.Id.ToString() };
-                if (!app.Permissions.Any(p => p.ApiId == route.ApiId && now >= p.ValidFrom && (p.ExpiresAt is null || now < p.ExpiresAt)))
+                if (!indexes.PermissionWindows.TryGetValue((app.Id, route.ApiId), out var windows)
+                    || !windows.Any(p => now >= p.ValidFrom && (p.ExpiresAt is null || now < p.ExpiresAt)))
                 { AuthDecision("Rejected","api_not_granted"); await Reject(ctx, telemetry, 403, "api_not_granted"); return; }
                 execution.ApplicationId = app.Id;
             }

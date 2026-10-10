@@ -9,7 +9,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Policies;
-public sealed class PolicyService(WebApiDbContext db,AuthorizationService auth,PolicyAccess access,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,PolicyReferenceService references,JwtApplicationBindingService mappings,GatewayPolicyDeploymentRules deployment)
+public sealed class PolicyService(WebApiDbContext db,AuthorizationService auth,PolicyAccess access,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,PolicyReferenceService references,JwtApplicationBindingService mappings,GatewayPolicyDeploymentRules deployment,CollectionAuthorizationQuery visibility)
 {
     public static PolicyDto Dto(Policy p)=>new(p.Id,p.OrganizationId,p.ProjectId,p.Name,p.Type,p.Config,p.Enabled,p.VersionNo);
     public async Task<PageResult<PolicyDto>> ListAsync(PolicyScopeRequest requested,ActorContext actor,int page,int pageSize,string? type,string? search,bool? enabled,CancellationToken ct=default)
@@ -18,8 +18,14 @@ public sealed class PolicyService(WebApiDbContext db,AuthorizationService auth,P
         if(type is not null&&type is not ("authentication" or "timeout" or "rate_limit" or "circuit_breaker" or "retry" or "cache")||search?.Length>128) throw new ApiException(422,"invalid_policy_filter","策略筛选条件不合法。");
         var query=db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==scope.OrganizationId&&(scope.ProjectId==null||p.ProjectId==null||p.ProjectId==scope.ProjectId));
         if(type is not null) query=query.Where(p=>p.Type==type);if(enabled is bool on) query=query.Where(p=>p.Enabled==on);if(!string.IsNullOrWhiteSpace(search)) query=query.Where(p=>p.Name.Contains(search));
-        var visible=new List<PolicyDto>();foreach(var p in await query.OrderBy(p=>p.Name).ThenBy(p=>p.Id).ToArrayAsync(ct)) if(await access.CanReadAsync(new(p.OrganizationId,p.ProjectId),actor,ct)) visible.Add(Dto(p));
-        return Pagination.Slice(visible,page,pageSize);
+        var visible=visibility.Scopes(actor,"policy.read");
+        // Shared organization policies can be read through any real authorized active descendant.
+        // Project-owned policies still require the exact project scope; an environment is not its parent.
+        query=query.Where(p=>visible.Any(s=>s.OrganizationId==p.OrganizationId&&(p.ProjectId==null||s.ProjectId==p.ProjectId&&s.EnvironmentId==null)));
+        page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);
+        var total=await query.CountAsync(ct);
+        var rows=await query.OrderBy(p=>p.Name).ThenBy(p=>p.Id).Skip((page-1)*pageSize).Take(pageSize).ToArrayAsync(ct);
+        return new(rows.Select(Dto).ToArray(),total,page,pageSize);
     }
     public async Task<PolicyDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {var p=await db.Set<Policy>().AsNoTracking().SingleOrDefaultAsync(p=>p.Id==id,ct)??throw ScopeResolver.Missing();if(!await access.CanReadAsync(new(p.OrganizationId,p.ProjectId),actor,ct)) throw ScopeResolver.Missing();return Dto(p);}

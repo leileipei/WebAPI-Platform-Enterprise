@@ -44,7 +44,7 @@ public sealed class PerformanceProbeTests(ITestOutputHelper output)
             var now=DateTimeOffset.UtcNow;var spec=new DatasetSpec(100,20261009,now.AddMinutes(-1),now.AddHours(20));
             var manifest=await PerformanceDataset.CreateReferenceSceneAsync(db,spec,directory,CancellationToken.None);
             Assert.True(manifest.Validated);Assert.Equal(116,manifest.Working);Assert.Equal(100,manifest.FrozenRelease);Assert.Equal(3,manifest.Runtime);
-            var auth=new AuthorizationService(db);var scopes=new ScopeResolver(db);var references=new PolicyReferenceService(db,new PolicyAccess(db,auth,scopes),auth,scopes);
+            var auth=new AuthorizationService(db);var scopes=new ScopeResolver(db);var references=new PolicyReferenceService(db,new PolicyAccess(db,auth,scopes),new PolicyReferenceReader(db,new CollectionAuthorizationQuery(db)));
             var protectedReferences=await references.FindProtectedAsync(manifest.PolicyId);Assert.Equal(219,protectedReferences.Count);
             var admin=await references.ListAsync(manifest.PolicyId,new(ResourceId("user",0),"reference-admin"),1,100);Assert.Equal(219,admin.Total);
             Assert.Equal(manifest.Actors!.Single(a=>a.Kind=="platform-role").Expected.Take(100),admin.Items);
@@ -82,8 +82,9 @@ public sealed class PerformanceProbeTests(ITestOutputHelper output)
             var environmentReader=manifest.Actors.Single(a=>a.Kind=="environment-read-only");Assert.Empty(environmentReader.ApplicationIds);Assert.Equal(5,environmentReader.PolicyIds.Count);
             Assert.All(manifest.Actors.Where(a=>a.Kind is "no-function" or "no-scope" or "inactive-ancestor" or "cross-organization-role"),a=>{Assert.Empty(a.ApplicationIds);Assert.Equal(404,a.PolicyStatus);});
             var auth=new AuthorizationService(db);var scopes=new ScopeResolver(db);
-            var appService=new ApplicationService(db,auth,scopes,null!,null!);
-            var policyService=new PolicyService(db,auth,new PolicyAccess(db,auth,scopes),null!,null!,null!,null!,null!,null!);
+            var visibility=new CollectionAuthorizationQuery(db);
+            var appService=new ApplicationService(db,auth,scopes,null!,null!,visibility);
+            var policyService=new PolicyService(db,auth,new PolicyAccess(db,auth,scopes),null!,null!,null!,null!,null!,null!,visibility);
             for(var i=0;i<manifest.Actors.Count;i++) {
                 var expected=manifest.Actors[i];var actor=new ActorContext(PerformanceDataset.ResourceId(spec.Seed,"user",i),"scope-fixture");
                 if(expected.ApplicationStatus==200){var page=await appService.ListAsync(actor,1,100,ct:CancellationToken.None);Assert.Equal(expected.ApplicationIds,page.Items.Select(a=>a.Id).ToArray());Assert.Equal(expected.ApplicationIds.Count,page.Total);}
@@ -180,14 +181,17 @@ public sealed class PerformanceProbeTests(ITestOutputHelper output)
         Assert.True(bytes.Length<=16*1024*1024,$"Fixed scale {scale} exceeds wire budget: {bytes.Length} bytes");
         SnapshotValidator.ParsePayload(bytes,snapshot.EnvironmentId);
     }
-    [Fact]
-    public void LookupMicroProbeMeasuresActualGenerationAtAllPositions()
+    [Theory] [InlineData(100)] [InlineData(1000)] [InlineData(10000)]
+    public void LookupMicroProbeMeasuresActualGenerationAtAllPositions(int scale)
     {
         var now=DateTimeOffset.UtcNow;using var keys=PerformanceJwtMaterial.Create();
-        var snapshot=PerformanceDataset.BuildSnapshot(new(100,20261009,now.AddMinutes(-1),now.AddHours(20)),AuthenticationMode.JWT,"RS256",keys);
-        var results=LookupMicroProbe.Measure(snapshot,CanonicalJson.Serialize(snapshot),100);
+        var snapshot=PerformanceDataset.BuildSnapshot(new(scale,20261009,now.AddMinutes(-1),now.AddHours(20)),AuthenticationMode.JWT,"RS256",keys);
+        SnapshotValidator.Validate(snapshot,snapshot.EnvironmentId);var payload=CanonicalJson.Serialize(snapshot);Assert.InRange(payload.LongLength,1L,16777216L);
+        var results=LookupMicroProbe.Measure(snapshot,payload,10000);
         Assert.Equal(21,results.Count);Assert.Equal(new[]{"first","last","middle"},results.Select(r=>r.Position).Distinct().Order().ToArray());
-        Assert.All(results,r=>{Assert.Equal(100,r.Hits);Assert.Equal(100,r.Iterations);Assert.True(r.ElapsedTicks>0);Assert.Equal("scan",r.Mode);});
+        Assert.Equal(new[]{"application","authentication","authorization","cluster","credential","jwt_mapping","route"},results.Select(r=>r.Operation).Distinct().Order().ToArray());
+        Assert.All(results,r=>{Assert.Equal(10000,r.Hits);Assert.Equal(10000,r.Iterations);Assert.True(r.ElapsedTicks>0);Assert.Equal("indexed",r.Mode);});
+        output.WriteLine("INDEX_MICRO_DIAGNOSTIC "+JsonSerializer.Serialize(new {scale,immutableSource=false,performanceAcceptance=false,scope="unit-probe-binding-not-performance",entries=results}));
     }
     [Fact]
     public void GenerationLifecycleProbeIncludesHeldLeaseAndCollection()

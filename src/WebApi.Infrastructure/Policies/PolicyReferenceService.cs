@@ -10,16 +10,12 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Policies;
-public sealed class PolicyReferenceService(WebApiDbContext db,PolicyAccess access,AuthorizationService auth,ScopeResolver scopes)
+public sealed class PolicyReferenceService(WebApiDbContext db,PolicyAccess access,PolicyReferenceReader reader)
 {
     public async Task<PageResult<PolicyReferenceDto>> ListAsync(Guid id,ActorContext actor,int page,int pageSize,CancellationToken ct=default)
     {
         var p=await db.Set<Policy>().AsNoTracking().SingleOrDefaultAsync(p=>p.Id==id,ct)??throw ScopeResolver.Missing();if(!await access.CanReadAsync(new(p.OrganizationId,p.ProjectId),actor,ct)) throw ScopeResolver.Missing();
-        var result=new List<PolicyReferenceDto>();foreach(var item in await FindProtectedAsync(id,ct)) {
-            var scope=await scopes.EnvironmentAsync(item.EnvironmentId,ct);var permission=item.ReferenceKind=="Working"?"route.read":item.ReferenceKind=="FrozenRelease"?"release.read":"gateway.config.read";
-            if(await auth.CanAsync(actor,permission,new("environment",item.EnvironmentId,scope),ct)) result.Add(item);
-        }
-        return Pagination.Slice(result.OrderBy(r=>r.ReferenceKind).ThenBy(r=>r.EnvironmentId).ThenBy(r=>r.Name).ToArray(),page,pageSize);
+        return Pagination.Slice(await reader.ReadVisibleAsync(id,actor,ct),page,pageSize);
     }
     public async Task<IReadOnlyList<PolicyReferenceDto>> FindProtectedAsync(Guid id,CancellationToken ct=default)
     {
