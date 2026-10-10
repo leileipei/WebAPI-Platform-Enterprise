@@ -21,5 +21,8 @@ public sealed class ReleaseRecord
     public DateTimeOffset? DeadlineAt { get; set; }
     public string? FailureCode { get; set; }
     public Guid? PublishRequestedBy { get; set; }
+    public Guid? ArtifactId { get; set; }
+    public Guid? PromotionId { get; set; }
+    public Guid? SourceReleaseId { get; set; }
     public string? PublishTraceId { get; set; }
 }

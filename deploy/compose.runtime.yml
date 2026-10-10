@@ -91,11 +91,13 @@
         "DataProtection__KeysDirectory": "/keys",
         "DataProtection__ApplicationName": "WebApi.Enterprise.Local.v1",
         "Authentication__LoginProtection__HmacSecretFile": "/run/secrets/login-protection-hmac",
-        "Authentication__LoginProtection__RedisPrefix": "webapi:local-login"
+        "Authentication__LoginProtection__RedisPrefix": "webapi:local-login",
+        "VerificationReports__Directory": "/var/lib/webapi/verification-reports"
       },
       "volumes": [
         "secrets-control-plane:/run/secrets:ro",
-        "dp-keys:/keys"
+        "dp-keys:/keys",
+        "verification-reports:/var/lib/webapi/verification-reports"
       ],
       "healthcheck": {
         "test": [
@@ -395,7 +397,8 @@
         "secrets-gateway-a:/volumes/secrets-gateway-a",
         "secrets-gateway-b:/volumes/secrets-gateway-b",
         "secrets-migrator:/volumes/secrets-migrator",
-        "secrets-cache:/volumes/secrets-cache"
+        "secrets-cache:/volumes/secrets-cache",
+        "verification-reports:/volumes/verification-reports"
       ]
     }
   },
@@ -471,6 +474,11 @@
       }
     },
     "secrets-cache": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "verification-reports": {
       "labels": {
         "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
       }

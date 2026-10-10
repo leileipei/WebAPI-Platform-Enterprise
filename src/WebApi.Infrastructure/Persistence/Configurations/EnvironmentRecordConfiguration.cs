@@ -17,6 +17,10 @@ public sealed class EnvironmentRecordConfiguration : IEntityTypeConfiguration<En
         b.Property(x => x.ReleasePolicyId).HasColumnName("release_policy_id").HasColumnType("uuid");
         b.Property(x => x.DesiredConfigVersion).HasColumnName("desired_config_version").HasColumnType("bigint");
         b.Property(x => x.DeploymentSequence).HasColumnName("deployment_sequence").HasColumnType("bigint").IsRequired().HasDefaultValue(0L);
+        b.Property(x => x.GatewayPublicUrl).HasColumnName("gateway_public_url").HasColumnType("varchar(2048)");
+        b.Property(x => x.GatewayInternalUrl).HasColumnName("gateway_internal_url").HasColumnType("varchar(2048)");
+        b.Property(x => x.BasePath).HasColumnName("base_path").HasColumnType("varchar(512)").IsRequired().HasDefaultValue("/");
+        b.Property(x => x.AccessAddressRevision).HasColumnName("access_address_revision").HasColumnType("bigint").IsRequired().HasDefaultValue(1L);
         b.Property(x => x.Revision).HasColumnName("revision").HasColumnType("bigint").IsRequired().IsConcurrencyToken().HasDefaultValue(1L);
     }
 }

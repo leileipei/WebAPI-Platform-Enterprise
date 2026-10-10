@@ -9,5 +9,7 @@ public sealed record ApprovalRiskDto(string Visibility, string? Coverage, WebApi
 public sealed record ApprovalInboxItemDto(Guid Id, string ReleaseNo, string ReleaseType, string State,
     ApprovalScopeDto Organization, ApprovalScopeDto Project, ApprovalScopeDto Environment,
     Guid RequestedBy, string ApplicantDisplayName, DateTimeOffset CreatedAt,
-    ApprovalEligibility ApprovalEligibility, int ApprovedCount, int RequiredCount, ApprovalRiskDto Risk);
+    ApprovalEligibility ApprovalEligibility, int ApprovedCount, int RequiredCount, ApprovalRiskDto Risk,string? ApplicationKind=null,ApprovalDeliverySummaryDto? Delivery=null);
 public sealed record ApprovalInboxPageDto(WebApi.Contracts.Common.PageResult<ApprovalInboxItemDto> Page, ApprovalInboxCounts Counts, ApprovalInboxFilter? Filter = null);
+
+public sealed record ApprovalDeliverySummaryDto(string Visibility,Guid? PromotionId,Guid? ArtifactId,string? ArtifactHash,ApprovalScopeDto? SourceEnvironment,PipelineTraceDto? Pipeline=null);

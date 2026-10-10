@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "classification": "actual-isolated-environment-access",
+  "sourceRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+  "expectedRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+  "imageId": "sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed",
+  "projectName": "webapi-enterprise-local-test-28b45ffa-b13b-435d-be00-e09310425018",
+  "checks": [
+    {
+      "name": "metadata_no_network",
+      "passed": true,
+      "actual": true,
+      "proxyRequestsBefore": 0,
+      "proxyRequestsAfter": 0
+    },
+    {
+      "name": "legacy_client_preserve",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "authorization_projection",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "proxy_prefix_call",
+      "passed": true,
+      "actual": true,
+      "actualBackendPath": "/orders/qa"
+    },
+    {
+      "name": "document_copy_preserve",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "dual_gateway_ack",
+      "passed": true,
+      "actual": true,
+      "releaseId": "9ff5d6a6-6410-464c-b9d0-0b2b533e570b",
+      "configVersion": 1,
+      "deploymentSequence": 1
+    },
+    {
+      "name": "history_immutable",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "rollback_recovery",
+      "passed": true,
+      "actual": true,
+      "releaseId": "2c183331-28c4-456c-956c-b6b4904c708f",
+      "rollbackOf": "9a9a290f-b257-4129-8b5e-dc3ce5079e4d",
+      "configVersion": 1,
+      "deploymentSequence": 3
+    }
+  ],
+  "sourceVerified": true,
+  "isolatedAcceptance": true,
+  "localInstalled": false,
+  "productionAcceptance": false,
+  "ownerId": "64ad96ee-0090-4815-b8eb-4e877b5d3f4b",
+  "image": {
+    "sourceRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+    "id": "sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed",
+    "binaryIdentityVerified": true
+  },
+  "migrations": [
+    "20261003182012_InitialCore",
+    "20261003201632_PublishCoordinatorIdentity",
+    "20261003213457_RecoveryReference",
+    "20261004030000_ObservabilityAlerts",
+    "20261005090000_SystemSettings",
+    "20261005120000_SsoOidc",
+    "20261005123210_SsoDisplayEmail",
+    "20261005152401_SsoSecretVersion",
+    "20261006090000_ApiVersionComparisons",
+    "20261006165518_ContractManagement",
+    "20261008020000_ApprovalInboxIndexes",
+    "20261008030000_ExternalNotifications",
+    "20261009010000_EnvironmentAccessAddresses",
+    "20261009011000_ReleaseAccessContexts"
+  ],
+  "ui": {
+    "classification": "real-isolated-server-browser-qa",
+    "sourceRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+    "imageId": "sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed",
+    "projectName": "webapi-enterprise-local-test-28b45ffa-b13b-435d-be00-e09310425018",
+    "ownerId": "64ad96ee-0090-4815-b8eb-4e877b5d3f4b",
+    "scope": {
+      "organizationId": "adeff6b6-0851-4f9c-97de-07a89b965953",
+      "projectId": "af6769c9-63d4-407a-9c57-654c24cae2ba",
+      "environmentId": "ce21c4ce-47b0-43c2-8d2c-5a0026c2c606"
+    },
+    "apiId": "25fb13c9-9c6e-4412-8ce7-a8c8a226039d",
+    "checks": [
+      {
+        "name": "1440/1280无横向溢出及键盘焦点和放弃保护",
+        "passed": true
+      },
+      {
+        "name": "真实412保留草稿并显式采用新修订保存",
+        "passed": true
+      },
+      {
+        "name": "实际清空地址后复制禁用",
+        "passed": true
+      },
+      {
+        "name": "复制真实公开模板与实际环境OpenAPI下载，不创建可执行模板链接",
+        "passed": true
+      },
+      {
+        "name": "未运行版本不会显示可执行入口",
+        "passed": true
+      },
+      {
+        "name": "实际撤权403清空内网草稿且未写入服务端",
+        "passed": true
+      },
+      {
+        "name": "真实旧环境详情迟到响应在环境切换后丢弃，不覆盖新环境内网地址",
+        "passed": true
+      },
+      {
+        "name": "真实双节点ACK成功后修改当前入口，页面保留原执行地址并独立显示当前地址",
+        "passed": true
+      }
+    ],
+    "screenshots": [
+      {
+        "name": "01-environment-1440",
+        "file": "docs/evidence/environment-access/8908281db8129860cfdf4104a02904a25d6c9b1b/ui/01-environment-1440.png",
+        "width": 1440,
+        "height": 1100,
+        "sha256": "f4be4041369853c9a234e78d41cd709588e72724eaa0c3c7171bb6d3cc59eacd"
+      },
+      {
+        "name": "02-environment-1280",
+        "file": "docs/evidence/environment-access/8908281db8129860cfdf4104a02904a25d6c9b1b/ui/02-environment-1280.png",
+        "width": 1280,
+        "height": 1000,
+        "sha256": "3879d2692daa2d827a0bd36b62a9b91627962ea836e120d72e4503f627d25296"
+      },
+      {
+        "name": "03-real-conflict",
+        "file": "docs/evidence/environment-access/8908281db8129860cfdf4104a02904a25d6c9b1b/ui/03-real-conflict.png",
+        "width": 1280,
+        "height": 1000,
+        "sha256": "0acfbf72cb39f11e9f986f3f931f7633b921c9b1f7755ff94991cecc02b4fa91"
+      },
+      {
+        "name": "04-working-api-access",
+        "file": "docs/evidence/environment-access/8908281db8129860cfdf4104a02904a25d6c9b1b/ui/04-working-api-access.png",
+        "width": 1280,
+        "height": 1000,
+        "sha256": "3dbb0febf7a109b88f2c7e503d47e3474e4e995f83264f44df5b1ee7f6cbcfb4"
+      },
+      {
+        "name": "05-revoked-cleared",
+        "file": "docs/evidence/environment-access/8908281db8129860cfdf4104a02904a25d6c9b1b/ui/05-revoked-cleared.png",
+        "width": 1280,
+        "height": 1000,
+        "sha256": "3493af01e61c8e4e198b6f0dcf6305c7938bd76640313c9c84e3b82278739755"
+      },
+      {
+        "name": "06-scope-late-response",
+        "file": "docs/evidence/environment-access/8908281db8129860cfdf4104a02904a25d6c9b1b/ui/06-scope-late-response.png",
+        "width": 1440,
+        "height": 1100,
+        "sha256": "24b0004279d74996a013e42381a311753c93c4f9d3b4440005c0f19e822d5e1d"
+      },
+      {
+        "name": "07-history-current",
+        "file": "docs/evidence/environment-access/8908281db8129860cfdf4104a02904a25d6c9b1b/ui/07-history-current.png",
+        "width": 1440,
+        "height": 1100,
+        "sha256": "c7ad325c6a984616998f3fb7e7496a62c168f1fecfcd8f0449eba90665563359"
+      }
+    ],
+    "visualReviewComplete": true,
+    "releaseId": "9ff5d6a6-6410-464c-b9d0-0b2b533e570b"
+  },
+  "proxy": {
+    "url": "https://127.0.0.1:62402/gateway/orders/qa",
+    "status": 200,
+    "backendPath": "/orders/qa",
+    "tlsCertificateSha256": "09f1ad47e995b73a18243b78ff58cf66e4b49e0b0686a42f991cfc7939aa4828"
+  },
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  }
+}

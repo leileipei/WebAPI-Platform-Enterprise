@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 umask 077
-for pair in pg:70 lkg-a:10001 lkg-b:10001 dp-keys:10001 prometheus-data:65534 loki-data:10001 tempo-data:10001 bootstrap-password:10001; do
+for pair in pg:70 lkg-a:10001 lkg-b:10001 dp-keys:10001 verification-reports:10001 prometheus-data:65534 loki-data:10001 tempo-data:10001 bootstrap-password:10001; do
   name=${pair%:*}; uid=${pair#*:}
   test -d "/volumes/$name"
   chown "$uid:$uid" "/volumes/$name"

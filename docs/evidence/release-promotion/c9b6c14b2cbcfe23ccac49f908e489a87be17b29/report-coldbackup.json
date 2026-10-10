@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "classification": "actual-isolated-report-coldbackup-restore",
+  "sourceRevision": "c9b6c14b2cbcfe23ccac49f908e489a87be17b29",
+  "projectName": "webapi-enterprise-local-test-09155546-52eb-4352-8900-6ca0a59279af",
+  "cloneProject": "webapi-enterprise-local-test-9d353c2a-bee5-464c-87e4-1f9c4584434a",
+  "checks": [
+    {
+      "name": "fixed_source_image_binary",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "real_source_dual_gateway_requests",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "actual_uploaded_report_and_manual_fact",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "report_volume_in_owned_coldbackup",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "restored_authenticated_report_and_database_metadata",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "original_fixture_report_preserved_after_clone_restore",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "clone_owned_cleanup",
+      "passed": true,
+      "actual": true,
+      "containersRemaining": 0,
+      "volumesRemaining": 0,
+      "secretFilesRemaining": 0
+    },
+    {
+      "name": "source_owned_cleanup",
+      "passed": true,
+      "actual": true,
+      "containersRemaining": 0,
+      "volumesRemaining": 0,
+      "secretFilesRemaining": 0
+    }
+  ],
+  "sourceVerified": true,
+  "isolatedAcceptance": true,
+  "localInstalled": false,
+  "productionAcceptance": false,
+  "phase": "passed",
+  "imageId": "sha256:a9bb53c2e6c13c025bfd676b7869a236c2fa9edfd52dd3aabe2f3fa00588e0e9",
+  "ownerId": "536e7a8c-41e5-4d58-b985-b213490b3b04",
+  "artifactId": "6c13d37d-046e-459f-99dc-8a42c64831be",
+  "artifactHash": "169fbf7e1aa6b44c4849c8bfd8f588fce3fa515d2bda5d3e7b92eda26ab83c74",
+  "snapshotHash": "a76a71a4365adc17628a48b07cd4117a2069262a6535db05100f995b40434309",
+  "reportId": "07e8c012-8f4d-4430-a320-e14f7b8de111",
+  "reportHash": "9ccd13aa70322d561555f587826139b77c011f626ca4bf7bb8d41173907d47f9",
+  "reportSize": 71,
+  "verificationId": "def40eb9-076d-46ef-8f07-d7449df5b451",
+  "backup": {
+    "databaseDumpSha256": "3f839df97d0fbecf11469fab432a7e6d0ec935d125d3ebbd3cf89aeded6df93d",
+    "reportsArchiveSha256": "42d8d139be8a59b128d5c77e30a41a553d58c83949614f5c7c26cf4205204312"
+  },
+  "cloneOwnerId": "76cc7681-d698-4741-9fa7-82076c1b28dd"
+}

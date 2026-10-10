@@ -1,0 +1,237 @@
+{
+  "passed": true,
+  "classificationOfUpdate": "console-labels-only",
+  "previousSourceRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
+  "toolingSourceBindingUpdatedOnly": true,
+  "monitoringContainerIdsPreserved": true,
+  "classification": "actual-local-persistent-pipeline-installation",
+  "sourceRevision": "e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1",
+  "imageId": "sha256:c63c9884fd828adf84c68860530b2aa365deed150e8cb06918985b80b1073744",
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "preservation": {
+    "sourceUntouched": true,
+    "oldFiles": 1199,
+    "oldTables": 71,
+    "oldRows": 971,
+    "reports": 0,
+    "approvedMonitoringIdentityExceptions": 0,
+    "sourceFiles": 2636,
+    "ready": true
+  },
+  "applicationContainers": 8,
+  "applicationsVerified": 269,
+  "staticFilesVerified": 3,
+  "newReceipts": [
+    {
+      "table": "audit_logs",
+      "id": "[276]",
+      "hash": "1f833dffea206dbec3edd46f6c9c2c58264b6d21e0b2ee80a012a11c4961fdf1",
+      "commandId": "de693968-b7eb-478c-9a09-c87c534bc2fb",
+      "rule": "actual-readonly-login"
+    },
+    {
+      "table": "audit_logs",
+      "id": "[277]",
+      "hash": "012b74cf33a1ed863eec206d72c1cb173ebdfbb7af25968e9fc70bd17184785d",
+      "commandId": "e2f1618a-3ea1-413f-ba84-6c6c5dce067b",
+      "rule": "actual-readonly-login"
+    },
+    {
+      "table": "audit_logs",
+      "id": "[278]",
+      "hash": "532d9373bdc9d389cd86c5b4d34d0767336fffe1446a39321517ffd53fca6328",
+      "commandId": "e2f1618a-3ea1-413f-ba84-6c6c5dce067b",
+      "rule": "actual-readonly-login"
+    },
+    {
+      "table": "sso_login_attempts",
+      "id": "[\"237c99fa-9f1a-4298-94ae-7633347625b5\"]",
+      "hash": "15de29fbef50e68d5233d4adb276f8cec2f5684874c1f1597de5ec0f5accb7ae",
+      "commandId": "e2f1618a-3ea1-413f-ba84-6c6c5dce067b",
+      "rule": "actual-original-sso-attempt"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[222]",
+      "hash": "e39bb64681804ffc89b734091b98936eb3917b51fffbf581fb37921f5249bc0d",
+      "commandId": "6dd6b69f-b212-4a6b-88f4-5a9c1f1468cd",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[223]",
+      "hash": "7c4b41b5fb9747d939a64138f387c37f009dd5dc63d19e6552545c969289c34d",
+      "commandId": "6dd6b69f-b212-4a6b-88f4-5a9c1f1468cd",
+      "rule": "restarted-node-ready"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[224]",
+      "hash": "2aad3f21e50dd38340f709acba83c7a7facdce29a90e8db01e47dd62fc8a92df",
+      "commandId": "6dd6b69f-b212-4a6b-88f4-5a9c1f1468cd",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[225]",
+      "hash": "a2167706165e0a73d33da5ee8b2614ec27d2e70325b3b7f5f231065a3f00bb19",
+      "commandId": "6dd6b69f-b212-4a6b-88f4-5a9c1f1468cd",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[226]",
+      "hash": "a9ac7d53ff630512e53dcadc345b36516895a624837d232b63638191637b6bf1",
+      "commandId": "6dd6b69f-b212-4a6b-88f4-5a9c1f1468cd",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[227]",
+      "hash": "f26023c93cf9fe0391d2bdeadfda5eae4279d5c5f6b15c26e29f1149e6608803",
+      "commandId": "be8e9af4-07c2-416d-97e1-b3a43ddabd3f",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[228]",
+      "hash": "9cffe8ddd78571c6abc3d30e3c42f50255d6a7c3a443a4bf284987e6abb7b934",
+      "commandId": "be8e9af4-07c2-416d-97e1-b3a43ddabd3f",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[229]",
+      "hash": "68dc3aaa6e60c7bbd6be430e0e5dd3bd9062ec587fd3af568f23de6268cb54c4",
+      "commandId": "be8e9af4-07c2-416d-97e1-b3a43ddabd3f",
+      "rule": "restarted-node-ready"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[230]",
+      "hash": "176cfb240c1368ec078986dad95a098ed3f0abba884a48a82e5f92468a5c152b",
+      "commandId": "be8e9af4-07c2-416d-97e1-b3a43ddabd3f",
+      "rule": "restarted-node-ready"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[231]",
+      "hash": "aafd6ab67947f309dbd837b60d34285845be0683ecc51eacb793c3a2d61bdbaf",
+      "commandId": "be8e9af4-07c2-416d-97e1-b3a43ddabd3f",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[232]",
+      "hash": "c6eda35c35cd0dbb98350be799ceb03e8a9a6e18c4c0d0fc1039115d8bf6be62",
+      "commandId": "be8e9af4-07c2-416d-97e1-b3a43ddabd3f",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[233]",
+      "hash": "491b98afef10bc3dc3dcca809ebdb97857e3c2b80fb8cbace362ef66f4c62da0",
+      "commandId": "b1a05fb0-cdf6-4ba2-8caa-3870cdb95e80",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[234]",
+      "hash": "388999811614c349a74e7ad1121b8774bb93d52f6e1cba96f59abf09d61a33ff",
+      "commandId": "b1a05fb0-cdf6-4ba2-8caa-3870cdb95e80",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[235]",
+      "hash": "e3d54002ed5a77a3509473d5b192e17584d6641f20d8faf2208f37c928b8f48e",
+      "commandId": "b1a05fb0-cdf6-4ba2-8caa-3870cdb95e80",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[236]",
+      "hash": "bc8d3bdbde86b994fd85165dc333f14c2ef432b94f955f2173e73a2221490a12",
+      "commandId": "b1a05fb0-cdf6-4ba2-8caa-3870cdb95e80",
+      "rule": "same-running-snapshot-new-instance"
+    }
+  ],
+  "pipelineTablesEmpty": true,
+  "permissionsOnlyAdmin": true,
+  "originalTrafficSamples": [
+    {
+      "port": 4196,
+      "status": 200,
+      "backendId": "B",
+      "receivedApiKey": false
+    },
+    {
+      "port": 4197,
+      "status": 200,
+      "backendId": "B",
+      "receivedApiKey": false
+    }
+  ],
+  "originalRoutingSnapshot": "c946373d3133af1da1991e36c0a725e10727101987f4a685c9cba2f7633755ee",
+  "originalAllowedBackends": [
+    "A",
+    "B"
+  ],
+  "originalRunningVersion": [
+    {
+      "version": 4,
+      "sequence": 4
+    },
+    {
+      "version": 4,
+      "sequence": 4
+    }
+  ],
+  "originalSso": true,
+  "browserScreenshots": [
+    {
+      "path": "original-admin-pipelines.png",
+      "width": 1440,
+      "sha256": "78cfbe46d7613ce309dacabc9ac158c5c76cda9fae247e010fae7b2204a2822a",
+      "visuallyInspected": true
+    },
+    {
+      "path": "original-admin-runs.png",
+      "width": 1280,
+      "sha256": "790ae5c342a75f8feb03db20ef5fc30a6026be6c9f22f7072a6be1b1152aee4b",
+      "visuallyInspected": true
+    },
+    {
+      "path": "original-sso-viewer-restricted.png",
+      "width": 1280,
+      "sha256": "e24876accf292e8fbd95b95a474832d5c8079384d3f64077fdadfdc9d361791e",
+      "visuallyInspected": true
+    }
+  ],
+  "clone": {
+    "passed": true,
+    "freshOwner": true,
+    "ownerId": "aa7259af-dbbe-49ff-9808-a9f85eff1de2",
+    "sourceOwnerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+    "manifestSha256": "fe69e393502c5ba7e3d8c3e8059d681bebbf003e28f5638c5d1ea024ba3f6e14",
+    "historicalRows": 971,
+    "protectedReports": 0,
+    "gatewayCalls": 2,
+    "sourceRevision": "e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1"
+  },
+  "cleanup": {
+    "ownerId": "aa7259af-dbbe-49ff-9808-a9f85eff1de2",
+    "remainingOwnedResources": 0
+  },
+  "enterpriseDnsTlsLb": false,
+  "enterpriseBusinessAcceptance": false,
+  "newBusinessPublish": false,
+  "mainMerged": false,
+  "pushed": false,
+  "toolingRevision": "0ecdb46e1891045fcdfdb571e70d884d35661095"
+}

@@ -1,0 +1,152 @@
+{
+  "date": "2026-10-10",
+  "classification": "premerge-local-checks",
+  "baseRevision": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+  "testedApplicationRevision": "e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1",
+  "testedCodeObjects": {
+    "src": "d76fb67205a92187705c4aa055e8499af0a76e61",
+    "console": "adc26872012046446f42676d4a0a029a4e4f8e5d",
+    "deploy": "4baf400652a3a404305524777dc0b25f9fc5db3b",
+    "scripts": "24471a450ca9e96b5ce2e99b6af1ed1760efb1d7",
+    "tests": "04deabb5d47395d0fd8f3da2bfd86f5a5b0f7b39",
+    "third_party": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+    ".config": "f60b6727724d2f612838401aa9e8af9cdabf4b6e",
+    "Directory.Build.props": "e5db0cbe4ab306bfc545c64203028cc99bfe496a",
+    "Directory.Packages.props": "67c9b985b1d86599d399dd146a4c28644431c871",
+    "global.json": "af07787e724ca1b56f29adafa8a91a6d4b1fe433",
+    "WebApi.Enterprise.sln": "627fdbdce35377844ddc2f76c8c1829fdff19ae1"
+  },
+  "suites": [
+    {
+      "suite": "Domain",
+      "passed": 811,
+      "failed": 0,
+      "skipped": 0,
+      "privateLog": ".runtime/github-merge-20261010/domain.log",
+      "sha256": "c8125a1722ccdffd319b21b3caff6280b72d773a08a63d738a4a81be4c3b8ada"
+    },
+    {
+      "suite": "Integration",
+      "passed": 1185,
+      "failed": 0,
+      "skipped": 0,
+      "privateLog": ".runtime/github-merge-20261010/integration-serial.log",
+      "sha256": "3d25ee132db27705148db0191d095f7189943bd69015fca9b07a942915f81e3b"
+    },
+    {
+      "suite": "Gateway",
+      "passed": 142,
+      "failed": 0,
+      "skipped": 0,
+      "privateLog": ".runtime/github-merge-20261010/gateway-explicit-network.log",
+      "sha256": "cd1c3b83bd0925cd6150b994b94d73a242ea7d58ddc5e00cef6de06b69754c4a"
+    },
+    {
+      "suite": "Console",
+      "passed": 269,
+      "failed": 0,
+      "skipped": 0,
+      "privateLog": ".runtime/github-merge-20261010/console.log",
+      "sha256": "152932bbe67ce899d854d6a2110071aeedf0d51b83457b93d2a8ebc3a08d47fb"
+    },
+    {
+      "suite": "all script unit tests",
+      "passed": 435,
+      "failed": 0,
+      "skipped": 0,
+      "privateLog": ".runtime/github-merge-20261010/all-script-tests.log",
+      "sha256": "3ae35981de1662261ca4425439f1deb5424a629080c1624c660155e1216e9359"
+    }
+  ],
+  "totalPassed": 2842,
+  "failed": 0,
+  "skipped": 0,
+  "consoleBuildPassed": true,
+  "existingBundleAdvisory": true,
+  "independentReview": {
+    "base": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+    "head": "e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1",
+    "mode": "read-only-independent-review",
+    "critical": 0,
+    "important": 0,
+    "readyWithVerification": true,
+    "reviewed": [
+      "environment access metadata",
+      "portable immutable artifacts",
+      "adjacent promotion mappings",
+      "independent test acceptance and production verification",
+      "frozen definitions and current attempts",
+      "authority revocation and scoped reads",
+      "queue, timeout, recovery, rollback and late ACK",
+      "maintenance ownership and preserved infrastructure bindings"
+    ],
+    "declinedAndDisposition": [
+      {
+        "item": "Enterprise DNS/TLS/LB activation",
+        "disposition": "Outside approved metadata scope; no activation claim"
+      },
+      {
+        "item": "Enterprise business/performance/HA acceptance",
+        "disposition": "Outside local synthetic acceptance; no production claim"
+      },
+      {
+        "item": "Old attempt4/7 intermittent root cause",
+        "disposition": "Still unconfirmed; preserve reliability history rather than claim fixed"
+      }
+    ],
+    "documentReview": {
+      "critical": 0,
+      "important": 0,
+      "minorSuggestionsApplied": 2,
+      "changes": [
+        "Mark previous installation as historical",
+        "Use approval templates, reviewer roles and seat counts"
+      ]
+    }
+  },
+  "fixedEvidenceValidation": {
+    "environment": {
+      "passed": true,
+      "errors": []
+    },
+    "promotion": {
+      "passed": true,
+      "errors": []
+    },
+    "pipeline": {
+      "passed": true,
+      "errors": []
+    }
+  },
+  "latestEvidenceHashChecks": 31,
+  "privateCredentialMatches": 0,
+  "knownCredentialPatternsMatched": 0,
+  "documentSecretFieldCandidates": 0,
+  "privateBaselineSha256": "3b411dd6df1c481f4e1a6bfeb3ce9655389c855a3320531658563c3bf48cf539",
+  "mainLocalFilesPreserved": 651,
+  "mainCheckoutHeadPreserved": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+  "originalInstallationModified": false,
+  "deliveryMethod": "GitHub pull request merge commit, retaining fixed commit history",
+  "localMainAutomaticUpdate": false,
+  "privateResourcesRetainedForMaintenance": true,
+  "initialAttempts": [
+    {
+      "suite": "Gateway",
+      "result": "not-started",
+      "reason": "Docker default address pool exhausted; explicit verified free test subnet rerun passed",
+      "privateLog": ".runtime/github-merge-20261010/gateway.log",
+      "sha256": "a4c99ada8ce03c9303c9744ff37217a2762aebefc02f46665b60a9cb305b1d67"
+    },
+    {
+      "suite": "Integration",
+      "result": "failure-then-aborted",
+      "reason": "First Redis connection returned Unavailable under the existing one-second deadline; exact cause unconfirmed; four targeted cases and subsequent full serial suite passed",
+      "privateLog": ".runtime/github-merge-20261010/integration.log",
+      "sha256": "8cba4910c40415b8814d5e79b9068484a3c7fda2ee98db725651d33a447555ce"
+    }
+  ],
+  "diagnosticFourCasesPassed": true,
+  "historicalIntermittentRootCauseConfirmed": false,
+  "enterpriseBusinessAcceptance": false,
+  "enterpriseDnsTlsLb": false
+}

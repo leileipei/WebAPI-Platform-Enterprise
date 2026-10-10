@@ -1,0 +1,70 @@
+{
+  "classification": "actual-isolated-dual-environment-promotion-browser",
+  "sourceRevision": "c0860c05426725c1ed7e58c1caf30f44410df0a3",
+  "projectName": "webapi-enterprise-local-test-4fe040d9-cfc4-44e8-8b4e-caf970699808",
+  "checks": [
+    {
+      "name": "legacy_real_production_baseline_before_enabling_promotion",
+      "passed": true,
+      "actual": true,
+      "releaseId": "37e2fa27-1117-4a7f-8b7e-5beebe44d9c2"
+    },
+    {
+      "name": "screenshot_environments-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/environments-1440.png"
+    }
+  ],
+  "sourceVerified": true,
+  "isolatedAcceptance": false,
+  "localInstalled": false,
+  "productionAcceptance": false,
+  "phase": "failed",
+  "imageId": "sha256:9a18edee983c7922e57cda33c62a4f8021e83ae0a9fc78643d8554ec2018fab0",
+  "source": {
+    "environmentId": "b8b36ad2-c747-4c36-8fcc-b863965e0177",
+    "releaseId": "2aac83cb-230a-445e-a7a8-986d4fa4cd33",
+    "artifactId": "aed81910-a7b7-46b3-b09c-1897874a9ff5",
+    "artifactHash": "fa154eed2552422d93d702aef4a2bd106e04774d2c0984c59d7691ab0bc68f09",
+    "snapshotHash": "6e7a488e7be71064c2117c81723cfb7ff57e411f6180d61e193f9223b1f266f3",
+    "configVersion": 1,
+    "sequence": 1,
+    "nodes": [
+      {
+        "nodeId": "9e87cb64-f47e-446e-a3f7-16dc62d540e1",
+        "instanceId": "12eae98a-6e18-44fb-b91c-00e0f7f13f57",
+        "acknowledged": true
+      },
+      {
+        "nodeId": "f6b17707-f040-45ef-8591-46b219b128dc",
+        "instanceId": "bd0cf0ef-0588-4985-9b91-af5d69e83269",
+        "acknowledged": true
+      }
+    ]
+  },
+  "target": {
+    "environmentId": "c42acd0e-341f-42d9-8817-f91a9f8dd35f",
+    "publicUrl": "https://127.0.0.1:55704",
+    "basePath": "/edge"
+  },
+  "actors": {
+    "applicant": "86aa9abd-db39-4511-b50f-6f141dbc52b2",
+    "acceptor": "cd00da04-a6aa-4da8-9c57-ccf08ed3414f",
+    "approvers": [
+      "38122e5d-6beb-4021-983d-9f353ac36468",
+      "6c9cc04c-cead-4f1f-912f-7c41d20a90fa"
+    ],
+    "verifier": "9a518ef1-3dbe-4b94-b9da-b763dec09713"
+  },
+  "promotions": [],
+  "failure": {
+    "message": "locator.selectOption: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('目标 Route', { exact: true })\u001b[22m\n",
+    "status": null
+  },
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  }
+}

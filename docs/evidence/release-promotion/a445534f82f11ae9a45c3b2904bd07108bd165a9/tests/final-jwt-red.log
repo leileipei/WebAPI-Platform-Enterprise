@@ -1,0 +1,98 @@
+ Network webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_default Creating 
+ Network webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_default Created 
+ Volume webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_pg-test Creating 
+ Volume webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_pg-test Created 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Creating 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Creating 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Created 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Created 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Starting 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Starting 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Started 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Started 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Waiting 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Waiting 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Healthy 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Healthy 
+ Volume webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_nuget-test Creating 
+ Volume webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_nuget-test Created 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-sdk-run-04f1353e2e35 Creating 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-sdk-run-04f1353e2e35 Created 
+  Determining projects to restore...
+  Restored /test-src/src/WebApi.TestBackend/WebApi.TestBackend.csproj (in 72 ms).
+  Restored /test-src/third_party/json-everything/src/Json.More/Json.More.csproj (in 71 ms).
+  Restored /test-src/src/WebApi.HttpSecurity/WebApi.HttpSecurity.csproj (in 72 ms).
+  Restored /test-src/src/WebApi.Contracts/WebApi.Contracts.csproj (in 72 ms).
+  Restored /test-src/src/WebApi.Domain/WebApi.Domain.csproj (in 71 ms).
+  Restored /test-src/src/WebApi.ConsoleHost/WebApi.ConsoleHost.csproj (in 1.39 sec).
+  Restored /test-src/tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj (in 1.39 sec).
+  Restored /test-src/third_party/json-everything/src/JsonPointer/JsonPointer.csproj (in 2.34 sec).
+  Restored /test-src/third_party/json-everything/src/JsonSchema/JsonSchema.csproj (in 2.34 sec).
+  Restored /test-src/tests/WebApi.Domain.Tests/WebApi.Domain.Tests.csproj (in 4.52 sec).
+  Restored /test-src/tests/WebApi.NotificationFixtureHost/WebApi.NotificationFixtureHost.csproj (in 4.52 sec).
+  Restored /test-src/src/WebApi.Worker/WebApi.Worker.csproj (in 4.52 sec).
+  Restored /test-src/src/WebApi.Gateway/WebApi.Gateway.csproj (in 4.52 sec).
+  Restored /test-src/tests/WebApi.TestSupport/WebApi.TestSupport.csproj (in 4.52 sec).
+  Restored /test-src/src/WebApi.Migrator/WebApi.Migrator.csproj (in 4.52 sec).
+  Restored /test-src/tests/WebApi.Gateway.Tests/WebApi.Gateway.Tests.csproj (in 4.53 sec).
+  Restored /test-src/src/WebApi.Infrastructure/WebApi.Infrastructure.csproj (in 4.53 sec).
+  Restored /test-src/src/WebApi.ControlPlane/WebApi.ControlPlane.csproj (in 4.43 sec).
+  Restored /test-src/tests/WebApi.Integration.Tests/WebApi.Integration.Tests.csproj (in 4.53 sec).
+  Determining projects to restore...
+  Restored /test-src/src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj (in 158 ms).
+  6 of 7 projects are up-to-date for restore.
+  Json.More -> /runtime-tool/Json.More.dll
+  WebApi.Contracts -> /runtime-tool/WebApi.Contracts.dll
+  JsonPointer -> /runtime-tool/JsonPointer.Net.dll
+  WebApi.Domain -> /runtime-tool/WebApi.Domain.dll
+  JsonSchema -> /runtime-tool/JsonSchema.Net.dll
+  WebApi.Infrastructure -> /runtime-tool/WebApi.Infrastructure.dll
+  WebApi.RuntimeTool -> /runtime-tool/WebApi.RuntimeTool.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:07.63
+  Json.More -> /test-src/third_party/json-everything/src/Json.More/bin/Release/net10.0/Json.More.dll
+  WebApi.Contracts -> /test-src/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  WebApi.HttpSecurity -> /test-src/src/WebApi.HttpSecurity/bin/Release/net10.0/WebApi.HttpSecurity.dll
+  JsonPointer -> /test-src/third_party/json-everything/src/JsonPointer/bin/Release/net10.0/JsonPointer.Net.dll
+  WebApi.Domain -> /test-src/src/WebApi.Domain/bin/Release/net10.0/WebApi.Domain.dll
+  WebApi.ConsoleHost -> /test-src/src/WebApi.ConsoleHost/bin/Release/net10.0/WebApi.ConsoleHost.dll
+  JsonSchema -> /test-src/third_party/json-everything/src/JsonSchema/bin/Release/net10.0/JsonSchema.Net.dll
+  WebApi.Infrastructure -> /test-src/src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.dll
+  WebApi.Migrator -> /test-src/src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.dll
+  WebApi.Worker -> /test-src/src/WebApi.Worker/bin/Release/net10.0/WebApi.Worker.dll
+  WebApi.NotificationFixtureHost -> /test-src/tests/WebApi.NotificationFixtureHost/bin/Release/net10.0/WebApi.NotificationFixtureHost.dll
+  WebApi.ControlPlane -> /test-src/src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll
+  WebApi.TestSupport -> /test-src/tests/WebApi.TestSupport/bin/Release/net10.0/WebApi.TestSupport.dll
+  WebApi.Integration.Tests -> /test-src/tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.dll
+Test run for /test-src/tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:05.55]     WebApi.Integration.Tests.PromotionCredentialTests.PureJwtTargetApplicationWithNoApiKeyCanMapAndCompile [FAIL]
+  Failed WebApi.Integration.Tests.PromotionCredentialTests.PureJwtTargetApplicationWithNoApiKeyCanMapAndCompile [5 s]
+  Error Message:
+   System.Net.Http.HttpRequestException : Response status code does not indicate success: 422 (Unprocessable Entity).
+  Stack Trace:
+     at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at WebApi.Integration.Tests.PromotionCredentialTests.PureJwtTargetApplicationWithNoApiKeyCanMapAndCompile() in /test-src/tests/WebApi.Integration.Tests/PromotionCredentialTests.cs:line 28
+   at WebApi.Integration.Tests.PromotionCredentialTests.PureJwtTargetApplicationWithNoApiKeyCanMapAndCompile() in /test-src/tests/WebApi.Integration.Tests/PromotionCredentialTests.cs:line 28
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 5 s - WebApi.Integration.Tests.dll (net10.0)
+
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Stopping 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Stopping 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Stopped 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Removing 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-postgres-1 Removed 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Stopped 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Removing 
+ Container webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3-redis-1 Removed 
+ Volume webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_pg-test Removing 
+ Volume webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_nuget-test Removing 
+ Network webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_default Removing 
+ Volume webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_pg-test Removed 
+ Volume webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_nuget-test Removed 
+ Network webapi-contracts-test-a17e35f7-2f72-4eed-a914-ef2a22e568b3_default Removed 

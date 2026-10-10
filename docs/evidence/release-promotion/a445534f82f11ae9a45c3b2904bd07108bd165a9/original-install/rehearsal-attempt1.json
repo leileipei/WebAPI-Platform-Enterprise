@@ -1,0 +1,18 @@
+{
+  "classification": "actual-original-backup-disposable-upgrade-rehearsal",
+  "originalDatabaseRestored": false,
+  "originalModified": false,
+  "sourceRevision": "fa0c583d3177b5f86a467db1da166f5ad5a2d077",
+  "checks": [],
+  "passed": false,
+  "failure": "Protected old row changed: gateway_node_events\n+ actual - expected\n\n+ 'b4e9b2885eff79fc1aa3ea4b90892f5214d7f179797c2d9118e84dc27647387e'\n- '3c6cb3783f27df254433e08c000cb69510396a08e54909c3b7a0aa909bf46aed'\n",
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  },
+  "originalPreserved": {
+    "protectedFiles": 802,
+    "ownerPortsBindingPreserved": true
+  }
+}

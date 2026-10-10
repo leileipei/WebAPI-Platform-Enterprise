@@ -22,6 +22,7 @@ public sealed class ApiFixture : IAsyncDisposable
     public string LoginProtectionDirectory { get; } = Path.Combine(Path.GetTempPath(),"webapi-login-"+Guid.NewGuid().ToString("N"));
     public string LoginProtectionDeploymentId { get; } = Guid.NewGuid().ToString("N");
     private WebApplication? app;
+    private Action<WebApplicationBuilder>? serverConfiguration;
     public HttpClient Client { get; private set; } = null!;
     public WebApiDbContext Context() => Database.Context();
     public IServiceScope Services() => app!.Services.CreateScope();
@@ -29,16 +30,26 @@ public sealed class ApiFixture : IAsyncDisposable
     {
         await Database.InitializeAsync();
         await using(var db=Context()) { await db.Database.MigrateAsync(); User.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(User,Password); db.Add(User); await db.SaveChangesAsync(); }
+        serverConfiguration=configure;
+        await StartServerAsync();
+    }
+    private async Task StartServerAsync()
+    {
         app=ControlPlaneApp.Build(["--environment","Development"],builder=>{
             builder.WebHost.UseUrls("http://127.0.0.1:0");
             builder.Configuration["ConnectionStrings:WebApi"]=Database.ConnectionString;
+            builder.Configuration["VerificationReports:Directory"]=Path.Combine(LoginProtectionDirectory,"verification-reports");
             builder.Logging.ClearProviders();
             LoginProtectionTestConfiguration.Apply(builder,LoginProtectionDirectory,LoginProtectionDeploymentId);
-            configure?.Invoke(builder);
+            serverConfiguration?.Invoke(builder);
         });
         await app.StartAsync();
         var url=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
         Client=new HttpClient(new HttpClientHandler { CookieContainer=new CookieContainer(), AllowAutoRedirect=false }) { BaseAddress=new Uri(url) };
+    }
+    public async Task RestartServerAsync()
+    {
+        await app!.StopAsync();await app.DisposeAsync();Client.Dispose();await StartServerAsync();using var login=await LoginAsync();login.EnsureSuccessStatusCode();
     }
     public async Task<string> CsrfAsync()
     {
@@ -109,9 +120,9 @@ public sealed class ApiFixture : IAsyncDisposable
     {
         var csrf=await client.GetFromJsonAsync<Dictionary<string,string>>("/api/v1/auth/csrf");using var req=new HttpRequestMessage(HttpMethod.Post,path) {Content=body is null?JsonContent.Create(new {}):JsonContent.Create(body)};req.Headers.Add("X-CSRF-Token",csrf!["token"]);req.Headers.Add("Idempotency-Key",key??Guid.NewGuid().ToString("N"));return await client.SendAsync(req);
     }
-    public async Task<CreateReleaseRequest> PreviewReleaseRequestAsync(long baseline=0,Guid? versionId=null)
+    public async Task<CreateReleaseRequest> PreviewReleaseRequestAsync(long baseline=0,Guid? versionId=null,Guid? environmentId=null)
     {
-        var ids=new[]{versionId??Version.Id};using var response=await CommandAsync(Client,$"/api/v1/environments/{Environment.Id}/releases/preview",new PreviewReleaseRequest(baseline,ids));response.EnsureSuccessStatusCode();
+        var ids=new[]{versionId??Version.Id};using var response=await CommandAsync(Client,$"/api/v1/environments/{environmentId??Environment.Id}/releases/preview",new PreviewReleaseRequest(baseline,ids));response.EnsureSuccessStatusCode();
         var preview=(await response.Content.ReadFromJsonAsync<FrozenCandidateView>())!;return new(baseline,ids,preview.ResourceRevisions);
     }
     public async Task<Guid> CreateSubmittedReleaseAsync()

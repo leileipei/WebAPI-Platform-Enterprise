@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {compareOriginalRuntime} from '../../scripts/delivery/pipeline-preservation.mjs';
+const before={ownerId:'original',sourceHead:'fixed',sourceFiles:{a:'h'},privateFiles:{secret:'s'},identity:[{id:'container',running:true}]};
+test('read-only original preservation rejects replaced source, secrets and containers',()=>{for(const key of ['sourceFiles','privateFiles','identity'])assert.equal(compareOriginalRuntime(before,{...before,[key]:{changed:true}}).passed,false);assert.equal(compareOriginalRuntime(before,structuredClone(before)).passed,true);});

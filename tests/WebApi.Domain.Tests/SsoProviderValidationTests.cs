@@ -36,5 +36,8 @@ public sealed class SsoProviderValidationTests
     [Theory][InlineData("Enterprise",129)][InlineData("console",257)]
     public void RejectsOversizedFields(string value,int length)=>Assert.Equal(422,Assert.Throws<ApiException>(()=>SsoProviderValidator.Parse(Encoding.UTF8.GetBytes(Valid.Replace("\""+value+"\"","\""+new string('a',length)+"\"")))).Status);
     [Theory][InlineData("/apis",true)][InlineData("/settings/sso",true)][InlineData("/apis?filter=active",true)][InlineData("//evil.example",false)][InlineData("https://evil.example/",false)][InlineData("/\\evil.example",false)][InlineData("/auth/sso/complete",false)][InlineData("/login",false)][InlineData("/api/v1/auth/login",false)][InlineData("/apis%2f%2fevil",false)][InlineData("/apis\r\nLocation:evil",false)]
+    [InlineData("/delivery/artifacts/artifact-a",true)]
+    [InlineData("/delivery/policy",true)]
+    [InlineData("/delivery%2fother",false)]
     public void ReturnPathCannotEscapeProductNavigation(string path,bool expected)=>Assert.Equal(expected,SsoProviderValidator.IsSafeReturnPath(path));
 }

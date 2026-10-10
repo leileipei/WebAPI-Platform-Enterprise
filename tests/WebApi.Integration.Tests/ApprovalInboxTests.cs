@@ -22,7 +22,7 @@ namespace WebApi.Integration.Tests;
 public sealed class ApprovalInboxTests(ITestOutputHelper output)
 {
     private static ApprovalInboxFilter Filter(string view = "PendingMine", int page = 1, int size = 50) => new(view, null, null, null, null, page, size);
-    private static ApprovalInboxService Service(WebApiDbContext db) => new(db, new ApprovalEligibilityService(db, new AuthorizationService(db)));
+    private static ApprovalInboxService Service(WebApiDbContext db) => new(db, new ApprovalEligibilityService(db, new AuthorizationService(db)), new AuthorizationService(db), new WebApi.Infrastructure.Governance.ScopeResolver(db));
     private static async Task<Guid> SubmittedAsync(ApiFixture api)
     { await api.InitializeAsync(); await api.SeedReleaseAsync(); using var login = await api.LoginAsync(); login.EnsureSuccessStatusCode(); return await api.CreateSubmittedReleaseAsync(); }
 

@@ -1,0 +1,19 @@
+import {useEffect,useState} from 'react';
+import {Link,navigate,useWorkspace} from '../Shell';
+import {useSession} from '../auth/SessionProvider';
+import {apiRequest} from '../api/client';
+import {useDeliveryData,deliveryCommand} from '../delivery/api';
+import {PipelineDefinitionEditor} from '../delivery/PipelineDefinitionEditor';
+import {deliveryAuthorityKey} from '../delivery/delivery-state.mjs';
+import {newPipelineStage,validatePipelineDefinition,pipelineCanManage} from '../delivery/pipeline-state.mjs';
+import type {EnvironmentChoice,PipelineDefinition} from '../delivery/pipeline-state.mjs';
+import {Feedback,Table,Editor} from '../ui';
+export function pipelineEnvironments(tree:any,projectId:string):EnvironmentChoice[]{return tree.environments.filter((e:any)=>e.projectId===projectId).map((e:any)=>({id:e.id,projectId:e.projectId,name:e.name,active:e.status==='Active',isProduction:e.isProduction===true}));}
+export function PipelinePagination({page,setPage,data,loading}:{page:number;setPage:(page:number)=>void;data:any;loading:boolean}){return data&&<div className="pagination"><span>{data.total==null?'部分授权范围 · 总数不可查看':`共 ${data.total} 条`} · 每页 {data.size} 条</span><div><button disabled={loading||page<=1} onClick={()=>setPage(page-1)}>上一页</button><span>{page}</span><button disabled={loading||(data.total==null?data.items.length<data.size:page*data.size>=data.total)} onClick={()=>setPage(page+1)}>下一页</button></div></div>;}
+export function ReleasePipelines(){
+ const ws=useWorkspace(),{user}=useSession(),[page,setPage]=useState(1),[edit,setEdit]=useState(false);useEffect(()=>{setPage(1);setEdit(false)},[ws.projectId,deliveryAuthorityKey(user)]);
+ const project=ws.tree.projects.find(e=>e.id===ws.projectId),scope=project?{organizationId:project.organizationId,projectId:project.id}:undefined,allowed=pipelineCanManage(user,scope),envs=pipelineEnvironments(ws.tree,ws.projectId);
+ const remote=useDeliveryData('pipelines:'+ws.projectId+':'+page,signal=>ws.projectId?apiRequest<any>(`/projects/${ws.projectId}/release-pipelines?page=${page}&pageSize=50`,{signal}):Promise.resolve(undefined));
+ const src=envs.find(e=>e.active&&!e.isProduction),prod=envs.find(e=>e.active&&e.isProduction),initial:PipelineDefinition={name:'',description:'',stages:[newPipelineStage(src?.id||'',1,envs),{...newPipelineStage(prod?.id||'',2,envs),approvalFlowId:ws.tree.environments.find(e=>e.id===prod?.id)?.releasePolicyId||null}]};
+ return <><div className="page-head"><div><h1>发布流水线</h1><p>配置 2 至 8 个标准环境阶段。发布固定版本后，再独立激活项目门禁。</p></div>{allowed&&<button className="btn primary" disabled={!remote.data} onClick={()=>setEdit(true)}>新建流水线</button>}</div>{!ws.projectId?<p className="empty">请先选择项目。</p>:<Feedback {...remote}/>}<p className="notice">只展示当前授权范围；激活不会自动发布或晋级。运行须由操作者逐阶段执行。</p>{remote.data&&<><Table rows={remote.data.items} columns={[["name","流水线名称"],["status","状态"],["revision","草稿修订"]]} actions={r=><Link to={'/delivery/pipelines/'+r.id}>配置与版本</Link>}/><PipelinePagination page={page} setPage={setPage} data={remote.data} loading={remote.loading}/></>}{edit&&remote.data&&allowed&&<Editor key={ws.projectId} title="新建标准流水线" fields={[]} initial={initial} explicitSubmitOnly allowed={allowed} close={()=>setEdit(false)} help="保存草稿不会激活门禁或执行发布。" renderFields={(v,change)=><PipelineDefinitionEditor value={v as PipelineDefinition} environments={envs} readOnly={false} onChange={next=>{for(const [key,value] of Object.entries(next))change(key,value)}}/>} save={async(v,key)=>{const errors=validatePipelineDefinition(v as PipelineDefinition,envs);if(errors.length)throw new Error(errors.join(' '));const alive=remote.lease();try{const result=await deliveryCommand(`/projects/${ws.projectId}/release-pipelines`,v,key);if(alive())navigate('/delivery/pipelines/'+result.id);}catch(e){if(alive())remote.fail(e);throw e;}}}/>}</>;
+}

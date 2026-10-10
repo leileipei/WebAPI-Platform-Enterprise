@@ -10,7 +10,8 @@ let server;after(async()=>server?.close());
 test('all seeded codes have explicit Chinese labels and supported matrix columns',async()=>{
  const source=await readFile(new URL('../../src/WebApi.Infrastructure/Governance/PermissionCatalog.cs',import.meta.url),'utf8');
  const codes=[...source.split('public static readonly string[] Codes=[')[1].split('];')[0].matchAll(/"([^"]+)"/g)].map(x=>x[1]);
- assert.equal(codes.length,44);
+ assert.equal(codes.length,50);
+ assert(codes.includes("release.test.record")&&codes.includes("release.test.accept")&&codes.includes("release.verify"));
  for(const code of codes){const display=describePermission({code,name:code,module:code.split('.')[0]});assert.match(display.label,/[\u4e00-\u9fff]/,code);assert.notEqual(display.column,'other',code);}
 });
 test('read-only matrix exposes exact assignments and accessible disabled checkboxes',async()=>{

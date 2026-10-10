@@ -1604,6 +1604,19 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<long>("AccessAddressRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("access_address_revision");
+
+                    b.Property<string>("BasePath")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(512)")
+                        .HasDefaultValue("/")
+                        .HasColumnName("base_path");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("varchar(32)")
@@ -1618,6 +1631,14 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.Property<long?>("DesiredConfigVersion")
                         .HasColumnType("bigint")
                         .HasColumnName("desired_config_version");
+
+                    b.Property<string>("GatewayInternalUrl")
+                        .HasColumnType("varchar(2048)")
+                        .HasColumnName("gateway_internal_url");
+
+                    b.Property<string>("GatewayPublicUrl")
+                        .HasColumnType("varchar(2048)")
+                        .HasColumnName("gateway_public_url");
 
                     b.Property<bool>("IsProduction")
                         .HasColumnType("boolean")
@@ -2518,6 +2539,89 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.ToTable("projects", (string)null);
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ProjectDeliveryPolicy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ActivePipelineVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("active_pipeline_version_id");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("Legacy")
+                        .HasColumnName("mode");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.PrimitiveCollection<string[]>("RequiredTestTypes")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
+                        .HasColumnName("required_test_types")
+                        .HasDefaultValueSql("ARRAY['InterfaceFunction','Integration','ContractCompatibility']::text[]");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("revision");
+
+                    b.Property<Guid>("SourceEnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_environment_id");
+
+                    b.Property<Guid>("TargetEnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_environment_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<int>("VerificationValidityMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1440)
+                        .HasColumnName("verification_validity_minutes");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId")
+                        .IsUnique();
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("ActivePipelineVersionId", "ProjectId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("SourceEnvironmentId", "ProjectId");
+
+                    b.HasIndex("TargetEnvironmentId", "ProjectId");
+
+                    b.ToTable("project_delivery_policies", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_delivery_policy", "((mode IN ('Legacy','PromotionRequired') AND active_pipeline_version_id IS NULL) OR (mode='PipelineRequired' AND active_pipeline_version_id IS NOT NULL)) AND source_environment_id <> target_environment_id AND verification_validity_minutes BETWEEN 1 AND 10080 AND revision >= 1 AND cardinality(required_test_types) BETWEEN 1 AND 3 AND required_test_types <@ ARRAY['InterfaceFunction','Integration','ContractCompatibility']::text[]");
+                        });
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ProjectImportSourcePolicy", b =>
                 {
                     b.Property<Guid>("ProjectId")
@@ -2550,6 +2654,112 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("ck_import_policy_revision", "revision >= 1");
                         });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseAccessContext", b =>
+                {
+                    b.Property<Guid>("ReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("release_id");
+
+                    b.Property<long>("AccessAddressRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("access_address_revision");
+
+                    b.Property<string>("BasePath")
+                        .IsRequired()
+                        .HasColumnType("varchar(512)")
+                        .HasColumnName("base_path");
+
+                    b.Property<DateTimeOffset>("CapturedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("captured_at");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<string>("InternalOrigin")
+                        .HasColumnType("varchar(2048)")
+                        .HasColumnName("internal_origin");
+
+                    b.Property<string>("PublicOrigin")
+                        .HasColumnType("varchar(2048)")
+                        .HasColumnName("public_origin");
+
+                    b.HasKey("ReleaseId");
+
+                    b.HasIndex("ReleaseId", "EnvironmentId");
+
+                    b.ToTable("release_access_contexts", (string)null);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ArtifactHash")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("artifact_hash");
+
+                    b.Property<string>("CanonicalContent")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
+                        .HasColumnName("canonical_content");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid>("SourceEnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_environment_id");
+
+                    b.Property<Guid>("SourceReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_release_id");
+
+                    b.Property<string>("SourceSnapshotHash")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("source_snapshot_hash");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("SourceEnvironmentId", "ProjectId");
+
+                    b.HasIndex("SourceReleaseId", "ArtifactHash")
+                        .IsUnique();
+
+                    b.HasIndex("SourceReleaseId", "SourceEnvironmentId");
+
+                    b.ToTable("release_artifacts", (string)null);
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseItem", b =>
@@ -2593,6 +2803,870 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.ToTable("release_items", (string)null);
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipeline", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("")
+                        .HasColumnName("description");
+
+                    b.Property<string>("DraftJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
+                        .HasColumnName("draft_json");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(100)")
+                        .HasDefaultValue("")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("revision");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("Active")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("UpdatedBy");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("ProjectId", "CreatedAt", "Id")
+                        .IsDescending(false, true, true);
+
+                    b.ToTable("release_pipelines", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pipeline_draft", "length(btrim(name)) BETWEEN 1 AND 100 AND revision>=1 AND status IN ('Active','Archived')");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("ActorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_id");
+
+                    b.Property<Guid?>("AttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attempt_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("FromStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("")
+                        .HasColumnName("from_status");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("ReasonCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(128)")
+                        .HasDefaultValue("")
+                        .HasColumnName("reason_code");
+
+                    b.Property<Guid?>("RelatedId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("related_id");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("run_id");
+
+                    b.Property<Guid?>("StageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stage_id");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("")
+                        .HasColumnName("to_status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorId");
+
+                    b.HasIndex("AttemptId", "StageId");
+
+                    b.HasIndex("RunId", "ProjectId");
+
+                    b.HasIndex("StageId", "RunId");
+
+                    b.HasIndex("RunId", "CreatedAt", "Id");
+
+                    b.ToTable("release_pipeline_events", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pipeline_event", "attempt_id IS NULL OR stage_id IS NOT NULL");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset?>("ProjectionCheckedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("projection_checked_at");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<int>("CurrentStageOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("current_stage_order");
+
+                    b.Property<string>("DefinitionHash")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("definition_hash");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("PipelineVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pipeline_version_id");
+
+                    b.Property<long>("PolicyRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("policy_revision");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("revision");
+
+                    b.Property<string>("RootArtifactHash")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("root_artifact_hash");
+
+                    b.Property<Guid>("RootArtifactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("root_artifact_id");
+
+                    b.Property<long>("SourceConfigVersion")
+                        .HasColumnType("bigint")
+                        .HasColumnName("source_config_version");
+
+                    b.Property<long>("SourceDeploymentSequence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("source_deployment_sequence");
+
+                    b.Property<Guid>("SourceEnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_environment_id");
+
+                    b.Property<Guid>("SourceReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_release_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("Active")
+                        .HasColumnName("status");
+
+                    b.HasIndex("Status", "ProjectionCheckedAt", "Id")
+                        .HasDatabaseName("ix_pipeline_projection_due");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("ProjectId")
+                        .IsUnique()
+                        .HasFilter("status IN ('Active','Paused','TimedOut')");
+
+                    b.HasIndex("PipelineVersionId", "ProjectId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("ProjectId", "CreatedAt", "Id")
+                        .IsDescending(false, true, true);
+
+                    b.HasIndex("RootArtifactId", "ProjectId", "SourceEnvironmentId", "SourceReleaseId");
+
+                    b.ToTable("release_pipeline_runs", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pipeline_run", "status IN ('Active','Paused','TimedOut','Invalidated','Cancelled','Completed') AND current_stage_order BETWEEN 1 AND 8 AND revision>=1 AND policy_revision>=1 AND source_config_version>0 AND source_deployment_sequence>0 AND length(definition_hash)=64 AND length(root_artifact_hash)=64");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRunStage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("CurrentAttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("current_attempt_id");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<string>("ProfileHash")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("profile_hash");
+
+                    b.Property<string>("ProfileJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
+                        .HasColumnName("profile_json");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("revision");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("run_id");
+
+                    b.Property<Guid?>("SourceStageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_stage_id");
+
+                    b.Property<Guid?>("StageArtifactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stage_artifact_id");
+
+                    b.Property<int>("StageOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("stage_order");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("Pending")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrentAttemptId", "Id");
+
+                    b.HasIndex("EnvironmentId", "ProjectId");
+
+                    b.HasIndex("RunId", "EnvironmentId")
+                        .IsUnique();
+
+                    b.HasIndex("RunId", "ProjectId");
+
+                    b.HasIndex("RunId", "StageOrder")
+                        .IsUnique();
+
+                    b.HasIndex("SourceStageId", "RunId");
+
+                    b.HasIndex("StageArtifactId", "ProjectId", "EnvironmentId");
+
+                    b.ToTable("release_pipeline_run_stages", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pipeline_stage", "stage_order BETWEEN 1 AND 8 AND revision>=1 AND length(profile_hash)=64 AND (source_stage_id IS NULL OR source_stage_id<>id) AND status IN ('Pending','AwaitingEvidence','AwaitingAcceptance','AwaitingMapping','AwaitingPrecheck','AwaitingApproval','ReadyToDeploy','Deploying','AwaitingVerification','Passed','Rejected','DeploymentFailed','VerificationFailed','TimedOut','Invalidated','Cancelled')");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineStageAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("AcceptanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acceptance_id");
+
+                    b.Property<DateTimeOffset>("ActivatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("activated_at");
+
+                    b.Property<Guid?>("ActualReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actual_release_id");
+
+                    b.Property<Guid?>("ArtifactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("artifact_id");
+
+                    b.Property<int>("AttemptNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempt_no");
+
+                    b.Property<string>("ContextJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
+                        .HasColumnName("context_json");
+
+                    b.Property<DateTimeOffset>("DeadlineAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("deadline_at");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid?>("OriginAttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("origin_attempt_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid?>("PromotionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("promotion_id");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("revision");
+
+                    b.Property<Guid>("RunId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("run_id");
+
+                    b.Property<Guid>("RunStageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("run_stage_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("Active")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PromotionId")
+                        .IsUnique()
+                        .HasFilter("promotion_id IS NOT NULL");
+
+                    b.HasIndex("RunStageId")
+                        .IsUnique()
+                        .HasFilter("status='Active'");
+
+                    b.HasIndex("ActualReleaseId", "EnvironmentId");
+
+                    b.HasIndex("OriginAttemptId", "RunStageId");
+
+                    b.HasIndex("RunStageId", "AttemptNo")
+                        .IsUnique();
+
+                    b.HasIndex("AcceptanceId", "ProjectId", "EnvironmentId");
+
+                    b.HasIndex("ArtifactId", "ProjectId", "EnvironmentId");
+
+                    b.HasIndex("PromotionId", "ProjectId", "EnvironmentId");
+
+                    b.HasIndex("RunStageId", "RunId", "ProjectId", "EnvironmentId");
+
+                    b.ToTable("release_pipeline_stage_attempts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pipeline_attempt", "attempt_no>=1 AND revision>=1 AND deadline_at>activated_at AND (origin_attempt_id IS NULL OR origin_attempt_id<>id) AND status IN ('Active','Passed','Rejected','DeploymentFailed','VerificationFailed','TimedOut','Invalidated','Cancelled')");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("ContentJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
+                        .HasColumnName("content_json");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("DefinitionHash")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("definition_hash");
+
+                    b.Property<Guid>("PipelineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pipeline_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<int>("VersionNo")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_no");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("PipelineId", "ProjectId");
+
+                    b.HasIndex("PipelineId", "VersionNo")
+                        .IsUnique();
+
+                    b.ToTable("release_pipeline_versions", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_pipeline_version", "version_no>=1 AND length(definition_hash)=64");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePromotion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AcceptanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acceptance_id");
+
+                    b.Property<Guid>("ArtifactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("artifact_id");
+
+                    b.Property<long>("BaselineConfigVersion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("baseline_config_version");
+
+                    b.Property<string>("CandidateHash")
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("candidate_hash");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("completed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FrozenPolicyJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
+                        .HasColumnName("frozen_policy_json");
+
+                    b.Property<string>("GateOrigin")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("ProjectConnection")
+                        .HasColumnName("gate_origin");
+
+                    b.Property<long>("MappingRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("mapping_revision");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PipelineRunStageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pipeline_run_stage_id");
+
+                    b.Property<string>("PrecheckJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("precheck_json");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<string>("ResourceRevisionsJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("[]")
+                        .HasColumnName("resource_revisions_json");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("revision");
+
+                    b.Property<Guid>("SourceEnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_environment_id");
+
+                    b.Property<Guid>("SourceReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_release_id");
+
+                    b.Property<Guid?>("StageAttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stage_attempt_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("Draft")
+                        .HasColumnName("status");
+
+                    b.Property<long>("TargetAccessAddressRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("target_access_address_revision");
+
+                    b.Property<Guid>("TargetEnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_environment_id");
+
+                    b.Property<Guid?>("TargetReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_release_id");
+
+                    b.Property<string>("VerificationContextJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("verification_context_json");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedBy");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("StageAttemptId", "PipelineRunStageId");
+
+                    b.HasIndex("TargetEnvironmentId", "ProjectId");
+
+                    b.HasIndex("TargetReleaseId", "TargetEnvironmentId");
+
+                    b.HasIndex("AcceptanceId", "ProjectId", "SourceEnvironmentId");
+
+                    b.HasIndex("PipelineRunStageId", "ProjectId", "TargetEnvironmentId");
+
+                    b.HasIndex("ProjectId", "CreatedAt", "Id")
+                        .IsDescending(false, true, true);
+
+                    b.HasIndex("ArtifactId", "ProjectId", "SourceEnvironmentId", "SourceReleaseId");
+
+                    b.ToTable("release_promotions", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_promotion_state", "source_environment_id <> target_environment_id AND revision >= 1 AND mapping_revision >= 0 AND status IN ('Draft','WaitingApproval','Ready','Deploying','Verifying','Completed','Rejected','Cancelled','Invalidated','DeploymentFailed','VerificationFailed','RolledBack')");
+
+                            t.HasCheckConstraint("ck_release_promotion_pipeline_context", "((gate_origin='ProjectConnection' AND pipeline_run_stage_id IS NULL AND stage_attempt_id IS NULL) OR (gate_origin='PipelineRunStage' AND pipeline_run_stage_id IS NOT NULL AND stage_attempt_id IS NOT NULL))");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePromotionEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("AcceptanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acceptance_id");
+
+                    b.Property<Guid?>("ActorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("actor_id");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<string>("FromStatus")
+                        .HasColumnType("varchar(32)")
+                        .HasColumnName("from_status");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Phase")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("")
+                        .HasColumnName("phase");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid?>("PromotionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("promotion_id");
+
+                    b.Property<string>("ReasonCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(128)")
+                        .HasDefaultValue("")
+                        .HasColumnName("reason_code");
+
+                    b.Property<Guid?>("ReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("release_id");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("")
+                        .HasColumnName("to_status");
+
+                    b.Property<Guid?>("VerificationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("verification_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("ReleaseId", "EnvironmentId");
+
+                    b.HasIndex("AcceptanceId", "ProjectId", "EnvironmentId");
+
+                    b.HasIndex("PromotionId", "ProjectId", "EnvironmentId");
+
+                    b.HasIndex("VerificationId", "ProjectId", "EnvironmentId");
+
+                    b.ToTable("release_promotion_events", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_delivery_event_owner", "(promotion_id IS NOT NULL)::int + (acceptance_id IS NOT NULL)::int = 1");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePromotionMapping", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ApplicationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("application_id");
+
+                    b.Property<Guid?>("ClusterId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cluster_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("ParametersJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
+                        .HasColumnName("parameters_json");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid>("PromotionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("promotion_id");
+
+                    b.Property<string>("ResourceKey")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(512)")
+                        .HasDefaultValue("")
+                        .HasColumnName("resource_key");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("revision");
+
+                    b.Property<Guid>("TargetEnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_environment_id");
+
+                    b.Property<Guid?>("TargetRouteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("target_route_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId", "OrganizationId");
+
+                    b.HasIndex("ClusterId", "TargetEnvironmentId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("TargetRouteId", "TargetEnvironmentId");
+
+                    b.HasIndex("PromotionId", "Kind", "ResourceKey")
+                        .IsUnique();
+
+                    b.HasIndex("PromotionId", "ProjectId", "TargetEnvironmentId");
+
+                    b.ToTable("release_promotion_mappings", (string)null);
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2608,6 +3682,10 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ApprovedBy")
                         .HasColumnType("uuid")
                         .HasColumnName("approved_by");
+
+                    b.Property<Guid?>("ArtifactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("artifact_id");
 
                     b.Property<long>("BaselineConfigVersion")
                         .ValueGeneratedOnAdd()
@@ -2649,6 +3727,10 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("from_config_version");
 
+                    b.Property<Guid?>("PromotionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("promotion_id");
+
                     b.Property<Guid?>("PublishRequestedBy")
                         .HasColumnType("uuid")
                         .HasColumnName("publish_requested_by");
@@ -2679,6 +3761,10 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("rollback_of");
 
+                    b.Property<Guid?>("SourceReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_release_id");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("varchar(24)")
@@ -2692,6 +3778,12 @@ namespace WebApi.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ApprovedBy");
 
+                    b.HasIndex("ArtifactId");
+
+                    b.HasIndex("PromotionId")
+                        .IsUnique()
+                        .HasFilter("promotion_id IS NOT NULL");
+
                     b.HasIndex("PublishRequestedBy");
 
                     b.HasIndex("RecoveryOf");
@@ -2703,6 +3795,8 @@ namespace WebApi.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("RollbackOf");
 
+                    b.HasIndex("SourceReleaseId");
+
                     b.HasIndex("EnvironmentId", "DeploymentSequence")
                         .IsUnique()
                         .HasFilter("deployment_sequence > 0");
@@ -2712,7 +3806,12 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasIndex("EnvironmentId", "CreatedAt", "Id")
                         .IsDescending(false, true, true);
 
-                    b.ToTable("release_records", (string)null);
+                    b.HasIndex("PromotionId", "ArtifactId", "SourceReleaseId", "EnvironmentId");
+
+                    b.ToTable("release_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_formal_promotion_link", "promotion_id IS NULL OR (artifact_id IS NOT NULL AND source_release_id IS NOT NULL AND recovery_of IS NULL AND rollback_of IS NULL)");
+                        });
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseTarget", b =>
@@ -2739,6 +3838,282 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasIndex("NodeId");
 
                     b.ToTable("release_targets", (string)null);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseTestAcceptance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ActedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("acted_at");
+
+                    b.Property<Guid?>("ActedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("acted_by");
+
+                    b.Property<Guid>("ArtifactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("artifact_id");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EvidenceHash")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("evidence_hash");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PipelineRunStageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pipeline_run_stage_id");
+
+                    b.Property<long>("PolicyRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("policy_revision");
+
+                    b.Property<string>("ProfileHash")
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("profile_hash");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("revision");
+
+                    b.Property<Guid>("SourceEnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("source_environment_id");
+
+                    b.Property<Guid?>("StageAttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stage_attempt_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("Requested")
+                        .HasColumnName("status");
+
+                    b.PrimitiveCollection<Guid[]>("VerificationIds")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid[]")
+                        .HasColumnName("verification_ids")
+                        .HasDefaultValueSql("ARRAY[]::uuid[]");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActedBy");
+
+                    b.HasIndex("RequestedBy");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("StageAttemptId", "PipelineRunStageId");
+
+                    b.HasIndex("ArtifactId", "ProjectId", "SourceEnvironmentId");
+
+                    b.HasIndex("PipelineRunStageId", "ProjectId", "SourceEnvironmentId");
+
+                    b.ToTable("release_test_acceptances", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_release_test_acceptance_pipeline_context", "((pipeline_run_stage_id IS NULL AND stage_attempt_id IS NULL AND profile_hash IS NULL) OR (pipeline_run_stage_id IS NOT NULL AND stage_attempt_id IS NOT NULL AND profile_hash IS NOT NULL AND length(profile_hash)=64))");
+
+                            t.HasCheckConstraint("ck_test_acceptance", "status IN ('Requested','Accepted','Rejected','Revoked') AND revision >= 1 AND (acted_by IS NULL OR acted_by <> requested_by)");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseVerification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<long>("AccessAddressRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("access_address_revision");
+
+                    b.Property<string>("AccessContextJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}")
+                        .HasColumnName("access_context_json");
+
+                    b.Property<Guid>("ArtifactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("artifact_id");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("")
+                        .HasColumnName("comment");
+
+                    b.Property<long>("ConfigVersion")
+                        .HasColumnType("bigint")
+                        .HasColumnName("config_version");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<long>("DeploymentSequence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("deployment_sequence");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("expires_at");
+
+                    b.Property<DateTimeOffset>("FinishedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("finished_at");
+
+                    b.Property<bool>("IsManual")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_manual");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Phase")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("SourceTest")
+                        .HasColumnName("phase");
+
+                    b.Property<Guid?>("PipelineRunStageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("pipeline_run_stage_id");
+
+                    b.Property<long>("PolicyRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("policy_revision");
+
+                    b.Property<string>("ProfileHash")
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("profile_hash");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid?>("PromotionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("promotion_id");
+
+                    b.Property<Guid>("ReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("release_id");
+
+                    b.Property<string>("ReportHash")
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("report_hash");
+
+                    b.Property<Guid?>("ReportId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("report_id");
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(16)")
+                        .HasDefaultValue("")
+                        .HasColumnName("result");
+
+                    b.Property<string>("SnapshotHash")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("snapshot_hash");
+
+                    b.Property<Guid?>("StageAttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("stage_attempt_id");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("")
+                        .HasColumnName("type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("ArtifactId", "ProjectId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("ReleaseId", "EnvironmentId");
+
+                    b.HasIndex("StageAttemptId", "PipelineRunStageId");
+
+                    b.HasIndex("PipelineRunStageId", "ProjectId", "EnvironmentId");
+
+                    b.HasIndex("PromotionId", "ProjectId", "EnvironmentId");
+
+                    b.HasIndex("ReportId", "ProjectId", "EnvironmentId");
+
+                    b.HasIndex("ArtifactId", "Phase", "Type", "CreatedAt")
+                        .IsDescending(false, false, false, true);
+
+                    b.ToTable("release_verifications", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_release_verification_pipeline_context", "((pipeline_run_stage_id IS NULL AND stage_attempt_id IS NULL AND profile_hash IS NULL) OR (pipeline_run_stage_id IS NOT NULL AND stage_attempt_id IS NOT NULL AND profile_hash IS NOT NULL AND length(profile_hash)=64))");
+
+                            t.HasCheckConstraint("ck_verification_fact", "phase IN ('SourceTest','Production') AND result IN ('Passed','Failed') AND is_manual AND config_version > 0 AND deployment_sequence > 0 AND access_address_revision >= 1 AND started_at <= finished_at AND finished_at <= created_at AND expires_at > finished_at AND ((phase='SourceTest' AND promotion_id IS NULL AND type IN ('InterfaceFunction','Integration','ContractCompatibility')) OR (phase='Production' AND promotion_id IS NOT NULL AND type IN ('EntryConnectivity','AuthenticationAuthorization','CriticalBusinessCall')))");
+                        });
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.Role", b =>
@@ -3444,6 +4819,85 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.ToTable("user_roles", (string)null);
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.VerificationReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ArtifactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("artifact_id");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid?>("PromotionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("promotion_id");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(64)")
+                        .HasDefaultValue("")
+                        .HasColumnName("sha256");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(128)")
+                        .HasDefaultValue("")
+                        .HasColumnName("storage_key");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("StorageKey")
+                        .IsUnique();
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("ArtifactId", "ProjectId", "EnvironmentId");
+
+                    b.HasIndex("PromotionId", "ProjectId", "EnvironmentId");
+
+                    b.ToTable("verification_reports", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_report", "size_bytes BETWEEN 1 AND 10485760 AND content_type IN ('application/pdf','text/plain') AND (artifact_id IS NOT NULL)::int + (promotion_id IS NOT NULL)::int = 1");
+                        });
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.AlertEvaluationState", b =>
                 {
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
@@ -3973,6 +5427,42 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ProjectDeliveryPolicy", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ActivePipelineVersionId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("SourceEnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TargetEnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ProjectImportSourcePolicy", b =>
                 {
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
@@ -3988,6 +5478,46 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseAccessContext", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ReleaseId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("SourceEnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
+                        .WithMany()
+                        .HasForeignKey("SourceReleaseId", "SourceEnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseItem", b =>
                 {
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
@@ -3997,11 +5527,314 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipeline", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineEvent", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ActorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineStageAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("AttemptId", "StageId")
+                        .HasPrincipalKey("Id", "RunStageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRun", null)
+                        .WithMany()
+                        .HasForeignKey("RunId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRunStage", null)
+                        .WithMany()
+                        .HasForeignKey("StageId", "RunId")
+                        .HasPrincipalKey("Id", "RunId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRun", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineVersion", null)
+                        .WithMany()
+                        .HasForeignKey("PipelineVersionId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", null)
+                        .WithMany()
+                        .HasForeignKey("RootArtifactId", "ProjectId", "SourceEnvironmentId", "SourceReleaseId")
+                        .HasPrincipalKey("Id", "ProjectId", "SourceEnvironmentId", "SourceReleaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRunStage", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineStageAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("CurrentAttemptId", "Id")
+                        .HasPrincipalKey("Id", "RunStageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRun", null)
+                        .WithMany()
+                        .HasForeignKey("RunId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRunStage", null)
+                        .WithMany()
+                        .HasForeignKey("SourceStageId", "RunId")
+                        .HasPrincipalKey("Id", "RunId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", null)
+                        .WithMany()
+                        .HasForeignKey("StageArtifactId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "SourceEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineStageAttempt", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ActualReleaseId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineStageAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("OriginAttemptId", "RunStageId")
+                        .HasPrincipalKey("Id", "RunStageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseTestAcceptance", null)
+                        .WithMany()
+                        .HasForeignKey("AcceptanceId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "SourceEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", null)
+                        .WithMany()
+                        .HasForeignKey("ArtifactId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "SourceEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePromotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "TargetEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRunStage", null)
+                        .WithMany()
+                        .HasForeignKey("RunStageId", "RunId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "RunId", "ProjectId", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineVersion", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipeline", null)
+                        .WithMany()
+                        .HasForeignKey("PipelineId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePromotion", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineStageAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("StageAttemptId", "PipelineRunStageId")
+                        .HasPrincipalKey("Id", "RunStageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TargetEnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
+                        .WithMany()
+                        .HasForeignKey("TargetReleaseId", "TargetEnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseTestAcceptance", null)
+                        .WithMany()
+                        .HasForeignKey("AcceptanceId", "ProjectId", "SourceEnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "SourceEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRunStage", null)
+                        .WithMany()
+                        .HasForeignKey("PipelineRunStageId", "ProjectId", "TargetEnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", null)
+                        .WithMany()
+                        .HasForeignKey("ArtifactId", "ProjectId", "SourceEnvironmentId", "SourceReleaseId")
+                        .HasPrincipalKey("Id", "ProjectId", "SourceEnvironmentId", "SourceReleaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePromotionEvent", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ActorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ReleaseId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseTestAcceptance", null)
+                        .WithMany()
+                        .HasForeignKey("AcceptanceId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "SourceEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePromotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "TargetEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseVerification", null)
+                        .WithMany()
+                        .HasForeignKey("VerificationId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleasePromotionMapping", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UpstreamCluster", null)
+                        .WithMany()
+                        .HasForeignKey("ClusterId", "TargetEnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApiRoute", null)
+                        .WithMany()
+                        .HasForeignKey("TargetRouteId", "TargetEnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePromotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionId", "ProjectId", "TargetEnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "TargetEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", b =>
                 {
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
                         .WithMany()
                         .HasForeignKey("ApprovedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", null)
+                        .WithMany()
+                        .HasForeignKey("ArtifactId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
@@ -4030,6 +5863,17 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("RollbackOf")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
+                        .WithMany()
+                        .HasForeignKey("SourceReleaseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePromotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionId", "ArtifactId", "SourceReleaseId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ArtifactId", "SourceReleaseId", "TargetEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseTarget", b =>
@@ -4045,6 +5889,100 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ReleaseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseTestAcceptance", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ActedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineStageAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("StageAttemptId", "PipelineRunStageId")
+                        .HasPrincipalKey("Id", "RunStageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", null)
+                        .WithMany()
+                        .HasForeignKey("ArtifactId", "ProjectId", "SourceEnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "SourceEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRunStage", null)
+                        .WithMany()
+                        .HasForeignKey("PipelineRunStageId", "ProjectId", "SourceEnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseVerification", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", null)
+                        .WithMany()
+                        .HasForeignKey("ArtifactId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ReleaseId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineStageAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("StageAttemptId", "PipelineRunStageId")
+                        .HasPrincipalKey("Id", "RunStageId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePipelineRunStage", null)
+                        .WithMany()
+                        .HasForeignKey("PipelineRunStageId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePromotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "TargetEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.VerificationReport", null)
+                        .WithMany()
+                        .HasForeignKey("ReportId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.Role", b =>
@@ -4210,6 +6148,34 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.VerificationReport", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseArtifact", null)
+                        .WithMany()
+                        .HasForeignKey("ArtifactId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "SourceEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleasePromotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionId", "ProjectId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "ProjectId", "TargetEnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,81 @@
+ Network webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_default Creating 
+ Network webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_default Created 
+ Volume webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_pg-test Creating 
+ Volume webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_pg-test Created 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Creating 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Creating 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Created 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Created 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Starting 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Starting 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Started 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Started 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Waiting 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Waiting 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Healthy 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Healthy 
+ Volume webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_nuget-test Creating 
+ Volume webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_nuget-test Created 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-sdk-run-6a8b7f74a856 Creating 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-sdk-run-6a8b7f74a856 Created 
+  Determining projects to restore...
+  Restored /test-src/src/WebApi.TestBackend/WebApi.TestBackend.csproj (in 177 ms).
+  Restored /test-src/src/WebApi.Domain/WebApi.Domain.csproj (in 202 ms).
+  Restored /test-src/third_party/json-everything/src/Json.More/Json.More.csproj (in 200 ms).
+  Restored /test-src/src/WebApi.Contracts/WebApi.Contracts.csproj (in 190 ms).
+  Restored /test-src/src/WebApi.HttpSecurity/WebApi.HttpSecurity.csproj (in 197 ms).
+  Restored /test-src/src/WebApi.ConsoleHost/WebApi.ConsoleHost.csproj (in 1.99 sec).
+  Restored /test-src/tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj (in 1.99 sec).
+  Restored /test-src/third_party/json-everything/src/JsonSchema/JsonSchema.csproj (in 2.95 sec).
+  Restored /test-src/third_party/json-everything/src/JsonPointer/JsonPointer.csproj (in 2.95 sec).
+  Restored /test-src/tests/WebApi.TestSupport/WebApi.TestSupport.csproj (in 4.65 sec).
+  Restored /test-src/src/WebApi.Worker/WebApi.Worker.csproj (in 4.63 sec).
+  Restored /test-src/tests/WebApi.Domain.Tests/WebApi.Domain.Tests.csproj (in 4.63 sec).
+  Restored /test-src/src/WebApi.Migrator/WebApi.Migrator.csproj (in 4.4 sec).
+  Restored /test-src/src/WebApi.Gateway/WebApi.Gateway.csproj (in 4.65 sec).
+  Restored /test-src/src/WebApi.ControlPlane/WebApi.ControlPlane.csproj (in 4.65 sec).
+  Restored /test-src/tests/WebApi.NotificationFixtureHost/WebApi.NotificationFixtureHost.csproj (in 4.65 sec).
+  Restored /test-src/tests/WebApi.Integration.Tests/WebApi.Integration.Tests.csproj (in 4.65 sec).
+  Restored /test-src/tests/WebApi.Gateway.Tests/WebApi.Gateway.Tests.csproj (in 4.64 sec).
+  Restored /test-src/src/WebApi.Infrastructure/WebApi.Infrastructure.csproj (in 4.75 sec).
+  Determining projects to restore...
+  Restored /test-src/src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj (in 214 ms).
+  6 of 7 projects are up-to-date for restore.
+  Json.More -> /runtime-tool/Json.More.dll
+  WebApi.Contracts -> /runtime-tool/WebApi.Contracts.dll
+  JsonPointer -> /runtime-tool/JsonPointer.Net.dll
+  WebApi.Domain -> /runtime-tool/WebApi.Domain.dll
+  JsonSchema -> /runtime-tool/JsonSchema.Net.dll
+  WebApi.Infrastructure -> /runtime-tool/WebApi.Infrastructure.dll
+  WebApi.RuntimeTool -> /runtime-tool/WebApi.RuntimeTool.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:15.32
+  WebApi.Contracts -> /test-src/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  Json.More -> /test-src/third_party/json-everything/src/Json.More/bin/Release/net10.0/Json.More.dll
+  JsonPointer -> /test-src/third_party/json-everything/src/JsonPointer/bin/Release/net10.0/JsonPointer.Net.dll
+  WebApi.Domain -> /test-src/src/WebApi.Domain/bin/Release/net10.0/WebApi.Domain.dll
+  JsonSchema -> /test-src/third_party/json-everything/src/JsonSchema/bin/Release/net10.0/JsonSchema.Net.dll
+  WebApi.Infrastructure -> /test-src/src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.dll
+  WebApi.Domain.Tests -> /test-src/tests/WebApi.Domain.Tests/bin/Release/net10.0/WebApi.Domain.Tests.dll
+Test run for /test-src/tests/WebApi.Domain.Tests/bin/Release/net10.0/WebApi.Domain.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   753, Skipped:     0, Total:   753, Duration: 13 s - WebApi.Domain.Tests.dll (net10.0)
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Stopping 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Stopping 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Stopped 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Removing 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Stopped 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Removing 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-postgres-1 Removed 
+ Container webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4-redis-1 Removed 
+ Network webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_default Removing 
+ Volume webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_nuget-test Removing 
+ Volume webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_pg-test Removing 
+ Network webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_default Removed 
+ Volume webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_nuget-test Removed 
+ Volume webapi-contracts-test-81712d6c-5ca8-4cb1-81b6-ed6551fc07d4_pg-test Removed 
