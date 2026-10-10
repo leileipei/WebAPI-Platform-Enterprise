@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-10",
+  "classification": "source-copy-fix-and-isolated-diagnostic",
+  "workspaceBase": "714820d",
+  "changedSource": {
+    "path": "console/src/delivery/pipeline-state.mjs",
+    "sha256": "5903223b4ffcd9c2123aadc76d0dd91e0dc052878530da16899a29d1e58c2434"
+  },
+  "copyFixInstalled": false,
+  "installedProductUnchanged": "71183e941eef99efb3ad4328abd7c91d02938a1d",
+  "diagnosticImageId": "sha256:3677ee6b11cc1ebe6ce646ab673257c8bc7b51d1913e0802554c013011ccfc22",
+  "consoleTests": {
+    "passed": 269,
+    "failed": 0,
+    "skipped": 0
+  },
+  "buildPassed": true,
+  "buildWarnings": [
+    "Existing bundle exceeds Vite 500kB advisory threshold"
+  ],
+  "labelInspection": {
+    "AwaitingVerification": "待本阶段验证",
+    "DeploymentFailed": "下发失败 · 核对部分已应用节点",
+    "legacyDeployFailed": "下发失败",
+    "currentProductionAction": [
+      "verify-production"
+    ]
+  },
+  "diagnostic": {
+    "passed": true,
+    "sourceVerified": true,
+    "fullIsolatedAcceptance": false,
+    "browserExecuted": false,
+    "backupRestoreExecuted": false,
+    "chains": [
+      {
+        "length": 2,
+        "runStatus": "Completed",
+        "allNodesAcknowledged": true,
+        "actualCallsPassed": true
+      },
+      {
+        "length": 4,
+        "runStatus": "Completed",
+        "allNodesAcknowledged": true,
+        "actualCallsPassed": true
+      }
+    ],
+    "preludeFaults": [
+      {
+        "name": "skipStage",
+        "passed": true
+      },
+      {
+        "name": "legacyBypass",
+        "passed": true
+      },
+      {
+        "name": "concurrentRun",
+        "passed": true
+      },
+      {
+        "name": "wrongProfile",
+        "passed": true
+      },
+      {
+        "name": "predatesWindow",
+        "passed": true
+      },
+      {
+        "name": "runApplicantIndependence",
+        "passed": true
+      },
+      {
+        "name": "wrongRootHash",
+        "passed": true
+      },
+      {
+        "name": "explicitRevocation",
+        "passed": true
+      },
+      {
+        "name": "expiredEvidence",
+        "passed": true
+      },
+      {
+        "name": "reopenUnemitted",
+        "passed": true
+      },
+      {
+        "name": "concurrentAttempt",
+        "passed": true
+      }
+    ],
+    "sourceAdvancementCycles": 30,
+    "concurrentPairs": 15,
+    "concurrentHttpStatuses": {
+      "200": 30
+    },
+    "allPairsSinglePromotion": true,
+    "advancementMs": {
+      "minimum": 1131,
+      "median": 5653.0,
+      "maximum": 6137
+    },
+    "cleanup": {
+      "remainingOwnedResources": 0,
+      "ownerVerified": true,
+      "originalRuntimeUntouched": true
+    },
+    "originalPreservation": {
+      "passed": true,
+      "observed": true,
+      "sourceHead": "40759aac50f1a6281223b0ec0d45d58e6fb44cb5",
+      "sourceFiles": 2636,
+      "privateFiles": 1199,
+      "resources": 33,
+      "sourceDigest": "f20405552ee585953363cf69c8c47e0030d9b3d74fb67a7907df8f92cfdc3818",
+      "privateDigest": "1c44acdc77f2a3b5d910d20992a4ae7a0a9251fe443902be8e02713a80083e29",
+      "resourceDigest": "95fa7842a90a093ac44b16b71a2d2387ff94352c619b3c2c55527e7fd339feca"
+    },
+    "historicalRootCauseConfirmed": false
+  },
+  "evidence": [
+    {
+      "path": ".runtime/pipeline-followup/console-tests-approved.log",
+      "sha256": "67b710147ec57e145754f3fc12cb8c3c93555463b9b31f5fd7e839e40228a7e6"
+    },
+    {
+      "path": ".runtime/pipeline-followup/console-build-node-path.log",
+      "sha256": "fbef506d3e251e28b5f9c29a4b511a6e85bf288b15138154c74a8393d93368db"
+    },
+    {
+      "path": ".runtime/pipeline-followup/label-inspection.log",
+      "sha256": "93f3bdb86610adf198f52c78282c68019daf82328be78669307035c8f1dd9309"
+    },
+    {
+      "path": ".runtime/pipeline-followup/reliability-probe.mjs",
+      "sha256": "73dbc300a2153d52d3a6d84fbafcd13d2893e83b2733f5c726eb42932b9ab42b"
+    },
+    {
+      "path": ".runtime/pipeline-followup/reliability-probe.log",
+      "sha256": "f32c0ecab1079edc7d75fabae074ae836f872ec66c2128b2e079ddb206079d82"
+    },
+    {
+      "path": ".runtime/pipeline-followup/d8ccb35f-d00d-432c-b15a-72795e53d784/observations.json",
+      "sha256": "43e1bcc9c35834ce5550e98f2affd9723b7712d3525929e23e473c1e7e0c7163"
+    },
+    {
+      "path": ".runtime/pipeline-followup/d8ccb35f-d00d-432c-b15a-72795e53d784/result.json",
+      "sha256": "5462f5fcc4d3635e382dc885bc7d762d6cb9bdee88210a61c3b3b6c844528830"
+    },
+    {
+      "path": ".runtime/pipeline-followup/d8ccb35f-d00d-432c-b15a-72795e53d784/proof/proof.json",
+      "sha256": "863a7da1725809187341649b15673560fae0c1bb2813fa6fab5ce1e1b0bb98c1"
+    }
+  ],
+  "historicalFailures": {
+    "candidate": "b1323c3a41dfdeb2008e0c9fdc811e4004067ac8",
+    "attempt4": "Concurrent preparation rejection assertion failed; actual rejection status and trace absent",
+    "attempt7": "Source stage did not advance within runtime wait; database snapshot and final stage detail absent",
+    "rootCauseConfirmed": false
+  },
+  "backendProductChanged": false,
+  "newCommit": false,
+  "merged": false,
+  "pushed": false
+}
