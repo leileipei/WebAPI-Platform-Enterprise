@@ -21,7 +21,22 @@ public class SchemaProcessTests
         var timed=await runner.RunAsync(Request,TimeSpan.FromMilliseconds(400),default);
         Assert.Equal("Incomplete",timed.Status);Assert.Contains(timed.Issues,x=>x.Code=="contract_process_timeout");Assert.True(watch.Elapsed<TimeSpan.FromSeconds(4));
         var pids=File.ReadAllLines(f.Pids).Select(int.Parse).ToArray();Assert.Equal(2,pids.Length);
-        foreach(var pid in pids){var path=$"/proc/{pid}/stat";if(File.Exists(path))Assert.Contains(") Z",File.ReadAllText(path));}
+        // WaitForExit only waits for the root process, even when Kill targets its tree.
+        // Observe descendant termination within the existing end-to-end four-second bound.
+        foreach(var pid in pids)
+        {
+            var path=$"/proc/{pid}/stat";string? state;
+            do
+            {
+                try {state=File.Exists(path)?File.ReadAllText(path):null;}
+                catch(FileNotFoundException){state=null;}
+                catch(DirectoryNotFoundException){state=null;}
+                if(state is null||state.Contains(") Z",StringComparison.Ordinal))break;
+                await Task.Delay(10);
+            }while(watch.Elapsed<TimeSpan.FromSeconds(4));
+            Assert.True(state is null||state.Contains(") Z",StringComparison.Ordinal),$"Evaluator process {pid} is still live: {state}");
+        }
+        Assert.True(watch.Elapsed<TimeSpan.FromSeconds(4));
         File.WriteAllText(f.Script,"#!/bin/sh\ncat >/dev/null\nprintf '%s' '{\"status\":\"Valid\",\"issues\":[]}'\n");
         Assert.Equal("Valid",(await runner.RunAsync(Request,TimeSpan.FromSeconds(2),default)).Status);
     }

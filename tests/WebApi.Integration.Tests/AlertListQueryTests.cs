@@ -24,7 +24,11 @@ public sealed class AlertListQueryTests
         public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,CommandEventData data,InterceptionResult<DbDataReader> result,CancellationToken ct=default)
         {
             var sql=command.CommandText;if(sql.Contains("clock_timestamp()")){Clock++;Data++;}
-            else if(new[]{"FROM alert_rules ","FROM alert_events ","FROM alert_evaluation_states ","FROM alert_event_transitions "}.Any(sql.Contains)||sql.Contains("FROM environments ")&&sql.Contains("INNER JOIN projects "))Data++;
+            // Count every resource read used by the list, including shared observation scope setup.
+            // The previous alert-only accounting missed six full resource catalog queries.
+            else if(new[]{"FROM alert_rules ","FROM alert_events ","FROM alert_evaluation_states ","FROM alert_event_transitions ",
+                "FROM apis ","FROM applications ","FROM upstream_destinations ","FROM gateway_nodes ","FROM policies ","FROM gateway_config_versions "}.Any(sql.Contains)
+                ||sql.Contains("FROM environments ")&&sql.Contains("INNER JOIN projects "))Data++;
             return ValueTask.FromResult(result);
         }
     }
@@ -56,8 +60,8 @@ public sealed class AlertListQueryTests
         }
         internal async Task<PageResult<AlertRuleDto>> ReadRules(int page=1,int size=50,ObservationScopeRequest? scope=null)
         {using var services=Api.Services();return await services.ServiceProvider.GetRequiredService<AlertRuleService>().ListAsync(Actor,scope??Scope,page,size,CancellationToken.None);}
-        internal async Task<PageResult<AlertEventDto>> ReadEvents(int page=1,int size=50)
-        {using var services=Api.Services();return await services.ServiceProvider.GetRequiredService<AlertEventService>().ListAsync(Actor,Scope,new(null,null,null,page,size),CancellationToken.None);}
+        internal async Task<PageResult<AlertEventDto>> ReadEvents(int page=1,int size=50,ObservationScopeRequest? scope=null)
+        {using var services=Api.Services();return await services.ServiceProvider.GetRequiredService<AlertEventService>().ListAsync(Actor,scope??Scope,new(null,null,null,page,size),CancellationToken.None);}
         public ValueTask DisposeAsync()=>Api.DisposeAsync();
     }
     [Theory]
@@ -72,6 +76,46 @@ public sealed class AlertListQueryTests
             else {var result=await f.ReadEvents(page,size);Assert.Equal(151,result.Total);Assert.Equal(f.Events.Skip((page-1)*size).Take(size).Select(e=>e.Id),result.Items.Select(e=>e.Id));count=result.Items.Count;}
             Assert.InRange(f.Sql.Data,1,budget);Assert.Equal(1,f.Sql.Clock);Assert.True(f.Probe.Read(id).Total<=80,$"totalSQL {f.Probe.Read(id).Total} > 80");Assert.True(f.Probe.Read(id).Rows<=count*4+50,$"consumed {f.Probe.Read(id).Rows} rows");data??=f.Sql.Data;Assert.Equal(data,f.Sql.Data);
         }
+    }
+    [Theory]
+    [InlineData("rules")] [InlineData("events")]
+    public async Task AlertListsKeepEnvironmentIsolationAndObserveGrantRevocation(string kind)
+    {
+        await using var f=new Fixture();await f.InitializeAsync();if(kind=="events")await f.AddEventsAsync();
+        await using(var db=f.Api.Context())
+        {
+            var grant=await db.Set<UserProjectScope>().SingleAsync(x=>x.UserId==f.Api.User.Id);
+            grant.ProjectId=f.Api.Project.Id;grant.EnvironmentId=f.Api.Environment.Id;
+            await db.Set<AlertRule>().Where(x=>x.Id==f.Rules[0].Id).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.EnvironmentId,(Guid?)f.Second.Id));
+            if(kind=="events")await db.Set<AlertEvent>().Where(x=>x.Id==f.Events[0].Id).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.EnvironmentId,f.Second.Id));
+            await db.SaveChangesAsync();
+        }
+        async Task<int> Total(ObservationScopeRequest request)=>kind=="rules"?(await f.ReadRules(scope:request)).Total:(await f.ReadEvents(scope:request)).Total;
+        var all=new ObservationScopeRequest(f.Api.Organization.Id,f.Api.Project.Id,null,true);
+        Assert.Equal(150,await Total(f.Scope));Assert.Equal(150,await Total(all));
+        Assert.Equal(404,(await Assert.ThrowsAsync<ApiException>(()=>Total(f.Scope with{EnvironmentId=f.Second.Id}))).Status);
+        Assert.Equal(404,(await Assert.ThrowsAsync<ApiException>(()=>Total(f.Scope with{ProjectId=Guid.NewGuid()}))).Status);
+        Assert.Equal(404,(await Assert.ThrowsAsync<ApiException>(()=>Total(f.Scope with{OrganizationId=Guid.NewGuid()}))).Status);
+        await using(var db=f.Api.Context()){await db.Set<UserProjectScope>().Where(x=>x.UserId==f.Api.User.Id).ExecuteDeleteAsync();}
+        Assert.Equal(404,(await Assert.ThrowsAsync<ApiException>(()=>Total(f.Scope))).Status);
+        Assert.Equal(404,(await Assert.ThrowsAsync<ApiException>(()=>Total(all))).Status);
+    }
+    [Theory]
+    [InlineData("rules",false)] [InlineData("rules",true)] [InlineData("events",false)] [InlineData("events",true)]
+    public async Task AlertListsRejectInactiveScopeAndMissingFunctionalPermission(string kind,bool all)
+    {
+        await using var f=new Fixture();await f.InitializeAsync();if(kind=="events")await f.AddEventsAsync();
+        var request=all?new ObservationScopeRequest(f.Api.Organization.Id,f.Api.Project.Id,null,true):f.Scope;
+        async Task Read(){if(kind=="rules")await f.ReadRules(scope:request);else await f.ReadEvents(scope:request);}
+        await using(var db=f.Api.Context()){await db.Set<Organization>().Where(x=>x.Id==f.Api.Organization.Id).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.Status,"Disabled"));}
+        Assert.Equal(409,(await Assert.ThrowsAsync<ApiException>(Read)).Status);
+        await using(var db=f.Api.Context())
+        {
+            await db.Set<Organization>().Where(x=>x.Id==f.Api.Organization.Id).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.Status,"Active"));
+            var permission=await db.Set<Permission>().SingleAsync(x=>x.Code==(kind=="rules"?"alert.rule.manage":"alert.read"));
+            await db.Set<RolePermission>().Where(x=>x.PermissionId==permission.Id).ExecuteDeleteAsync();
+        }
+        Assert.Equal(403,(await Assert.ThrowsAsync<ApiException>(Read)).Status);
     }
     [Fact]
     public async Task RuleStateRequiresEveryExpectedActiveEnvironment()

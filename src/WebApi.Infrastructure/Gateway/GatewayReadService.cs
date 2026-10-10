@@ -16,20 +16,30 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
         var scope=(await scopes.ProjectAsync(environment.ProjectId,ct)) with {EnvironmentId=env};
         if(!await auth.CanAsync(actor,code,new("environment",env,scope),ct))throw ScopeResolver.Missing();return environment;
     }
+    private async Task RequireReadScopeAsync(Guid env,string code,ActorContext actor,CancellationToken ct)
+    {
+        var scope=await (from e in db.Set<EnvironmentRecord>().AsNoTracking() join p in db.Set<Project>().AsNoTracking() on e.ProjectId equals p.Id
+            where e.Id==env select new ScopeRef(p.OrganizationId,p.Id,e.Id)).SingleOrDefaultAsync(ct)??throw ScopeResolver.Missing();
+        if(!await auth.CanAsync(actor,code,new("environment",env,scope),ct))throw ScopeResolver.Missing();
+    }
     private static string Tag(GatewayNode n)=>$"\"{n.InstanceId}:{n.Enabled}\"";
-    private static GatewayNodeDto Dto(GatewayNode n,EnvironmentRecord env)=>new(n.Id,n.EnvironmentId,n.NodeName,n.InstanceId,n.AppVersion,n.Enabled,n.Status,n.LastHeartbeatAt is null||n.LastHeartbeatAt<DateTimeOffset.UtcNow.AddSeconds(-120),n.CurrentConfigVersion,n.CurrentDeploymentSequence,n.TargetConfigVersion,n.LastHeartbeatAt,Tag(n),env.DesiredConfigVersion,env.DeploymentSequence,SnapshotSchemaCapabilities.Read(n));
+    private static GatewayNodeDto Dto(GatewayNode n,EnvironmentRecord env)=>Dto(n,env.DesiredConfigVersion,env.DeploymentSequence);
+    private static GatewayNodeDto Dto(GatewayNode n,long? desiredVersion,long deploymentSequence)=>new(n.Id,n.EnvironmentId,n.NodeName,n.InstanceId,n.AppVersion,n.Enabled,n.Status,n.LastHeartbeatAt is null||n.LastHeartbeatAt<DateTimeOffset.UtcNow.AddSeconds(-120),n.CurrentConfigVersion,n.CurrentDeploymentSequence,n.TargetConfigVersion,n.LastHeartbeatAt,Tag(n),desiredVersion,deploymentSequence,SnapshotSchemaCapabilities.Read(n));
     public async Task<PageResult<GatewayNodeDto>> NodesAsync(Guid env,ActorContext actor,int page=1,int size=50,CancellationToken ct=default)
     {
-        var environment=await RequireReadAsync(env,"gateway.read",actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
+        await RequireReadScopeAsync(env,"gateway.read",actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
         var query=db.Set<GatewayNode>().AsNoTracking().Where(n=>n.EnvironmentId==env);var total=await query.CountAsync(ct);
-        var nodes=await query.OrderBy(n=>n.NodeName).ThenBy(n=>n.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
-        return new(nodes.Select(n=>Dto(n,environment)).ToArray(),total,page,size);
+        var selected=query.OrderBy(n=>n.NodeName).ThenBy(n=>n.Id).Skip((page-1)*size).Take(size);
+        var nodes=await (from n in selected join e in db.Set<EnvironmentRecord>().AsNoTracking() on n.EnvironmentId equals e.Id
+            select new {Node=n,e.DesiredConfigVersion,e.DeploymentSequence}).OrderBy(x=>x.Node.NodeName).ThenBy(x=>x.Node.Id).ToArrayAsync(ct);
+        return new(nodes.Select(x=>Dto(x.Node,x.DesiredConfigVersion,x.DeploymentSequence)).ToArray(),total,page,size);
     }
     public async Task<GatewayNodeDto> NodeAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {var n=await db.Set<GatewayNode>().AsNoTracking().SingleOrDefaultAsync(n=>n.Id==id,ct)??throw ScopeResolver.Missing();return Dto(n,await RequireReadAsync(n.EnvironmentId,"gateway.read",actor,ct));}
     public async Task<PageResult<GatewayEventDto>> EventsAsync(Guid id,ActorContext actor,int page=1,int size=50,CancellationToken ct=default)
     {
-        await NodeAsync(id,actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
+        var environment=await db.Set<GatewayNode>().AsNoTracking().Where(n=>n.Id==id).Select(n=>(Guid?)n.EnvironmentId).SingleOrDefaultAsync(ct)??throw ScopeResolver.Missing();
+        await RequireReadScopeAsync(environment,"gateway.read",actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
         var capped=db.Set<GatewayNodeEvent>().AsNoTracking().Where(e=>e.GatewayNodeId==id).OrderByDescending(e=>e.Id).Take(10000);
         var total=await capped.CountAsync(ct);
         var events=await capped.OrderByDescending(e=>e.Id).Skip((page-1)*size).Take(size).Select(e=>new GatewayEventDto(e.Id,e.EventType,e.Message,e.Detail,e.CreatedAt)).ToArrayAsync(ct);
@@ -39,7 +49,7 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
     {await RequireReadAsync(env,"gateway.config.read",actor,ct);var artifact=await history.ReadAsync(env,version,ct);var s=artifact.Snapshot;return new(s.SchemaVersion,s.EnvironmentId,s.ConfigVersion,s.GeneratedAt,s.Routes,s.Clusters,s.Policies,s.Applications.Select(a=>new ManagementApplication(a.Id,a.Status,a.Credentials.Select(k=>new ManagementCredential(k.Id,k.AccessKey,k.Status,k.ValidFrom,k.ExpiresAt)).ToArray(),a.Permissions)).ToArray());}
     public async Task<PageResult<SnapshotInfo>> SnapshotsAsync(Guid env,ActorContext actor,int page=1,int size=50,CancellationToken ct=default)
     {
-        await RequireReadAsync(env,"gateway.config.read",actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
+        await RequireReadScopeAsync(env,"gateway.config.read",actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
         var query=db.Set<GatewayConfigVersion>().AsNoTracking().Where(v=>v.EnvironmentId==env);var total=await query.CountAsync(ct);
         var selected=query.OrderByDescending(v=>v.VersionNo).ThenBy(v=>v.Id).Skip((page-1)*size).Take(size);
         var rows=await (from v in selected join snapshot in db.Set<GatewayConfigSnapshot>().AsNoTracking() on v.Id equals snapshot.ConfigVersionId into snapshots

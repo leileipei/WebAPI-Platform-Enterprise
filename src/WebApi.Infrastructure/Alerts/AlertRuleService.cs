@@ -41,9 +41,9 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
     }
     public async Task<PageResult<AlertRuleDto>> ListAsync(ActorContext actor,ObservationScopeRequest scope,int page,int pageSize,CancellationToken ct)
     {
-        var trusted=await observations.ResolveAsync(actor,"alert.rule.manage",scope,null,null,null,ct);
+        var environments=await observations.ResolveEnvironmentIdsAsync(actor,"alert.rule.manage",scope,ct);
         var visible=visibility.Scopes(actor,"alert.rule.manage");
-        var query=db.Set<AlertRule>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&(x.ProjectId==null||x.ProjectId==scope.ProjectId)&&(x.EnvironmentId==null||trusted.EnvironmentIds.Contains(x.EnvironmentId.Value))
+        var query=db.Set<AlertRule>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&(x.ProjectId==null||x.ProjectId==scope.ProjectId)&&(x.EnvironmentId==null||environments.Contains(x.EnvironmentId.Value))
             &&visible.Any(s=>s.OrganizationId==x.OrganizationId&&s.ProjectId==x.ProjectId&&s.EnvironmentId==x.EnvironmentId));
         page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var total=await query.CountAsync(ct);
         var rows=await query.OrderBy(x=>x.NormalizedName).ThenBy(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).ToArrayAsync(ct);

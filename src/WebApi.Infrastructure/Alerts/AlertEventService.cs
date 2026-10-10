@@ -36,8 +36,8 @@ public sealed class AlertEventService(WebApiDbContext db,AuthorizationService au
     public async Task<PageResult<AlertEventDto>> ListAsync(ActorContext actor,ObservationScopeRequest scope,AlertListFilter filter,CancellationToken ct)
     {
         if(filter.Severity is not(null or "Info" or "Warning" or "Critical")||filter.Source is not(null or "Metrics")||filter.Status is not(null or "Open" or "Ack" or "Resolved" or "Silenced"))throw new ApiException(422,"invalid_alert_filter","告警级别、来源或状态筛选不合法。");
-        var trusted=await scopes.ResolveAsync(actor,"alert.read",scope,null,null,null,ct);
-        var query=db.Set<AlertEvent>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId&&trusted.EnvironmentIds.Contains(x.EnvironmentId)&&(filter.Severity==null||x.Severity==filter.Severity)&&(filter.Status==null||x.Status==filter.Status));
+        var environments=await scopes.ResolveEnvironmentIdsAsync(actor,"alert.read",scope,ct);
+        var query=db.Set<AlertEvent>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId&&environments.Contains(x.EnvironmentId)&&(filter.Severity==null||x.Severity==filter.Severity)&&(filter.Status==null||x.Status==filter.Status));
         var page=Math.Clamp(filter.Page,1,1000000);var size=Math.Clamp(filter.PageSize,1,100);var total=await query.CountAsync(ct);
         var rows=await query.OrderByDescending(x=>x.StartedAt).ThenByDescending(x=>x.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
         return new(await listReader.ReadEventsAsync(rows,ct),total,page,size);

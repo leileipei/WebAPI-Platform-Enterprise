@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -16,10 +17,11 @@ using WebApi.Infrastructure.Security;
 using WebApi.Integration.Tests.Support;
 using WebApi.PerformanceHost;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WebApi.Integration.Tests;
 
-public sealed class GovernanceGatewayQueryTests
+public sealed class GovernanceGatewayQueryTests(ITestOutputHelper output)
 {
     private sealed class Capture : DbCommandInterceptor
     {
@@ -29,8 +31,11 @@ public sealed class GovernanceGatewayQueryTests
         {
             var sql=command.CommandText;Templates.Add(sql);
             var relation=Kind switch {"users"=>new[]{"FROM users ","FROM user_roles "},"nodes"=>new[]{"FROM gateway_nodes "},"events"=>new[]{"FROM gateway_node_events "},_=>new[]{"FROM gateway_config_versions ","FROM gateway_config_snapshots ","FROM release_records "}};
-            // Actor existence, functional-role joins and the node detail prerequisite are authorization.
-            if(!sql.StartsWith("SELECT EXISTS",StringComparison.Ordinal)&&!sql.Contains("INNER JOIN roles ")&&relation.Any(sql.Contains))Data++;
+            // Scope identifiers alone are authorization; full DTO/environment state is resource data.
+            // Include prerequisites used by gateway lists instead of hiding them outside the page budget.
+            var metadata=Kind!="users"&&sql.Contains("desired_config_version")
+                ||Kind=="events"&&sql.Contains("FROM gateway_nodes ")&&sql.Contains("current_config_version");
+            if(!sql.StartsWith("SELECT EXISTS",StringComparison.Ordinal)&&!sql.Contains("INNER JOIN roles ")&&(relation.Any(sql.Contains)||metadata))Data++;
             if(Kind=="users"&&sql.Contains("FROM user_roles ")&&!sql.Contains("INNER JOIN roles "))Associations++;
             return ValueTask.FromResult(result);
         }
@@ -105,6 +110,20 @@ public sealed class GovernanceGatewayQueryTests
         var unchanged=await f.Measure("events",2,112,p=>p.GetRequiredService<GatewayReadService>().EventsAsync(f.Nodes[0].Id,f.Actor,100,100));Assert.Equal(last.Total,unchanged.Total);Assert.Equal(last.Items,unchanged.Items);
     }
     [Fact]
+    public async Task EventOutOfRangeKeepsCappedTotalWithoutReadingEvents()
+    {
+        await using var f=new Fixture();await f.InitializeAsync();
+        await using(var db=f.Api.Context()){db.AddRange(Enumerable.Range(1,10003).Select(i=>new GatewayNodeEvent{Id=i,GatewayNodeId=f.Nodes[0].Id,EventType="Query",Message="event "+i}));await db.SaveChangesAsync();}
+        f.Sql.Reset("events");using var probe=f.Probe.Begin("capped-empty");using var scope=f.Api.Services();
+        var result=await scope.ServiceProvider.GetRequiredService<GatewayReadService>().EventsAsync(f.Nodes[0].Id,f.Actor,10001,1);
+        Assert.Equal(10000,result.Total);Assert.Empty(result.Items);Assert.True(f.Probe.Read("capped-empty").Rows<=12);
+        // Diagnostic output contains command templates only, never parameter values.
+        // It lets source review bind the provider's capped-empty shape to actual PostgreSQL execution.
+        foreach(var sql in f.Sql.Templates.Where(s=>s.Contains("FROM gateway_node_events ")))
+            output.WriteLine("SQL_TEMPLATE_SOURCE_REVIEW "+JsonSerializer.Serialize(new {immutableSource=false,performanceAcceptance=false,
+                hash=Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(sql))),sql}));
+    }
+    [Fact]
     public async Task SnapshotListDoesNotLoadPayloadAndUsesLatestSequence()
     {
         await using var f=new Fixture();await f.InitializeAsync();await f.AddSnapshotsAsync();
@@ -113,6 +132,34 @@ public sealed class GovernanceGatewayQueryTests
             var expected=Enumerable.Range(1,151).Reverse().Skip((Math.Min(page,1000000)-1)*size).Take(size).ToArray();var result=await f.Measure("snapshots",3,expected.Length*2+12,p=>p.GetRequiredService<GatewayReadService>().SnapshotsAsync(f.Api.Environment.Id,f.Actor,page,size));
             Assert.Equal(151,result.Total);Assert.Equal(expected.Select(i=>(long)i),result.Items.Select(s=>s.ConfigVersion));Assert.All(result.Items,s=>{Assert.Equal(f.Latest[s.ConfigVersion].Id,s.LatestReleaseId);Assert.Equal(s.ConfigVersion+1000,s.LatestDeploymentSequence);Assert.Equal("RolledBack",s.LatestDeploymentState);Assert.True(s.SizeBytes>0);Assert.Equal(64,s.PayloadHash.Length);});Assert.DoesNotContain(f.Sql.Templates,s=>s.Contains("payload_bytes",StringComparison.OrdinalIgnoreCase));
         }
+    }
+    [Theory]
+    [InlineData("nodes")] [InlineData("events")] [InlineData("snapshots")]
+    public async Task GatewayListsRetainEnvironmentAuthorizationAfterScopeProjection(string kind)
+    {
+        await using var f=new Fixture();await f.InitializeAsync();var foreign=new EnvironmentRecord{ProjectId=f.Api.Project.Id,Code="FOREIGN",Name="无权环境"};
+        var foreignNode=new GatewayNode{EnvironmentId=foreign.Id,NodeName="foreign-scope",InstanceId="foreign",AppVersion="test"};
+        await using(var db=f.Api.Context())
+        {
+            db.AddRange(foreign,foreignNode);var grant=await db.Set<UserProjectScope>().SingleAsync(x=>x.UserId==f.Actor.UserId);
+            grant.ProjectId=f.Api.Project.Id;grant.EnvironmentId=f.Api.Environment.Id;await db.SaveChangesAsync();
+        }
+        async Task Read(bool other=false)
+        {
+            using var scope=f.Api.Services();var service=scope.ServiceProvider.GetRequiredService<GatewayReadService>();var env=other?foreign.Id:f.Api.Environment.Id;
+            if(kind=="nodes")await service.NodesAsync(env,f.Actor);
+            else if(kind=="events")await service.EventsAsync(other?foreignNode.Id:f.Nodes[0].Id,f.Actor);
+            else await service.SnapshotsAsync(env,f.Actor);
+        }
+        await Read();Assert.Equal(404,(await Assert.ThrowsAsync<ApiException>(()=>Read(true))).Status);
+        await using(var db=f.Api.Context()){await db.Set<EnvironmentRecord>().Where(x=>x.Id==f.Api.Environment.Id).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.Status,"Disabled"));}
+        Assert.Equal(404,(await Assert.ThrowsAsync<ApiException>(()=>Read())).Status);
+        await using(var db=f.Api.Context())
+        {
+            await db.Set<EnvironmentRecord>().Where(x=>x.Id==f.Api.Environment.Id).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.Status,"Active"));
+            await db.Set<UserProjectScope>().Where(x=>x.UserId==f.Actor.UserId).ExecuteDeleteAsync();
+        }
+        Assert.Equal(404,(await Assert.ThrowsAsync<ApiException>(()=>Read())).Status);
     }
     [Fact]
     public async Task ManagementSnapshotStillRedactsCredentialHashesAndDetectsCorruption()

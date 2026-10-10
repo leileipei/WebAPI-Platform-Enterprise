@@ -10,7 +10,7 @@ using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Observability;
 public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationService authorization)
 {
-    public async Task<TrustedObservationScope> ResolveAsync(ActorContext actor,string permission,ObservationScopeRequest scope,Guid? apiId,Guid? appId,Guid? destinationId,CancellationToken ct)
+    public async Task<Guid[]> ResolveEnvironmentIdsAsync(ActorContext actor,string permission,ObservationScopeRequest scope,CancellationToken ct)
     {
         var project=await db.Set<Project>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==scope.ProjectId&&x.OrganizationId==scope.OrganizationId,ct)??throw ScopeResolver.Missing();
         Guid[] environments;
@@ -33,12 +33,17 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
             catch(ApiException e)when(e.Code=="scope_denied"){throw ScopeResolver.Missing();}
             environments=[environment];
         }
-        var apis=await db.Set<Api>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==project.Id).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
-        var apps=await db.Set<ApplicationRecord>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==project.Id).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
-        var destinations=await(from d in db.Set<UpstreamDestination>().AsNoTracking() join c in db.Set<UpstreamCluster>().AsNoTracking() on d.ClusterId equals c.Id where c.ProjectId==project.Id&&environments.Contains(c.EnvironmentId) select new ObservationDestination(d.Id,c.Id,c.EnvironmentId,d.Name,d.Enabled)).ToDictionaryAsync(x=>x.Id,ct);
+        return environments;
+    }
+    public async Task<TrustedObservationScope> ResolveAsync(ActorContext actor,string permission,ObservationScopeRequest scope,Guid? apiId,Guid? appId,Guid? destinationId,CancellationToken ct)
+    {
+        var environments=await ResolveEnvironmentIdsAsync(actor,permission,scope,ct);
+        var apis=await db.Set<Api>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
+        var apps=await db.Set<ApplicationRecord>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
+        var destinations=await(from d in db.Set<UpstreamDestination>().AsNoTracking() join c in db.Set<UpstreamCluster>().AsNoTracking() on d.ClusterId equals c.Id where c.ProjectId==scope.ProjectId&&environments.Contains(c.EnvironmentId) select new ObservationDestination(d.Id,c.Id,c.EnvironmentId,d.Name,d.Enabled)).ToDictionaryAsync(x=>x.Id,ct);
         if(apiId is Guid api&&!apis.ContainsKey(api)||appId is Guid app&&!apps.ContainsKey(app)||destinationId is Guid destination&&!destinations.ContainsKey(destination))throw ScopeResolver.Missing();
         var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>environments.Contains(x.EnvironmentId)&&x.Enabled).Select(x=>new ExpectedObservationNode(x.EnvironmentId,x.NodeName)).ToArrayAsync(ct);
-        var workingIds=await db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==scope.OrganizationId&&(p.ProjectId==null||p.ProjectId==project.Id)).Select(p=>p.Id).ToArrayAsync(ct);
+        var workingIds=await db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==scope.OrganizationId&&(p.ProjectId==null||p.ProjectId==scope.ProjectId)).Select(p=>p.Id).ToArrayAsync(ct);
         var policyIds=environments.ToDictionary(env=>env,_=>new HashSet<Guid>(workingIds));
         // Query only historical policy identifiers; never load credentials or complete snapshots for observation scope.
         if(environments.Length>0) {
