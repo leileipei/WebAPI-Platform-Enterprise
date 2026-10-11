@@ -21,10 +21,19 @@ try {
     const {manifestJson,manifestHash,sourceCommit}=classificationInput;if(createHash('sha256').update(manifestJson).digest('hex')!==manifestHash)throw Error('SQL classification input hash mismatch');
     measured=classifyMeasurement(measured,{manifest:JSON.parse(manifestJson),sourceCommit,manifestHash});
   }
-  measured.windowStartedAt=windowStartedAt;measured.windowEndedAt=new Date().toISOString();
+  measured.windowStartedAt=windowStartedAt;measured.workloadWindowEndedAt=new Date().toISOString();
   measured.measurementScope=options.explain?'explain-diagnostic-not-performance':'login-queries-sql-probe-and-classification';
   const cpu=process.cpuUsage(before),wallMs=performance.now()-start;
-  measured.client={version:process.version,architecture:process.arch,peakRssBytes,cpuUserUs:cpu.user,cpuSystemUs:cpu.system,cpuCores:(cpu.user+cpu.system)/(wallMs*1000),eventLoopP95Ms:delays.percentile(95)/1e6,wallMs};
+  measured.client={version:process.version,architecture:process.arch,peakRssBytes,cpuUserUs:cpu.user,cpuSystemUs:cpu.system,cpuCores:(cpu.user+cpu.system)/(wallMs*1000),eventLoopP95Ms:delays.percentile(95)/1e6,wallMs,cpuMeasurementScope:'login-queries-sql-probe-and-classification-without-resource-tail'};
+  clearInterval(timer);delays.disable();
+  // Fast optimized batches still need two Docker stats samples. Record an
+  // explicit idle tail, with no extra HTTP requests and no query/client metric
+  // inflation. Long workloads keep their original resource window.
+  const paddingStart=performance.now(),needsPadding=paddingStart-start<2500;
+  while(performance.now()-start<2500)await new Promise(resolve=>setTimeout(resolve,Math.ceil(2500-(performance.now()-start))));
+  measured.resourceWindowPaddingMs=needsPadding?performance.now()-paddingStart:0;
+  measured.resourceMeasurementScope=needsPadding?'workload-and-explicit-idle-tail':'workload-only';
+  measured.windowEndedAt=new Date().toISOString();
   await fs.writeFile(`/results/${scene==='ordinary'?'management':scene}-queries-${scale}.json`,JSON.stringify(measured,null,2)+'\n');
   await waitForContainerSampler(`/results/${scene}-${scale}.resources-finished.json`);
   if(!measured.complete)process.exitCode=4;
