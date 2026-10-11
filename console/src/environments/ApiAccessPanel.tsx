@@ -1,0 +1,23 @@
+import {useEffect,useRef,useState} from 'react';
+import {apiRequest} from '../api/client';
+import {useSession} from '../auth/SessionProvider';
+import {useWorkspace} from '../Shell';
+import {useRemote,Feedback} from '../ui';
+import {buildCurlExample} from './access-address.mjs';
+import {mayCopyAddress} from './access-state.mjs';
+import {releaseEntrySummary} from './access-state.mjs';
+export function ApiAccessPanel({environmentId,apiId,versionId,view='running'}:{environmentId:string;apiId:string;versionId?:string;view?:'working'|'running'}){
+ const session=useSession(),ws=useWorkspace();const authorized=!!environmentId&&!!apiId&&['environment.read','api.read','api.version.read'].every(code=>session.can(code,ws.scope));
+ const identity=JSON.stringify([environmentId,apiId,versionId,session.user?.id,session.user?.permissions,session.user?.scopes]);
+ return authorized?<AccessContent key={identity} environmentId={environmentId} apiId={apiId} versionId={versionId} initialView={view}/>:null;
+}
+function AccessContent({environmentId,apiId,versionId,initialView}:{environmentId:string;apiId:string;versionId?:string;initialView:'working'|'running'}){
+ const session=useSession(),ws=useWorkspace(),[view,setView]=useState(initialView),[note,setNote]=useState(''),[busy,setBusy]=useState(false),epoch=useRef(0);
+ const query=new URLSearchParams({view,...(versionId?{versionId}:{})}),base=`/environments/${environmentId}/apis/${apiId}`,remote=useRemote<any>(`${base}/access-addresses?${query}`);
+ useEffect(()=>{const invalidate=()=>{epoch.current++;setNote('');setBusy(false);};window.addEventListener('session-expired',invalidate);window.addEventListener('permission-refresh',invalidate);return()=>{epoch.current++;window.removeEventListener('session-expired',invalidate);window.removeEventListener('permission-refresh',invalidate);};},[]);
+ useEffect(()=>{epoch.current++;setNote('');},[view]);
+ async function copy(text:string){try{await navigator.clipboard.writeText(text);setNote('已复制公开模板；请填写路径参数和调用方凭证');}catch{setNote('浏览器未允许复制，请选择模板文本复制');}}
+ async function download(){const current=epoch.current;setBusy(true);setNote('');try{const response=await apiRequest<Response>(`${base}/openapi?${query}`,{responseType:'response'});const blob=await response.blob();if(current!==epoch.current)return;const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=`api-${apiId}-${view}.openapi.json`;anchor.click();URL.revokeObjectURL(url);setNote('已下载环境文档；入口连通性未验证');}catch(e){if(current===epoch.current)setNote((e as Error).message);}finally{if(current===epoch.current)setBusy(false);}}
+ return <section className="card api-access-panel" aria-label="客户端 API 访问地址"><header className="page-head"><div><h2>客户端 API 访问地址</h2><p>{view==='running'?'节点已确认的运行配置':'工作配置 · 尚未确认已运行'}；地址连通性未验证</p></div><label>配置视图<select aria-label="访问地址配置视图" value={view} onChange={e=>setView(e.target.value as 'working'|'running')}><option value="running">运行配置</option><option value="working">工作配置</option></select></label></header><Feedback {...remote}/>{remote.data&&!remote.loading&&!remote.error&&<>{!remote.data.configured&&<p className="notice">环境尚未配置公开入口，不能生成客户端地址。</p>}<div className="api-access-routes">{remote.data.routes.map((route:any)=><div key={route.routeId+route.method} className="api-access-route"><strong>{route.method}</strong><div><code>{route.publicTemplate||route.pathTemplate}</code><small>{route.runningConfigVersion?`运行配置版本 ${route.runningConfigVersion}`:'工作模板'} · 占位符需填写，模板不直接执行</small></div><button className="btn" disabled={!mayCopyAddress(remote.data,route.publicTemplate)} onClick={()=>void copy(route.publicTemplate)}>复制模板</button><button className="btn" disabled={!mayCopyAddress(remote.data,route.publicTemplate)} onClick={()=>void copy(buildCurlExample(route.method,route.publicTemplate))}>复制调用示例</button></div>)}</div>{!remote.data.routes.length&&<p className="empty">所选版本在该视图中没有实际路由。</p>}<button className="btn" disabled={busy||!remote.data.configured||!remote.data.routes.length||!session.can('api.schema.read',ws.scope)} onClick={()=>void download()}>{busy?'生成中…':'下载环境 OpenAPI 文档'}</button></>}{note&&<p className="notice" role="status">{note}</p>}</section>;
+}
+export function ReleaseEntryPanel({release}:{release:Record<string,any>}){const summary=releaseEntrySummary(release);return <section className="card" aria-label="发布入口历史"><h3>发布入口记录</h3><dl className="release-entry-grid"><div><dt>本次执行记录的地址</dt><dd><code>{summary.recorded}</code></dd></div><div><dt>当前环境地址</dt><dd><code>{summary.current}</code></dd></div></dl>{summary.changed&&<p className="notice">环境入口配置已变化。历史记录保留，旧验证结果不能代表当前入口。</p>}<p className="muted">记录地址元数据；回滚运行快照不会恢复 DNS、负载均衡或环境地址。</p></section>;}

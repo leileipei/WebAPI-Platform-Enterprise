@@ -1,0 +1,385 @@
+{
+  "passed": true,
+  "monitoringIdentityException": {
+    "approved": true,
+    "userMessage": "确认",
+    "approvedAt": "2026-10-10T01:09:33.693Z",
+    "diagnosisSha256": "9166212819c0d9854a26f19068779cf2499c0befd2b460f031d582afa5923836",
+    "services": [
+      {
+        "service": "collector",
+        "oldId": "1ef9c30c55f282a968c68a72f1e04f0295ff7dc10721a5fb3e3722635b929743",
+        "acceptedId": "3c9eecee05bc8628237584da2955eb1d3575145bff5f9457f2fba485e9d6f068",
+        "image": "sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+        "oldMountsRestored": true
+      },
+      {
+        "service": "loki",
+        "oldId": "a8005da3535cd40c7978f3e7c8bcd54f9866e8f763470491c81511b99a277954",
+        "acceptedId": "9d6f288d40714f7013959e3691de30a325bcab033a601feda6e1d61340d4aeaa",
+        "image": "sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+        "oldMountsRestored": true
+      },
+      {
+        "service": "prometheus",
+        "oldId": "f8b72841fdb6e927d098f73d125eaf81e7300282e3720545af3832f0283092a4",
+        "acceptedId": "da94a24dfe299b39547eef3564edc9612f2161b643ab3ee37c8f252583e4db9b",
+        "image": "sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+        "oldMountsRestored": true
+      },
+      {
+        "service": "tempo",
+        "oldId": "ad7a4c1a945016fcb7a4d38190437737cba72f0a90a1f3cc9a18f2374a2fde6a",
+        "acceptedId": "060588b7dc8e628cd8a7a7ce19c3508678842cd07ec0f032792ee06c32546640",
+        "image": "sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd",
+        "oldMountsRestored": true
+      }
+    ],
+    "subsequentIdsPreserved": true
+  },
+  "initialAttempt": {
+    "failed": true,
+    "oldApplicationAndDatabaseRestored": true,
+    "recoveryEvidence": "Private recovery.json and digest-bound read-only recovery-diagnosis.json",
+    "unqualifiedFullPreservation": false,
+    "reason": "Four observability container IDs were irreversibly replaced; exact exception explicitly accepted before resume."
+  },
+  "classification": "actual-local-persistent-pipeline-installation",
+  "sourceRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
+  "imageId": "sha256:3677ee6b11cc1ebe6ce646ab673257c8bc7b51d1913e0802554c013011ccfc22",
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "preservation": {
+    "sourceUntouched": true,
+    "oldFiles": 1007,
+    "oldTables": 65,
+    "oldRows": 937,
+    "reports": 0,
+    "approvedMonitoringIdentityExceptions": 4,
+    "sourceFiles": 2636,
+    "ready": true
+  },
+  "applicationContainers": 8,
+  "applicationsVerified": 269,
+  "staticFilesVerified": 3,
+  "newReceipts": [
+    {
+      "table": "audit_logs",
+      "id": "[271]",
+      "hash": "3fb63711cf4d9601f65dc4f8b830678db61a2d533de611716daffcc351aa3c80",
+      "commandId": "632b1387-c75c-41ba-a0c2-0e890035dc0f",
+      "rule": "actual-readonly-login"
+    },
+    {
+      "table": "audit_logs",
+      "id": "[272]",
+      "hash": "8b6704adadc34f1c97b85ca64454017e973d8fd577baecd1c51ac6c06d2dd2e4",
+      "commandId": "25fe767b-7074-4c13-bc94-a148b2e83ee9",
+      "rule": "actual-readonly-login"
+    },
+    {
+      "table": "audit_logs",
+      "id": "[273]",
+      "hash": "49f6dec67e06159512261a4ac239d5d9696ae60bab3b229393f79b9e019ab94d",
+      "commandId": "7d42b7e3-677f-498a-a47c-c07b725580f1",
+      "rule": "actual-readonly-login"
+    },
+    {
+      "table": "audit_logs",
+      "id": "[274]",
+      "hash": "2816ab5fd515ec30a1641c938be16ba23f6125e741039166a4c2343bb1deecfa",
+      "commandId": "6bf704b1-212d-4108-8e6b-ca7a5da4de8a",
+      "rule": "actual-readonly-login"
+    },
+    {
+      "table": "audit_logs",
+      "id": "[275]",
+      "hash": "42cb0e3e4b70bb890a31c090d4053e376d5005c6135de9fc7c484c3ea21e7135",
+      "commandId": "6bf704b1-212d-4108-8e6b-ca7a5da4de8a",
+      "rule": "actual-readonly-login"
+    },
+    {
+      "table": "permissions",
+      "id": "[\"2c0d793d-7c07-4001-8d96-32fb2982f344\"]",
+      "hash": "16b78c1dc063f936943b472438ff32e7efb242cac61e098a0e858a9f5cd9c1e7",
+      "commandId": "8e879b99-7efa-4c87-99ed-ba3327a25ed8",
+      "rule": "three-pipeline-permissions"
+    },
+    {
+      "table": "permissions",
+      "id": "[\"6ef86a53-2a95-4b45-be8f-58f59e0375a2\"]",
+      "hash": "43805d75cc257b4ab94ea4731e999d7e4ad843f68932944bcfc41ed97fc8e0d1",
+      "commandId": "8e879b99-7efa-4c87-99ed-ba3327a25ed8",
+      "rule": "three-pipeline-permissions"
+    },
+    {
+      "table": "permissions",
+      "id": "[\"e891dcb3-0b8b-45ee-91d8-659863ef1606\"]",
+      "hash": "aa67928f23026f855611e5a46df6bb8e2f869968acb3309ba9b64184677ab055",
+      "commandId": "8e879b99-7efa-4c87-99ed-ba3327a25ed8",
+      "rule": "three-pipeline-permissions"
+    },
+    {
+      "table": "role_permissions",
+      "id": "[\"92402cc4-f47d-41d4-af83-87752310a33b\",\"2c0d793d-7c07-4001-8d96-32fb2982f344\"]",
+      "hash": "2f0fce07b6240c41a8ad44eb7a598e7ac0120508942f0c34aa41993cf8aca17c",
+      "commandId": "8e879b99-7efa-4c87-99ed-ba3327a25ed8",
+      "rule": "admin-only-pipeline-grant"
+    },
+    {
+      "table": "role_permissions",
+      "id": "[\"92402cc4-f47d-41d4-af83-87752310a33b\",\"6ef86a53-2a95-4b45-be8f-58f59e0375a2\"]",
+      "hash": "0ac7f51e471e2c2c79366400dc4182a7ac8d6a4a252b00a47688b08ddb71a1d7",
+      "commandId": "8e879b99-7efa-4c87-99ed-ba3327a25ed8",
+      "rule": "admin-only-pipeline-grant"
+    },
+    {
+      "table": "role_permissions",
+      "id": "[\"92402cc4-f47d-41d4-af83-87752310a33b\",\"e891dcb3-0b8b-45ee-91d8-659863ef1606\"]",
+      "hash": "4a3fcfa451bbf1a8fe3e1d49eabf97e5ab419cbbb5a29f7173705806fc4fef60",
+      "commandId": "8e879b99-7efa-4c87-99ed-ba3327a25ed8",
+      "rule": "admin-only-pipeline-grant"
+    },
+    {
+      "table": "sso_login_attempts",
+      "id": "[\"fd8e4154-f41e-4cdc-81f9-0b5848d13c6c\"]",
+      "hash": "95bc9f67cc2956eb5e327faba4cffa31460fca4b1cba4dba460a03e31752e559",
+      "commandId": "6bf704b1-212d-4108-8e6b-ca7a5da4de8a",
+      "rule": "actual-original-sso-attempt"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[202]",
+      "hash": "b933f5e2f9b905e6fc1633456c3856b2f48e0ecb2be960a511460668725cf281",
+      "commandId": "c832f1b2-a319-4e26-82d7-1fc865efb62a",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[203]",
+      "hash": "354b414db7918de006074cb00f56963fc78a7e934cbe9ee75d3ea5100792fce9",
+      "commandId": "c832f1b2-a319-4e26-82d7-1fc865efb62a",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[204]",
+      "hash": "363e3eabb6564f467a829ebd88bc82af07587171af32e0294f3cd53b09a1323d",
+      "commandId": "c832f1b2-a319-4e26-82d7-1fc865efb62a",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[205]",
+      "hash": "a4dc0de546c87b1b35f004fd13bbce4e01d690b900f0f59f1e89bc3a8e99acbe",
+      "commandId": "c832f1b2-a319-4e26-82d7-1fc865efb62a",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[206]",
+      "hash": "d4a037a4119c8b40f9a0ff7c16648fa5670694b0d4e5a95339ba6cb83b0151d3",
+      "commandId": "58529d44-dc36-44b6-a06e-67140fbdd971",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[207]",
+      "hash": "78dce92f761c6fbed84e9fa3a1d828f1a42a931649549242f4406b67b36873e4",
+      "commandId": "58529d44-dc36-44b6-a06e-67140fbdd971",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[208]",
+      "hash": "47080a476d3aecd5a6ef98b138895039170d5a201981aec26b61624c9f3f44fb",
+      "commandId": "58529d44-dc36-44b6-a06e-67140fbdd971",
+      "rule": "restarted-node-ready"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[209]",
+      "hash": "359fed42e85b290cbac631e31fe3aa062e736b660905d88e930840fde77cd6ff",
+      "commandId": "58529d44-dc36-44b6-a06e-67140fbdd971",
+      "rule": "restarted-node-ready"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[210]",
+      "hash": "5fc069f64fd13db9fd542e979925747604a3d7ca2232f2e44faa675e5297c506",
+      "commandId": "58529d44-dc36-44b6-a06e-67140fbdd971",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[211]",
+      "hash": "c87712ff176d83a5b7f2511eace2a831d95d4bc09698cbcf8660613a41b9ddfb",
+      "commandId": "58529d44-dc36-44b6-a06e-67140fbdd971",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[212]",
+      "hash": "8b5a8fc70383c29d313a70be517e270fd3626dc5d795faceddd2b733e8aaa9ef",
+      "commandId": "7446f473-d1c5-4c38-a944-018459320287",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[213]",
+      "hash": "f3b4ce37cfdf8ee1e04310f8ba34dad5f3453dd5802d910731843ca5a3faea44",
+      "commandId": "7446f473-d1c5-4c38-a944-018459320287",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[214]",
+      "hash": "2c3ad84cde9862ddf2f9eabce8cbd1d6e7a967403b4cb4b334a46a87ca204fc1",
+      "commandId": "7446f473-d1c5-4c38-a944-018459320287",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[215]",
+      "hash": "3e9b509aed7e455443843847307a98037e80e0698fe9a84b84eb20e86fd94a32",
+      "commandId": "7446f473-d1c5-4c38-a944-018459320287",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[216]",
+      "hash": "616f65e2383c4c569d54b37c8ff35c0f19c5e0abbe7ccedeaf0182cd0211df88",
+      "commandId": "5d0bdbe7-759c-4da4-ba53-d281352c5f76",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[217]",
+      "hash": "7ad5118adfea297e0f417eadfe3e274079db7d3e58b86feb3fc23fe306d7acfd",
+      "commandId": "5d0bdbe7-759c-4da4-ba53-d281352c5f76",
+      "rule": "owned-restarted-node-registration"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[218]",
+      "hash": "e45edaecdffdf7bb64da0e1b6e6fe174a826d1bdaa0b4d23211305856c0c663f",
+      "commandId": "5d0bdbe7-759c-4da4-ba53-d281352c5f76",
+      "rule": "restarted-node-ready"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[219]",
+      "hash": "296bd92712fb5e23c5a59a45ecafad86eaccc96e534303461d89f612e6de4215",
+      "commandId": "5d0bdbe7-759c-4da4-ba53-d281352c5f76",
+      "rule": "restarted-node-ready"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[220]",
+      "hash": "9c1ab5e7bb2caa4d3109c31c008c7ca7dbbc89e430d6d0ab247b8395ee426f45",
+      "commandId": "5d0bdbe7-759c-4da4-ba53-d281352c5f76",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "gateway_node_events",
+      "id": "[221]",
+      "hash": "27eb6ae551154a6c10bce3f71ff970e735029dbf52197fa36544b005381a3bb7",
+      "commandId": "5d0bdbe7-759c-4da4-ba53-d281352c5f76",
+      "rule": "same-running-snapshot-new-instance"
+    },
+    {
+      "table": "__EFMigrationsHistory",
+      "id": "[\"20261009030000_ReleasePipelines\"]",
+      "hash": "79cb9c13ddfe2924f22c00645e99bb4aa68aca5840de8ba550a446c8376d291e",
+      "commandId": "7446f473-d1c5-4c38-a944-018459320287",
+      "rule": "fixed-two-migrations"
+    },
+    {
+      "table": "__EFMigrationsHistory",
+      "id": "[\"20261010010000_PipelineProjectionCursor\"]",
+      "hash": "b2f3107a8d6229d7cf4050297134f924b019ee9981c9a043c26227053a7a098b",
+      "commandId": "7446f473-d1c5-4c38-a944-018459320287",
+      "rule": "fixed-two-migrations"
+    }
+  ],
+  "pipelineTablesEmpty": true,
+  "permissionsOnlyAdmin": true,
+  "originalTrafficSamples": [
+    {
+      "port": 4196,
+      "status": 200,
+      "backendId": "A",
+      "receivedApiKey": false
+    },
+    {
+      "port": 4197,
+      "status": 200,
+      "backendId": "A",
+      "receivedApiKey": false
+    }
+  ],
+  "originalRoutingSnapshot": "c946373d3133af1da1991e36c0a725e10727101987f4a685c9cba2f7633755ee",
+  "originalAllowedBackends": [
+    "A",
+    "B"
+  ],
+  "originalRunningVersion": [
+    {
+      "version": 4,
+      "sequence": 4
+    },
+    {
+      "version": 4,
+      "sequence": 4
+    }
+  ],
+  "originalSso": true,
+  "browserScreenshots": [
+    {
+      "path": "original-admin-pipelines.png",
+      "width": 1440,
+      "sha256": "78cfbe46d7613ce309dacabc9ac158c5c76cda9fae247e010fae7b2204a2822a",
+      "visuallyInspected": true,
+      "visualObservation": "Actual original administrator identity, resolved workspace and fully loaded zero-record list."
+    },
+    {
+      "path": "original-admin-runs.png",
+      "width": 1280,
+      "sha256": "790ae5c342a75f8feb03db20ef5fc30a6026be6c9f22f7072a6be1b1152aee4b",
+      "visuallyInspected": true,
+      "visualObservation": "Actual original administrator identity, resolved workspace and fully loaded zero-record list."
+    },
+    {
+      "path": "original-sso-viewer-restricted.png",
+      "width": 1280,
+      "sha256": "e24876accf292e8fbd95b95a474832d5c8079384d3f64077fdadfdc9d361791e",
+      "visuallyInspected": true,
+      "visualObservation": "Actual SSO viewer identity and denied/cleared data alert; no pipeline data rows."
+    }
+  ],
+  "clone": {
+    "passed": true,
+    "freshOwner": true,
+    "ownerId": "5ae01407-62d7-4e71-9c9f-e5cb4ee4f1d0",
+    "sourceOwnerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+    "manifestSha256": "905bb4a5366a3ee2d6f2d8a9dd203e53841eb7f12a71cf5adf5cfa46b2a7dc2e",
+    "historicalRows": 937,
+    "protectedReports": 0,
+    "gatewayCalls": 2,
+    "sourceRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d"
+  },
+  "cleanup": {
+    "ownerId": "5ae01407-62d7-4e71-9c9f-e5cb4ee4f1d0",
+    "remainingOwnedResources": 0
+  },
+  "enterpriseDnsTlsLb": false,
+  "enterpriseBusinessAcceptance": false,
+  "newBusinessPublish": false,
+  "mainMerged": false,
+  "pushed": false,
+  "toolingRevision": "0ecdb46e1891045fcdfdb571e70d884d35661095"
+}

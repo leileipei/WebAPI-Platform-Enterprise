@@ -1,0 +1,82 @@
+{
+  "classification": "actual-isolated-dual-environment-promotion-browser",
+  "sourceRevision": "c0860c05426725c1ed7e58c1caf30f44410df0a3",
+  "projectName": "webapi-enterprise-local-test-3a233098-5b62-4a39-9bfe-51ca69d062e1",
+  "checks": [
+    {
+      "name": "legacy_real_production_baseline_before_enabling_promotion",
+      "passed": true,
+      "actual": true,
+      "releaseId": "d62ba615-11fa-4777-8f8d-c90320e640d1"
+    },
+    {
+      "name": "screenshot_environments-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/environments-1440.png"
+    },
+    {
+      "name": "screenshot_mapping-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/mapping-1440.png"
+    },
+    {
+      "name": "screenshot_precheck-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/precheck-1440.png"
+    }
+  ],
+  "sourceVerified": true,
+  "isolatedAcceptance": false,
+  "localInstalled": false,
+  "productionAcceptance": false,
+  "phase": "failed",
+  "imageId": "sha256:9a18edee983c7922e57cda33c62a4f8021e83ae0a9fc78643d8554ec2018fab0",
+  "source": {
+    "environmentId": "626b95ae-4913-43c2-90b5-5d91d9d3f1c9",
+    "releaseId": "4c813c5e-6176-4313-b4e5-8a4b49b6b539",
+    "artifactId": "820472cc-f318-44f4-bfa5-1a157b382830",
+    "artifactHash": "5544792f1926451255cd67a0734d58cb6fb41dd511991cc573984f592ec54b79",
+    "snapshotHash": "03194004e3b257363950aa2bb7a726af9877748596c423678fac685ec5ce6057",
+    "configVersion": 1,
+    "sequence": 1,
+    "nodes": [
+      {
+        "nodeId": "465ff504-0c44-4aa3-9078-567b3c87a480",
+        "instanceId": "48cf218c-2ba2-4137-ac5a-cfb303704a72",
+        "acknowledged": true
+      },
+      {
+        "nodeId": "f98f64a0-5983-47a9-be9a-321560a55b77",
+        "instanceId": "4d3573a8-1677-460d-8d7d-c12eb64275b6",
+        "acknowledged": true
+      }
+    ]
+  },
+  "target": {
+    "environmentId": "199608b9-8c6a-4130-82e0-e1ca730b8db6",
+    "publicUrl": "https://127.0.0.1:56431",
+    "basePath": "/edge"
+  },
+  "actors": {
+    "applicant": "6d670dfb-2f08-4994-8f9f-febd36e3b70f",
+    "acceptor": "2babc44d-b672-4877-80e4-4b19908465d4",
+    "approvers": [
+      "75893b84-6fdb-449a-9b1f-4580b04f59e9",
+      "1a2841c1-511a-47b5-842e-5c40da5197dc"
+    ],
+    "verifier": "ee17cb96-b4a9-4b6a-95a7-a85f19412f83"
+  },
+  "promotions": [],
+  "failure": {
+    "message": "locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog').getByLabel('审批意见', { exact: true })\u001b[22m\n",
+    "status": null
+  },
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  }
+}

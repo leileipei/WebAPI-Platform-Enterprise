@@ -1,0 +1,126 @@
+{
+  "sourceRevision": "a445534f82f11ae9a45c3b2904bd07108bd165a9",
+  "reviewedHead": "1d4be835a53b073abdf1a4454588dcf27226d905",
+  "reviewCritical": 0,
+  "reviewImportant": 2,
+  "reviewMinor": 0,
+  "singleFixPass": true,
+  "secondReviewPerformed": false,
+  "focusedGreen": {
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0
+  },
+  "fullSuites": {
+    "domain": 753,
+    "integration": 971,
+    "gateway": 142,
+    "console": 245,
+    "runtimeAndDeliveryUnit": 153,
+    "nativeBackupIntegration": 2
+  },
+  "suiteFailed": 0,
+  "suiteSkipped": 0,
+  "fixes": [
+    {
+      "finding": "Source evidence predates actual source deployment",
+      "red": "source-before-created / source-before-completed and historical stored evidence failed in final-fix-red3.log",
+      "green": "all focused6 and full971 integration passed",
+      "historyPreserved": true,
+      "boundary": "FinishedAt >= actual current SourceRelease.CompletedAt; registration and common acceptance/execution gate"
+    },
+    {
+      "finding": "Pure JWT application mapping requires API Key",
+      "red": "final-jwt-red.log: valid2.2 source reaches actual mapping and old production code returns422",
+      "green": "pureJWT zero-key map/prepare/runtime compile plus ApiKey zero-key rejection pass",
+      "apiKeyCredentialAndSharedBaselineGatesPreserved": true
+    }
+  ],
+  "excludedRedEvidence": [
+    "first two compile errors",
+    "initial JWT fixture source preview409; superseded by real mapping422 reproduction"
+  ],
+  "logs": [
+    {
+      "path": "tests/final-focused-green.log",
+      "sha256": "bb24001f6f1a8d00d4d1cf2248b053221efe304bcb504b61a2f65bafbc6ee6db",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:     6, Skipped:     0, Total:     6, Duration: 17 s - WebApi.Integration.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "path": "tests/final-full-domain.log",
+      "sha256": "d1d033d62cc1335a4e143cd3ab4e98c90cd6d6c1442b1c4d616da31a54a6d0e2",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:   753, Skipped:     0, Total:   753, Duration: 13 s - WebApi.Domain.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "path": "tests/final-full-integration.log",
+      "sha256": "9b51252bee9a9f12c4b47de0885e2d914ef465dbe398d2699e40ce0c74d87d41",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:   971, Skipped:     0, Total:   971, Duration: 12 m 31 s - WebApi.Integration.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "path": "tests/final-full-gateway.log",
+      "sha256": "fba8bb1ae7b4b0786492b54bcaedd00dba3281b1f2044c7df6dcd0e74a0044dc",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:   142, Skipped:     0, Total:   142, Duration: 1 m 50 s - WebApi.Gateway.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "path": "tests/final-console.log",
+      "sha256": "da537959c5845d45901ebfe32672df00d54a98bd66fc0cd46b9fa3ac6e41d94f",
+      "summary": [
+        "ℹ tests 245",
+        "ℹ pass 245",
+        "ℹ fail 0",
+        "ℹ skipped 0"
+      ]
+    },
+    {
+      "path": "tests/final-runtime-unit.log",
+      "sha256": "c3dd45c61cc1cd018eeb2b45fd3e0fc9bf3aac17519798ac231254e955117384",
+      "summary": [
+        "ℹ tests 153",
+        "ℹ pass 153",
+        "ℹ fail 0",
+        "ℹ skipped 0"
+      ]
+    },
+    {
+      "path": "tests/final-jwt-red.log",
+      "sha256": "aff70cbc86d7676a3792b727f641255334a1efeaf2bdedf55c8171bef0a77c18",
+      "summary": [
+        "Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 5 s - WebApi.Integration.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "path": "tests/final-fix-red3.log",
+      "sha256": "b6e5bf95e12788272abfa44a5a8106a82aa89bab9f28dc5f6b118195e9804807",
+      "summary": [
+        "Failed!  - Failed:     4, Passed:     2, Skipped:     0, Total:     6, Duration: 13 s - WebApi.Integration.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "path": "tests/final-native-backup.log",
+      "sha256": "69df2419090f74fbf0e76b4d3836fe2b2557b41d099b4406e295ea7a4ea64180",
+      "summary": [
+        "✔ real backups cover unbound, bound without demo and bound with demo (237210.555584ms)",
+        "✔ unlabelled exact data volume blocks initialization without adoption (390.776042ms)",
+        "ℹ tests 2",
+        "ℹ suites 0",
+        "ℹ pass 2",
+        "ℹ fail 0",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 237646.875791"
+      ]
+    }
+  ],
+  "localInstalled": false,
+  "productionAcceptance": false,
+  "suiteTotal": 2266
+}

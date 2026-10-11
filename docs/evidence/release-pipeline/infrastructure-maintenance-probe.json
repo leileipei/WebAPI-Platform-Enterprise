@@ -1,0 +1,19 @@
+{
+  "probe": {
+    "passed": true,
+    "actual": true,
+    "freshOwner": "78420e64-7689-421d-897a-f342c8ddfa13",
+    "sourceRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
+    "monitoringContainersUnchanged": 4,
+    "upgradeReady": true,
+    "backupResumeReady": true,
+    "actualGatewayCalls": 4
+  },
+  "cleanup": {
+    "ownerId": "78420e64-7689-421d-897a-f342c8ddfa13",
+    "remainingOwnedResources": 0
+  },
+  "toolingRevision": "0ba71ca",
+  "originalInstallationCompleted": false,
+  "originalMonitoringExceptionApproval": "pending"
+}

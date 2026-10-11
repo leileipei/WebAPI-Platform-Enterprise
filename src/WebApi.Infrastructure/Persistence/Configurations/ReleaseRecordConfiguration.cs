@@ -28,6 +28,12 @@ public sealed class ReleaseRecordConfiguration : IEntityTypeConfiguration<Releas
         b.Property(x => x.FailureCode).HasColumnName("failure_code").HasColumnType("varchar(128)");
         b.Property(x => x.PublishRequestedBy).HasColumnName("publish_requested_by").HasColumnType("uuid");
         b.Property(x => x.PublishTraceId).HasColumnName("publish_trace_id").HasColumnType("varchar(128)");
+        b.Property(x=>x.ArtifactId).HasColumnName("artifact_id");b.Property(x=>x.PromotionId).HasColumnName("promotion_id");b.Property(x=>x.SourceReleaseId).HasColumnName("source_release_id");
+        b.HasIndex(x=>x.PromotionId).IsUnique().HasFilter("promotion_id IS NOT NULL");
+        b.HasOne<ReleaseArtifact>().WithMany().HasForeignKey(x=>x.ArtifactId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<ReleaseRecord>().WithMany().HasForeignKey(x=>x.SourceReleaseId).OnDelete(DeleteBehavior.Restrict);
+        b.HasOne<ReleasePromotion>().WithMany().HasForeignKey(x=>new{x.PromotionId,x.ArtifactId,x.SourceReleaseId,x.EnvironmentId}).HasPrincipalKey(x=>new{x.Id,x.ArtifactId,x.SourceReleaseId,x.TargetEnvironmentId}).OnDelete(DeleteBehavior.Restrict);
+        b.ToTable(t=>t.HasCheckConstraint("ck_formal_promotion_link", "promotion_id IS NULL OR (artifact_id IS NOT NULL AND source_release_id IS NOT NULL AND recovery_of IS NULL AND rollback_of IS NULL)"));
         b.HasIndex(x => new { x.EnvironmentId, x.CreatedAt, x.Id }).IsDescending(false, true, true);
     }
 }

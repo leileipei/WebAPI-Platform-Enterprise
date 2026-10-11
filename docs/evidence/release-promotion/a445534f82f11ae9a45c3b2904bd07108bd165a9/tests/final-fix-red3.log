@@ -1,0 +1,135 @@
+ Network webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_default Creating 
+ Network webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_default Created 
+ Volume webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_pg-test Creating 
+ Volume webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_pg-test Created 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Creating 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Creating 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Created 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Created 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Starting 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Starting 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Started 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Started 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Waiting 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Waiting 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Healthy 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Healthy 
+ Volume webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_nuget-test Creating 
+ Volume webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_nuget-test Created 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-sdk-run-1d8d36f49bb6 Creating 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-sdk-run-1d8d36f49bb6 Created 
+  Determining projects to restore...
+  Restored /test-src/src/WebApi.TestBackend/WebApi.TestBackend.csproj (in 121 ms).
+  Restored /test-src/src/WebApi.Contracts/WebApi.Contracts.csproj (in 127 ms).
+  Restored /test-src/third_party/json-everything/src/Json.More/Json.More.csproj (in 149 ms).
+  Restored /test-src/src/WebApi.HttpSecurity/WebApi.HttpSecurity.csproj (in 119 ms).
+  Restored /test-src/src/WebApi.Domain/WebApi.Domain.csproj (in 136 ms).
+  Restored /test-src/src/WebApi.ConsoleHost/WebApi.ConsoleHost.csproj (in 1.35 sec).
+  Restored /test-src/tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj (in 1.33 sec).
+  Restored /test-src/third_party/json-everything/src/JsonSchema/JsonSchema.csproj (in 2.55 sec).
+  Restored /test-src/third_party/json-everything/src/JsonPointer/JsonPointer.csproj (in 2.55 sec).
+  Restored /test-src/tests/WebApi.Domain.Tests/WebApi.Domain.Tests.csproj (in 3.47 sec).
+  Restored /test-src/src/WebApi.Migrator/WebApi.Migrator.csproj (in 3.47 sec).
+  Restored /test-src/src/WebApi.Worker/WebApi.Worker.csproj (in 3.49 sec).
+  Restored /test-src/tests/WebApi.Gateway.Tests/WebApi.Gateway.Tests.csproj (in 3.49 sec).
+  Restored /test-src/src/WebApi.Gateway/WebApi.Gateway.csproj (in 3.49 sec).
+  Restored /test-src/tests/WebApi.Integration.Tests/WebApi.Integration.Tests.csproj (in 3.49 sec).
+  Restored /test-src/tests/WebApi.TestSupport/WebApi.TestSupport.csproj (in 3.49 sec).
+  Restored /test-src/src/WebApi.ControlPlane/WebApi.ControlPlane.csproj (in 3.46 sec).
+  Restored /test-src/tests/WebApi.NotificationFixtureHost/WebApi.NotificationFixtureHost.csproj (in 3.49 sec).
+  Restored /test-src/src/WebApi.Infrastructure/WebApi.Infrastructure.csproj (in 3.38 sec).
+  Determining projects to restore...
+  Restored /test-src/src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj (in 152 ms).
+  6 of 7 projects are up-to-date for restore.
+  Json.More -> /runtime-tool/Json.More.dll
+  WebApi.Contracts -> /runtime-tool/WebApi.Contracts.dll
+  JsonPointer -> /runtime-tool/JsonPointer.Net.dll
+  WebApi.Domain -> /runtime-tool/WebApi.Domain.dll
+  JsonSchema -> /runtime-tool/JsonSchema.Net.dll
+  WebApi.Infrastructure -> /runtime-tool/WebApi.Infrastructure.dll
+  WebApi.RuntimeTool -> /runtime-tool/WebApi.RuntimeTool.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:09.52
+  Json.More -> /test-src/third_party/json-everything/src/Json.More/bin/Release/net10.0/Json.More.dll
+  WebApi.Contracts -> /test-src/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  WebApi.HttpSecurity -> /test-src/src/WebApi.HttpSecurity/bin/Release/net10.0/WebApi.HttpSecurity.dll
+  JsonPointer -> /test-src/third_party/json-everything/src/JsonPointer/bin/Release/net10.0/JsonPointer.Net.dll
+  WebApi.Domain -> /test-src/src/WebApi.Domain/bin/Release/net10.0/WebApi.Domain.dll
+  WebApi.ConsoleHost -> /test-src/src/WebApi.ConsoleHost/bin/Release/net10.0/WebApi.ConsoleHost.dll
+  JsonSchema -> /test-src/third_party/json-everything/src/JsonSchema/bin/Release/net10.0/JsonSchema.Net.dll
+  WebApi.Infrastructure -> /test-src/src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.dll
+  WebApi.Migrator -> /test-src/src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.dll
+  WebApi.Worker -> /test-src/src/WebApi.Worker/bin/Release/net10.0/WebApi.Worker.dll
+  WebApi.NotificationFixtureHost -> /test-src/tests/WebApi.NotificationFixtureHost/bin/Release/net10.0/WebApi.NotificationFixtureHost.dll
+  WebApi.ControlPlane -> /test-src/src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll
+  WebApi.TestSupport -> /test-src/tests/WebApi.TestSupport/bin/Release/net10.0/WebApi.TestSupport.dll
+  WebApi.Integration.Tests -> /test-src/tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.dll
+Test run for /test-src/tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:08.19]     WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(beforeCreation: False) [FAIL]
+  Failed WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(beforeCreation: False) [7 s]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: UnprocessableEntity
+Actual:   OK
+  Stack Trace:
+     at WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(Boolean beforeCreation) in /test-src/tests/WebApi.Integration.Tests/ReleaseVerificationTests.cs:line 37
+   at WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(Boolean beforeCreation) in /test-src/tests/WebApi.Integration.Tests/ReleaseVerificationTests.cs:line 37
+   at WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(Boolean beforeCreation) in /test-src/tests/WebApi.Integration.Tests/ReleaseVerificationTests.cs:line 37
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:08.21]     WebApi.Integration.Tests.TestAcceptanceTests.HistoricalStoredEvidencePredatingActualDeploymentCannotRequestAcceptance [FAIL]
+  Failed WebApi.Integration.Tests.TestAcceptanceTests.HistoricalStoredEvidencePredatingActualDeploymentCannotRequestAcceptance [8 s]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: Conflict
+Actual:   OK
+  Stack Trace:
+     at WebApi.Integration.Tests.TestAcceptanceTests.HistoricalStoredEvidencePredatingActualDeploymentCannotRequestAcceptance() in /test-src/tests/WebApi.Integration.Tests/TestAcceptanceTests.cs:line 62
+   at WebApi.Integration.Tests.TestAcceptanceTests.HistoricalStoredEvidencePredatingActualDeploymentCannotRequestAcceptance() in /test-src/tests/WebApi.Integration.Tests/TestAcceptanceTests.cs:line 62
+--- End of stack trace from previous location ---
+[xUnit.net 00:00:11.10]     WebApi.Integration.Tests.PromotionCredentialTests.PureJwtTargetApplicationWithNoApiKeyCanMapAndCompile [FAIL]
+[xUnit.net 00:00:11.10]     WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(beforeCreation: True) [FAIL]
+  Failed WebApi.Integration.Tests.PromotionCredentialTests.PureJwtTargetApplicationWithNoApiKeyCanMapAndCompile [2 s]
+  Error Message:
+   System.Net.Http.HttpRequestException : Response status code does not indicate success: 409 (Conflict).
+  Stack Trace:
+     at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()
+   at WebApi.Integration.Tests.Support.ApiFixture.PreviewReleaseRequestAsync(Int64 baseline, Nullable`1 versionId, Nullable`1 environmentId) in /test-src/tests/WebApi.TestSupport/Support/ApiFixture.cs:line 125
+   at WebApi.Integration.Tests.Support.DeploymentScenario.ReadyAsync() in /test-src/tests/WebApi.TestSupport/Support/DeploymentScenario.cs:line 29
+   at WebApi.Integration.Tests.Support.DeploymentScenario.PublishAsync(Boolean acknowledge) in /test-src/tests/WebApi.TestSupport/Support/DeploymentScenario.cs:line 38
+   at WebApi.Integration.Tests.Support.DeliveryScenario.InitializeAsync(Boolean canRecord, Action`1 configure, Func`2 beforePublish) in /test-src/tests/WebApi.TestSupport/Support/DeliveryScenario.cs:line 18
+   at WebApi.Integration.Tests.Support.PromotionScenario.InitializeAsync(Boolean timeout, Boolean anonymous, Boolean authenticatedTargetReceipts, Func`2 configureSourceAuthentication) in /test-src/tests/WebApi.TestSupport/Support/PromotionScenario.cs:line 29
+   at WebApi.Integration.Tests.PromotionCredentialTests.PureJwtTargetApplicationWithNoApiKeyCanMapAndCompile() in /test-src/tests/WebApi.Integration.Tests/PromotionCredentialTests.cs:line 28
+   at WebApi.Integration.Tests.PromotionCredentialTests.PureJwtTargetApplicationWithNoApiKeyCanMapAndCompile() in /test-src/tests/WebApi.Integration.Tests/PromotionCredentialTests.cs:line 28
+--- End of stack trace from previous location ---
+  Failed WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(beforeCreation: True) [2 s]
+  Error Message:
+   Assert.Equal() Failure: Values differ
+Expected: UnprocessableEntity
+Actual:   OK
+  Stack Trace:
+     at WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(Boolean beforeCreation) in /test-src/tests/WebApi.Integration.Tests/ReleaseVerificationTests.cs:line 37
+   at WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(Boolean beforeCreation) in /test-src/tests/WebApi.Integration.Tests/ReleaseVerificationTests.cs:line 37
+   at WebApi.Integration.Tests.ReleaseVerificationTests.SourceEvidenceFinishingBeforeActualDeploymentIsRejected(Boolean beforeCreation) in /test-src/tests/WebApi.Integration.Tests/ReleaseVerificationTests.cs:line 37
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     4, Passed:     2, Skipped:     0, Total:     6, Duration: 13 s - WebApi.Integration.Tests.dll (net10.0)
+
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Stopping 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Stopping 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Stopped 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Removing 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Stopped 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Removing 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-postgres-1 Removed 
+ Container webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e-redis-1 Removed 
+ Volume webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_nuget-test Removing 
+ Volume webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_pg-test Removing 
+ Network webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_default Removing 
+ Network webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_default Removed 
+ Volume webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_nuget-test Removed 
+ Volume webapi-contracts-test-de28b60f-1371-4d52-b289-6e18e280aa6e_pg-test Removed 

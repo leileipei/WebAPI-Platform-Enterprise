@@ -1,0 +1,2 @@
+import {Link} from '../Shell';import {pipelineTraceUrl} from './pipeline-state.mjs';
+export function PipelineTrace({trace,returnTo}:{trace:any;returnTo?:string|null}){return trace?<div className="actions"><span>流水线阶段 {trace.order}</span>{trace.pipelineId&&<Link to={pipelineTraceUrl('pipelines',trace.pipelineId,returnTo||undefined)}>流水线配置</Link>}{trace.runId&&<Link to={pipelineTraceUrl('pipeline-runs',trace.runId,returnTo||undefined)}>运行详情</Link>}{trace.stageId&&<Link to={pipelineTraceUrl('pipeline-stages',trace.stageId,returnTo||undefined)}>阶段办理</Link>}</div>:null;}

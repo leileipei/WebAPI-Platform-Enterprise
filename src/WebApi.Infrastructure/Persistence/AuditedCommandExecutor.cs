@@ -39,6 +39,32 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
     private static object Capture(EntityEntry e,bool original)
     {
         var captured=e.Properties.Where(p=>fields.Contains(p.Metadata.Name)||(e.Entity is Policy&&p.Metadata.Name is "Type" or "VersionNo")).ToDictionary(p=>p.Metadata.Name,p=>original?p.OriginalValue:p.CurrentValue);
+        if(e.Entity is ReleaseArtifact or ReleaseVerification or VerificationReport)
+            foreach(var property in e.Properties.Where(p=>new[]{"ArtifactId","PromotionId","SourceReleaseId","SourceEnvironmentId","ArtifactHash","SourceSnapshotHash","SnapshotHash","PolicyRevision","AccessAddressRevision","Result","Type","IsManual","ReportId","ReportHash","ContentType","SizeBytes","Sha256"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
+        if(e.Entity is ReleaseTestAcceptance or ReleasePromotionEvent)
+            foreach(var property in e.Properties.Where(p=>new[]{"ArtifactId","SourceEnvironmentId","AcceptanceId","PromotionId","EvidenceHash","PolicyRevision","VerificationIds","RequestedBy","ActedBy","ReasonCode"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
+        if(e.Entity is ReleaseVerification or ReleaseTestAcceptance or ReleasePromotion && e.Property("PipelineRunStageId").CurrentValue is not null)
+            foreach(var property in e.Properties.Where(p=>new[]{"PipelineRunStageId","StageAttemptId","ProfileHash","GateOrigin"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
+        if(e.Entity is ReleasePromotion)
+        {
+            foreach(var name in new[]{"ArtifactId","SourceReleaseId","TargetReleaseId","AcceptanceId","SourceEnvironmentId","TargetEnvironmentId","MappingRevision","BaselineConfigVersion","TargetAccessAddressRevision","CandidateHash","RequestedBy"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
+            foreach(var name in new[]{"PrecheckJson","FrozenPolicyJson","ResourceRevisionsJson"}){
+                var value=(string?)(original?e.Property(name).OriginalValue:e.Property(name).CurrentValue);
+                if(value is null)captured[name+"Hash"]=null;
+                else{using var document=JsonDocument.Parse(value);captured[name+"Hash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(document.RootElement)));}
+            }
+        }
+        if(e.Entity is ReleasePipeline or ReleasePipelineVersion or ReleasePipelineRun or ReleasePipelineRunStage or ReleasePipelineStageAttempt or ReleasePipelineEvent)
+            foreach(var property in e.Properties.Where(p=>new[]{"PipelineId","PipelineVersionId","DefinitionHash","VersionNo","RunId","StageId","AttemptId","RunStageId","StageOrder","CurrentStageOrder","CurrentAttemptId","OriginAttemptId","AttemptNo","RootArtifactId","RootArtifactHash","SourceReleaseId","SourceEnvironmentId","StageArtifactId","ArtifactId","AcceptanceId","PromotionId","ActualReleaseId","PolicyRevision","ProfileHash","ActivatedAt","ReasonCode","RelatedId"}.Contains(p.Metadata.Name)))captured[property.Metadata.Name]=original?property.OriginalValue:property.CurrentValue;
+        if(e.Entity is ProjectDeliveryPolicy)
+            foreach(var name in new[]{"Mode","SourceEnvironmentId","TargetEnvironmentId","RequiredTestTypes","VerificationValidityMinutes","ActivePipelineVersionId"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
+        if(e.Entity is EnvironmentRecord)
+        {
+            captured["AccessAddressRevision"]=original?e.Property("AccessAddressRevision").OriginalValue:e.Property("AccessAddressRevision").CurrentValue;
+            var values=new[]{"GatewayPublicUrl","GatewayInternalUrl","BasePath"}.ToDictionary(name=>name,name=>original?e.Property(name).OriginalValue:e.Property(name).CurrentValue);
+            captured["AccessAddressHash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(values)));
+            captured["ChangedFields"]=e.Properties.Where(p=>!Equals(p.OriginalValue,p.CurrentValue)).Select(p=>p.Metadata.Name).ToArray();
+        }
         if(e.Entity is AlertRule)
         {
             captured.Remove("Notification");var property=e.Property(nameof(AlertRule.Notification));var json=(string?)(original?property.OriginalValue:property.CurrentValue);

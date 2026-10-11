@@ -35,7 +35,7 @@ public static class SsoProviderValidator
     {
         if(string.IsNullOrEmpty(path)||path.Length>2048||!path.StartsWith('/')||path.StartsWith("//",StringComparison.Ordinal)||path.Any(char.IsControl)||path.Contains('\\')||path.Contains('#'))return false;
         var route=path.Split('?',2)[0];if(route.Contains('%')||route.Split('/').Any(s=>s is "." or ".."))return false;
-        string[] roots=["organizations","projects","environments","apis","imports","routes","clusters","applications","releases","approvals","snapshots","nodes","observability","users","roles","permissions","scopes","audit","settings","coverage"];
+        string[] roots=["delivery","organizations","projects","environments","apis","imports","routes","clusters","applications","releases","approvals","snapshots","nodes","observability","users","roles","permissions","scopes","audit","settings","coverage"];
         return roots.Any(root=>route=="/"+root||route.StartsWith("/"+root+"/",StringComparison.Ordinal));
     }
     private static JsonElement Required(JsonElement root,string key)=>root.TryGetProperty(key,out var value)?value:throw Invalid(key);

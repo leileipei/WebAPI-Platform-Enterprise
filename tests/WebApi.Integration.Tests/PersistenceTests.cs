@@ -72,6 +72,9 @@ public sealed class PersistenceTests
         await using var query = new NpgsqlCommand("SELECT count(*)::int FROM information_schema.tables WHERE table_schema='public' AND table_name=ANY(@tables)",c);
         query.Parameters.AddWithValue("tables",SourceTables);
         Assert.Equal(32,(int)(await query.ExecuteScalarAsync())!);
+        await using var pipelineTables = new NpgsqlCommand("SELECT count(*)::int FROM information_schema.tables WHERE table_schema='public' AND table_name=ANY(@tables)",c);
+        pipelineTables.Parameters.AddWithValue("tables",new[]{"release_pipelines","release_pipeline_versions","release_pipeline_runs","release_pipeline_run_stages","release_pipeline_stage_attempts","release_pipeline_events"});
+        Assert.Equal(6,(int)(await pipelineTables.ExecuteScalarAsync())!);
         await using var context = db.Context(); Assert.Empty(await context.Database.GetPendingMigrationsAsync());
     }
 }

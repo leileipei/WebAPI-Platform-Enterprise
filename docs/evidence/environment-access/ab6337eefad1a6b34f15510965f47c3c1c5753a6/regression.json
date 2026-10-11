@@ -1,0 +1,41 @@
+{
+  "classification": "actual-executed-regression-summary",
+  "candidateSourceRevision": "ab6337eefad1a6b34f15510965f47c3c1c5753a6",
+  "suites": [
+    {
+      "name": "domain",
+      "passed": 735,
+      "failed": 0,
+      "skipped": 0,
+      "log": "a6-domain-full.log"
+    },
+    {
+      "name": "integration",
+      "passed": 764,
+      "failed": 0,
+      "skipped": 0,
+      "log": "a6-integration-final.log"
+    },
+    {
+      "name": "gateway",
+      "passed": 142,
+      "failed": 0,
+      "skipped": 0,
+      "log": "a6-gateway-final.log"
+    },
+    {
+      "name": "console",
+      "passed": 221,
+      "failed": 0,
+      "skipped": 0,
+      "log": "a6-console-full.log"
+    }
+  ],
+  "postRestartAddressIntegrationPassed": 8,
+  "evidenceValidatorTestsPassed": 7,
+  "consoleBuildPassed": true,
+  "sourceVerified": true,
+  "isolatedAcceptance": true,
+  "localInstalled": false,
+  "productionAcceptance": false
+}

@@ -1,3 +1,4 @@
+using WebApi.Domain.Governance;
 using WebApi.Infrastructure.Sso;
 using WebApi.Infrastructure.Settings;
 using System.Text.RegularExpressions;
@@ -15,7 +16,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
     private static readonly ScopeRef platform=new(Guid.Empty);
     private static OrganizationDto Dto(Organization x)=>new(x.Id,x.Code,x.Name,x.Status,x.Revision);
     private static ProjectDto Dto(Project x)=>new(x.Id,x.OrganizationId,x.Code,x.Name,x.Status,x.Revision,x.OwnerUserId);
-    private static EnvironmentDto Dto(EnvironmentRecord x)=>new(x.Id,x.ProjectId,x.Code,x.Name,x.Status,x.IsProduction,x.SortOrder,x.ReleasePolicyId,x.DesiredConfigVersion,x.DeploymentSequence,x.Revision);
+    private static EnvironmentDto Dto(EnvironmentRecord x)=>new(x.Id,x.ProjectId,x.Code,x.Name,x.Status,x.IsProduction,x.SortOrder,x.ReleasePolicyId,x.DesiredConfigVersion,x.DeploymentSequence,x.Revision,x.GatewayPublicUrl,x.BasePath,x.AccessAddressRevision);
     private Task Require(ActorContext actor,string permission,ScopeRef scope,Guid id,CancellationToken ct)=>auth.RequireAsync(actor,permission,new(permission.Split('.')[0],id,scope),ct);
     public static void Validate(string code,string name,string status="Active")
     {
@@ -35,6 +36,21 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         foreach(var org in await db.Set<Organization>().AsNoTracking().OrderBy(x=>x.Code).ToArrayAsync(ct))
             if(visibleProjects.Any(p=>p.OrganizationId==org.Id)||await auth.CanAsync(actor,"organization.read",new("organization",org.Id,new(org.Id)),ct)) visibleOrgs.Add(Dto(org));
         return new(visibleOrgs,visibleProjects,visibleEnvs);
+    }
+    public async Task<EnvironmentDetailDto> EnvironmentAsync(Guid id,ActorContext actor,CancellationToken ct=default)
+    {
+        var scope=await scopes.EnvironmentAsync(id,ct);
+        if(!await auth.CanAsync(actor,"environment.read",new("environment",id,scope),ct)) throw ScopeResolver.Missing();
+        var e=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(x=>x.Id==id,ct);
+        var internalAllowed=await auth.CanAsync(actor,"environment.write",new("environment",id,scope),ct);
+        return new(e.Id,e.ProjectId,e.Code,e.Name,e.Status,e.IsProduction,e.SortOrder,e.ReleasePolicyId,e.DesiredConfigVersion,e.DeploymentSequence,e.Revision,e.GatewayPublicUrl,e.BasePath,e.AccessAddressRevision,internalAllowed?e.GatewayInternalUrl:null);
+    }
+    private static void ApplyAccess(EnvironmentRecord e,OptionalJsonProperty<string> publicUrl,OptionalJsonProperty<string> internalUrl,OptionalJsonProperty<string> basePath,bool production,bool creating=false)
+    {
+        var settings=EnvironmentAccessAddressValidator.Normalize(new(publicUrl.IsSpecified?publicUrl.Value:e.GatewayPublicUrl,internalUrl.IsSpecified?internalUrl.Value:e.GatewayInternalUrl,basePath.IsSpecified?basePath.Value??"/":e.BasePath),production);
+        var changed=e.GatewayPublicUrl!=settings.PublicOrigin||e.GatewayInternalUrl!=settings.InternalOrigin||e.BasePath!=settings.BasePath;
+        e.GatewayPublicUrl=settings.PublicOrigin;e.GatewayInternalUrl=settings.InternalOrigin;e.BasePath=settings.BasePath;
+        if(changed&&!creating)e.AccessAddressRevision=checked(e.AccessAddressRevision+1);
     }
     public async Task<OrganizationDto> OrganizationAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
@@ -67,7 +83,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         var scope=await scopes.ProjectAsync(projectId,ct);return await commands.ExecuteAsync(actor,scope,"environment.create",async(_,token)=>{
             await Require(actor,"environment.write",scope,projectId,token);Validate(request.Code,request.Name);await ValidateFlowAsync(request.ReleasePolicyId,scope.OrganizationId,token);
             if(request.Code.Length>32||request.Name.Length>64) throw new ApiException(422,"invalid_fields","环境编码或名称过长。");
-            var e=new EnvironmentRecord {ProjectId=projectId,Code=request.Code,Name=request.Name,IsProduction=request.IsProduction,SortOrder=request.SortOrder,ReleasePolicyId=request.ReleasePolicyId};db.Add(e);return new CommandResult<EnvironmentDto>(Dto(e),RevisionTag.Format(e.Revision));
+            var e=new EnvironmentRecord {ProjectId=projectId,Code=request.Code,Name=request.Name,IsProduction=request.IsProduction,SortOrder=request.SortOrder,ReleasePolicyId=request.ReleasePolicyId};ApplyAccess(e,request.GatewayPublicUrl,request.GatewayInternalUrl,request.BasePath,request.IsProduction,true);db.Add(e);return new CommandResult<EnvironmentDto>(Dto(e),RevisionTag.Format(e.Revision));
         },ct);
     }
     public async Task<CommandResult<EnvironmentDto>> SaveEnvironmentAsync(Guid id,UpdateEnvironmentRequest request,string? tag,ActorContext actor,CancellationToken ct=default)
@@ -76,6 +92,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
             await Require(actor,"environment.write",scope,id,token);var e=await db.Set<EnvironmentRecord>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,e.Revision);Validate(request.Code,request.Name,request.Status);await ValidateFlowAsync(request.ReleasePolicyId,scope.OrganizationId,token);
             if(request.Code.Length>32||request.Name.Length>64) throw new ApiException(422,"invalid_fields","环境编码或名称过长。");
             if((request.Status=="Disabled"||request.IsProduction!=e.IsProduction||request.ReleasePolicyId!=e.ReleasePolicyId) && await ActiveReleaseAsync(db.Set<EnvironmentRecord>().Where(x=>x.Id==id).Select(x=>x.Id),token)) throw new ApiException(409,"release_in_progress","发布进行中，不能停用环境或更改审批规则。");
+            ApplyAccess(e,request.GatewayPublicUrl,request.GatewayInternalUrl,request.BasePath,request.IsProduction);
             e.Code=request.Code;e.Name=request.Name;e.Status=request.Status;e.IsProduction=request.IsProduction;e.SortOrder=request.SortOrder;e.ReleasePolicyId=request.ReleasePolicyId;e.Revision++;return new CommandResult<EnvironmentDto>(Dto(e),RevisionTag.Format(e.Revision));
         },ct);
     }

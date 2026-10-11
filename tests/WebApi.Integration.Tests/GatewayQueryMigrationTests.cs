@@ -11,7 +11,9 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class GatewayQueryMigrationTests
 {
-    private const string BaselineMigration="20261008030000_ExternalNotifications";
+    // The combined model includes delivery columns; the index-only upgrade starts
+    // at the latest delivery migration immediately preceding the four indexes.
+    private const string BaselineMigration="20261010010000_PipelineProjectionCursor";
     private static readonly string[] ApprovedIndexes=["ix_api_routes_environment_order_path_id","ix_alert_events_organization_project_started_id","ix_alert_rules_organization_name_id","ix_policies_organization_name_id"];
     // These fail if an index migration adds business DDL, loses records/order,
     // omits an approved index or checks expression columns without its definition.

@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {pipelineAttemptTimeoutSql} from '../../scripts/delivery/pipeline-fault-clock.mjs';
+const ids={attemptId:'00000000-0000-0000-0000-000000000001',stageId:'00000000-0000-0000-0000-000000000002',projectId:'00000000-0000-0000-0000-000000000003'};
+test('timeout injection respects attempt clock and current stage ownership',()=>{const sql=pipelineAttemptTimeoutSql(ids);assert(!/UPDATE release_pipeline_run_stages/i.test(sql),'Stage has no deadline column');assert.match(sql,/activated_at\s*\+\s*interval '1 microsecond'/i);assert.match(sql,/current_attempt_id\s*=\s*a.id/);assert.match(sql,/s.project_id\s*=\s*a.project_id/);assert(sql.includes(ids.projectId));});
+test('timeout injection refuses unsafe or missing row identities',()=>{for(const name of Object.keys(ids))for(const value of [undefined,"'; DELETE FROM users;--"]){assert.throws(()=>pipelineAttemptTimeoutSql({...ids,[name]:value}));}});

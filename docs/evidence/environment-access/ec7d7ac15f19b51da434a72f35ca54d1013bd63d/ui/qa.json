@@ -1,0 +1,101 @@
+{
+  "classification": "real-isolated-server-browser-qa",
+  "sourceRevision": "ec7d7ac15f19b51da434a72f35ca54d1013bd63d",
+  "imageId": "sha256:90f4aea9a519924b6210a3a1ca7ffe6bbd4c3c0472afad11300fc92159625620",
+  "projectName": "webapi-enterprise-local-test-82ce7747-591c-48cd-8ce0-d8944f7cf747",
+  "ownerId": "28b342ba-242b-4704-96c6-dcab26c0c8d9",
+  "scope": {
+    "organizationId": "2f2a8466-52ad-47a8-8898-d143169ca66c",
+    "projectId": "89359711-a56f-459d-ba46-7dbb688e0045",
+    "environmentId": "ee713c57-4290-40ac-bc0c-264ec58193fc"
+  },
+  "apiId": "0c71f66e-8773-4339-832f-1d7b0b225f47",
+  "checks": [
+    {
+      "name": "1440/1280无横向溢出及键盘焦点和放弃保护",
+      "passed": true
+    },
+    {
+      "name": "真实412保留草稿并显式采用新修订保存",
+      "passed": true
+    },
+    {
+      "name": "实际清空地址后复制禁用",
+      "passed": true
+    },
+    {
+      "name": "复制真实公开模板与实际环境OpenAPI下载，不创建可执行模板链接",
+      "passed": true
+    },
+    {
+      "name": "未运行版本不会显示可执行入口",
+      "passed": true
+    },
+    {
+      "name": "实际撤权403清空内网草稿且未写入服务端",
+      "passed": true
+    },
+    {
+      "name": "真实旧环境详情迟到响应在环境切换后丢弃，不覆盖新环境内网地址",
+      "passed": true
+    },
+    {
+      "name": "真实双节点ACK成功后修改当前入口，页面保留原执行地址并独立显示当前地址",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "01-environment-1440",
+      "file": "docs/evidence/environment-access/ec7d7ac15f19b51da434a72f35ca54d1013bd63d/ui/01-environment-1440.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "b2b7d63f895129517896dd773d0391fd65db5b366bfc28da146be7662c028cff"
+    },
+    {
+      "name": "02-environment-1280",
+      "file": "docs/evidence/environment-access/ec7d7ac15f19b51da434a72f35ca54d1013bd63d/ui/02-environment-1280.png",
+      "width": 1280,
+      "height": 1000,
+      "sha256": "d4f8186c43496723ac3c661306a953fbd8ef0945b45f39967d6c38c3ce1350a3"
+    },
+    {
+      "name": "03-real-conflict",
+      "file": "docs/evidence/environment-access/ec7d7ac15f19b51da434a72f35ca54d1013bd63d/ui/03-real-conflict.png",
+      "width": 1280,
+      "height": 1000,
+      "sha256": "1e637612acda478387a64b04b47298c89aea93f40cc2d63070c41542b09fbd9e"
+    },
+    {
+      "name": "04-working-api-access",
+      "file": "docs/evidence/environment-access/ec7d7ac15f19b51da434a72f35ca54d1013bd63d/ui/04-working-api-access.png",
+      "width": 1280,
+      "height": 1000,
+      "sha256": "3dbb0febf7a109b88f2c7e503d47e3474e4e995f83264f44df5b1ee7f6cbcfb4"
+    },
+    {
+      "name": "05-revoked-cleared",
+      "file": "docs/evidence/environment-access/ec7d7ac15f19b51da434a72f35ca54d1013bd63d/ui/05-revoked-cleared.png",
+      "width": 1280,
+      "height": 1000,
+      "sha256": "aa7aaf7bdf5b2c4d2a9b1360f522805b9547fe00437aa41966389b31a6a41c17"
+    },
+    {
+      "name": "06-scope-late-response",
+      "file": "docs/evidence/environment-access/ec7d7ac15f19b51da434a72f35ca54d1013bd63d/ui/06-scope-late-response.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "13ac7975c5f3a98e9a725928e3ccf647a91c957f47ae7208a42108ab0ac9ddee"
+    },
+    {
+      "name": "07-history-current",
+      "file": "docs/evidence/environment-access/ec7d7ac15f19b51da434a72f35ca54d1013bd63d/ui/07-history-current.png",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "49885f51f8c2d87ee9722944d8b06a95824738ccc431268f3d4a74d27df3390e"
+    }
+  ],
+  "visualReviewComplete": true,
+  "releaseId": "33a24f2b-cf55-451f-bdac-3579bafd0510",
+  "visualReviewNotes": "全部7张实际页面截图逐张检查；1440/1280无横向溢出，配置、冲突、撤权、切换和历史显示可读。"
+}

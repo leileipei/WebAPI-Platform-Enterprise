@@ -24,14 +24,8 @@ mkdir -m 700 "$WEBAPI_CONTRACT_TEST_DIRECTORY"
 "$contract_node" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";fs.writeFileSync(process.env.WEBAPI_CONTRACT_TEST_DIRECTORY+"/postgres-password",crypto.randomBytes(32).toString("base64url"),{mode:0o600});'
 compose_args=(-p "$WEBAPI_CONTRACT_TEST_PROJECT" -f deploy/compose.test.yml -f deploy/compose.contracts-test.yml)
 if [ -n "${WEBAPI_CONTRACT_TEST_SUBNET:-}" ]; then
-  cat > "$WEBAPI_CONTRACT_TEST_DIRECTORY/network.yml" <<YAML
-networks:
-  default:
-    ipam:
-      config:
-        - subnet: $WEBAPI_CONTRACT_TEST_SUBNET
-YAML
-  compose_args+=(-f "$WEBAPI_CONTRACT_TEST_DIRECTORY/network.yml")
+  "$contract_node" --input-type=module -e 'import fs from "node:fs";const subnet=process.env.WEBAPI_CONTRACT_TEST_SUBNET;fs.writeFileSync(process.env.WEBAPI_CONTRACT_TEST_DIRECTORY+"/network.json",JSON.stringify({networks:{default:{ipam:{config:[{subnet}]}}}}),{mode:0o600});'
+  compose_args+=(-f "$WEBAPI_CONTRACT_TEST_DIRECTORY/network.json")
 fi
 contract_seed=${WEBAPI_CONTRACT_NUGET_SEED:-webapi-enterprise-core-test_nuget-test}
 seed_available=no
@@ -63,7 +57,7 @@ cleanup(){
     fi
   done
   compose down --volumes --remove-orphans >/dev/null || exit 3
-  rm -f "$WEBAPI_CONTRACT_TEST_DIRECTORY/postgres-password" "$WEBAPI_CONTRACT_TEST_DIRECTORY/nuget-seed.yml" "$WEBAPI_CONTRACT_TEST_DIRECTORY/network.yml"
+  rm -f "$WEBAPI_CONTRACT_TEST_DIRECTORY/postgres-password" "$WEBAPI_CONTRACT_TEST_DIRECTORY/nuget-seed.yml" "$WEBAPI_CONTRACT_TEST_DIRECTORY/network.json"
   rmdir "$WEBAPI_CONTRACT_TEST_DIRECTORY"
   exit "$prior"
 }

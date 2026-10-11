@@ -1,0 +1,29 @@
+{
+  "sourceRevision": "8908281db8129860cfdf4104a02904a25d6c9b1b",
+  "imageId": "sha256:9c9525d7ca63fa8fc4eb1173666640524f9760761e03a5189d3bb1d44ac71fed",
+  "projectName": "webapi-enterprise-local",
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "checks": [
+    "实际管理入口静态文件与固定镜像清单相同",
+    "原本地管理员真实登录，原环境可读取，表单关闭无保存",
+    "原Keycloak账号真实SSO登录；Viewer环境编辑禁用，内网字段缺失",
+    "原消费方凭证实际双网关/orders调用200、seq4、上游不收到Key"
+  ],
+  "screenshots": [
+    {
+      "name": "01-admin-environment",
+      "file": "docs/evidence/environment-access/8908281db8129860cfdf4104a02904a25d6c9b1b/original-4192/01-admin-environment.png",
+      "sha256": "ceb3b7e32fbf90317f183109202c361d8671e1b497161e4837e64be8b23c2446",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "02-sso-readonly",
+      "file": "docs/evidence/environment-access/8908281db8129860cfdf4104a02904a25d6c9b1b/original-4192/02-sso-readonly.png",
+      "sha256": "2b468262f4e992cfab77ff736b80d8877c8405d1b5e6c025c374810fe9e195f3",
+      "width": 1440,
+      "height": 1100
+    }
+  ],
+  "visualReviewComplete": true
+}

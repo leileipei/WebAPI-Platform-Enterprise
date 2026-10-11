@@ -26,6 +26,14 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
         RequireRevisions(request.ResourceRevisions,candidate.ResourceRevisions);
         if(request.RiskReviewIds is {Count:>0}){if(actor is null)throw new ApiException(401,"review_actor_required","评审引用需要当前用户身份。");candidate=candidate with {RiskReviewReferences=await reviews.ResolveReferencesAsync(new(candidate.OrganizationId,candidate.ProjectId,candidate.EnvironmentId),candidate.VersionIds,request.RiskReviewIds,actor,ct)};}return candidate;
     }
+    public async Task<FrozenReleaseCandidate> BuildPromotionAsync(Guid environmentId,PreviewReleaseRequest request,IReadOnlyList<Guid> routeIds,WebApi.Infrastructure.Delivery.PromotionCredentialResult selection,CancellationToken ct)
+    {
+        var candidate=await PreviewCoreAsync(environmentId,request,ct,routeIds,selection);
+        if(routeIds.Count==0||routeIds.Distinct().Count()!=routeIds.Count||routeIds.Any(id=>!candidate.Routes.Any(r=>r.Id==id)))throw new ApiException(422,"invalid_promotion_routes","晋级目标路由准备不完整。");
+        var routes=candidate.Routes.Where(r=>routeIds.Contains(r.Id)).ToArray();var bindings=candidate.Bindings.Where(b=>routeIds.Contains(b.RouteId)).ToArray();var policyIds=bindings.Select(b=>b.PolicyId).ToHashSet();var clusterIds=routes.Select(r=>r.ClusterId).ToHashSet();
+        var revisions=candidate.ResourceRevisions.Where(r=>r.Type is not("application" or "credential" or "authorization")&&(r.Type!="route"||routeIds.Contains(r.Id))&&(r.Type!="policy"||policyIds.Contains(r.Id))&&(r.Type!="cluster"||clusterIds.Contains(r.Id))&&(r.Type!="destination"||candidate.Clusters.Where(c=>clusterIds.Contains(c.Id)).Any(c=>c.Destinations.Any(d=>d.Id==r.Id)))).Concat(selection.ResourceRevisions).DistinctBy(r=>(r.Type,r.Id)).OrderBy(r=>r.Type,StringComparer.Ordinal).ThenBy(r=>r.Id).ToArray();
+        return candidate with{Routes=routes,Bindings=bindings,Policies=candidate.Policies.Where(p=>policyIds.Contains(p.Id)).ToArray(),Clusters=candidate.Clusters.Where(c=>clusterIds.Contains(c.Id)).ToArray(),Applications=selection.Applications,ResourceRevisions=revisions,SharedCredentialImpact=selection.Impact};
+    }
     public static void RequireRevisions(IReadOnlyList<ResourceRevision> expected,IReadOnlyList<ResourceRevision> actual)
     {
         if(expected.Count>50000||expected.Select(r=>(r.Type,r.Id)).Distinct().Count()!=expected.Count) throw new ApiException(422,"invalid_revisions","资源修订重复或超过限制。");
@@ -36,6 +44,8 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
     public static bool RevisionsCurrent(IReadOnlyList<ResourceRevision> expected,IReadOnlyList<ResourceRevision> actual)
     {try {RequireRevisions(expected,actual);return true;}catch(ApiException e) when(e.Status is 412 or 422) {return false;}}
     public async Task<FrozenReleaseCandidate> PreviewAsync(Guid environmentId,PreviewReleaseRequest request,CancellationToken ct)
+        =>await PreviewCoreAsync(environmentId,request,ct);
+    private async Task<FrozenReleaseCandidate> PreviewCoreAsync(Guid environmentId,PreviewReleaseRequest request,CancellationToken ct,IReadOnlyList<Guid>? selectedRoutes=null,WebApi.Infrastructure.Delivery.PromotionCredentialResult? selection=null)
     {
         var scope=await scopes.EnvironmentAsync(environmentId,ct);var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==environmentId,ct);
         if(request.BaseConfigVersion!=(env.DesiredConfigVersion??0)) throw new ApiException(409,"stale_baseline","环境基准版本已变化。");
@@ -49,7 +59,7 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
             var schemas=await db.Set<ApiSchema>().AsNoTracking().Where(s=>s.ApiVersionId==id).Select(s=>new SchemaDto(s.Id,s.ApiVersionId,s.SchemaType,s.Name,s.StatusCode,s.ContentType,s.SchemaJson,s.SchemaHash,s.ExampleJson)).ToArrayAsync(ct);
             versions.Add(new(CatalogService.Dto(a),CatalogService.Dto(v),parameters,schemas));revisions.Add(new("version",id,v.Revision));revisions.Add(new("api",a.Id,a.VersionNo));
         }
-        var routeEntities=await db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId&&request.VersionIds.Contains(r.ApiVersionId)).OrderBy(r=>r.Id).ToArrayAsync(ct);var routeDtos=new List<RouteDto>();
+        var routeEntities=await db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId&&request.VersionIds.Contains(r.ApiVersionId)&&(selectedRoutes==null||selectedRoutes.Contains(r.Id))).OrderBy(r=>r.Id).ToArrayAsync(ct);var routeDtos=new List<RouteDto>();
         foreach(var r in routeEntities) {var effective=await routes.EffectiveAsync(r.Id,ct);routeDtos.Add(RouteService.Dto(r,effective.RequireApiKey) with {EffectiveAuthenticationMode=effective.Authentication?.Mode==AuthenticationMode.JWT?"JWT":null});revisions.Add(new("route",r.Id,r.Revision));}
         var clusterIds=routeEntities.Select(r=>r.ClusterId).Distinct().ToArray();var clusters=new List<ClusterDto>();
         foreach(var c in await db.Set<UpstreamCluster>().AsNoTracking().Where(c=>clusterIds.Contains(c.Id)).OrderBy(c=>c.Id).ToArrayAsync(ct))
@@ -82,7 +92,8 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
                 }
         }
         var grants=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(p=>p.EnvironmentId==environmentId).OrderBy(p=>p.Id).ToArrayAsync(ct);var applications=new List<FrozenApplication>();
-        foreach(var appId in grants.Select(g=>g.ApplicationId).Concat(mappedIds).Distinct().OrderBy(x=>x))
+        if(selection is not null){applications.AddRange(selection.Applications);revisions.AddRange(selection.ResourceRevisions);if(mappedIds.Except(selection.Applications.Select(a=>a.Application.Id)).Any())throw new ApiException(422,"jwt_application_not_selected","目标JWT映射应用须明确选择或由保留业务基线提供。");}
+        else foreach(var appId in grants.Select(g=>g.ApplicationId).Concat(mappedIds).Distinct().OrderBy(x=>x))
         {
             var app=await db.Set<ApplicationRecord>().AsNoTracking().SingleAsync(a=>a.Id==appId,ct);if(app.OrganizationId!=scope.OrganizationId||app.ProjectId is Guid p&&p!=scope.ProjectId) throw new ApiException(422,"foreign_application","候选应用跨范围。");
             var credentials=await db.Set<ApplicationCredential>().AsNoTracking().Where(c=>c.ApplicationId==appId).OrderBy(c=>c.Id).ToArrayAsync(ct);var permissions=grants.Where(g=>g.ApplicationId==appId).ToArray();foreach(var g in permissions) if((await scopes.ApiAsync(g.ApiId,ct)).ProjectId!=scope.ProjectId) throw new ApiException(422,"foreign_authorization","候选授权跨项目。");

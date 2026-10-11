@@ -60,7 +60,10 @@ public sealed class AlertPersistenceTests
         var env=new WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord{ProjectId=project.Id,Code="KEEP",Name="Keep"};
         var config=new WebApi.Infrastructure.Persistence.Entities.GatewayConfigVersion{EnvironmentId=env.Id,CreatedBy=user.Id};
         byte[] bytes=System.Text.Encoding.UTF8.GetBytes("{ \"name\": \"订单\", \"value\": 1 }\n");
-        db.AddRange(user,org,project,env,config,new WebApi.Infrastructure.Persistence.Entities.GatewayConfigSnapshot{ConfigVersionId=config.Id,Payload="{}",PayloadBytes=bytes,SizeBytes=bytes.Length});
+        db.AddRange(user,org,project);await db.SaveChangesAsync();
+        // Seed through the historical schema, before new environment columns exist.
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO environments(id,project_id,code,name,is_production,sort_order,status) VALUES({env.Id},{project.Id},{env.Code},{env.Name},false,0,'Active')");
+        db.AddRange(config,new WebApi.Infrastructure.Persistence.Entities.GatewayConfigSnapshot{ConfigVersionId=config.Id,Payload="{}",PayloadBytes=bytes,SizeBytes=bytes.Length});
         await db.SaveChangesAsync();await migrator.MigrateAsync();db.ChangeTracker.Clear();
         Assert.Equal(bytes,(await db.Set<WebApi.Infrastructure.Persistence.Entities.GatewayConfigSnapshot>().SingleAsync()).PayloadBytes);
         Assert.Equal("Keep",(await db.Set<WebApi.Infrastructure.Persistence.Entities.Organization>().SingleAsync()).Name);

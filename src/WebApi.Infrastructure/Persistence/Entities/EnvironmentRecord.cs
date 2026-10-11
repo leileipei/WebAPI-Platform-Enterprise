@@ -11,5 +11,9 @@ public sealed class EnvironmentRecord
     public Guid? ReleasePolicyId { get; set; }
     public long? DesiredConfigVersion { get; set; }
     public long DeploymentSequence { get; set; }
+    public string? GatewayPublicUrl { get; set; }
+    public string? GatewayInternalUrl { get; set; }
+    public string BasePath { get; set; } = "/";
+    public long AccessAddressRevision { get; set; } = 1;
     public long Revision { get; set; } = 1;
 }

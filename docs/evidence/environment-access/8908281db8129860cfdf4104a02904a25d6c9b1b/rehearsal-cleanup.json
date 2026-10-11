@@ -1,0 +1,12 @@
+{
+  "idp": {
+    "resourcesRemaining": 0
+  },
+  "platform": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  },
+  "ownerId": "29654643-039e-41dd-81f1-d610e67e01d6",
+  "projectName": "webapi-enterprise-local-test-a0e271b6-f317-4983-9356-4558bc4109b1"
+}

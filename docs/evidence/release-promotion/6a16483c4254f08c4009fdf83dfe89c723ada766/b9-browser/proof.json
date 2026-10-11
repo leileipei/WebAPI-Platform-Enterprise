@@ -1,0 +1,33 @@
+{
+  "classification": "actual-isolated-artifact-browser",
+  "sourceRevision": "6a16483c4254f08c4009fdf83dfe89c723ada766",
+  "projectName": "webapi-enterprise-local-test-b12cd750-1eba-4fbb-90b1-065ccd27314a",
+  "checks": [
+    {
+      "name": "immutable_image_actual_running_binary",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "actual_dual_gateway_source",
+      "passed": true,
+      "actual": true
+    }
+  ],
+  "sourceVerified": true,
+  "isolatedAcceptance": false,
+  "localInstalled": false,
+  "productionAcceptance": false,
+  "phase": "failed",
+  "imageId": "sha256:9a0585a243b0248af353549e6a92142128ba1bf598ff3af39c7a51cdd08387a1",
+  "artifactId": "835b4a97-26c8-45cb-85a6-5015859a19ec",
+  "failure": {
+    "message": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('heading', { name: '发布制品', exact: true }) to be visible\u001b[22m\n",
+    "status": null
+  },
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  }
+}

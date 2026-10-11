@@ -1,0 +1,41 @@
+{
+  "sourceRevision": "a445534f82f11ae9a45c3b2904bd07108bd165a9",
+  "verifiedAt": "2026-10-09T11:27:27.562547+00:00",
+  "sourceVerified": true,
+  "isolatedAcceptance": true,
+  "localInstalled": true,
+  "productionAcceptance": false,
+  "taskCount": {
+    "environmentAddress": 6,
+    "promotion": 11
+  },
+  "suitePassed": 2266,
+  "suiteFailed": 0,
+  "suiteSkipped": 0,
+  "rulingCount": {
+    "environmentAddress": 16,
+    "promotion": 67
+  },
+  "deferredMinors": 0,
+  "keptBranch": "feature/api-delivery-promotion",
+  "merged": false,
+  "pushed": false,
+  "proofs": [
+    {
+      "path": "review-fix-evidence.json",
+      "sha256": "c9641dab3fc2872ae21bc57d3b6ff18f057c34b8a7f14b7557b7bf12f3fd4e8d"
+    },
+    {
+      "path": "b11-runtime/proof.json",
+      "sha256": "b6b58616cfc45f28bd51f04d50020ed1fb19d8a83d31f2b63704f0255d29c671"
+    },
+    {
+      "path": "original-install/proof.json",
+      "sha256": "a736ee01602ff876a8c7101121f39e950a8fd8fddfdd0b3c65d095c5d88cd1b0"
+    },
+    {
+      "path": "original-install/rehearsal.json",
+      "sha256": "a573080206544ee4ac24ea84e77a4ffdc450875345ba63b492323f13ea1a2f2e"
+    }
+  ]
+}

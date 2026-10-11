@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-10",
+  "status": "installed-and-verified",
+  "scope": "M1 pipeline status labels only",
+  "previousProductRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
+  "currentProductRevision": "e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1",
+  "currentImageId": "sha256:c63c9884fd828adf84c68860530b2aa365deed150e8cb06918985b80b1073744",
+  "sourceScope": {
+    "candidateRevision": "e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1",
+    "previousProductRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
+    "backendAndDeploymentSourceUnchanged": true,
+    "consoleChangedFiles": [
+      "console/src/delivery/pipeline-state.mjs"
+    ],
+    "commitChangedFiles": [
+      "console/src/delivery/pipeline-state.mjs"
+    ],
+    "candidateImageId": "sha256:c63c9884fd828adf84c68860530b2aa365deed150e8cb06918985b80b1073744",
+    "priorBackendRegressions": {
+      "productRevision": "71183e941eef99efb3ad4328abd7c91d02938a1d",
+      "Domain": 811,
+      "Integration": 1185,
+      "Gateway": 142,
+      "newRun": false,
+      "reason": "No backend, deployment or dependency changes"
+    },
+    "freshConsoleTests": 269,
+    "freshRuntimeDeliveryTests": 227,
+    "privateReceiptGuardTests": 6
+  },
+  "freshTests": {
+    "Console": 269,
+    "runtimeDelivery": 227,
+    "copyUpdateReceiptGuards": 6,
+    "total": 502,
+    "failed": 0,
+    "skipped": 0
+  },
+  "priorBackendTestsRerun": false,
+  "candidateBuildPassed": true,
+  "existingBuildAdvisory": "Console JavaScript bundle remains above 500 kB",
+  "servedLabels": {
+    "passed": true,
+    "observedHttpStatus": 200,
+    "staticFile": "console/dist/assets/index-D8H7phqN.js",
+    "sha256": "936a27cb5b6196aadfc3831e0e03491e0d7b55ba8396d4ada755f8222597adfc",
+    "bytes": 736264,
+    "containsStageVerificationLabel": true,
+    "containsDeploymentFailureLabel": true
+  },
+  "isolatedAcceptance": {
+    "passed": true,
+    "chains": [
+      2,
+      4
+    ],
+    "faults": 23,
+    "screenshots": 13,
+    "coldRestoreStageGroups": 4,
+    "coldRestoreReports": 2,
+    "cleanup": {
+      "remainingOwnedResources": 0,
+      "ownerVerified": true,
+      "originalRuntimeUntouched": true
+    }
+  },
+  "installationProof": "docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/installation/proof.json",
+  "preservation": {
+    "sourceUntouched": true,
+    "oldFiles": 1199,
+    "oldTables": 71,
+    "oldRows": 971,
+    "reports": 0,
+    "approvedMonitoringIdentityExceptions": 0,
+    "sourceFiles": 2636,
+    "ready": true
+  },
+  "oldPrivateFilesChanged": [
+    "console-proxy-trust.json",
+    "pipeline-tooling.json",
+    "release.json",
+    "runtime-config.json",
+    "runtime.json"
+  ],
+  "maintenanceCodeUnchanged": true,
+  "maintenanceOnlySourceBindingUpdated": true,
+  "monitoringContainerIdsPreserved": true,
+  "migrationRowsAdded": 0,
+  "permissionsAdded": 0,
+  "grantsAdded": 0,
+  "newOperationReceipts": {
+    "audit_logs": 3,
+    "sso_login_attempts": 1,
+    "gateway_node_events": 15
+  },
+  "actualCommands": [
+    {
+      "id": "6dd6b69f-b212-4a6b-88f4-5a9c1f1468cd",
+      "kind": "backup-before",
+      "startedAt": "2026-10-10T02:05:09.731Z",
+      "completedAt": "2026-10-10T02:08:13.729Z",
+      "passed": true
+    },
+    {
+      "id": "53ca1b61-035b-4687-8975-add736e4f42b",
+      "kind": "backup-idp",
+      "startedAt": "2026-10-10T02:08:15.246Z",
+      "completedAt": "2026-10-10T02:08:42.269Z",
+      "passed": true
+    },
+    {
+      "id": "be8e9af4-07c2-416d-97e1-b3a43ddabd3f",
+      "kind": "upgrade",
+      "startedAt": "2026-10-10T02:09:29.809Z",
+      "completedAt": "2026-10-10T02:10:25.734Z",
+      "passed": true
+    },
+    {
+      "id": "de693968-b7eb-478c-9a09-c87c534bc2fb",
+      "kind": "admin-readonly",
+      "startedAt": "2026-10-10T02:10:42.824Z",
+      "completedAt": "2026-10-10T02:10:45.620Z",
+      "passed": true
+    },
+    {
+      "id": "e2f1618a-3ea1-413f-ba84-6c6c5dce067b",
+      "kind": "original-browser",
+      "startedAt": "2026-10-10T02:11:18.883Z",
+      "completedAt": "2026-10-10T02:11:23.342Z",
+      "passed": true
+    },
+    {
+      "id": "b1a05fb0-cdf6-4ba2-8caa-3870cdb95e80",
+      "kind": "backup-wrapper",
+      "startedAt": "2026-10-10T02:11:24.709Z",
+      "completedAt": "2026-10-10T02:13:20.911Z",
+      "passed": true
+    }
+  ],
+  "postUpdateRestore": {
+    "passed": true,
+    "freshOwner": true,
+    "ownerId": "aa7259af-dbbe-49ff-9808-a9f85eff1de2",
+    "sourceOwnerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+    "manifestSha256": "fe69e393502c5ba7e3d8c3e8059d681bebbf003e28f5638c5d1ea024ba3f6e14",
+    "historicalRows": 971,
+    "protectedReports": 0,
+    "gatewayCalls": 2,
+    "sourceRevision": "e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1"
+  },
+  "postUpdateCleanup": {
+    "ownerId": "aa7259af-dbbe-49ff-9808-a9f85eff1de2",
+    "remainingOwnedResources": 0
+  },
+  "historicalIntermittentRootCauseConfirmed": false,
+  "sourceFixCommittedOnFeatureBranch": true,
+  "mainMerged": false,
+  "pushed": false,
+  "newBusinessPublish": false,
+  "enterpriseDnsTlsLb": false,
+  "enterpriseBusinessAcceptance": false,
+  "evidence": [
+    {
+      "path": "docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/proof.json",
+      "sha256": "dc2e478487e00ccffb45e256867616ace3e2e254fe738a5b445de96efc4ad596"
+    },
+    {
+      "path": "docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/installation/proof.json",
+      "sha256": "3d3848b7211e25941ec6cf13017e98555c5656f0667aed8504d2ebfdd57fe73c"
+    },
+    {
+      "path": ".runtime/pipeline-followup/candidate-build.log",
+      "sha256": "62947de113d9acae060a4556bf6f9a5aab74d7167c88a59335dbe8998fe1aa30"
+    },
+    {
+      "path": ".runtime/pipeline-followup/candidate-console-tests.log",
+      "sha256": "36c1cc7b6f9a5d6de42f02217da118873f33c1c2c31de4365faed3109da9f05b"
+    },
+    {
+      "path": ".runtime/pipeline-followup/candidate-script-tests.log",
+      "sha256": "bcad88c0028366c790c573c221c797e9eb92b4da4e22b2729070a08d9716680a"
+    },
+    {
+      "path": ".runtime/m1-update/receipts-tests.log",
+      "sha256": "b9e690e5758be64727c3b6a2d404d7d11821386bd94b5d5a612c931d93b167cc"
+    },
+    {
+      "path": ".runtime/m1-update/served-labels.json",
+      "sha256": "d74ab597e73af8c1b4de98e2b40322046911eec995ead17aefbb8b9a1bf3bb85"
+    },
+    {
+      "path": ".runtime/m1-update/candidate-gate.json",
+      "sha256": "6113f30517992cf31bb6fab261cba34a0392746ebb93c02d2f30e943d45bf7a8"
+    },
+    {
+      "path": ".runtime/m1-update/p14-install.mjs",
+      "sha256": "b4b781090f1ad7b25986150c7d1a0a40555c0bc7f9fc2d4bba95a1ef8fad2a45"
+    },
+    {
+      "path": ".runtime/m1-update/p14-common.mjs",
+      "sha256": "008e20a5bb2ed62e8236499f60b6648c36821e949d8c1607d95089fb69e97338"
+    },
+    {
+      "path": ".runtime/m1-update/p14-recover.mjs",
+      "sha256": "f94ead4cb8302b7abad8c16ad81d12b723d95fdfe7d6bb3673b39b9814bf8864"
+    },
+    {
+      "path": ".runtime/m1-update/p14-browser.mjs",
+      "sha256": "a456c35dde581a7f55c1dd83d84942c86ba38ba28b292da229a8ec9ff67007d3"
+    },
+    {
+      "path": ".runtime/m1-update/p14-receipts.mjs",
+      "sha256": "a821da845a07eafd233093dc9e2eb65415f9172b537809916703bd84d52defdd"
+    },
+    {
+      "path": ".runtime/m1-update/p14-traffic.mjs",
+      "sha256": "7820fd75cf3c934b34f49877d88e8325917ee98054c7898a54f2b2b079ead3f9"
+    },
+    {
+      "path": ".runtime/pipeline-installation/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/baseline.json",
+      "sha256": "5a62b28c1b0a1a6b2bc76326974d5b8f8c91d960c282eb6beb9c280e511db098"
+    },
+    {
+      "path": ".runtime/pipeline-installation/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/after.json",
+      "sha256": "96b64a5a92fd25e381170d654407547776b85e6ff57d8d02e4d0b78267c23c41"
+    },
+    {
+      "path": ".runtime/pipeline-installation/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/commands.json",
+      "sha256": "53bd8271a07c4e3fcbe4b79821e3295f5dcfe52d72f2147ae0dc1f21734f3532"
+    },
+    {
+      "path": ".runtime/pipeline-installation/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/backup-pointer.json",
+      "sha256": "3aca0c07650eb95ceb4bd3da22ce3e4bb65e6fa30f3ad2315e921192414a1064"
+    },
+    {
+      "path": ".runtime/pipeline-installation/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/backup-after-pointer.json",
+      "sha256": "0dfe726cdc55f1feff1d87cfe76a88d0af0967f8bccef280d55fdd213baaea6d"
+    },
+    {
+      "path": ".runtime/pipeline-installation/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/receipts.json",
+      "sha256": "674b8e6c869dee620a16d82613c0cf1e6b3535cbe24f2cb5be9b7e6661ef883e"
+    },
+    {
+      "path": ".runtime/pipeline-installation/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/browser-proof.json",
+      "sha256": "a1ad5f86dadce4ebb35985792693c29cd2d7cdba2660a236d35b2dc06ae42288"
+    },
+    {
+      "path": ".runtime/pipeline-installation/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/clone-receipt.json",
+      "sha256": "9fe2ee48db27059df1f9ed3cc6706815c19522c071b7b861c7b48a91d51ebd13"
+    },
+    {
+      "path": ".runtime/pipeline-installation/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/clone-cleanup.json",
+      "sha256": "b27e6dfb0f2c06b9c7e6aedd413899b2b7427d2b9705b9d07ffe8d891ea08e85"
+    }
+  ]
+}

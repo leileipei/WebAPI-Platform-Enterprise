@@ -1,0 +1,44 @@
+namespace WebApi.Contracts.Releases;
+public sealed record SaveDeliveryPolicyRequest(Guid SourceEnvironmentId,Guid TargetEnvironmentId,string Mode,IReadOnlyList<string> RequiredTestTypes,int VerificationValidityMinutes);
+public sealed record DeliveryPolicyDto(Guid? Id,Guid ProjectId,Guid? SourceEnvironmentId,Guid? TargetEnvironmentId,string Mode,IReadOnlyList<string> RequiredTestTypes,int VerificationValidityMinutes,long Revision,Guid? ActivePipelineVersionId=null);
+public sealed record ArtifactPolicyTemplate(string Type,string FrozenConfig,IReadOnlyList<string> EnvironmentFields,int Priority=0);
+public sealed record ArtifactRoute(string Key,Guid ApiId,Guid VersionId,string Path,IReadOnlyList<string> Methods,int Priority,bool Enabled,int? TimeoutTemplate,IReadOnlyList<ArtifactPolicyTemplate> Policies,string AuthenticationMode="ApiKey");
+public sealed record ArtifactApiContract(Guid ApiId,Guid VersionId,string Version,long SourceRevision,IReadOnlyList<WebApi.Contracts.Catalog.ParameterDto> Parameters,IReadOnlyList<WebApi.Contracts.Catalog.SchemaDto> Schemas);
+public sealed record ArtifactContent(IReadOnlyList<ArtifactApiContract> Apis,IReadOnlyList<ArtifactRoute> Routes);
+public sealed record ReleaseArtifactDto(Guid Id,Guid OrganizationId,Guid ProjectId,Guid SourceEnvironmentId,Guid SourceReleaseId,string ArtifactHash,string SourceSnapshotHash,Guid CreatedBy,DateTimeOffset CreatedAt,ArtifactContent Content);
+public sealed record RecordVerificationRequest(string Type,string Result,DateTimeOffset StartedAt,DateTimeOffset FinishedAt,Guid? ReportId=null,string Comment="",[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? ExpectedContextHash=null);
+public sealed record ReleaseVerificationDto(Guid Id,Guid ArtifactId,Guid? PromotionId,Guid ReleaseId,Guid EnvironmentId,long ConfigVersion,long DeploymentSequence,string SnapshotHash,long AccessAddressRevision,long PolicyRevision,string Phase,string Type,string Result,bool IsManual,Guid? ReportId,string? ReportHash,string Comment,DateTimeOffset StartedAt,DateTimeOffset FinishedAt,DateTimeOffset ExpiresAt,Guid CreatedBy,DateTimeOffset CreatedAt);
+public sealed record VerificationReportDto(Guid Id,Guid? ArtifactId,Guid? PromotionId,string ContentType,long SizeBytes,string Sha256,Guid CreatedBy,DateTimeOffset CreatedAt);
+public sealed record RequestTestAcceptanceRequest(IReadOnlyList<Guid> VerificationIds);
+public sealed record TestAcceptanceActionRequest(string Comment="");
+public sealed record TestAcceptanceDto(Guid Id,Guid ArtifactId,Guid SourceEnvironmentId,string ArtifactHash,IReadOnlyList<Guid> VerificationIds,string EvidenceHash,long PolicyRevision,string Status,long Revision,Guid RequestedBy,Guid? ActedBy,string Comment,DateTimeOffset CreatedAt,DateTimeOffset? ActedAt,DateTimeOffset? ExpiresAt,bool CanAccept=false,bool CanReject=false,bool CanRevoke=false,IReadOnlyList<string>? ReasonCodes=null);
+public sealed record PromotionPolicyMapping(string Type,int Priority,Guid? TargetPolicyId=null,long? TargetPolicyRevision=null);
+public sealed record PromotionRouteMapping(string ArtifactRouteKey,Guid? TargetRouteId,Guid ClusterId,int TimeoutMs,IReadOnlyList<PromotionPolicyMapping> Policies);
+public sealed record PromotionApplicationMapping(Guid ApplicationId,IReadOnlyList<Guid> CredentialIds,IReadOnlyList<Guid> AuthorizationIds,bool ConfirmSharedCredentialImpact=false);
+public sealed record PromotionMappingRequest(IReadOnlyList<PromotionRouteMapping> Routes,IReadOnlyList<PromotionApplicationMapping> Applications);
+public sealed record SharedCredentialImpact(Guid ApplicationId,IReadOnlyList<Guid> RetainedApiIds,IReadOnlyList<Guid> RequiredCredentialIds,bool Acknowledged,bool SharedAcrossEnvironments=false);
+public sealed record PromotionDto(Guid Id,Guid OrganizationId,Guid ProjectId,Guid ArtifactId,string ArtifactHash,Guid SourceEnvironmentId,Guid TargetEnvironmentId,Guid SourceReleaseId,Guid? TargetReleaseId,Guid? AcceptanceId,string Status,long BaselineConfigVersion,long MappingRevision,string? CandidateHash,long Revision,Guid RequestedBy,DateTimeOffset CreatedAt,DateTimeOffset? CompletedAt,PromotionMappingRequest? Mapping=null,IReadOnlyList<SharedCredentialImpact>? CredentialImpact=null,PromotionDeploymentState? Deployment=null,PromotionActionEligibility? Eligibility=null,PromotionPrecheckDto? Precheck=null,PipelineTraceDto? Pipeline=null);
+public sealed record CreatePromotionRequest(Guid ArtifactId);
+public sealed record PromotionPrecheckRequest(IReadOnlyList<Guid>? RiskReviewIds=null,bool ConfirmUpstreamHealth=false,string UpstreamHealthComment="",Guid? UpstreamHealthReportId=null);
+public sealed record PromotionCheckDto(string Key,string Status,bool Blocking,string ReasonCode);
+public sealed record PromotionPrecheckDto(Guid PromotionId,string Status,bool CanSubmit,long Revision,long MappingRevision,long PolicyRevision,long TargetAccessAddressRevision,long BaselineConfigVersion,string? CandidateHash,IReadOnlyList<PromotionCheckDto> Checks,IReadOnlyList<ResourceRevision> ResourceRevisions);
+
+public sealed record PromotionNodeState(Guid NodeId,string NodeName,long? ConfigVersion,long? DeploymentSequence,string Status,DateTimeOffset? LastHeartbeatAt);
+public sealed record PromotionDeploymentState(Guid? ReleaseId,IReadOnlyList<PromotionNodeState> Nodes);
+
+public sealed record ProductionVerificationContextDto(string Hash,Guid ReleaseId,long ConfigVersion,long DeploymentSequence,string SnapshotHash,long AccessAddressRevision,string PublicOrigin,string BasePath,long PolicyRevision,Guid PublisherId,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Guid? StageAttemptId=null,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? ProfileHash=null);
+
+public sealed record ReleaseArtifactSummaryDto(Guid Id,Guid SourceEnvironmentId,Guid SourceReleaseId,string ArtifactHash,string SourceSnapshotHash,Guid CreatedBy,DateTimeOffset CreatedAt);
+public sealed record ArtifactEligibilityDto(Guid ArtifactId,Guid SourceEnvironmentId,Guid? TargetEnvironmentId,bool TargetRestricted,string Mode,IReadOnlyList<string> RequiredTestTypes,int VerificationValidityMinutes,long PolicyRevision,bool CanRecord,bool CanUploadReport,bool CanRequestAcceptance,IReadOnlyList<Guid> VerificationIds,IReadOnlyList<string> ReasonCodes,bool CanCreatePromotion=false);
+public sealed record PromotionActionEligibility(bool CanEditMapping,bool CanSubmit,bool CanPublish,bool CanVerify,bool CanCancel,Guid? PublisherId,IReadOnlyList<string> ReasonCodes);
+public sealed record DeliveryEnvironmentDto(Guid Id,string Code,string Name,bool IsProduction,long? DesiredConfigVersion,long DeploymentSequence,IReadOnlyList<PromotionNodeState> Nodes);
+public sealed record PromotionSummaryDto(Guid Id,Guid ArtifactId,string ArtifactHash,Guid SourceEnvironmentId,Guid TargetEnvironmentId,Guid SourceReleaseId,Guid? TargetReleaseId,string Status,Guid RequestedBy,DateTimeOffset CreatedAt,long Revision);
+public sealed record DeliveryCounts(int AwaitingApproval,int AwaitingVerification,int DeploymentFailed,int VerificationFailed);
+public sealed record DeliveryOverviewDto(Guid ProjectId,string Coverage,IReadOnlyList<DeliveryEnvironmentDto> Environments,string PromotionsVisibility,WebApi.Contracts.Common.PageResult<PromotionSummaryDto>? Promotions,DeliveryCounts? Counts,PipelinePageDto<PipelineRunDto>? PipelineRuns=null,PipelineRunCounts? PipelineCounts=null,string PipelineVisibility="Restricted");
+public sealed record PromotionClusterChoice(Guid Id,string Name);
+public sealed record PromotionRouteChoice(Guid Id,Guid ApiId,string Path,IReadOnlyList<string> Methods,long Revision);
+public sealed record PromotionPolicyChoice(Guid Id,string Name,string Type,long Revision);
+public sealed record PromotionCredentialChoice(Guid Id,string Last4,DateTimeOffset ExpiresAt);
+public sealed record PromotionAuthorizationChoice(Guid Id,Guid ApiId);
+public sealed record PromotionApplicationChoice(Guid Id,string Name,IReadOnlyList<PromotionCredentialChoice> Credentials,IReadOnlyList<PromotionAuthorizationChoice> Authorizations,bool SharedAcrossEnvironments,IReadOnlyList<Guid> RequiredCredentialIds,IReadOnlyList<Guid> RetainedApiIds);
+public sealed record PromotionMappingOptionsDto(Guid TargetEnvironmentId,IReadOnlyList<PromotionClusterChoice>? Clusters,IReadOnlyList<PromotionRouteChoice>? Routes,IReadOnlyList<PromotionPolicyChoice>? Policies,IReadOnlyList<PromotionApplicationChoice>? Applications,bool Truncated);

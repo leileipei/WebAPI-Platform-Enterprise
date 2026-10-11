@@ -1,0 +1,107 @@
+{
+  "classification": "actual-isolated-artifact-browser",
+  "sourceRevision": "4fc6e860ce039e8dea0db0040763eaa9d490b866",
+  "projectName": "webapi-enterprise-local-test-9bf98148-8a18-4403-8b8e-4702c18ea72b",
+  "checks": [
+    {
+      "name": "immutable_image_actual_running_binary",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "actual_dual_gateway_source",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "actual_legacy_connection_saved_without_auto_enabling_gate",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_policy-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/policy-1440.png"
+    },
+    {
+      "name": "actual412_preserves_input_and_requires_explicit_latest_adoption",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_manual-upload-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/manual-upload-1440.png"
+    },
+    {
+      "name": "screenshot_applicant-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/applicant-1440.png"
+    },
+    {
+      "name": "screenshot_independent-accepted-1440",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/independent-accepted-1440.png"
+    },
+    {
+      "name": "actual_browser_upload_manual_records_independent_acceptance_1440",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_manual-upload-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/manual-upload-1280.png"
+    },
+    {
+      "name": "screenshot_applicant-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/applicant-1280.png"
+    },
+    {
+      "name": "screenshot_independent-accepted-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/independent-accepted-1280.png"
+    },
+    {
+      "name": "actual_browser_upload_manual_records_independent_acceptance_1280",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "revocation_clears_contract_report_and_actions",
+      "passed": true,
+      "actual": true
+    },
+    {
+      "name": "screenshot_revoked-1280",
+      "passed": true,
+      "actual": true,
+      "path": "docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/revoked-1280.png"
+    },
+    {
+      "name": "no_browser_page_errors",
+      "passed": true,
+      "actual": true
+    }
+  ],
+  "sourceVerified": true,
+  "isolatedAcceptance": true,
+  "localInstalled": false,
+  "productionAcceptance": false,
+  "phase": "passed",
+  "imageId": "sha256:80fa3a68b8e1346dc189b764ee5ca160faabd4efbce10179f4b05f6b3a2bbd2f",
+  "artifactId": "4fd4f4b9-0296-4d30-83c8-3cd119cdc4fd",
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  }
+}

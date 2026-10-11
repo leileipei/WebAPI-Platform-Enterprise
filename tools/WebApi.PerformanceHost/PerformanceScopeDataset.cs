@@ -16,13 +16,21 @@ public static partial class PerformanceDataset
         await using var transaction=await db.Database.BeginTransactionAsync(ct);
         // Initialize a separate scene: all fifty projects have both shared and owned
         // resources. Historical snapshots retain their original frozen configuration.
-        var applications=await db.Set<ApplicationRecord>().ToDictionaryAsync(a=>a.Id,ct);
+        var applications=await db.Set<ApplicationRecord>().AsNoTracking().ToDictionaryAsync(a=>a.Id,ct);
         var policies=await db.Set<Policy>().ToDictionaryAsync(p=>p.Id,ct);
         var slots=new Dictionary<Guid,int>();
         for(var i=0;i<spec.Scale;i++) {
             var slot=i%50;var shared=(i/50)%2==0;slots[Id("app",i)]=slot;
             var application=applications[Id("app",i)];application.OrganizationId=Id("organization",slot/5);application.ProjectId=shared?null:Id("project",slot);
             var policy=policies[Id("policy",i)];policy.OrganizationId=Id("organization",slot/5);policy.ProjectId=shared?null:Id("project",slot);
+        }
+        // This isolated scene reassigns seeded applications before validating grants.
+        // OrganizationId participates in the delivery model's alternate key, so use
+        // set-based initialization rather than modifying a tracked principal key.
+        foreach(var group in applications.Values.GroupBy(a=>new{a.OrganizationId,a.ProjectId})) {
+            var ids=group.Select(a=>a.Id).ToArray();var organization=group.Key.OrganizationId;var project=group.Key.ProjectId;
+            await db.Set<ApplicationRecord>().Where(a=>ids.Contains(a.Id)).ExecuteUpdateAsync(setters=>setters
+                .SetProperty(a=>a.OrganizationId,organization).SetProperty(a=>a.ProjectId,project),ct);
         }
         db.AddRange(Enumerable.Range(0,400).Select(i=>new Api {Id=Id("scope-api",i),OrganizationId=Id("organization",i/8/5),ProjectId=Id("project",i/8),Code=$"scope-api{i:D3}",Name=$"Scope API {i:D3}",LifecycleStatus="Active",OwnerUserId=Id("user",0),CreatedAt=now,UpdatedAt=now}));
         db.AddRange(Enumerable.Range(0,400).Select(i=>new ApiVersion {Id=Id("scope-version",i),ApiId=Id("scope-api",i),Version="1.0.0",Status="Active",ChangeType="compatible",CreatedBy=Id("user",0),CreatedAt=now}));
