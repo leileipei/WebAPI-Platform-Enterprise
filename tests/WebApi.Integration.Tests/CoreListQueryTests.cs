@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
@@ -27,12 +28,22 @@ public sealed class CoreListQueryTests
     {
         internal int Count;
         internal int Associations;
-        internal void Reset() { Count = 0; Associations = 0; }
+        internal readonly List<string[]> RouteColumns = [];
+        internal readonly List<int> FullRouteIdCounts = [];
+        internal void Reset() { Count = 0; Associations = 0; RouteColumns.Clear(); FullRouteIdCounts.Clear(); }
         public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData data, InterceptionResult<DbDataReader> result, CancellationToken ct = default)
         {
             var sql = command.CommandText;
             if (new[] { "FROM apis ", "FROM upstream_clusters ", "FROM upstream_destinations ", "FROM api_routes ", "FROM route_policy_bindings " }.Any(sql.Contains)) Count++;
             if (sql.Contains("FROM upstream_destinations ") || sql.Contains("FROM route_policy_bindings ")) Associations++;
+            if (sql.Contains("FROM api_routes ") && sql.Contains("timeout_ms"))
+                FullRouteIdCounts.Add(command.Parameters.Cast<DbParameter>().Select(p => p.Value).OfType<Guid[]>().SingleOrDefault()?.Length ?? -1);
+            return ValueTask.FromResult(result);
+        }
+        public override ValueTask<DbDataReader> ReaderExecutedAsync(DbCommand command, CommandExecutedEventData data, DbDataReader result, CancellationToken ct = default)
+        {
+            if (data.CommandSource == CommandSource.LinqQuery && command.CommandText.Contains("FROM api_routes "))
+                RouteColumns.Add(Enumerable.Range(0, result.FieldCount).Select(result.GetName).ToArray());
             return ValueTask.FromResult(result);
         }
     }
@@ -86,8 +97,62 @@ public sealed class CoreListQueryTests
     {
         "api" => f.Apis.OrderBy(a => a.Code, StringComparer.Ordinal).ThenBy(a => a.Id.ToString("D"), StringComparer.Ordinal).Select(a => a.Id).ToArray(),
         "cluster" => f.Clusters.OrderBy(c => c.Name, StringComparer.Ordinal).ThenBy(c => c.Id.ToString("D"), StringComparer.Ordinal).Select(c => c.Id).ToArray(),
-        _ => f.Routes.OrderBy(r => r.Path.Contains("{**rest}") ? 2 : r.Path.Contains("{id}") ? 1 : 0).ThenByDescending(r => r.Priority).ThenBy(r => r.Path, StringComparer.Ordinal).ThenBy(r => r.Id.ToString("D"), StringComparer.Ordinal).Select(r => r.Id).ToArray()
+        _ => f.Routes.OrderBy(r => RouteNormalizer.MatchOrder(r.Path, r.Priority)).ThenBy(r => r.Path).ThenBy(r => r.Id).Select(r => r.Id).ToArray()
     };
+    [Theory]
+    [InlineData("")] [InlineData("en-US")] [InlineData("zh-CN")] [InlineData("tr-TR")]
+    public async Task RouteCultureSortingMatchesLegacyComparerAcrossPages(string culture)
+    {
+        var previous = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(culture);
+            await using var f = new Fixture(); await f.InitializeAsync(false);
+            await using var db = f.Api.Context();
+            var paths = new[] { "/Zebra", "/abc", "/aa-b", "/a_ab", "/é", "/e", "/中", "/路", "/z", "/I", "/ı", "/İ", "/i", "/e\u0301", "/a\u00adb", "/ab", "/parameter/{id}", "/wild/{**rest}" };
+            // Composed/decomposed paths compare equal in the legacy culture comparer;
+            // ID stabilizes that tie, never a database bytewise path tiebreak.
+            var routes = paths.Select((p, i) => f.Route(p, 0,
+                Guid.Parse($"00000000-0000-0000-0000-{(i+1):D12}"))).ToArray();
+            db.AddRange(routes); await db.SaveChangesAsync();
+            var expected = routes.OrderBy(r => RouteNormalizer.MatchOrder(r.Path, r.Priority)).ThenBy(r => r.Path).ThenBy(r => r.Id).Select(r => r.Id).ToArray();
+            foreach (var size in new[] { 1, 3, 100 })
+            {
+                var seen = new List<Guid>();
+                for (var page = 1; page <= (routes.Length + size - 1) / size + 1; page++)
+                {
+                    var result = await f.ReadAsync<RouteDto>("route", page, size);
+                    Assert.Equal(routes.Length, result.Page.Total);
+                    Assert.Equal(expected.Skip((page-1)*size).Take(size), result.Page.Items.Select(r => r.Id));
+                    Assert.True(result.Sql <= 4, $"data SQL {result.Sql} > 4");
+                    // User-approved exception: the environment's lightweight order keys are O(N).
+                    // Complete route records and policy bindings must remain page-local.
+                    Assert.True(result.Rows <= routes.Length + result.Page.Items.Count * 3 + 12, $"consumed {result.Rows} rows for {result.Page.Items.Count} items and {routes.Length} keys");
+                    seen.AddRange(result.Page.Items.Select(r => r.Id));
+                }
+                Assert.Equal(expected, seen);
+            }
+        }
+        finally { CultureInfo.CurrentCulture = previous; }
+    }
+    [Fact]
+    public async Task RouteLightweightKeysAndFullPageRelationsStaySeparated()
+    {
+        await using var f = new Fixture(); await f.InitializeAsync();
+        foreach (var size in new[] { 1, 50, 100 })
+        {
+            var page = await f.ReadAsync<RouteDto>("route", 1, size);
+            Assert.Equal(151, page.Page.Total); Assert.Equal(size, page.Page.Items.Count);
+            Assert.Equal(new[] { "id", "path", "priority" }, f.Capture.RouteColumns.Single(c => c.Length == 3).Select(c => c.ToLowerInvariant()).OrderBy(c => c));
+            Assert.Equal(new[] { size }, f.Capture.FullRouteIdCounts);
+            Assert.Equal(1, page.Associations); Assert.True(page.Sql <= 4);
+            Assert.True(page.Rows <= 151 + size * 3 + 12);
+        }
+        var empty = await f.ReadAsync<RouteDto>("route", 1000000, 100);
+        Assert.Equal(151, empty.Page.Total); Assert.Empty(empty.Page.Items);
+        Assert.Empty(f.Capture.FullRouteIdCounts); Assert.Equal(0, empty.Associations);
+        Assert.Single(f.Capture.RouteColumns); Assert.True(empty.Rows <= 151 + 12);
+    }
     [Theory]
     [InlineData("api", 2)] [InlineData("cluster", 3)] [InlineData("route", 4)]
     public async Task CoreListsRespectPageAndSqlBudgets(string kind, int budget)
@@ -106,7 +171,7 @@ public sealed class CoreListQueryTests
             }
             else
             {
-                var r = await f.ReadAsync<RouteDto>(kind, page, size); Assert.Equal(151, r.Page.Total); Assert.Equal(ids, r.Page.Items.Select(x => x.Id)); Assert.All(r.Page.Items, x => { Assert.False(x.RequireApiKey); Assert.Equal(1234, x.EffectiveTimeoutMs); Assert.Null(x.EffectiveAuthenticationMode); }); Assert.True(r.Sql <= budget, $"data SQL {r.Sql} > {budget}"); Assert.True(r.Rows <= ids.Length * 3 + 12); Assert.Equal(ids.Length == 0 ? 0 : 1, r.Associations);
+                var r = await f.ReadAsync<RouteDto>(kind, page, size); Assert.Equal(151, r.Page.Total); Assert.Equal(ids, r.Page.Items.Select(x => x.Id)); Assert.All(r.Page.Items, x => { Assert.False(x.RequireApiKey); Assert.Equal(1234, x.EffectiveTimeoutMs); Assert.Null(x.EffectiveAuthenticationMode); }); Assert.True(r.Sql <= budget, $"data SQL {r.Sql} > {budget}"); Assert.True(r.Rows <= 151 + ids.Length * 3 + 12); Assert.Equal(ids.Length == 0 ? 0 : 1, r.Associations);
             }
         }
     }
