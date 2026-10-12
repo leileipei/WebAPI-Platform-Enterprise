@@ -29,12 +29,14 @@ public sealed class ExplainQueryProbe:DbCommandInterceptor
         ?new(request.Plans.Count,Volatile.Read(ref request.Repeated),request.Plans.Values.OrderBy(p=>p.Hash,StringComparer.Ordinal).ToArray()):new(0,0,[]);
     private (RequestPlans Request,string Hash)? Claim(DbCommand command,CommandSource source){
         if(current.Value is not { } id||!requests.TryGetValue(id,out var request)||source is not (CommandSource.LinqQuery or CommandSource.FromSqlQuery))return null;
-        // Only real EF SELECT readers are diagnosed. Raw commands and write-result
+        // Only real EF SELECT/recursive CTE readers are diagnosed. Raw commands and write-result
         // readers retain native provider behavior. The separate transaction also
         // rejects volatile functions that try to modify permanent tables.
-        if(command is not NpgsqlCommand||command.CommandType!=CommandType.Text||!command.CommandText.TrimStart().StartsWith("SELECT ",StringComparison.OrdinalIgnoreCase)||command.CommandText.Contains(';'))throw new InvalidDataException("Unsupported EXPLAIN query.");
+        var text=command.CommandText.TrimStart();
+        if(command is not NpgsqlCommand||command.CommandType!=CommandType.Text||!(text.StartsWith("SELECT ",StringComparison.OrdinalIgnoreCase)||text.StartsWith("WITH RECURSIVE ",StringComparison.OrdinalIgnoreCase))||command.CommandText.Contains(';'))throw new InvalidDataException("Unsupported EXPLAIN query.");
         var hash=Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(command.CommandText)));
-        if(!request.Seen.TryAdd(hash,0)){Interlocked.Increment(ref request.Repeated);return null;}
+        // Failed or in-flight diagnostics never permit the original reader to run.
+        if(request.Plans.ContainsKey(hash)){Interlocked.Increment(ref request.Repeated);return null;}
         return(request,hash);
     }
     private static NpgsqlCommand DiagnosticCommand(DbCommand original,NpgsqlConnection diagnostic,NpgsqlTransaction transaction){
@@ -49,7 +51,7 @@ public sealed class ExplainQueryProbe:DbCommandInterceptor
             using(var setup=new NpgsqlCommand("SET TRANSACTION READ ONLY; SET LOCAL statement_timeout = '30s'",diagnostic,transaction))setup.ExecuteNonQuery();
             using var query=DiagnosticCommand(command,diagnostic,transaction);
             var plan=Parse(query.ExecuteScalar() as string??throw new InvalidDataException(),relations,indexes);
-            claim.Request.Plans.TryAdd(claim.Hash,new(claim.Hash,plan));transaction.Rollback();return result;
+            transaction.Rollback();if(!claim.Request.Plans.TryAdd(claim.Hash,new(claim.Hash,plan)))Interlocked.Increment(ref claim.Request.Repeated);return result;
         }catch(Exception error)when(error is not OperationCanceledException){throw new InvalidDataException("EXPLAIN diagnostic failed.");}
     }
     public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,CommandEventData eventData,InterceptionResult<DbDataReader> result,CancellationToken cancellationToken=default){
@@ -59,7 +61,7 @@ public sealed class ExplainQueryProbe:DbCommandInterceptor
             await using(var setup=new NpgsqlCommand("SET TRANSACTION READ ONLY; SET LOCAL statement_timeout = '30s'",diagnostic,transaction))await setup.ExecuteNonQueryAsync(cancellationToken);
             await using var query=DiagnosticCommand(command,diagnostic,transaction);
             var plan=Parse(await query.ExecuteScalarAsync(cancellationToken) as string??throw new InvalidDataException(),relations,indexes);
-            claim.Request.Plans.TryAdd(claim.Hash,new(claim.Hash,plan));await transaction.RollbackAsync(cancellationToken);return result;
+            await transaction.RollbackAsync(cancellationToken);if(!claim.Request.Plans.TryAdd(claim.Hash,new(claim.Hash,plan)))Interlocked.Increment(ref claim.Request.Repeated);return result;
         }catch(Exception error)when(error is not OperationCanceledException){throw new InvalidDataException("EXPLAIN diagnostic failed.");}
     }
     private static readonly HashSet<string> NodeTypes=new(StringComparer.Ordinal){"Result","ProjectSet","ModifyTable","Append","Merge Append","Recursive Union","BitmapAnd","BitmapOr","Seq Scan","Sample Scan","Index Scan","Index Only Scan","Bitmap Index Scan","Bitmap Heap Scan","Tid Scan","Tid Range Scan","Subquery Scan","Function Scan","Table Function Scan","Values Scan","CTE Scan","Named Tuplestore Scan","WorkTable Scan","Foreign Scan","Custom Scan","Nested Loop","Merge Join","Hash Join","Materialize","Memoize","Sort","Incremental Sort","Group","Aggregate","WindowAgg","Unique","Gather","Gather Merge","Hash","SetOp","LockRows","Limit"};
@@ -82,7 +84,6 @@ public sealed class ExplainQueryProbe:DbCommandInterceptor
         }catch(Exception error)when(error is JsonException or InvalidOperationException or KeyNotFoundException or InvalidDataException){throw new InvalidDataException("Invalid EXPLAIN evidence.");}
     }
     private sealed class RequestPlans{
-        public ConcurrentDictionary<string,byte> Seen{get;}=new();
         public ConcurrentDictionary<string,ExplainCommandEvidence> Plans{get;}=new();
         public int Repeated;
     }
