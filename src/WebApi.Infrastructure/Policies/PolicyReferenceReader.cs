@@ -70,7 +70,7 @@ public sealed class PolicyReferenceReader(WebApiDbContext db,CollectionAuthoriza
         var frozenById=frozen.ToDictionary(s=>s.Id);var runtimeById=runtime.ToDictionary(s=>s.Id!.Value);
         var descriptors=frozen.Select(s=>new ReferencePayloadDescriptor(s.Id,"FrozenRelease",s.EnvironmentId,s.SizeBytes))
             .Concat(runtime.OrderBy(s=>s.Id).Select(s=>new ReferencePayloadDescriptor(s.Id!.Value,"Runtime",s.EnvironmentId,s.SizeBytes!.Value))).ToArray();
-        foreach(var batch in PlanBatches(descriptors))
+        foreach(var batch in PlanBatches(descriptors).SelectMany(b=>b.Select(d=>(IReadOnlyList<ReferencePayloadDescriptor>)new[]{d})))
         {
             if(batch[0].Kind=="FrozenRelease")result.AddRange(await ReadFrozenBatchAsync(batch,frozenById,policyId,ct));
             else result.AddRange(await ReadRuntimeBatchAsync(batch,runtimeById,policyId,ct));

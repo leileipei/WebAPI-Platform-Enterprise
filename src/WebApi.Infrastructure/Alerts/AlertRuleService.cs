@@ -43,11 +43,10 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
     {
         var environments=await observations.ResolveEnvironmentIdsAsync(actor,"alert.rule.manage",scope,ct);
         var visible=visibility.Scopes(actor,"alert.rule.manage");
-        var query=db.Set<AlertRule>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&(x.ProjectId==null||x.ProjectId==scope.ProjectId)&&(x.EnvironmentId==null||environments.Contains(x.EnvironmentId.Value))
-            &&visible.Any(s=>s.OrganizationId==x.OrganizationId&&s.ProjectId==x.ProjectId&&s.EnvironmentId==x.EnvironmentId));
-        page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var total=await query.CountAsync(ct);
-        var rows=await query.OrderBy(x=>x.NormalizedName).ThenBy(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).ToArrayAsync(ct);
-        return new(await listReader.ReadRulesAsync(rows,ct),total,page,pageSize);
+        var query=db.Set<AlertRule>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&(x.ProjectId==null||x.ProjectId==scope.ProjectId)&&(x.EnvironmentId==null||environments.Contains(x.EnvironmentId.Value)));
+        page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var candidates=await query.OrderBy(x=>x.NormalizedName).ThenBy(x=>x.Id).ToArrayAsync(ct);var rows=new List<AlertRule>();
+        foreach(var rule in candidates)if(await visible.AnyAsync(s=>s.OrganizationId==rule.OrganizationId&&s.ProjectId==rule.ProjectId&&s.EnvironmentId==rule.EnvironmentId,ct))rows.Add(rule);
+        return new(await listReader.ReadRulesAsync(rows.Skip((page-1)*pageSize).Take(pageSize).ToArray(),ct),rows.Count,page,pageSize);
     }
     public async Task<AlertRuleDto> DetailAsync(ActorContext actor,Guid id,CancellationToken ct)
     {

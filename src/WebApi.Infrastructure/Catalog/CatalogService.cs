@@ -21,9 +21,8 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
     {
         var scope=await scopes.ProjectAsync(projectId,ct);if(!await auth.CanAsync(actor,"api.read",new("project",projectId,scope),ct)) throw ScopeResolver.Missing();
         page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
-        var query=db.Set<Api>().AsNoTracking().Where(x=>x.ProjectId==projectId);var total=await query.CountAsync(ct);
-        var rows=await query.OrderBy(x=>x.Code).ThenBy(x=>x.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
-        return new(rows.Select(Dto).ToArray(),total,page,size);
+        var rows=await db.Set<Api>().AsNoTracking().Where(x=>x.ProjectId==projectId).OrderBy(x=>x.Code).ThenBy(x=>x.Id).ToArrayAsync(ct);
+        return new(rows.Skip((page-1)*size).Take(size).Select(Dto).ToArray(),rows.Length,page,size);
     }
     public async Task<ApiDetailDto> DetailAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {

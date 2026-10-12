@@ -38,9 +38,9 @@ public sealed class AlertEventService(WebApiDbContext db,AuthorizationService au
         if(filter.Severity is not(null or "Info" or "Warning" or "Critical")||filter.Source is not(null or "Metrics")||filter.Status is not(null or "Open" or "Ack" or "Resolved" or "Silenced"))throw new ApiException(422,"invalid_alert_filter","告警级别、来源或状态筛选不合法。");
         var environments=await scopes.ResolveEnvironmentIdsAsync(actor,"alert.read",scope,ct);
         var query=db.Set<AlertEvent>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId&&environments.Contains(x.EnvironmentId)&&(filter.Severity==null||x.Severity==filter.Severity)&&(filter.Status==null||x.Status==filter.Status));
-        var page=Math.Clamp(filter.Page,1,1000000);var size=Math.Clamp(filter.PageSize,1,100);var total=await query.CountAsync(ct);
-        var rows=await query.OrderByDescending(x=>x.StartedAt).ThenByDescending(x=>x.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
-        return new(await listReader.ReadEventsAsync(rows,ct),total,page,size);
+        var page=Math.Clamp(filter.Page,1,1000000);var size=Math.Clamp(filter.PageSize,1,100);
+        var records=await query.OrderByDescending(x=>x.StartedAt).ThenByDescending(x=>x.Id).ToArrayAsync(ct);var rows=records.Skip((page-1)*size).Take(size).ToArray();
+        return new(await listReader.ReadEventsAsync(rows,ct),records.Length,page,size);
     }
     public async Task<AlertEventDto> ActAsync(ActorContext actor,Guid id,AlertAction input,string etag,CancellationToken ct)
     {

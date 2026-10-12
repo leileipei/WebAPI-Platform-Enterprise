@@ -29,20 +29,10 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
     {
         var scope=await scopes.EnvironmentAsync(environmentId,ct);if(!await auth.CanAsync(actor,"route.read",new("environment",environmentId,scope),ct)) throw ScopeResolver.Missing();
         page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
-        var query=db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId);
-        // Preserve the legacy CurrentCulture path comparer, including Unicode-equal ties.
-        // Approved exception: read all lightweight keys; full records and bindings stay page-local.
-        var keys=await query.Select(r=>new {r.Id,r.Path,r.Priority}).ToArrayAsync(ct);
-        var total=keys.Length;
-        var ids=keys.OrderBy(r=>RouteNormalizer.MatchOrder(r.Path,r.Priority)).ThenBy(r=>r.Path).ThenBy(r=>r.Id)
-            .Skip((page-1)*size).Take(size).Select(r=>r.Id).ToArray();
-        if(ids.Length==0)return new(Array.Empty<RouteDto>(),total,page,size);
-        var records=await query.Where(r=>ids.Contains(r.Id)).ToArrayAsync(ct);
-        var byId=records.ToDictionary(r=>r.Id);
-        var routes=ids.Where(byId.ContainsKey).Select(id=>byId[id]).ToArray();
-        var effective=await listReader.ReadEffectiveAsync(routes,ct);
-        var result=routes.Select(r=>Dto(r,effective[r.Id].RequireApiKey) with {EffectiveTimeoutMs=effective[r.Id].TimeoutMs??r.TimeoutMs,EffectiveAuthenticationMode=effective[r.Id].Authentication?.Mode==AuthenticationMode.JWT?"JWT":null}).ToArray();
-        return new(result,total,page,size);
+        _ = listReader; // Keep the common DI signature; this baseline resolves each route individually.
+        var routes=await db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId).ToArrayAsync(ct);
+        var result=new List<RouteDto>();foreach(var route in routes)result.Add(await EffectiveDtoAsync(route,ct));
+        return new(result.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Path).ThenBy(r=>r.Id).Skip((page-1)*size).Take(size).ToArray(),routes.Length,page,size);
     }
     public async Task<RouteDto> GetAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {var route=await db.Set<ApiRoute>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(route.EnvironmentId,ct);if(!await auth.CanAsync(actor,"route.read",new("route",id,scope),ct)) throw ScopeResolver.Missing();return await EffectiveDtoAsync(route,ct);}

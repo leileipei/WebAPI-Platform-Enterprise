@@ -20,10 +20,11 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
     {
         await visibility.RequireActiveActorAsync(actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
         var visible=visibility.Scopes(actor,"app.read");
-        var query=db.Set<ApplicationRecord>().AsNoTracking().Where(a=>visible.Any(s=>s.OrganizationId==a.OrganizationId&&s.ProjectId==a.ProjectId&&s.EnvironmentId==null));
-        var total=await query.CountAsync(ct);
-        var rows=await query.OrderBy(a=>a.Code).ThenBy(a=>a.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
-        return new(rows.Select(Dto).ToArray(),total,page,size);
+        var candidates=await db.Set<ApplicationRecord>().AsNoTracking().OrderBy(a=>a.Code).ThenBy(a=>a.Id).ToArrayAsync(ct);
+        var rows=new List<ApplicationRecord>();
+        foreach(var application in candidates)
+            if(await visible.AnyAsync(s=>s.OrganizationId==application.OrganizationId&&s.ProjectId==application.ProjectId&&s.EnvironmentId==null,ct))rows.Add(application);
+        return new(rows.Skip((page-1)*size).Take(size).Select(Dto).ToArray(),rows.Count,page,size);
     }
     public async Task<ApplicationDetailDto> DetailAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {

@@ -73,9 +73,9 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
     {
         var scope=await scopes.EnvironmentAsync(envId,ct);if(!await auth.CanAsync(actor,"release.read",new("environment",envId,scope),ct)) throw ScopeResolver.Missing();
         page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
-        var query=db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.EnvironmentId==envId);var total=await query.CountAsync(ct);
-        var rows=await query.OrderByDescending(r=>r.CreatedAt).ThenByDescending(r=>r.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
-        return new(await listReader.ReadAsync(rows,actor,ct),total,page,size);
+        var records=await db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.EnvironmentId==envId).OrderByDescending(r=>r.CreatedAt).ThenByDescending(r=>r.Id).ToArrayAsync(ct);
+        var rows=records.Skip((page-1)*size).Take(size).ToArray();
+        return new(await listReader.ReadAsync(rows,actor,ct),records.Length,page,size);
     }
     private async Task<ReleaseDto> RunCommandAsync(Guid id,ActorContext actor,string operation,string permission,object normalized,Func<ReleaseRecord,ScopeRef,CancellationToken,Task<ReleaseDto>> command,CancellationToken ct)
     {

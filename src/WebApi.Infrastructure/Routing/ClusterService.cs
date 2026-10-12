@@ -18,13 +18,13 @@ public sealed class ClusterService(WebApiDbContext db,AuthorizationService auth,
     {
         var scope=await scopes.EnvironmentAsync(environmentId,ct);if(!await auth.CanAsync(actor,"cluster.read",new("environment",environmentId,scope),ct)) throw ScopeResolver.Missing();
         page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
-        var query=db.Set<UpstreamCluster>().AsNoTracking().Where(c=>c.EnvironmentId==environmentId);var total=await query.CountAsync(ct);
-        var clusters=await query.OrderBy(c=>c.Name).ThenBy(c=>c.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
-        if(clusters.Length==0)return new([],total,page,size);
-        var ids=clusters.Select(c=>c.Id).ToArray();
-        var destinations=(await db.Set<UpstreamDestination>().AsNoTracking().Where(d=>ids.Contains(d.ClusterId)).OrderBy(d=>d.Name).ThenBy(d=>d.Id).ToArrayAsync(ct)).ToLookup(d=>d.ClusterId);
-        var result=clusters.Select(c=>new ClusterDto(c.Id,c.ProjectId,c.EnvironmentId,c.Name,c.LoadBalancingPolicy,c.HealthCheckEnabled,c.HealthCheckPath,c.HealthCheckIntervalSec,c.Status,c.Revision,destinations[c.Id].Select(Dto).ToArray())).ToArray();
-        return new(result,total,page,size);
+        var candidates=await db.Set<UpstreamCluster>().AsNoTracking().Where(c=>c.EnvironmentId==environmentId).OrderBy(c=>c.Name).ThenBy(c=>c.Id).ToArrayAsync(ct);
+        var clusters=candidates.Skip((page-1)*size).Take(size).ToArray();var result=new List<ClusterDto>();
+        foreach(var cluster in clusters){
+            var destinations=await db.Set<UpstreamDestination>().AsNoTracking().Where(d=>d.ClusterId==cluster.Id).OrderBy(d=>d.Name).ThenBy(d=>d.Id).ToArrayAsync(ct);
+            result.Add(new(cluster.Id,cluster.ProjectId,cluster.EnvironmentId,cluster.Name,cluster.LoadBalancingPolicy,cluster.HealthCheckEnabled,cluster.HealthCheckPath,cluster.HealthCheckIntervalSec,cluster.Status,cluster.Revision,destinations.Select(Dto).ToArray()));
+        }
+        return new(result,candidates.Length,page,size);
     }
     public async Task<CommandResult<ClusterDto>> SaveAsync(Guid environmentId,Guid? id,SaveClusterRequest request,string? tag,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.EnvironmentAsync(environmentId,ct);return await commands.ExecuteAsync(actor,scope,"cluster.save",async(_,token)=>{

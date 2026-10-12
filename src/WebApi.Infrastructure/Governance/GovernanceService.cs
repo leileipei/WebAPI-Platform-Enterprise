@@ -100,7 +100,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
     private async Task ValidateFlowAsync(Guid? id,Guid org,CancellationToken ct) {if(id is not null && !await db.Set<ApprovalFlow>().AnyAsync(f=>f.Id==id&&f.OrganizationId==org&&f.Enabled,ct)) throw new ApiException(422,"invalid_approval_flow","审批流程不存在或属于其他组织。");}
     public async Task<PageResult<UserDto>> UsersAsync(ActorContext actor,int page=1,int pageSize=50,CancellationToken ct=default)
     {
-        await Require(actor,"user.manage",platform,Guid.Empty,ct);page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var query=db.Set<UserRecord>().AsNoTracking();var total=await query.CountAsync(ct);var list=await query.OrderBy(x=>x.Username).ThenBy(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).ToArrayAsync(ct);
+        await Require(actor,"user.manage",platform,Guid.Empty,ct);page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var records=await db.Set<UserRecord>().AsNoTracking().OrderBy(x=>x.Username).ThenBy(x=>x.Id).ToArrayAsync(ct);var total=records.Length;var list=records.Skip((page-1)*pageSize).Take(pageSize).ToArray();
         if(list.Length==0)return new([],total,page,pageSize);
         var ids=list.Select(u=>u.Id).ToArray();var roles=(await db.Set<UserRole>().AsNoTracking().Where(r=>ids.Contains(r.UserId)).Select(r=>new {r.UserId,r.RoleId}).ToArrayAsync(ct)).ToLookup(r=>r.UserId,r=>r.RoleId);
         var result=list.Select(u=>new UserDto(u.Id,u.Username,u.DisplayName,u.Email,u.Status,u.AuthSource,u.Revision,roles[u.Id].ToArray())).ToArray();return new(result,total,page,pageSize);
