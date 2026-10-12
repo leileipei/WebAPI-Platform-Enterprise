@@ -316,3 +316,17 @@ test('activation_failure_preserves_private_response_and_only_selected_public_met
   const privateFile=path.join(owner.directory,'activation-response-gateway-a-40.json');assert.equal(fs.statSync(privateFile).mode&0o777,0o600);assert.equal(JSON.parse(fs.readFileSync(privateFile,'utf8')).body.includes(canary),true);
  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));fs.rmSync(root,{recursive:true,force:true});}
 });
+
+test('mutable harness export removes deleted renamed and archived-only inputs from fingerprint scope',async()=>{
+ const {exportValidationInputs}=await import('./sources.mjs');const directory=fs.mkdtempSync(path.join(os.tmpdir(),'harness-exact-export-')),repo=path.join(directory,'repo');fs.mkdirSync(repo);
+ const git=(...args)=>{const r=spawnSync('git',['-C',repo,...args],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
+ try{
+  for(const file of ['src/product.cs','tools/WebApi.PerformanceHost/Deleted.cs','tools/WebApi.PerformanceHost/Renamed.cs','tools/WebApi.PerformanceHost/bin/Old.cs','scripts/performance/removed.mjs','deploy/compose.performance.yml','deploy/performance/Dockerfile','scripts/check-gateway-query-performance.sh']){fs.mkdirSync(path.dirname(path.join(repo,file)),{recursive:true});fs.writeFileSync(path.join(repo,file),'old:'+file);}
+  git('init','-q');git('add','-f','.');git('-c','user.name=Performance Test','-c','user.email=performance@invalid.test','commit','-qm','fixed fixture');const fixed=git('rev-parse','HEAD');
+  fs.unlinkSync(path.join(repo,'tools/WebApi.PerformanceHost/Deleted.cs'));fs.renameSync(path.join(repo,'tools/WebApi.PerformanceHost/Renamed.cs'),path.join(repo,'tools/WebApi.PerformanceHost/NewName.cs'));fs.unlinkSync(path.join(repo,'scripts/performance/removed.mjs'));fs.writeFileSync(path.join(repo,'scripts/performance/new.mjs'),'new');
+  const target=path.join(directory,'export'),identity=await exportValidationInputs({repo,source:fixed,harness:fixed,directory:target});
+  for(const absent of ['tools/WebApi.PerformanceHost/Deleted.cs','tools/WebApi.PerformanceHost/Renamed.cs','tools/WebApi.PerformanceHost/bin/Old.cs','scripts/performance/removed.mjs'])assert.equal(fs.existsSync(path.join(target,absent)),false,absent);
+  const actual=[];for(const root of ['tools/WebApi.PerformanceHost','scripts/performance','deploy/compose.performance.yml','deploy/performance/Dockerfile','scripts/check-gateway-query-performance.sh']){const walk=p=>{if(fs.statSync(path.join(target,p)).isDirectory())for(const n of fs.readdirSync(path.join(target,p)))walk(path.join(p,n));else actual.push(p);};walk(root);}
+  assert.deepEqual(actual.sort(),Object.keys(identity.harnessFiles).sort());assert.equal(fs.readFileSync(path.join(target,'src/product.cs'),'utf8'),'old:src/product.cs');
+ }finally{fs.rmSync(directory,{recursive:true,force:true});}
+});

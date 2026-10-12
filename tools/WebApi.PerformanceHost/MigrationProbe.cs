@@ -179,6 +179,7 @@ public static class MigrationProbe
         var inspection=await InspectAsync(db,ct);
         return new(1,result,applied,inspection.Indexes,LegacySchemaHash(result),Hash(CanonicalJson.Serialize(result)));
     }
+    public static Task<LegacyContract> CaptureCurrentContractAsync(WebApiDbContext db,CancellationToken ct=default)=>ReadLegacyAsync(db,null,true,ct);
     public static async Task<LegacyContract> CaptureLegacyAsync(WebApiDbContext db,CancellationToken ct=default)=>await ReadLegacyAsync(db,null,false,ct);
     public static async Task<CompatibleMigrationEvidence> ApplyCompatibleAsync(WebApiDbContext db,LegacyContract baseline,CancellationToken ct=default)
     {

@@ -82,6 +82,50 @@ public sealed class PerformanceMigrationTests
         });
         await Assert.ThrowsAsync<InvalidDataException>(()=>CompatibilityCall("ApplyCompatibleAsync",db,original,CancellationToken.None));
     }
+    [Fact]
+    public async Task CurrentContractChecksFullTargetSchemaWithoutMigration()
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();await db.Database.MigrateAsync();
+        const string canary="current-contract-private-canary";db.Add(new Organization{Code="current-contract",Name=canary});await db.SaveChangesAsync();db.ChangeTracker.Clear();
+        var before=await MigrationProbe.InspectAsync(db);
+        var contract=Assert.IsType<LegacyContract>(await CompatibilityCall("CaptureCurrentContractAsync",db,CancellationToken.None));
+        var after=await MigrationProbe.InspectAsync(db);
+        Assert.Equal(before.AppliedMigrations,contract.AppliedMigrations);Assert.Equal(before.BusinessFingerprint,after.BusinessFingerprint);
+        Assert.Equal(before.Tables.Select(t=>t.Name).Order(),contract.Tables.Select(t=>t.Name).Order());
+        Assert.All(contract.Tables,t=>{Assert.Equal(t.Columns.Count,t.ColumnTypes.Count);Assert.Equal(t.Columns.Count,t.NotNull.Count);Assert.NotEmpty(t.Primary);});
+        Assert.DoesNotContain(canary,JsonSerializer.Serialize(contract,CanonicalJson.Options));
+        Assert.Equal(canary,(await db.Set<Organization>().SingleAsync()).Name);
+    }
+    [Theory]
+    [InlineData("varchar")]
+    [InlineData("not-null")]
+    [InlineData("new-table-field")]
+    [InlineData("primary")]
+    public async Task CurrentContractRejectsTargetDrift(string fault)
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();await db.Database.MigrateAsync();
+        await CompatibilityCall("CaptureCurrentContractAsync",db,CancellationToken.None);
+        await db.Database.ExecuteSqlRawAsync(fault switch{
+            "varchar"=>"ALTER TABLE organizations ALTER COLUMN name TYPE text",
+            "not-null"=>"ALTER TABLE organizations ALTER COLUMN name DROP NOT NULL",
+            "new-table-field"=>"ALTER TABLE release_pipelines ADD COLUMN unapproved_field text",
+            _=>"ALTER TABLE organizations DROP CONSTRAINT \"PK_organizations\" CASCADE; ALTER TABLE organizations ADD PRIMARY KEY(code)"
+        });
+        var history=(await db.Database.GetAppliedMigrationsAsync()).ToArray();
+        await Assert.ThrowsAsync<InvalidDataException>(()=>CompatibilityCall("CaptureCurrentContractAsync",db,CancellationToken.None));
+        Assert.Equal(history,await db.Database.GetAppliedMigrationsAsync());
+    }
+    [Fact]
+    public async Task CurrentContractAllowsApprovedIndexAbsence()
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();await db.Database.MigrateAsync();
+        var before=Assert.IsType<LegacyContract>(await CompatibilityCall("CaptureCurrentContractAsync",db,CancellationToken.None));
+        await db.Database.ExecuteSqlRawAsync("DROP INDEX ix_api_routes_environment_order_path_id; DROP INDEX ix_policies_organization_name_id; DROP INDEX ix_alert_rules_organization_name_id; DROP INDEX ix_alert_events_organization_project_started_id");
+        var after=Assert.IsType<LegacyContract>(await CompatibilityCall("CaptureCurrentContractAsync",db,CancellationToken.None));
+        var inspection=await MigrationProbe.InspectAsync(db);
+        Assert.False(inspection.ModelMatched);Assert.Equal(before.Fingerprint,after.Fingerprint);Assert.Equal(before.SchemaHash,after.SchemaHash);
+        Assert.Equal(before.AppliedMigrations,after.AppliedMigrations);Assert.Equal(before.Indexes.Count-4,after.Indexes.Count);
+    }
     private const string ApprovedRouteIndexSql="CREATE INDEX ix_api_routes_environment_order_path_id ON api_routes (environment_id, ((CASE WHEN normalized_path LIKE '%{*}%' THEN 2 WHEN normalized_path LIKE '%{}%' THEN 1 ELSE 0 END) * 2000000 - priority), path, id);";
     [Fact]
     public async Task ApprovedExpressionIndexUsesActualTransactionalDdlAndRollsBackOnFault()
