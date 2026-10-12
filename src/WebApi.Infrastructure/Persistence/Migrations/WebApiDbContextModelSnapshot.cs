@@ -2774,6 +2774,53 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.ToTable("release_artifacts", (string)null);
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseFrozenContract", b =>
+                {
+                    b.Property<Guid>("ReleaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("release_id");
+
+                    b.Property<int>("Ordinal")
+                        .HasColumnType("integer")
+                        .HasColumnName("ordinal");
+
+                    b.Property<Guid>("ApiId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("api_id");
+
+                    b.Property<Guid>("ApiVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("api_version_id");
+
+                    b.Property<long>("ConfigVersion")
+                        .HasColumnType("bigint")
+                        .HasColumnName("config_version");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<string>("FrozenJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("frozen_json");
+
+                    b.HasKey("ReleaseId", "Ordinal");
+
+                    b.HasIndex("ReleaseId", "EnvironmentId");
+
+                    b.HasIndex("EnvironmentId", "ApiId", "ApiVersionId", "ConfigVersion", "ReleaseId", "Ordinal")
+                        .IsDescending(false, false, false, true, false, false)
+                        .HasDatabaseName("ix_frozen_contract_lookup");
+
+                    b.ToTable("release_frozen_contracts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_frozen_contract_identity", "COALESCE(jsonb_typeof(frozen_json->'api')='object' AND jsonb_typeof(frozen_json->'version')='object' AND jsonb_typeof(frozen_json->'parameters')='array' AND jsonb_typeof(frozen_json->'schemas')='array' AND frozen_json->'api'->>'id'=api_id::text AND frozen_json->'version'->>'id'=api_version_id::text AND frozen_json->'version'->>'apiId'=api_id::text, false)");
+
+                            t.HasCheckConstraint("ck_frozen_contract_version", "config_version > 0 AND ordinal > 0");
+                        });
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2988,10 +3035,6 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<DateTimeOffset?>("ProjectionCheckedAt")
-                        .HasColumnType("timestamptz")
-                        .HasColumnName("projection_checked_at");
-
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("completed_at");
@@ -3035,6 +3078,10 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("project_id");
 
+                    b.Property<DateTimeOffset?>("ProjectionCheckedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("projection_checked_at");
+
                     b.Property<long>("Revision")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
@@ -3076,9 +3123,6 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasDefaultValue("Active")
                         .HasColumnName("status");
 
-                    b.HasIndex("Status", "ProjectionCheckedAt", "Id")
-                        .HasDatabaseName("ix_pipeline_projection_due");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedBy");
@@ -3093,6 +3137,9 @@ namespace WebApi.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ProjectId", "CreatedAt", "Id")
                         .IsDescending(false, true, true);
+
+                    b.HasIndex("Status", "ProjectionCheckedAt", "Id")
+                        .HasDatabaseName("ix_pipeline_projection_due");
 
                     b.HasIndex("RootArtifactId", "ProjectId", "SourceEnvironmentId", "SourceReleaseId");
 
@@ -5525,6 +5572,16 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
                         .WithMany()
                         .HasForeignKey("SourceReleaseId", "SourceEnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ReleaseFrozenContract", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ReleaseRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ReleaseId", "EnvironmentId")
                         .HasPrincipalKey("Id", "EnvironmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();

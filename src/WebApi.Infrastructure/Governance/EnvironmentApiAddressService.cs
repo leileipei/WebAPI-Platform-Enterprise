@@ -16,10 +16,10 @@ public sealed class EnvironmentApiAddressService(WebApiDbContext db,Authorizatio
 {
     public async Task<EnvironmentApiAccessDto> GetAsync(Guid envId,Guid apiId,Guid? versionId,AccessView view,ActorContext actor,CancellationToken ct=default)
     {
-        var selection=await SelectAsync(envId,apiId,versionId,view,actor,ct);var e=selection.Environment;
+        var selection=await SelectAsync(envId,apiId,versionId,view,actor,ct,includeContracts:false);var e=selection.Environment;
         return new(e.Id,e.AccessAddressRevision,e.GatewayPublicUrl is not null,view,selection.Routes.Select(r=>new RouteAccessDto(r.Id,r.Method,r.Path,e.GatewayPublicUrl is null?null:ClientApiAddressBuilder.BuildTemplate(e.GatewayPublicUrl,e.BasePath,r.Path),selection.InternalAllowed&&e.GatewayInternalUrl is not null?ClientApiAddressBuilder.BuildTemplate(e.GatewayInternalUrl,e.BasePath,r.Path):null,selection.RunningConfigVersion)).ToArray());
     }
-    internal async Task<AccessSelection> SelectAsync(Guid envId,Guid apiId,Guid? versionId,AccessView view,ActorContext actor,CancellationToken ct)
+    internal async Task<AccessSelection> SelectAsync(Guid envId,Guid apiId,Guid? versionId,AccessView view,ActorContext actor,CancellationToken ct,bool includeContracts=true)
     {
         var scope=await scopes.EnvironmentAsync(envId,ct);var apiScope=await scopes.ApiAsync(apiId,ct);
         if(scope.OrganizationId!=apiScope.OrganizationId||scope.ProjectId!=apiScope.ProjectId)throw ScopeResolver.Missing();
@@ -32,7 +32,7 @@ public sealed class EnvironmentApiAddressService(WebApiDbContext db,Authorizatio
         {
             var routes=await db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==envId&&r.Enabled&&db.Set<ApiVersion>().Any(v=>v.Id==r.ApiVersionId&&v.ApiId==apiId)&&(versionId==null||r.ApiVersionId==versionId)).OrderBy(r=>r.Path).ThenBy(r=>r.Id).ToArrayAsync(ct);
             rows.AddRange(routes.SelectMany(r=>r.Methods.Select(m=>(r.Id,r.ApiVersionId,r.Path,m))));
-            foreach(var id in rows.Select(r=>r.VersionId).Distinct())
+            foreach(var id in rows.Select(r=>r.VersionId).Distinct().Where(_=>includeContracts))
             {
                 var v=await db.Set<ApiVersion>().AsNoTracking().SingleAsync(x=>x.Id==id,ct);var a=await db.Set<Api>().AsNoTracking().SingleAsync(x=>x.Id==apiId,ct);
                 var parameters=await db.Set<ApiParameter>().AsNoTracking().Where(x=>x.ApiVersionId==id).Select(x=>new WebApi.Contracts.Catalog.ParameterDto(x.Id,id,x.Location,x.Name,x.DataType,x.Required,x.Schema,x.Description,x.ExampleJson)).ToArrayAsync(ct);
@@ -44,7 +44,7 @@ public sealed class EnvironmentApiAddressService(WebApiDbContext db,Authorizatio
         {
             running=e.DesiredConfigVersion;
             if(running is null||running==0)throw Unconfirmed();
-            var release=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(x=>x.EnvironmentId==envId&&x.ToConfigVersion==running&&x.DeploymentSequence==e.DeploymentSequence&&x.Status=="Succeeded",ct);
+            var release=await db.Set<ReleaseRecord>().AsNoTracking().Where(x=>x.EnvironmentId==envId&&x.ToConfigVersion==running&&x.DeploymentSequence==e.DeploymentSequence&&x.Status=="Succeeded").Select(x=>new ReleaseRecord{Id=x.Id,ToConfigVersion=x.ToConfigVersion,DeploymentSequence=x.DeploymentSequence}).SingleOrDefaultAsync(ct);
             var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>x.EnvironmentId==envId&&x.Enabled).ToArrayAsync(ct);var threshold=DateTimeOffset.UtcNow.AddSeconds(-120);
             if(release is null||nodes.Length<2||nodes.Any(n=>n.CurrentConfigVersion!=running||n.CurrentDeploymentSequence!=e.DeploymentSequence||n.LastHeartbeatAt is null||n.LastHeartbeatAt<threshold))throw Unconfirmed();
             var targets=await db.Set<ReleaseTarget>().AsNoTracking().Where(t=>t.ReleaseId==release.Id).ToArrayAsync(ct);
@@ -55,10 +55,10 @@ public sealed class EnvironmentApiAddressService(WebApiDbContext db,Authorizatio
             var routes=snapshot.Routes.Where(r=>r.ApiId==apiId&&(versionId==null||r.ApiVersionId==versionId)).ToArray();
             if(versionId is not null&&routes.Length==0)throw new ApiException(409,"version_not_running","所选版本未在该环境运行。");
             rows.AddRange(routes.SelectMany(r=>r.Methods.Select(m=>(r.Id,r.ApiVersionId,r.Path,m))));
-            var origins=await db.Set<ReleaseRecord>().AsNoTracking().Where(x=>x.EnvironmentId==envId&&x.ReleaseType=="publish"&&x.ToConfigVersion<=running&&x.ToConfigVersion>0&&x.CandidateBytes!=null&&x.ApprovalPolicy!=null).OrderByDescending(x=>x.ToConfigVersion).ToArrayAsync(ct);
             foreach(var id in routes.Select(r=>r.ApiVersionId).Distinct())
             {
-                var frozen=origins.Select(x=>JsonSerializer.Deserialize<FrozenReleaseCandidate>(x.CandidateBytes!,CanonicalJson.Options)!).SelectMany(x=>x.Versions).FirstOrDefault(x=>x.Version.Id==id&&x.Api.Id==apiId)??throw new ApiException(422,"historical_contract_missing","运行版本的冻结契约缺失。");versions.Add(frozen);
+                var frozen=await FrozenContractSource.ReadAsync(db,envId,apiId,id,running.Value,includeContracts,ct);
+                if(frozen is not null)versions.Add(frozen);
             }
         }
         else throw new ApiException(422,"invalid_access_view","请选择 working 或 running 视图。");
