@@ -8,6 +8,30 @@ import {runComparison} from './comparison-runner.mjs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 const hash='a'.repeat(64);
+test('comparison_driver_has_no_unresolved_lexical_names_in_completion_paths',async()=>{
+  const {createRequire}=await import('node:module'),repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+  const ts=createRequire(path.join(repo,'console/package.json'))('typescript'),file=path.join(repo,'scripts/performance/comparison-runner.mjs');
+  const program=ts.createProgram([file],{allowJs:true,checkJs:true,noEmit:true,target:ts.ScriptTarget.ESNext,module:ts.ModuleKind.NodeNext,moduleResolution:ts.ModuleResolutionKind.NodeNext});
+  const unresolved=program.getSemanticDiagnostics(program.getSourceFile(file)).filter(d=>d.code===2304||d.code===18004);
+  assert.deepEqual(unresolved.map(d=>ts.flattenDiagnosticMessageText(d.messageText,' ')),[]);
+});
+test('failed_management_preflight_cannot_start_gateway_measurements',async()=>{
+  const runner=await import('./comparison-runner.mjs');assert.equal(typeof runner.afterManagementPreflight,'function');
+  await assert.rejects(()=>runner.afterManagementPreflight({preflight:undefined,prepareManagement:async()=>({complete:false}),measureGateway:async()=>{throw Error('Gateway wrongly started');}}),/management preflight incomplete/i);
+});
+test('management_only_preflight_returns_no_gateway_windows',async()=>{
+  const runner=await import('./comparison-runner.mjs');assert.equal(typeof runner.afterManagementPreflight,'function');
+  const result=await runner.afterManagementPreflight({preflight:'management',prepareManagement:async()=>({complete:true}),measureGateway:async()=>{throw Error('Gateway wrongly started');}});
+  assert.deepEqual(result.cells,[]);assert.equal(result.complete,false);assert.equal(result.managementOnly,true);
+});
+test('management_preflight_is_explicit_and_cannot_be_a_gateway_performance_run',()=>{
+  const fixed=['--baseline','a'.repeat(40),'--candidate','b'.repeat(40),'--harness','c'.repeat(40)];
+  assert.equal(parseArguments(['compare',...fixed,'--preflight','management','--output','/tmp/management-preflight']).preflight,'management');
+  assert.equal(parseArguments(['validate','--diagnostic','compare',...fixed,'--preflight','management','--output','/tmp/management-preflight']).preflight,'management');
+  for(const mode of ['baseline','explain','migration'])assert.throws(()=>parseArguments([mode,...fixed,'--preflight','management','--output','/tmp/management-preflight']),/preflight/i);
+  assert.throws(()=>parseArguments(['compare',...fixed,'--preflight','anything','--output','/tmp/management-preflight']),/preflight/i);
+  assert.throws(()=>parseArguments(['validate','--diagnostic','compare','--baseline','a'.repeat(40),'--preflight','management','--output','/tmp/management-preflight']),/source|commit/i);
+});
 test('comparison_execution_is_serial_records_actual_order_and_stops_on_failed_cell',async()=>{
   const pairs=buildComparisonPairs().slice(0,2),events=[];let active=0;
   const run=await executeComparisonPairs({pairs,switchVariant:async c=>{assert.equal(active,0);events.push('switch:'+c.variant);},measure:async c=>{active++;events.push('measure:'+c.variant);await new Promise(r=>setTimeout(r,1));active--;return {...c,expected:1,unexpected:0,timeout:0,incomplete:0,complete:true};}});

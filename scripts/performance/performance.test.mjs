@@ -20,6 +20,17 @@ import {classifyMeasurement} from './classification.mjs';
 
 const owner='d09a7407-3d06-45be-932b-5037422a89d2';
 const manifest={owner,project:`webapi-performance-${owner}`};
+test('mutable_harness_validation_exports_fixed_product_without_current_src_overlay',async()=>{
+  const sources=await import('./sources.mjs');assert.equal(typeof sources.exportValidationInputs,'function');
+  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),source='40759aac50f1a6281223b0ec0d45d58e6fb44cb5',harness='9f4d114c61df320aa13499dd608b605410bbecd6';
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'webapi-fixed-product-validation-'));
+  try{
+    const target=path.join(directory,'source');const identity=await sources.exportValidationInputs({repo,source,harness,directory:target});
+    assert.equal(identity.source,source);assert.equal(identity.harness,'working-tree-validation');assert.equal(identity.immutable,false);
+    const file='src/WebApi.Infrastructure/Governance/GovernanceService.cs';const expected=spawnSync('git',['-C',repo,'show',source+':'+file]);assert.equal(expected.status,0);assert.deepEqual(fs.readFileSync(path.join(target,file)),expected.stdout);
+    assert.deepEqual(fs.readFileSync(path.join(target,'tools/WebApi.PerformanceHost/MigrationProbe.cs')),fs.readFileSync(path.join(repo,'tools/WebApi.PerformanceHost/MigrationProbe.cs')));
+  }finally{fs.rmSync(directory,{recursive:true,force:true});}
+});
 test('sql_classification_preserves_every_command_and_requires_source_evidence',()=>{
   const source='a'.repeat(40),other='b'.repeat(40),authHash='c'.repeat(64),dataHash='d'.repeat(64),unknownHash='e'.repeat(64);
   const map={schemaVersion:1,sourceCommits:[source],rules:{[authHash]:{classification:'authorization',reason:'Active actor check',sourceRefs:[{commit:source,path:'src/WebApi.Infrastructure/Security/AuthorizationService.cs',line:13}]},[dataHash]:{classification:'data',reason:'Page resource projection',sourceRefs:[{commit:source,path:'src/WebApi.Infrastructure/Catalog/CatalogService.cs',line:19}]}}};

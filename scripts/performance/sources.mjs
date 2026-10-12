@@ -17,7 +17,7 @@ export async function hashHarnessFiles(directory,files){
 export function parseArguments(args){
   const [mode,...rest]=args;
   if(!['validate','baseline','compare','explain','migration','cleanup'].includes(mode))throw Error('Invalid performance mode');
-  const parsed={mode};const allowed=new Set(['baseline','candidate','harness','output','owner-manifest','compose','sql-audit','classifications','diagnostic','diagnostic-auth']);
+  const parsed={mode};const allowed=new Set(['baseline','candidate','harness','output','owner-manifest','compose','sql-audit','classifications','diagnostic','diagnostic-auth','preflight']);
   for(let i=0;i<rest.length;i+=2){
     const key=rest[i].startsWith('--')?rest[i].slice(2):'';
     if(!allowed.has(key)||key in parsed||!rest[i+1]||rest[i+1].startsWith('--'))throw Error('Invalid or duplicate performance argument');
@@ -27,6 +27,8 @@ export function parseArguments(args){
   if(parsed['sql-audit']&&['compare','migration','resources'].includes(parsed.diagnostic))throw Error('SQL audit is not supported by comparison/migration/resource diagnostics');
   if(parsed.diagnostic&&(mode!=='validate'||!['explain','migration','compare','resources'].includes(parsed.diagnostic)))throw Error('Diagnostic validation must be explicit EXPLAIN/migration/comparison/resource validation, never a performance window');
   if(parsed['diagnostic-auth']&&(mode!=='validate'||parsed.diagnostic!=='resources'||!['anonymous','api-key','missing-key','rs256','es256','wrong-secret','no-mapping','no-grant'].includes(parsed['diagnostic-auth'])))throw Error('Diagnostic auth is allowed only for explicit resource diagnostics');
+  if(parsed.preflight&&(parsed.preflight!=='management'||!(mode==='compare'||mode==='validate'&&parsed.diagnostic==='compare')))throw Error('Management preflight is allowed only for explicit comparisons');
+  if(mode==='validate'&&parsed.diagnostic==='compare'&&['baseline','candidate','harness'].some(k=>parsed[k]!==undefined))for(const key of ['baseline','candidate','harness'])if(!commitPattern.test(parsed[key]??''))throw Error('All fixed product/source commits required for comparison validation');
   if(mode==='cleanup'){if(!parsed['owner-manifest']||!parsed.compose)throw Error('Cleanup requires owner manifest and compose file');return parsed;}
   if(mode!=='validate')for(const key of mode==='baseline'?['baseline','harness']:['baseline','candidate','harness'])if(!commitPattern.test(parsed[key]??''))throw Error(`Immutable ${key} commit required`);
   if(!parsed.output)throw Error('Output directory required');parsed.output=path.resolve(parsed.output);
@@ -53,4 +55,17 @@ export async function exportInputs({repo,source,harness,directory}){
     await git('archive','--format=tar','--output='+harnessTar,harness,...overlay);await exec('tar',['-xf',harnessTar,'-C',directory]);
   }finally{await fs.rm(scratch,{recursive:true,force:true});}
   return {source,harness,productTree,harnessTree,overlayFiles:overlay.length,...await hashHarnessFiles(directory,overlay)};
+}
+// Explicit mutable protocol diagnostics may compile two fixed products with the
+// same working harness. Source src never comes from the working tree; the result
+// cannot satisfy an immutable baseline/comparison completion gate.
+export async function exportValidationInputs({repo,source,harness,directory}){
+  const fixed=await exportInputs({repo,source,harness,directory});
+  const files=Object.keys(fixed.harnessFiles);
+  for(const file of files){
+    const origin=path.join(repo,file),target=path.join(directory,file),info=await fs.lstat(origin);
+    if(!info.isFile()||info.isSymbolicLink()||await fs.realpath(origin)!==path.join(await fs.realpath(repo),file))throw Error('Validation harness input must be a regular source file');
+    await fs.copyFile(origin,target);
+  }
+  return {...fixed,harness:'working-tree-validation',harnessTree:'working-tree-validation',fixedHarnessParent:harness,immutable:false,immutableProduct:true,...await hashHarnessFiles(directory,files)};
 }

@@ -11,6 +11,77 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class PerformanceMigrationTests
 {
+    private static async Task<object> CompatibilityCall(string method,params object[] arguments)
+    {
+        var entry=typeof(MigrationProbe).GetMethod(method);
+        Assert.NotNull(entry);
+        var task=Assert.IsAssignableFrom<Task>(entry.Invoke(null,arguments));await task;
+        return task.GetType().GetProperty("Result")!.GetValue(task)!;
+    }
+    [Fact]
+    public async Task BusinessCompatibilityPreservesOriginalColumnsWhileAcceptingNewSchema()
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();
+        await db.GetService<IMigrator>().MigrateAsync("20261008030000_ExternalNotifications");
+        const string canary="compatibility-private-record";db.Add(new Organization{Code="compatibility",Name=canary});await db.SaveChangesAsync();db.ChangeTracker.Clear();
+        var original=await CompatibilityCall("CaptureLegacyAsync",db,CancellationToken.None);
+        var json=JsonSerializer.Serialize(original,CanonicalJson.Options);Assert.DoesNotContain(canary,json);
+        var upgraded=await CompatibilityCall("ApplyCompatibleAsync",db,original,CancellationToken.None);
+        using var proof=JsonDocument.Parse(JsonSerializer.Serialize(upgraded,CanonicalJson.Options));var root=proof.RootElement;
+        Assert.True(root.GetProperty("complete").GetBoolean());
+        Assert.Equal(root.GetProperty("legacyBefore").GetProperty("fingerprint").GetString(),root.GetProperty("legacyAfter").GetProperty("fingerprint").GetString());
+        Assert.NotEqual(root.GetProperty("before").GetProperty("businessFingerprint").GetString(),root.GetProperty("after").GetProperty("businessFingerprint").GetString());
+        Assert.Empty(await db.Database.GetPendingMigrationsAsync());
+        Assert.Equal(canary,(await db.Set<Organization>().AsNoTracking().SingleAsync(o=>o.Code=="compatibility")).Name);
+        var repeat=await CompatibilityCall("ApplyCompatibleAsync",db,original,CancellationToken.None);
+        using var second=JsonDocument.Parse(JsonSerializer.Serialize(repeat,CanonicalJson.Options));Assert.True(second.RootElement.GetProperty("complete").GetBoolean());
+    }
+    [Theory]
+    [InlineData("data")]
+    [InlineData("extra-column")]
+    [InlineData("type")]
+    [InlineData("missing-column")]
+    [InlineData("index")]
+    [InlineData("primary")]
+    [InlineData("history")]
+    public async Task BusinessCompatibilityRejectsChangedBaselineBeforeApplyingMigration(string fault)
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();
+        await db.GetService<IMigrator>().MigrateAsync("20261008030000_ExternalNotifications");
+        db.Add(new Organization{Code="compatibility",Name="unchanged"});await db.SaveChangesAsync();db.ChangeTracker.Clear();
+        var original=await CompatibilityCall("CaptureLegacyAsync",db,CancellationToken.None);
+        var sql=fault switch{
+            "data"=>"UPDATE organizations SET name='changed' WHERE code='compatibility'",
+            "extra-column"=>"ALTER TABLE organizations ADD COLUMN compatibility_unknown_column text",
+            "type"=>"ALTER TABLE organizations ALTER COLUMN name TYPE text",
+            "missing-column"=>"ALTER TABLE organizations DROP COLUMN name",
+            "primary"=>"ALTER TABLE organizations DROP CONSTRAINT \"PK_organizations\" CASCADE; ALTER TABLE organizations ADD PRIMARY KEY(code)",
+            "history"=>"DELETE FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\"=(SELECT \"MigrationId\" FROM \"__EFMigrationsHistory\" ORDER BY \"MigrationId\" LIMIT 1)",
+            _=>"DROP INDEX \"IX_organizations_code\""
+        };await db.Database.ExecuteSqlRawAsync(sql);
+        var history=(await db.Database.GetAppliedMigrationsAsync()).ToArray();
+        await Assert.ThrowsAsync<InvalidDataException>(()=>CompatibilityCall("ApplyCompatibleAsync",db,original,CancellationToken.None));
+        Assert.Equal(history,await db.Database.GetAppliedMigrationsAsync());
+    }
+    [Theory]
+    [InlineData("new-column-type")]
+    [InlineData("new-column-nullability")]
+    [InlineData("new-table-type")]
+    [InlineData("new-table-nullability")]
+    public async Task RepeatedCompatibilityRejectsTargetSchemaDriftOutsideLegacyProjection(string fault)
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();
+        await db.GetService<IMigrator>().MigrateAsync("20261008030000_ExternalNotifications");
+        var original=await CompatibilityCall("CaptureLegacyAsync",db,CancellationToken.None);
+        await CompatibilityCall("ApplyCompatibleAsync",db,original,CancellationToken.None);
+        await db.Database.ExecuteSqlRawAsync(fault switch{
+            "new-column-type"=>"ALTER TABLE release_verifications ALTER COLUMN profile_hash TYPE text",
+            "new-column-nullability"=>"ALTER TABLE release_verifications ALTER COLUMN profile_hash SET NOT NULL",
+            "new-table-type"=>"ALTER TABLE release_pipelines ALTER COLUMN name TYPE text",
+            _=>"ALTER TABLE release_pipelines ALTER COLUMN name DROP NOT NULL"
+        });
+        await Assert.ThrowsAsync<InvalidDataException>(()=>CompatibilityCall("ApplyCompatibleAsync",db,original,CancellationToken.None));
+    }
     private const string ApprovedRouteIndexSql="CREATE INDEX ix_api_routes_environment_order_path_id ON api_routes (environment_id, ((CASE WHEN normalized_path LIKE '%{*}%' THEN 2 WHEN normalized_path LIKE '%{}%' THEN 1 ELSE 0 END) * 2000000 - priority), path, id);";
     [Fact]
     public async Task ApprovedExpressionIndexUsesActualTransactionalDdlAndRollsBackOnFault()
