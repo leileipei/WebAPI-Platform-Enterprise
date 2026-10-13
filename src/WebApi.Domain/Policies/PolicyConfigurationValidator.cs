@@ -27,9 +27,14 @@ public static class PolicyConfigurationValidator
                 "circuit_breaker" => Circuit(root, names),
                 "retry" => RetryPolicyConfiguration.Parse(root),
                 "cache" => CachePolicyConfiguration.Parse(root),
+                "cors" => CorsPolicyConfiguration.Parse(root),
+                "ip_filter" => IpFilterPolicyConfiguration.Parse(root),
+                "transform" => TransformPolicyConfiguration.Parse(root),
                 _ => throw Invalid()
             };
-            return Encoding.UTF8.GetString(CanonicalJson.Serialize(normalized));
+            var bytes = CanonicalJson.Serialize(normalized);
+            if (type is "cors" or "ip_filter" or "transform" && bytes.Length > 32768) throw Invalid();
+            return Encoding.UTF8.GetString(bytes);
         }
         catch (Exception error) when (error is JsonException or InvalidOperationException or FormatException or OverflowException)
         {
@@ -89,6 +94,21 @@ public static class PolicyConfigurationValidator
     {
         using var document = JsonDocument.Parse(Normalize("cache", config));
         return CachePolicyConfiguration.Parse(document.RootElement);
+    }
+    public static CorsConfiguration ParseCors(string config)
+    {
+        using var document = JsonDocument.Parse(Normalize("cors", config));
+        return CorsPolicyConfiguration.Parse(document.RootElement);
+    }
+    public static IpFilterConfiguration ParseIpFilter(string config)
+    {
+        using var document = JsonDocument.Parse(Normalize("ip_filter", config));
+        return IpFilterPolicyConfiguration.Parse(document.RootElement);
+    }
+    public static TransformConfiguration ParseTransform(string config)
+    {
+        using var document = JsonDocument.Parse(Normalize("transform", config));
+        return TransformPolicyConfiguration.Parse(document.RootElement);
     }
     internal static HashSet<string> Names(JsonElement root)
     {

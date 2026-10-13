@@ -16,6 +16,12 @@ public sealed class RuntimeGeneration
         Authentication=new ReadOnlyDictionary<Guid,AuthenticationConfiguration>(Snapshot.Policies.Where(p=>p.Type=="authentication").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseAuthentication(p.Config)));
         Retry=new ReadOnlyDictionary<Guid,RetryConfiguration>(Snapshot.Policies.Where(p=>p.Type=="retry").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseRetry(p.Config)));
         Cache=new ReadOnlyDictionary<Guid,CacheConfiguration>(Snapshot.Policies.Where(p=>p.Type=="cache").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseCache(p.Config)));
+        Cors=new ReadOnlyDictionary<Guid,CorsConfiguration>(Snapshot.Policies.Where(p=>p.Type=="cors").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseCors(p.Config)));
+        IpFilters=new ReadOnlyDictionary<Guid,IpFilterConfiguration>(Snapshot.Policies.Where(p=>p.Type=="ip_filter").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseIpFilter(p.Config)));
+        CompiledIpFilters=new ReadOnlyDictionary<Guid,CompiledIpFilter>(IpFilters.ToDictionary(p=>p.Key,p=>new CompiledIpFilter(p.Value)));
+        Transforms=new ReadOnlyDictionary<Guid,TransformConfiguration>(Snapshot.Policies.Where(p=>p.Type=="transform").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseTransform(p.Config)));
+        RequestBodyMappings=new ReadOnlyDictionary<Guid,CompiledJsonBodyMapping>(Transforms.Where(p=>p.Value.RequestBody is not null).ToDictionary(p=>p.Key,p=>JsonBodyMapper.Compile(p.Value.RequestBody!.Operations)));
+        ResponseBodyMappings=new ReadOnlyDictionary<Guid,CompiledJsonBodyMapping>(Transforms.Where(p=>p.Value.ResponseBody is not null).ToDictionary(p=>p.Key,p=>JsonBodyMapper.Compile(p.Value.ResponseBody!.Operations)));
         Indexes=RuntimeLookupIndex.Build(Snapshot,Authentication);
     }
     public RuntimeLookupIndex Indexes {get;}
@@ -26,6 +32,12 @@ public sealed class RuntimeGeneration
     public IReadOnlyDictionary<Guid,AuthenticationConfiguration> Authentication {get;}
     public IReadOnlyDictionary<Guid,RetryConfiguration> Retry {get;}
     public IReadOnlyDictionary<Guid,CacheConfiguration> Cache {get;}
+    public IReadOnlyDictionary<Guid,CorsConfiguration> Cors {get;}
+    public IReadOnlyDictionary<Guid,IpFilterConfiguration> IpFilters {get;}
+    internal IReadOnlyDictionary<Guid,CompiledIpFilter> CompiledIpFilters {get;}
+    public IReadOnlyDictionary<Guid,TransformConfiguration> Transforms {get;}
+    public IReadOnlyDictionary<Guid,CompiledJsonBodyMapping> RequestBodyMappings {get;}
+    public IReadOnlyDictionary<Guid,CompiledJsonBodyMapping> ResponseBodyMappings {get;}
     internal Dictionary<Guid,CircuitStateLease> CircuitLeases {get;}=[];
     private static RuntimeSnapshot Freeze(RuntimeSnapshot snapshot)=>snapshot with
     {

@@ -14,36 +14,16 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
     public static readonly object GenerationItem = new();
     public async Task InvokeAsync(HttpContext ctx, RuntimeGenerationStore store, JwtTokenVerifier verifier)
     {
-        var feature = ctx.GetReverseProxyFeature();
-        var metadata = feature.Route.Config.Metadata!;
-        using var lease = store.Acquire(long.Parse(metadata["deploymentSequence"], CultureInfo.InvariantCulture));
-        var generation = lease.Generation;
+        var execution = TrafficExecutionContext.From(ctx) ?? throw new InvalidOperationException("Routing policy context unavailable.");
+        var generation = execution.Generation;
+        var route = execution.Route;
         var indexes = generation.Indexes;
-        ctx.Items[GenerationItem] = generation;
-        // Release admission after capturing the complete route/auth generation, before I/O.
-        if (ctx.Items.TryGetValue(AdmissionGate.Item, out var ticket)) ((AdmissionGate.Ticket)ticket!).Dispose();
-        try
-        {
-            var route = indexes.Routes[Guid.Parse(metadata["runtimeRouteId"])];
-            var execution = TrafficExecutionContext.Attach(ctx, generation, route);
             var routeAuthentication = indexes.RouteAuthentication[route.Id];
             var authentication = routeAuthentication.Configuration;
             var authPolicy = routeAuthentication.Policy;
             void AuthDecision(string decision,string? reason=null){if(authentication?.Mode==AuthenticationMode.JWT&&authPolicy?.SourcePolicyId is not null&&authPolicy.SourceRevision is >0)execution.Record(authPolicy,decision,reason);}
             var mode = authentication?.Mode ?? (route.RequireApiKey ? AuthenticationMode.ApiKey : AuthenticationMode.Anonymous);
             var telemetry = RequestTelemetryState.From(ctx);
-            if (telemetry is not null)
-            {
-                var cluster = indexes.Clusters[route.ClusterId];
-                telemetry.Context = telemetry.Context with
-                {
-                    ApiId = route.ApiId, ApiVersionId = route.ApiVersionId, RouteId = route.Id,
-                    RuntimeClusterId = cluster.Id, ClusterId = cluster.SourceId ?? cluster.Id,
-                    ConfigVersion = generation.Envelope.ConfigVersion, DeploymentSequence = generation.Envelope.DeploymentSequence,
-                    PathTemplate = ctx.RequestServices.GetRequiredService<TelemetrySanitizer>().Path(route.Path),
-                    ApplicationKey = mode == AuthenticationMode.Anonymous ? "Anonymous" : "Unknown"
-                };
-            }
             var raw = ctx.Request.Headers["X-API-Key"].ToString();
             ctx.Request.Headers.Remove("X-API-Key");
             ctx.Request.Headers["X-WebApi-Deployment-Sequence"] = generation.Envelope.DeploymentSequence.ToString(CultureInfo.InvariantCulture);
@@ -88,8 +68,6 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
             AuthDecision("Allowed");
             execution.VerifiedIdentity = new(mode, app?.Id, claims);
             await next(ctx);
-        }
-        finally { ctx.Items.Remove(GenerationItem); }
     }
     private static async Task Reject(HttpContext ctx, RequestTelemetryState? telemetry, int status, string code, bool bearer = false)
     {

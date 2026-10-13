@@ -35,7 +35,7 @@ public static class CacheEligibility
         }
         return total > 8192 ? new(false, "vary_budget") : new(true, "eligible");
     }
-    public static CacheStorageRule Response(IHeaderDictionary headers, int status, DateTimeOffset requestAt, DateTimeOffset responseAt, CacheConfiguration config)
+    public static CacheStorageRule Response(IHeaderDictionary headers, int status, DateTimeOffset requestAt, DateTimeOffset responseAt, CacheConfiguration config, bool originPartitioned=false)
     {
         CacheStorageRule Bypass(string reason) => new(false, TimeSpan.Zero, 0, reason);
         if (status != 200 || headers.ContainsKey("Set-Cookie") || headers.ContainsKey("Trailer") || headers.ContainsKey("Content-Range")) return Bypass("response_ineligible");
@@ -45,7 +45,7 @@ public static class CacheEligibility
         var lifetime = control.SharedMaxAge ?? (control.Public ? control.MaxAge : null);
         if (lifetime is null || lifetime <= TimeSpan.Zero) return Bypass("no_shared_freshness");
         foreach (var name in headers.Vary.ToString().Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            if (name == "*" || !config.VaryHeaders.Contains(name, StringComparer.OrdinalIgnoreCase)) return Bypass("unsupported_vary");
+            if (name == "*" || !(originPartitioned&&name.Equals("Origin",StringComparison.OrdinalIgnoreCase))&&!config.VaryHeaders.Contains(name, StringComparer.OrdinalIgnoreCase)) return Bypass("unsupported_vary");
         var sourceDate = responseAt;
         if (headers.ContainsKey("Date") && (headers.Date.Count != 1 || !DateTimeOffset.TryParseExact(headers.Date.ToString(), "R", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out sourceDate))) return Bypass("invalid_age");
         long age = 0;

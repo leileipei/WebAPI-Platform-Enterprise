@@ -100,15 +100,16 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
             applications.Add(new(ApplicationService.Dto(app),credentials.Select(c=>new FrozenCredential(c.Id,c.AccessKey,c.SecretHash,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,c.Revision)).ToArray(),permissions.Select(ApplicationService.Dto).ToArray()));revisions.Add(new("application",appId,app.Revision));revisions.AddRange(credentials.Select(c=>new ResourceRevision("credential",c.Id,c.Revision)));revisions.AddRange(permissions.Select(g=>new ResourceRevision("authorization",g.Id,g.Revision)));
         }
         var candidate=new FrozenReleaseCandidate(environmentId,scope.OrganizationId,scope.ProjectId!.Value,request.BaseConfigVersion,request.VersionIds,versions,routeDtos,clusters,policies.Select(p=>new FrozenPolicy(p.Id,p.Type,p.Config,p.Enabled,p.VersionNo)).ToArray(),bindings,applications,revisions);
-        var newSemantics=policies.Any(p=>p.Enabled&&routeEntities.Any(r=>r.Enabled&&bindings.Any(b=>b.RouteId==r.Id&&b.PolicyId==p.Id))&&Is22(p.Type,p.Config))
-            || baseline is not null&&baseline.Routes.Where(r=>!apiIds.Contains(r.ApiId)).Any(r=>r.AuthenticationMode==AuthenticationMode.JWT||(r.PolicyBindings??[]).Any(b=>baseline.Policies.Any(p=>p.Id==b.PolicyId&&Is22(p.Type,p.Config))));
+        var newSemantics=policies.Any(p=>p.Enabled&&routeEntities.Any(r=>r.Enabled&&bindings.Any(b=>b.RouteId==r.Id&&b.PolicyId==p.Id))&&RequiresModernSchema(p.Type,p.Config))
+            || baseline is not null&&baseline.Routes.Where(r=>!apiIds.Contains(r.ApiId)).Any(r=>r.AuthenticationMode==AuthenticationMode.JWT||(r.PolicyBindings??[]).Any(b=>baseline.Policies.Any(p=>p.Id==b.PolicyId&&RequiresModernSchema(p.Type,p.Config))));
         if(newSemantics)
         {
             var compiled=compiler.Compile(candidate,baseline??new RuntimeSnapshot("2.0",environmentId,0,DateTimeOffset.UtcNow,[],[],[],[]),request.BaseConfigVersion+1,DateTimeOffset.UtcNow);
             using var document=JsonDocument.Parse(compiled.Payload);
-            if(document.RootElement.GetProperty("schemaVersion").GetString()=="2.2") await SnapshotSchemaCapabilities.RequireOnline22Async(db,publishSettings,environmentId,ct);
+            var schema=document.RootElement.GetProperty("schemaVersion").GetString()!;
+            if(schema is "2.2" or "2.3") await SnapshotSchemaCapabilities.RequireOnlineSchemaAsync(db,publishSettings,environmentId,schema,ct);
         }
         return candidate;
     }
-    private static bool Is22(string type,string config)=>type is "retry" or "cache"||type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(config).Mode==AuthenticationMode.JWT;
+    private static bool RequiresModernSchema(string type,string config)=>type is "retry" or "cache" or "cors" or "ip_filter" or "transform"||type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(config).Mode==AuthenticationMode.JWT;
 }

@@ -11,9 +11,10 @@ public sealed class GatewayPolicyDeploymentRules
     private readonly HashSet<string> fixtureOrigins;
     private readonly HashSet<string> varyHeaders;
     public PolicyLimitsDto Limits { get; }
-    public GatewayPolicyDeploymentRules(int maxEntryBytes = 1048576, IReadOnlyList<string>? allowedVaryHeaders = null, IReadOnlyList<string>? httpFixtureOrigins = null)
+    public GatewayPolicyDeploymentRules(int maxEntryBytes = 1048576, IReadOnlyList<string>? allowedVaryHeaders = null, IReadOnlyList<string>? httpFixtureOrigins = null, int transformMaxBodyBytes = 1048576)
     {
         if (maxEntryBytes is < 1024 or > 1048576) throw new InvalidOperationException("Invalid gateway cache entry limit.");
+        if (transformMaxBodyBytes is < 1024 or > 1048576) throw new InvalidOperationException("Invalid gateway transform body limit.");
         var headers = new[] { "Accept", "Accept-Language", "Accept-Encoding" }.Concat(allowedVaryHeaders ?? []).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         // Validate deployment extensions with the same sensitive-header/token rules as policy input.
         foreach (var header in headers)
@@ -27,14 +28,14 @@ public sealed class GatewayPolicyDeploymentRules
             fixtureOrigins.Add(origin);
         }
         varyHeaders = new(headers, StringComparer.OrdinalIgnoreCase);
-        Limits = new(maxEntryBytes, Array.AsReadOnly(headers));
+        Limits = new(maxEntryBytes, Array.AsReadOnly(headers), transformMaxBodyBytes);
     }
     public static GatewayPolicyDeploymentRules Read(IConfiguration configuration, IHostEnvironment environment)
     {
         var headers=configuration.GetSection("GatewayPolicies:Cache:AllowedVaryHeaders").Get<string[]>();
         var fixtures = environment.IsDevelopment() && configuration.GetValue<bool>("GatewayPolicies:FixtureEnabled")
             ? configuration.GetSection("GatewayPolicies:Jwt:HttpFixtureOrigins").Get<string[]>() : [];
-        return new(configuration.GetValue<int?>("GatewayPolicies:Cache:MaxEntryBytes") ?? 1048576, headers, fixtures);
+        return new(configuration.GetValue<int?>("GatewayPolicies:Cache:MaxEntryBytes") ?? 1048576, headers, fixtures, configuration.GetValue<int?>("GatewayPolicies:Transform:MaxBodyBytes") ?? 1048576);
     }
     public void Validate(string type, string normalizedConfig)
     {
@@ -43,6 +44,11 @@ public sealed class GatewayPolicyDeploymentRules
             var authentication=PolicyConfigurationValidator.ParseAuthentication(normalizedConfig);
             if (authentication.Jwt is {} jwt && new Uri(jwt.Issuer).Scheme == "http"
                 && !fixtureOrigins.Contains(new Uri(jwt.Issuer).GetLeftPart(UriPartial.Authority))) throw Invalid();
+        }
+        else if (type == "transform")
+        {
+            var transform = PolicyConfigurationValidator.ParseTransform(normalizedConfig);
+            if (transform.RequestBody?.MaxBodyBytes > Limits.TransformMaxBodyBytes || transform.ResponseBody?.MaxBodyBytes > Limits.TransformMaxBodyBytes) throw Invalid();
         }
         else if (type == "cache")
         {

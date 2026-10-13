@@ -15,7 +15,7 @@ public sealed class PolicyService(WebApiDbContext db,AuthorizationService auth,P
     public async Task<PageResult<PolicyDto>> ListAsync(PolicyScopeRequest requested,ActorContext actor,int page,int pageSize,string? type,string? search,bool? enabled,CancellationToken ct=default)
     {
         var scope=await access.ResolveAsync(requested,ct);if(!await access.CanReadAsync(scope,actor,ct)) throw ScopeResolver.Missing();
-        if(type is not null&&type is not ("authentication" or "timeout" or "rate_limit" or "circuit_breaker" or "retry" or "cache")||search?.Length>128) throw new ApiException(422,"invalid_policy_filter","策略筛选条件不合法。");
+        if(type is not null&&type is not ("authentication" or "timeout" or "rate_limit" or "circuit_breaker" or "retry" or "cache" or "cors" or "ip_filter" or "transform")||search?.Length>128) throw new ApiException(422,"invalid_policy_filter","策略筛选条件不合法。");
         var query=db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==scope.OrganizationId&&(scope.ProjectId==null||p.ProjectId==null||p.ProjectId==scope.ProjectId));
         if(type is not null) query=query.Where(p=>p.Type==type);if(enabled is bool on) query=query.Where(p=>p.Enabled==on);if(!string.IsNullOrWhiteSpace(search)) query=query.Where(p=>p.Name.Contains(search));
         var visible=visibility.Scopes(actor,"policy.read");

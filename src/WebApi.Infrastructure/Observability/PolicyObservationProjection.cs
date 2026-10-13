@@ -15,9 +15,14 @@ public static class PolicyObservationProjection
             var prefix="webapi.policy."+type+".";string? Text(string field)=>attributes.GetValueOrDefault(prefix+field);
             if(!attributes.Keys.Any(k=>k.StartsWith(prefix,StringComparison.Ordinal))) continue;
             if(!Guid.TryParse(Text("id"),out var id)||!Visible(scope,environment,id)||!long.TryParse(Text("revision"),NumberStyles.None,CultureInfo.InvariantCulture,out var revision)||Text("type")!=type) {rejected=true;continue;}
-            var rawCount=Text("attempt_count");int? count=null;
-            if(rawCount is not null){if(!int.TryParse(rawCount,NumberStyles.None,CultureInfo.InvariantCulture,out var parsed)){rejected=true;continue;}count=parsed;}
-            var decision=new PolicyDecisionDto(id,type,revision,Text("decision")??"",Text("rejection_reason"),Text("cache_read"),Text("cache_write"),count);if(!PolicyDecisionValues.Valid(decision)) {rejected=true;continue;}decisions.Add(decision);
+            bool OptionalInt(string field,out int? value)
+            {
+                value=null;var raw=Text(field);if(raw is null)return true;
+                if(!int.TryParse(raw,NumberStyles.None,CultureInfo.InvariantCulture,out var parsed))return false;
+                value=parsed;return true;
+            }
+            if(!OptionalInt("attempt_count",out var count)||!OptionalInt("operation_index",out var operation)||!OptionalInt("body_operation_count",out var bodyCount)){rejected=true;continue;}
+            var decision=new PolicyDecisionDto(id,type,revision,Text("decision")??"",Text("rejection_reason"),Text("cache_read"),Text("cache_write"),count,operation,bodyCount);if(!PolicyDecisionValues.Valid(decision)){rejected=true;continue;}decisions.Add(decision);
         }
         return new(decisions,rejected);
     }

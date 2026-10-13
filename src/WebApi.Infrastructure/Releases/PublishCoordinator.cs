@@ -14,10 +14,14 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 using WebApi.Infrastructure.Gateway;
+using WebApi.Infrastructure.Policies;
 namespace WebApi.Infrastructure.Releases;
 public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSeconds=120,int AckTimeoutSeconds=120);
-public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution)
+public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution,GatewayPolicyDeploymentRules? deployment=null)
 {
+    private readonly GatewayPolicyDeploymentRules bodyLimits=deployment??new();
+    private void ValidateBodyPolicies(RuntimeSnapshot snapshot)
+    {foreach(var policy in snapshot.Policies.Where(p=>p.Type=="transform")) bodyLimits.Validate(policy.Type,policy.Config);}
     public async Task<ReleaseDto> StartAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
         var initial=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(initial.EnvironmentId,ct);
@@ -55,10 +59,10 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
     }
     public async Task ValidateCohortAsync(Guid envId,CancellationToken ct=default)=>await TargetsAsync(envId,ct);
     public async Task ValidateTargetSchemaAsync(Guid envId,long version,CancellationToken ct=default)
-    {var nodes=await TargetsAsync(envId,ct);SnapshotSchemaCapabilities.RequireSupported(nodes,(await history.ReadAsync(envId,version,ct)).Snapshot.SchemaVersion);}
+    {var nodes=await TargetsAsync(envId,ct);var artifact=await history.ReadAsync(envId,version,ct);ValidateBodyPolicies(artifact.Snapshot);SnapshotSchemaCapabilities.RequireSupported(nodes,artifact.Snapshot.SchemaVersion);}
     private async Task<string> TargetSchemaAsync(ReleaseRecord release,CancellationToken ct)
     {
-        if(release.ReleaseType is "rollback" or "retry") return (await history.ReadAsync(release.EnvironmentId,release.ToConfigVersion,ct)).Snapshot.SchemaVersion;
+        if(release.ReleaseType is "rollback" or "retry") {var artifact=await history.ReadAsync(release.EnvironmentId,release.ToConfigVersion,ct);ValidateBodyPolicies(artifact.Snapshot);return artifact.Snapshot.SchemaVersion;}
         var baseline=release.BaselineConfigVersion>0?(await history.ReadAsync(release.EnvironmentId,release.BaselineConfigVersion,ct)).Snapshot:new RuntimeSnapshot("2.0",release.EnvironmentId,0,DateTimeOffset.UtcNow,[],[],[],[]);
         var compiled=compiler.Compile(Candidate(release),baseline,baseline.ConfigVersion+1,DateTimeOffset.UtcNow);using var document=JsonDocument.Parse(compiled.Payload);return document.RootElement.GetProperty("schemaVersion").GetString()!;
     }
@@ -81,7 +85,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             if(r.BaselineConfigVersion>0)
             {var bytes=await (from v in db.Set<GatewayConfigVersion>() join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where v.EnvironmentId==env.Id&&v.VersionNo==r.BaselineConfigVersion select s.PayloadBytes).SingleAsync(ct);baseline=WebApi.Domain.Runtime.SnapshotValidator.ParsePayload(bytes,env.Id);}
             var next=(await db.Set<GatewayConfigVersion>().Where(v=>v.EnvironmentId==env.Id).Select(v=>(long?)v.VersionNo).MaxAsync(ct)??0)+1;var frozen=Candidate(r);CompiledSnapshot compiled;
-            if(r.ReleaseType is "rollback" or "retry") {next=r.ToConfigVersion;var artifact=await history.ReadAsync(env.Id,next,ct);compiled=new(artifact.Payload,artifact.Hash,artifact.Size);}
+            if(r.ReleaseType is "rollback" or "retry") {next=r.ToConfigVersion;var artifact=await history.ReadAsync(env.Id,next,ct);ValidateBodyPolicies(artifact.Snapshot);compiled=new(artifact.Payload,artifact.Hash,artifact.Size);}
             else compiled=compiler.Compile(frozen,baseline,next,DateTimeOffset.UtcNow);
             using(var document=JsonDocument.Parse(compiled.Payload)) SnapshotSchemaCapabilities.RequireSupported(nodes,document.RootElement.GetProperty("schemaVersion").GetString()!);
             if(r.ReleaseType is not ("rollback" or "retry")) {var config=new GatewayConfigVersion {EnvironmentId=env.Id,VersionNo=next,Status="Publishing",CreatedBy=publisher,SnapshotHash=compiled.Hash};config.SnapshotKey=$"environment/{env.Id}/snapshot/{next}";db.Add(config);db.Add(new GatewayConfigSnapshot {ConfigVersionId=config.Id,PayloadBytes=compiled.Payload.ToArray(),Payload=Encoding.UTF8.GetString(compiled.Payload.Span),SizeBytes=compiled.Size});}

@@ -20,4 +20,4 @@ public sealed record RetryConfiguration(int MaxAttempts, int PerAttemptTimeoutMs
 public sealed record CacheConfiguration(int TtlSeconds, int MaxEntryBytes, IReadOnlyList<string> VaryHeaders,
     string IdentityPartition, string RedisFailureMode);
 
-public sealed record PolicyLimitsDto(int MaxEntryBytes, IReadOnlyList<string> AllowedVaryHeaders);
+public sealed record PolicyLimitsDto(int MaxEntryBytes, IReadOnlyList<string> AllowedVaryHeaders, int TransformMaxBodyBytes = 1048576);

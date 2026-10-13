@@ -21,8 +21,8 @@ public sealed class RollbackService(WebApiDbContext db,AuthorizationService auth
                 await deliveryExecution.RequireRecoveryVisibilityAsync(original,actor,inner);var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==original.EnvironmentId,inner);
                 if(original.Status is not ("Succeeded" or "Failed")||original.DeploymentSequence!=env.DeploymentSequence||original.ToConfigVersion!=env.DesiredConfigVersion||target<=0||target==env.DesiredConfigVersion) throw new ApiException(409,"stale_deployment","只能从当前已结束部署建立指向不同历史快照的回滚。");
                 if(await db.Set<ReleaseRecord>().AnyAsync(r=>r.EnvironmentId==env.Id&&(r.Status=="Building"||r.Status=="Publishing"),inner)) throw new ApiException(409,"environment_busy","环境正在下发。");var candidate=await history.CandidateAsync(env.Id,target,env.DesiredConfigVersion!.Value,inner);
-                if(candidate.Routes.Any(route=>route.EffectiveAuthenticationMode=="JWT")||candidate.Policies.Any(policy=>policy.Type is "retry" or "cache"||policy.Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(policy.Config).Mode==WebApi.Contracts.Policies.AuthenticationMode.JWT))
-                    await SnapshotSchemaCapabilities.RequireOnline22Async(db,publishSettings,env.Id,inner);
+                var schema=(await history.ReadAsync(env.Id,target,inner)).Snapshot.SchemaVersion;
+                if(schema is "2.2" or "2.3") await SnapshotSchemaCapabilities.RequireOnlineSchemaAsync(db,publishSettings,env.Id,schema,inner);
                 var r=new ReleaseRecord {EnvironmentId=env.Id,ReleaseNo="RBK-"+Guid.NewGuid().ToString("N"),ReleaseType="rollback",Status="Draft",RequestedBy=actor.UserId,RollbackOf=original.Id,ArtifactId=original.ArtifactId,SourceReleaseId=original.SourceReleaseId,BaselineConfigVersion=env.DesiredConfigVersion.Value,FromConfigVersion=env.DesiredConfigVersion.Value,ToConfigVersion=target,CandidateBytes=CanonicalJson.Serialize(candidate)};db.Add(r);return await releases.DtoAsync(r,inner);
             },token);
         },ct);

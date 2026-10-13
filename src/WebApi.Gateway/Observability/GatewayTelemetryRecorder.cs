@@ -32,7 +32,7 @@ public sealed class GatewayTelemetryRecorder : IDisposable
     {
         try
         {
-            foreach(var p in context.PolicyDecisions.Take(5).Where(PolicyDecisionValues.Valid)) RecordPolicy(p.PolicyId,p.PolicyType,p.Decision);
+            foreach(var p in context.PolicyDecisions.Take(PolicyDecisionValues.MaximumPerRequest).Where(PolicyDecisionValues.Valid)) RecordPolicy(p.PolicyId,p.PolicyType,p.Decision);
             var dimensions=new TagList{{"webapi.api.id",context.ApiId?.ToString()??"Unmatched"},{"webapi.application.id",context.ApplicationKey},{"webapi.destination.id",context.DestinationId?.ToString()??"None"}};
             durations.Record(context.DurationSeconds,dimensions);
             dimensions.Add("http.response.status_code",context.Status?.ToString()??"None");dimensions.Add("webapi.outcome",context.Outcome);dimensions.Add("webapi.success",context.Success?"true":"false");requests.Add(1,dimensions);

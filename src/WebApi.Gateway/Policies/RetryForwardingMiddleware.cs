@@ -12,6 +12,7 @@ public sealed class RetryForwardingMiddleware(RequestDelegate next)
         finally
         {
             var count=execution.Attempts.Count;
+            if(execution.TransformFailure is not null)bypass="response_transform_rejected";
             var decision=bypass is not null?"Bypass":count>=config.MaxAttempts&&context.Response.StatusCode>=400?"Exhausted":count>1?"Retried":"Bypass";
             var reason=decision!="Bypass"?null:bypass??(context.RequestAborted.IsCancellationRequested?"client_cancelled":execution.CircuitAdmission?.Probe==true?"circuit_probe":count==0?"no_destination":context.Response.StatusCode<400?"no_retry_needed":"not_replayable");
             execution.Record(execution.Generation.PoliciesById[binding.PolicyId],decision,reason,attemptCount:count);

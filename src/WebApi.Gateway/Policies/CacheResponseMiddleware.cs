@@ -14,6 +14,7 @@ public sealed class CacheResponseMiddleware(RequestDelegate next)
             if(execution.VerifiedIdentity is null||!CacheEligibility.Request(context,execution.VerifiedIdentity,config,settings).Eligible)
             {execution.CacheDisposition=readPhase="Bypass";reason="unsafe_request";await next(context);return;}
             if(keys.Build(execution,context.Request,config) is not { } key){execution.CacheDisposition=readPhase="Bypass";reason="cache_key_budget";await next(context);return;}
+            execution.CacheOriginPartitioned=execution.Cors is not null;
             var read=await store.GetAsync(key,context.RequestAborted);
             if(read.Kind==CacheReadKind.Hit&&read.Entry is { } entry&&DateTimeOffset.UtcNow-entry.ResponseAt<entry.FreshFor)
             {
@@ -28,7 +29,7 @@ public sealed class CacheResponseMiddleware(RequestDelegate next)
             execution.CacheDisposition=readPhase="Miss";var requestAt=DateTimeOffset.UtcNow;
             using var capture=BoundedResponseCapture.Install(context,Math.Min(config.MaxEntryBytes,settings.MaxEntryBytes));
             await next(context);
-            var rule=CacheEligibility.Response(context.Response.Headers,context.Response.StatusCode,requestAt,capture.ResponseAt,config);writePhase="Bypass";
+            var rule=CacheEligibility.Response(context.Response.Headers,context.Response.StatusCode,requestAt,capture.ResponseAt,config,execution.CacheOriginPartitioned);writePhase="Bypass";
             if(capture.TryComplete(rule) is not { } stored)return;
             try{var result=await store.PutAsync(key,stored,context.RequestAborted);if(result.Kind==CacheWriteKind.Stored){execution.CacheDisposition="Stored";writePhase="Stored";}}
             catch(OperationCanceledException)when(context.RequestAborted.IsCancellationRequested){/* Never retry a cache write after departure. */}

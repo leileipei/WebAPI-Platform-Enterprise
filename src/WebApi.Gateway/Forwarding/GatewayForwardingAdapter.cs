@@ -44,7 +44,7 @@ public sealed class GatewayForwardingAdapter(IHttpForwarder forwarder, ForwardAt
         try{await passive.Invoke(context);}catch{threw=true;throw;}
         finally
         {
-            var outcome=context.RequestAborted.IsCancellationRequested?"ClientAborted":result==ForwarderError.RequestTimedOut||timeout.IsCancellationRequested&&!ct.IsCancellationRequested?"Timeout":threw||result!=ForwarderError.None?"ProxyError":"Completed";
+            var outcome=context.RequestAborted.IsCancellationRequested?"ClientAborted":result==ForwarderError.RequestTimedOut||timeout.IsCancellationRequested&&!ct.IsCancellationRequested?"Timeout":threw||result!=ForwarderError.None||execution.TransformFailure is not null?"ProxyError":"Completed";
             var status=result==ForwarderError.None&&!threw?transformer.StatusCode??context.Response.StatusCode:context.Response.StatusCode;
             var destinationId=Guid.TryParse(destination.DestinationId,out var id)?id:(Guid?)null;
             var observation=new ForwardAttemptObservation(control.Attempt,destinationId,status,outcome,Stopwatch.GetElapsedTime(started).TotalSeconds);execution.AddAttempt(observation);

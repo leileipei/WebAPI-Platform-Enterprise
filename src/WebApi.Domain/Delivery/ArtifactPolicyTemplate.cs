@@ -49,6 +49,8 @@ public static class ArtifactPolicyTemplates
             {
                 "timeout" => [],
                 "rate_limit" => ["algorithm", "keyBy", "redisFailureMode"],
+                "cors" => ["allowCredentials", "allowedMethods", "allowedHeaders", "exposedHeaders", "maxAgeSeconds"],
+                "ip_filter" => ["mode"],
                 "authentication" when env.Length > 0 => ["mode", "allowedAlgorithms", "allowedTokenTypes", "clockSkewSeconds", "maxTokenLifetimeSeconds", "applicationClaim", "forwardBearer"],
                 _ => null
             };
@@ -57,7 +59,18 @@ public static class ArtifactPolicyTemplates
             if (template.Type == "authentication" && env.Length > 0)
                 foreach (var name in new[] { "allowedAlgorithms", "allowedTokenTypes" })
                     values[name] = JsonSerializer.SerializeToElement(values[name].EnumerateArray().Select(v => v.GetString()).Order(StringComparer.Ordinal).ToArray());
-            var json = env.Length == 0 ? PolicyConfigurationValidator.Normalize(template.Type, template.FrozenConfig) : Encoding.UTF8.GetString(CanonicalJson.Serialize(values));
+            string json;
+            if(template.Type is "cors" or "ip_filter")
+            {
+                // Validate frozen behavior with neutral syntactic placeholders. These never become
+                // target defaults: Resolve still requires every explicit environment parameter.
+                var complete=new Dictionary<string,JsonElement>(values,StringComparer.Ordinal);
+                complete.Add(env[0],JsonSerializer.SerializeToElement(template.Type=="cors"?new[]{"https://artifact.invalid"}:new[]{"127.0.0.1/32"}));
+                using var validated=JsonDocument.Parse(PolicyConfigurationValidator.Normalize(template.Type,Encoding.UTF8.GetString(CanonicalJson.Serialize(complete))));
+                var frozen=validated.RootElement.EnumerateObject().Where(p=>!env.Contains(p.Name)).ToDictionary(p=>p.Name,p=>p.Value.Clone(),StringComparer.Ordinal);
+                json=Encoding.UTF8.GetString(CanonicalJson.Serialize(frozen));
+            }
+            else json = env.Length == 0 ? PolicyConfigurationValidator.Normalize(template.Type, template.FrozenConfig) : Encoding.UTF8.GetString(CanonicalJson.Serialize(values));
             return template with { FrozenConfig = json, EnvironmentFields = env };
         }
         catch (Exception e) when (e is JsonException or InvalidOperationException or KeyNotFoundException) { throw Invalid(); }
@@ -68,7 +81,9 @@ public static class ArtifactPolicyTemplates
         "timeout" => ["timeoutMs"],
         "rate_limit" => ["burst", "refillTokens", "windowMs"],
         "authentication" when config.GetProperty("mode").GetString() == "JWT" => ["applicationMappings", "audiences", "issuer", "jwks"],
-        "authentication" or "circuit_breaker" or "retry" or "cache" => [],
+        "cors" => ["allowedOrigins"],
+        "ip_filter" => ["ranges"],
+        "authentication" or "circuit_breaker" or "retry" or "cache" or "transform" => [],
         _ => throw Invalid()
     };
 }

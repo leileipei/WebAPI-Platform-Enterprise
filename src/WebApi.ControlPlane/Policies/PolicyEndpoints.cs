@@ -14,6 +14,23 @@ public static class PolicyEndpoints
         group.MapPost("/organizations/{id:guid}/policies",async(Guid id,SavePolicyRequest request,HttpContext ctx,PolicyService service,CancellationToken ct)=>GovernanceEndpoints.Command(ctx,await service.SaveAsync(new(id),null,request,null,ctx.Actor(),ct)));
         group.MapGet("/projects/{id:guid}/policies",async(Guid id,HttpContext ctx,PolicyService service,ScopeResolver scopes,int? page,int? pageSize,string? type,string? search,bool? enabled,CancellationToken ct)=>{var scope=await scopes.ProjectAsync(id,ct);return Results.Ok(await service.ListAsync(new(scope.OrganizationId,id),ctx.Actor(),page??1,pageSize??50,type,search,enabled,ct));});
         group.MapPost("/projects/{id:guid}/policies",async(Guid id,SavePolicyRequest request,HttpContext ctx,PolicyService service,ScopeResolver scopes,CancellationToken ct)=>{var scope=await scopes.ProjectAsync(id,ct);return GovernanceEndpoints.Command(ctx,await service.SaveAsync(new(scope.OrganizationId,id),null,request,null,ctx.Actor(),ct));});
+        group.MapPost("/policies/transform/preview",async(HttpContext ctx,TransformPreviewService service,BodyTransformBudget budget,GatewayPolicyDeploymentRules deployment,CancellationToken ct)=>{
+            ctx.Response.Headers.CacheControl="no-store";
+            if(!budget.TryAcquire(out var lease)) {
+                await Results.Problem(statusCode:503,title:"正文预览配额已满。",extensions:new Dictionary<string,object?> { ["code"]="transform_rejected",["reason"]="transform_body_busy",["traceId"]=ctx.TraceIdentifier }).ExecuteAsync(ctx);return;
+            }
+            using(lease) {
+                try {
+                    var request=await TransformPreviewRequestReader.ReadAsync(ctx.Request,deployment.Limits.TransformMaxBodyBytes,ct);
+                    var result=await service.PreviewAsync(request,ctx.Actor(),ct);
+                    await Results.Json(result).ExecuteAsync(ctx);
+                } catch(TransformPreviewException error) {
+                    var fields=new Dictionary<string,object?> { ["code"]=error.Code,["reason"]=error.Reason,["traceId"]=ctx.TraceIdentifier };
+                    if(error.OperationIndex is int index) fields["operationIndex"]=index;
+                    await Results.Problem(statusCode:error.Status,title:error.Message,extensions:fields).ExecuteAsync(ctx);
+                }
+            }
+        });
         group.MapGet("/policies/limits",async(Guid organizationId,Guid? projectId,HttpContext ctx,PolicyService service,CancellationToken ct)=>Results.Ok(await service.LimitsAsync(new(organizationId,projectId),ctx.Actor(),ct)));
         group.MapGet("/policies/{id:guid}",async(Guid id,HttpContext ctx,PolicyService service,CancellationToken ct)=>{var p=await service.GetAsync(id,ctx.Actor(),ct);ctx.Response.Headers.ETag=RevisionTag.Format(p.VersionNo);return Results.Ok(p);});
         group.MapPut("/policies/{id:guid}",async(Guid id,SavePolicyRequest request,HttpContext ctx,PolicyService service,CancellationToken ct)=>{var p=await service.GetAsync(id,ctx.Actor(),ct);return GovernanceEndpoints.Command(ctx,await service.SaveAsync(new(p.OrganizationId,p.ProjectId),id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct));});

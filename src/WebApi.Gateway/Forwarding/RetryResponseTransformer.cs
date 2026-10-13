@@ -24,7 +24,9 @@ public sealed class RetryResponseTransformer(HttpTransformer inner, ForwardAttem
                 if (Suppressed) return false;
             }
         }
-        return await inner.TransformResponseAsync(context, response, ct);
+        var copy=await inner.TransformResponseAsync(context, response, ct);
+        if(WebApi.Gateway.Policies.TrafficExecutionContext.From(context) is { } execution&&(execution.TransformFailure is not null||execution.BodyTimeout))StatusCode=context.Response.StatusCode;
+        return copy;
     }
     public override ValueTask TransformResponseTrailersAsync(HttpContext context, HttpResponseMessage response, CancellationToken ct)
         => inner.TransformResponseTrailersAsync(context, response, ct);

@@ -8,9 +8,11 @@ using WebApi.Domain.Policies;
 using WebApi.Contracts.Policies;
 using WebApi.Domain.Routing;
 using WebApi.Infrastructure.Routing;
+using WebApi.Infrastructure.Policies;
 namespace WebApi.Infrastructure.Releases;
-public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null)
+public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null,GatewayPolicyDeploymentRules? deployment=null)
 {
+    private readonly GatewayPolicyDeploymentRules bodyLimits=deployment??new();
     private readonly UpstreamAddressPolicy addresses=addressPolicy??new(["http://test-backend:8080"]);
     private static ApiException Invalid(string message)=>new(422,"invalid_candidate",message);
     public CompiledSnapshot Compile(FrozenReleaseCandidate candidate,RuntimeSnapshot baseline,long targetVersion,DateTimeOffset generatedAt)
@@ -55,6 +57,7 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null)
         var usedClusters=routes.Select(r=>r.ClusterId).ToHashSet();var clusters=baseline.Clusters.Where(c=>usedClusters.Contains(c.Id)).ToDictionary(c=>c.Id);foreach(var c in compiledClusters.Values.Where(c=>usedClusters.Contains(c.Id))) clusters[c.Id]=c;
         foreach(var c in clusters.Values) foreach(var d in c.Destinations) addresses.Validate(d.Address);
         var usedPolicyIds=routes.SelectMany(r=>r.PolicyBindings??[]).Select(b=>b.PolicyId).ToHashSet();
+        foreach(var policy in runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id)&&p.Type=="transform")) bodyLimits.Validate(policy.Type,policy.Config);
         var mappedApps=runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id)&&p.Type=="authentication").SelectMany(p=>PolicyConfigurationValidator.ParseAuthentication(p.Config).Jwt?.ApplicationMappings??[]).Select(m=>m.ApplicationId).ToHashSet();
         var apiIds=routes.Select(r=>r.ApiId).ToHashSet();var applications=new List<RuntimeApplication>();
         foreach(var app in candidate.Applications)
@@ -63,8 +66,9 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null)
             var grants=app.Permissions.Where(p=>apiIds.Contains(p.ApiId)).OrderBy(p=>p.ApiId).Select(p=>new RuntimePermission(p.ApiId,p.ValidFrom,p.ExpiresAt)).ToArray();
             if(grants.Length==0&&!mappedApps.Contains(app.Application.Id)) continue;applications.Add(new(app.Application.Id,app.Application.Status,app.Credentials.OrderBy(c=>c.Id).Select(c=>new RuntimeCredential(c.Id,c.AccessKey,c.SecretHash,c.Status,c.ValidFrom,c.ExpiresAt)).ToArray(),grants));
         }
+        var network=usedPolicyIds.Any(id=>runtimePolicies[id].Type is "cors" or "ip_filter" or "transform");
         var newest=usedPolicyIds.Any(id=>runtimePolicies[id].Type is "retry" or "cache" || runtimePolicies[id].Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(runtimePolicies[id].Config).Mode==AuthenticationMode.JWT);
-        var advanced=newest||usedPolicyIds.Any(id=>runtimePolicies[id].Type is "rate_limit" or "circuit_breaker");
+        var advanced=network||newest||usedPolicyIds.Any(id=>runtimePolicies[id].Type is "rate_limit" or "circuit_breaker");
         RuntimePolicy[] finalPolicies;
         if(advanced) finalPolicies=runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id)).OrderBy(p=>p.Id).ToArray();
         else {
@@ -74,7 +78,7 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null)
             foreach(var p in runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id))) legacy.TryAdd(p.SourcePolicyId??p.Id,new(p.SourcePolicyId??p.Id,p.Type,p.Config));
             finalPolicies=legacy.Values.OrderBy(p=>p.Id).ToArray();routes=routes.Select(r=>r with {PolicyBindings=null}).ToList();
         }
-        var snapshot=new RuntimeSnapshot(newest?"2.2":advanced?"2.1":"2.0",candidate.EnvironmentId,targetVersion,generatedAt.ToUniversalTime(),routes.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Id).ToArray(),clusters.Values.OrderBy(c=>c.Id).ToArray(),finalPolicies,applications.OrderBy(a=>a.Id).ToArray());
+        var snapshot=new RuntimeSnapshot(network?"2.3":newest?"2.2":advanced?"2.1":"2.0",candidate.EnvironmentId,targetVersion,generatedAt.ToUniversalTime(),routes.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Id).ToArray(),clusters.Values.OrderBy(c=>c.Id).ToArray(),finalPolicies,applications.OrderBy(a=>a.Id).ToArray());
         SnapshotValidator.Validate(snapshot,candidate.EnvironmentId);var bytes=CanonicalJson.Serialize(snapshot);return new(bytes,Convert.ToHexStringLower(SHA256.HashData(bytes)),bytes.LongLength);
     }
 }

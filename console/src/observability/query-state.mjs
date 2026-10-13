@@ -9,7 +9,7 @@ export function parseObservationSearch(search){
  if(p.get('duration')&&Number.isFinite(Number(p.get('duration')))&&Number(p.get('duration'))>=0)state.duration=Number(p.get('duration'));
  if(p.get('maxDuration')&&Number.isFinite(Number(p.get('maxDuration')))&&Number(p.get('maxDuration'))>=0)state.maxDuration=Number(p.get('maxDuration'));
  if(p.get('keyword')&&p.get('keyword').length<=256&&!/[\x00-\x1f]/.test(p.get('keyword')))state.keyword=p.get('keyword');
- if(['Allowed','Exceeded','StoreRejected','Bypass','HalfOpenProbe','OpenRejected'].includes(p.get('decision')))state.decision=p.get('decision');
+ if(['Allowed','Exceeded','StoreRejected','Bypass','HalfOpenProbe','OpenRejected','Rejected','Preflight','Applied','Hit','Miss','Stored','Retried','Exhausted'].includes(p.get('decision')))state.decision=p.get('decision');
  if(['Success','Error'].includes(p.get('outcome')))state.outcome=p.get('outcome');
  if(/^[0-9a-f]{32}$/i.test(p.get('trace')||''))state.trace=p.get('trace');
  if((p.get('cursor')||'').length<=4096&&p.get('cursor'))state.cursor=p.get('cursor');

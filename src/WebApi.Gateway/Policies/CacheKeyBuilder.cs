@@ -29,9 +29,11 @@ public sealed class CacheKeyBuilder(GatewayCacheSettings settings)
             if (auth?.Jwt?.ForwardBearer == true) partition += ":" + settings.Hash(Encoding.UTF8.GetBytes(jwt.ValidatedBearer));
         }
         var vary = configuration.VaryHeaders.Select(name => new { name = name.ToLowerInvariant(), values = request.Headers[name].ToArray() }).ToArray();
-        var input = JsonSerializer.SerializeToUtf8Bytes(new { ns = settings.KeyPrefix, environment = generation.Snapshot.EnvironmentId, sequence = generation.Envelope.DeploymentSequence,
+        var metadata = new { ns = settings.KeyPrefix, environment = generation.Snapshot.EnvironmentId, sequence = generation.Envelope.DeploymentSequence,
             route = execution.Route.Id, version = execution.Route.ApiVersionId, cluster = execution.Route.ClusterId, authentication = authentication?.Id, cache = cache.Id,
-            partition, method = request.Method, path = request.PathBase.Value + request.Path.Value, query = request.QueryString.Value, host = request.Host.Value, vary });
+            partition, method = request.Method, path = request.PathBase.Value + request.Path.Value, query = request.QueryString.Value, host = request.Host.Value, vary };
+        var input = execution.Cors is null ? JsonSerializer.SerializeToUtf8Bytes(metadata)
+            : JsonSerializer.SerializeToUtf8Bytes(new { request = metadata, corsOrigin = execution.Cors.Origin });
         return input.Length > 16384 ? null : new(settings.Hash(input));
     }
 }

@@ -22,7 +22,8 @@ public sealed record CircuitBreakerConfiguration(int SamplingWindowMs, int Minim
 public sealed record PolicyBindingConfiguration(Guid PolicyId, string Type, string Config, bool Enabled, int Priority);
 public sealed record EffectiveRoutePolicies(bool RequireApiKey, int? TimeoutMs,
     RateLimitConfiguration? RateLimit, CircuitBreakerConfiguration? CircuitBreaker,
-    AuthenticationConfiguration? Authentication = null, RetryConfiguration? Retry = null, CacheConfiguration? Cache = null)
+    AuthenticationConfiguration? Authentication = null, RetryConfiguration? Retry = null, CacheConfiguration? Cache = null,
+    CorsConfiguration? Cors = null, IpFilterConfiguration? IpFilter = null, TransformConfiguration? Transform = null)
 {
     public bool HasApplicationIdentity => (Authentication?.Mode ?? (RequireApiKey ? AuthenticationMode.ApiKey : AuthenticationMode.Anonymous)) != AuthenticationMode.Anonymous;
 }
