@@ -4,8 +4,11 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import net from 'node:net';
+import http from 'node:http';
 import { randomUUID } from 'node:crypto';
 import { docker } from '../../scripts/runtime/docker.mjs';
+import * as scenario from '../../scripts/network-policies/scenario.mjs';
+import { ContractClient } from '../../scripts/contracts/scenario.mjs';
 const port = async () => { const server = net.createServer(); await new Promise((r, j) => { server.once('error', j); server.listen(0, '127.0.0.1', r); }); const n = server.address().port; await new Promise(r => server.close(r)); return n; };
 // This launches the real C# fixture, not a mocked scenario executor.
 test('real fixture echoes raw JSON and headers, counts, Origin Vary and gzip/br', async () => {
@@ -101,3 +104,43 @@ for (const problem of ['source', 'image', 'protected', 'directory', 'existing-ow
     });
 test('runtime guard rejects extra port keys even when values duplicate', async () => { const m = await import('../../scripts/network-policies/fixtures.mjs'), revision = 'a'.repeat(40), imageId = 'sha256:' + 'b'.repeat(64), projectName = 'webapi-enterprise-local-test-' + randomUUID(); assert.throws(() => m.assertNetworkPolicyRuntimeInput({ revision, imageId, release: { sourceRevision: revision, imageId }, directory: '/tmp/' + projectName, projectName, ports: { console: 14192, gatewayA: 14196, gatewayB: 14197, foreign: 14192 }, existing: false })); });
 test('immutable source guard rejects a nonexistent revision before any Docker action', async () => { const m = await import('../../scripts/network-policies/fixtures.mjs'); await assert.rejects(m.assertFixedNetworkSources('0'.repeat(40))); });
+
+// HTTP contract regression only. This local server is not formal runtime evidence.
+for (const desiredConfigVersion of [null, 17]) {
+    test('release driver honors empty and published environment HTTP contracts: ' + desiredConfigVersion, async () => {
+        const calls = [], revisions = [{ resourceType: 'Route', resourceId: randomUUID(), revision: 3 }];
+        const environmentId = randomUUID(), versionIds = [randomUUID()];
+        const server = http.createServer(async (req, res) => {
+            const chunks = [];
+            for await (const chunk of req) chunks.push(chunk);
+            const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString()) : null;
+            res.setHeader('Content-Type', 'application/json');
+            if (req.url === '/api/v1/auth/csrf') return res.end(JSON.stringify({ token: 'unit-csrf' }));
+            calls.push({ method: req.method, path: req.url, body });
+            if (req.method === 'GET') return res.end(JSON.stringify({ id: environmentId, desiredConfigVersion }));
+            // BaseConfigVersion is nonnullable Int64 in the actual preview/create DTO.
+            if (!Number.isInteger(body?.baseConfigVersion)) {
+                res.statusCode = 400;
+                return res.end(JSON.stringify({ code: 'invalid_request' }));
+            }
+            if (req.url.endsWith('/preview')) return res.end(JSON.stringify({ resourceRevisions: revisions }));
+            res.end(JSON.stringify({ id: 'unit-draft', state: 'Draft' }));
+        });
+        await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+        try {
+            const client = new ContractClient('http://127.0.0.1:' + server.address().port);
+            const result = await scenario.createNetworkPolicyRelease(client, environmentId, versionIds);
+            assert.equal(result.state, 'Draft');
+            assert.deepEqual(calls.map(c => [c.method, c.path]), [
+                ['GET', '/api/v1/environments/' + environmentId],
+                ['POST', '/api/v1/environments/' + environmentId + '/releases/preview'],
+                ['POST', '/api/v1/environments/' + environmentId + '/releases'],
+            ]);
+            assert.equal(calls[1].body.baseConfigVersion, desiredConfigVersion === null ? 0 : 17);
+            assert.deepEqual(calls[1].body.versionIds, versionIds);
+            assert.deepEqual(calls[2].body, { ...calls[1].body, resourceRevisions: revisions });
+        } finally {
+            await new Promise(resolve => server.close(resolve));
+        }
+    });
+}

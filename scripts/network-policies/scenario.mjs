@@ -47,6 +47,12 @@ async function management(client, route, options = {}) {
     const r = await fetch(client.base + '/api/v1' + route, { ...options, headers, body: options.body === undefined ? undefined : JSON.stringify(options.body), signal: AbortSignal.timeout(30000) });
     return { status: r.status, value: r.status === 204 ? null : await r.json() };
 }
+export async function createNetworkPolicyRelease(client, environmentId, versionIds) {
+    const environment = await client.request('/environments/' + environmentId);
+    const selection = { baseConfigVersion: environment.desiredConfigVersion ?? 0, versionIds };
+    const candidate = await client.request('/environments/' + environmentId + '/releases/preview', { method: 'POST', body: selection });
+    return client.request('/environments/' + environmentId + '/releases', { method: 'POST', body: { ...selection, resourceRevisions: candidate.resourceRevisions } });
+}
 export async function runNetworkPolicyScenario({ revision, imageId, cloneDirectory, fixtureDirectory }) {
     await assertFixedNetworkSources(revision);
     let state = await assertNetworkOwners({ cloneDirectory });
@@ -99,7 +105,7 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     const save = async (type, config) => { const p = policies.get(type), r = await management(admin, '/policies/' + p.id, { method: 'PUT', headers: { 'If-Match': '"' + p.versionNo + '"' }, body: { name: p.name, type, config: typeof config === 'string' ? config : JSON.stringify(config), enabled: true } }); assert.equal(r.status, 200); policies.set(type, r.value); return r; };
     const bind = async (types) => { const current = await admin.request('/routes/' + route.id + '/policies'); return admin.request('/routes/' + route.id + '/policies', { method: 'PUT', headers: { 'If-Match': '"' + current.revision + '"' }, body: { bindings: types.map((type, i) => ({ policyId: policies.get(type).id, priority: i + 1 })) } }); };
     const activeTypes = () => [...policies.keys()];
-    const makeRelease = async () => { const env = await admin.request('/environments/' + scope.environmentId), selection = { baseConfigVersion: env.desiredConfigVersion, versionIds: [version.id] }, candidate = await admin.request('/environments/' + scope.environmentId + '/releases/preview', { method: 'POST', body: selection }); return admin.request('/environments/' + scope.environmentId + '/releases', { method: 'POST', body: { ...selection, resourceRevisions: candidate.resourceRevisions } }); };
+    const makeRelease = () => createNetworkPolicyRelease(admin, scope.environmentId, [version.id]);
     const approve = async (r) => {
         await admin.request('/releases/' + r.id + '/submit', { method: 'POST' });
         for (const reviewer of s.reviewers)
