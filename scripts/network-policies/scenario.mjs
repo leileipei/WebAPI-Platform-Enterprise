@@ -53,6 +53,17 @@ export async function createNetworkPolicyRelease(client, environmentId, versionI
     const candidate = await client.request('/environments/' + environmentId + '/releases/preview', { method: 'POST', body: selection });
     return client.request('/environments/' + environmentId + '/releases', { method: 'POST', body: { ...selection, resourceRevisions: candidate.resourceRevisions } });
 }
+export function previewNetworkPolicyRequest(client, scope, config, sampleJson) {
+    return client.request('/policies/transform/preview', {
+        method: 'POST',
+        body: { scope: { organizationId: scope.organizationId, projectId: scope.projectId }, config, direction: 'Request', sampleJson },
+    });
+}
+export function createNetworkPolicyQueries(client, scope) {
+    const range = () => ({ ...scope, start: new Date(Date.now() - 600000).toISOString(), end: new Date().toISOString() });
+    const logs = traceId => client.request('/observability/logs?' + new URLSearchParams({ ...range(), traceId }));
+    return { range, logs };
+}
 export async function runNetworkPolicyScenario({ revision, imageId, cloneDirectory, fixtureDirectory }) {
     await assertFixedNetworkSources(revision);
     let state = await assertNetworkOwners({ cloneDirectory });
@@ -95,6 +106,7 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     const apiKey = (await fs.readFile(path.join(cloneDirectory, 'credential'), 'utf8')).trim();
     const originA = 'https://a.example.test', originB = 'https://b.example.test', baseHeaders = { 'X-API-Key': apiKey, Origin: originA };
     const backendUrl = 'http://127.0.0.1:' + backend.ports.backend;
+    const { range, logs } = createNetworkPolicyQueries(admin, scope);
     const count = async (url) => (await (await fetch(backendUrl + '/__fixture/stats')).json())[url] ?? 0;
     const configure = async (failures = 0, cacheable = true) => { const r = await fetch(backendUrl + '/__fixture/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ failures, cacheable }) }); assert.equal(r.status, 200); };
     const requests = [];
@@ -161,7 +173,7 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     const foreignRead = await management(readonly, '/organizations/' + foreign.id + '/policies');
     assert([403, 404].includes(foreignRead.status));
     const beforeWrites = Number(await sql('SELECT count(*) FROM audit_logs')), beforeCalls = await count('/__network/echo?qa=1');
-    const preview = await admin.request('/policies/transform/preview', { method: 'POST', body: { scope: { organizationId: scope.organizationId, projectId: scope.projectId }, config: transformConfig, direction: 'request', sampleJson: requestSample } });
+    const preview = await previewNetworkPolicyRequest(admin, scope, transformConfig, requestSample);
     assert.equal(preview.actualForwarding, false);
     assert.equal(preview.outputJson, mappedRequest);
     const afterWrites = Number(await sql('SELECT count(*) FROM audit_logs')), afterCalls = await count('/__network/echo?qa=1');
@@ -240,8 +252,6 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     await configure();
     const overflow = await call(0, '/network/echo', { method: 'POST', headers: { ...baseHeaders, 'Content-Type': 'application/json' }, body: '{"long":"' + 'x'.repeat(1100) + '"}' });
     assert.equal(overflow.status, 413);
-    const range = () => ({ ...scope, start: new Date(Date.now() - 600000).toISOString(), end: new Date().toISOString() });
-    async function logs(traceId) { return admin.request('/observability/logs?' + new URLSearchParams({ ...range(), traceId })); }
     const decisions = async (r) => (await until(() => logs(r.traceId), v => v.data?.items?.some(x => x.traceId === r.traceId), 90)).data.items.find(x => x.traceId === r.traceId).policyDecisions;
     const bodyCount = async (r) => (await decisions(r)).find(p => p.policyType === 'transform')?.bodyOperationCount;
     await record('P3-06', { first: { ...first, body: first.text, bodyOperationCount: await bodyCount(first) }, hit: { ...hit, body: hit.text, bodyOperationCount: await bodyCount(hit) }, otherOrigin, encodings, retry: { ...retry, bodyOperationCount: await bodyCount(retry) }, overflow, coverage: coverage('gateway', /Json(Request|Response)BodyPipelineTests|BodyTransformBudgetTests|NetworkPolicyCacheTests|NetworkPolicyRetryTests|JsonBodyCodecTests/) });

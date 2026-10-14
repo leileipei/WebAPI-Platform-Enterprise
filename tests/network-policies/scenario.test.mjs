@@ -144,3 +144,56 @@ for (const desiredConfigVersion of [null, 17]) {
         }
     });
 }
+
+test('request preview driver uses the exact direction contract and preserves raw input', async () => {
+    let captured;
+    const server = http.createServer(async (req, res) => {
+        res.setHeader('Content-Type', 'application/json');
+        if (req.url === '/api/v1/auth/csrf') return res.end(JSON.stringify({ token: 'unit-csrf' }));
+        const chunks = [];
+        for await (const chunk of req) chunks.push(chunk);
+        captured = JSON.parse(Buffer.concat(chunks));
+        if (captured.direction !== 'Request') {
+            res.statusCode = 422;
+            return res.end(JSON.stringify({ code: 'invalid_request' }));
+        }
+        res.end(JSON.stringify({ actualForwarding: false, outputJson: 'unit-preview' }));
+    });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    try {
+        const client = new ContractClient('http://127.0.0.1:' + server.address().port);
+        const scope = { organizationId: randomUUID(), projectId: randomUUID(), environmentId: randomUUID() };
+        const sample = '{"n":9007199254740993,"nil":null}';
+        const result = await scenario.previewNetworkPolicyRequest(client, scope, scenario.transformConfig, sample);
+        assert.equal(result.actualForwarding, false);
+        assert.deepEqual(captured.scope, { organizationId: scope.organizationId, projectId: scope.projectId });
+        assert.equal(captured.sampleJson, sample);
+        assert.equal(captured.config, scenario.transformConfig);
+    } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+test('first observation query is immediately usable with its actual scoped time window', async () => {
+    let captured;
+    const server = http.createServer((req, res) => {
+        captured = new URL(req.url, 'http://unit.test');
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ sourceState: 'Available', data: { items: [] } }));
+    });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    try {
+        const client = new ContractClient('http://127.0.0.1:' + server.address().port);
+        const scope = { organizationId: randomUUID(), projectId: randomUUID(), environmentId: randomUUID() };
+        const original = structuredClone(scope), traceId = '0123456789abcdef0123456789abcdef';
+        const queries = scenario.createNetworkPolicyQueries(client, scope);
+        const result = await queries.logs(traceId);
+        assert.equal(result.sourceState, 'Available');
+        assert.equal(captured.pathname, '/api/v1/observability/logs');
+        for (const [key, value] of Object.entries(scope)) assert.equal(captured.searchParams.get(key), value);
+        assert.equal(captured.searchParams.get('traceId'), traceId);
+        const start = Date.parse(captured.searchParams.get('start')), end = Date.parse(captured.searchParams.get('end'));
+        assert(end - start >= 600000 && end - start < 601000);
+        assert(Math.abs(Date.now() - end) < 5000);
+        assert.deepEqual(scope, original);
+        assert.equal(queries.range().environmentId, scope.environmentId);
+    } finally { await new Promise(resolve => server.close(resolve)); }
+});
