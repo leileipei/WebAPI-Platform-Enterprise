@@ -4,6 +4,31 @@ import { assertPublicFiles, validateCloneOwnership } from '../contracts/evidence
 import { digest, parseSuiteLog } from '../gateway-policies/evidence.mjs';
 import { isPrivateRuntimeArtifact } from '../gateway-policies/protection.mjs';
 export { digest };
+// Compare policy content after jsonb formatting without converting numeric tokens
+// through JS Number. Snapshot payload hashes remain hashes of the original bytes.
+export function canonicalNetworkPolicyJson(raw) {
+    assert(typeof raw === 'string' && Buffer.byteLength(raw) <= 128 * 1024);
+    const parsed = JSON.parse(raw, (_key, value, context) => typeof value === 'number' ? JSON.rawJSON(context.source) : value);
+    const stack = [];
+    for (const match of raw.matchAll(/"(?:\\[\s\S]|[^"\\])*"|[{}\[\],:]/g)) {
+        const token = match[0];
+        if (token === '{' || token === '[') { stack.push({ object: token === '{', key: token === '{', names: new Set() }); assert(stack.length <= 64); }
+        else if (token === '}' || token === ']') stack.pop();
+        else if (token === ',' && stack.at(-1)?.object) stack.at(-1).key = true;
+        else if (token.startsWith('"') && stack.at(-1)?.object && stack.at(-1).key) {
+            const name = JSON.parse(token), frame = stack.at(-1);
+            assert(!frame.names.has(name), 'duplicate JSON property'); frame.names.add(name); frame.key = false;
+        }
+    }
+    const ordered = value => {
+        if (value === null || typeof value !== 'object' || JSON.isRawJSON(value)) return value;
+        if (Array.isArray(value)) return value.map(ordered);
+        const result = Object.create(null);
+        for (const key of Object.keys(value).sort()) result[key] = ordered(value[key]);
+        return result;
+    };
+    return JSON.stringify(ordered(parsed));
+}
 export const requestSample = '{"n":9007199254740993,"nil":null,"items":[],"copy":"c","drop":true,"move":"m"}';
 export const mappedRequest = '{"n":9007199254740993,"nil":null,"items":["mapped"],"copy":"c","copied":"c","moved":"m"}';
 export const mappedResponse = JSON.stringify({ method: 'POST', path: '/__network/echo', query: 'qa=1', requestHeader: 'qa', origin: 'https://a.example.test', receivedApiKey: false, body: 'RAW_BODY' }).replace('"RAW_BODY"', mappedRequest.replace('["mapped"]', '["mapped","response"]'));
@@ -207,7 +232,7 @@ export function validateNetworkPolicyEvidence(proof, files, { revision, imageId,
     assert.equal(publish.release.state, 'Succeeded');
     assert.equal(publish.oldNodeStatus, 409);
     assert.notEqual(publish.workingConfig, publish.frozenConfig);
-    assert.equal(publish.publishedConfig, publish.frozenConfig);
+    assert.equal(canonicalNetworkPolicyJson(publish.publishedConfig), canonicalNetworkPolicyJson(publish.frozenConfig));
     assert.match(publish.snapshotHash, hash);
     assert.equal(publish.nodes.length, 2);
     assert.equal(publish.release.targets.length, 2);
@@ -272,8 +297,8 @@ export function validateNetworkPolicyEvidence(proof, files, { revision, imageId,
     assert.equal(promotion.sourceArtifact.sourceEnvironmentId, promotion.sourceEnvironmentId);
     const template = promotion.sourceArtifact.content.routes[0].policies.find(p => p.type === 'transform'), targetTransform = promotion.targetRelease.frozenCandidate.policies.find(p => p.type === 'transform');
     assert(template && targetTransform);
-    assert.equal(digest(template.frozenConfig), promotion.frozenTransformHash);
-    assert.equal(digest(targetTransform.config), promotion.targetTransformHash);
+    assert.equal(digest(canonicalNetworkPolicyJson(template.frozenConfig)), promotion.frozenTransformHash);
+    assert.equal(digest(canonicalNetworkPolicyJson(targetTransform.config)), promotion.targetTransformHash);
     assert.equal(promotion.actualRequests.length, 2);
     for (const r of promotion.actualRequests) {
         assert.equal(r.status, 200);

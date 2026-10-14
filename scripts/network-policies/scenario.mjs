@@ -14,7 +14,7 @@ import { docker, inspectResources } from '../runtime/docker.mjs';
 import { prepareScenario, until } from '../runtime/acceptance-scenario.mjs';
 import { ContractClient } from '../contracts/scenario.mjs';
 import { prepareNetworkBackend, assertNetworkOwners, validateFixedNetworkSuites, assertFixedNetworkSources } from './fixtures.mjs';
-import { digest, requestSample, mappedRequest } from './evidence.mjs';
+import { digest, requestSample, mappedRequest, canonicalNetworkPolicyJson } from './evidence.mjs';
 export { requestSample, mappedRequest };
 // Numeric operation tokens remain raw JSON. Never round-trip them through JS Number.
 export const transformConfig = `{"requestHeaders":[{"action":"Set","name":"X-Network-QA","value":"qa"}],"responseHeaders":[{"action":"Set","name":"X-Network-QA","value":"qa"}],"path":{"removePrefix":"/network","addPrefix":"/__network"},"query":[{"action":"Remove","name":"omit"},{"action":"Set","name":"qa","value":"1"}],"requestBody":{"methods":["POST"],"maxBodyBytes":1024,"operations":[{"op":"add","path":"/items/-","value":"mapped"},{"op":"replace","path":"/n","value":9007199254740993},{"op":"remove","path":"/drop"},{"op":"copy","from":"/copy","path":"/copied"},{"op":"move","from":"/move","path":"/moved"}]},"responseBody":{"statusCodes":[200],"maxBodyBytes":1024,"operations":[{"op":"add","path":"/body/items/-","value":"response"}]}}`;
@@ -421,6 +421,25 @@ if (process.argv[1] === import.meta.filename) {
     const [revision, imageId, cloneDirectory, fixtureDirectory] = process.argv.slice(2);
     console.log(JSON.stringify(await runNetworkPolicyScenario({ revision, imageId, cloneDirectory, fixtureDirectory }), null, 2));
 }
+export function networkPolicyPromotionTargetConfigurations(templates, { targetOrigins, targetRanges, targetTimeoutMs, targetRateLimit }) {
+    return templates.filter(p => p.environmentFields.length > 0).map(template => {
+        assert(['timeout', 'rate_limit', 'cors', 'ip_filter'].includes(template.type), 'unsupported fixture environment policy: ' + template.type);
+        const config = JSON.parse(template.frozenConfig);
+        if (template.type === 'timeout') {
+            assert(Number.isInteger(targetTimeoutMs) && targetTimeoutMs > 0, 'explicit target timeout required');
+            config.timeoutMs = targetTimeoutMs;
+        }
+        if (template.type === 'rate_limit') {
+            for (const key of ['burst', 'refillTokens', 'windowMs']) {
+                assert(Number.isInteger(targetRateLimit?.[key]) && targetRateLimit[key] > 0, 'explicit target rate budget required: ' + key);
+                config[key] = targetRateLimit[key];
+            }
+        }
+        if (template.type === 'cors') config.allowedOrigins = [...targetOrigins];
+        if (template.type === 'ip_filter') config.ranges = [...targetRanges];
+        return { type: template.type, config };
+    });
+}
 export async function createNetworkPolicyPromotionActor({ admin, endpoint, password, suffix, permissions, scope, tag }) {
     // Release artifacts include project-owned policies. An environment-only grant
     // cannot read that owning scope, even when policy.read is present.
@@ -494,7 +513,7 @@ async function runNetworkPromotionWithEntry({ s, admin, state, release, ctx, sco
     await acceptor.request('/test-acceptances/' + acceptance.id + '/accept', { method: 'POST', headers: { 'If-Match': '"' + acceptance.revision + '"' }, body: { comment: '独立审核同源验收材料' } });
     const targetOrigins = [originB], targetRanges = ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '127.0.0.0/8', '::1/128'];
     const targetPolicies = new Map();
-    for (const [type, config] of [['cors', { ...JSON.parse((artifact.content.routes[0].policies.find(p => p.type === 'cors')).frozenConfig), allowedOrigins: targetOrigins }], ['ip_filter', { ...ipConfig, ranges: targetRanges }]]) {
+    for (const { type, config } of networkPolicyPromotionTargetConfigurations(artifact.content.routes[0].policies, { targetOrigins, targetRanges, targetTimeoutMs: configs.timeout.timeoutMs, targetRateLimit: configs.rate_limit })) {
         const p = await admin.request('/projects/' + scope.projectId + '/policies', { method: 'POST', body: { name: '明确PROD ' + type + ' ' + tag, type, config: JSON.stringify(config), enabled: true } });
         targetPolicies.set(type, p);
     }
@@ -539,7 +558,7 @@ async function runNetworkPromotionWithEntry({ s, admin, state, release, ctx, sco
     assert.equal(publicRequest.status, 200); assert.equal(publicRequest.tlsVerified, true); assert.equal(publicRequest.text, results[0].text);
     const publicDenied = await networkRequest({ port: entryPort, url: '/network/echo', ca: entry.ca, headers: { 'X-API-Key': sourceKey, Origin: originB } });
     assert.equal(publicDenied.status, 401); assert.equal(publicDenied.tlsVerified, true);
-    const frozenTransform = artifact.content.routes[0].policies.find(p => p.type === 'transform').frozenConfig, targetTransform = targetRelease.frozenCandidate.policies.find(p => p.type === 'transform').config;
+    const frozenTransform = canonicalNetworkPolicyJson(artifact.content.routes[0].policies.find(p => p.type === 'transform').frozenConfig), targetTransform = canonicalNetworkPolicyJson(targetRelease.frozenCandidate.policies.find(p => p.type === 'transform').config);
     assert.equal(targetTransform, frozenTransform);
     const entrySettings = await admin.request('/environments/' + target.id);
     assert.equal(entrySettings.gatewayPublicUrl, entry.url);

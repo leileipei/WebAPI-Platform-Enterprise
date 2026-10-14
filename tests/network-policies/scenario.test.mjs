@@ -10,6 +10,31 @@ import { docker } from '../../scripts/runtime/docker.mjs';
 import * as scenario from '../../scripts/network-policies/scenario.mjs';
 import { ContractClient } from '../../scripts/contracts/scenario.mjs';
 const port = async () => { const server = net.createServer(); await new Promise((r, j) => { server.once('error', j); server.listen(0, '127.0.0.1', r); }); const n = server.address().port; await new Promise(r => server.close(r)); return n; };
+test('promotion target configurations cover every environment slot and retain frozen Transform', () => {
+    const templates = [
+        { type: 'timeout', environmentFields: ['timeoutMs'], frozenConfig: '{}' },
+        { type: 'rate_limit', environmentFields: ['burst', 'refillTokens', 'windowMs'], frozenConfig: '{"algorithm":"TokenBucket","keyBy":"ApplicationRoute","redisFailureMode":"Reject"}' },
+        { type: 'cors', environmentFields: ['allowedOrigins'], frozenConfig: '{"allowCredentials":true}' },
+        { type: 'ip_filter', environmentFields: ['ranges'], frozenConfig: '{"mode":"AllowList"}' },
+        { type: 'transform', environmentFields: [], frozenConfig: '{"requestBody":{"operations":[{"op":"add","path":"/n","value":9007199254740993}]}}' },
+        { type: 'authentication', environmentFields: [], frozenConfig: '{"mode":"ApiKey"}' }
+    ], before = structuredClone(templates);
+    const selected = scenario.networkPolicyPromotionTargetConfigurations(templates, { targetOrigins: ['https://prod.example.test'], targetRanges: ['127.0.0.0/8'], targetTimeoutMs: 45000, targetRateLimit: { burst: 500, refillTokens: 300, windowMs: 2000 } });
+    assert.deepEqual(selected.map(p => p.type), ['timeout', 'rate_limit', 'cors', 'ip_filter']);
+    assert.deepEqual(selected[0].config, { timeoutMs: 45000 });
+    assert.deepEqual(selected[1].config, { algorithm: 'TokenBucket', keyBy: 'ApplicationRoute', redisFailureMode: 'Reject', burst: 500, refillTokens: 300, windowMs: 2000 });
+    assert.deepEqual(selected[2].config, { allowedOrigins: ['https://prod.example.test'], allowCredentials: true });
+    assert.deepEqual(selected[3].config, { mode: 'AllowList', ranges: ['127.0.0.0/8'] });
+    assert.deepEqual(templates, before);
+    assert(!selected.some(p => p.type === 'transform' || p.type === 'authentication'));
+});
+test('promotion fixture requires explicit timeout and rate budgets removed from artifact templates', () => {
+    assert.throws(() => scenario.networkPolicyPromotionTargetConfigurations([{ type: 'timeout', environmentFields: ['timeoutMs'], frozenConfig: '{}' }], {}), /explicit target timeout/);
+    assert.throws(() => scenario.networkPolicyPromotionTargetConfigurations([{ type: 'rate_limit', environmentFields: ['burst', 'refillTokens', 'windowMs'], frozenConfig: '{"algorithm":"TokenBucket","keyBy":"Route","redisFailureMode":"Reject"}' }], {}), /explicit target rate/);
+});
+test('promotion fixture refuses unsupported environment slots instead of silently omitting mappings', () => {
+    assert.throws(() => scenario.networkPolicyPromotionTargetConfigurations([{ type: 'authentication', environmentFields: ['issuer'], frozenConfig: '{"mode":"JWT"}' }], { targetOrigins: [], targetRanges: [] }), /unsupported fixture environment policy/);
+});
 test('promotion actor registration reads project policies without granting approval or publish', async () => {
     const calls = [], roleId = randomUUID(), userId = randomUUID();
     let username;

@@ -1,11 +1,21 @@
 import { transformConfig } from '../../scripts/network-policies/scenario.mjs';
 import { mappedRequest, mappedResponse } from '../../scripts/network-policies/evidence.mjs';
+import * as networkEvidence from '../../scripts/network-policies/evidence.mjs';
 import { crc32, deflateSync } from 'node:zlib';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 const revision = 'a'.repeat(40), imageId = 'sha256:' + 'b'.repeat(64);
 const sha = v => createHash('sha256').update(v).digest('hex');
+test('policy comparison canonicalizes JSON without rounding numeric tokens or reordering operations', () => {
+    const raw = '{ "z":null,"n":9007199254740993,"p":0.1234567890123456789012345,"ops":[{"z":2,"a":1},{"x":3}],"__proto__":{"safe":true} }';
+    assert.equal(networkEvidence.canonicalNetworkPolicyJson(raw), '{"__proto__":{"safe":true},"n":9007199254740993,"ops":[{"a":1,"z":2},{"x":3}],"p":0.1234567890123456789012345,"z":null}');
+    assert.notEqual(networkEvidence.canonicalNetworkPolicyJson(raw), networkEvidence.canonicalNetworkPolicyJson(raw.replace('9007199254740993', '9007199254740992')));
+    assert.notEqual(networkEvidence.canonicalNetworkPolicyJson(raw), networkEvidence.canonicalNetworkPolicyJson(raw.replace('9012345', '9012344')));
+});
+test('policy comparison refuses duplicate decoded property names', () => {
+    assert.throws(() => networkEvidence.canonicalNetworkPolicyJson('{"a":1,"\\u0061":1}'), /duplicate JSON property/);
+});
 const ids = Array.from({ length: 12 }, (_, i) => 'P3-' + String(i + 1).padStart(2, '0'));
 // Fabricated validator inputs only. These are never published as runtime evidence.
 function unitInput() {
@@ -30,7 +40,7 @@ function unitInput() {
         'P3-06': { first: { status: 200, beforeCalls: 0, afterCalls: 1, body: '[1]', bodyOperationCount: 1 }, hit: { status: 200, beforeCalls: 1, afterCalls: 1, body: '[1]', bodyOperationCount: 0 }, otherOrigin: { status: 200, beforeCalls: 1, afterCalls: 2 }, encodings: ['gzip', 'br'].map(encoding => ({ encoding, status: 200, expectedBody: '[1]', body: '[1]', maxBodyBytes: 1024, encodedBytes: 30, decodedBytes: 3 })), retry: { status: 200, beforeCalls: 0, afterCalls: 3, bodyOperationCount: 1 }, overflow: { status: 413 }, coverage: { suite: 'gateway', tests: ['WebApi.Tests.RealUnitInput'] } },
         'P3-07': { release: { state: 'Succeeded', targetConfigVersion: 4, deploymentSequence: 7, targets }, nodes: targets.map(t => ({ id: t.nodeId, instanceId: t.instanceId, currentConfigVersion: 4, currentDeploymentSequence: 7 })), acks: targets.map(t => ({ ...t, success: true })), snapshotHash: 'd'.repeat(64), frozenConfig: '{"x":1}', publishedConfig: '{"x":1}', workingConfig: '{"x":2}', oldNodeStatus: 409 },
         'P3-08': { histories: ['2.0', '2.1', '2.2', '2.3'].map(schemaVersion => ({ schemaVersion, originalHash: 'e'.repeat(64), rollbackHash: 'e'.repeat(64), targets, originalConfigVersion: 1, rollbackConfigVersion: 1, originalDeploymentSequence: 1, rollbackDeploymentSequence: 7 })), inFlight: { status: 200, oldMarker: 'old', receivedMarker: 'old' } },
-        'P3-09': { sourceEnvironmentId: randomUUID(), targetEnvironmentId: randomUUID(), state: 'Succeeded', sourceOrigins: ['https://a.example.test'], targetOrigins: ['https://b.example.test'], sourceRanges: ['10.0.0.0/8'], targetRanges: ['172.16.0.0/12'], frozenTransformHash: sha(transformConfig), targetTransformHash: sha(transformConfig), missingMappingStatus: 422, foreignStatus: 404, readonlyStatus: 403, approvalCount: 2 },
+        'P3-09': { sourceEnvironmentId: randomUUID(), targetEnvironmentId: randomUUID(), state: 'Succeeded', sourceOrigins: ['https://a.example.test'], targetOrigins: ['https://b.example.test'], sourceRanges: ['10.0.0.0/8'], targetRanges: ['172.16.0.0/12'], frozenTransformHash: sha(networkEvidence.canonicalNetworkPolicyJson(transformConfig)), targetTransformHash: sha(networkEvidence.canonicalNetworkPolicyJson(transformConfig)), missingMappingStatus: 422, foreignStatus: 404, readonlyStatus: 403, approvalCount: 2 },
         'P3-10': { logs: { sourceState: 'Available', data: { items: [{ traceId: '1'.repeat(32), policyDecisions: [{ policyType: 'transform', decision: 'Applied', operationIndex: null, bodyOperationCount: 2 }] }] } }, trace: { sourceState: 'Available', data: { spans: [{ traceId: '1'.repeat(32) }] } }, metrics: { sourceState: 'Available', data: { kpis: [{ metric: 'request_count', value: 1 }] } }, privateCanariesExcluded: true },
         'P3-11': { kind: 'cua', actual: true, width: 1440, actions: ['create', 'edit', 'validate', 'copy', 'nine-bindings', 'json-request-preview', 'json-response-preview', 'exact-null-number', 'readonly', 'revision-412', 'dirty-navigation', 'scope-late', 'release-review', 'promotion-mapping', 'logs-trace'].map(id => ({ id, ...common, passed: true, screenshot: 'qa.png' })) },
         'P3-12': { mainBefore: { head: revision, status: 'dirty', files: { a: 'e'.repeat(64) } }, mainAfter: { head: revision, status: 'dirty', files: { a: 'e'.repeat(64) } }, runtimeBefore: { ownerId: 'original', tables: { a: 'e'.repeat(64) }, files: { a: 'e'.repeat(64) } }, runtimeAfter: { ownerId: 'original', tables: { a: 'e'.repeat(64) }, files: { a: 'e'.repeat(64) } }, package2Paused: true, pendingModelChanges: false, modelCoverage: { suite: 'integration', tests: ['WebApi.Tests.RealUnitInput'] } },
@@ -60,6 +70,21 @@ function unitInput() {
 function mutate(f, p, fn) { const x = f.files.find(x => x.path === p), v = JSON.parse(x.content); fn(v); x.content = Buffer.from(JSON.stringify(v)); f.proof.artifacts.find(x => x.path === p).sha256 = sha(x.content); }
 async function validate(f, options = {}) { const m = await import('../../scripts/network-policies/evidence.mjs'); return m.validateNetworkPolicyEvidence(f.proof, f.files, { revision, imageId, ...options }); }
 test('unit-only complete structured input validates', async () => assert.equal((await validate(unitInput())).passed, true));
+test('policy proof accepts jsonb whitespace while preserving frozen content identity', async () => {
+    const f = unitInput();
+    mutate(f, 'P3-07.json', v => { v.frozenConfig = transformConfig; v.publishedConfig = transformConfig.replaceAll(',"', ',\n  "'); });
+    mutate(f, 'P3-09.json', v => v.targetRelease.frozenCandidate.policies[0].config = v.targetRelease.frozenCandidate.policies[0].config.replaceAll(',"', ',\n  "'));
+    assert.equal((await validate(f)).passed, true);
+});
+for (const id of ['P3-07', 'P3-09'])
+    test('policy proof rejects one-digit large integer changes in ' + id, async () => {
+        const f = unitInput();
+        mutate(f, id + '.json', v => {
+            if (id === 'P3-07') { v.frozenConfig = transformConfig; v.publishedConfig = transformConfig.replace('9007199254740993', '9007199254740992'); }
+            else v.targetRelease.frozenCandidate.policies[0].config = v.targetRelease.frozenCandidate.policies[0].config.replace('9007199254740993', '9007199254740992');
+        });
+        await assert.rejects(validate(f));
+    });
 for (const id of ids)
     test('missing ' + id + ' blocks acceptance', async () => { const f = unitInput(); f.proof.sections = f.proof.sections.filter(x => x.id !== id); await assert.rejects(validate(f)); });
 const corruptions = {
