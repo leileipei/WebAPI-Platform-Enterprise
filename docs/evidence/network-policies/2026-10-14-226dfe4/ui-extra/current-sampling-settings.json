@@ -1,0 +1,21 @@
+{
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+  "checkedAt": "2026-10-14T11:20:21.151Z",
+  "ratios": [
+    {
+      "service": "control-plane",
+      "ratio": "0.1"
+    },
+    {
+      "service": "gateway-a",
+      "ratio": "1"
+    },
+    {
+      "service": "gateway-b",
+      "ratio": "1"
+    }
+  ],
+  "formalP3_10SamplingRatio": 1,
+  "formalP3_10CapturedBeforePromotion": true
+}

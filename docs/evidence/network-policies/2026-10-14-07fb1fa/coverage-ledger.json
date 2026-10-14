@@ -1,0 +1,208 @@
+[
+  {
+    "requirementId": "P3-01",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/domain.log"
+    ],
+    "evidencePaths": [
+      "public/P3-01.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-02",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-02.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-03",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/gateway.log"
+    ],
+    "evidencePaths": [
+      "public/P3-03.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-04",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/gateway.log"
+    ],
+    "evidencePaths": [
+      "public/P3-04.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-05",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/domain.log",
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-05.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-06",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/gateway.log"
+    ],
+    "evidencePaths": [
+      "public/P3-06.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-07",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/integration.log",
+      "public/gateway.log"
+    ],
+    "evidencePaths": [
+      "public/P3-07.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-08",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/domain.log",
+      "public/integration.log",
+      "public/gateway.log"
+    ],
+    "evidencePaths": [
+      "public/P3-08.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-09",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-09.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-10",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/integration.log",
+      "public/gateway.log"
+    ],
+    "evidencePaths": [
+      "public/P3-10.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-11",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/console.log"
+    ],
+    "evidencePaths": [
+      "public/P3-11.json",
+      "public/readonly.png",
+      "public/promotion-mapping.png",
+      "ui-extra/readonly-preview-extra.png"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "P3-12",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-12.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  },
+  {
+    "requirementId": "SDK-E2E",
+    "sourceIdentity": {
+      "revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266"
+    },
+    "testLog": [
+      "sdk-e2e.log"
+    ],
+    "evidencePaths": [
+      "sdk-e2e-result.json",
+      "acceptance-input.json",
+      "acceptance-result.json"
+    ],
+    "status": "passed_1_failed_0_skipped_0",
+    "remainingGate": "Task17 review completed: 3 Important under remediation; new exact fixed-source acceptance pending; main merge/push/4192 install not authorized"
+  }
+]

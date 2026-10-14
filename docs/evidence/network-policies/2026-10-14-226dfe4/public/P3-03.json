@@ -1,0 +1,175 @@
+{
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+  "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+  "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+  "id": "P3-03",
+  "actual": true,
+  "authDenied": {
+    "status": 401,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "date": "Wed, 14 Oct 2026 11:01:44 GMT",
+      "server": "Kestrel",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "https://a.example.test",
+      "access-control-expose-headers": "X-Network-QA",
+      "transfer-encoding": "chunked",
+      "vary": "Origin",
+      "x-webapi-trace-id": "0HNP9SA0IAHCI:00000003",
+      "x-webapi-deployment-sequence": "4"
+    },
+    "text": "{\"code\":\"invalid_api_key\",\"traceId\":\"0HNP9SA0IAHCI:00000003\",\"w3cTraceId\":\"b99344b21bd34eaffa91b5c08f45c2f8\"}",
+    "bytes": 109,
+    "traceId": "b99344b21bd34eaffa91b5c08f45c2f8"
+  },
+  "upstreamError": {
+    "status": 503,
+    "headers": {
+      "content-length": "211",
+      "content-type": "application/json",
+      "date": "Wed, 14 Oct 2026 11:01:44 GMT",
+      "server": "Kestrel",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "https://a.example.test",
+      "access-control-expose-headers": "X-Network-QA",
+      "vary": "Origin",
+      "x-fixture-call": "3",
+      "x-fixture-decoded-bytes": "211",
+      "x-fixture-encoded-bytes": "211",
+      "x-network-qa": "qa",
+      "x-webapi-trace-id": "0HNP9SA0IE80F:00000003",
+      "x-webapi-deployment-sequence": "4"
+    },
+    "text": "{\"method\":\"GET\",\"path\":\"/__network/echo/upstream-error\",\"query\":\"qa=1\",\"requestHeader\":\"qa\",\"origin\":\"https://a.example.test\",\"receivedApiKey\":false,\"body\":{\"n\":9007199254740993,\"nil\":null,\"items\":[\"upstream\"]}}",
+    "bytes": 211,
+    "traceId": "596d521ced4cbd6f627f13b2d61b19d5"
+  },
+  "rateDenied": {
+    "status": 429,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "date": "Wed, 14 Oct 2026 11:01:45 GMT",
+      "server": "Kestrel",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "https://a.example.test",
+      "access-control-expose-headers": "X-Network-QA",
+      "retry-after": "600",
+      "transfer-encoding": "chunked",
+      "vary": "Origin",
+      "x-webapi-trace-id": "0HNP9SA0IE80F:00000004",
+      "x-webapi-deployment-sequence": "5"
+    },
+    "text": "{\"code\":\"rate_limit_exceeded\",\"traceId\":\"0HNP9SA0IE80F:00000004\"}",
+    "bytes": 65,
+    "traceId": "5a297920ed80255d1e223c61adf2fc87"
+  },
+  "preflight": {
+    "status": 204,
+    "headers": {
+      "date": "Wed, 14 Oct 2026 11:01:43 GMT",
+      "server": "Kestrel",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-headers": "X-API-Key, Content-Type, X-Network-QA",
+      "access-control-allow-methods": "GET, POST, OPTIONS",
+      "access-control-allow-origin": "https://a.example.test",
+      "access-control-max-age": "600",
+      "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+      "x-webapi-trace-id": "0HNP9SA0IAHCI:00000001",
+      "x-webapi-deployment-sequence": "4"
+    },
+    "text": "",
+    "bytes": 0,
+    "traceId": "695378e96aec5b9aab93ce998a1d5f26",
+    "beforeCalls": 0,
+    "afterCalls": 0,
+    "allowOrigin": "https://a.example.test",
+    "allowCredentials": "true"
+  },
+  "deniedOrigin": {
+    "status": 403,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "date": "Wed, 14 Oct 2026 11:01:44 GMT",
+      "server": "Kestrel",
+      "transfer-encoding": "chunked",
+      "vary": "Origin",
+      "x-webapi-trace-id": "0HNP9SA0IE80F:00000001",
+      "x-webapi-deployment-sequence": "4"
+    },
+    "text": "{\"code\":\"cors_rejected\",\"reason\":\"cors_origin_rejected\",\"traceId\":\"0HNP9SA0IE80F:00000001\"}",
+    "bytes": 91,
+    "traceId": "9d3aa470705b3ebf30a230c51b700987",
+    "beforeCalls": 0,
+    "afterCalls": 0
+  },
+  "noOrigin": {
+    "status": 200,
+    "headers": {
+      "content-length": "195",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Wed, 14 Oct 2026 11:01:44 GMT",
+      "server": "Kestrel",
+      "cache-control": "public, max-age=120",
+      "vary": "Origin",
+      "x-fixture-call": "1",
+      "x-fixture-decoded-bytes": "184",
+      "x-fixture-encoded-bytes": "184",
+      "x-network-qa": "qa",
+      "x-webapi-trace-id": "0HNP9SA0IAHCI:00000002",
+      "x-webapi-deployment-sequence": "4"
+    },
+    "text": "{\"method\":\"GET\",\"path\":\"/__network/echo/no-origin\",\"query\":\"qa=1\",\"requestHeader\":\"qa\",\"origin\":\"\",\"receivedApiKey\":false,\"body\":{\"n\":9007199254740993,\"nil\":null,\"items\":[\"upstream\",\"response\"]}}",
+    "bytes": 195,
+    "traceId": "03df640bd129975ef86d2a4dd479abaa"
+  },
+  "businessOptions": {
+    "status": 200,
+    "headers": {
+      "content-length": "228",
+      "content-type": "application/json; charset=utf-8",
+      "date": "Wed, 14 Oct 2026 11:01:44 GMT",
+      "server": "Kestrel",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "https://a.example.test",
+      "access-control-expose-headers": "X-Network-QA",
+      "cache-control": "public, max-age=120",
+      "vary": "Origin",
+      "x-fixture-call": "1",
+      "x-fixture-decoded-bytes": "217",
+      "x-fixture-encoded-bytes": "217",
+      "x-network-qa": "qa",
+      "x-webapi-trace-id": "0HNP9SA0IE80F:00000002",
+      "x-webapi-deployment-sequence": "4"
+    },
+    "text": "{\"method\":\"OPTIONS\",\"path\":\"/__network/echo/business-options\",\"query\":\"qa=1\",\"requestHeader\":\"qa\",\"origin\":\"https://a.example.test\",\"receivedApiKey\":false,\"body\":{\"n\":9007199254740993,\"nil\":null,\"items\":[\"upstream\",\"response\"]}}",
+    "bytes": 228,
+    "traceId": "abe2a3f3a5f0e0430f1814f099ed2fe7"
+  },
+  "coverage": {
+    "suite": "gateway",
+    "tests": [
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_SamePathMethods_MalformedPreflightIsControlledBeforeAmbiguity(method: \"\\\"GET\\\",POST\", duplicate: False, second: \"POST\", denyIp: False)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_SamePathMethods_MalformedPreflightIsControlledBeforeAmbiguity(method: \"GET\", duplicate: True, second: \"POST\", denyIp: False)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_SamePathMethods_MalformedPreflightIsControlledBeforeAmbiguity(method: \"GET;POST\", duplicate: False, second: \"POST\", denyIp: False)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_SamePathMethods_MalformedPreflightIsControlledBeforeAmbiguity(method: \"GET,POST\", duplicate: False, second: \"POST\", denyIp: True)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_SamePathMethods_MalformedPreflightIsControlledBeforeAmbiguity(method: \"GET\", duplicate: True, second: \"GET\", denyIp: False)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_SamePathMethods_MalformedPreflightIsControlledBeforeAmbiguity(method: \"GET\", duplicate: True, second: \"POST\", denyIp: True)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_SamePathMethods_MalformedPreflightIsControlledBeforeAmbiguity(method: \"GET,POST\", duplicate: False, second: \"POST\", denyIp: False)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_GetOnlyPreflight_Is204WithoutAuthenticationCacheOrBackend",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_MalformedMethods_DoNotInterceptUnboundBusinessOptionsOrUnknownMethods",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_MatchedDisallowedOrMalformedPreflight_Is403(origin: \"https://evil.example.com\", method: \"GET\", headers: \"X-API-Key\")",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_MatchedDisallowedOrMalformedPreflight_Is403(origin: \"https://portal.example.com\", method: \"GET\", headers: \"X-Business,x-business\")",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_MatchedDisallowedOrMalformedPreflight_Is403(origin: \"https://portal.example.com\", method: \"GET\", headers: \"X-Unknown\")",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_MatchedDisallowedOrMalformedPreflight_Is403(origin: \"https://portal.example.com\", method: \"GET,POST\", headers: \"X-API-Key\")",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_AuthAndRateRejection_KeepAllowedOrigin(status: 429)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_AuthAndRateRejection_KeepAllowedOrigin(status: 403)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_HeldPreflightPublishOrCancel_RetainsAndReleasesOriginalLease(cancel: True)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_HeldPreflightPublishOrCancel_RetainsAndReleasesOriginalLease(cancel: False)",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_ExactMethodRoutes_KeepBusinessOptionsAndUseOriginalPolicy",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_UnmatchedMethodsAndNoOrigin_KeepNativeRoutingAndAuth",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_WildcardMaxAgeZero_AndIpFirstRejection_HaveNoForgedAllowHeaders",
+      "WebApi.Gateway.Tests.CorsPipelineTests.Cors_AllowedOrigin401_AndUpstream503_KeepOwnedHeaders"
+    ]
+  }
+}

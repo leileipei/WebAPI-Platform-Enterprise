@@ -1,0 +1,304 @@
+{
+  "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+  "ownerId": "dc4f9e62-4472-44b2-8532-412be5369009",
+  "projectName": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+  "schemaVersion": 1,
+  "stage": "isolated-pre-install",
+  "runtime": {
+    "state": {
+      "schemaVersion": 1,
+      "projectName": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+      "ownerId": "dc4f9e62-4472-44b2-8532-412be5369009",
+      "ports": {
+        "console": 50262,
+        "gatewayA": 50263,
+        "gatewayB": 50264
+      },
+      "bootstrapUsername": "network-policy-admin",
+      "binding": {
+        "environmentId": "2e81e2ad-5c16-4e75-af80-b8adeac183fa",
+        "nodeNames": [
+          "local-gateway-a",
+          "local-gateway-b"
+        ],
+        "allowedOrigins": [
+          "http://backend-a:8080",
+          "http://backend-b:8080",
+          "http://policy-backend:18080",
+          "http://policy-backend:18081"
+        ]
+      },
+      "demoEnabled": true,
+      "releaseId": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "initialized": true,
+      "bindingPhase": "Applied",
+      "pendingConfiguration": null
+    },
+    "directory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+    "initializedEmpty": true,
+    "restored": false
+  },
+  "images": "images.json",
+  "sections": [
+    {
+      "id": "P3-01",
+      "artifact": "P3-01.json"
+    },
+    {
+      "id": "P3-02",
+      "artifact": "P3-02.json"
+    },
+    {
+      "id": "P3-03",
+      "artifact": "P3-03.json"
+    },
+    {
+      "id": "P3-04",
+      "artifact": "P3-04.json"
+    },
+    {
+      "id": "P3-05",
+      "artifact": "P3-05.json"
+    },
+    {
+      "id": "P3-06",
+      "artifact": "P3-06.json"
+    },
+    {
+      "id": "P3-07",
+      "artifact": "P3-07.json"
+    },
+    {
+      "id": "P3-08",
+      "artifact": "P3-08.json"
+    },
+    {
+      "id": "P3-09",
+      "artifact": "P3-09.json"
+    },
+    {
+      "id": "P3-10",
+      "artifact": "P3-10.json"
+    },
+    {
+      "id": "P3-11",
+      "artifact": "P3-11.json"
+    },
+    {
+      "id": "P3-12",
+      "artifact": "P3-12.json"
+    }
+  ],
+  "suites": [
+    {
+      "name": "console",
+      "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "passed": 295,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "965e46aac9046e7526e8075ef61db8b3fe0950c93b1e66958414ea508bb3c071",
+      "log": "console.log",
+      "artifact": "console.json"
+    },
+    {
+      "name": "runtime",
+      "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "passed": 234,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "9565edbf1422d07c98f6003527dbbe00ec4596ab9fcc659ab88638fc4f0e385d",
+      "log": "runtime.log",
+      "artifact": "runtime.json"
+    },
+    {
+      "name": "domain",
+      "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "passed": 1065,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "44cd869993da527d498d6d8c0951638248d463b590c550429d6efa433b04ccf4",
+      "log": "domain.log",
+      "artifact": "domain.json"
+    },
+    {
+      "name": "integration",
+      "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "passed": 1409,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "0dcb387c33b4692dea02081f41eebfb426557cc33a7f802c83c908e62431f7f6",
+      "log": "integration.log",
+      "artifact": "integration.json"
+    },
+    {
+      "name": "gateway",
+      "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+      "passed": 338,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "b24f70a0f942c28554543bc86a305f58cdba6f8d764e3f7e7229c52733b2a72e",
+      "log": "gateway.log",
+      "artifact": "gateway.json"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "P3-01.json",
+      "sha256": "9a5e3cc93e9a966a1421cc0fafe857173844d3c1da8754d67728fff99944b8ff"
+    },
+    {
+      "path": "P3-02.json",
+      "sha256": "58bfc359f003a0e85b87718900fbf5331867d35a3c3bc724d4b9bc8c7cb57dc7"
+    },
+    {
+      "path": "P3-03.json",
+      "sha256": "52e580a9a28895122f14d6c7454437c6471e6dba3bf3f189dca529c653c793c8"
+    },
+    {
+      "path": "P3-05.json",
+      "sha256": "aeb1741c04ddf29daf2950b248efea1270645844926bdd27cba49455646d2997"
+    },
+    {
+      "path": "P3-06.json",
+      "sha256": "b0a0ef715f84168bcdd409b6472aa80504130c5d0de8080ac106635177a60ded"
+    },
+    {
+      "path": "P3-04.json",
+      "sha256": "0489e6b82dc87f25a8464c6fb00292c7438a051e5752c26b038daa6d7bb67861"
+    },
+    {
+      "path": "P3-07.json",
+      "sha256": "163614a0edbd2712b8b47b884ff2efbd17ddc5149ba5d478b508633c45d60e92"
+    },
+    {
+      "path": "P3-08.json",
+      "sha256": "43a6fb20e231d0139549db1ec89e016916c7946c53edfd1e4e62c7d15cd9f725"
+    },
+    {
+      "path": "P3-09.json",
+      "sha256": "ee504bec02d23b0163d31e55a46f6d2c6667a8a2136c75ee582633221e321d0c"
+    },
+    {
+      "path": "P3-10.json",
+      "sha256": "9bf8c1b99b650910ac24831d54b95a521967a0a1965e28514b880c074557e162"
+    },
+    {
+      "path": "P3-11.json",
+      "sha256": "22c096371e229d81e860f5820d65971f9bbd41f16ed88886fee4e0da18b2d48e"
+    },
+    {
+      "path": "P3-12.json",
+      "sha256": "0b24777fc211b1ac451f41189feec004cf370c2e0346a036d35fc70e14b3816e"
+    },
+    {
+      "path": "validate.png",
+      "sha256": "9e94c83ed72b7211614ef10447385c818b32b50b0de29d84846be2f4c6c8684d"
+    },
+    {
+      "path": "create.png",
+      "sha256": "c7f83194222a5babbf82333f6a9b14512f5f2b04655d04e17fe22e5f2eb1dba3"
+    },
+    {
+      "path": "edit.png",
+      "sha256": "668e815ba7f7ab69d0f7582a7ad08c45d9c3a91ae2460045cb631fb43a689923"
+    },
+    {
+      "path": "dirty-navigation.png",
+      "sha256": "6ed483d4220e0795ee37937a6ec7e5129206ae13c3d250f83f5fe04f71efbec8"
+    },
+    {
+      "path": "copy.png",
+      "sha256": "993c3459f297dba3a985123040dfbdabe58becaced226318d441ada05afb406f"
+    },
+    {
+      "path": "json-request-preview.png",
+      "sha256": "5b80a2228718a5a1c57d9f195a493d0e12b97f577fb85d32eaa84f9bf48b6c22"
+    },
+    {
+      "path": "json-response-preview.png",
+      "sha256": "3cab52a8a9bcd58831a9e484dbe55b5f9872104ec362aa85307f997f2619fd9c"
+    },
+    {
+      "path": "exact-null-number.png",
+      "sha256": "55521246cd4e845aa496e27f168d0947d667fc100428e1ee006f9d1bbe7bec21"
+    },
+    {
+      "path": "revision-412.png",
+      "sha256": "5976b17f28ade6b712fbebd29d01457a01acd26fee522db3def7aa9b96a73d85"
+    },
+    {
+      "path": "scope-late.png",
+      "sha256": "19b8deadc25591527f30ab71b169697dd7f34dd5d3d7d5af9d07758eca37a105"
+    },
+    {
+      "path": "nine-bindings.png",
+      "sha256": "f71b640afef89f3c193f319735a026501719f852b0d0a81ca7421e365764c418"
+    },
+    {
+      "path": "release-review.png",
+      "sha256": "061a2c9d20fbe2ff8e4d05bd84e59c894f9fa737bf9f59032197574c1d9c9cfa"
+    },
+    {
+      "path": "promotion-mapping.png",
+      "sha256": "03afc3e65539d5f2b9ea60600c2899a1a3162e29037773f258589542e4f75f3b"
+    },
+    {
+      "path": "logs-trace.png",
+      "sha256": "3819863ef2f582c29e6a256e8d6985acd2e16a4df412004010763c652425dc13"
+    },
+    {
+      "path": "readonly.png",
+      "sha256": "70b77de719fbb2b56c1b7d4795c674f390638b5ee0efd566e0a2c1afc05a57d5"
+    },
+    {
+      "path": "console.json",
+      "sha256": "fcfcabb051da45aac5fe2402e7c989db94581ffdd6d1a0984a97b6b174484a2f"
+    },
+    {
+      "path": "console.log",
+      "sha256": "965e46aac9046e7526e8075ef61db8b3fe0950c93b1e66958414ea508bb3c071"
+    },
+    {
+      "path": "runtime.json",
+      "sha256": "8f40b8a7bc8362a4777fc563b3a3db9175fbe168e1abc96a0e7919f970ff7973"
+    },
+    {
+      "path": "runtime.log",
+      "sha256": "9565edbf1422d07c98f6003527dbbe00ec4596ab9fcc659ab88638fc4f0e385d"
+    },
+    {
+      "path": "domain.json",
+      "sha256": "f91afd109a94dde96a46a151c55006e43506464a79b8a0ec0eee1552f112fde8"
+    },
+    {
+      "path": "domain.log",
+      "sha256": "44cd869993da527d498d6d8c0951638248d463b590c550429d6efa433b04ccf4"
+    },
+    {
+      "path": "integration.json",
+      "sha256": "0d5ecfa10173cf8f5a9a3573b5c87107fea111876229225e2783c1c869f4b05e"
+    },
+    {
+      "path": "integration.log",
+      "sha256": "0dcb387c33b4692dea02081f41eebfb426557cc33a7f802c83c908e62431f7f6"
+    },
+    {
+      "path": "gateway.json",
+      "sha256": "8c80582362eedae54be507e7f8b57d4d20173c36234b65d6968be126c921c5ff"
+    },
+    {
+      "path": "gateway.log",
+      "sha256": "b24f70a0f942c28554543bc86a305f58cdba6f8d764e3f7e7229c52733b2a72e"
+    },
+    {
+      "path": "images.json",
+      "sha256": "398bd53394260256defc557b3430f514d0f15d5d61933efd1c76dbef3c67ce3c"
+    }
+  ]
+}

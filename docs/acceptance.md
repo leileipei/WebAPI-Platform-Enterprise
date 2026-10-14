@@ -25,3 +25,20 @@
 后续业务范围：完整企业指标工作台、监控/告警、系统设置、标签运营、完整 Breaking Change 分析、JWT/重试/缓存策略、SSO/首次改密、URL/YAML OpenAPI 导入等，详见40页映射。原高保真交互演示的完整页面数量不等于全部业务后端已经上线。
 
 本批独立版本流量策略的真实验收、回归、UI QA 与明确边界见 [策略交付索引](evidence/policies/delivery-index.md)。原 4192 数据与镜像保持不变。
+
+## 第3包：CORS、IP 与双向JSON Transform（2026-10-14）
+
+固定源码为 `226dfe450865cd322d81eb5747bec791a71f7519`，镜像为 `sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa`。本轮在全新独立数据库及TEST/PROD各两个Gateway中完成正式场景；没有恢复4192数据，也没有更新原4192安装。
+
+|验收层|实际结果|可核对证据|
+|---|---|---|
+|固定五组回归|3359通过、0失败、0跳过：Runtime234、Console297、Domain1065、Integration1409、Gateway354|[固定日志及Hash](evidence/network-policies/2026-10-14-226dfe4/acceptance-input.json)|
+|真实场景|管理权限/ETag/预览无写入、三认证、CORS预检、IP三模式、Header/路径/Query、双向JSON/压缩/限额/原子失败、缓存/重试/配额、冻结修订、双实例ACK、2.0–2.3历史回滚及跨环境独立验证|[P3-01至P3-12门禁结果](evidence/network-policies/2026-10-14-226dfe4/acceptance-result.json)|
+|1440px页面操作|15项实际操作及截图；只读账号无配置写入入口，仍可按policy.read做不持久化的JSON预览|[页面证据](evidence/network-policies/2026-10-14-226dfe4/public/P3-11.json)|
+|真实观测|正式较短覆盖窗口的Metrics/Logs/Trace均Available，日志与根Trace关联；页面1小时窗口如实显示Partial并展示已收到事实|[观测证据](evidence/network-policies/2026-10-14-226dfe4/public/P3-10.json)|
+|正向SDK E2E|1项通过、0失败、0跳过；读取真实严格证据及全部公开材料Hash|[SDK结果](evidence/network-policies/2026-10-14-226dfe4/sdk-e2e-result.json)|
+|原环境保护|主工作区文件/hash/status、原4192身份及71表原数据保留；第2包暂停owner运行容器为0|[保护证据](evidence/network-policies/2026-10-14-226dfe4/public/P3-12.json)|
+
+逐项覆盖、历史失败和最终独立审查状态见[本包交付索引](evidence/network-policies/2026-10-14-226dfe4/delivery-index.md)。旧节点案例只验证能力声明阻断，未安装旧二进制。HTTPS生产入口使用本轮受控、证书验证开启的独立夹具；企业DNS/TLS/LB、AMD64、HA、SLA和正式生产上线仍需对应验收。第2包继续暂停；main合并、远端推送、4192升级尚未执行。
+
+第3包最终状态：原3项Important均已在226dfe4完成TDD修复及全套新固定验收；本次授权提交交付文档并合并、推送GitHub，实际集成状态以Git记录为准；4192未升级。

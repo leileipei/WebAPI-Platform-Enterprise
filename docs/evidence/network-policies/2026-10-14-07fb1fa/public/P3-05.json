@@ -1,0 +1,69 @@
+{
+  "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+  "ownerId": "dc4f9e62-4472-44b2-8532-412be5369009",
+  "projectName": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+  "id": "P3-05",
+  "actual": true,
+  "requestEncodings": [
+    {
+      "encoding": "gzip",
+      "status": 200,
+      "backendJson": "{\"n\":9007199254740993,\"nil\":null,\"items\":[\"mapped\"],\"copy\":\"c\",\"copied\":\"c\",\"moved\":\"m\"}"
+    },
+    {
+      "encoding": "br",
+      "status": 200,
+      "backendJson": "{\"n\":9007199254740993,\"nil\":null,\"items\":[\"mapped\"],\"copy\":\"c\",\"copied\":\"c\",\"moved\":\"m\"}"
+    }
+  ],
+  "responseFailure": {
+    "status": 502,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "date": "Wed, 14 Oct 2026 09:24:00 GMT",
+      "server": "Kestrel",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "https://a.example.test",
+      "access-control-expose-headers": "X-Network-QA",
+      "transfer-encoding": "chunked",
+      "vary": "Origin",
+      "x-webapi-trace-id": "0HNP9QJBVTVBT:00000007",
+      "x-webapi-deployment-sequence": "6"
+    },
+    "text": "{\"code\":\"transform_rejected\",\"reason\":\"transform_json_operation_failed\",\"operationIndex\":1,\"traceId\":\"0HNP9QJBVTVBT:00000007\"}",
+    "bytes": 126,
+    "traceId": "e24aa07cc671bce34b5700bfaa8743ab",
+    "beforeCalls": 0,
+    "afterCalls": 1
+  },
+  "requestJson": "{\"n\":9007199254740993,\"nil\":null,\"items\":[\"mapped\"],\"copy\":\"c\",\"copied\":\"c\",\"moved\":\"m\"}",
+  "expectedRequestJson": "{\"n\":9007199254740993,\"nil\":null,\"items\":[\"mapped\"],\"copy\":\"c\",\"copied\":\"c\",\"moved\":\"m\"}",
+  "responseJson": "{\"method\":\"POST\",\"path\":\"/__network/echo\",\"query\":\"qa=1\",\"requestHeader\":\"qa\",\"origin\":\"https://a.example.test\",\"receivedApiKey\":false,\"body\":{\"n\":9007199254740993,\"nil\":null,\"items\":[\"mapped\",\"response\"],\"copy\":\"c\",\"copied\":\"c\",\"moved\":\"m\"}}",
+  "expectedResponseJson": "{\"method\":\"POST\",\"path\":\"/__network/echo\",\"query\":\"qa=1\",\"requestHeader\":\"qa\",\"origin\":\"https://a.example.test\",\"receivedApiKey\":false,\"body\":{\"n\":9007199254740993,\"nil\":null,\"items\":[\"mapped\",\"response\"],\"copy\":\"c\",\"copied\":\"c\",\"moved\":\"m\"}}",
+  "previewJson": "{\"n\":9007199254740993,\"nil\":null,\"items\":[\"mapped\"],\"copy\":\"c\",\"copied\":\"c\",\"moved\":\"m\"}",
+  "requestHeader": "qa",
+  "responseHeader": "qa",
+  "backendPath": "/__network/echo",
+  "backendQuery": "qa=1",
+  "atomicFailure": {
+    "status": 422,
+    "headers": {
+      "content-type": "application/json; charset=utf-8",
+      "date": "Wed, 14 Oct 2026 09:24:00 GMT",
+      "server": "Kestrel",
+      "access-control-allow-credentials": "true",
+      "access-control-allow-origin": "https://a.example.test",
+      "access-control-expose-headers": "X-Network-QA",
+      "transfer-encoding": "chunked",
+      "vary": "Origin",
+      "x-webapi-trace-id": "0HNP9QJBVTVBT:00000006",
+      "x-webapi-deployment-sequence": "6"
+    },
+    "text": "{\"code\":\"transform_rejected\",\"reason\":\"transform_json_operation_failed\",\"operationIndex\":3,\"traceId\":\"0HNP9QJBVTVBT:00000006\"}",
+    "bytes": 126,
+    "traceId": "74428bed16ff6b43aa4c7edb07acfa9b",
+    "beforeCalls": 0,
+    "afterCalls": 0
+  }
+}

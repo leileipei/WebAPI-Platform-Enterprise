@@ -1,0 +1,627 @@
+{
+  "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+  "ownerId": "dc4f9e62-4472-44b2-8532-412be5369009",
+  "projectName": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+  "resources": [
+    {
+      "Kind": "container",
+      "Id": "e94d85aff3191e26291d5ce7da3f0323052ba6eee4b71c916d75258d1cf856d5",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-control-plane-1",
+      "Image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "1e82d873018619f75bdeae1de7850ef6c021449a02fa141942d0284b56170741",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/delivery-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.replace": "control-plane-1",
+          "com.docker.compose.service": "control-plane",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "ec9d977c42e8946de9bee1b1befb6e5c869b189f44f2e4d1759adf473cfb19dc",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-prod-gateway-a-1",
+      "Image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "b0c5e3de188d0a1d8abe969313e686ee0ac804f615f46dcad95fb527b458cb02",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/delivery-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "prod-gateway-a",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "c44b6a7bd5fee5010ee2f44ecb66654a027b48ac7bf598060ac00987e42a19e6",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-prod-gateway-b-1",
+      "Image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "2172f580a82c4c3d0c6c87aa162af21e24bda7849bc745cef0bd08728d5b79ca",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/delivery-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "prod-gateway-b",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "3705884986e7af657343cacb30adc5a53b14e26673974fe1c44840a48d1953c6",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-gateway-b-1",
+      "Image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "da5d627b11fd8cf8eed871f7b921e97845b9c96c267deb45ff9b8acbedd42ce8",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.replace": "gateway-b-1",
+          "com.docker.compose.service": "gateway-b",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "e993d81dc62e877c9e9a3d517f2b4c0831c1e0285c06e1face24191b63102d74",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-gateway-a-1",
+      "Image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "2438c6fa4514f81182bb4f992d685df25058dd48649cc0409ff94b7c4677ec1a",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.replace": "gateway-a-1",
+          "com.docker.compose.service": "gateway-a",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "59b67a0cacc4853724f45e9d66ed91c82004ba14d78efc225f27b6528e471ff6",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-worker-1",
+      "Image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "ca8a4ead8ae39b38c17b23f81170bfdbff65fa146439f1be9c5dbcad356ad1ed",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.replace": "worker-1",
+          "com.docker.compose.service": "worker",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "f89a6dd6c660a85730ac810221fdde59b920e3582c8b19425060063a6b555643",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-backend-a-1",
+      "Image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "bdbb3872357446737bd0d4e21ffef8198a85eedace417531a613b89a5a5d679b",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "backend-a",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "4ac7ce3383cc516d606870518c377bc9c3e834379e75d3a9ac0967062b3b13cb",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-backend-b-1",
+      "Image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "84afd357f3a26a2563d61534353fb85a45dae4fc775721b579a80ede30439a70",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "backend-b",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "bb270b3f396f68ced81812a39c9e8a25ec9838373fe31ffffe861de6eefb25ce",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-console-1",
+      "Image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "f76428ee4d93f9228a7f562b31be88dd23288ba33aff1f086f5f35c20c86ccac",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "console",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "ca1e22a5326d0546f814b331a57021323555df891504e4aafa13c5af1663aad7",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-loki-1",
+      "Image": "sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "4acde1238f4376b87403f8576af7618a46582a66ed1006c699b8c40d1b9f2bcd",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "loki",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "3053f911a9e723ff1efba70db5037752235316b014a80cf8d593d39f51b7b850",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-tempo-1",
+      "Image": "sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "b5cf06983c2382cffe9d9c60253afd9ff2fa79d65253ff0ffe8d48d1d0ac0b3c",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "tempo",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "e7066fe3e3d2c1cda7f7262bea2069459e19ffab93367739160865af01736cdf",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-prometheus-1",
+      "Image": "sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "0605b83d819df828a6cd431c3fcc53936f6148c8651aeca95e632e1adf8b43d9",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "prometheus",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "io.prometheus.image.variant": "busybox",
+          "maintainer": "The Prometheus Authors <prometheus-developers@googlegroups.com>",
+          "org.opencontainers.image.authors": "The Prometheus Authors",
+          "org.opencontainers.image.description": "The Prometheus monitoring system and time series database",
+          "org.opencontainers.image.documentation": "https://prometheus.io/docs",
+          "org.opencontainers.image.licenses": "Apache License 2.0",
+          "org.opencontainers.image.source": "https://github.com/prometheus/prometheus",
+          "org.opencontainers.image.title": "Prometheus",
+          "org.opencontainers.image.url": "https://github.com/prometheus/prometheus",
+          "org.opencontainers.image.vendor": "Prometheus"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "30d779e98fd5d7813334f19ea340d27303256c560fc3c3ae487f5c6c131b99be",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-collector-1",
+      "Image": "sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "e5ff2de2e29e66fc6b1878269d3ebfa8efcc0966ba7be674bd63692404cdaa79",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "collector",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009",
+          "org.opencontainers.image.created": "2026-09-29T12:43:15Z",
+          "org.opencontainers.image.licenses": "Apache-2.0",
+          "org.opencontainers.image.name": "opentelemetry-collector-releases",
+          "org.opencontainers.image.revision": "f6159a775dad1e21433c49bd8450673dd13ed4d3",
+          "org.opencontainers.image.source": "https://github.com/open-telemetry/opentelemetry-collector-releases",
+          "org.opencontainers.image.version": "0.162.0"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "1677f861c3837744fb0b01de25c74db2cbf89e9e0f946b2849bb96e1e3d4e93c",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-postgres-1",
+      "Image": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "7eacb303d5608c3ff8780b3c0e577075edaf7f961b6b93487e091d6598ded3ff",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "postgres",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "95079fb059dab224911b1fcaa17aee2e20337a52b7766874e6330b25f261e61a",
+      "Name": "/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71-redis-1",
+      "Image": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "bd8e3b42f776a6a19ce077f38479fa8b5914fb937422cca916784065eb9d8b18",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/fixture-network-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/cors-ip-transform-json-body/.superpowers/sdd/2026-10-13-cors-ip-transform-json-body/fixed-07fb1fa/webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71/artifacts/07fb1fa82390f35a98e029d00b795dee2944271d/deploy",
+          "com.docker.compose.service": "redis",
+          "com.docker.compose.version": "5.1.2",
+          "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+        }
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_delivery-lkg-a",
+      "Labels": {
+        "com.docker.compose.config-hash": "ff0b6a987d91f12f5be2bdeb165ec1ae65055d63c3da13ce92ddd06176da04d7",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "delivery-lkg-a",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_delivery-lkg-b",
+      "Labels": {
+        "com.docker.compose.config-hash": "b69f8e32500adb2e9d619c315fec5f5219ed4344d384949e4be0660ea13d9025",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "delivery-lkg-b",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_delivery-secrets",
+      "Labels": {
+        "com.docker.compose.config-hash": "e941cb75f42db0fa872d00f4f7786a11b278023421431dc3c8c478ccaacef62e",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "delivery-secrets",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_dp-keys",
+      "Labels": {
+        "com.docker.compose.config-hash": "f130996fc4f1826a299944af2db88df8cd23a0daaf547c571804f16d73a56273",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "dp-keys",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_lkg-a",
+      "Labels": {
+        "com.docker.compose.config-hash": "5f45b4a1ba5115b834e4488e10b3a7c0def26fac00da00924a18716312cbdcc1",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "lkg-a",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_lkg-b",
+      "Labels": {
+        "com.docker.compose.config-hash": "6300b0b01db1617c0d43aba9cf880444408dfa677f2759993f4aefab70ca430c",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "lkg-b",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_loki-data",
+      "Labels": {
+        "com.docker.compose.config-hash": "7c8f5b0b58de15f59e821d11b114b221f4eb1f018433ee7892bcd17d20d5a8b4",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "loki-data",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_pg",
+      "Labels": {
+        "com.docker.compose.config-hash": "5af63ae1a37f5043866ed45a9f176e6f84c2bd723650d038cb94970ffbd05f1d",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "pg",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_prometheus-data",
+      "Labels": {
+        "com.docker.compose.config-hash": "3691ea6f122813886b5b0a4caf90c481609fab713a936bf3426c8228cb2429ee",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "prometheus-data",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_secrets-cache",
+      "Labels": {
+        "com.docker.compose.config-hash": "1203a12f6bcfbbc649a5303626f91a62a6c0291175faf7c2320eafd537b01f61",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "secrets-cache",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_secrets-control-plane",
+      "Labels": {
+        "com.docker.compose.config-hash": "d7d74482af91df6524d69fbb34e1bcc85f37c3425e2c9599cb8238a957ff20ac",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "secrets-control-plane",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_secrets-gateway-a",
+      "Labels": {
+        "com.docker.compose.config-hash": "7369317c1811129075986749cc473870901f77ca66aad7ce135256b7db9d62b8",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "secrets-gateway-a",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_secrets-gateway-b",
+      "Labels": {
+        "com.docker.compose.config-hash": "42babd41dce2b6e34c60130ab3d2d9ad6bfded60b2560f3454fb74ba80ecdd33",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "secrets-gateway-b",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_secrets-migrator",
+      "Labels": {
+        "com.docker.compose.config-hash": "9bd70f530329866daf761a2bf83d31d358983c8321fbf3c549402c5e04c6242b",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "secrets-migrator",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_secrets-postgres",
+      "Labels": {
+        "com.docker.compose.config-hash": "304a3f4f05f6ebb8e3fbca0d7389f2744610908f0cb6f0d8b9e1ee83def503ab",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "secrets-postgres",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_secrets-worker",
+      "Labels": {
+        "com.docker.compose.config-hash": "847a9b1cea6d89eb47a8b4b97e26c724ce04c247da2dd8451782612c91949224",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "secrets-worker",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_tempo-data",
+      "Labels": {
+        "com.docker.compose.config-hash": "1d32e1b01256cb2d976d5c32073d59d636cbb39a76c53ef6b3744811f3f6d006",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "tempo-data",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_verification-reports",
+      "Labels": {
+        "com.docker.compose.config-hash": "a4b72786976fd9f475f8c6db980c9e4afe548bc1df65bd4fa987efd99d06062c",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.docker.compose.volume": "verification-reports",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    },
+    {
+      "Kind": "network",
+      "Id": "2e2f929bdb83c66cbfb4b5307521bc1286b36cdd58fc01525d27bbf0e5d8e46e",
+      "Name": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71_default",
+      "Labels": {
+        "com.docker.compose.config-hash": "70cdf88301093ad6100aae29dd01c9e1d7b8d45084ff19d1d1be8c14a5c46361",
+        "com.docker.compose.network": "default",
+        "com.docker.compose.project": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+        "com.docker.compose.version": "5.1.2",
+        "com.webapi.runtime.owner": "dc4f9e62-4472-44b2-8532-412be5369009"
+      }
+    }
+  ],
+  "images": [
+    {
+      "Id": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+      "Config": {
+        "Labels": {
+          "org.opencontainers.image.revision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    }
+  ]
+}

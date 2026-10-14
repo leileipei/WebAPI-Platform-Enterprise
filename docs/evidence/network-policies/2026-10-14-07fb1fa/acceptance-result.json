@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+  "ownerId": "dc4f9e62-4472-44b2-8532-412be5369009",
+  "stage": "isolated-pre-install",
+  "sections": [
+    "P3-01",
+    "P3-02",
+    "P3-03",
+    "P3-04",
+    "P3-05",
+    "P3-06",
+    "P3-07",
+    "P3-08",
+    "P3-09",
+    "P3-10",
+    "P3-11",
+    "P3-12"
+  ],
+  "originalInstallation": "not-upgraded",
+  "actualContainers": [
+    "e94d85aff3191e26291d5ce7da3f0323052ba6eee4b71c916d75258d1cf856d5",
+    "ec9d977c42e8946de9bee1b1befb6e5c869b189f44f2e4d1759adf473cfb19dc",
+    "c44b6a7bd5fee5010ee2f44ecb66654a027b48ac7bf598060ac00987e42a19e6",
+    "3705884986e7af657343cacb30adc5a53b14e26673974fe1c44840a48d1953c6",
+    "e993d81dc62e877c9e9a3d517f2b4c0831c1e0285c06e1face24191b63102d74",
+    "59b67a0cacc4853724f45e9d66ed91c82004ba14d78efc225f27b6528e471ff6",
+    "bb270b3f396f68ced81812a39c9e8a25ec9838373fe31ffffe861de6eefb25ce"
+  ],
+  "staticHashes": {
+    "console/dist/assets/index-D5LcSRzN.js": "3c5c0d2d1ca3cbb1058fee563a6aa4935522a023b3b0e005fb2c9255ff442724",
+    "console/dist/assets/index-DC2ykkYl.css": "9c2e3410a360e1608815f87d34f1a59849d9ad8039e17453eb1eb65cc77656f4",
+    "console/dist/index.html": "b7d214e95a12f34829f06e93597f65a4a466d98368c1bb5017dd8ae639df1111"
+  },
+  "proofSha256": "fa8e061c7ae87053aaabe1d2a49b55ad0ec3b3f57e4bfafaa8637b260d8a33ab",
+  "validatedAt": "2026-10-14T09:41:44.813Z"
+}

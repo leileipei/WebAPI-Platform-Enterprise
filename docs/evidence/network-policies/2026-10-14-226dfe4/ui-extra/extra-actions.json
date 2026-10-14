@@ -1,0 +1,16 @@
+[
+  {
+    "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+    "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+    "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+    "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+    "actual": true,
+    "id": "empty-deny-list-create-rename",
+    "passed": true,
+    "nativeScreenshot": "empty-deny-list-extra.jpg",
+    "width": 1440,
+    "notes": [
+      "初始空AllowList明确阻断；改DenyList后空ranges经服务端校验保存r1，仍为空时重命名保存r2；帮助文本说明已知IP放行、未知IP拒绝。"
+    ]
+  }
+]

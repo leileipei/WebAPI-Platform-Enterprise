@@ -1,0 +1,297 @@
+{
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+  "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+  "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+  "id": "P3-11",
+  "actual": true,
+  "kind": "cua",
+  "width": 1440,
+  "actions": [
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "validate",
+      "passed": true,
+      "screenshot": "validate.png",
+      "nativeScreenshot": "validate.jpg",
+      "notes": [
+        "通配来源加credentials实际阻断，修正精确来源后服务端校验通过，页面明确未发布。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/new?type=cors&scope=project",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "create",
+      "passed": true,
+      "screenshot": "create.png",
+      "nativeScreenshot": "create.jpg",
+      "notes": [
+        "实际保存项目CORS为r1，引用0，未发布。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/fbd9727a-63ce-4627-952d-a84d4862a780",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "edit",
+      "passed": true,
+      "screenshot": "edit.png",
+      "nativeScreenshot": "edit.jpg",
+      "notes": [
+        "实际保存两精确Origin，工作修订推进r2。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/fbd9727a-63ce-4627-952d-a84d4862a780",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "dirty-navigation",
+      "passed": true,
+      "screenshot": "dirty-navigation.png",
+      "nativeScreenshot": "dirty-navigation.jpg",
+      "notes": [
+        "未保存输入阻止导航；放弃确认框初始焦点继续编辑，Shift+Tab/Tab在两按钮间循环。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/fbd9727a-63ce-4627-952d-a84d4862a780",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "copy",
+      "passed": true,
+      "screenshot": "copy.png",
+      "nativeScreenshot": "copy.jpg",
+      "notes": [
+        "实际复制到组织共享范围，得到新ID、r1、引用0，源项目策略保留r2。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/8a129bb6-1906-4848-ad0e-12fdc7c2a00a",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "json-request-preview",
+      "passed": true,
+      "screenshot": "json-request-preview.png",
+      "nativeScreenshot": "json-request-preview.jpg",
+      "notes": [
+        "实际请求预览返回n与exact原文本9007199254740993及nil:null，未转发。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/new?type=transform&scope=project",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "json-response-preview",
+      "passed": true,
+      "screenshot": "json-response-preview.png",
+      "nativeScreenshot": "json-response-preview.jpg",
+      "notes": [
+        "响应预览实际保留9007199254740993、精确小数0.1234567890123456789012345及addedNull:null。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/new?type=transform&scope=project",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "exact-null-number",
+      "passed": true,
+      "screenshot": "exact-null-number.png",
+      "nativeScreenshot": "exact-null-number.jpg",
+      "notes": [
+        "保存r1后真实表单仍为原始9007199254740993及null；页面内存样例与输出已清空。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/94b2c91c-d517-4849-8548-b89430b1905a",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "revision-412",
+      "passed": true,
+      "screenshot": "revision-412.png",
+      "nativeScreenshot": "revision-412.jpg",
+      "notes": [
+        "另页实际保存r2；本页旧r1保存收到修订冲突并保留原输入。读取最新配置展示r2及采用修订入口。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/94b2c91c-d517-4849-8548-b89430b1905a",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "scope-late",
+      "passed": true,
+      "screenshot": "scope-late.png",
+      "nativeScreenshot": "scope-late.jpg",
+      "notes": [
+        "实际own控制面暂停30秒，预览pending时切换项目；恢复后样例为空、输出区域不存在，跨范围预览禁用。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/94b2c91c-d517-4849-8548-b89430b1905a",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "nine-bindings",
+      "passed": true,
+      "screenshot": "nine-bindings.png",
+      "nativeScreenshot": "nine-bindings.jpg",
+      "notes": [
+        "实际九类策略选择器及九个0–1000优先级，Transform可选择组织共享副本；只编辑待保存输入，随后关闭放弃。"
+      ],
+      "url": "http://127.0.0.1:61393/routes",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "release-review",
+      "passed": true,
+      "screenshot": "release-review.png",
+      "nativeScreenshot": "release-review.jpg",
+      "notes": [
+        "实际冻结申请RolledBack，展示请求5条/响应1条JSON及原始大整数、CORS/IP、快照2.3能力要求；两级Approved与双节点历史ACK另有补充截图，历史地址变化明确提示。"
+      ],
+      "url": "http://127.0.0.1:61393/releases/3cea7095-5ae2-43ab-9f26-0196486719dc",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "promotion-mapping",
+      "passed": true,
+      "screenshot": "promotion-mapping.png",
+      "nativeScreenshot": "promotion-mapping.jpg",
+      "notes": [
+        "实际Completed晋级映射只读，timeout/rate_limit/CORS/IP明确选择目标修订；Transform双向JSON整体冻结。另存顶部图展示目标超时和限流。"
+      ],
+      "url": "http://127.0.0.1:61393/delivery/promotions/18c3f459-22e3-4ff1-ab7c-f151f324f951",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "logs-trace",
+      "passed": true,
+      "screenshot": "logs-trace.png",
+      "nativeScreenshot": "logs-trace.jpg",
+      "notes": [
+        "真实日志根请求关联两span及Server详情；Transform r5 Applied/JSON操作数1、IP/CORS Allowed及缓存Stored另见日志决策图。1h页面明确Partial，正式短窗口三源Available。"
+      ],
+      "url": "http://127.0.0.1:61393/observability/traces?range=1h&group=Api&page=1&trace=ddd995b44e5dd745627e1870ab2f568a&end=2026-10-14T11%3A10%3A23.014Z",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+      "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+      "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+      "actual": true,
+      "id": "readonly",
+      "passed": true,
+      "screenshot": "readonly.png",
+      "nativeScreenshot": "readonly.jpg",
+      "notes": [
+        "实际只读账号配置字段禁用，无保存工作配置/提交发布入口；policy.read保留不持久化JSON预览能力。"
+      ],
+      "url": "http://127.0.0.1:61393/policies/7e753418-da81-4762-9a08-65cb0ecccf41",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    }
+  ]
+}

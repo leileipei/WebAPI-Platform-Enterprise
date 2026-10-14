@@ -1,0 +1,15 @@
+{
+  "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+  "runtimeOwnerId": "dc4f9e62-4472-44b2-8532-412be5369009",
+  "sdkOwnerId": "d232f9d0-b6b6-41e9-9835-7e23b75f787a",
+  "sdk": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+  "actual": true,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "proofSha256": "fa8e061c7ae87053aaabe1d2a49b55ad0ec3b3f57e4bfafaa8637b260d8a33ab",
+  "logSha256": "41614b1ad7cc291926fe34c3ad88ba6c97b3f89e10b51668160b40b6eb0851db",
+  "evidenceContainsPrivateValues": false,
+  "executedAt": "2026-10-14T09:43:05.159Z"
+}

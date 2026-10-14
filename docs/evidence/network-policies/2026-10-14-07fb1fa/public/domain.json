@@ -1,0 +1,11 @@
+{
+  "name": "domain",
+  "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "passed": 1065,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "44cd869993da527d498d6d8c0951638248d463b590c550429d6efa433b04ccf4",
+  "log": "domain.log",
+  "artifact": "domain.json"
+}

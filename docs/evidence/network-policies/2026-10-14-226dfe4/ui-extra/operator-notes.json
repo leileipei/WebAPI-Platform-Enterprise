@@ -1,0 +1,13 @@
+{
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "actual": true,
+  "productBlockingIssues": [],
+  "operatorObservations": [
+    "Saved policy heading is the configured name; first selector guessed CORS策略 and timed out, corrected from the visible DOM.",
+    "Evidence recorder replacement initially held a previous array reference; raw duplicate list retained in actions-before-dedup.json and current fifteen IDs made unique before final proof.",
+    "One-hour Logs/Trace honestly Partial; formal short window has independent actual Available evidence.",
+    "Previous07 span-selection observation remains unconfirmed; this226 click displayed actual Server-span detail.",
+    "Formal observation metadata ratio1 was captured before promotion. Post-promotion actual control-plane read-side setting is0.1 and both TEST gateways remain1; page10% describes the current query-side configuration. This isolated fixture is not evidence of production sampler-configuration alignment."
+  ],
+  "samplingSettingsReceipt": "current-sampling-settings.json"
+}

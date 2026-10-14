@@ -1,0 +1,670 @@
+{
+  "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+  "ownerId": "dc4f9e62-4472-44b2-8532-412be5369009",
+  "projectName": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+  "id": "P3-10",
+  "actual": true,
+  "logs": {
+    "sourceState": "Available",
+    "range": {
+      "start": "2026-10-14T09:24:38.637+00:00",
+      "end": "2026-10-14T09:24:47.576+00:00"
+    },
+    "observedAt": "2026-10-14T09:24:32.711+00:00",
+    "coverage": {
+      "complete": true,
+      "missingNodes": [],
+      "reason": null,
+      "truncated": false
+    },
+    "sampling": null,
+    "data": {
+      "items": [
+        {
+          "id": "128770be-65f8-4ed5-a3d5-122b4af2f474",
+          "time": "2026-10-14T09:24:45.5291891+00:00",
+          "environmentId": "2e81e2ad-5c16-4e75-af80-b8adeac183fa",
+          "apiId": "34b5dcaf-28c7-4432-adee-349aed0d681b",
+          "applicationKey": "1fd2bd4f-6da7-43f0-be28-99030c5f9f02",
+          "method": "GET",
+          "pathTemplate": "/network/{**path}",
+          "status": 200,
+          "durationMs": 71.5052,
+          "outcome": "Completed",
+          "requestId": "0HNP9QJND0BMD:00000001",
+          "traceId": "5733a0536431b412c47afd605cd03796",
+          "maskedIp": "10.248.197.xxx",
+          "nodeName": "local-gateway-b",
+          "configVersion": 17,
+          "deploymentSequence": 21,
+          "destinationId": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+          "attemptCount": 1,
+          "cacheDisposition": "Stored",
+          "forwardAttempts": [
+            {
+              "number": 1,
+              "destinationId": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+              "status": 200,
+              "outcome": "Completed",
+              "durationSeconds": 0.0181209
+            }
+          ],
+          "policyDecisions": [
+            {
+              "policyId": "c8db8868-f991-41a1-ac2f-68baa06758fc",
+              "policyType": "rate_limit",
+              "policyRevision": 6,
+              "decision": "Allowed",
+              "rejectionReason": null
+            },
+            {
+              "policyId": "5f08e96c-4fe7-46e1-862b-febde2a2ddca",
+              "policyType": "circuit_breaker",
+              "policyRevision": 1,
+              "decision": "Allowed",
+              "rejectionReason": null
+            },
+            {
+              "policyId": "9d25cfb0-e854-4f94-b718-dd3ad820f567",
+              "policyType": "retry",
+              "policyRevision": 1,
+              "decision": "Bypass",
+              "rejectionReason": "no_retry_needed",
+              "attemptCount": 1
+            },
+            {
+              "policyId": "927208ec-9961-400e-86ad-d802d325c539",
+              "policyType": "cache",
+              "policyRevision": 1,
+              "decision": "Stored",
+              "rejectionReason": null,
+              "cacheRead": "Miss",
+              "cacheWrite": "Stored"
+            },
+            {
+              "policyId": "d0f0eca1-f586-46f1-98fb-2a12cb8dc1de",
+              "policyType": "cors",
+              "policyRevision": 2,
+              "decision": "Allowed",
+              "rejectionReason": null
+            },
+            {
+              "policyId": "a4424a79-d60b-4346-8ef6-c41ef76e22be",
+              "policyType": "ip_filter",
+              "policyRevision": 8,
+              "decision": "Allowed",
+              "rejectionReason": null
+            },
+            {
+              "policyId": "a9798c33-9df9-4886-a17f-fb468f5b00f9",
+              "policyType": "transform",
+              "policyRevision": 5,
+              "decision": "Applied",
+              "rejectionReason": null,
+              "bodyOperationCount": 1
+            }
+          ]
+        }
+      ],
+      "nextCursor": null,
+      "truncated": false
+    }
+  },
+  "trace": {
+    "sourceState": "Available",
+    "range": {
+      "start": "2026-10-14T09:24:38.637+00:00",
+      "end": "2026-10-14T09:24:47.622+00:00"
+    },
+    "observedAt": "2026-10-14T09:24:32.711+00:00",
+    "coverage": {
+      "complete": true,
+      "missingNodes": [],
+      "reason": null,
+      "truncated": false
+    },
+    "sampling": {
+      "ratio": 1,
+      "mode": "ParentBasedTraceIdRatioBased"
+    },
+    "data": {
+      "traceId": "5733a0536431b412c47afd605cd03796",
+      "partialTrace": false,
+      "spans": [
+        {
+          "spanId": "bda5ad1e24ec8644",
+          "parentSpanId": null,
+          "name": "gateway.request",
+          "start": "2026-10-14T09:24:45.4592014+00:00",
+          "durationMs": 72.1029,
+          "kind": "Server",
+          "status": "Ok",
+          "tags": {
+            "webapi.environment.id": "2e81e2ad-5c16-4e75-af80-b8adeac183fa",
+            "webapi.api.id": "34b5dcaf-28c7-4432-adee-349aed0d681b",
+            "webapi.application.id": "1fd2bd4f-6da7-43f0-be28-99030c5f9f02",
+            "webapi.destination.id": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+            "http.request.method": "GET",
+            "url.template": "/network/{**path}",
+            "webapi.outcome": "Completed",
+            "webapi.api.version.id": "880576a7-72cd-4d7e-93d9-eb861907f586",
+            "webapi.route.id": "19d44ecd-11cd-4720-860d-156a656b6cb7",
+            "webapi.cluster.id": "ee3c72ad-9f78-4fd0-9b7a-ad554d024a87",
+            "webapi.deployment.sequence": "21"
+          },
+          "attemptCount": 1,
+          "cacheDisposition": "Stored",
+          "forwardAttempts": [
+            {
+              "number": 1,
+              "destinationId": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+              "status": 200,
+              "outcome": "Completed",
+              "durationSeconds": 0.0181209
+            }
+          ],
+          "policyDecisions": [
+            {
+              "policyId": "c8db8868-f991-41a1-ac2f-68baa06758fc",
+              "policyType": "rate_limit",
+              "policyRevision": 6,
+              "decision": "Allowed",
+              "rejectionReason": null
+            },
+            {
+              "policyId": "5f08e96c-4fe7-46e1-862b-febde2a2ddca",
+              "policyType": "circuit_breaker",
+              "policyRevision": 1,
+              "decision": "Allowed",
+              "rejectionReason": null
+            },
+            {
+              "policyId": "9d25cfb0-e854-4f94-b718-dd3ad820f567",
+              "policyType": "retry",
+              "policyRevision": 1,
+              "decision": "Bypass",
+              "rejectionReason": "no_retry_needed",
+              "attemptCount": 1
+            },
+            {
+              "policyId": "927208ec-9961-400e-86ad-d802d325c539",
+              "policyType": "cache",
+              "policyRevision": 1,
+              "decision": "Stored",
+              "rejectionReason": null,
+              "cacheRead": "Miss",
+              "cacheWrite": "Stored"
+            },
+            {
+              "policyId": "d0f0eca1-f586-46f1-98fb-2a12cb8dc1de",
+              "policyType": "cors",
+              "policyRevision": 2,
+              "decision": "Allowed",
+              "rejectionReason": null
+            },
+            {
+              "policyId": "a4424a79-d60b-4346-8ef6-c41ef76e22be",
+              "policyType": "ip_filter",
+              "policyRevision": 8,
+              "decision": "Allowed",
+              "rejectionReason": null
+            },
+            {
+              "policyId": "a9798c33-9df9-4886-a17f-fb468f5b00f9",
+              "policyType": "transform",
+              "policyRevision": 5,
+              "decision": "Applied",
+              "rejectionReason": null,
+              "bodyOperationCount": 1
+            }
+          ]
+        },
+        {
+          "spanId": "b4845e5b8a390961",
+          "parentSpanId": "bda5ad1e24ec8644",
+          "name": "gateway.proxy",
+          "start": "2026-10-14T09:24:45.4936681+00:00",
+          "durationMs": 21.1433,
+          "kind": "Client",
+          "status": "Ok",
+          "tags": {
+            "webapi.environment.id": "2e81e2ad-5c16-4e75-af80-b8adeac183fa",
+            "webapi.api.id": "34b5dcaf-28c7-4432-adee-349aed0d681b",
+            "webapi.application.id": "1fd2bd4f-6da7-43f0-be28-99030c5f9f02",
+            "webapi.destination.id": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+            "http.request.method": "GET",
+            "url.template": "/network/{**path}",
+            "webapi.outcome": "Completed",
+            "webapi.api.version.id": "880576a7-72cd-4d7e-93d9-eb861907f586",
+            "webapi.route.id": "19d44ecd-11cd-4720-860d-156a656b6cb7",
+            "webapi.cluster.id": "ee3c72ad-9f78-4fd0-9b7a-ad554d024a87",
+            "webapi.deployment.sequence": "21",
+            "webapi.attempt.number": "1"
+          },
+          "attemptCount": 1,
+          "forwardAttempts": [
+            {
+              "number": 1,
+              "destinationId": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+              "status": 200,
+              "outcome": "Completed",
+              "durationSeconds": 0.0181209
+            }
+          ],
+          "policyDecisions": []
+        }
+      ]
+    }
+  },
+  "metrics": {
+    "sourceState": "Available",
+    "range": {
+      "start": "2026-10-14T09:24:38.637+00:00",
+      "end": "2026-10-14T09:24:47.662+00:00"
+    },
+    "observedAt": "2026-10-14T09:24:32.711+00:00",
+    "coverage": {
+      "complete": true,
+      "missingNodes": [],
+      "reason": null,
+      "truncated": false
+    },
+    "sampling": {
+      "ratio": 1,
+      "mode": "ParentBasedTraceIdRatioBased"
+    },
+    "data": {
+      "kpis": [
+        {
+          "metric": "request_count",
+          "value": 1.2503125781445361,
+          "unit": "requests",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "request_rps",
+          "value": 0.13853878982210927,
+          "unit": "requests/s",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "success_ratio",
+          "value": 1,
+          "unit": "ratio",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "error_4xx_count",
+          "value": 0,
+          "unit": "requests",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "error_4xx_ratio",
+          "value": 0,
+          "unit": "ratio",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "error_5xx_count",
+          "value": 0,
+          "unit": "requests",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "error_5xx_ratio",
+          "value": 0,
+          "unit": "ratio",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "latency_p50_ms",
+          "value": 5,
+          "unit": "ms",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "latency_p95_ms",
+          "value": 2349.9999999999995,
+          "unit": "ms",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "latency_p99_ms",
+          "value": 2469.9999999999995,
+          "unit": "ms",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "unhealthy_destinations",
+          "value": null,
+          "unit": "destinations",
+          "sampleCount": 1,
+          "state": "NoData"
+        },
+        {
+          "metric": "cancelled_count",
+          "value": 0,
+          "unit": "requests",
+          "sampleCount": 1,
+          "state": "Available"
+        },
+        {
+          "metric": "circuit_rejected_count",
+          "value": 0,
+          "unit": "requests",
+          "sampleCount": 14,
+          "state": "Available"
+        },
+        {
+          "metric": "rate_limit_store_unavailable_count",
+          "value": 0,
+          "unit": "requests",
+          "sampleCount": 14,
+          "state": "Available"
+        }
+      ],
+      "trends": {
+        "request_rps": [
+          {
+            "time": "2026-10-14T09:24:38.637+00:00",
+            "value": 0.07038709053938651
+          }
+        ],
+        "success_ratio": [
+          {
+            "time": "2026-10-14T09:24:38.637+00:00",
+            "value": 1
+          }
+        ],
+        "error_4xx_ratio": [
+          {
+            "time": "2026-10-14T09:24:38.637+00:00",
+            "value": 0
+          }
+        ],
+        "error_5xx_ratio": [
+          {
+            "time": "2026-10-14T09:24:38.637+00:00",
+            "value": 0
+          }
+        ],
+        "latency_p50_ms": [
+          {
+            "time": "2026-10-14T09:24:38.637+00:00",
+            "value": 3.333333333333334
+          }
+        ],
+        "latency_p95_ms": [
+          {
+            "time": "2026-10-14T09:24:38.637+00:00",
+            "value": 21.999999999999996
+          }
+        ],
+        "latency_p99_ms": [
+          {
+            "time": "2026-10-14T09:24:38.637+00:00",
+            "value": 24.4
+          }
+        ],
+        "circuit_rejected_count": [
+          {
+            "time": "2026-10-14T09:24:38.637+00:00",
+            "value": 0
+          }
+        ],
+        "rate_limit_store_unavailable_count": [
+          {
+            "time": "2026-10-14T09:24:38.637+00:00",
+            "value": 0
+          }
+        ]
+      },
+      "groups": [],
+      "totalGroups": 0,
+      "page": 1,
+      "pageSize": 50,
+      "nodeHealth": [
+        {
+          "nodeName": "local-gateway-a",
+          "health": "Available",
+          "destinations": [
+            {
+              "clusterId": "b1316cd7-f73a-49ee-a86e-4c3f8d411b3a",
+              "destinationId": "8db7bdbc-6fc4-47da-8840-549e6e971e56",
+              "health": "Unknown"
+            },
+            {
+              "clusterId": "ee3c72ad-9f78-4fd0-9b7a-ad554d024a87",
+              "destinationId": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+              "health": "Unknown"
+            }
+          ],
+          "environmentId": "2e81e2ad-5c16-4e75-af80-b8adeac183fa"
+        },
+        {
+          "nodeName": "local-gateway-b",
+          "health": "Available",
+          "destinations": [
+            {
+              "clusterId": "b1316cd7-f73a-49ee-a86e-4c3f8d411b3a",
+              "destinationId": "8db7bdbc-6fc4-47da-8840-549e6e971e56",
+              "health": "Unknown"
+            },
+            {
+              "clusterId": "ee3c72ad-9f78-4fd0-9b7a-ad554d024a87",
+              "destinationId": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+              "health": "Unknown"
+            }
+          ],
+          "environmentId": "2e81e2ad-5c16-4e75-af80-b8adeac183fa"
+        }
+      ]
+    }
+  },
+  "requestId": "0HNP9QJND0BMD:00000001",
+  "traceId": "5733a0536431b412c47afd605cd03796",
+  "canaryLogs": [
+    {
+      "traceId": "74428bed16ff6b43aa4c7edb07acfa9b",
+      "expectedStatus": 422,
+      "logs": {
+        "sourceState": "Available",
+        "range": {
+          "start": "2026-10-14T09:24:01.357+00:00",
+          "end": "2026-10-14T09:24:47.675+00:00"
+        },
+        "observedAt": "2026-10-14T09:24:32.711+00:00",
+        "coverage": {
+          "complete": true,
+          "missingNodes": [],
+          "reason": null,
+          "truncated": false
+        },
+        "sampling": null,
+        "data": {
+          "items": [
+            {
+              "id": "02a0b9fc-e1ef-47b1-93d1-448b7983074f",
+              "time": "2026-10-14T09:24:01.3630602+00:00",
+              "environmentId": "2e81e2ad-5c16-4e75-af80-b8adeac183fa",
+              "apiId": "34b5dcaf-28c7-4432-adee-349aed0d681b",
+              "applicationKey": "1fd2bd4f-6da7-43f0-be28-99030c5f9f02",
+              "method": "POST",
+              "pathTemplate": "/network/{**path}",
+              "status": 422,
+              "durationMs": 2.2167,
+              "outcome": "ProxyError",
+              "requestId": "0HNP9QJBVTVBT:00000006",
+              "traceId": "74428bed16ff6b43aa4c7edb07acfa9b",
+              "maskedIp": "10.248.197.xxx",
+              "nodeName": "local-gateway-a",
+              "configVersion": 6,
+              "deploymentSequence": 6,
+              "destinationId": null,
+              "attemptCount": 0,
+              "forwardAttempts": [],
+              "policyDecisions": [
+                {
+                  "policyId": "c8db8868-f991-41a1-ac2f-68baa06758fc",
+                  "policyType": "rate_limit",
+                  "policyRevision": 3,
+                  "decision": "Allowed",
+                  "rejectionReason": null
+                },
+                {
+                  "policyId": "d0f0eca1-f586-46f1-98fb-2a12cb8dc1de",
+                  "policyType": "cors",
+                  "policyRevision": 2,
+                  "decision": "Allowed",
+                  "rejectionReason": null
+                },
+                {
+                  "policyId": "a4424a79-d60b-4346-8ef6-c41ef76e22be",
+                  "policyType": "ip_filter",
+                  "policyRevision": 1,
+                  "decision": "Allowed",
+                  "rejectionReason": null
+                },
+                {
+                  "policyId": "a9798c33-9df9-4886-a17f-fb468f5b00f9",
+                  "policyType": "transform",
+                  "policyRevision": 1,
+                  "decision": "Rejected",
+                  "rejectionReason": "transform_json_operation_failed",
+                  "operationIndex": 3,
+                  "bodyOperationCount": 0
+                }
+              ]
+            }
+          ],
+          "nextCursor": null,
+          "truncated": false
+        }
+      }
+    },
+    {
+      "traceId": "e24aa07cc671bce34b5700bfaa8743ab",
+      "expectedStatus": 502,
+      "logs": {
+        "sourceState": "Available",
+        "range": {
+          "start": "2026-10-14T09:24:01.357+00:00",
+          "end": "2026-10-14T09:24:47.676+00:00"
+        },
+        "observedAt": "2026-10-14T09:24:32.711+00:00",
+        "coverage": {
+          "complete": true,
+          "missingNodes": [],
+          "reason": null,
+          "truncated": false
+        },
+        "sampling": null,
+        "data": {
+          "items": [
+            {
+              "id": "b1b5e5ca-7bc4-4eca-9e67-43229ed5eb3d",
+              "time": "2026-10-14T09:24:01.3933887+00:00",
+              "environmentId": "2e81e2ad-5c16-4e75-af80-b8adeac183fa",
+              "apiId": "34b5dcaf-28c7-4432-adee-349aed0d681b",
+              "applicationKey": "1fd2bd4f-6da7-43f0-be28-99030c5f9f02",
+              "method": "GET",
+              "pathTemplate": "/network/{**path}",
+              "status": 502,
+              "durationMs": 2.6925999999999997,
+              "outcome": "ProxyError",
+              "requestId": "0HNP9QJBVTVBT:00000007",
+              "traceId": "e24aa07cc671bce34b5700bfaa8743ab",
+              "maskedIp": "10.248.197.xxx",
+              "nodeName": "local-gateway-a",
+              "configVersion": 6,
+              "deploymentSequence": 6,
+              "destinationId": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+              "attemptCount": 1,
+              "cacheDisposition": "Miss",
+              "forwardAttempts": [
+                {
+                  "number": 1,
+                  "destinationId": "b53bf825-6763-4d5a-bdf6-4ad27495c1ee",
+                  "status": 502,
+                  "outcome": "ProxyError",
+                  "durationSeconds": 0.0017232
+                }
+              ],
+              "policyDecisions": [
+                {
+                  "policyId": "c8db8868-f991-41a1-ac2f-68baa06758fc",
+                  "policyType": "rate_limit",
+                  "policyRevision": 3,
+                  "decision": "Allowed",
+                  "rejectionReason": null
+                },
+                {
+                  "policyId": "5f08e96c-4fe7-46e1-862b-febde2a2ddca",
+                  "policyType": "circuit_breaker",
+                  "policyRevision": 1,
+                  "decision": "Allowed",
+                  "rejectionReason": null
+                },
+                {
+                  "policyId": "9d25cfb0-e854-4f94-b718-dd3ad820f567",
+                  "policyType": "retry",
+                  "policyRevision": 1,
+                  "decision": "Bypass",
+                  "rejectionReason": "response_transform_rejected",
+                  "attemptCount": 1
+                },
+                {
+                  "policyId": "927208ec-9961-400e-86ad-d802d325c539",
+                  "policyType": "cache",
+                  "policyRevision": 1,
+                  "decision": "Miss",
+                  "rejectionReason": null,
+                  "cacheRead": "Miss",
+                  "cacheWrite": "Bypass"
+                },
+                {
+                  "policyId": "d0f0eca1-f586-46f1-98fb-2a12cb8dc1de",
+                  "policyType": "cors",
+                  "policyRevision": 2,
+                  "decision": "Allowed",
+                  "rejectionReason": null
+                },
+                {
+                  "policyId": "a4424a79-d60b-4346-8ef6-c41ef76e22be",
+                  "policyType": "ip_filter",
+                  "policyRevision": 1,
+                  "decision": "Allowed",
+                  "rejectionReason": null
+                },
+                {
+                  "policyId": "a9798c33-9df9-4886-a17f-fb468f5b00f9",
+                  "policyType": "transform",
+                  "policyRevision": 1,
+                  "decision": "Rejected",
+                  "rejectionReason": "transform_json_operation_failed",
+                  "operationIndex": 1,
+                  "bodyOperationCount": 0
+                }
+              ]
+            }
+          ],
+          "nextCursor": null,
+          "truncated": false
+        }
+      }
+    }
+  ],
+  "privateCanariesExcluded": true
+}

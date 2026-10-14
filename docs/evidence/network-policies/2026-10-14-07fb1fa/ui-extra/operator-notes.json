@@ -1,0 +1,15 @@
+{
+  "selectorWaitsRetained": [
+    "new organization button initial selector lacked an observed space; resolved after fresh state",
+    "release detail title is generic; resolved after fresh state",
+    "selected span cleared between reads; reselected and captured actual policy decisions"
+  ],
+  "productFailuresInRequiredActions": 0,
+  "minorObservation": {
+    "id": "ui-span-selection-refresh",
+    "observed": "Span detail selection disappeared between two reads while the trace and both spans remained visible",
+    "causeConfirmed": false,
+    "scope": "existing observability interaction; record for final review, no workaround changes"
+  },
+  "firstFormalWaiter": "timed out before business actions; preserved; second invocation generated actual P3-01 through P3-10"
+}

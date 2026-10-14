@@ -1,0 +1,46 @@
+{
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+  "ownerId": "cdf8e9e1-9bb7-4d41-87c8-26272b7d36c9",
+  "projectName": "webapi-enterprise-local-test-d328b78c-55ec-411e-b810-7edddb10b777",
+  "id": "P3-04",
+  "actual": true,
+  "modes": [
+    {
+      "mode": "anonymous",
+      "allowedStatus": 200,
+      "deniedStatus": 403,
+      "spoofedStatus": 403
+    },
+    {
+      "mode": "ApiKey",
+      "allowedStatus": 200,
+      "deniedStatus": 403,
+      "spoofedStatus": 403
+    },
+    {
+      "mode": "JWT",
+      "allowedStatus": 200,
+      "deniedStatus": 403,
+      "spoofedStatus": 403
+    }
+  ],
+  "coverage": {
+    "suite": "gateway",
+    "tests": [
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.IpFilter_DeniedBeforeAuthentication_NeverTouchesBackend(mode: \"Anonymous\")",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.IpFilter_DeniedBeforeAuthentication_NeverTouchesBackend(mode: \"ApiKey\")",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.CompiledIpFilter_ExplicitWholeFamilyAndEmptyDenyList_HaveDefinedBehavior",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.IpFilter_TrustedProxyResolvedIpv6_UsesIpv6Network",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.IpFilter_JwtRejectsBeforeTokenVerification_WithZeroBackendCalls",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.IpFilter_UsesResolvedRemote_NotSpoofedHeader(trusted: False, expected: 403)",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.IpFilter_UsesResolvedRemote_NotSpoofedHeader(trusted: True, expected: 200)",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.CompiledIpFilter_UsesFamilyAndPrefixBits(mode: \"AllowList\", range: \"192.0.2.0/24\", address: \"192.0.3.0\", allowed: False, reason: \"ip_not_allowed\")",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.CompiledIpFilter_UsesFamilyAndPrefixBits(mode: \"AllowList\", range: \"192.0.2.0/24\", address: \"::ffff:192.0.2.8\", allowed: True, reason: null)",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.CompiledIpFilter_UsesFamilyAndPrefixBits(mode: \"DenyList\", range: \"2001:db8::/32\", address: \"2001:db8::1\", allowed: False, reason: \"ip_denied\")",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.CompiledIpFilter_UsesFamilyAndPrefixBits(mode: \"AllowList\", range: \"192.0.2.0/24\", address: \"192.0.2.255\", allowed: True, reason: null)",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.IpFilter_LoopbackAndMappedRanges_AllowOriginalGrant(range: \"127.0.0.1\")",
+      "WebApi.Gateway.Tests.IpFilterPipelineTests.IpFilter_LoopbackAndMappedRanges_AllowOriginalGrant(range: \"::ffff:127.0.0.1/128\")"
+    ]
+  }
+}

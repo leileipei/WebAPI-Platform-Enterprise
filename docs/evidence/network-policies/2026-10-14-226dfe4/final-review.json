@@ -1,0 +1,43 @@
+{
+  "reviewedBaseRevision": "293b37f2dbd59427cd2d40f6783dc441345528ef",
+  "reviewedHeadRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "scopeFiles": 142,
+  "reviewApproach": "Whole-branch scope; core modules reviewed, tests sampled by risk rather than every test line.",
+  "independentReviewer": "/root/network_policies_final_review",
+  "independentReviewCritical": 0,
+  "independentReviewImportant": 3,
+  "independentReviewMinor": 0,
+  "fixCommit": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "importantFindings": [
+    {
+      "id": "P3-FR-1",
+      "severity": "Important",
+      "file": "src/WebApi.Gateway/Policies/PolicyRequestTransformProvider.cs",
+      "issue": "Allowed Content-Language and Content-Disposition Set removes the old value but HttpRequestHeaders refuses its replacement; Applied is misleading.",
+      "fix": "Use the public YARP RequestHeaderValueTransform, preserving stream HttpContent and native EmptyHttpContent behavior.",
+      "status": "closed-by-real-red-green-and-full-fixed-gates"
+    },
+    {
+      "id": "P3-FR-2",
+      "severity": "Important",
+      "file": "src/WebApi.Gateway/Configuration/EnterpriseProxyConfigProvider.cs",
+      "issue": "Comma-separated or repeated raw preflight methods match multiple same-path derived routes and cause routing ambiguity HTTP500 before CORS validation.",
+      "fix": "After YARP header matching, resolve only all-derived, highest-priority malformed preflight candidates so original generation IP/CORS rejects them.",
+      "status": "closed-by-real-red-green-and-full-fixed-gates"
+    },
+    {
+      "id": "P3-FR-3",
+      "severity": "Important",
+      "file": "console/src/policies/network-policy-state.mjs",
+      "issue": "Frontend blocks an explicitly empty DenyList accepted by the specification and server.",
+      "fix": "Require nonempty ranges only in AllowList and clarify empty DenyList semantics in the editor.",
+      "status": "closed-by-real-red-green-and-full-fixed-gates"
+    }
+  ],
+  "unresolvedCritical": 0,
+  "unresolvedImportant": 0,
+  "deferredMinors": [],
+  "secondIndependentReview": false,
+  "verificationMethod": "One implementer TDD fix pass after the fresh whole-branch review; fixed five suites3359/0/0, actual TEST/PROD, CUA15, strict12 and SDK E2E1/0/0.",
+  "integrationAuthorization": false
+}

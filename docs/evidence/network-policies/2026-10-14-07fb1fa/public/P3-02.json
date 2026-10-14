@@ -1,0 +1,23 @@
+{
+  "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "imageId": "sha256:f9f08bc809d06d2ec3d3ab5d320e4e856ad86e38123f8cc813f7fffe7ebab266",
+  "ownerId": "dc4f9e62-4472-44b2-8532-412be5369009",
+  "projectName": "webapi-enterprise-local-test-8dc9a8f0-66ae-4034-8cae-eca61eae7c71",
+  "id": "P3-02",
+  "actual": true,
+  "statuses": {
+    "created": 200,
+    "updated": 200,
+    "validated": 200,
+    "copied": 200,
+    "readonly": 403,
+    "foreign": 404,
+    "stale": 412
+  },
+  "preview": {
+    "beforeWrites": 83,
+    "afterWrites": 83,
+    "beforeCalls": 0,
+    "afterCalls": 0
+  }
+}

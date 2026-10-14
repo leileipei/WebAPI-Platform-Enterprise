@@ -15,26 +15,26 @@
 |9|API详情|/apis/{id}|已接入工作/运行/待发布事实；实际路由地址、无凭证示例及环境OpenAPI副本已安装至4192|
 |10|版本|/apis/{id}|已接入版本Tab|
 |11|版本比较与风险评审|/apis/{id}/versions/compare|真实比较、历史/导出、追加风险评审和可选发布证据已完成固定源码隔离验收及1440px UI QA；规则覆盖受限；4192软件包已升级，该比较流程本批未复验|
-|12|Route|/routes|已接入环境专属路由|
+|12|Route|/routes|已接入环境专属路由；本包9类策略绑定、组织共享选择及优先级编辑已通过固定隔离验收，4192未安装本包|
 |13|参数Schema|/apis/{id}|已接入参数/Schema Tab与原文编辑；完整树和例验证后续|
 |14|Cluster|/clusters|已接入|
 |15|Destination|/clusters/{id}|已接入权重/健康配置；立即探测后续|
-|16|策略中心|/policies|已接入真实列表、类型/范围过滤、复制、引用与工作/运行修订|
-|17|策略编辑|/policies/{id}|已接入四类动态字段、服务端校验、412保留输入、引用保护及审批发布|
+|16|策略中心|/policies|已接入9类真实策略列表、类型/范围过滤、复制、引用与工作/运行修订；CORS/IP/Transform本包已通过固定隔离验收|
+|17|策略编辑|/policies/{id}|已接入9类动态字段、CORS/IP、Header/路径/Query与双向JSON映射、同引擎只读预览、服务端校验、412保留输入、引用保护及审批发布；本包4192升级未执行|
 |18|应用|/applications|已接入|
 |19|应用详情|/applications/{id}|已接入|
 |20|凭证|/applications/{id}|已接入凭证Tab，一次性Secret及有效期/撤销|
 |21|API授权|/applications/{id}|已接入授权Tab及环境/窗口|
 |22|发布与交付中心|/releases；/delivery/overview|已接入原发布、跨环境交付、不可变制品、晋级与标准阶段流水线；原4192已安装，任意脚本/分支/并行编排后续|
-|23|发布详情|/releases/{id}|已接入审批/真实ACK/回滚/重试、生成制品及正式/恢复晋级追溯；ACK与生产业务验证完成分别呈现，已安装4192|
+|23|发布详情|/releases/{id}|原审批/ACK/回滚/制品/晋级追溯已安装4192；本包CORS/IP及JSON双向冻结Review、快照2.3能力门禁已通过固定隔离验收，4192未安装本包|
 |24|审批中心|/approvals|已接入授权范围集中收件箱、晋级来源/制品摘要与两级生产审批；独立测试验收在制品详情处理；受限资料不当零风险|
 |25|Snapshot|/snapshots|已接入脱敏管理视图和下载|
 |26|网关节点|/nodes|已接入实际/目标版本及sequence|
 |27|节点详情|/nodes/{id}|已接入事实事件|
 |28|监控总览|/observability/metrics|已接入真实Prometheus，12项KPI/7类趋势、分组排序、节点覆盖；估计量和部分数据明确呈现|
 |29|API监控|/observability/apis/{apiId}|已接入应用/状态/后端分组，日志/Trace及预填规则按独立权限开放|
-|30|访问日志|/observability/logs|已接入真实Loki、签名游标、脱敏详情/CSV与只在POST内存使用的精确IP筛选；源上限显式截断|
-|31|Trace|/observability/traces|已接入真实Tempo、Server/Client瀑布图、安全span标签；同Trace跨环境隔离，缺失/采样/源故障分开|
+|30|访问日志|/observability/logs|已接入真实Loki、签名游标、脱敏详情/CSV与只在POST内存使用的精确IP筛选；源上限显式截断；本包策略决策/JSON实际操作数已通过固定隔离验收|
+|31|Trace|/observability/traces|已接入真实Tempo、Server/Client瀑布图、安全span标签；同Trace跨环境隔离，缺失/采样/源故障分开；本包CORS/IP/Transform决策及JSON实际操作数已通过固定隔离验收|
 |32|告警中心|/observability/alerts|已接入PG事件、Ack/Resolve/Silence/Unsilence与流转；Unknown不当恢复，Metrics关联选择冻结环境|
 |33|告警规则|/observability/alert-rules|已接入创建/编辑/启停、范围预览、只读测试与412保护；Email/Webhook/EnterpriseIm仅意向|
 |34|用户|/users|已接入平台级用户治理|
@@ -62,7 +62,6 @@
 
 以上固定源码、整分支审查与唯一修复批次、2266项回归、真实双环境故障及原4192安装证据见[交付索引](evidence/release-promotion/delivery-index.md)。任意脚本/分支/并行阶段编排、CI/CD接入、紧急免审发布、灰度或自动回滚仍是后续能力，界面不提供模拟成功入口。
 
-
 ## 标准发布流水线新增页面（2026-10-10）
 
 |页面|入口|已接入范围|
@@ -73,3 +72,9 @@
 |制品与交付策略关联|制品详情及`/delivery/policy`|来源制品启动运行、项目流水线策略与既有发布模式兼容|
 
 当前本机已安装版本与固定证据见[流水线交付索引](evidence/release-pipeline/delivery-index.md)。标准阶段可配置已经接入；任意脚本、分支、并行任务、自动回滚与企业业务验收仍不在本次交付范围。
+
+## 第3包网络策略增补（2026-10-14）
+
+固定`226dfe4`的3359项回归、独立TEST/PROD双网关场景、15项1440px页面操作、严格P3-01至P3-12及正向SDK E2E均通过。实际录入、绑定、冻结审批、观测、目标参数映射与历史回滚步骤见[操作说明](deployment/network-policies-runbook.md)；公开证据、覆盖台账及最终独立审查状态见[交付索引](evidence/network-policies/2026-10-14-226dfe4/delivery-index.md)。旧节点二进制、企业外部入口和生产上线未验收，原4192未升级；第2包保持暂停。本节只更新本包范围，其他行保留既有交付记录。
+
+第3包最终状态：原3项Important均已在226dfe4完成TDD修复及全套新固定验收；本次授权提交交付文档并合并、推送GitHub，实际集成状态以Git记录为准；4192未升级。

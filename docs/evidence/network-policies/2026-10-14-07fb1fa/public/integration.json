@@ -1,0 +1,11 @@
+{
+  "name": "integration",
+  "sourceRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "passed": 1409,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "0dcb387c33b4692dea02081f41eebfb426557cc33a7f802c83c908e62431f7f6",
+  "log": "integration.log",
+  "artifact": "integration.json"
+}

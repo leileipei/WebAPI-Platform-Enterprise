@@ -1,0 +1,209 @@
+[
+  {
+    "requirementId": "P3-01",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/domain.log"
+    ],
+    "evidencePaths": [
+      "public/P3-01.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-02",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/integration.log",
+      "public/console.log"
+    ],
+    "evidencePaths": [
+      "public/P3-02.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-03",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-03.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-04",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-04.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-05",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-05.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-06",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-06.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-07",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-07.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-08",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-08.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-09",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-09.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-10",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-10.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-11",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-11.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "P3-12",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-12.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  },
+  {
+    "requirementId": "SDK-E2E",
+    "sourceIdentity": {
+      "revision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    "testLog": [
+      "sdk-e2e.log"
+    ],
+    "evidencePaths": [
+      "sdk-e2e-result.json",
+      "acceptance-result.json"
+    ],
+    "status": "passed_actual_fixed_sdk_e2e",
+    "remainingGate": "Fixed code/local acceptance complete. Documentation/main integration/GitHub push authorized on 2026-10-14; actual integration follows Git history. 4192 installation remains outside scope."
+  }
+]
