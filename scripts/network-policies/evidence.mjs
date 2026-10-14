@@ -280,6 +280,20 @@ export function validateNetworkPolicyEvidence(proof, files, { revision, imageId,
         assert.equal(r.text, mappedResponse.replace('https://a.example.test', 'https://b.example.test'));
     }
     assert.equal(promotion.sourceCredentialDenied, 401);
+    const entry = promotion.publicEntry;
+    assert(entry);
+    assert.match(entry.url, /^https:\/\/127\.0\.0\.1:[0-9]{1,5}$/);
+    assert.match(entry.internalUrl, /^http:\/\/127\.0\.0\.1:[0-9]{1,5}$/);
+    for (const origin of [entry.url, entry.internalUrl])
+        assert(Number(new URL(origin).port) > 1024);
+    assert.equal(entry.url, promotion.targetRelease.accessContext?.publicOrigin);
+    assert.equal(entry.internalUrl, promotion.targetRelease.accessContext?.internalOrigin);
+    assert.equal(entry.tlsVerified, true);
+    assert.equal(entry.request?.tlsVerified, true);
+    assert.equal(entry.request.status, 200);
+    assert.equal(entry.request.text, mappedResponse.replace('https://a.example.test', 'https://b.example.test'));
+    assert.equal(entry.sourceCredentialDenied, 401);
+    assert.match(entry.certificateSha256, hash);
     const approvals = promotion.targetRelease.approvalSteps.filter(a => a.status === 'Approved');
     assert.equal(approvals.length, 2);
     assert.equal(new Set(approvals.map(a => a.actorId)).size, 2);

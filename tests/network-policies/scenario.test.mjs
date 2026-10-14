@@ -271,3 +271,45 @@ test('root observation probe suppresses only its external parent while normal pr
         assert.notEqual(root.traceId, root.headers['x-webapi-trace-id']);
     } finally { await new Promise(resolve => server.close(resolve)); }
 });
+
+test('production entry proxies real HTTPS with a pinned CA and preserves gateway method/body/headers', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'webapi-network-entry-')), calls = [];
+    const server = http.createServer(async (req, res) => {
+        const chunks = []; for await (const chunk of req) chunks.push(chunk);
+        calls.push({ url: req.url, method: req.method, headers: req.headers, body: Buffer.concat(chunks).toString() });
+        res.setHeader('Content-Type', 'application/json'); res.setHeader('X-Network-QA', 'qa');
+        res.end('{"n":9007199254740993,"nil":null}');
+    });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    let entry;
+    try {
+        entry = await scenario.createNetworkPolicyHttpsEntry({ directory, upstreamPort: server.address().port });
+        assert.equal(new URL(entry.url).protocol, 'https:');
+        const result = await scenario.networkRequest({ port: Number(new URL(entry.url).port), url: '/network/echo?qa=1', method: 'POST', headers: { Origin: 'https://b.example.test', 'X-API-Key': 'unit-only-key', 'Content-Type': 'application/json' }, body: '{"n":9007199254740993,"nil":null}', ca: entry.ca });
+        assert.equal(result.status, 200); assert.equal(result.tlsVerified, true);
+        assert.equal(result.text, '{"n":9007199254740993,"nil":null}');
+        assert.equal(result.headers['x-network-qa'], 'qa');
+        assert.equal(calls.length, 1); assert.equal(calls[0].method, 'POST');
+        assert.equal(calls[0].url, '/network/echo?qa=1'); assert.equal(calls[0].body, result.text);
+        assert.equal(calls[0].headers.origin, 'https://b.example.test');
+        assert.equal(calls[0].headers.host, 'gateway.fixture.test');
+        assert.equal(calls[0].headers['x-api-key'], 'unit-only-key');
+        const rejected = await scenario.networkRequest({ port: Number(new URL(entry.url).port), url: '/outside', ca: entry.ca });
+        assert.equal(rejected.status, 404); assert.equal(calls.length, 1);
+    } finally { if (entry) await entry.close(); await new Promise(resolve => server.close(resolve)); await fs.rm(directory, { recursive: true, force: true }); }
+});
+
+test('production entry never disables certificate verification or overwrites an existing private key', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'webapi-network-entry-'));
+    const otherDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'webapi-network-entry-'));
+    const server = http.createServer((req, res) => res.end('{}'));
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    let entry, otherEntry;
+    try {
+        entry = await scenario.createNetworkPolicyHttpsEntry({ directory, upstreamPort: server.address().port });
+        otherEntry = await scenario.createNetworkPolicyHttpsEntry({ directory: otherDirectory, upstreamPort: server.address().port });
+        await assert.rejects(scenario.networkRequest({ port: Number(new URL(entry.url).port), url: '/network/echo', ca: otherEntry.ca }));
+        await assert.rejects(scenario.createNetworkPolicyHttpsEntry({ directory, upstreamPort: server.address().port }));
+        assert.equal((await fs.stat(path.join(directory, 'network-entry.key'))).mode & 0o077, 0);
+    } finally { if (entry) await entry.close(); if (otherEntry) await otherEntry.close(); await new Promise(resolve => server.close(resolve)); await fs.rm(directory, { recursive: true, force: true }); await fs.rm(otherDirectory, { recursive: true, force: true }); }
+});

@@ -3,8 +3,11 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import https from 'node:https';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { randomUUID, randomBytes } from 'node:crypto';
-import { loadState, writePrivate, safeFile } from '../runtime/state.mjs';
+import { loadState, writePrivate, safeFile, ownedDirectory } from '../runtime/state.mjs';
 import { loadRelease } from '../runtime/lifecycle.mjs';
 import { prepareContext } from '../runtime/context.mjs';
 import { docker, inspectResources } from '../runtime/docker.mjs';
@@ -15,11 +18,13 @@ import { digest, requestSample, mappedRequest } from './evidence.mjs';
 export { requestSample, mappedRequest };
 // Numeric operation tokens remain raw JSON. Never round-trip them through JS Number.
 export const transformConfig = `{"requestHeaders":[{"action":"Set","name":"X-Network-QA","value":"qa"}],"responseHeaders":[{"action":"Set","name":"X-Network-QA","value":"qa"}],"path":{"removePrefix":"/network","addPrefix":"/__network"},"query":[{"action":"Remove","name":"omit"},{"action":"Set","name":"qa","value":"1"}],"requestBody":{"methods":["POST"],"maxBodyBytes":1024,"operations":[{"op":"add","path":"/items/-","value":"mapped"},{"op":"replace","path":"/n","value":9007199254740993},{"op":"remove","path":"/drop"},{"op":"copy","from":"/copy","path":"/copied"},{"op":"move","from":"/move","path":"/moved"}]},"responseBody":{"statusCodes":[200],"maxBodyBytes":1024,"operations":[{"op":"add","path":"/body/items/-","value":"response"}]}}`;
-export async function networkRequest({ port, url, method = 'GET', headers = {}, body, timeoutMs = 30000 }) {
+export async function networkRequest({ port, url, method = 'GET', headers = {}, body, timeoutMs = 30000, ca }) {
     return new Promise((resolve, reject) => {
         const traceId = randomBytes(16).toString('hex'), bytes = body === undefined ? null : Buffer.from(body);
-        const req = http.request({ hostname: '127.0.0.1', port, path: url, method, headers: { Host: 'gateway.fixture.test', traceparent: '00-' + traceId + '-0123456789abcdef-01', ...(bytes ? { 'Content-Length': bytes.length } : {}), ...headers }, signal: AbortSignal.timeout(timeoutMs) }, res => {
+        const transport = ca === undefined ? http : https;
+        const req = transport.request({ hostname: '127.0.0.1', port, path: url, method, ...(ca === undefined ? {} : { ca, rejectUnauthorized: true }), headers: { Host: ca === undefined ? 'gateway.fixture.test' : '127.0.0.1', traceparent: '00-' + traceId + '-0123456789abcdef-01', ...(bytes ? { 'Content-Length': bytes.length } : {}), ...headers }, signal: AbortSignal.timeout(timeoutMs) }, res => {
             const chunks = [];
+            const tlsVerified = ca !== undefined && res.socket.authorized === true;
             let length = 0;
             res.on('data', chunk => {
                 length += chunk.length;
@@ -30,11 +35,35 @@ export async function networkRequest({ port, url, method = 'GET', headers = {}, 
                 chunks.push(chunk);
             });
             res.on('error', reject);
-            res.on('end', () => { const buffer = Buffer.concat(chunks); resolve({ status: res.statusCode, headers: res.headers, text: buffer.toString('utf8'), bytes: buffer.length, traceId }); });
+            res.on('end', () => { const buffer = Buffer.concat(chunks); resolve({ status: res.statusCode, headers: res.headers, text: buffer.toString('utf8'), bytes: buffer.length, traceId, ...(ca === undefined ? {} : { tlsVerified }) }); });
         });
         req.on('error', reject);
         req.end(bytes);
     });
+}
+export async function createNetworkPolicyHttpsEntry({ directory, upstreamPort }) {
+    await ownedDirectory(directory);
+    assert(Number.isInteger(upstreamPort) && upstreamPort > 1024 && upstreamPort <= 65535);
+    const key = path.join(directory, 'network-entry.key'), certificate = path.join(directory, 'network-entry.crt');
+    for (const file of [key, certificate]) {
+        try { await fs.lstat(file); throw Error('Existing TLS entry file; refusing overwrite'); }
+        catch (e) { if (e.code !== 'ENOENT') throw e; }
+    }
+    // Same local TLS pattern as the existing delivery scenario. Trust is pinned
+    // to this fixture certificate, never installed or disabled globally.
+    await promisify(execFile)('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', key, '-out', certificate, '-days', '1', '-subj', '/CN=127.0.0.1', '-addext', 'subjectAltName=IP:127.0.0.1']);
+    await fs.chmod(key, 0o600); await fs.chmod(certificate, 0o600);
+    const ca = await fs.readFile(certificate);
+    const server = https.createServer({ key: await fs.readFile(key), cert: ca }, (request, response) => {
+        if (!request.url?.startsWith('/network/')) { response.writeHead(404); response.end(); return; }
+        const upstream = http.request({ hostname: '127.0.0.1', port: upstreamPort, path: request.url, method: request.method, headers: { ...request.headers, host: 'gateway.fixture.test' } }, result => {
+            response.writeHead(result.statusCode, result.headers); result.pipe(response);
+        });
+        upstream.on('error', () => { if (!response.headersSent) response.writeHead(502); response.end(); });
+        request.on('aborted', () => upstream.destroy()); response.on('close', () => upstream.destroy()); request.pipe(upstream);
+    });
+    await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+    return { url: 'https://127.0.0.1:' + server.address().port, ca, close: async () => { server.closeAllConnections(); await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())); } };
 }
 // Reuses ContractClient's cookies/CSRF. Capture real success status rather than inferring it from a DTO.
 async function management(client, route, options = {}) {
@@ -392,14 +421,20 @@ if (process.argv[1] === import.meta.filename) {
     const [revision, imageId, cloneDirectory, fixtureDirectory] = process.argv.slice(2);
     console.log(JSON.stringify(await runNetworkPolicyScenario({ revision, imageId, cloneDirectory, fixtureDirectory }), null, 2));
 }
-async function runNetworkPromotion({ s, admin, state, release, ctx, scope, version, latest, backend, record, tag, originB, ipConfig, configs, readonly, foreign }) {
-    const { prepareDeliveryContext } = await import('../delivery/promotion-scenario.mjs');
+async function runNetworkPromotion(args) {
     const { freePorts } = await import('../runtime/acceptance.mjs');
+    const ports = await freePorts(), directory = path.join(args.s.directory, 'delivery-private');
+    await fs.mkdir(directory, { mode: 0o700 });
+    const entry = await createNetworkPolicyHttpsEntry({ directory, upstreamPort: ports.gatewayA });
+    try { return await runNetworkPromotionWithEntry({ ...args, ports, entry }); }
+    finally { await entry.close(); }
+}
+async function runNetworkPromotionWithEntry({ s, admin, state, release, ctx, scope, version, latest, backend, record, tag, originB, ipConfig, configs, readonly, foreign, ports, entry }) {
+    const { prepareDeliveryContext } = await import('../delivery/promotion-scenario.mjs');
     let source = await admin.request('/environments/' + scope.environmentId);
     source = await admin.request('/environments/' + source.id, { method: 'PUT', headers: { 'If-Match': '"' + source.revision + '"' }, body: { ...source, code: 'TEST_NETWORK_' + tag, name: '网络策略隔离TEST', isProduction: false, gatewayPublicUrl: 'http://127.0.0.1:' + state.ports.gatewayA } });
-    const ports = await freePorts(), flow = await admin.request('/organizations/' + scope.organizationId + '/approval-flows', { method: 'POST', body: { name: 'Network PROD ' + tag, enabled: true, steps: [{ stepOrder: 1, roleCode: 'ApiApprover', requiredCount: 1 }, { stepOrder: 2, roleCode: 'SecurityReviewer', requiredCount: 1 }] } }), target = await admin.request('/projects/' + scope.projectId + '/environments', { method: 'POST', body: { code: 'PROD_NETWORK_' + tag, name: '网络策略隔离PROD', isProduction: true, releasePolicyId: flow.id, gatewayPublicUrl: 'http://127.0.0.1:' + ports.gatewayA } });
+    const flow = await admin.request('/organizations/' + scope.organizationId + '/approval-flows', { method: 'POST', body: { name: 'Network PROD ' + tag, enabled: true, steps: [{ stepOrder: 1, roleCode: 'ApiApprover', requiredCount: 1 }, { stepOrder: 2, roleCode: 'SecurityReviewer', requiredCount: 1 }] } }), target = await admin.request('/projects/' + scope.projectId + '/environments', { method: 'POST', body: { code: 'PROD_NETWORK_' + tag, name: '网络策略隔离PROD', isProduction: true, releasePolicyId: flow.id, gatewayPublicUrl: entry.url, gatewayInternalUrl: 'http://127.0.0.1:' + ports.gatewayA } });
     await writePrivate(path.join(s.directory, 'delivery-runtime.json'), { targetEnvironmentId: target.id, ports });
-    await fs.mkdir(path.join(s.directory, 'delivery-private'), { mode: 0o700 });
     for (const suffix of ['a', 'b'])
         await writePrivate(path.join(s.directory, 'delivery-private', 'node-prod-' + suffix), randomBytes(32).toString('base64url'));
     const delivery = await prepareDeliveryContext(s.directory, state, release);
@@ -481,9 +516,18 @@ async function runNetworkPromotion({ s, admin, state, release, ctx, scope, versi
     const sourceKey = (await fs.readFile(path.join(s.directory, 'credential'), 'utf8')).trim();
     const deniedSource = await networkRequest({ port: ports.gatewayB, url: '/network/echo', headers: { 'X-API-Key': sourceKey, Origin: originB } });
     assert.equal(deniedSource.status, 401);
+    const entryPort = Number(new URL(entry.url).port);
+    const publicRequest = await networkRequest({ port: entryPort, url: '/network/echo', ca: entry.ca, method: 'POST', headers: { 'X-API-Key': key.apiKey, Origin: originB, 'Content-Type': 'application/json' }, body: requestSample });
+    assert.equal(publicRequest.status, 200); assert.equal(publicRequest.tlsVerified, true); assert.equal(publicRequest.text, results[0].text);
+    const publicDenied = await networkRequest({ port: entryPort, url: '/network/echo', ca: entry.ca, headers: { 'X-API-Key': sourceKey, Origin: originB } });
+    assert.equal(publicDenied.status, 401); assert.equal(publicDenied.tlsVerified, true);
     const frozenTransform = artifact.content.routes[0].policies.find(p => p.type === 'transform').frozenConfig, targetTransform = targetRelease.frozenCandidate.policies.find(p => p.type === 'transform').config;
     assert.equal(targetTransform, frozenTransform);
-    const reportText = JSON.stringify({ sourceReleaseId: latest.id, targetReleaseId: targetRelease.id, statuses: results.map(r => r.status), sourceCredentialDenied: deniedSource.status, outputs: results.map(r => r.text), transformHash: digest(frozenTransform) });
+    const entrySettings = await admin.request('/environments/' + target.id);
+    assert.equal(entrySettings.gatewayPublicUrl, entry.url);
+    assert.equal(entrySettings.gatewayInternalUrl, 'http://127.0.0.1:' + ports.gatewayA);
+    const publicEntry = { url: entrySettings.gatewayPublicUrl, internalUrl: entrySettings.gatewayInternalUrl, request: publicRequest, sourceCredentialDenied: publicDenied.status, tlsVerified: true, certificateSha256: digest(entry.ca) };
+    const reportText = JSON.stringify({ sourceReleaseId: latest.id, targetReleaseId: targetRelease.id, statuses: results.map(r => r.status), sourceCredentialDenied: deniedSource.status, outputs: results.map(r => r.text), transformHash: digest(frozenTransform), publicEntry });
     const csrf = await verifier.request('/auth/csrf'), uploaded = await fetch(verifier.base + '/api/v1/verification-reports?promotionId=' + promotion.id, { method: 'POST', headers: { Origin: verifier.base, Cookie: [...verifier.cookies].map(([k, v]) => k + '=' + v).join('; '), 'X-CSRF-Token': csrf.token, 'Idempotency-Key': randomUUID(), 'Content-Type': 'text/plain' }, body: reportText, signal: AbortSignal.timeout(30000) });
     assert.equal(uploaded.status, 200);
     const report = await uploaded.json();
@@ -494,6 +538,6 @@ async function runNetworkPromotion({ s, admin, state, release, ctx, scope, versi
         await verifier.request('/release-promotions/' + promotion.id + '/verifications', { method: 'POST', body: { type, result: 'Passed', startedAt: now, finishedAt: now, comment: '独立PROD两个节点实际转发/凭证隔离/JSON结果已核对', reportId: report.id, expectedContextHash: verificationContext.hash } });
     }
     promotion = await until(() => admin.request('/release-promotions/' + promotion.id), p => p.status === 'Completed', 60);
-    await record('P3-09', { sourceArtifact: artifact, sourceEnvironmentId: source.id, targetEnvironmentId: target.id, state: targetRelease.state, promotionStatus: promotion.status, sourceOrigins: JSON.parse(latest.frozenCandidate.policies.find(p => p.type === 'cors').config).allowedOrigins, targetOrigins, sourceRanges: ipConfig.ranges, targetRanges, frozenTransformHash: digest(frozenTransform), targetTransformHash: digest(targetTransform), missingMappingStatus: missingMapping.status, foreignStatus: foreignRead.status, readonlyStatus: readonlyWrite.status, approvalCount: targetRelease.approvalSteps.filter(a => a.status === 'Approved').length, targetRelease, targetNodes: (await admin.request('/environments/' + target.id + '/gateway-nodes')).items, actualRequests: results, sourceCredentialDenied: deniedSource.status, reportHash: report.sha256 });
+    await record('P3-09', { sourceArtifact: artifact, sourceEnvironmentId: source.id, targetEnvironmentId: target.id, state: targetRelease.state, promotionStatus: promotion.status, sourceOrigins: JSON.parse(latest.frozenCandidate.policies.find(p => p.type === 'cors').config).allowedOrigins, targetOrigins, sourceRanges: ipConfig.ranges, targetRanges, frozenTransformHash: digest(frozenTransform), targetTransformHash: digest(targetTransform), missingMappingStatus: missingMapping.status, foreignStatus: foreignRead.status, readonlyStatus: readonlyWrite.status, approvalCount: targetRelease.approvalSteps.filter(a => a.status === 'Approved').length, targetRelease, targetNodes: (await admin.request('/environments/' + target.id + '/gateway-nodes')).items, actualRequests: results, sourceCredentialDenied: deniedSource.status, reportHash: report.sha256, publicEntry });
     return { targetKey: key.apiKey, targetPorts: ports, targetEnvironmentId: target.id, promotionId: promotion.id };
 }

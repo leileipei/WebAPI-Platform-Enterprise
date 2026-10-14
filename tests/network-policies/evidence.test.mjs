@@ -42,6 +42,8 @@ function unitInput() {
     promotion.targetNodes = promotion.targetRelease.targets.map(t => ({ id: t.nodeId, instanceId: t.instanceId, environmentId: promotion.targetEnvironmentId, currentConfigVersion: 4, currentDeploymentSequence: 7 }));
     promotion.actualRequests = [{ status: 200, text: mappedResponse.replace('https://a.example.test', 'https://b.example.test') }, { status: 200, text: mappedResponse.replace('https://a.example.test', 'https://b.example.test') }];
     promotion.sourceCredentialDenied = 401;
+    promotion.publicEntry = { url: 'https://127.0.0.1:55101', internalUrl: 'http://127.0.0.1:55102', tlsVerified: true, certificateSha256: 'f'.repeat(64), sourceCredentialDenied: 401, request: { status: 200, tlsVerified: true, text: promotion.actualRequests[0].text } };
+    promotion.targetRelease.accessContext = { publicOrigin: promotion.publicEntry.url, internalOrigin: promotion.publicEntry.internalUrl };
     const chunk = (type, data) => { const out = Buffer.alloc(data.length + 12); out.writeUInt32BE(data.length); out.write(type, 4); data.copy(out, 8); out.writeUInt32BE(crc32(out.subarray(4, 8 + data.length)), 8 + data.length); return out; };
     const header = Buffer.alloc(13);
     header.writeUInt32BE(1440);
@@ -95,3 +97,21 @@ for (const problem of ['production image', 'target ACK', 'raw frozen Transform']
         mutate(f, 'images.json', v => v.resources.find(r => r.Config?.Labels?.['com.docker.compose.service'] === 'prod-gateway-a').Image = 'sha256:' + 'c'.repeat(64)); if (problem === 'target ACK')
         mutate(f, 'P3-09.json', v => v.targetRelease.targets[0].acknowledged = false); if (problem === 'raw frozen Transform')
         mutate(f, 'P3-09.json', v => v.targetRelease.frozenCandidate.policies[0].config = '{}'); await assert.rejects(validate(f)); });
+
+for (const problem of ['missing', 'http', 'unverified', 'status', 'body', 'credential', 'release-origin', 'internal-origin', 'certificate'])
+    test('production HTTPS entry evidence rejects ' + problem, async () => {
+        const f = unitInput();
+        mutate(f, 'P3-09.json', v => {
+            const entry = v.publicEntry;
+            if (problem === 'missing') delete v.publicEntry;
+            if (problem === 'http') entry.url = entry.url.replace('https:', 'http:');
+            if (problem === 'unverified') entry.request.tlsVerified = false;
+            if (problem === 'status') entry.request.status = 502;
+            if (problem === 'body') entry.request.text = '{}';
+            if (problem === 'credential') entry.sourceCredentialDenied = 200;
+            if (problem === 'release-origin') v.targetRelease.accessContext.publicOrigin = 'https://127.0.0.1:55103';
+            if (problem === 'internal-origin') v.targetRelease.accessContext.internalOrigin = 'http://127.0.0.1:55103';
+            if (problem === 'certificate') entry.certificateSha256 = 'unverified';
+        });
+        await assert.rejects(validate(f));
+    });
