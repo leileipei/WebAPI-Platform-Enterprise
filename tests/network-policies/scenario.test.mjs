@@ -197,3 +197,77 @@ test('first observation query is immediately usable with its actual scoped time 
         assert.equal(queries.range().environmentId, scope.environmentId);
     } finally { await new Promise(resolve => server.close(resolve)); }
 });
+
+test('formal observation window waits for complete collection before measuring new traffic', async () => {
+    const calls = [], scope = { organizationId: randomUUID(), projectId: randomUUID(), environmentId: randomUUID() };
+    const server = http.createServer((req, res) => {
+        calls.push(new URL(req.url, 'http://unit.test'));
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({ sourceState: calls.length === 1 ? 'Partial' : 'NoData', coverage: { complete: calls.length > 1 }, data: { kpis: [{ metric: 'request_count', state: calls.length === 1 ? 'Partial' : 'Available', value: calls.length === 1 ? null : 0 }] } }));
+    });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    try {
+        const before = Date.now(), client = new ContractClient('http://127.0.0.1:' + server.address().port);
+        const window = await scenario.prepareNetworkPolicyObservationWindow(client, scope);
+        assert.equal(calls.length, 2);
+        const start = calls[0].searchParams.get('start');
+        assert(Date.parse(start) >= before);
+        assert.equal(calls[1].searchParams.get('start'), start);
+        assert.equal(window.range().start, start);
+        for (const query of calls) {
+            assert.equal(query.pathname, '/api/v1/observability/metrics');
+            for (const [key, value] of Object.entries(scope)) assert.equal(query.searchParams.get(key), value);
+        }
+    } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+test('formal observation correlates the actual root request and never accepts Partial or zero metrics', async () => {
+    const calls = [], seen = { logs: 0, trace: 0, metrics: 0 }, actualTrace = 'a'.repeat(32), wrongTrace = 'b'.repeat(32), requestId = 'actual-request-id';
+    const range = { organizationId: randomUUID(), projectId: randomUUID(), environmentId: randomUUID(), start: new Date(Date.now() - 1000).toISOString(), end: new Date().toISOString() };
+    const server = http.createServer((req, res) => {
+        const url = new URL(req.url, 'http://unit.test'); calls.push(url);
+        res.setHeader('Content-Type', 'application/json');
+        if (url.pathname.endsWith('/logs')) {
+            const complete = ++seen.logs > 1;
+            return res.end(JSON.stringify({ sourceState: complete ? 'Available' : 'Partial', data: { items: [{ requestId: 'other-request-id', traceId: wrongTrace }, { requestId, traceId: actualTrace }] } }));
+        }
+        if (url.pathname.includes('/traces/')) {
+            const complete = ++seen.trace > 1;
+            return res.end(JSON.stringify({ sourceState: complete ? 'Available' : 'Partial', data: { spans: [{ name: 'gateway.request', parentSpanId: null }] } }));
+        }
+        const attempt = ++seen.metrics;
+        res.end(JSON.stringify({ sourceState: attempt === 1 ? 'Partial' : 'Available', data: { kpis: [{ metric: 'request_count', value: attempt === 2 ? 0 : 1 }] } }));
+    });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    try {
+        const client = new ContractClient('http://127.0.0.1:' + server.address().port), window = { range: () => ({ ...range }) };
+        const result = await scenario.observeNetworkPolicyRequest(client, window, { status: 200, traceId: wrongTrace, headers: { 'x-webapi-trace-id': requestId } });
+        assert.deepEqual(seen, { logs: 2, trace: 2, metrics: 3 });
+        assert.equal(result.traceId, actualTrace);
+        assert.equal(result.requestId, requestId);
+        for (const query of calls) assert.equal(query.searchParams.get('start'), range.start);
+        assert(calls.filter(q => q.pathname.endsWith('/logs')).every(q => q.searchParams.get('keyword') === requestId && !q.searchParams.has('traceId')));
+        assert(calls.filter(q => q.pathname.includes('/traces/')).every(q => q.pathname.endsWith('/' + actualTrace)));
+        await assert.rejects(scenario.observeNetworkPolicyRequest(client, window, { status: 200, headers: {} }));
+        await assert.rejects(scenario.observeNetworkPolicyRequest(client, window, { status: 401, headers: { 'x-webapi-trace-id': requestId } }));
+    } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+test('root observation probe suppresses only its external parent while normal propagation remains', async () => {
+    const parents = [];
+    const server = http.createServer((req, res) => {
+        parents.push(req.headers.traceparent);
+        res.setHeader('X-WebApi-Trace-Id', 'actual-server-request-id');
+        res.end('{}');
+    });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    try {
+        const port = server.address().port;
+        const normal = await scenario.networkRequest({ port, url: '/normal' });
+        const root = await scenario.networkRequest({ port, url: '/root', headers: { traceparent: '' } });
+        assert.equal(parents[0], '00-' + normal.traceId + '-0123456789abcdef-01');
+        assert.equal(parents[1], '');
+        assert.equal(root.headers['x-webapi-trace-id'], 'actual-server-request-id');
+        assert.notEqual(root.traceId, root.headers['x-webapi-trace-id']);
+    } finally { await new Promise(resolve => server.close(resolve)); }
+});

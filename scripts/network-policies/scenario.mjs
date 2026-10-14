@@ -64,6 +64,34 @@ export function createNetworkPolicyQueries(client, scope) {
     const logs = traceId => client.request('/observability/logs?' + new URLSearchParams({ ...range(), traceId }));
     return { range, logs };
 }
+export async function prepareNetworkPolicyObservationWindow(client, scope) {
+    // A fresh owner/restarted node cannot honestly cover a ten-minute lookback.
+    // Wait for a complete baseline before sending the measured request.
+    const start = new Date().toISOString();
+    const range = () => ({ ...scope, start, end: new Date().toISOString() });
+    await until(() => client.request('/observability/metrics?' + new URLSearchParams(range())), v =>
+        ['Available', 'NoData'].includes(v.sourceState) && v.coverage?.complete === true &&
+        v.data?.kpis?.some(k => k.metric === 'request_count' && k.state === 'Available' && Number.isFinite(k.value) && k.value >= 0), 120);
+    return { range };
+}
+export async function observeNetworkPolicyRequest(client, window, request) {
+    assert.equal(request.status, 200);
+    const requestId = request.headers['x-webapi-trace-id'];
+    assert(typeof requestId === 'string' && requestId.length > 0 && requestId.length <= 256 && !/[\x00-\x1f\x7f]/.test(requestId));
+    // The public response header carries the actual request ID, not an OTel trace ID.
+    const logs = await until(() => client.request('/observability/logs?' + new URLSearchParams({ ...window.range(), keyword: requestId })), v =>
+        v.sourceState === 'Available' && v.data?.items?.some(x => x.requestId === requestId), 90);
+    const matches = logs.data.items.filter(x => x.requestId === requestId);
+    assert.equal(matches.length, 1);
+    const traceId = matches[0].traceId;
+    assert.match(traceId ?? '', /^[a-f0-9]{32}$/);
+    assert.notEqual(traceId, '0'.repeat(32));
+    const trace = await until(() => client.request('/observability/traces/' + traceId + '?' + new URLSearchParams(window.range())), v =>
+        v.sourceState === 'Available' && v.data?.spans?.length > 0, 90);
+    const metrics = await until(() => client.request('/observability/metrics?' + new URLSearchParams(window.range())), v =>
+        v.sourceState === 'Available' && v.data?.kpis?.some(k => k.metric === 'request_count' && Number.isFinite(k.value) && k.value > 0), 120);
+    return { logs, trace, metrics, requestId, traceId };
+}
 export async function runNetworkPolicyScenario({ revision, imageId, cloneDirectory, fixtureDirectory }) {
     await assertFixedNetworkSources(revision);
     let state = await assertNetworkOwners({ cloneDirectory });
@@ -88,6 +116,8 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     for (const name of ['control-plane', 'worker', 'gateway-a', 'gateway-b']) {
         overlay.services[name].environment.GatewayPolicies__FixtureEnabled = 'true';
         overlay.services[name].environment.GatewayPolicies__Jwt__HttpFixtureOrigins__0 = new URL(backend.issuer).origin;
+        if (name === 'control-plane')
+            overlay.services[name].environment.Observability__TraceSampleRatio = '1';
         if (name.startsWith('gateway')) {
             overlay.services[name].environment.Observability__TraceSampleRatio = '1';
             overlay.services[name].environment.GatewayPolicies__Transform__MaxConcurrentBodyTransforms = '1';
@@ -213,6 +243,7 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     assert.equal(requestJson, mappedRequest);
     const expectedResponseJson = JSON.stringify({ method: 'POST', path: '/__network/echo', query: 'qa=1', requestHeader: 'qa', origin: originA, receivedApiKey: false, body: 'RAW_BODY' }).replace('"RAW_BODY"', mappedRequest.replace('["mapped"]', '["mapped","response"]'));
     assert.equal(post.text, expectedResponseJson);
+    const canaryStart = new Date().toISOString();
     const atomicFailure = await expectedCalls(0, '/network/echo/atomic', '/__network/echo/atomic?qa=1', { method: 'POST', headers: { ...baseHeaders, 'Content-Type': 'application/json' }, body: '{"items":[],"n":1,"private":"PRIVATE_REQUEST_NETWORK"}' });
     assert.equal(atomicFailure.status, 422);
     const requestEncodings = [];
@@ -332,11 +363,22 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     await record('P3-08', { histories: rollbackHistories, inFlight: { status: inFlight.status, oldMarker: 'qa', receivedMarker: inFlight.headers['x-network-qa'] }, quota: { status: quota.status } });
     await save('transform', transformConfig);
     await publish();
-    const finalCall = await call(1, '/network/echo/final-' + tag);
-    const logResult = await until(() => logs(finalCall.traceId), v => v.data?.items?.some(x => x.traceId === finalCall.traceId), 90), traceResult = await until(() => admin.request('/observability/traces/' + finalCall.traceId + '?' + new URLSearchParams(range())), v => v.data?.spans?.length > 0, 90), metricsResult = await until(() => admin.request('/observability/metrics?' + new URLSearchParams(range())), v => v.sourceState === 'Available' && v.data?.kpis?.some(k => k.metric === 'request_count' && k.value > 0), 120);
+    const observationWindow = await prepareNetworkPolicyObservationWindow(admin, scope);
+    // No unexported external parent: observe a complete gateway-rooted trace.
+    const finalCall = await call(1, '/network/echo/final-' + tag, { headers: { ...baseHeaders, traceparent: '' } });
+    const observation = await observeNetworkPolicyRequest(admin, observationWindow, finalCall);
+    // Replace the unused generated parent ID with the observed gateway root.
+    Object.assign(finalCall, { traceId: observation.traceId, requestId: observation.requestId });
+    Object.assign(requests.at(-1), { traceId: observation.traceId, requestId: observation.requestId });
+    // Keep the earlier private-body failures in the exclusion proof even though
+    // their broad historical window honestly has incomplete collection coverage.
+    observation.canaryLogs = await Promise.all([atomicFailure, responseFailure].map(async request => ({
+        traceId: request.traceId, expectedStatus: request.status,
+        logs: await until(() => admin.request('/observability/logs?' + new URLSearchParams({ ...scope, start: canaryStart, end: new Date().toISOString(), traceId: request.traceId })), v => ['Available', 'Partial'].includes(v.sourceState) &&
+            v.data?.items?.some(x => x.traceId === request.traceId && x.status === request.status), 90),
+    })));
     const promoted = await runNetworkPromotion({ s, admin, state, release, ctx, scope, version, latest, backend, record, tag, originB, ipConfig, configs, readonly, foreign });
     const privateValues = ['PRIVATE_REQUEST_NETWORK', 'PRIVATE_RESPONSE_NETWORK', apiKey, s.password, readonlyPassword, promoted.targetKey, ...Object.values(backend.tokens)];
-    const observation = { logs: logResult, trace: traceResult, metrics: metricsResult };
     assert(privateValues.every(secret => !JSON.stringify(observation).includes(secret)));
     await record('P3-10', { ...observation, privateCanariesExcluded: true });
     await writePrivate(path.join(fixtureDirectory, 'private-values.json'), privateValues);
