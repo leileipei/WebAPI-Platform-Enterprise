@@ -12,10 +12,10 @@ public sealed class PolicyRequestTransformProvider : ITransformProvider
     public void Apply(TransformBuilderContext context)=>Configure(context);
     public void Configure(TransformBuilderContext context)
     {
-        context.AddRequestTransform(transform=>
+        context.AddRequestTransform(async transform=>
         {
             var execution=TrafficExecutionContext.From(transform.HttpContext);
-            if(execution?.TransformPlan is not { } plan)return ValueTask.CompletedTask;
+            if(execution?.TransformPlan is not { } plan)return;
             transform.ProxyRequest.RequestUri=RequestUtilities.MakeDestinationAddress(transform.DestinationPrefix,plan.Path,plan.Query);
             var dynamicHeaders=ConnectionHeaders(transform.HttpContext.Request.Headers.Connection.ToString());
             foreach(var name in dynamicHeaders){RemovePresent(transform.ProxyRequest.Headers,name);if(transform.ProxyRequest.Content is { } content)RemovePresent(content.Headers,name);}
@@ -34,11 +34,12 @@ public sealed class PolicyRequestTransformProvider : ITransformProvider
                 if(dynamicHeaders.Contains(operation.Name)){execution.TransformHopProtected=true;continue;}
                 RemovePresent(transform.ProxyRequest.Headers,operation.Name);
                 if(transform.ProxyRequest.Content is { } content)RemovePresent(content.Headers,operation.Name);
-                if(operation.Action==TransformAction.Set)transform.ProxyRequest.Headers.TryAddWithoutValidation(operation.Name,operation.Value);
+                // YARP dispatches content headers to the existing content container and uses
+                // its own EmptyHttpContent for bodyless requests; never replace a streamed body.
+                if(operation.Action==TransformAction.Set)await new RequestHeaderValueTransform(operation.Name,operation.Value!,append:false).ApplyAsync(transform);
                 applied=true;
             }
             execution.RequestTransformApplied|=applied;
-            return ValueTask.CompletedTask;
         });
         context.AddResponseTransform(transform=>
         {

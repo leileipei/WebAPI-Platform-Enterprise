@@ -25,7 +25,7 @@ export function validateNetworkPolicyDraft(draft,scope={}){
    if(!Array.isArray(c.allowedOrigins)||c.allowedOrigins.length<1||c.allowedOrigins.length>64)return '明确填写 1–64 个允许来源';const normalized=c.allowedOrigins.map(origin);if(!unique(normalized)||normalized.includes('*')&&(normalized.length!==1||c.allowCredentials))return '来源不得重复；通配来源不能携带 credentials';
    if(typeof c.allowCredentials!=='boolean'||!Array.isArray(c.allowedMethods)||c.allowedMethods.length<1||c.allowedMethods.length>7||!unique(c.allowedMethods)||c.allowedMethods.some(v=>!methods.includes(v))||!headers(c.allowedHeaders,64)||!headers(c.exposedHeaders,32)||!Number.isInteger(c.maxAgeSeconds)||c.maxAgeSeconds<0||c.maxAgeSeconds>86400)return '检查方法、Header 与 maxAge（0–86400 秒）';
   }else if(draft.type==='ip_filter'){
-   if(!exact(c,['mode','ranges'])||!['AllowList','DenyList'].includes(c.mode)||!Array.isArray(c.ranges)||c.ranges.length<1||c.ranges.length>256||!unique(c.ranges)||c.ranges.some(v=>!cidr(v)))return '明确选择名单模式，填写 1–256 个合法 IP / CIDR；服务端还会规范化重复网段';
+   if(!exact(c,['mode','ranges'])||!['AllowList','DenyList'].includes(c.mode)||!Array.isArray(c.ranges)||c.mode==='AllowList'&&c.ranges.length<1||c.ranges.length>256||!unique(c.ranges)||c.ranges.some(v=>!cidr(v)))return '明确选择名单模式；AllowList 填写 1–256 个合法 IP / CIDR，DenyList 可为空（放行全部已知 IP）；服务端还会规范化重复网段';
   }else if(draft.type==='transform'){
    serializeTransformDraft(c);
    for(const field of ['requestHeaders','responseHeaders','query']){

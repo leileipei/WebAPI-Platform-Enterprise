@@ -23,7 +23,7 @@ public sealed class EnterpriseProxyConfigProvider : IProxyConfigProvider,IConfig
                 Timeout=TimeSpan.FromMilliseconds(route.TimeoutMs),Metadata=Metadata(("deploymentSequence",seq),("runtimeRouteId",route.Id.ToString()),("runtimeClusterId",route.ClusterId.ToString()))};
             routes.Add(original);
             if((route.PolicyBindings??[]).Any(b=>cors.Contains(b.PolicyId)))
-                routes.Add(original with {RouteId=original.RouteId+":cors-preflight",Match=new() {Path=route.Path,Methods=Array.AsReadOnly(new[]{"OPTIONS"}),Headers=Array.AsReadOnly(new[]{
+                routes.Add(original with {RouteId=original.RouteId+":cors-preflight",Metadata=Metadata(("deploymentSequence",seq),("runtimeRouteId",route.Id.ToString()),("runtimeClusterId",route.ClusterId.ToString()),(CorsPreflightMatcherPolicy.MetadataKey,"true")),Match=new() {Path=route.Path,Methods=Array.AsReadOnly(new[]{"OPTIONS"}),Headers=Array.AsReadOnly(new[]{
                     new RouteHeader {Name="Origin",Mode=HeaderMatchMode.Exists},
                     new RouteHeader {Name="Access-Control-Request-Method",Mode=HeaderMatchMode.ExactHeader,Values=Array.AsReadOnly(route.Methods.ToArray()),IsCaseSensitive=true}
                 })}});

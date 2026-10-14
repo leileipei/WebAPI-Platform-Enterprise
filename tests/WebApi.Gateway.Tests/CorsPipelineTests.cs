@@ -68,6 +68,49 @@ public sealed class CorsPipelineTests
         foreach(var node in new[]{0,1}){using var request=new HttpRequestMessage(HttpMethod.Options,"/orders");request.Headers.Add("X-API-Key",f.Credential);using var response=await f.Clients[node].SendAsync(request);response.EnsureSuccessStatusCode();Assert.Equal("OPTIONS",(await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("method").GetString());}Assert.Equal(2,calls);
     }
 
+    [Theory]
+    [InlineData("GET,POST",false)]
+    [InlineData("GET;POST",false)]
+    [InlineData("GET",true)]
+    [InlineData("GET",true,"GET")]
+    [InlineData("\"GET\",POST",false)]
+    [InlineData("GET,POST",false,"POST",true)]
+    [InlineData("GET",true,"POST",true)]
+    public async Task Cors_SamePathMethods_MalformedPreflightIsControlledBeforeAmbiguity(string method,bool duplicate,string second="POST",bool denyIp=false)
+    {
+        var calls=0;await using var f=new GatewayFixture{ConfigureBackendA=a=>a.Use(async(HttpContext ctx,RequestDelegate next)=>{Interlocked.Increment(ref calls);await ctx.Response.WriteAsJsonAsync(new{method=ctx.Request.Method});})};
+        await f.InitializeAsync();await BindAsync(f,age:11,methods:["GET"]);
+        foreach(var pair in new[]{("POST",22),("OPTIONS",33)}){using var created=await f.Control.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{f.Control.Environment.Id}/routes",f.Control.RouteBody("/orders",pair.Item1));created.EnsureSuccessStatusCode();var route=(await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();await BindAsync(f,route,pair.Item2,methods:[pair.Item1]);}
+        if(denyIp){var ip=await IpFilterPipelineTests.BindAsync(f,"DenyList",["127.0.0.0/8"]);await using var db=f.Control.Context();foreach(var route in await db.Set<ApiRoute>().Where(r=>r.EnvironmentId==f.Control.Environment.Id&&r.Id!=f.RouteId).ToArrayAsync())db.Add(new RoutePolicyBinding{RouteId=route.Id,PolicyId=ip.Id,Priority=2});await db.SaveChangesAsync();}
+        var published=await f.PublishAsync();await f.ApplyBothAsync(published);
+        foreach(var node in new[]{0,1})
+        {
+            using(var malformed=Preflight(method)){if(duplicate)Assert.True(malformed.Headers.TryAddWithoutValidation("Access-Control-Request-Method",second));using var response=await f.Clients[node].SendAsync(malformed);Assert.Equal(HttpStatusCode.Forbidden,response.StatusCode);Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));var error=await response.Content.ReadFromJsonAsync<JsonElement>();Assert.Equal(denyIp?"ip_filter_rejected":"cors_rejected",error.GetProperty("code").GetString());Assert.Equal(published.Envelope.DeploymentSequence.ToString(),response.Headers.GetValues("X-WebApi-Deployment-Sequence").Single());}
+            if(!denyIp)foreach(var pair in new[]{("GET",11),("POST",22),("OPTIONS",33)}){using var valid=Preflight(pair.Item1);using var response=await f.Clients[node].SendAsync(valid);Assert.Equal(HttpStatusCode.NoContent,response.StatusCode);Assert.Equal(pair.Item2.ToString(),response.Headers.GetValues("Access-Control-Max-Age").Single());}
+        }
+        Assert.Equal(0,calls);
+        if(!denyIp)foreach(var node in new[]{0,1}){using var business=new HttpRequestMessage(HttpMethod.Options,"/orders");business.Headers.Add("X-API-Key",f.Credential);using var response=await f.Clients[node].SendAsync(business);response.EnsureSuccessStatusCode();Assert.Equal("OPTIONS",(await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("method").GetString());}
+        Assert.Equal(denyIp?0:2,calls);
+        await f.ApplyBothAsync(await f.PublishAsync());
+        foreach(var gateway in f.Gateways){var store=gateway.Services.GetRequiredService<RuntimeGenerationStore>();Assert.Throws<InvalidOperationException>(()=>store.Acquire(published.Envelope.DeploymentSequence));}
+        Assert.Equal(denyIp?0:2,calls);
+    }
+
+    [Fact]
+    public async Task Cors_MalformedMethods_DoNotInterceptUnboundBusinessOptionsOrUnknownMethods()
+    {
+        var calls=0;await using var f=new GatewayFixture{ConfigureBackendA=a=>a.Use(async(HttpContext ctx,RequestDelegate next)=>{Interlocked.Increment(ref calls);await ctx.Response.WriteAsJsonAsync(new{method=ctx.Request.Method,path=ctx.Request.Path.Value});})};
+        await f.InitializeAsync();await BindAsync(f,methods:["GET"]);
+        using(var created=await f.Control.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{f.Control.Environment.Id}/routes",f.Control.RouteBody("/unbound","OPTIONS")))created.EnsureSuccessStatusCode();
+        await f.ApplyBothAsync(await f.PublishAsync());
+        foreach(var node in new[]{0,1})
+        {
+            foreach(var key in new[]{"invalid.invalid",f.Credential}){using var request=Preflight("GET,POST");request.RequestUri=new Uri("/unbound",UriKind.Relative);request.Headers.Add("X-API-Key",key);using var response=await f.Clients[node].SendAsync(request);Assert.Equal(key==f.Credential?HttpStatusCode.OK:HttpStatusCode.Unauthorized,response.StatusCode);Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));if(key==f.Credential)Assert.Equal("OPTIONS",(await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("method").GetString());}
+            foreach(var method in new[]{"TRACE","TRACE,DELETE"}){using var request=Preflight(method);using var response=await f.Clients[node].SendAsync(request);Assert.Contains(response.StatusCode,new[]{HttpStatusCode.NotFound,HttpStatusCode.MethodNotAllowed});}
+        }
+        Assert.Equal(2,calls);
+    }
+
     [Fact]
     public async Task Cors_WildcardMaxAgeZero_AndIpFirstRejection_HaveNoForgedAllowHeaders()
     {

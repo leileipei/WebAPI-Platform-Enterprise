@@ -3,6 +3,7 @@ using WebApi.Infrastructure.Policies;
 using WebApi.Gateway.Observability;
 using WebApi.Gateway.Forwarding;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.Routing.Matching;
 using WebApi.Gateway.Policies;
 using WebApi.Gateway.Configuration;
 using WebApi.Gateway.Security;
@@ -20,7 +21,7 @@ public static class GatewayApp
         b.Services.AddSingleton(new UpstreamAddressPolicy(UpstreamAddressPolicy.ReadAllowedOrigins(b.Configuration)));b.Services.AddSingleton(new RedisSnapshotStore(b.Configuration["Redis:Connection"]??"redis:6379,abortConnect=false,connectTimeout=1000,asyncTimeout=1000",b.Configuration["Redis:Prefix"]??"webapi:runtime"));
         b.Services.AddSingleton(GatewayCacheSettings.Read(b.Configuration));b.Services.AddSingleton(GatewayBodyTransformSettings.Read(b.Configuration));b.Services.AddSingleton(sp=>new BodyTransformBudget(sp.GetRequiredService<GatewayBodyTransformSettings>().MaxConcurrentBodyTransforms));b.Services.AddSingleton<CacheKeyBuilder>();b.Services.TryAddSingleton<IResponseCacheStore,RedisResponseCacheStore>();
         b.Services.AddSingleton(TrafficPolicySettings.Read(b.Configuration));b.Services.TryAddSingleton<IRateLimitStore,RedisTokenBucketStore>();b.Services.AddSingleton<CircuitStateRegistry>();b.Services.AddSingleton<ForwardAttemptRegistry>();b.Services.AddSingleton<WeightedDestinationSelector>();b.Services.AddSingleton<GatewayForwardingAdapter>();b.Services.AddSingleton<RetryCoordinator>();
-        b.Services.AddGatewayTelemetry(b.Configuration,settings);b.Services.AddRequestTimeouts();b.Services.AddReverseProxy().AddTransforms<PolicyRequestTransformProvider>().AddTransforms<PolicyResponseTransformProvider>().ConfigureHttpClient((_,handler)=>{handler.AllowAutoRedirect=false;handler.UseCookies=false;});b.Services.AddHostedService<LkgRestoreWorker>();b.Services.AddHostedService(sp=>sp.GetRequiredService<ConfigWatcher>());b.Services.AddHostedService<HeartbeatWorker>();var app=b.Build();app.UseTrustedProxyBoundary();
+        b.Services.AddGatewayTelemetry(b.Configuration,settings);b.Services.AddRequestTimeouts();b.Services.AddSingleton<MatcherPolicy,CorsPreflightMatcherPolicy>();b.Services.AddReverseProxy().AddTransforms<PolicyRequestTransformProvider>().AddTransforms<PolicyResponseTransformProvider>().ConfigureHttpClient((_,handler)=>{handler.AllowAutoRedirect=false;handler.UseCookies=false;});b.Services.AddHostedService<LkgRestoreWorker>();b.Services.AddHostedService(sp=>sp.GetRequiredService<ConfigWatcher>());b.Services.AddHostedService<HeartbeatWorker>();var app=b.Build();app.UseTrustedProxyBoundary();
         if(app.Services.GetRequiredService<TelemetrySettings>().Enabled) {
             var recorder=app.Services.GetRequiredService<GatewayTelemetryRecorder>();
             app.Services.GetRequiredService<CircuitStateRegistry>().Transitioned+=(_,policy,_,next)=>recorder.RecordPolicy(policy.SourcePolicyId!.Value,"circuit_breaker",next switch {WebApi.Domain.Policies.CircuitStatus.Open=>"Opened",WebApi.Domain.Policies.CircuitStatus.HalfOpen=>"HalfOpened",_=>"Closed"});

@@ -20,6 +20,48 @@ public sealed class TransformPipelineTests
     {await using var db=f.Control.Context();var p=new Policy{OrganizationId=f.Control.Organization.Id,ProjectId=f.Control.Project.Id,Name="Transform"+Guid.NewGuid().ToString("N"),Type="transform",Config=config};db.Add(p);db.Add(new RoutePolicyBinding{RouteId=f.RouteId,PolicyId=p.Id,Priority=1});(await db.Set<ApiRoute>().SingleAsync(r=>r.Id==f.RouteId)).Revision++;await db.SaveChangesAsync();return p;}
     internal static async Task RouteAsync(GatewayFixture f,string path,string method="GET",int timeoutMs=30000)
     {using var current=await f.Control.Client.GetAsync($"/api/v1/routes/{f.RouteId}");using var updated=await f.Control.WriteAsync(HttpMethod.Put,$"/api/v1/routes/{f.RouteId}",new{apiVersionId=f.Control.Version.Id,routeName="Orders",path,methods=new[]{method},clusterId=f.Control.Cluster.Id,priority=100,enabled=true,timeoutMs,requireApiKey=true},current.Headers.ETag!.ToString());updated.EnsureSuccessStatusCode();}
+    [Theory]
+    [InlineData("Set","Content-Language","zh-CN")]
+    [InlineData("Set","Content-Disposition","attachment; filename=\"mapped.txt\"")]
+    [InlineData("Remove","Content-Language","")]
+    [InlineData("Remove","Content-Disposition","")]
+    public async Task Transform_AllowedContentHeaders_ReplaceOrRemoveOnActualBodyProxy(string action,string name,string expected)
+    {
+        const string originalBody="opaque-original-body";
+        await using var f=new GatewayFixture{ConfigureBackendA=a=>a.Use(async(HttpContext ctx,RequestDelegate next)=>
+        {using var reader=new StreamReader(ctx.Request.Body);await ctx.Response.WriteAsJsonAsync(new{header=ctx.Request.Headers[name].ToString(),body=await reader.ReadToEndAsync(),contentType=ctx.Request.ContentType,credential=ctx.Request.Headers.ContainsKey("X-API-Key")});})};
+        await f.InitializeAsync();await RouteAsync(f,"/orders","POST");
+        object operation=action=="Set"?new{action,name,value=expected}:new{action,name};
+        await BindAsync(f,JsonSerializer.Serialize(new{requestHeaders=new[]{operation},responseHeaders=Array.Empty<object>(),path=(object?)null,query=Array.Empty<object>(),requestBody=(object?)null,responseBody=(object?)null}));
+        await f.ApplyBothAsync(await f.PublishAsync());
+        foreach(var node in new[]{0,1})
+        {
+            using var request=new HttpRequestMessage(HttpMethod.Post,"/orders"){Content=new StringContent(originalBody)};
+            Assert.True(request.Content.Headers.TryAddWithoutValidation(name,name=="Content-Language"?"en":"inline"));request.Headers.Add("X-API-Key",f.Credential);
+            using var response=await f.Clients[node].SendAsync(request);response.EnsureSuccessStatusCode();var echoed=await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(expected,echoed.GetProperty("header").GetString());Assert.Equal(originalBody,echoed.GetProperty("body").GetString());Assert.Equal("text/plain; charset=utf-8",echoed.GetProperty("contentType").GetString());Assert.False(echoed.GetProperty("credential").GetBoolean());
+        }
+    }
+    [Theory]
+    [InlineData("Content-Language","zh-CN",false)]
+    [InlineData("Content-Language","zh-CN",true)]
+    [InlineData("Content-Disposition","attachment; filename=\"mapped.txt\"",false)]
+    [InlineData("Content-Disposition","attachment; filename=\"mapped.txt\"",true)]
+    public async Task Transform_AllowedContentHeaders_SetOnBodylessRequest(string name,string expected,bool replace)
+    {
+        await using var f=new GatewayFixture{ConfigureBackendA=a=>a.Use(async(HttpContext ctx,RequestDelegate next)=>
+        {using var reader=new StreamReader(ctx.Request.Body);await ctx.Response.WriteAsJsonAsync(new{header=ctx.Request.Headers[name].ToString(),body=await reader.ReadToEndAsync(),chunked=ctx.Request.Headers.TransferEncoding.ToString(),method=ctx.Request.Method});})};
+        await f.InitializeAsync();
+        await BindAsync(f,JsonSerializer.Serialize(new{requestHeaders=new[]{new{action="Set",name,value=expected}},responseHeaders=Array.Empty<object>(),path=(object?)null,query=Array.Empty<object>(),requestBody=(object?)null,responseBody=(object?)null}));
+        await f.ApplyBothAsync(await f.PublishAsync());
+        foreach(var node in new[]{0,1})
+        {
+            using var request=new HttpRequestMessage(HttpMethod.Get,"/orders");request.Headers.Add("X-API-Key",f.Credential);
+            if(replace){request.Content=new ByteArrayContent([]);Assert.True(request.Content.Headers.TryAddWithoutValidation(name,name=="Content-Language"?"en":"inline"));}
+            using var response=await f.Clients[node].SendAsync(request);response.EnsureSuccessStatusCode();var echoed=await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(expected,echoed.GetProperty("header").GetString());Assert.Equal("",echoed.GetProperty("body").GetString());Assert.Equal("",echoed.GetProperty("chunked").GetString());Assert.Equal("GET",echoed.GetProperty("method").GetString());
+        }
+    }
     [Theory][InlineData(false)][InlineData(true)]
     public async Task Transform_RealProxy_RewritesOnlyBackendCopyAndSkipsDynamicHeaders(bool retry)
     {

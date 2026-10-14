@@ -9,6 +9,11 @@ public sealed record CorsEvaluation(bool Allowed,bool Preflight,string? Origin,s
 
 public static class CorsPolicyEvaluator
 {
+    internal static bool HasSingleRequestedMethod(HttpRequest request)
+    {
+        var requested=request.Headers["Access-Control-Request-Method"];
+        return requested.Count==1&&!string.IsNullOrEmpty(requested[0])&&requested[0]!.All(CorsPolicyConfiguration.IsTokenChar);
+    }
     public static CorsEvaluation Evaluate(HttpRequest request,RuntimeRoute route,CorsConfiguration configuration)
     {
         var preflight=HttpMethods.IsOptions(request.Method)&&request.Headers.ContainsKey("Origin")
@@ -24,7 +29,7 @@ public static class CorsPolicyEvaluator
         if(preflight)
         {
             var requested=request.Headers["Access-Control-Request-Method"];
-            if(requested.Count!=1||string.IsNullOrEmpty(requested[0])||!requested[0]!.All(CorsPolicyConfiguration.IsTokenChar))return Reject("cors_request_invalid");
+            if(!HasSingleRequestedMethod(request))return Reject("cors_request_invalid");
             method=requested[0]!;
         }
         if(!route.Methods.Contains(method,StringComparer.Ordinal)||!configuration.AllowedMethods.Contains(method,StringComparer.Ordinal))return Reject("cors_method_rejected");
