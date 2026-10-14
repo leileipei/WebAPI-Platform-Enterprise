@@ -421,6 +421,24 @@ if (process.argv[1] === import.meta.filename) {
     const [revision, imageId, cloneDirectory, fixtureDirectory] = process.argv.slice(2);
     console.log(JSON.stringify(await runNetworkPolicyScenario({ revision, imageId, cloneDirectory, fixtureDirectory }), null, 2));
 }
+export async function createNetworkPolicyPromotionActor({ admin, endpoint, password, suffix, permissions, scope, tag }) {
+    // Release artifacts include project-owned policies. An environment-only grant
+    // cannot read that owning scope, even when policy.read is present.
+    const actorScope = { ...scope };
+    const grants = scope.environmentId ? [
+        { scope: { organizationId: scope.organizationId, projectId: scope.projectId }, accessMode: 'read' },
+        { scope: actorScope, accessMode: 'read_write' }
+    ] : [{ scope: actorScope, accessMode: 'read_write' }];
+    const code = 'Network' + suffix + tag;
+    let role = await admin.request('/roles', { method: 'POST', body: { code, name: code, organizationId: actorScope.organizationId } });
+    role = await admin.request('/roles/' + role.id + '/permissions', { method: 'PUT', headers: { 'If-Match': '"' + role.revision + '"' }, body: { permissions: ['organization.read', 'project.read', 'environment.read', 'release.read', 'route.read', 'cluster.read', 'app.read', 'policy.read', 'api.read', 'api.version.read', 'api.schema.read', ...permissions] } });
+    let user = await admin.request('/users', { method: 'POST', body: { username: code.toLowerCase(), displayName: code, password } });
+    user = await admin.request('/users/' + user.id + '/roles', { method: 'PUT', headers: { 'If-Match': '"' + user.revision + '"' }, body: { roleIds: [role.id] } });
+    await admin.request('/users/' + user.id + '/scopes', { method: 'PUT', headers: { 'If-Match': '"' + user.revision + '"' }, body: { scopes: grants } });
+    const client = new ContractClient(endpoint);
+    await client.login(user.username, password);
+    return client;
+}
 async function runNetworkPromotion(args) {
     const { freePorts } = await import('../runtime/acceptance.mjs');
     const ports = await freePorts(), directory = path.join(args.s.directory, 'delivery-private');
@@ -464,7 +482,7 @@ async function runNetworkPromotionWithEntry({ s, admin, state, release, ctx, sco
     await until(() => admin.request('/releases/' + baseline.id), r => r.state === 'Succeeded' && r.targets.length === 2 && r.targets.every(t => t.acknowledged), 120);
     const deliveryPolicy = await admin.request('/projects/' + scope.projectId + '/delivery-policy');
     await admin.request('/projects/' + scope.projectId + '/delivery-policy', { method: 'PUT', headers: { 'If-Match': '"' + deliveryPolicy.revision + '"' }, body: { sourceEnvironmentId: source.id, targetEnvironmentId: target.id, mode: 'PromotionRequired', requiredTestTypes: ['InterfaceFunction', 'Integration', 'ContractCompatibility'], verificationValidityMinutes: 1440 } });
-    const actor = async (suffix, permissions, actorScope) => { const code = 'Network' + suffix + tag; let role = await admin.request('/roles', { method: 'POST', body: { code, name: code, organizationId: actorScope.organizationId } }); role = await admin.request('/roles/' + role.id + '/permissions', { method: 'PUT', headers: { 'If-Match': '"' + role.revision + '"' }, body: { permissions: ['organization.read', 'project.read', 'environment.read', 'release.read', 'route.read', 'cluster.read', 'app.read', 'policy.read', 'api.read', 'api.version.read', 'api.schema.read', ...permissions] } }); let user = await admin.request('/users', { method: 'POST', body: { username: code.toLowerCase(), displayName: code, password: s.password } }); user = await admin.request('/users/' + user.id + '/roles', { method: 'PUT', headers: { 'If-Match': '"' + user.revision + '"' }, body: { roleIds: [role.id] } }); await admin.request('/users/' + user.id + '/scopes', { method: 'PUT', headers: { 'If-Match': '"' + user.revision + '"' }, body: { scopes: [{ scope: actorScope, accessMode: 'read_write' }] } }); const client = new ContractClient(s.endpoint); await client.login(user.username, s.password); return client; };
+    const actor = (suffix, permissions, actorScope) => createNetworkPolicyPromotionActor({ admin, endpoint: s.endpoint, password: s.password, suffix, permissions, scope: actorScope, tag });
     const acceptor = await actor('Acceptor', ['release.test.accept'], scope), verifier = await actor('Verifier', ['release.verify'], { organizationId: scope.organizationId, projectId: scope.projectId }), outsider = await actor('Foreign', [], { organizationId: foreign.id });
     const artifact = await admin.request('/releases/' + latest.id + '/artifacts', { method: 'POST' }), verificationIds = [];
     for (const type of ['InterfaceFunction', 'Integration', 'ContractCompatibility']) {

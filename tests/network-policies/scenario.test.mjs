@@ -10,6 +10,42 @@ import { docker } from '../../scripts/runtime/docker.mjs';
 import * as scenario from '../../scripts/network-policies/scenario.mjs';
 import { ContractClient } from '../../scripts/contracts/scenario.mjs';
 const port = async () => { const server = net.createServer(); await new Promise((r, j) => { server.once('error', j); server.listen(0, '127.0.0.1', r); }); const n = server.address().port; await new Promise(r => server.close(r)); return n; };
+test('promotion actor registration reads project policies without granting approval or publish', async () => {
+    const calls = [], roleId = randomUUID(), userId = randomUUID();
+    let username;
+    const server = http.createServer(async (request, response) => {
+        let text = ''; for await (const chunk of request) text += chunk;
+        const body = text ? JSON.parse(text) : undefined;
+        if (request.url === '/api/v1/users') username = body.username;
+        calls.push({ route: request.url, method: request.method, body });
+        response.setHeader('Content-Type', 'application/json');
+        const value = request.url === '/api/v1/auth/csrf' ? { token: 'fixture-csrf' }
+            : request.url === '/api/v1/roles' || request.url.includes('/permissions') ? { id: roleId, revision: 1 }
+            : request.url === '/api/v1/users' || request.url.includes('/roles') ? { id: userId, username, revision: 2 }
+            : request.url.includes('/scopes') ? { revision: 3 } : { authenticated: true };
+        response.end(JSON.stringify(value));
+    });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    try {
+        const endpoint = 'http://127.0.0.1:' + server.address().port;
+        const scope = { organizationId: randomUUID(), projectId: randomUUID(), environmentId: randomUUID() }, original = structuredClone(scope);
+        const client = await scenario.createNetworkPolicyPromotionActor({ admin: new ContractClient(endpoint), endpoint, password: 'fixture-password-only', scope, suffix: 'Acceptor', permissions: ['release.test.accept'], tag: 'fixture' });
+        assert(client instanceof ContractClient);
+        const grant = calls.find(c => c.route.endsWith('/scopes'));
+        assert.deepEqual(grant.body.scopes, [
+            { scope: { organizationId: scope.organizationId, projectId: scope.projectId }, accessMode: 'read' },
+            { scope: original, accessMode: 'read_write' }
+        ]);
+        assert.deepEqual(scope, original);
+        const permissions = calls.find(c => c.route.endsWith('/permissions')).body.permissions;
+        assert(permissions.includes('policy.read') && permissions.includes('release.test.accept'));
+        for (const forbidden of ['approval.act', 'api.approve', 'release.publish', 'release.create', 'release.verify', 'policy.update']) assert(!permissions.includes(forbidden));
+        assert.notEqual(userId, roleId);
+        const created = calls.find(c => c.route === '/api/v1/users');
+        const login = calls.find(c => c.route === '/api/v1/auth/login');
+        assert.equal(login.body.username, created.body.username);
+    } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
+});
 // This launches the real C# fixture, not a mocked scenario executor.
 test('real fixture echoes raw JSON and headers, counts, Origin Vary and gzip/br', async () => {
     const owner = randomUUID(), name = 'webapi-network-fixture-test-' + owner, directory = await fs.mkdtemp(path.join(os.tmpdir(), 'webapi-network-fixture-')), httpPort = await port();
