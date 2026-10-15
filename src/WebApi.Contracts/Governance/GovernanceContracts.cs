@@ -10,7 +10,7 @@ public sealed record EnvironmentDetailDto(Guid Id,Guid ProjectId,string Code,str
 public sealed record ScopeTreeDto(IReadOnlyList<OrganizationDto> Organizations,IReadOnlyList<ProjectDto> Projects,IReadOnlyList<EnvironmentDto> Environments);
 public sealed record CreateUserRequest(string Username,string DisplayName,string Password,string? Email=null);
 public sealed record UpdateUserRequest(string DisplayName,string Status,string? Email=null);
-public sealed record UserDto(Guid Id,string Username,string DisplayName,string? Email,string Status,string AuthSource,long Revision,IReadOnlyList<Guid> RoleIds);
+public sealed record UserDto(Guid Id,string Username,string DisplayName,string? Email,string Status,string AuthSource,long Revision,IReadOnlyList<Guid> RoleIds,bool MustChangePassword=false);
 public sealed record AssignRolesRequest(IReadOnlyList<Guid> RoleIds);
 public sealed record SaveScopesRequest(IReadOnlyList<ScopeGrantDto> Scopes);
 public sealed record SaveRoleRequest(string Code,string Name,Guid? OrganizationId=null);

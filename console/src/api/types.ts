@@ -1,5 +1,11 @@
 export type Scope={organizationId:string;projectId?:string|null;environmentId?:string|null};
-export type Identity={id:string;username:string;displayName:string;permissions:string[];scopes:{scope:Scope;accessMode:string}[]};
+export type Identity={authSource?:string;mustChangePassword?:boolean;id:string;username:string;displayName:string;permissions:string[];scopes:{scope:Scope;accessMode:string}[]};
 export type Resource={id:string;code:string;name:string;status:string;revision:number;organizationId?:string;projectId?:string;isProduction?:boolean;sortOrder?:number;releasePolicyId?:string|null;desiredConfigVersion?:number|null;deploymentSequence?:number;gatewayPublicUrl?:string|null;gatewayInternalUrl?:string|null;basePath?:string;accessAddressRevision?:number};
 export type ScopeTree={organizations:Resource[];projects:Resource[];environments:Resource[]};
 export type Page<T>={items:T[];total:number;page:number;pageSize:number};
+export type UsageCoverage={state:'Available'|'NoData'|'Partial'|'Unknown'|'Unavailable';coverageStart:string|null;completeThrough:string|null;freshness:string|null;missingNodes:string[];gaps:{from:string;to:string;reason:string}[];reason:string|null};
+export type CredentialUsageRow={credentialId:string;accessKeyLast4:string;count:string|null;lastObservedAt:string|null;visibleLastUsedAt:string|null;coverage:UsageCoverage};
+export type CredentialUsagePage={window:{from:string;to:string};visibleEnvironmentIds:string[];page:Page<CredentialUsageRow>;coverage:UsageCoverage};
+export type ApplicationSummary={visibleActiveApiCount:number;availableCredentials:number;totalCredentials:number;activation:string};
+export type ApplicationOverviewDto={application:Resource&{owner:string};summary:ApplicationSummary;usage:CredentialUsagePage};
+export type CredentialImpact={impactHash:string;credentialRevision:number;applicationRevision:number;lastWorkingCredential:boolean;atRiskVisibleEnvironmentIds:string[];publishedImpactUnknown:boolean};

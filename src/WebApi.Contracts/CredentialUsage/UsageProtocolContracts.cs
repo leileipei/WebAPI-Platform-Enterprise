@@ -1,0 +1,10 @@
+namespace WebApi.Contracts.CredentialUsage;
+public sealed record UsageSource(Guid ReleaseId,long ConfigVersion,long DeploymentSequence,string PayloadHash);
+public sealed record UsageInterval(DateTimeOffset From,DateTimeOffset To);
+public sealed record UsageGap(DateTimeOffset From,DateTimeOffset To,string Reason);
+public sealed record UsageItem(Guid ApplicationId,Guid CredentialId,Guid ApiId,DateTimeOffset GrantValidFrom,DateTimeOffset? GrantExpiresAt,UsageSource Source,DateTimeOffset HourStart,long Count,DateTimeOffset FirstObservedAt,DateTimeOffset LastObservedAt);
+public sealed record UsageBatchCore(string Protocol,Guid ProducerInstanceId,Guid CollectorId,long Sequence,DateTimeOffset SealedAt,DateTimeOffset DurableThrough,IReadOnlyList<UsageInterval> Intervals,IReadOnlyList<UsageGap> Gaps,IReadOnlyList<UsageItem> Items);
+public sealed record UsageBatchRequest(Guid SenderInstanceId,UsageBatchCore Core);
+public sealed record UsageCollectorRequest(string Protocol,Guid SenderInstanceId,Guid CollectorId);
+public sealed record UsageReceipt(string Result,long NextExpectedSequence,DateTimeOffset? AcceptedThrough);
+public sealed record UsageObservation(Guid EnvironmentId,UsageItem Item);

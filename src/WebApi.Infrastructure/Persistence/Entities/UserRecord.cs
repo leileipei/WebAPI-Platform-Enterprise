@@ -6,6 +6,8 @@ public sealed class UserRecord
     public string DisplayName { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string? PasswordHash { get; set; }
+    public bool MustChangePassword { get; set; }
+    public DateTimeOffset? PasswordChangedAt { get; set; }
     public string Status { get; set; } = "Active";
     public string AuthSource { get; set; } = "local";
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;

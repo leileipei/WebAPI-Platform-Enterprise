@@ -3965,3 +3965,175 @@ BEGIN
     END IF;
 END $EF$;
 COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015010000_AccountPasswordLifecycle') THEN
+    ALTER TABLE users ADD must_change_password boolean NOT NULL DEFAULT FALSE;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015010000_AccountPasswordLifecycle') THEN
+    ALTER TABLE users ADD password_changed_at timestamptz;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015010000_AccountPasswordLifecycle') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261015010000_AccountPasswordLifecycle', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;
+
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE TABLE credential_usage_collectors (
+        node_id uuid NOT NULL,
+        collector_id uuid NOT NULL,
+        environment_id uuid NOT NULL,
+        protocol varchar(8) NOT NULL DEFAULT '1.0',
+        accepted_sequence bigint NOT NULL DEFAULT 0,
+        accepted_through timestamptz,
+        created_at timestamptz NOT NULL DEFAULT (NOW()),
+        closed_at timestamptz,
+        CONSTRAINT "PK_credential_usage_collectors" PRIMARY KEY (node_id, collector_id),
+        CONSTRAINT ck_usage_collector_protocol CHECK (protocol = '1.0'),
+        CONSTRAINT ck_usage_collector_sequence CHECK (accepted_sequence >= 0),
+        CONSTRAINT "FK_credential_usage_collectors_gateway_nodes_node_id" FOREIGN KEY (node_id) REFERENCES gateway_nodes (id) ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE TABLE credential_usage_coverage (
+        environment_id uuid NOT NULL,
+        node_id uuid NOT NULL,
+        hour_start timestamptz NOT NULL,
+        intervals jsonb NOT NULL DEFAULT ('[]'::jsonb),
+        gaps jsonb NOT NULL DEFAULT ('[]'::jsonb),
+        durable_through timestamptz,
+        accepted_through timestamptz,
+        state varchar(16) NOT NULL DEFAULT 'Partial',
+        updated_at timestamptz NOT NULL DEFAULT (NOW()),
+        CONSTRAINT "PK_credential_usage_coverage" PRIMARY KEY (environment_id, node_id, hour_start),
+        CONSTRAINT ck_usage_coverage_arrays CHECK (jsonb_typeof(intervals)='array' AND jsonb_typeof(gaps)='array'),
+        CONSTRAINT ck_usage_coverage_budget CHECK (octet_length(intervals::text)+octet_length(gaps::text)<=1048576),
+        CONSTRAINT ck_usage_coverage_hour CHECK (hour_start = date_trunc('hour', hour_start AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'),
+        CONSTRAINT ck_usage_coverage_state CHECK (state IN ('Available','NoData','Partial','Unknown','Unavailable'))
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE TABLE credential_usage_hourly (
+        environment_id uuid NOT NULL,
+        credential_id uuid NOT NULL,
+        hour_start timestamptz NOT NULL,
+        application_id uuid NOT NULL,
+        count bigint NOT NULL,
+        last_used_at timestamptz NOT NULL,
+        CONSTRAINT "PK_credential_usage_hourly" PRIMARY KEY (environment_id, credential_id, hour_start),
+        CONSTRAINT ck_usage_hourly_count CHECK (count > 0),
+        CONSTRAINT ck_usage_hourly_hour CHECK (hour_start = date_trunc('hour', hour_start AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'),
+        CONSTRAINT ck_usage_hourly_last_used CHECK (last_used_at >= hour_start AND last_used_at < hour_start + INTERVAL '1 hour')
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE TABLE credential_usage_batches (
+        node_id uuid NOT NULL,
+        collector_id uuid NOT NULL,
+        sequence bigint NOT NULL,
+        core_hash char(64) NOT NULL,
+        applied_at timestamptz NOT NULL DEFAULT (NOW()),
+        accepted_through timestamptz,
+        CONSTRAINT "PK_credential_usage_batches" PRIMARY KEY (node_id, collector_id, sequence),
+        CONSTRAINT ck_usage_batch_hash CHECK (core_hash ~ '^[0-9a-f]{64}$'),
+        CONSTRAINT ck_usage_batch_sequence CHECK (sequence > 0),
+        CONSTRAINT "FK_credential_usage_batches_credential_usage_collectors_node_i~" FOREIGN KEY (node_id, collector_id) REFERENCES credential_usage_collectors (node_id, collector_id) ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE TABLE credential_usage_collector_instances (
+        node_id uuid NOT NULL,
+        collector_id uuid NOT NULL,
+        instance_id uuid NOT NULL,
+        registered_at timestamptz NOT NULL DEFAULT (NOW()),
+        ended_at timestamptz,
+        identity_proof varchar(32) NOT NULL DEFAULT 'current',
+        CONSTRAINT "PK_credential_usage_collector_instances" PRIMARY KEY (node_id, collector_id, instance_id),
+        CONSTRAINT "FK_credential_usage_collector_instances_credential_usage_colle~" FOREIGN KEY (node_id, collector_id) REFERENCES credential_usage_collectors (node_id, collector_id) ON DELETE CASCADE
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE INDEX ix_usage_batches_applied ON credential_usage_batches (applied_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE INDEX ix_usage_instances_ended ON credential_usage_collector_instances (ended_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE INDEX ix_usage_collectors_closed ON credential_usage_collectors (closed_at);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE INDEX ix_usage_coverage_retention ON credential_usage_coverage (hour_start);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE INDEX ix_usage_hourly_application_window ON credential_usage_hourly (application_id, hour_start, environment_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    CREATE INDEX ix_usage_hourly_retention ON credential_usage_hourly (hour_start);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261015020000_CredentialUsageTracking') THEN
+    INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+    VALUES ('20261015020000_CredentialUsageTracking', '10.0.12');
+    END IF;
+END $EF$;
+COMMIT;

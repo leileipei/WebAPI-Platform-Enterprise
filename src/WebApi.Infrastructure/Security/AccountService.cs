@@ -23,8 +23,9 @@ public sealed class AccountService(WebApiDbContext db,IPasswordHasher<UserRecord
     public async Task<IdentityDto> IdentityAsync(Guid id,CancellationToken ct)
     {
         var user=await db.Set<UserRecord>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id && x.Status=="Active",ct) ?? throw new ApiException(401,"inactive_session","会话已失效。");
+        if(user.MustChangePassword&&user.AuthSource=="local")return new(id,user.Username,user.DisplayName,[],[],user.AuthSource,true);
         var permissions=await (from ur in db.Set<UserRole>() join rp in db.Set<RolePermission>() on ur.RoleId equals rp.RoleId join p in db.Set<Permission>() on rp.PermissionId equals p.Id where ur.UserId==id select p.Code).Distinct().ToArrayAsync(ct);
         var scopes=await db.Set<UserProjectScope>().AsNoTracking().Where(x=>x.UserId==id).Select(x=>new ScopeGrantDto(new(x.OrganizationId,x.ProjectId,x.EnvironmentId),x.AccessMode)).ToArrayAsync(ct);
-        return new(id,user.Username,user.DisplayName,permissions,scopes);
+        return new(id,user.Username,user.DisplayName,permissions,scopes,user.AuthSource,false);
     }
 }

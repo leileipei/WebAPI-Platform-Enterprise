@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
+using WebApi.Contracts.CredentialUsage;
+using WebApi.Gateway.CredentialUsage;
 using WebApi.Contracts.Policies;
 using WebApi.Contracts.Runtime;
 using WebApi.Gateway.Configuration;
@@ -12,7 +14,7 @@ namespace WebApi.Gateway.Security;
 public sealed class ApiKeyMiddleware(RequestDelegate next)
 {
     public static readonly object GenerationItem = new();
-    public async Task InvokeAsync(HttpContext ctx, RuntimeGenerationStore store, JwtTokenVerifier verifier)
+    public async Task InvokeAsync(HttpContext ctx, RuntimeGenerationStore store, JwtTokenVerifier verifier,ICredentialUsageRecorder usage,CredentialUsageAccumulator accumulator,TimeProvider clock)
     {
         var execution = TrafficExecutionContext.From(ctx) ?? throw new InvalidOperationException("Routing policy context unavailable.");
         var generation = execution.Generation;
@@ -28,8 +30,10 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
             ctx.Request.Headers.Remove("X-API-Key");
             ctx.Request.Headers["X-WebApi-Deployment-Sequence"] = generation.Envelope.DeploymentSequence.ToString(CultureInfo.InvariantCulture);
             ctx.Request.Headers["X-WebApi-Trace-Id"] = ctx.TraceIdentifier;
-            var now = DateTimeOffset.UtcNow;
+            var now = clock.GetUtcNow();
             RuntimeApplication? app = null;
+            RuntimeCredential? usedCredential=null;
+            RuntimePermission? usedWindow=null;
             JwtVerifiedClaims? claims = null;
             if (mode == AuthenticationMode.JWT)
             {
@@ -56,17 +60,27 @@ public sealed class ApiKeyMiddleware(RequestDelegate next)
                 { app = credential.Application; key = credential.Credential; }
                 if (app?.Status != "Active" || key?.Status != "Active" || now < key.ValidFrom || now >= key.ExpiresAt || !ApiKeySecret.Verify(key.Hash, parts[1]))
                 { await Reject(ctx, telemetry, 401, "invalid_api_key"); return; }
+                usedCredential=key;
             }
             if (app is not null)
             {
                 if (telemetry is not null) telemetry.Context = telemetry.Context with { ApplicationKey = app.Id.ToString() };
                 if (!indexes.PermissionWindows.TryGetValue((app.Id, route.ApiId), out var windows)
-                    || !windows.Any(p => now >= p.ValidFrom && (p.ExpiresAt is null || now < p.ExpiresAt)))
+                    || (usedWindow=windows.FirstOrDefault(p => now >= p.ValidFrom && (p.ExpiresAt is null || now < p.ExpiresAt))) is null)
                 { AuthDecision("Rejected","api_not_granted"); await Reject(ctx, telemetry, 403, "api_not_granted"); return; }
                 execution.ApplicationId = app.Id;
             }
             AuthDecision("Allowed");
             execution.VerifiedIdentity = new(mode, app?.Id, claims);
+            if(mode==AuthenticationMode.ApiKey&&app is not null&&usedCredential is not null&&usedWindow is not null)
+            {
+                try
+                {
+                    var utc=now.ToUniversalTime();var hour=new DateTimeOffset(utc.Year,utc.Month,utc.Day,utc.Hour,0,0,TimeSpan.Zero);var source=generation.Envelope;
+                    usage.TryRecord(new(generation.Snapshot.EnvironmentId,new(app.Id,usedCredential.Id,route.ApiId,usedWindow.ValidFrom,usedWindow.ExpiresAt,new(source.ReleaseId,source.ConfigVersion,source.DeploymentSequence,source.PayloadHash),hour,1,utc,utc)));
+                }
+                catch(Exception){accumulator.MarkGap(now,"RecorderFailure");}
+            }
             await next(ctx);
     }
     private static async Task Reject(HttpContext ctx, RequestTelemetryState? telemetry, int status, string code, bool bearer = false)

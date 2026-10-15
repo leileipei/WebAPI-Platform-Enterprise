@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,15 @@ using static WebApi.Gateway.Tests.Support.RecordingTelemetrySink;
 namespace WebApi.Gateway.Tests;
 public sealed class JsonResponseBodyPipelineTests
 {
+    private sealed class CancellationWitness(TaskCompletionSource observed):IStartupFilter
+    {
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)=>app=>
+        {
+            app.Use(async(HttpContext context,RequestDelegate handler)=>
+            {using var registration=context.Request.Path=="/orders"?context.RequestAborted.Register(()=>observed.TrySetResult()):default;await handler(context);});
+            next(app);
+        };
+    }
     internal static string Config(bool both=false,bool headers=false,int limit=1024,string? operations=null)
     {
         var root=JsonNode.Parse(TransformPipelineTests.Config(headers:headers))!;
@@ -122,8 +132,8 @@ public sealed class JsonResponseBodyPipelineTests
     [Theory][InlineData(false)][InlineData(true)]
     public async Task JsonResponse_HeldReadPublishAndCancel_UsesFrozenGenerationAndReleases(bool cancel)
     {
-        var started=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var release=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var hold=1;var sink=new RecordingTelemetrySink();
-        await using var f=new GatewayFixture{ConfigureGateway=b=>b.Configuration["GatewayPolicies:Transform:MaxConcurrentBodyTransforms"]="1",ConfigureBackendA=a=>a.Use(async(HttpContext ctx,RequestDelegate next)=>
+        var started=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var release=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var serverAborted=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var hold=1;var sink=new RecordingTelemetrySink();
+        await using var f=new GatewayFixture{ConfigureGateway=b=>{b.Configuration["GatewayPolicies:Transform:MaxConcurrentBodyTransforms"]="1";b.Services.AddSingleton<IStartupFilter>(new CancellationWitness(serverAborted));},ConfigureBackendA=a=>a.Use(async(HttpContext ctx,RequestDelegate next)=>
         {
             if(Interlocked.Exchange(ref hold,0)==1){ctx.Response.ContentType="application/json";await ctx.Response.WriteAsync("{\"data\":{\"stock\":10},",ctx.RequestAborted);await ctx.Response.Body.FlushAsync(ctx.RequestAborted);started.TrySetResult();await release.Task.WaitAsync(ctx.RequestAborted);await ctx.Response.WriteAsync("\"debug\":\"old\"}",ctx.RequestAborted);}
             else await SendBody(ctx,"{\"data\":{\"stock\":10},\"debug\":\"old\"}"u8.ToArray());
@@ -135,7 +145,7 @@ public sealed class JsonResponseBodyPipelineTests
         var current=await f.PublishAsync();await f.ApplyBothAsync(current);var store=f.Gateways[0].Services.GetRequiredService<RuntimeGenerationStore>();using(var old=store.Acquire(original.Envelope.DeploymentSequence))Assert.Equal(original.Envelope,old.Generation.Envelope);
         try
         {
-            if(cancel){abort.Cancel();await Assert.ThrowsAnyAsync<OperationCanceledException>(async()=>await pending);}
+            if(cancel){abort.Cancel();await Assert.ThrowsAnyAsync<OperationCanceledException>(async()=>await pending);await serverAborted.Task.WaitAsync(TimeSpan.FromSeconds(5));}
             else{release.TrySetResult();using var response=await pending;response.EnsureSuccessStatusCode();using var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync());Assert.True(json.RootElement.TryGetProperty("result",out _));Assert.False(json.RootElement.TryGetProperty("latest",out _));Assert.Equal(original.Envelope.DeploymentSequence.ToString(),response.Headers.GetValues("X-WebApi-Deployment-Sequence").Single());}
         }
         finally{abort.Cancel();release.TrySetResult();}

@@ -9,8 +9,7 @@ public sealed class AuthorizationService(WebApiDbContext db) : IAuthorizationSer
 {
     public async Task RequireAsync(ActorContext actor, string permission, ResourceRef resource, CancellationToken cancellationToken = default)
     {
-        if(!await db.Set<UserRecord>().AnyAsync(x=>x.Id==actor.UserId && x.Status=="Active",cancellationToken))
-            throw new ApiException(401,"inactive_session","会话已失效。");
+        await new PasswordLifecycleGuard(db).RequireBusinessAccessAsync(actor,cancellationToken);
         var functional=await (from ur in db.Set<UserRole>() join r in db.Set<Role>() on ur.RoleId equals r.Id
             join rp in db.Set<RolePermission>() on r.Id equals rp.RoleId join p in db.Set<Permission>() on rp.PermissionId equals p.Id
             where ur.UserId==actor.UserId && p.Code==permission && (r.OrganizationId==null || r.OrganizationId==resource.Scope.OrganizationId) select p.Id).AnyAsync(cancellationToken);
@@ -33,6 +32,6 @@ public sealed class AuthorizationService(WebApiDbContext db) : IAuthorizationSer
     }
     public async Task<bool> CanAsync(ActorContext actor,string permission,ResourceRef resource,CancellationToken ct=default)
     {
-        try {await RequireAsync(actor,permission,resource,ct);return true;} catch(ApiException e) when(e.Status is 403 or 409) {return false;}
+        try {await RequireAsync(actor,permission,resource,ct);return true;} catch(ApiException e) when(e.Status is 403 or 409 && e.Code!="password_change_required") {return false;}
     }
 }

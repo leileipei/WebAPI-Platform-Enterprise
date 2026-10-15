@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+  "package2Paused": true,
+  "productAcceptance": false,
+  "callSites": [
+    {
+      "path": "scripts/approvals/scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/browser-qa.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/comparisons/scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/contracts/scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/delivery/environment-access-browser-history.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/delivery/environment-access-browser.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/delivery/pipeline-backup.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/delivery/promotion-scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/e2e-faults.mjs",
+      "classification": "explicit per-user initial-password HTTP flow / managed password file",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/gateway-policies/delivery.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/gateway-policies/scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/local-client.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/network-policies/scenario.mjs",
+      "classification": "explicit per-user initial-password HTTP flow / managed password file",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/notification-approval/recovery.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/notifications/scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/observability-review-browser.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/observability-scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/performance/management.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/policies/browser-qa.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/policies/scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/prepare-e2e.mjs",
+      "classification": "explicit per-user initial-password HTTP flow / managed password file",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/runtime/acceptance-scenario.mjs",
+      "classification": "explicit per-user initial-password HTTP flow / managed password file",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/runtime/acceptance.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/runtime/configure.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/runtime/sso-demo-platform.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/security/acceptance.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/settings/browser-qa.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/settings/review-fixes.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/settings/scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/sso/review-actions.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/sso/scenario.mjs",
+      "classification": "existing protocol caller; no automatic password mutation added",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    },
+    {
+      "path": "scripts/wait-nodes.mjs",
+      "classification": "explicit per-user initial-password HTTP flow / managed password file",
+      "runtimeVerified": false,
+      "nextGate": "C5: classify actual exercised paths, never bypass mustChangePassword"
+    }
+  ]
+}

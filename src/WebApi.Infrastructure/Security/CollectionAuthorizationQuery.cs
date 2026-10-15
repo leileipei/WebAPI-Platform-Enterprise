@@ -15,8 +15,7 @@ public sealed class CollectionAuthorizationQuery(WebApiDbContext db)
 {
     public async Task RequireActiveActorAsync(ActorContext actor, CancellationToken ct = default)
     {
-        if (!await db.Set<UserRecord>().AnyAsync(user => user.Id == actor.UserId && user.Status == "Active", ct))
-            throw new ApiException(401, "inactive_session", "会话已失效。");
+        await new PasswordLifecycleGuard(db).RequireBusinessAccessAsync(actor,ct);
     }
 
     public IQueryable<AuthorizedScopeRow> Scopes(ActorContext actor, string permission)
@@ -49,7 +48,7 @@ public sealed class CollectionAuthorizationQuery(WebApiDbContext db)
         // Each row is a real scope. A grant limited to an environment never creates
         // a parent scope, and EXISTS avoids duplicates from overlapping grants.
         return organizations.Concat(projects).Concat(environments).Where(scope =>
-            db.Set<UserRecord>().Any(user => user.Id == actor.UserId && user.Status == "Active")
+            db.Set<UserRecord>().Any(user => user.Id == actor.UserId && user.Status == "Active" && !user.MustChangePassword)
             && functionalOrganizations.Any(organization => organization == null || organization == scope.OrganizationId)
             && db.Set<UserProjectScope>().Any(grant => grant.UserId == actor.UserId && grant.OrganizationId == scope.OrganizationId
                 && (grant.ProjectId == null || grant.ProjectId == scope.ProjectId)
