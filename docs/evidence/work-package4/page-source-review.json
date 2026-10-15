@@ -20,7 +20,7 @@
         },
         {
           "path": "console/src/pages/ChangePassword.tsx",
-          "sha256": "a90119a3650dbf29139642cda620f63bb7367bccc2cf6ad7ec6f1a4fd9b2f588"
+          "sha256": "fba9bf2f8f31c75273e941c1cced7999b497774ff0c54a227457d1ba81476ced"
         },
         {
           "path": "src/WebApi.Infrastructure/Security/PasswordLifecycleGuard.cs",

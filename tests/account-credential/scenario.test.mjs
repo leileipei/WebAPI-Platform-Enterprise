@@ -1,4 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {mkdtemp,rm,writeFile} from 'node:fs/promises';import {tmpdir} from 'node:os';import path from 'node:path';
+import http from 'node:http';import {ContractClient} from '../../scripts/contracts/scenario.mjs';
 const implementation=await import('../../scripts/account-credential/scenario.mjs').catch(e=>{if(e.code!=='ERR_MODULE_NOT_FOUND')throw e;return {};});
 const requireApi=name=>{assert.equal(typeof implementation[name],'function',`missing approved ${name} behavior`);return implementation[name];};
 function state(){const owner=randomUUID(),project='webapi-enterprise-local-test-'+randomUUID();return{ownerId:owner,projectName:project,ports:{console:55101,gatewayA:55102,gatewayB:55103}};}
@@ -11,3 +12,41 @@ test('SDK launch cannot substitute live source or a different context owner',asy
 test('scenario refuses missing material evidence before making runtime mutations',async()=>{const run=requireApi('runAccountCredentialScenario');const directory=await mkdtemp(path.join(tmpdir(),'p4-candidate-no-evidence-'));try{await assert.rejects(run({revision,imageId,directory,fixtureDirectory:path.join(directory,'missing')}),/source|runtime|state|ENOENT|directory/i);}finally{await rm(directory,{recursive:true,force:true});}});
 
 test('published console endpoint must belong to the inspected owner, not merely its state file',()=>{const check=requireApi('assertAccountCredentialRuntime'),s=state(),resources=runtime(s);resources.find(x=>x.Config.Labels['com.docker.compose.service']==='console').HostConfig.PortBindings['8080/tcp'][0].HostPort='4192';assert.throws(()=>check({state:s,directory:path.join(tmpdir(),s.projectName),release:{sourceRevision:revision,imageId},revision,imageId,resources}));});
+
+// Actual loopback HTTP protocol checks. This minimal server implements the public
+// UserDto / ScopeGrantDto[] / password-reset wire contract, not a live CP acceptance.
+async function accountProtocol(action){
+ const userId=randomUUID(),roleId=randomUUID(),scope={organizationId:randomUUID(),projectId:randomUUID()},requests=[],password=' Temporary contract password Aa1! ';
+ const server=http.createServer(async(req,res)=>{
+  const chunks=[];for await(const bytes of req)chunks.push(bytes);const raw=Buffer.concat(chunks).toString();const body=raw?JSON.parse(raw):undefined;
+  const item={method:req.method,path:req.url,body,etag:req.headers['if-match'],csrf:req.headers['x-csrf-token'],key:req.headers['idempotency-key']};requests.push(item);
+  res.setHeader('Content-Type','application/json');let value;
+  if(req.url==='/api/v1/auth/csrf'&&req.method==='GET')value={token:'protocol-csrf'};
+  else if(req.url==='/api/v1/users'&&req.method==='POST')value={id:userId,username:body.username,revision:1,mustChangePassword:true};
+  else if(req.url==='/api/v1/roles'&&req.method==='GET')value=[{id:roleId,code:'ApiDeveloper',isSystem:true}];
+  else if(req.url===`/api/v1/users/${userId}/roles`&&req.method==='PUT')value={id:userId,username:'fixture',revision:2,mustChangePassword:true};
+  else if(req.url===`/api/v1/users/${userId}/scopes`&&req.method==='PUT')value=[{scope,accessMode:'read'}];
+  else if(req.url===`/api/v1/users/${userId}/password-reset`&&req.method==='POST')value={id:userId,revision:8,mustChangePassword:true};
+  else{res.statusCode=404;value={code:'not_found',message:'Unknown public account endpoint'};}
+  res.end(JSON.stringify(value));
+ });
+ await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
+ try{return await action({client:new ContractClient('http://127.0.0.1:'+server.address().port),userId,roleId,scope,password,requests});}
+ finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+}
+test('HTTP account preparation retains UserDto identity when scopes PUT returns ScopeGrantDto array',async()=>{
+ await accountProtocol(async({client,userId,roleId,scope,password,requests})=>{
+  const user=await requireApi('createScenarioAccount')(client,scope,{username:'fixture',initialPassword:password});
+  assert.equal(user.id,userId);assert.equal(user.mustChangePassword,true);
+  const writes=requests.filter(r=>r.method!=='GET');assert.equal(writes.length,3);
+  assert.equal(writes[0].body.password,password);assert.deepEqual(writes[1].body,{roleIds:[roleId]});assert.equal(writes[1].etag,'"1"');
+  assert.deepEqual(writes[2].body,{scopes:[{scope,accessMode:'read'}]});assert.equal(writes[2].etag,'"2"');
+  for(const write of writes){assert.equal(write.csrf,'protocol-csrf');assert.match(write.key,/^[a-f0-9-]{36}$/);}
+ });
+});
+test('HTTP password reset uses the public endpoint, revision and unmodified temporary password',async()=>{
+ await accountProtocol(async({client,userId,password,requests})=>{
+  const result=await requireApi('resetScenarioPassword')(client,{id:userId,revision:7},password);assert.equal(result.mustChangePassword,true);
+  const reset=requests.find(r=>r.method==='POST');assert.equal(reset.path,`/api/v1/users/${userId}/password-reset`);assert.equal(reset.etag,'"7"');assert.deepEqual(reset.body,{temporaryPassword:password});assert.equal(reset.csrf,'protocol-csrf');assert.match(reset.key,/^[a-f0-9-]{36}$/);
+ });
+});
