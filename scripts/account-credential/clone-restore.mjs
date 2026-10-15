@@ -22,6 +22,7 @@ export async function inspectUsageRebindCapability(release) {
 export function planUsageCloneRebind({state,sourceOwnerId,directory,release,image,buildIdentity,inventory,config,resources}) {
   assert(uuid.test(sourceOwnerId)&&uuid.test(state.ownerId)&&sourceOwnerId!==state.ownerId,'Distinct clone owners required');
   validateCloneOwnership(state,resources,directory);
+  assert.equal(config?.name,state.projectName,'Compose project identity mismatch');
   assertAccountDeploymentCompatibility({hasLifecycleSchema:true,release,image,buildIdentity});
   assert(buildIdentity.features.includes('credential-usage-clone-rebind-v1'),'Missing clone-rebind capability');
   for(const resource of resources) {
@@ -35,7 +36,8 @@ export function planUsageCloneRebind({state,sourceOwnerId,directory,release,imag
     assert.equal(matches.length,1,'Missing or ambiguous restored gateway');
     const [serviceName,service]=matches[0],env=service.environment??{},checkpoint=entry.checkpoint;
     assert.equal(service.image,release.imageId);
-    assert.equal(service.labels?.['com.webapi.runtime.owner'],state.ownerId);assert.equal(service.labels?.['com.docker.compose.project'],state.projectName);
+    assert.equal(service.labels?.['com.webapi.runtime.owner'],state.ownerId);
+    if(Object.hasOwn(service.labels,'com.docker.compose.project'))assert.equal(service.labels['com.docker.compose.project'],state.projectName);
     assert.equal(env.Gateway__LkgDirectory,'/lkg');assert.equal(env.Gateway__EnvironmentId,checkpoint.environmentId);assert.equal(env.Gateway__NodeName,checkpoint.nodeName);
     const cp=new URL(env.Gateway__ControlPlaneUrl);assert.equal(cp.origin,'http://control-plane:8080');assert.equal(cp.username+cp.password+cp.search+cp.hash+cp.pathname,'/');
     assert.match(checkpoint.sha256,/^[a-f0-9]{64}$/);
