@@ -1,6 +1,8 @@
 using System.Globalization;
+using System.Data;
 using System.Numerics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.CredentialUsage;
 using WebApi.Contracts.Security;
@@ -15,6 +17,11 @@ public sealed class CredentialUsageQuery(WebApiDbContext db,AuthorizationService
     private sealed record Totals(Guid CredentialId,string Count,DateTimeOffset LastObservedAt);
     public async Task<CredentialUsagePage> ReadAsync(Guid applicationId,Guid? environmentId,UsageWindow window,int page,int pageSize,ActorContext actor,CancellationToken ct=default)
     {
+        // Counts and their completeness proof must describe the same database snapshot.
+        // Reuse a compatible caller transaction without taking ownership of its lifetime.
+        if(db.Database.CurrentTransaction is {} current&&current.GetDbTransaction().IsolationLevel is not (IsolationLevel.RepeatableRead or IsolationLevel.Serializable))
+            throw new InvalidOperationException("Credential usage requires a repeatable-read or serializable transaction.");
+        await using var transaction=db.Database.CurrentTransaction is null?await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead,ct):null;
         var environments=await VisibleEnvironmentsAsync(applicationId,actor,ct);
         if(environmentId is Guid selected&&!environments.Contains(selected))throw new ApiException(403,"usage_environment_denied","环境范围不允许此查询。");
         if(environmentId is Guid only)environments=[only];
@@ -31,7 +38,9 @@ public sealed class CredentialUsageQuery(WebApiDbContext db,AuthorizationService
             var status=source.State=="Available"&&count=="0"?source with{State="NoData"}:source;
             return new CredentialUsageRow(row.Id,row.AccessKey.Length>4?row.AccessKey[^4..]:row.AccessKey,count,fact?.LastObservedAt,visibleLast.GetValueOrDefault(row.Id),status);
         }).ToArray();
-        return new(window,environments,new(values,total,page,pageSize),source);
+        var result=new CredentialUsagePage(window,environments,new(values,total,page,pageSize),source);
+        if(transaction is not null)await transaction.CommitAsync(ct);
+        return result;
     }
     public async Task<IReadOnlyDictionary<Guid,DateTimeOffset?>> VisibleLastUsedAsync(Guid applicationId,IReadOnlyList<Guid> credentialIds,ActorContext actor,CancellationToken ct=default)
     {

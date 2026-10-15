@@ -11,9 +11,15 @@ public sealed class UsageCoverageReader(WebApiDbContext db,TimeProvider clock)
     {
         if(environmentIds.Count==0)return Unknown("NoVisibleEnvironment");
         var ids=environmentIds.Distinct().ToArray();
-        var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>ids.Contains(x.EnvironmentId)).Select(x=>new{x.Id,x.EnvironmentId}).ToArrayAsync(ct);var nodeIds=nodes.Select(x=>x.Id).ToArray();
-        var events=await db.Set<GatewayNodeEvent>().AsNoTracking().Where(x=>nodeIds.Contains(x.GatewayNodeId)&&x.CreatedAt<window.To&&(x.EventType=="registered"||x.EventType=="usage.node.enabled"||x.EventType=="usage.node.disabled")).OrderBy(x=>x.CreatedAt).ThenBy(x=>x.Id).ToArrayAsync(ct);
-        var instances=await (from instance in db.Set<CredentialUsageCollectorInstance>().AsNoTracking() join collector in db.Set<CredentialUsageCollector>() on new{instance.NodeId,instance.CollectorId} equals new{collector.NodeId,collector.CollectorId} where ids.Contains(collector.EnvironmentId)&&collector.Protocol=="1.0" select new{instance.NodeId,instance.RegisteredAt,instance.EndedAt}).ToArrayAsync(ct);
+        var cohort=db.Set<GatewayNode>().AsNoTracking().Where(x=>ids.Contains(x.EnvironmentId));
+        var nodes=await cohort.Select(x=>new{x.Id,x.EnvironmentId}).ToArrayAsync(ct);var nodeIds=nodes.Select(x=>x.Id).ToArray();
+        var eventSource=db.Set<GatewayNodeEvent>().AsNoTracking().Where(x=>nodeIds.Contains(x.GatewayNodeId)&&x.CreatedAt<window.To&&(x.EventType=="registered"||x.EventType=="usage.node.enabled"||x.EventType=="usage.node.disabled")).Select(x=>new{x.Id,x.GatewayNodeId,x.EventType,x.CreatedAt});
+        // Two anchors per node preserve first-cohort and pre-window enable/retire semantics.
+        // All other events and source instances must overlap the requested window.
+        var registrations=cohort.SelectMany(node=>eventSource.Where(x=>x.GatewayNodeId==node.Id&&x.EventType=="registered").OrderBy(x=>x.CreatedAt).ThenBy(x=>x.Id).Take(1));
+        var priorStates=cohort.SelectMany(node=>eventSource.Where(x=>x.GatewayNodeId==node.Id&&x.CreatedAt<window.From).OrderByDescending(x=>x.CreatedAt).ThenByDescending(x=>x.Id).Take(1));
+        var events=await eventSource.Where(x=>x.CreatedAt>=window.From).Union(registrations).Union(priorStates).OrderBy(x=>x.CreatedAt).ThenBy(x=>x.Id).ToArrayAsync(ct);
+        var instances=await (from instance in db.Set<CredentialUsageCollectorInstance>().AsNoTracking() join collector in db.Set<CredentialUsageCollector>() on new{instance.NodeId,instance.CollectorId} equals new{collector.NodeId,collector.CollectorId} where ids.Contains(collector.EnvironmentId)&&collector.Protocol=="1.0"&&instance.RegisteredAt<window.To&&(instance.EndedAt==null||instance.EndedAt>window.From) select new{instance.NodeId,instance.RegisteredAt,instance.EndedAt}).ToArrayAsync(ct);
         var rows=await db.Set<CredentialUsageCoverage>().AsNoTracking().Where(x=>ids.Contains(x.EnvironmentId)&&x.HourStart>=window.From&&x.HourStart<window.To).ToArrayAsync(ct);
         var missing=new HashSet<Guid>();var gaps=new List<UsageGap>();var unknown=false;var unavailable=false;DateTimeOffset? coverageStart=null;DateTimeOffset? freshness=null;
         foreach(var environment in ids)

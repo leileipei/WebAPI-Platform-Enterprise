@@ -22,7 +22,10 @@ public sealed class CredentialUsageCleanupService(WebApiDbContext db,CredentialU
         await Delete("credential_usage_hourly","h","h.hour_start < @cutoff","h.hour_start",hour.AddDays(-options.RetentionDays));
         await Delete("credential_usage_coverage","c","c.hour_start < @cutoff","c.hour_start",hour.AddDays(-options.RetentionDays));
         await Delete("credential_usage_batches","b","b.applied_at < @cutoff AND EXISTS (SELECT 1 FROM credential_usage_collectors k WHERE k.node_id=b.node_id AND k.collector_id=b.collector_id AND k.accepted_sequence>=b.sequence)","b.applied_at",now.AddHours(-options.BatchHashHours));
-        await Delete("credential_usage_collector_instances","i","i.ended_at < @cutoff AND NOT EXISTS (SELECT 1 FROM gateway_nodes n WHERE n.id=i.node_id AND n.instance_id=i.instance_id::text)","i.ended_at",now.AddHours(-options.BatchHashHours));
+        // A source instance proves historical idle coverage as well as batch replay identity.
+        var sourceCutoff=hour.AddDays(-options.RetentionDays);var replayCutoff=now.AddHours(-options.BatchHashHours);
+        if(replayCutoff<sourceCutoff)sourceCutoff=replayCutoff;
+        await Delete("credential_usage_collector_instances","i","i.ended_at < @cutoff AND NOT EXISTS (SELECT 1 FROM gateway_nodes n WHERE n.id=i.node_id AND n.instance_id=i.instance_id::text)","i.ended_at",sourceCutoff);
         await transaction.CommitAsync(ct);return deleted;
     }
 }

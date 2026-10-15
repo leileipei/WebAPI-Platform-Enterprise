@@ -3,6 +3,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.CredentialUsage;
 using WebApi.Contracts.Security;
 using System.Globalization;
+using System.Data;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -21,9 +22,9 @@ public sealed class CredentialUsageQueryTests
     {
         public readonly ApiFixture Api=new();public readonly DateTimeOffset To=Floor(DateTimeOffset.UtcNow);public DateTimeOffset From=>To.AddHours(-2);
         public readonly RequestSqlProbe Probe=new();public ApplicationCredential Credential=null!;public GatewayNode Node=null!;
-        public async Task InitializeAsync(bool cohort=true,bool complete=true,int credentials=1,int retention=30)
+        public async Task InitializeAsync(bool cohort=true,bool complete=true,int credentials=1,int retention=30,int batchHashHours=25)
         {
-            await Api.InitializeAsync(b=>{b.Configuration["CredentialUsage:RetentionDays"]=retention.ToString(CultureInfo.InvariantCulture);b.Services.AddDbContext<WebApiDbContext>(o=>o.AddInterceptors(Probe));});await Api.SeedConsumerAsync();using var login=await Api.LoginAsync();login.EnsureSuccessStatusCode();
+            await Api.InitializeAsync(b=>{b.Configuration["CredentialUsage:RetentionDays"]=retention.ToString(CultureInfo.InvariantCulture);b.Configuration["CredentialUsage:BatchHashHours"]=batchHashHours.ToString(CultureInfo.InvariantCulture);b.Services.AddDbContext<WebApiDbContext>(o=>o.AddInterceptors(Probe));});await Api.SeedConsumerAsync();using var login=await Api.LoginAsync();login.EnsureSuccessStatusCode();
             await using var db=Api.Context();
             for(var i=0;i<credentials;i++){var credential=new ApplicationCredential{ApplicationId=Api.Application.Id,AccessKey="query-key-"+i.ToString("D4"),SecretHash="never-returned",SecretLast4="1234",ValidFrom=From.AddDays(-50),ExpiresAt=To.AddDays(1),LastUsedAt=To.AddMinutes(10)};if(i==0)Credential=credential;db.Add(credential);}
             if(cohort)
@@ -44,6 +45,97 @@ public sealed class CredentialUsageQueryTests
     }
     private static DateTimeOffset Floor(DateTimeOffset time)=>new(time.UtcDateTime.Year,time.UtcDateTime.Month,time.UtcDateTime.Day,time.UtcDateTime.Hour,0,0,TimeSpan.Zero);
     private static JsonElement Row(JsonElement page)=>page.GetProperty("page").GetProperty("items")[0];
+    [Fact]
+    public async Task Source_proof_also_survives_replay_horizon_when_longer_than_statistics_retention()
+    {
+        await using var f=new Fixture();await f.InitializeAsync(retention:1,batchHashHours:49);
+        await using(var db=f.Api.Context())
+        {
+            var old=await db.Set<CredentialUsageCollectorInstance>().SingleAsync();old.RegisteredAt=f.To.AddHours(-50);old.EndedAt=f.To.AddHours(-26);
+            var node=await db.Set<GatewayNode>().SingleAsync();node.InstanceId=Guid.NewGuid().ToString();
+            db.Add(new CredentialUsageCollectorInstance{NodeId=node.Id,CollectorId=old.CollectorId,InstanceId=Guid.Parse(node.InstanceId),RegisteredAt=f.To});await db.SaveChangesAsync();
+        }
+        using var services=f.Api.Services();var cleanup=services.ServiceProvider.GetRequiredService<CredentialUsageCleanupService>();await cleanup.CleanupAsync(f.To);
+        await using(var retained=f.Api.Context())Assert.Equal(2,await retained.Set<CredentialUsageCollectorInstance>().CountAsync());
+        await cleanup.CleanupAsync(f.To.AddHours(24));
+        await using var after=f.Api.Context();Assert.Single(await after.Set<CredentialUsageCollectorInstance>().ToArrayAsync());Assert.Equal(2L,(await after.Set<CredentialUsageCollector>().SingleAsync()).AcceptedSequence);
+    }
+    [Theory][InlineData(IsolationLevel.RepeatableRead)][InlineData(IsolationLevel.Serializable)]
+    public async Task Query_reuses_caller_snapshot_without_committing_its_writes(IsolationLevel isolation)
+    {
+        await using var f=new Fixture();await f.InitializeAsync();using var services=f.Api.Services();var db=services.ServiceProvider.GetRequiredService<WebApiDbContext>();
+        await using var transaction=await db.Database.BeginTransactionAsync(isolation);
+        db.Add(new CredentialUsageHourly{ApplicationId=f.Api.Application.Id,CredentialId=f.Credential.Id,EnvironmentId=f.Api.Environment.Id,HourStart=f.From,Count=6,LastUsedAt=f.From.AddMinutes(10)});await db.SaveChangesAsync();
+        var page=await services.ServiceProvider.GetRequiredService<CredentialUsageQuery>().ReadAsync(f.Api.Application.Id,null,new(f.From,f.To),1,50,new ActorContext(f.Api.User.Id,"caller-snapshot"));
+        Assert.Equal("6",page.Page.Items[0].Count);Assert.Equal("Available",page.Page.Items[0].Coverage.State);Assert.Same(transaction,db.Database.CurrentTransaction);
+        await transaction.RollbackAsync();await using var after=f.Api.Context();Assert.Empty(await after.Set<CredentialUsageHourly>().ToArrayAsync());
+    }
+    [Fact]
+    public async Task Query_refuses_weak_caller_isolation_without_ending_the_caller_transaction()
+    {
+        await using var f=new Fixture();await f.InitializeAsync();using var services=f.Api.Services();var db=services.ServiceProvider.GetRequiredService<WebApiDbContext>();
+        await using var transaction=await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted);
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>services.ServiceProvider.GetRequiredService<CredentialUsageQuery>().ReadAsync(f.Api.Application.Id,null,new(f.From,f.To),1,50,new ActorContext(f.Api.User.Id,"weak-snapshot")));
+        Assert.Same(transaction,db.Database.CurrentTransaction);await transaction.RollbackAsync();
+    }
+    [Theory][InlineData(false)][InlineData(true)]
+    public async Task Pre_window_retirement_anchor_is_preserved_with_optional_reenable_inside_window(bool reenable)
+    {
+        await using var f=new Fixture();await f.InitializeAsync();
+        await using(var db=f.Api.Context())
+        {
+            await db.Set<GatewayNodeEvent>().Where(x=>x.GatewayNodeId==f.Node.Id&&x.EventType=="registered").ExecuteUpdateAsync(s=>s.SetProperty(x=>x.CreatedAt,f.From.AddDays(-10)));
+            db.Add(new GatewayNodeEvent{GatewayNodeId=f.Node.Id,EventType="usage.node.disabled",CreatedAt=f.From.AddDays(-2)});
+            if(reenable)db.Add(new GatewayNodeEvent{GatewayNodeId=f.Node.Id,EventType="usage.node.enabled",CreatedAt=f.From.AddHours(1)});
+            await db.Set<CredentialUsageCoverage>().Where(x=>!reenable||x.HourStart==f.From).ExecuteDeleteAsync();await db.SaveChangesAsync();
+        }
+        var row=Row(await f.ReadAsync());Assert.Equal("0",row.GetProperty("count").GetString());Assert.Equal("NoData",row.GetProperty("coverage").GetProperty("state").GetString());
+    }
+    [Fact]
+    public async Task Retained_complete_history_survives_restart_and_receipt_cleanup()
+    {
+        await using var f=new Fixture();await f.InitializeAsync();await f.BucketAsync(3);
+        await using(var db=f.Api.Context())
+        {
+            var old=await db.Set<CredentialUsageCollectorInstance>().SingleAsync();old.EndedAt=f.To;
+            var node=await db.Set<GatewayNode>().SingleAsync();node.InstanceId=Guid.NewGuid().ToString();
+            db.Add(new CredentialUsageCollectorInstance{NodeId=node.Id,CollectorId=old.CollectorId,InstanceId=Guid.Parse(node.InstanceId),RegisteredAt=f.To});
+            await db.SaveChangesAsync();
+        }
+        Assert.Equal("Available",Row(await f.ReadAsync()).GetProperty("coverage").GetProperty("state").GetString());
+        using var services=f.Api.Services();var cleanup=services.ServiceProvider.GetRequiredService<CredentialUsageCleanupService>();
+        // Advance only the cleanup clock, beyond receipt retention but inside the 30-day statistics horizon.
+        await cleanup.CleanupAsync(f.To.AddHours(26));
+        var retained=Row(await f.ReadAsync());Assert.Equal("3",retained.GetProperty("count").GetString());Assert.Equal("Available",retained.GetProperty("coverage").GetProperty("state").GetString());
+        await cleanup.CleanupAsync(f.To.AddDays(31));
+        await using var after=f.Api.Context();Assert.Single(await after.Set<CredentialUsageCollectorInstance>().ToArrayAsync());
+        Assert.Equal(Guid.Parse((await after.Set<GatewayNode>().SingleAsync()).InstanceId),(await after.Set<CredentialUsageCollectorInstance>().SingleAsync()).InstanceId);
+    }
+    [Fact]
+    public async Task Coverage_reads_only_window_events_anchors_and_overlapping_instances()
+    {
+        await using var f=new Fixture();await f.InitializeAsync();await f.BucketAsync(4);
+        async Task<(CredentialUsagePage Page,long Rows)> Measure()
+        {
+            var id=Guid.NewGuid().ToString("N");using var probe=f.Probe.Begin(id);using var services=f.Api.Services();
+            var page=await services.ServiceProvider.GetRequiredService<CredentialUsageQuery>().ReadAsync(f.Api.Application.Id,null,new(f.From,f.To),1,50,new ActorContext(f.Api.User.Id,"bounded-history"));
+            return (page,f.Probe.Read(id).Rows);
+        }
+        var baseline=await Measure();
+        await using(var db=f.Api.Context())
+        {
+            var collector=await db.Set<CredentialUsageCollector>().SingleAsync();
+            for(var i=0;i<600;i++)
+            {
+                var at=f.From.AddDays(-100).AddHours(i);
+                db.Add(new GatewayNodeEvent{GatewayNodeId=f.Node.Id,EventType=i%3==0?"registered":i%3==1?"usage.node.disabled":"usage.node.enabled",CreatedAt=at});
+                db.Add(new CredentialUsageCollectorInstance{NodeId=f.Node.Id,CollectorId=collector.CollectorId,InstanceId=Guid.NewGuid(),RegisteredAt=at,EndedAt=at.AddMinutes(30)});
+            }
+            await db.SaveChangesAsync();
+        }
+        var measured=await Measure();Assert.Equal("4",measured.Page.Page.Items[0].Count);Assert.Equal("Available",measured.Page.Coverage.State);
+        Assert.InRange(measured.Rows,1,baseline.Rows+2);
+    }
     [Fact]
     public async Task Idle_complete_is_zero_unknown_is_null_partial_is_lower_bound()
     {

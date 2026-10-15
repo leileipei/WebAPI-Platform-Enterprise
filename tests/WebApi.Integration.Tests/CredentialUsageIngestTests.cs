@@ -31,6 +31,14 @@ public sealed class CredentialUsageIngestTests
     {
         public int SnapshotQueries;
         public TaskCompletionSource<bool>? NodeLock;
+        public TaskCompletionSource<bool>? TotalsRead;
+        public TaskCompletionSource<bool>? ContinueRead;
+        public override async ValueTask<DbDataReader> ReaderExecutedAsync(DbCommand command,CommandExecutedEventData data,DbDataReader result,CancellationToken ct=default)
+        {
+            if(command.CommandText.Contains("SUM(count::numeric)",StringComparison.Ordinal)&&TotalsRead is {} reached&&ContinueRead is {} proceed)
+            {TotalsRead=null;reached.TrySetResult(true);await proceed.Task.WaitAsync(ct);}
+            return result;
+        }
         public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,CommandEventData data,InterceptionResult<DbDataReader> result,CancellationToken ct=default)
         {
             if(command.CommandText.Contains("gateway_config_snapshots",StringComparison.Ordinal))Interlocked.Increment(ref SnapshotQueries);
@@ -87,6 +95,34 @@ public sealed class CredentialUsageIngestTests
             await using var db=Api.Context();var buckets=await db.Set<CredentialUsageHourly>().AsNoTracking().ToArrayAsync();Assert.Single(buckets);Assert.Equal(count,buckets[0].Count);
         }
         public ValueTask DisposeAsync()=>Api.DisposeAsync();
+    }
+    [Fact]
+    public async Task Query_cannot_mix_old_zero_with_coverage_committed_by_concurrent_final_batch()
+    {
+        var now=DateTimeOffset.UtcNow;var hour=new DateTimeOffset(now.Year,now.Month,now.Day,now.Hour,0,0,TimeSpan.Zero).AddHours(-2);
+        await using var s=new Scenario{Observed=hour.AddMinutes(10)};await s.InitializeAsync();await s.BindAsync();
+        await using(var db=s.Api.Context())
+        {
+            await db.Set<GatewayNodeEvent>().Where(x=>x.GatewayNodeId==s.Node.Id&&x.EventType=="registered").ExecuteUpdateAsync(x=>x.SetProperty(y=>y.CreatedAt,hour.AddMinutes(-1)));
+            await db.Set<CredentialUsageCollectorInstance>().Where(x=>x.NodeId==s.Node.Id).ExecuteUpdateAsync(x=>x.SetProperty(y=>y.RegisteredAt,hour.AddMinutes(-1)));
+        }
+        using var login=await s.Api.LoginAsync();login.EnsureSuccessStatusCode();
+        var path=$"/api/v1/applications/{s.Api.Application.Id}/credential-usage?from={Uri.EscapeDataString(hour.ToString("O"))}&to={Uri.EscapeDataString(hour.AddHours(1).ToString("O"))}";
+        s.Sql.TotalsRead=new(TaskCreationOptions.RunContinuationsAsynchronously);var reached=s.Sql.TotalsRead;
+        s.Sql.ContinueRead=new(TaskCreationOptions.RunContinuationsAsynchronously);var proceed=s.Sql.ContinueRead;
+        var pending=s.Api.Client.GetFromJsonAsync<JsonElement>(path);
+        try
+        {
+            await reached.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            var batch=s.Batch(count:1);await s.ApplyAsync(batch with{Core=batch.Core with{Intervals=[new(hour,hour.AddHours(1))],DurableThrough=hour.AddHours(1),SealedAt=hour.AddHours(1).AddSeconds(1)}});
+        }
+        finally{proceed.TrySetResult(true);}
+        var before=(await pending.WaitAsync(TimeSpan.FromSeconds(15))).GetProperty("page").GetProperty("items")[0];
+        Assert.Equal("0",before.GetProperty("count").GetString());
+        Assert.Equal("Partial",before.GetProperty("coverage").GetProperty("state").GetString());
+        Assert.Equal(JsonValueKind.Null,before.GetProperty("visibleLastUsedAt").ValueKind);
+        var after=(await s.Api.Client.GetFromJsonAsync<JsonElement>(path)).GetProperty("page").GetProperty("items")[0];
+        Assert.Equal("1",after.GetProperty("count").GetString());Assert.Equal("Available",after.GetProperty("coverage").GetProperty("state").GetString());
     }
     [Fact]
     public async Task Same_batch_replay_once_and_hash_conflict_rolls_back()

@@ -566,7 +566,7 @@
         },
         {
           "path": "src/WebApi.Infrastructure/CredentialUsage/CredentialUsageQuery.cs",
-          "sha256": "ebae94aeb4638801810543bd03c565b2f2b1bab95a6bb60214ae9dc4db2dd923"
+          "sha256": "1ad11fa51f3be2a3816ef4311bdc077211147ff63719159cf3d0ad34ecd664d3"
         },
         {
           "path": "console/src/applications/CredentialRotationWizard.tsx",
