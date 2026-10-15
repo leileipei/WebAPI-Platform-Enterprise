@@ -11,6 +11,7 @@ import { randomUUID, randomBytes } from 'node:crypto';
 import { loadState, writePrivate, safeFile, ownedDirectory } from '../runtime/state.mjs';
 import { loadRelease } from '../runtime/lifecycle.mjs';
 import { prepareContext } from '../runtime/context.mjs';
+import { validateFixture } from '../runtime/fixture-guard.mjs';
 import { docker, inspectResources } from '../runtime/docker.mjs';
 import { prepareScenario, until } from '../runtime/acceptance-scenario.mjs';
 import { ContractClient } from '../contracts/scenario.mjs';

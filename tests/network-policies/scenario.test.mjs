@@ -71,6 +71,75 @@ test('promotion actor registration reads project policies without granting appro
         assert.equal(login.body.username, created.body.username);
     } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
 });
+
+// Real loopback wire contract for the first-change branch; this is a protocol
+// regression, separate from the fixed-image TEST/PROD acceptance scenario.
+async function promotionPasswordProtocol(action) {
+    const parent = await fs.mkdtemp(path.join(os.tmpdir(), 'webapi-promotion-password-'));
+    const directory = path.join(parent, 'webapi-enterprise-local-test-' + randomUUID());
+    await fs.mkdir(path.join(directory, 'secrets'), { recursive: true, mode: 0o700 });
+    const roleId = randomUUID(), userId = randomUUID();
+    const scope = { organizationId: randomUUID(), projectId: randomUUID(), environmentId: randomUUID() };
+    const password = ' Protocol initial password Aa1! ', calls = [];
+    let username, changed = false;
+    const server = http.createServer(async (request, response) => {
+        let text = ''; for await (const chunk of request) text += chunk;
+        const body = text ? JSON.parse(text) : undefined;
+        calls.push({ route: request.url, method: request.method, body, csrf: request.headers['x-csrf-token'], key: request.headers['idempotency-key'] });
+        response.setHeader('Content-Type', 'application/json');
+        let value;
+        if (request.url === '/api/v1/auth/csrf') value = { token: 'promotion-protocol-csrf' };
+        else if (request.url === '/api/v1/roles' || request.url === `/api/v1/roles/${roleId}/permissions`) value = { id: roleId, revision: 2 };
+        else if (request.url === '/api/v1/users') { username = body.username; value = { id: userId, username, revision: 1, mustChangePassword: true }; }
+        else if (request.url === `/api/v1/users/${userId}/roles`) value = { id: userId, username, revision: 2, mustChangePassword: true };
+        else if (request.url === `/api/v1/users/${userId}/scopes`) value = body.scopes;
+        else if (request.url === '/api/v1/auth/login') value = { id: userId, username, authSource: 'local', mustChangePassword: true, permissions: [], scopes: [] };
+        else if (request.url === '/api/v1/auth/change-password') { changed = true; value = { id: userId, username, mustChangePassword: false, permissions: ['release.read'], scopes: [{ scope, accessMode: 'read_write' }] }; }
+        else if (request.url === '/api/v1/auth/me') value = { id: userId, username, mustChangePassword: !changed };
+        else { response.statusCode = 404; value = { code: 'unknown_protocol_route' }; }
+        response.end(JSON.stringify(value));
+    });
+    await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+    try {
+        const endpoint = 'http://127.0.0.1:' + server.address().port;
+        return await action({ parent, directory, endpoint, admin: new ContractClient(endpoint), roleId, userId, scope, password, calls });
+    } finally {
+        server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
+        await fs.rm(parent, { recursive: true, force: true });
+    }
+}
+
+test('promotion actor required initial change uses guarded fixture and keeps a private current password', async () => {
+    await promotionPasswordProtocol(async ({ directory, endpoint, admin, userId, scope, password, calls }) => {
+        const privatePasswords = [password];
+        const client = await scenario.createNetworkPolicyPromotionActor({ admin, endpoint, password, scope, suffix: 'Acceptor', permissions: ['release.test.accept'], tag: 'required', directory, privatePasswords });
+        const changes = calls.filter(c => c.route === '/api/v1/auth/change-password');
+        assert.equal(changes.length, 1);
+        const change = changes[0];
+        assert.equal(change.body.currentPassword, password);
+        assert.notEqual(change.body.newPassword, password);
+        assert.equal(change.body.confirmPassword, change.body.newPassword);
+        assert.equal(change.csrf, 'promotion-protocol-csrf'); assert.match(change.key, /^[a-f0-9-]{36}$/);
+        const file = path.join(directory, 'secrets/qa-' + userId + '-password');
+        assert.equal(await fs.readFile(file, 'utf8'), change.body.newPassword);
+        assert.equal((await fs.stat(file)).mode & 0o077, 0);
+        assert.deepEqual(privatePasswords, [password, change.body.newPassword]);
+        assert.equal((await client.request('/auth/me')).mustChangePassword, false);
+        const grants = calls.find(c => c.route.endsWith('/scopes')).body.scopes;
+        assert.deepEqual(grants, [{ scope: { organizationId: scope.organizationId, projectId: scope.projectId }, accessMode: 'read' }, { scope, accessMode: 'read_write' }]);
+    });
+});
+
+test('promotion actor required initial change rejects a persistent runtime directory before changing password', async () => {
+    await promotionPasswordProtocol(async ({ parent, endpoint, admin, userId, scope, password, calls }) => {
+        const directory = path.join(parent, 'webapi-enterprise-local'), privatePasswords = [password];
+        await fs.mkdir(path.join(directory, 'secrets'), { recursive: true, mode: 0o700 });
+        await assert.rejects(scenario.createNetworkPolicyPromotionActor({ admin, endpoint, password, scope, suffix: 'Acceptor', permissions: ['release.test.accept'], tag: 'refused', directory, privatePasswords }), /Explicit disposable runtime project required/);
+        assert.equal(calls.filter(c => c.route === '/api/v1/auth/change-password').length, 0);
+        assert.deepEqual(privatePasswords, [password]);
+        await assert.rejects(fs.stat(path.join(directory, 'secrets/qa-' + userId + '-password')), { code: 'ENOENT' });
+    });
+});
 // This launches the real C# fixture, not a mocked scenario executor.
 test('real fixture echoes raw JSON and headers, counts, Origin Vary and gzip/br', async () => {
     const owner = randomUUID(), name = 'webapi-network-fixture-test-' + owner, directory = await fs.mkdtemp(path.join(os.tmpdir(), 'webapi-network-fixture-')), httpPort = await port();
