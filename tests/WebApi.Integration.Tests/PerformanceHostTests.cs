@@ -146,8 +146,48 @@ public sealed class PerformanceHostTests
                 var restored=PerformanceDataset.BuildSnapshot(spec,AuthenticationMode.Anonymous,"RS256",keys);
                 restored=restored with {Clusters=restored.Clusters.Select(c=>c with {Destinations=c.Destinations.Select(d=>d with {Address=origin+"/"}).ToArray()}).ToArray()};await File.WriteAllBytesAsync(Path.Combine(directory,"anonymous.json"),CanonicalJson.Serialize(restored));
                 var diagnosticFiles=Directory.GetFiles(directory,"activation-failure-*.json");Assert.NotEmpty(diagnosticFiles);
-                Assert.All(diagnosticFiles,file=>{using var diagnostic=JsonDocument.Parse(File.ReadAllText(file));Assert.Equal("snapshot-parse",diagnostic.RootElement.GetProperty("stage").GetString());Assert.Equal("ApiException",diagnostic.RootElement.GetProperty("errorType").GetString());Assert.NotEmpty(diagnostic.RootElement.GetProperty("exception").GetString()!);if(!OperatingSystem.IsWindows())Assert.Equal(UnixFileMode.UserRead|UnixFileMode.UserWrite,File.GetUnixFileMode(file));});
+                var failedBytes=System.Text.Encoding.UTF8.GetBytes("{\""+privateCanary+"\":");
+                Assert.All(diagnosticFiles,file=>{
+                    using var diagnostic=JsonDocument.Parse(File.ReadAllText(file));var root=diagnostic.RootElement;
+                    Assert.Equal("snapshot-parse",root.GetProperty("stage").GetString());Assert.Equal("ApiException",root.GetProperty("errorType").GetString());Assert.NotEmpty(root.GetProperty("exception").GetString()!);
+                    var payloadName=root.GetProperty("payloadFile").GetString()!;
+                    Assert.Equal(Path.GetFileName(file).Replace(".json",".bin"),payloadName);
+                    var payloadFile=Path.Combine(directory,payloadName);
+                    // The source has already been restored. Retain the bytes consumed by
+                    // the failed request, rather than re-reading the current fixture file.
+                    Assert.Equal(failedBytes,File.ReadAllBytes(payloadFile));
+                    Assert.Equal(failedBytes.Length,root.GetProperty("payloadBytes").GetInt32());
+                    Assert.Equal(Convert.ToHexStringLower(SHA256.HashData(failedBytes)),root.GetProperty("payloadSha256").GetString());
+                    Assert.DoesNotContain(payloadName,diagnosticBody);
+                    if(!OperatingSystem.IsWindows())foreach(var retained in new[]{file,payloadFile})Assert.Equal(UnixFileMode.UserRead|UnixFileMode.UserWrite,File.GetUnixFileMode(retained));
+                });
             }
+        }finally{Directory.Delete(directory,true);}
+    }
+    [Fact]
+    public async Task MissingPrivateFixtureRetainsFailureWithoutInventingPayload()
+    {
+        var directory=Path.Combine(Path.GetTempPath(),"performance-host-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        var token=Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+        foreach(var name in new[]{"probe-token","gateway-secret"}) {
+            var file=Path.Combine(directory,name);await File.WriteAllTextAsync(file,token);
+            if(!OperatingSystem.IsWindows())File.SetUnixFileMode(file,UnixFileMode.UserRead|UnixFileMode.UserWrite);
+        }
+        try {
+            await using var host=PerformanceHosts.Build("gateway",new Dictionary<string,string?> {
+                ["urls"]="http://127.0.0.1:0",["Performance:PrivateDirectory"]=directory,
+                ["Gateway:EnvironmentId"]=Guid.NewGuid().ToString(),["Gateway:NodeName"]="missing-fixture",
+                ["Gateway:SecretFile"]=Path.Combine(directory,"gateway-secret"),["Gateway:LkgDirectory"]=Path.Combine(directory,"lkg"),
+                ["Gateway:ControlPlaneUrl"]="http://127.0.0.1:1",["Gateway:AutomaticUpdates"]="false",["Observability:Enabled"]="false"
+            });
+            await host.StartAsync();using var client=new HttpClient {BaseAddress=new Uri(Address(host))};
+            using var request=new HttpRequestMessage(HttpMethod.Post,"/__perf/apply") {Content=JsonContent.Create(new {profile="anonymous",sequence=1})};request.Headers.Add("X-Performance-Token",token);
+            using var response=await client.SendAsync(request);Assert.Equal(HttpStatusCode.BadRequest,response.StatusCode);
+            using var body=JsonDocument.Parse(await response.Content.ReadAsStringAsync());Assert.True(body.RootElement.GetProperty("diagnosticRetained").GetBoolean());
+            Assert.Equal("file-check",body.RootElement.GetProperty("stage").GetString());Assert.False(body.RootElement.TryGetProperty("payloadFile",out _));
+            using var retained=JsonDocument.Parse(File.ReadAllBytes(Assert.Single(Directory.GetFiles(directory,"activation-failure-*.json"))));
+            foreach(var property in new[]{"payloadFile","payloadBytes","payloadSha256"})Assert.Equal(JsonValueKind.Null,retained.RootElement.GetProperty(property).ValueKind);
+            Assert.Empty(Directory.GetFiles(directory,"activation-failure-*.bin"));
         }finally{Directory.Delete(directory,true);}
     }
     private static string Address(Microsoft.AspNetCore.Builder.WebApplication app)=>app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single().TrimEnd('/');

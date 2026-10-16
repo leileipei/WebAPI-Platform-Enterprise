@@ -128,6 +128,25 @@ public sealed class PerformanceProbeTests(ITestOutputHelper output)
         }finally{Directory.Delete(directory,true);}
     }
     [Fact]
+    public async Task HistoricalNodeHeartbeatsStayOutsideExpiryBoundary()
+    {
+        await using var fixture=new PostgresDatabase();await fixture.InitializeAsync();await using var db=fixture.Context();await db.Database.MigrateAsync();
+        var directory=Path.Combine(Path.GetTempPath(),"performance-seed-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        try {
+            var spec=new DatasetSpec(100,20261009,new(2026,10,8,0,0,0,TimeSpan.Zero),new(2026,10,15,0,0,0,TimeSpan.Zero));
+            var manifest=await PerformanceDataset.CreateAsync(db,spec,directory,CancellationToken.None);
+            var historical=await db.Set<GatewayNode>().AsNoTracking().Where(n=>n.NodeName.StartsWith("history-node-")).ToArrayAsync();Assert.Equal(spec.Scale,historical.Length);Assert.All(historical,n=>Assert.Equal(spec.WindowStart.AddHours(-1),n.LastHeartbeatAt));
+            Assert.True(manifest.Validated);Assert.Equal(100,await db.Set<Api>().CountAsync());Assert.Equal(100,await db.Set<ReleaseRecord>().CountAsync());
+            Assert.Equal(100,await db.Set<AlertRule>().CountAsync());Assert.Equal(100,await db.Set<ApplicationRecord>().CountAsync());
+            Assert.Equal(200,await db.Set<UpstreamDestination>().CountAsync());Assert.Equal(200,await db.Set<ApprovalTask>().CountAsync());
+            var release=await db.Set<ReleaseRecord>().AsNoTracking().FirstAsync();
+            var candidate=JsonSerializer.Deserialize<WebApi.Contracts.Releases.FrozenReleaseCandidate>(release.CandidateBytes!,CanonicalJson.Options)!;
+            Assert.Equal(8,candidate.Versions.Count);Assert.NotEmpty(candidate.Clusters);Assert.NotEmpty(candidate.Applications);
+            Assert.Equal(600L,manifest.Counts["releaseTargets"]); // 100 releases x 6 distinct target nodes
+            Assert.Equal(10,await db.Set<Organization>().CountAsync());Assert.Equal(50,await db.Set<Project>().CountAsync());Assert.Equal(150,await db.Set<EnvironmentRecord>().CountAsync());
+        }finally{Directory.Delete(directory,true);}
+    }
+    [Fact]
     public async Task CountsConcurrentRequestsAndAllCommandKindsWithoutSecrets()
     {
         await using var fixture=new PostgresDatabase();await fixture.InitializeAsync();
@@ -190,8 +209,21 @@ public sealed class PerformanceProbeTests(ITestOutputHelper output)
         var results=LookupMicroProbe.Measure(snapshot,payload,10000);
         Assert.Equal(21,results.Count);Assert.Equal(new[]{"first","last","middle"},results.Select(r=>r.Position).Distinct().Order().ToArray());
         Assert.Equal(new[]{"application","authentication","authorization","cluster","credential","jwt_mapping","route"},results.Select(r=>r.Operation).Distinct().Order().ToArray());
-        Assert.All(results,r=>{Assert.Equal(10000,r.Hits);Assert.Equal(10000,r.Iterations);Assert.True(r.ElapsedTicks>0);Assert.Equal("indexed",r.Mode);});
+        Assert.All(results,r=>{Assert.Equal(10000,r.Hits);Assert.Equal(10000,r.Iterations);Assert.True(r.ElapsedTicks>0);Assert.Equal(r.Backend=="runtime-frozen-dictionary-v1"?"indexed":"scan",r.Mode);Assert.Contains(r.Backend,new[]{"runtime-frozen-dictionary-v1","runtime-linear-map-v1"});});
         output.WriteLine("INDEX_MICRO_DIAGNOSTIC "+JsonSerializer.Serialize(new {scale,immutableSource=false,performanceAcceptance=false,scope="unit-probe-binding-not-performance",entries=results}));
+    }
+    [Fact]
+    public void BackendFollowsSevenActualContainersAndMixedUnknownReject()
+    {
+        using var keys=PerformanceJwtMaterial.Create();var now=DateTimeOffset.UtcNow;var snapshot=PerformanceDataset.BuildSnapshot(new(100,20261009,now.AddMinutes(-1),now.AddHours(20)),AuthenticationMode.JWT,"RS256",keys);
+        var bytes=CanonicalJson.Serialize(snapshot);var generation=new WebApi.Gateway.Configuration.RuntimeGeneration(new(Guid.NewGuid(),1,1,new string('a',64),bytes.Length),bytes,snapshot);var index=generation.Indexes;
+        object[] containers=[index.Routes,index.Clusters,index.Applications,index.Credentials,index.RouteAuthentication,index.JwtApplications,index.PermissionWindows];
+        var method=typeof(LookupMicroProbe).GetMethod("ClassifyContainers");Assert.NotNull(method);
+        var expected=typeof(WebApi.Gateway.Configuration.RuntimeLookupIndex).Assembly.GetType("WebApi.Gateway.Configuration.RuntimeLinearLookupMap`2") is null?"runtime-frozen-dictionary-v1":"runtime-linear-map-v1";
+        Assert.Equal(expected,method.Invoke(null,[containers]));
+        var unknown=(object[])containers.Clone();unknown[3]=new object();Assert.IsType<InvalidDataException>(Assert.Throws<System.Reflection.TargetInvocationException>(()=>method.Invoke(null,[unknown])).InnerException);
+        var wrong=(object[])containers.Clone();wrong[2]=containers[0];Assert.IsType<InvalidDataException>(Assert.Throws<System.Reflection.TargetInvocationException>(()=>method.Invoke(null,[wrong])).InnerException);
+        var result=LookupMicroProbe.Measure(snapshot,bytes,2);Assert.All(result,r=>Assert.Equal(expected,Assert.IsType<string>(r.GetType().GetProperty("Backend")?.GetValue(r))));
     }
     [Fact]
     public void GenerationLifecycleProbeIncludesHeldLeaseAndCollection()

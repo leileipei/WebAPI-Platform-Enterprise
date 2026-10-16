@@ -34,7 +34,7 @@ try {
             "scope-seed"=>await PerformanceDataset.CreateScopeSceneAsync(db,spec,Required("directory"),CancellationToken.None),
             _=>await PerformanceDataset.CreateReferenceSceneAsync(db,spec,Required("directory"),CancellationToken.None)
         };await WriteEvidence(result);
-    }else if(command is "migration-inspect" or "migration-install" or "migration-upgrade" or "migration-failure"){
+    }else if(command is "migration-inspect" or "migration-install" or "migration-upgrade" or "migration-failure" or "migration-legacy" or "migration-current-contract" or "migration-compatible"){
         var config=await PrivateJson<Dictionary<string,string?>>(Required("config"));
         var connection=config.GetValueOrDefault("ConnectionStrings:WebApi")??throw new InvalidDataException("Isolated database configuration required.");
         var address=new Npgsql.NpgsqlConnectionStringBuilder(connection);
@@ -44,6 +44,9 @@ try {
             "migration-inspect"=>await MigrationProbe.InspectAsync(db),
             "migration-install"=>await MigrationProbe.ApplyAsync(db,false),
             "migration-upgrade"=>await MigrationProbe.ApplyAsync(db,true),
+            "migration-current-contract"=>await MigrationProbe.CaptureCurrentContractAsync(db),
+            "migration-legacy"=>await MigrationProbe.CaptureLegacyAsync(db),
+            "migration-compatible"=>await MigrationProbe.ApplyCompatibleAsync(db,await PrivateJson<LegacyContract>(Required("baseline-contract"))),
             _=>await MigrationProbe.FailPendingIndexesAsync(db)
         };await WriteEvidence(result);
     }else if(command is "generation" or "micro") {
