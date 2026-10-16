@@ -4,7 +4,7 @@
 
 ## 入口与秘密
 
-平台：http://127.0.0.1:4192/login 。在登录页选择“本机 SSO 演示 · Keycloak”，跳至 http://localhost:4193 。演示账号 sso-demo-viewer，仅 Viewer 角色和指定环境 read Scope；无本地密码。
+平台：http://127.0.0.1:4192/login 。在登录页选择“本机 SSO 演示 · Keycloak”，跳至 http://localhost:4194 。演示账号 sso-demo-viewer，仅 Viewer 角色和指定环境 read Scope；无本地密码。
 
 IdP 私有目录位于原运行目录的 idp 子目录；viewer-password 为演示密码，idp-admin-password 为独立 IdP 管理员密码，客户端秘密位于 client-secret。目录0700、文件0600，不进入 Git 或交付包。平台秘密只读挂载至控制面的 /run/sso/client-secret，容器UID10001，文件0600。不要打开或截取秘密内容作为验收截图。
 
