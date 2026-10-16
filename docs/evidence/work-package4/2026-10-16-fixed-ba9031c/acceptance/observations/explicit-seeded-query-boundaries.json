@@ -1,0 +1,26 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "kind": "runtime-observations",
+  "observedAt": "2026-10-15T16:33:25.899Z",
+  "sourceRecord": "query-boundaries-seeded-3/result.json",
+  "sourceRecordSha256": "14290c12f30202df139df9490ee5889cd34418d564d26e9394c53de05404d5f6",
+  "sourceKind": "runtime-observations",
+  "data": {
+    "classification": "actual-fixed-control-plane-query-over-explicit-seeded-boundary-facts-not-traffic-volume",
+    "seededFacts": true,
+    "jsPrecisionCount": "9007199254740993",
+    "wideSumCount": "18446744073709551614",
+    "foreignEnvironmentStatus": 403,
+    "hiddenLastUsedAbsent": true,
+    "currentHourState": "Partial",
+    "unknownState": "Unknown",
+    "unknownCounts": [
+      null,
+      null
+    ],
+    "nonHourWindowStatus": 422
+  }
+}

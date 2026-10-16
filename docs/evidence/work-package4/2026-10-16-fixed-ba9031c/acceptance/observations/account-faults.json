@@ -1,0 +1,18 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "kind": "runtime-observations",
+  "observedAt": "2026-10-15T16:29:04.948Z",
+  "sourceRecord": "account-faults.json",
+  "sourceRecordSha256": "7996f4494c97ea4a7f143144109163d03377aab2736295533d72d7f0b8584b4d",
+  "sourceKind": "runtime-observations",
+  "data": {
+    "restrictedBusinessStatus": 403,
+    "redisFailureStatus": 503,
+    "auditRollbackPreserved": true,
+    "accountBeforeSha256": "325e093294dbeebf2867dbc5a82967751b20eb0f7577e0107faa5fae2acea319",
+    "accountAfterSha256": "325e093294dbeebf2867dbc5a82967751b20eb0f7577e0107faa5fae2acea319"
+  }
+}

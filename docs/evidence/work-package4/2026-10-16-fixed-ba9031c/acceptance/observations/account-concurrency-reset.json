@@ -1,0 +1,23 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "kind": "runtime-observations",
+  "observedAt": "2026-10-15T16:33:02.386Z",
+  "sourceRecord": "legacy-account-http-2/result.json",
+  "sourceRecordSha256": "f75818bf54fe3eb40940b3425077091c4ffdf8794a107375587fc7c59c16bb88",
+  "sourceKind": "runtime-observations",
+  "data": {
+    "concurrentStampSingleWinner": true,
+    "concurrentStatuses": [
+      401,
+      200
+    ],
+    "concurrentAuditCount": 1,
+    "oldSessionStatus": 401,
+    "selfResetStatus": 409,
+    "resetRequiresChange": true,
+    "scopePreserved": true
+  }
+}

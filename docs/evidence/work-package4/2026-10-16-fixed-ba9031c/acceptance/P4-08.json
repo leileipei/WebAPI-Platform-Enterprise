@@ -1,0 +1,51 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "kind": "material-checks",
+  "checks": [
+    {
+      "name": "testOldAfterWorkingRevoke",
+      "record": "observations/actual-test-prod-rotation.json",
+      "pointer": "/data/test/oldAfterWorkingRevoke",
+      "expected": 200
+    },
+    {
+      "name": "testOldAfterSecondPublish",
+      "record": "observations/actual-test-prod-rotation.json",
+      "pointer": "/data/test/oldAfterSecondPublish",
+      "expected": 401
+    },
+    {
+      "name": "testNewAfterSecondPublish",
+      "record": "observations/actual-test-prod-rotation.json",
+      "pointer": "/data/test/newAfterSecondPublish",
+      "expected": 200
+    },
+    {
+      "name": "prodOldAfterWorkingRevoke",
+      "record": "observations/actual-test-prod-rotation.json",
+      "pointer": "/data/prod/oldAfterWorkingRevoke",
+      "expected": 200
+    },
+    {
+      "name": "prodOldAfterSecondPublish",
+      "record": "observations/actual-test-prod-rotation.json",
+      "pointer": "/data/prod/oldAfterSecondPublish",
+      "expected": 401
+    },
+    {
+      "name": "prodNewAfterSecondPublish",
+      "record": "observations/actual-test-prod-rotation.json",
+      "pointer": "/data/prod/newAfterSecondPublish",
+      "expected": 200
+    },
+    {
+      "name": "unrelatedResourcesPreserved",
+      "record": "observations/actual-test-prod-rotation.json",
+      "pointer": "/data/unrelatedResourcesPreserved",
+      "expected": true
+    }
+  ]
+}

@@ -1,0 +1,256 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "kind": "cua",
+  "endpoint": "http://127.0.0.1:65239",
+  "completed": 14,
+  "required": 14,
+  "actions": [
+    {
+      "id": "keyboard-focus",
+      "actorId": "bf2aa661-97f6-40ca-8a41-7ec2a4e4fd98",
+      "observedAt": "2026-10-15T16:28:24.884Z",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "ui/keyboard-dirty-dialog-1440.png",
+      "status": "passed"
+    },
+    {
+      "id": "dirty-navigation",
+      "actorId": "bf2aa661-97f6-40ca-8a41-7ec2a4e4fd98",
+      "observedAt": "2026-10-15T16:28:24.884Z",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "screenshot": "ui/keyboard-dirty-dialog-1440.png",
+      "status": "passed"
+    },
+    {
+      "id": "narrow",
+      "actorId": "bf2aa661-97f6-40ca-8a41-7ec2a4e4fd98",
+      "observedAt": "2026-10-15T16:28:24.884Z",
+      "viewport": {
+        "height": 900,
+        "width": 1024
+      },
+      "screenshot": "ui/narrow-1024.png",
+      "status": "passed"
+    },
+    {
+      "id": "rotation-first",
+      "actorId": "bf2aa661-97f6-40ca-8a41-7ec2a4e4fd98",
+      "observedAt": "2026-10-15T17:09:47.897Z",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "screenshot": "ui/rotation-first-1440.png",
+      "applicationId": "6fabffaf-611e-4a2c-82c6-3c10eff276bf",
+      "environmentId": "a9e79615-d90f-4625-ad0a-308bfd28d378",
+      "evidence": {
+        "releaseId": "a9dbe066-1344-40b6-bf8e-db95968f7c29",
+        "currentDualGatewayProof": true,
+        "configVersion": 20,
+        "deploymentSequence": 24,
+        "nodeCount": 2,
+        "oldCountLowerBound": "4",
+        "newCountLowerBound": "2",
+        "credentialSecretModalShown": false
+      },
+      "status": "passed"
+    },
+    {
+      "id": "rotation-second",
+      "actorId": "bf2aa661-97f6-40ca-8a41-7ec2a4e4fd98",
+      "observedAt": "2026-10-15T17:11:10.046Z",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "screenshot": "ui/rotation-second-confirmed-1440.png",
+      "applicationId": "6fabffaf-611e-4a2c-82c6-3c10eff276bf",
+      "environmentId": "a9e79615-d90f-4625-ad0a-308bfd28d378",
+      "evidence": {
+        "releaseId": "4e1927ea-165c-4488-8c6d-47ccea6286f1",
+        "currentDualGatewayProof": true,
+        "historicalFirstClearlyMarked": true,
+        "configVersion": 21,
+        "deploymentSequence": 25,
+        "nodeCount": 2,
+        "oldCountLowerBound": "6",
+        "newCountLowerBound": "4",
+        "credentialSecretModalShown": false
+      },
+      "status": "passed"
+    },
+    {
+      "id": "overview",
+      "passed": true,
+      "screenshot": "ui/overview-minimal-reader.png",
+      "observedAt": "2026-10-15T17:58:36.314Z",
+      "evidence": {
+        "availableCredentials": 1,
+        "distinctApis": 0,
+        "visibleScopesOnly": true,
+        "usageCoveragePartial": true
+      },
+      "status": "passed",
+      "actorId": "dc614f19-f3bd-4d64-98bc-1af9e9cde329",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      }
+    },
+    {
+      "id": "exact-count",
+      "passed": true,
+      "screenshot": "ui/exact-count-partial.png",
+      "observedAt": "2026-10-15T17:59:07.424Z",
+      "evidence": {
+        "seededBoundary": true,
+        "realTrafficCount": false,
+        "exactCount": "9007199254740993",
+        "rounded": false
+      },
+      "status": "passed",
+      "actorId": "dc614f19-f3bd-4d64-98bc-1af9e9cde329",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      }
+    },
+    {
+      "id": "partial",
+      "passed": true,
+      "screenshot": "ui/exact-count-partial.png",
+      "observedAt": "2026-10-15T17:59:07.424Z",
+      "evidence": {
+        "lowerBoundLabel": true,
+        "coverageIncomplete": true,
+        "noUnusedClaim": true
+      },
+      "status": "passed",
+      "actorId": "dc614f19-f3bd-4d64-98bc-1af9e9cde329",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      }
+    },
+    {
+      "id": "metrics-denied",
+      "passed": true,
+      "screenshot": "ui/metrics-denied.png",
+      "observedAt": "2026-10-15T17:59:15.810Z",
+      "evidence": {
+        "appReadDoesNotGrantMetrics": true,
+        "noMetricsVisible": true
+      },
+      "status": "passed",
+      "actorId": "dc614f19-f3bd-4d64-98bc-1af9e9cde329",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      }
+    },
+    {
+      "id": "audit-denied",
+      "passed": true,
+      "screenshot": "ui/audit-denied.png",
+      "observedAt": "2026-10-15T17:59:26.919Z",
+      "evidence": {
+        "appReadDoesNotGrantAudit": true,
+        "noAuditVisible": true
+      },
+      "status": "passed",
+      "actorId": "dc614f19-f3bd-4d64-98bc-1af9e9cde329",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      }
+    },
+    {
+      "id": "unknown",
+      "passed": true,
+      "screenshot": "ui/unknown-no-source.png",
+      "observedAt": "2026-10-15T18:01:09.226Z",
+      "evidence": {
+        "noCollectorEnvironment": true,
+        "countUnknown": true,
+        "zeroNotRendered": true,
+        "lastUsedUnknown": true
+      },
+      "status": "passed",
+      "actorId": "dc614f19-f3bd-4d64-98bc-1af9e9cde329",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      }
+    },
+    {
+      "id": "local-reset",
+      "status": "passed",
+      "actorId": "bf2aa661-97f6-40ca-8a41-7ec2a4e4fd98",
+      "observedAt": "2026-10-16T01:37:18.760Z",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "screenshot": "ui/local-reset.png",
+      "details": "Human submitted reset; visible success, revision6→7, old normal session401; original roles and project read scope retained. No new password read. Screenshot dimensions represent CSS pixels; host DPR1.1 kept separate.",
+      "hostDevicePixelRatio": 1.100000023841858,
+      "targetUserId": "260d2672-ed4f-493f-ba9e-1479176b4e64",
+      "verificationRecord": "ui-admin-handoff/after-human-check-2.json",
+      "verificationSha256": "0d3cd4e17b4951d3ef83e38437021e7fa9607f76e044ee49ccbdda968a56cd1b"
+    },
+    {
+      "id": "impact-409",
+      "status": "passed",
+      "actorId": "bf2aa661-97f6-40ca-8a41-7ec2a4e4fd98",
+      "observedAt": "2026-10-16T01:55:04.359Z",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "hostDevicePixelRatio": 1.100000023841858,
+      "screenshot": "ui/impact-409.png",
+      "applicationId": "a8bb525b-9a31-47bd-aa28-db34206abc12",
+      "targetCredentialId": "a85c9d77-843e-4202-9e5b-945ced12b160",
+      "verificationRecord": "ui-admin-handoff/impact-after-human-verification.json",
+      "verificationSha256": "cd25a7441d6e677fca722eb67281b7f9f28a4bae0db1c0bfef91d6d32a894f6e",
+      "details": "Original retained preview submitted by human after second credential creation; actual problem message, preview removed, confirm disabled; target Active revision1. Supplementary single-visible fixture was never submitted and is not counted."
+    },
+    {
+      "id": "first-change",
+      "status": "passed",
+      "actorId": "d8a719d4-1e93-459d-93ce-5bd9f8a7477b",
+      "observedAt": "2026-10-16T02:05:14.617Z",
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "deviceScaleFactor": 1
+      },
+      "hostDevicePixelRatio": 1.100000023841858,
+      "screenshot": "ui/first-change.png",
+      "verificationRecord": "ui-first-change/after-human-change.json",
+      "verificationSha256": "41ef50c2c26e8aff315781942b3cac527daf9e52837ac00ee5087b59f5fc10cf",
+      "details": "Human entered/submitted new password. Visible normal business page under assigned actor, no password fields; MustChange false, user revision3→4, old initial password401, role IDs and project read scope unchanged; one auth.password.change audit. New password not read."
+    }
+  ],
+  "remaining": [],
+  "fullUiAcceptance": false
+}

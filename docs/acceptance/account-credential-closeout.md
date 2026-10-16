@@ -1,3 +1,15 @@
+# 第4包验收账本
+
+## 当前结论：固定ba9031c隔离验收通过
+
+2026-10-16，P4-01～10严格门禁、固定五组3717/0/0、未筛选SDK10/0/0与UI14/14通过；原4192没有升级，第2包暂停，没有推送或合并。原40页454项当前为33已关闭、40部分、18缺失、363待复验；这不是全部功能完成率。
+
+当前权威记录：[最终报告](../evidence/work-package4/final-summary.md)、[操作说明](../deployment/account-credential-operations.md)、[逐页状态](../evidence/work-package4/requirements-status.md)、[逐项台账](../evidence/work-package4/requirements-closeout.json)。
+
+以下内容是此前阶段的历史记录，旧SHA、测试计数和“尚未通过”状态按当时原文保留，不能当作当前验收结论。
+
+---
+
 # 第4包账号、凭证与40页需求候选验收记录
 
 原181文件候选已在独立 `feature/account-credential-closeout` 分支按授权提交为 `71740d6cc423ff7668af02c1c014c2e87e80a064`（父提交 `a30ce5bf8291539eac2640ea02839b403ccd68c8`）。当前记录包含其固定验收及后续未提交修复；未推送、合并或部署4192。第2包保持暂停。

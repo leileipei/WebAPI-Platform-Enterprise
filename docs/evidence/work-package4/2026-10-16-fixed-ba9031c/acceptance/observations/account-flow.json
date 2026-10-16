@@ -1,0 +1,40 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "kind": "runtime-observations",
+  "observedAt": "2026-10-15T16:59:56.679Z",
+  "sourceRecord": "account-http/account-flow.json",
+  "sourceRecordSha256": "f0f068d29d4f449a0b6894c7653b7525f2b4f6f836eaefe93fd7b70814b86cd2",
+  "sourceKind": "runtime-account-flow",
+  "data": {
+    "records": [
+      {
+        "name": "newLocalRequiresChange",
+        "value": true,
+        "observedAt": "2026-10-15T16:59:56.389Z"
+      },
+      {
+        "name": "restrictedBusinessStatus",
+        "value": 403,
+        "observedAt": "2026-10-15T16:59:56.392Z"
+      },
+      {
+        "name": "scopeRetainedAfterChange",
+        "value": 1,
+        "observedAt": "2026-10-15T16:59:56.449Z"
+      },
+      {
+        "name": "resetInvalidatesOldSessionStatus",
+        "value": 401,
+        "observedAt": "2026-10-15T16:59:56.512Z"
+      },
+      {
+        "name": "resetRequiresAnotherChange",
+        "value": true,
+        "observedAt": "2026-10-15T16:59:56.671Z"
+      }
+    ]
+  }
+}

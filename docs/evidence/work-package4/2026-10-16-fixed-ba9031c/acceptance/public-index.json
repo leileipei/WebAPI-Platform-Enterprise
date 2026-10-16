@@ -1,0 +1,331 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "stage": "isolated-pre-install",
+  "sections": [
+    {
+      "id": "P4-01",
+      "artifact": "P4-01.json"
+    },
+    {
+      "id": "P4-02",
+      "artifact": "P4-02.json"
+    },
+    {
+      "id": "P4-03",
+      "artifact": "P4-03.json"
+    },
+    {
+      "id": "P4-04",
+      "artifact": "P4-04.json"
+    },
+    {
+      "id": "P4-05",
+      "artifact": "P4-05.json"
+    },
+    {
+      "id": "P4-06",
+      "artifact": "P4-06.json"
+    },
+    {
+      "id": "P4-07",
+      "artifact": "P4-07.json"
+    },
+    {
+      "id": "P4-08",
+      "artifact": "P4-08.json"
+    },
+    {
+      "id": "P4-09",
+      "artifact": "P4-09.json"
+    },
+    {
+      "id": "P4-10",
+      "artifact": "P4-10.json"
+    }
+  ],
+  "suites": [
+    {
+      "name": "console",
+      "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+      "passed": 321,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "c3d781635e60d3065ae3a299d012ab8b2a57167574cbf70543c31bc1d1af7366",
+      "log": "console.log",
+      "artifact": "console.json"
+    },
+    {
+      "name": "runtime",
+      "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+      "passed": 310,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "8878e1fe4c5297048f1c1c3f36a091979c1b708861ca22905c759d6ac5cc5324",
+      "log": "runtime.log",
+      "artifact": "runtime.json"
+    },
+    {
+      "name": "domain",
+      "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+      "passed": 1091,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "713d6cf34812a352a69fa12c4a66b98db9af9209687ccaec5b24e273bf56f6be",
+      "log": "domain.log",
+      "artifact": "domain.json"
+    },
+    {
+      "name": "integration",
+      "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+      "passed": 1549,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "f5847a67b3734d0d08af5fcc78b96ecfc6cd0b8a47c1a5b1495c9c3af1b7f9b7",
+      "log": "integration.log",
+      "artifact": "integration.json"
+    },
+    {
+      "name": "gateway",
+      "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+      "passed": 446,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "originalLogSha256": "cae50449bb4360c773eb4efda6fff32756c34c47a1a1052737f65c9521344c1e",
+      "log": "gateway.log",
+      "artifact": "gateway.json"
+    }
+  ],
+  "material": {
+    "images": "images.json",
+    "staticFiles": "static-files.json",
+    "protection": "protection.json",
+    "ui": "ui.json",
+    "sdk": "sdk.json",
+    "cloneIsolation": "clone-isolation.json"
+  },
+  "artifacts": [
+    {
+      "path": "observations/account-flow.json",
+      "sha256": "cfc7a769e69ef8e287b4532bf41eb3c4654d680c6a4d1618006ee9e82b696860"
+    },
+    {
+      "path": "observations/legacy-upgrade.json",
+      "sha256": "3ec5ccdaa629a3673a5257c72350651956d12c09b9c97d7171c81eaf467acf63"
+    },
+    {
+      "path": "observations/sso-local-separation.json",
+      "sha256": "f5bc510efdb5f41e0a132436e08cbc19c248feb4bd90c04e0f895dc38eed9e72"
+    },
+    {
+      "path": "observations/account-faults.json",
+      "sha256": "7b43a88393500daae0326f509f90dc3f461e1c5cfc6bed9faae2dbe3aeacd253"
+    },
+    {
+      "path": "observations/account-concurrency-reset.json",
+      "sha256": "f83c3ece1aa4e918b5d4b756b6881861c6791e15dcfb6cb0528338ef6620730c"
+    },
+    {
+      "path": "observations/actual-authorized-traffic.json",
+      "sha256": "b7c6efef9540aebd944e38ce1eb41aa1452cdc5eb8b1dd29190827562ad96e34"
+    },
+    {
+      "path": "observations/actual-persistent-crash.json",
+      "sha256": "eda0fc6651142a1edb2a24fc671feeb7c9a985bb8e62e68fa4d4f524a0e1f091"
+    },
+    {
+      "path": "observations/actual-disk-capacity-fault.json",
+      "sha256": "410959c155cb592052d672900695cf65a5e4ca18c2e8ad8c4d7460b53d1ca239"
+    },
+    {
+      "path": "observations/explicit-seeded-query-boundaries.json",
+      "sha256": "a96836be058dd725f0cdb086809fc3fc272e69d898eb50713534b74eddf342ac"
+    },
+    {
+      "path": "observations/actual-test-prod-rotation.json",
+      "sha256": "e71ec0272a4d29275534d6b099d18a5b71be404d4784a72952f7cd9a1dbce8c3"
+    },
+    {
+      "path": "ui/secret-modal-closed.png",
+      "sha256": "d7751c50e4f114b0a07b0bfac81a71912818b773064f8e6f01fe63825dda3bdf"
+    },
+    {
+      "path": "observations/actual-ui-and-denied-scope.json",
+      "sha256": "9789504196208923993c9740ee1c8a57f97a6355a5dd4f7e6af39166c9ee758c"
+    },
+    {
+      "path": "observations/actual-legacy-downgrade-block.json",
+      "sha256": "7441ef78ce635fa698b7342a78f9dcd6b6541f937bb0894b301b600f10e4c777"
+    },
+    {
+      "path": "observations/actual-cold-restore-dedup.json",
+      "sha256": "8d6591fc8590d7a5fa6877dd05a774acc400162b1ba5f8494fa3bee86fd64d71"
+    },
+    {
+      "path": "P4-01.json",
+      "sha256": "60463d8f9129a5ff4d225a8ae9c4312d282ec382570abf66d8b9bf1a06131bfe"
+    },
+    {
+      "path": "P4-02.json",
+      "sha256": "4dcb0c89b5a292b96cccf8fc449110a90b5db201f668646f90dd1fcb18d38549"
+    },
+    {
+      "path": "P4-03.json",
+      "sha256": "56916334013166e52f4b90a2f4a1356908846d88698a04ce162b05f00c4e10c0"
+    },
+    {
+      "path": "P4-04.json",
+      "sha256": "33a5734d2cba4dacfce39164e5aa5a9e26585c6ec88190e0233898658ae11d2c"
+    },
+    {
+      "path": "P4-05.json",
+      "sha256": "1c71e595d2f33a6cfd7440e7dfa985a240889ca94fa31c4ebd5ebda275cea185"
+    },
+    {
+      "path": "P4-06.json",
+      "sha256": "3c079fdcd60a09f7ec9765ce692164079bbf03557d4d002c74daa8977b23f8ae"
+    },
+    {
+      "path": "P4-07.json",
+      "sha256": "6193fb6b24be5c523eee30cac0d4decf22bb6a2f5fa8e1331c421fccc549d109"
+    },
+    {
+      "path": "P4-08.json",
+      "sha256": "fb06e03816ffd380ee665979275824fa2e1fc4be60a2a26560fe360ea13ac989"
+    },
+    {
+      "path": "P4-09.json",
+      "sha256": "e8f1fb6b6179294286fcd663920448d7f7bb6fd0109422b7371b3c334a4d3c6e"
+    },
+    {
+      "path": "P4-10.json",
+      "sha256": "7a724602620ab74eff8f8832a339418bdde020b700c222060f2997a329d5ea40"
+    },
+    {
+      "path": "console.json",
+      "sha256": "41762d7ae0945732da66194823366ff253114e27c5c528c018ed8e6f9260f1e2"
+    },
+    {
+      "path": "console.log",
+      "sha256": "c3d781635e60d3065ae3a299d012ab8b2a57167574cbf70543c31bc1d1af7366"
+    },
+    {
+      "path": "runtime.json",
+      "sha256": "314bf105987cfa8bd38d974801f8e241b7d05d733c79d49af42acd2a426d9e02"
+    },
+    {
+      "path": "runtime.log",
+      "sha256": "8878e1fe4c5297048f1c1c3f36a091979c1b708861ca22905c759d6ac5cc5324"
+    },
+    {
+      "path": "domain.json",
+      "sha256": "6e6ab94b8770052e29cd65537a27387a94324255d7e709046da7f17a0faafa6a"
+    },
+    {
+      "path": "domain.log",
+      "sha256": "713d6cf34812a352a69fa12c4a66b98db9af9209687ccaec5b24e273bf56f6be"
+    },
+    {
+      "path": "integration.json",
+      "sha256": "597e424df111b2ea4574dac78be21abb08bdb1640034cc24235845ad7eccc238"
+    },
+    {
+      "path": "integration.log",
+      "sha256": "f5847a67b3734d0d08af5fcc78b96ecfc6cd0b8a47c1a5b1495c9c3af1b7f9b7"
+    },
+    {
+      "path": "gateway.json",
+      "sha256": "f3a1b1cc61a4222850e67cb66a1d8c6f479b9a9c699bde963d03a8721fe47727"
+    },
+    {
+      "path": "gateway.log",
+      "sha256": "cae50449bb4360c773eb4efda6fff32756c34c47a1a1052737f65c9521344c1e"
+    },
+    {
+      "path": "ui.json",
+      "sha256": "73ee3efc9bb3512c9940108023e2dc75072c350c27bd962c41808bceb77751c6"
+    },
+    {
+      "path": "ui/keyboard-dirty-dialog-1440.png",
+      "sha256": "600384cc244e0caacc3197c3ca1a5bdd1b8cf24304a70c40f8ae2bba4da43bc9"
+    },
+    {
+      "path": "ui/narrow-1024.png",
+      "sha256": "d9f569b6bd5949a78bb3ea4560156a773a8036720e76ad8ce35125319747737e"
+    },
+    {
+      "path": "ui/rotation-first-1440.png",
+      "sha256": "90e75640113044bb7c96bb46469408f972195ed69ff1190547138425f04607c9"
+    },
+    {
+      "path": "ui/rotation-second-confirmed-1440.png",
+      "sha256": "46472a09639558a86247d91bd430d37b65bf6eabe5252c09843b9cd2f2dbba7c"
+    },
+    {
+      "path": "ui/overview-minimal-reader.png",
+      "sha256": "47277e58be74e24c0707629a8578b51cc0af602d8fd14d2a443bce4e16a77979"
+    },
+    {
+      "path": "ui/exact-count-partial.png",
+      "sha256": "5eb1103ad167fbd12efdce77b0bad3c3e4c45b52235db928befe655bc2f3b9f4"
+    },
+    {
+      "path": "ui/metrics-denied.png",
+      "sha256": "d7d4440dc617edbef5064a86a22b0d65894f599acd28926ddddb0c3145864d2c"
+    },
+    {
+      "path": "ui/audit-denied.png",
+      "sha256": "8e7189ebc6209d7da6bdfd664dae45f53228c3262dc70d24e2f8af410e9159a9"
+    },
+    {
+      "path": "ui/unknown-no-source.png",
+      "sha256": "76f93d83c7a9e271d46d408c05c640297de2479ab3edc367eac6666955ae4a7b"
+    },
+    {
+      "path": "ui/local-reset.png",
+      "sha256": "bf5d8bcc73765f698fb49099ad7e485ae93932dca22ad5499dd85f2425663eb6"
+    },
+    {
+      "path": "ui/impact-409.png",
+      "sha256": "6c2df59b628367ea3685d268b16a318be44f2014671b3591ce92c2d6d732947c"
+    },
+    {
+      "path": "ui/first-change.png",
+      "sha256": "34e71cb25b07511ab42ca607b111d363489271a43623121e1ce3d7a60c9353ff"
+    },
+    {
+      "path": "protection.json",
+      "sha256": "1134c3268b67a2a428868229c1d95115c1b8f2c43c59f26b6ae770713ae17ba4"
+    },
+    {
+      "path": "images.json",
+      "sha256": "8cc39352c55346318ae534df012915b6c021928b0feb015ba37babee153cfb00"
+    },
+    {
+      "path": "static-files.json",
+      "sha256": "1469f984c0d2d557d7b5f039df54c85274e8f58dfa2648320c7d4b7a1347f52f"
+    },
+    {
+      "path": "sdk.log",
+      "sha256": "dfbda2436cac0ec13843ba39dc62aa393e85fefbfc29c7982342260c053b2fc0"
+    },
+    {
+      "path": "sdk.json",
+      "sha256": "c275918ab8b340a17a0b1499c1a983efa2f79c1d95d94ed62e27a886b4cf0511"
+    },
+    {
+      "path": "clone-isolation.json",
+      "sha256": "d1eb795f840898fb54369a629cb9cae27dd7beb491e9d92ce85e992c168f9c38"
+    }
+  ],
+  "privateOriginalProofSha256": "e6603b6521d5b4d5dd342c072a990e91506763d9a546b8d7d22e5f12d113204b",
+  "runtimeStateAndSecretInventoryOmitted": true
+}

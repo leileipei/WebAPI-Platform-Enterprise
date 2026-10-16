@@ -1,0 +1,27 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "kind": "runtime-observations",
+  "observedAt": "2026-10-16T01:50:01.080949Z",
+  "sourceRecord": "ui/observations.json",
+  "sourceRecordSha256": "4452af712602faec05ec32bcfd3130bfc2cb416234cf623a2fb548c6d8339d0a",
+  "sourceKind": "runtime-observations",
+  "data": {
+    "unauthorizedMetricsStatus": 403,
+    "unauthorizedAuditStatus": 403,
+    "secretModalClearedBeforeScreenshot": true,
+    "secretModalVisible": false,
+    "dialogCountAfterHumanClose": 0,
+    "credentialCountAfterHumanCreate": 2,
+    "credentialLast4": "pc6A",
+    "uiScreenshot": "ui/secret-modal-closed.png",
+    "uiScreenshotSha256": "d7751c50e4f114b0a07b0bfac81a71912818b773064f8e6f01fe63825dda3bdf",
+    "credentialVerificationRecord": "ui-admin-handoff/created-credential-verification.json",
+    "credentialVerificationSha256": "ca8a223d5e2951b26624ea1722ba1d95dc672dd6db68dbb64c230930f6365e51",
+    "scopeDenialsRecord": "ui-fixtures/context.json",
+    "scopeDenialsSha256": "43832a6f1642194ba2a93ab9f13ebf26f45c78f9e61b0db6d4787b2dddaebe5f",
+    "observationBoundary": "Actual human report plus empty dialog headings and masked UI after close; no password/secret DOM value or hidden application state read."
+  }
+}
