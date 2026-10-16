@@ -1,0 +1,526 @@
+[
+  {
+    "id": 1,
+    "name": "登录页",
+    "prototypeRoute": "/login",
+    "consoleRoute": "/",
+    "status": "当前支持范围已检查",
+    "checked": "错误登录反馈、本地角色切换、真实SSO与平台退出",
+    "screens": [
+      "01-login.jpg",
+      "02-login-denied.jpg",
+      "72-sso-login-options.jpg",
+      "73-keycloak-login.jpg",
+      "75-sso-readonly-organization.jpg",
+      "76-sso-logout.jpg"
+    ],
+    "capabilityBoundary": "未登录时提供本地 Cookie 与 OIDC SSO 登录；登录后首页显示组织管理。本地管理员恢复入口保留。"
+  },
+  {
+    "id": 2,
+    "name": "企业工作台",
+    "prototypeRoute": "/dashboard",
+    "consoleRoute": "/dashboard",
+    "status": "当前支持范围已检查",
+    "checked": "授权范围工作台，24h缺失展示Partial和空值",
+    "screens": [
+      "20-dashboard.jpg"
+    ],
+    "capabilityBoundary": "复用当前授权项目/环境的 API、24h 指标、网关、未确认告警和最近发布；最近50条中的待审批不等于全部或个人任务。数据源异常与缺失分别展示。"
+  },
+  {
+    "id": 3,
+    "name": "组织管理",
+    "prototypeRoute": "/governance/organizations",
+    "consoleRoute": "/organizations",
+    "status": "当前支持范围已检查",
+    "checked": "组织表格与当前授权组织",
+    "screens": [
+      "03-organizations.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 4,
+    "name": "项目管理",
+    "prototypeRoute": "/governance/projects",
+    "consoleRoute": "/projects",
+    "status": "当前支持范围已检查",
+    "checked": "项目表格与组织关联",
+    "screens": [
+      "21-projects.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 5,
+    "name": "环境管理",
+    "prototypeRoute": "/projects/{projectId}/environments",
+    "consoleRoute": "/environments",
+    "status": "当前支持范围已检查",
+    "checked": "编辑往返保存、未保存保护、原环境名称恢复",
+    "screens": [
+      "23-unsaved-guard.jpg",
+      "24-environment-roundtrip.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 6,
+    "name": "API 目录",
+    "prototypeRoute": "/apis",
+    "consoleRoute": "/apis",
+    "status": "当前支持范围已检查",
+    "checked": "目录、详情与工作/运行配置分离",
+    "screens": [
+      "25-api-catalog.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 7,
+    "name": "新建/编辑 API 向导",
+    "prototypeRoute": "/apis/new",
+    "consoleRoute": "/apis",
+    "status": "当前支持范围已检查",
+    "checked": "新建API成功及六步配置发布向导",
+    "screens": [
+      "26-api-create.jpg",
+      "27-api-created.jpg",
+      "13-wizard-review.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 8,
+    "name": "OpenAPI 导入",
+    "prototypeRoute": "/apis/import",
+    "consoleRoute": "/imports",
+    "status": "当前支持范围已检查",
+    "checked": "非法JSON拒绝、Operation预览、真实导入API/版本/Route",
+    "screens": [
+      "29-import-invalid.jpg",
+      "30-import-preview.jpg",
+      "31-import-succeeded.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 9,
+    "name": "API 详情总览",
+    "prototypeRoute": "/apis/{id}",
+    "consoleRoute": "/apis",
+    "status": "当前支持范围已检查",
+    "checked": "资源修订、运行配置、详情入口",
+    "screens": [
+      "06-api-detail-versions.jpg",
+      "71-scoped-readonly.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 10,
+    "name": "API 版本管理",
+    "prototypeRoute": "/apis/{id}/versions",
+    "consoleRoute": "/apis",
+    "status": "当前支持范围已检查",
+    "checked": "Draft/Published与封存、只读角色编辑禁用",
+    "screens": [
+      "06-api-detail-versions.jpg",
+      "71-scoped-readonly.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 11,
+    "name": "版本差异/Breaking Change",
+    "prototypeRoute": "/apis/{id}/versions/compare",
+    "consoleRoute": "/apis",
+    "status": "当前支持范围已检查",
+    "checked": "Breaking/Unknown/Limited报告、强确认风险评审并关联发布",
+    "screens": [
+      "10-version-comparison.jpg",
+      "11-risk-confirmation.jpg",
+      "12-review-recorded.jpg"
+    ],
+    "capabilityBoundary": "支持契约比较、历史报告、导出、追加风险评审及可选发布证据；规则覆盖限制按报告展示，正式审批与网关发布独立执行。"
+  },
+  {
+    "id": 12,
+    "name": "Route 管理",
+    "prototypeRoute": "/apis/{id}/routes",
+    "consoleRoute": "/routes",
+    "status": "当前支持范围已检查",
+    "checked": "Route保存至工作区，发布后快照生效",
+    "screens": [
+      "14-route-saved.jpg",
+      "32-routes.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 13,
+    "name": "Schema 与参数",
+    "prototypeRoute": "/apis/{id}/schema",
+    "consoleRoute": "/apis",
+    "status": "当前支持范围已检查",
+    "checked": "参数保存、Schema并发412保留输入、查看最新后合并成功",
+    "screens": [
+      "07-parameters-saved.jpg",
+      "08-schema-conflict.jpg",
+      "09-schema-saved.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 14,
+    "name": "Upstream Cluster 列表",
+    "prototypeRoute": "/traffic/clusters",
+    "consoleRoute": "/clusters",
+    "status": "当前支持范围已检查",
+    "checked": "真实后端集群列表",
+    "screens": [
+      "33-clusters.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 15,
+    "name": "Cluster 详情与 Destination",
+    "prototypeRoute": "/traffic/clusters/{id}",
+    "consoleRoute": "/clusters",
+    "status": "当前支持范围已检查",
+    "checked": "Destination地址、启用和修订展示",
+    "screens": [
+      "34-cluster-detail.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 16,
+    "name": "策略中心",
+    "prototypeRoute": "/policies",
+    "consoleRoute": "/policies",
+    "status": "修复复测通过；4192待合并升级",
+    "checked": "策略筛选；非默认类型选择导航修复",
+    "screens": [
+      "35-policies.jpg",
+      "36-policy-type-navigation-blocked.jpg",
+      "38-policy-type-navigation-fixed.jpg"
+    ],
+    "capabilityBoundary": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；四类策略已接入本机控制台。"
+  },
+  {
+    "id": 17,
+    "name": "策略编辑器",
+    "prototypeRoute": "/policies/{id}",
+    "consoleRoute": "/policies",
+    "status": "修复复测通过；4192待合并升级",
+    "checked": "2500ms超时策略保存；改名复制后进入新ID详情",
+    "screens": [
+      "37-policy-copy-navigation-blocked.jpg",
+      "39-policy-saved.jpg",
+      "40-policy-copy-fixed.jpg"
+    ],
+    "capabilityBoundary": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；四类策略已接入本机控制台。"
+  },
+  {
+    "id": 18,
+    "name": "应用列表",
+    "prototypeRoute": "/applications",
+    "consoleRoute": "/applications",
+    "status": "当前支持范围已检查",
+    "checked": "真实应用列表",
+    "screens": [
+      "41-applications.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 19,
+    "name": "应用详情",
+    "prototypeRoute": "/applications/{id}",
+    "consoleRoute": "/applications",
+    "status": "当前支持范围已检查",
+    "checked": "凭证与API授权页签",
+    "screens": [
+      "42-application-credentials.jpg",
+      "45-application-authorization-settled.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 20,
+    "name": "凭证管理",
+    "prototypeRoute": "/applications/{id}/credentials",
+    "consoleRoute": "/applications",
+    "status": "当前支持范围已检查",
+    "checked": "非法日期窗口界面拒绝、输入保留、原窗口恢复；API另证422",
+    "screens": [
+      "77-credential-invalid-window-confirmed.jpg",
+      "78-credential-window-restored.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 21,
+    "name": "API 授权矩阵",
+    "prototypeRoute": "/applications/{id}/permissions",
+    "consoleRoute": "/applications",
+    "status": "当前支持范围已检查",
+    "checked": "API/环境/有效期授权集合（当前为表格编辑，非可视矩阵）",
+    "screens": [
+      "45-application-authorization-settled.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 22,
+    "name": "发布中心",
+    "prototypeRoute": "/releases",
+    "consoleRoute": "/releases",
+    "status": "当前支持范围已检查",
+    "checked": "真实两次发布与审批模板",
+    "screens": [
+      "46-releases.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 23,
+    "name": "发布详情与审批",
+    "prototypeRoute": "/releases/{id}",
+    "consoleRoute": "/releases",
+    "status": "当前支持范围已检查",
+    "checked": "申请人不可自批、两个独立审批人、发布成功和双ACK",
+    "screens": [
+      "15-release-waiting.jpg",
+      "16-api-approved.jpg",
+      "17-security-approved.jpg",
+      "18-release-succeeded.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 24,
+    "name": "审批中心",
+    "prototypeRoute": "/approvals",
+    "consoleRoute": "/approvals",
+    "status": "当前支持范围已检查",
+    "checked": "等待状态筛选、全部计数与当前页等待计数分离",
+    "screens": [
+      "47-approvals.jpg",
+      "16-api-approved.jpg",
+      "17-security-approved.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 25,
+    "name": "Config Snapshot",
+    "prototypeRoute": "/gateway/configs",
+    "consoleRoute": "/snapshots",
+    "status": "当前支持范围已检查",
+    "checked": "两个真实快照、管理视图与安全导出入口",
+    "screens": [
+      "48-snapshots.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 26,
+    "name": "Gateway 节点",
+    "prototypeRoute": "/gateway/nodes",
+    "consoleRoute": "/nodes",
+    "status": "当前支持范围已检查",
+    "checked": "双节点Ready，实际与目标v2/seq2一致",
+    "screens": [
+      "49-nodes.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 27,
+    "name": "Gateway 节点详情",
+    "prototypeRoute": "/gateway/nodes/{id}",
+    "consoleRoute": "/nodes",
+    "status": "当前支持范围已检查",
+    "checked": "实例身份、心跳和真实Applied/ACK事件",
+    "screens": [
+      "19-node-detail.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 28,
+    "name": "监控总览",
+    "prototypeRoute": "/observability/metrics",
+    "consoleRoute": "/observability/metrics",
+    "status": "当前支持范围已检查",
+    "checked": "短生命周期环境1h为Partial；另5minAPI指标Available且24条样本",
+    "screens": [
+      "50-metrics.jpg"
+    ],
+    "capabilityBoundary": "12项KPI、7类趋势、API/应用排序和节点覆盖；实际三源验收通过，估计值与Partial明确呈现"
+  },
+  {
+    "id": 29,
+    "name": "API 监控详情",
+    "prototypeRoute": "/observability/apis/{apiId}",
+    "consoleRoute": "/observability/metrics",
+    "status": "当前支持范围已检查",
+    "checked": "API过滤继承及缺失信息正确展示",
+    "screens": [
+      "51-api-metrics.jpg"
+    ],
+    "capabilityBoundary": "从总览进入 /observability/apis/{apiId}；支持应用/状态/后端分组、日志/Trace与规则预填"
+  },
+  {
+    "id": 30,
+    "name": "访问日志",
+    "prototypeRoute": "/observability/logs",
+    "consoleRoute": "/observability/logs",
+    "status": "当前支持范围已检查",
+    "checked": "真实Loki请求记录、脱敏IP详情和Trace关联",
+    "screens": [
+      "52-logs.jpg",
+      "53-log-detail.jpg"
+    ],
+    "capabilityBoundary": "真实Loki、签名游标、脱敏详情、授权CSV、IP只进POST；单纳秒源限制显式截断"
+  },
+  {
+    "id": 31,
+    "name": "Trace 查询",
+    "prototypeRoute": "/observability/traces",
+    "consoleRoute": "/observability/traces",
+    "status": "当前支持范围已检查",
+    "checked": "真实Tempo查询、2个可访问span与瀑布图；范围Partial显式展示",
+    "screens": [
+      "54-trace-waterfall.jpg",
+      "80-trace-waterfall-visible.jpg"
+    ],
+    "capabilityBoundary": "真实Tempo、安全span投影与瀑布图、跨环境同Trace隔离；源恢复重新查询"
+  },
+  {
+    "id": 32,
+    "name": "告警中心",
+    "prototypeRoute": "/observability/alerts",
+    "consoleRoute": "/observability/alerts",
+    "status": "当前支持范围已检查",
+    "checked": "真实指标触发Open，界面确认Ack、人工Resolved及历史",
+    "screens": [
+      "59-alert-live.jpg",
+      "60-alert-acked.jpg",
+      "61-alert-resolved-history.jpg"
+    ],
+    "capabilityBoundary": "PG持续告警、确认/解决/静默/取消静默、历史流转、Unknown与冻结Scope"
+  },
+  {
+    "id": 33,
+    "name": "告警规则",
+    "prototypeRoute": "/observability/alert-rules",
+    "consoleRoute": "/observability/alert-rules",
+    "status": "当前支持范围已检查",
+    "checked": "范围预览、只读测试初始Unknown、保存规则后真实触发",
+    "screens": [
+      "57-alert-rule-tested.jpg",
+      "58-alert-rule-saved.jpg"
+    ],
+    "capabilityBoundary": "创建/编辑/启停、范围预览与只读测试、412保留输入；外部通知仅保存意向"
+  },
+  {
+    "id": 34,
+    "name": "用户管理",
+    "prototypeRoute": "/governance/users",
+    "consoleRoute": "/users",
+    "status": "当前支持范围已检查",
+    "checked": "本地与SSO账号、角色分配入口",
+    "screens": [
+      "62-users.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 35,
+    "name": "角色管理",
+    "prototypeRoute": "/governance/roles",
+    "consoleRoute": "/roles",
+    "status": "当前支持范围已检查",
+    "checked": "系统角色不可直接改；自定义角色修订2",
+    "screens": [
+      "05-role-saved.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 36,
+    "name": "权限矩阵",
+    "prototypeRoute": "/governance/roles/{id}/permissions",
+    "consoleRoute": "/roles",
+    "status": "当前支持范围已检查",
+    "checked": "44项权限矩阵实际勾选保存；精确6项读取权限与API写403",
+    "screens": [
+      "04-permission-matrix.jpg",
+      "05-role-saved.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 37,
+    "name": "数据范围",
+    "prototypeRoute": "/governance/users/{id}/scopes",
+    "consoleRoute": "/scopes",
+    "status": "当前范围已检查；动态撤销待授权",
+    "checked": "Scope非法JSON保留、合法保存、环境范围不可读取项目定义、读角色写403；动态撤销待具体授权",
+    "screens": [
+      "64-data-scopes.jpg",
+      "65-scope-invalid-json.jpg",
+      "66-scope-saved.jpg",
+      "71-scoped-readonly.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 38,
+    "name": "审计日志",
+    "prototypeRoute": "/governance/audit",
+    "consoleRoute": "/audit",
+    "status": "当前支持范围已检查",
+    "checked": "操作记录与安全摘要导出API200；浏览器下载事件未捕获",
+    "screens": [
+      "67-audit.jpg",
+      "79-audit-export-feedback.jpg"
+    ],
+    "capabilityBoundary": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 39,
+    "name": "SSO / OIDC 配置",
+    "prototypeRoute": "/settings/sso",
+    "consoleRoute": "/settings/sso",
+    "status": "当前支持范围已检查",
+    "checked": "独立Keycloak实际登录/回调、只读组织可见、项目API范围外不可读、平台退出",
+    "screens": [
+      "68-sso-settings.jpg",
+      "72-sso-login-options.jpg",
+      "73-keycloak-login.jpg",
+      "74-sso-out-of-scope.jpg",
+      "75-sso-readonly-organization.jpg",
+      "76-sso-logout.jpg"
+    ],
+    "capabilityBoundary": "真实 OIDC Provider 治理、显式账号绑定、修订保护与审计；本机独立 Keycloak 登录已验证。企业 IdP 与生产 TLS 需单独验收。"
+  },
+  {
+    "id": 40,
+    "name": "系统设置",
+    "prototypeRoute": "/settings/system",
+    "consoleRoute": "/settings/system",
+    "status": "当前支持范围已检查",
+    "checked": "五组17字段、修改预览确认、审计保留意向保存修订1",
+    "screens": [
+      "69-system-settings.jpg",
+      "70-system-setting-saved.jpg"
+    ],
+    "capabilityBoundary": "平台级五组17字段；保存/预览/引用操作/修订保护与审计已接入本机控制台。新登录、新账号、新路由和审计CSV有实际消费者；部署参数、保留目标与通知仅配置意向。"
+  }
+]

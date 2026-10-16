@@ -1,0 +1,9 @@
+{
+  "reviewer": "scope_editor_review",
+  "readOnly": true,
+  "findingsP1P2": 0,
+  "scopeExpansion": false,
+  "testedFocusedCases": 5,
+  "limitations": "SSR与纯函数无法验证useEffect和实际键盘接线；本批另有27项真实浏览器隔离检查。",
+  "summary": "两个组件仅调整焦点入口、恢复、Tab边界及Escape默认行为；字段、权限、保存与风险命令、ETag、幂等、412和草稿规则保留。"
+}

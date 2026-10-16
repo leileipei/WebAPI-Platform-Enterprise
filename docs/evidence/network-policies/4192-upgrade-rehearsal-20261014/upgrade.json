@@ -1,0 +1,100 @@
+{
+  "passed": true,
+  "ownerId": "e96ed9c3-bf2e-4cf4-a402-955f8634f796",
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+  "status": "Ready",
+  "rows": {
+    "tables": 71,
+    "oldRows": 1028,
+    "oldRowsPreserved": true,
+    "allowedNewMigrationHistoryRows": 1,
+    "newTables": [
+      "release_frozen_contracts"
+    ]
+  },
+  "binary": {
+    "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+    "applicationContainers": 8,
+    "applicationHashes": 281,
+    "staticHashes": 3
+  },
+  "calls": [
+    {
+      "port": 62868,
+      "status": 200,
+      "backendId": "A",
+      "apiKeyForwarded": false
+    },
+    {
+      "port": 62869,
+      "status": 200,
+      "backendId": "A",
+      "apiKeyForwarded": false
+    }
+  ],
+  "authentication": {
+    "userId": "845f5566-d92f-4aa0-ab37-f6295696a40d",
+    "username": "admin",
+    "existingPipelinePermissions": true
+  },
+  "sso": {
+    "actualOidcCodeExchange": true,
+    "userId": "cfc402c9-e891-4822-9e8e-932ec907f90f",
+    "rolesOrScopesChanged": false
+  },
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "instanceId": "8dcbcdea-8ed1-4b2d-b6ed-88e74fa1f2c3",
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "acknowledged": true,
+      "runtimeConfirmed": true
+    },
+    {
+      "name": "local-gateway-a",
+      "instanceId": "4b67152e-3a96-4d9e-91de-7208595cfa1c",
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "acknowledged": true,
+      "runtimeConfirmed": true
+    }
+  ],
+  "migration": {
+    "passed": true,
+    "migrationHistory": [
+      "20261003182012_InitialCore",
+      "20261003201632_PublishCoordinatorIdentity",
+      "20261003213457_RecoveryReference",
+      "20261004030000_ObservabilityAlerts",
+      "20261005090000_SystemSettings",
+      "20261005120000_SsoOidc",
+      "20261005123210_SsoDisplayEmail",
+      "20261005152401_SsoSecretVersion",
+      "20261006090000_ApiVersionComparisons",
+      "20261006165518_ContractManagement",
+      "20261008020000_ApprovalInboxIndexes",
+      "20261008030000_ExternalNotifications",
+      "20261009010000_EnvironmentAccessAddresses",
+      "20261009011000_ReleaseAccessContexts",
+      "20261009020000_ReleaseDelivery",
+      "20261009030000_ReleasePipelines",
+      "20261010010000_PipelineProjectionCursor",
+      "20261010091247_GatewayQueryIndexes",
+      "20261012004548_ReleaseFrozenContracts"
+    ],
+    "rows": 4,
+    "mismatches": 0,
+    "originalCandidateBytesUnchanged": true,
+    "tables": 71,
+    "oldRows": 1028,
+    "oldRowsPreserved": true,
+    "allowedNewMigrationHistoryRows": 1,
+    "newTables": [
+      "release_frozen_contracts"
+    ],
+    "migrationBeforeApplicationStartup": true
+  },
+  "original4192Upgraded": false
+}

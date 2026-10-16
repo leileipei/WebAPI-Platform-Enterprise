@@ -1,0 +1,53 @@
+{
+  "complete": true,
+  "sourceRevision": "6fcb6bb90d8c65a69104124be0fc4f18fa2512d7",
+  "imageId": "sha256:e5e019690cacf60afd929c7b37d8b8efa7b034e08294b4d30bb56183cd2d791a",
+  "phase": "Ready",
+  "nodes": [
+    {
+      "name": "local-gateway-a",
+      "instanceId": "d90fcdf6-93fe-42f7-82ba-e4c9cef8697a",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T04:58:40.143789+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-b",
+      "instanceId": "aaf35271-6a51-4a92-8376-5066d5fa3d10",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T04:58:40.14705+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    }
+  ],
+  "originalOwnerAccountsDataSecretsSsoPreserved": true,
+  "originalAdminSessionSurvived": true,
+  "historicalArchivesUnchanged": 18,
+  "newBusinessPublish": false,
+  "maintenanceToolRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ]
+}

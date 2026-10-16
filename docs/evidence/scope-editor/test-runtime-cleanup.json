@@ -1,0 +1,10 @@
+{
+  "verifiedAt": "2026-10-06T12:22:49.449Z",
+  "projectName": "webapi-enterprise-local-test-14729c15-36dd-473a-b6b8-e17d5d50e88c",
+  "phase": "Stopped",
+  "services": 13,
+  "runningServices": 0,
+  "retainedOriginalSyntheticVolumes": true,
+  "preview5175Stopped": true,
+  "original4192Untouched": true
+}

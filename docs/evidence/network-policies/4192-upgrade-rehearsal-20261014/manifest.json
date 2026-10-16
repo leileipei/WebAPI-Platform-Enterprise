@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-14T14:39:06.308Z",
+  "authorizedRehearsalComplete": true,
+  "readyForOriginal4192CutoverReview": true,
+  "original4192Cutover": false,
+  "requiresSeparateCutoverAuthorization": true,
+  "noSourceCommitOrPush": true,
+  "package2Paused": true,
+  "candidateRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "candidateImage": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+  "originalSourceRevision": "9d5832952ed91fb99defc2cf3eae81cd8cee3afa",
+  "artifacts": [
+    {
+      "name": "backup.json",
+      "bytes": 1112,
+      "sha256": "0c825408ef8c669b0ca8fef48ecb2883ad0ac817bc6acfdb959eb75d481d719e"
+    },
+    {
+      "name": "restore-old.json",
+      "bytes": 907,
+      "sha256": "3aaf0e8af721f13e0560db42630518f4143c9be3e28054686463bb4a8f88935a"
+    },
+    {
+      "name": "sso.json",
+      "bytes": 759,
+      "sha256": "5ce3bf48f079c0333322e3b7a6d9c665a2e8b78e346b44848a8d84e0f6c17d00"
+    },
+    {
+      "name": "upgrade.json",
+      "bytes": 2831,
+      "sha256": "08c8857049170e39d0c0665efd1e807e039c17886da2d7a4256865b9c5dda556"
+    },
+    {
+      "name": "software-fallback.json",
+      "bytes": 2214,
+      "sha256": "5e976ed87c9894f845988ba92147d6167bb1534d0da4e2436f2a5e63de444eeb"
+    },
+    {
+      "name": "policies.json",
+      "bytes": 1670,
+      "sha256": "5734ae120343a2ea3a1f639753bd993c017824159b516ba0e0ceaae3b52c5304"
+    },
+    {
+      "name": "policy-execution.json",
+      "bytes": 725,
+      "sha256": "1bdc3ed1aabf57a09279f608eb4fc76c3b714455245ce5b08150b536f052628a"
+    },
+    {
+      "name": "observation.json",
+      "bytes": 200,
+      "sha256": "fb0e4b6c8f73d4e609763ce49805596d76fda0e5ff52d4a87e33f8153cfb9eca"
+    },
+    {
+      "name": "cold-restore.json",
+      "bytes": 1932,
+      "sha256": "42fec3bdb7b9c8a97ce8e08abac7f629d0c42eeefac82fea330316a67a33b9de"
+    },
+    {
+      "name": "protection.json",
+      "bytes": 882,
+      "sha256": "7d072891a73977ab73b094131adc3ffab3bd576d2526f0afefcdb5cdd868c267"
+    },
+    {
+      "name": "policy-previews.json",
+      "bytes": 747,
+      "sha256": "22d18c1fb946682aec3c720d17352b9d483dcfa97cb34c9b45eb56f21bf9a86a"
+    },
+    {
+      "name": "recovery-conditions.json",
+      "bytes": 539,
+      "sha256": "b5bd8d26c669750c79efaa2b340928fe864fe27ea162400eedd7511052166a5a"
+    },
+    {
+      "name": "rehearsal-provenance.json",
+      "bytes": 3619,
+      "sha256": "564db1a12e776f064f05b70bb40bf80849c98950791b2e7e1115171482026964"
+    }
+  ],
+  "document": {
+    "file": "docs/deployment/network-policies-4192-upgrade-rehearsal.md",
+    "bytes": 8639,
+    "sha256": "5912d9917c3bc5b5675f4daa9af49fdb9c26d7704ebb98a7428e5e7b941318f2",
+    "links": 16
+  },
+  "actualPrivateValuesScanned": 35,
+  "secretMatches": 0,
+  "preservedFailureCount": 6
+}

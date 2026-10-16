@@ -1,0 +1,18 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "kind": "runtime-observations",
+  "observedAt": "2026-10-15T16:33:17.907Z",
+  "sourceRecord": "downgrade-guard.json",
+  "sourceRecordSha256": "a5a847c84ada2ee362c88d51db0cc8f61d17d560990f9777eaa9f36812fe6af8",
+  "sourceKind": "runtime-observations",
+  "data": {
+    "legacyDowngradeBlocked": true,
+    "originalRequestsByRunner": 0,
+    "legacySourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+    "legacyImageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+    "compatibleManagementStatus": 200
+  }
+}

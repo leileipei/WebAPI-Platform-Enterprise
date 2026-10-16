@@ -1,0 +1,126 @@
+{
+  "time": "2026-10-06T10:29:00.993Z",
+  "metrics": {
+    "sourceState": "Available",
+    "coverage": {
+      "complete": true,
+      "missingNodes": [],
+      "reason": null,
+      "truncated": false
+    },
+    "kpis": [
+      {
+        "metric": "request_count",
+        "value": 24.166666666666664,
+        "unit": "requests",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "request_rps",
+        "value": 0.08333362069064605,
+        "unit": "requests/s",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "success_ratio",
+        "value": 1,
+        "unit": "ratio",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "error_4xx_count",
+        "value": 0,
+        "unit": "requests",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "error_4xx_ratio",
+        "value": 0,
+        "unit": "ratio",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "error_5xx_count",
+        "value": 0,
+        "unit": "requests",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "error_5xx_ratio",
+        "value": 0,
+        "unit": "ratio",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "latency_p50_ms",
+        "value": 2.6086956521739126,
+        "unit": "ms",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "latency_p95_ms",
+        "value": 4.956521739130434,
+        "unit": "ms",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "latency_p99_ms",
+        "value": 8.799999999999995,
+        "unit": "ms",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "unhealthy_destinations",
+        "value": null,
+        "unit": "destinations",
+        "sampleCount": 24,
+        "state": "NoData"
+      },
+      {
+        "metric": "cancelled_count",
+        "value": 0,
+        "unit": "requests",
+        "sampleCount": 24,
+        "state": "Available"
+      },
+      {
+        "metric": "circuit_rejected_count",
+        "value": null,
+        "unit": "requests",
+        "sampleCount": 0,
+        "state": "NoData"
+      },
+      {
+        "metric": "rate_limit_store_unavailable_count",
+        "value": null,
+        "unit": "requests",
+        "sampleCount": 0,
+        "state": "NoData"
+      }
+    ]
+  },
+  "logs": {
+    "sourceState": "Available",
+    "rows": 24
+  },
+  "traces": {
+    "sourceState": "Partial",
+    "rows": 23
+  },
+  "credentialInvalidWindow": 422,
+  "rule": {
+    "id": "7937517a-d8e9-47a8-be57-0012dd169c21",
+    "revision": 1,
+    "state": "Known"
+  }
+}

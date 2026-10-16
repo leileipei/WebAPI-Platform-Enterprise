@@ -1,0 +1,161 @@
+{
+  "passed": true,
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "stage": "isolated-pre-install",
+  "sections": [
+    "P4-01",
+    "P4-02",
+    "P4-03",
+    "P4-04",
+    "P4-05",
+    "P4-06",
+    "P4-07",
+    "P4-08",
+    "P4-09",
+    "P4-10"
+  ],
+  "sdkPassed": 10,
+  "suites": [
+    {
+      "name": "console",
+      "passed": 321,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "runtime",
+      "passed": 310,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "domain",
+      "passed": 1091,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "integration",
+      "passed": 1549,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "gateway",
+      "passed": 446,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "originalRuntimeChanged": false,
+  "actualContainers": [
+    {
+      "service": "control-plane",
+      "id": "4d19e88e3bdeba85f1b4001a897fea3994a2e20be1ac2eaa2b7498ca5ef8dd85",
+      "image": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+      "networks": [
+        "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1_default"
+      ],
+      "bindings": {}
+    },
+    {
+      "service": "worker",
+      "id": "ed31113c4ca43c2022d36fd3525a3789594e2e3259cce2e21bb23c175b520fcf",
+      "image": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+      "networks": [
+        "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1_default"
+      ],
+      "bindings": {}
+    },
+    {
+      "service": "console",
+      "id": "e1762737f18eaf1b4c68d66cf297a59203eb02f3967a1a5e99f6dac6df974596",
+      "image": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+      "networks": [
+        "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1_default"
+      ],
+      "bindings": {
+        "8080/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "65239"
+          }
+        ]
+      }
+    },
+    {
+      "service": "gateway-a",
+      "id": "d4b891f7cca375cc9ed84f62cdeaaffb8de1a1f0918ec084e9c8eac37e8531e0",
+      "image": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+      "networks": [
+        "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1_default"
+      ],
+      "bindings": {
+        "8080/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "65240"
+          }
+        ]
+      }
+    },
+    {
+      "service": "gateway-b",
+      "id": "b771deb2197081dc9315cdd13a759c908c8abf165f679de3d09e1ab4dd5fe839",
+      "image": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+      "networks": [
+        "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1_default"
+      ],
+      "bindings": {
+        "8080/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "65241"
+          }
+        ]
+      }
+    },
+    {
+      "service": "prod-gateway-a",
+      "id": "2d3ffc812d080bcfb93285fbd55b6a3544ab6ecfae2d350b636be261719e0401",
+      "image": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+      "networks": [
+        "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1_default"
+      ],
+      "bindings": {
+        "8080/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "60852"
+          }
+        ]
+      }
+    },
+    {
+      "service": "prod-gateway-b",
+      "id": "2028f46ec544a257f03f53832e256dfe8e000c302e18e54b76f544740f024cf7",
+      "image": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+      "networks": [
+        "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1_default"
+      ],
+      "bindings": {
+        "8080/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "60853"
+          }
+        ]
+      }
+    }
+  ],
+  "staticHashes": {
+    "console/dist/assets/index-B-bNgDZU.js": "131f6dc5247db3e405093b10acad3b25b5236478215eecc7e2906cff59ba08ee",
+    "console/dist/assets/index-DEw4ls4J.css": "4fcce3ac76567ebb63c6263d3daf1e26245d47ff0b050522bff9f242c7b83002",
+    "console/dist/index.html": "1e0d4ebfd50737c7005f780946cf02c776e8d674fc6400014b60fc587001b79b"
+  },
+  "proofSha256": "e6603b6521d5b4d5dd342c072a990e91506763d9a546b8d7d22e5f12d113204b",
+  "validatedAt": "2026-10-16T02:07:29.765Z"
+}

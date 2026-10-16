@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "sourceRevision": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "fastForward": true,
+  "fourFrontendFilesOnly": true,
+  "protectedLocalFilesPreserved": 168,
+  "existingTrackedModificationsPreserved": 7,
+  "review": "display_fix_merge_review: no important findings",
+  "tests": {
+    "passed": 99,
+    "failed": 0
+  },
+  "pushed": false
+}

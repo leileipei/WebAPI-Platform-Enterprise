@@ -20,6 +20,17 @@ import {classifyMeasurement} from './classification.mjs';
 
 const owner='d09a7407-3d06-45be-932b-5037422a89d2';
 const manifest={owner,project:`webapi-performance-${owner}`};
+test('mutable_harness_validation_exports_fixed_product_without_current_src_overlay',async()=>{
+  const sources=await import('./sources.mjs');assert.equal(typeof sources.exportValidationInputs,'function');
+  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),source='40759aac50f1a6281223b0ec0d45d58e6fb44cb5',harness='760493da5a5bc0f0674e7e6398260c8a5ac4a6c0';
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'webapi-fixed-product-validation-'));
+  try{
+    const target=path.join(directory,'source');const identity=await sources.exportValidationInputs({repo,source,harness,directory:target});
+    assert.equal(identity.source,source);assert.equal(identity.harness,'working-tree-validation');assert.equal(identity.immutable,false);
+    const file='src/WebApi.Infrastructure/Governance/GovernanceService.cs';const expected=spawnSync('git',['-C',repo,'show',source+':'+file]);assert.equal(expected.status,0);assert.deepEqual(fs.readFileSync(path.join(target,file)),expected.stdout);
+    assert.deepEqual(fs.readFileSync(path.join(target,'tools/WebApi.PerformanceHost/MigrationProbe.cs')),fs.readFileSync(path.join(repo,'tools/WebApi.PerformanceHost/MigrationProbe.cs')));
+  }finally{fs.rmSync(directory,{recursive:true,force:true});}
+});
 test('sql_classification_preserves_every_command_and_requires_source_evidence',()=>{
   const source='a'.repeat(40),other='b'.repeat(40),authHash='c'.repeat(64),dataHash='d'.repeat(64),unknownHash='e'.repeat(64);
   const map={schemaVersion:1,sourceCommits:[source],rules:{[authHash]:{classification:'authorization',reason:'Active actor check',sourceRefs:[{commit:source,path:'src/WebApi.Infrastructure/Security/AuthorizationService.cs',line:13}]},[dataHash]:{classification:'data',reason:'Page resource projection',sourceRefs:[{commit:source,path:'src/WebApi.Infrastructure/Catalog/CatalogService.cs',line:19}]}}};
@@ -304,4 +315,18 @@ test('activation_failure_preserves_private_response_and_only_selected_public_met
   const selected=JSON.parse(fs.readFileSync(file,'utf8'));assert.equal(selected.stage,'snapshot-parse');assert.equal(selected.errorType,'ApiException');assert.equal(selected.status,400);assert.equal(JSON.stringify(selected).includes(canary),false);
   const privateFile=path.join(owner.directory,'activation-response-gateway-a-40.json');assert.equal(fs.statSync(privateFile).mode&0o777,0o600);assert.equal(JSON.parse(fs.readFileSync(privateFile,'utf8')).body.includes(canary),true);
  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));fs.rmSync(root,{recursive:true,force:true});}
+});
+
+test('mutable harness export removes deleted renamed and archived-only inputs from fingerprint scope',async()=>{
+ const {exportValidationInputs}=await import('./sources.mjs');const directory=fs.mkdtempSync(path.join(os.tmpdir(),'harness-exact-export-')),repo=path.join(directory,'repo');fs.mkdirSync(repo);
+ const git=(...args)=>{const r=spawnSync('git',['-C',repo,...args],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
+ try{
+  for(const file of ['src/product.cs','tools/WebApi.PerformanceHost/Deleted.cs','tools/WebApi.PerformanceHost/Renamed.cs','tools/WebApi.PerformanceHost/bin/Old.cs','scripts/performance/removed.mjs','deploy/compose.performance.yml','deploy/performance/Dockerfile','scripts/check-gateway-query-performance.sh']){fs.mkdirSync(path.dirname(path.join(repo,file)),{recursive:true});fs.writeFileSync(path.join(repo,file),'old:'+file);}
+  git('init','-q');git('add','-f','.');git('-c','user.name=Performance Test','-c','user.email=performance@invalid.test','commit','-qm','fixed fixture');const fixed=git('rev-parse','HEAD');
+  fs.unlinkSync(path.join(repo,'tools/WebApi.PerformanceHost/Deleted.cs'));fs.renameSync(path.join(repo,'tools/WebApi.PerformanceHost/Renamed.cs'),path.join(repo,'tools/WebApi.PerformanceHost/NewName.cs'));fs.unlinkSync(path.join(repo,'scripts/performance/removed.mjs'));fs.writeFileSync(path.join(repo,'scripts/performance/new.mjs'),'new');
+  const target=path.join(directory,'export'),identity=await exportValidationInputs({repo,source:fixed,harness:fixed,directory:target});
+  for(const absent of ['tools/WebApi.PerformanceHost/Deleted.cs','tools/WebApi.PerformanceHost/Renamed.cs','tools/WebApi.PerformanceHost/bin/Old.cs','scripts/performance/removed.mjs'])assert.equal(fs.existsSync(path.join(target,absent)),false,absent);
+  const actual=[];for(const root of ['tools/WebApi.PerformanceHost','scripts/performance','deploy/compose.performance.yml','deploy/performance/Dockerfile','scripts/check-gateway-query-performance.sh']){const walk=p=>{if(fs.statSync(path.join(target,p)).isDirectory())for(const n of fs.readdirSync(path.join(target,p)))walk(path.join(p,n));else actual.push(p);};walk(root);}
+  assert.deepEqual(actual.sort(),Object.keys(identity.harnessFiles).sort());assert.equal(fs.readFileSync(path.join(target,'src/product.cs'),'utf8'),'old:src/product.cs');
+ }finally{fs.rmSync(directory,{recursive:true,force:true});}
 });

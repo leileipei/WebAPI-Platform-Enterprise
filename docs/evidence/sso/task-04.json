@@ -1,0 +1,18 @@
+{
+  "task": 4,
+  "complete": true,
+  "sourceState": "uncommitted-isolated-worktree",
+  "redFailed": 8,
+  "greenIntegrationPassed": 294,
+  "greenIntegrationFailed": 0,
+  "lockedRestore": true,
+  "localPasswordPreserved": true,
+  "localEmailUniquenessPreserved": true,
+  "ssoDisplayEmailMayRepeat": true,
+  "twoPermissionsRequired": true,
+  "bindingCorrectionNeedsDisabledUser": true,
+  "stampRotates": true,
+  "ssoPasswordLoginDenied": true,
+  "lastLocalAdminConcurrentRemovalProtected": true,
+  "schemaRollbackDuplicateEmailPreflightRequired": true
+}

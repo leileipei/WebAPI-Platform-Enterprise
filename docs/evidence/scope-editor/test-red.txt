@@ -1,0 +1,183 @@
+✖ existing grants round-trip losslessly, including overlapping access modes and invisible scopes (0.618792ms)
+✖ new scopes start with a single environment and read access; incomplete selection cannot become organization-wide (0.08125ms)
+✖ changing a parent clears descendants but retains the intended level until the user selects replacements (0.057667ms)
+✖ only an explicit level change creates organization or project-wide grants (0.376041ms)
+✖ known hierarchy mismatches and arbitrary invisible replacements are rejected while inherited IDs survive other edits (0.064ms)
+✖ summary counts mode changes separately and represents empty scopes as revocation, without collapsing overlaps (0.058708ms)
+✖ stable reads reject revision drift instead of pairing stale scopes with a newer writable revision (0.080083ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 0
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36.202209
+
+✖ failing tests:
+
+test at tests/scope-state.test.mjs:9:1
+✖ existing grants round-trip losslessly, including overlapping access modes and invisible scopes (0.618792ms)
+  AssertionError [ERR_ASSERTION]: structured scope model is implemented
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at ready (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:8:25)
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:10:2)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/scope-state.test.mjs:14:1
+✖ new scopes start with a single environment and read access; incomplete selection cannot become organization-wide (0.08125ms)
+  AssertionError [ERR_ASSERTION]: structured scope model is implemented
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at ready (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:8:25)
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:15:2)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/scope-state.test.mjs:20:1
+✖ changing a parent clears descendants but retains the intended level until the user selects replacements (0.057667ms)
+  AssertionError [ERR_ASSERTION]: structured scope model is implemented
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at ready (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:8:25)
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:21:2)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/scope-state.test.mjs:25:1
+✖ only an explicit level change creates organization or project-wide grants (0.376041ms)
+  AssertionError [ERR_ASSERTION]: structured scope model is implemented
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at ready (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:8:25)
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:26:2)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/scope-state.test.mjs:30:1
+✖ known hierarchy mismatches and arbitrary invisible replacements are rejected while inherited IDs survive other edits (0.064ms)
+  AssertionError [ERR_ASSERTION]: structured scope model is implemented
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at ready (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:8:25)
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:31:2)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/scope-state.test.mjs:36:1
+✖ summary counts mode changes separately and represents empty scopes as revocation, without collapsing overlaps (0.058708ms)
+  AssertionError [ERR_ASSERTION]: structured scope model is implemented
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at ready (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:8:25)
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:37:2)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/scope-state.test.mjs:42:1
+✖ stable reads reject revision drift instead of pairing stale scopes with a newer writable revision (0.080083ms)
+  AssertionError [ERR_ASSERTION]: structured scope model is implemented
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at ready (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:8:25)
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:43:2)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

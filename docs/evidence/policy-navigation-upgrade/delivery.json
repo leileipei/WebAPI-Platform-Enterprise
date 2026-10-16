@@ -1,0 +1,27 @@
+{
+  "complete": true,
+  "path": "deliverables/WebAPI_Enterprise_策略导航修复_4192升级补充_20261006.zip",
+  "sha256": "4eda1d45914b17dee64cc5aed86d4852dc1352ae47ae4c983776fcaae67cd3c1",
+  "entries": 29,
+  "crcReadback": true,
+  "manifestShaReadback": true,
+  "sensitiveMarkerMatches": 0,
+  "privateBackupsIncluded": false,
+  "finalReadback": {
+    "complete": true,
+    "time": "2026-10-06T11:49:29.960908+00:00",
+    "packageSha256": "4eda1d45914b17dee64cc5aed86d4852dc1352ae47ae4c983776fcaae67cd3c1",
+    "entries": 29,
+    "crcVerified": true,
+    "manifestShaVerified": true,
+    "extractedFilesEqual": true,
+    "reportLocalLinksVerified": 16,
+    "reportAllFiveImagesLoaded": true,
+    "reportHorizontalOverflow": false,
+    "reportVisuallyReviewed": true,
+    "originalFilesPreserved": 413,
+    "historicalArchivesPreserved": 27,
+    "temporaryReportHostStopped": true,
+    "temporaryCuaTabsClosed": true
+  }
+}

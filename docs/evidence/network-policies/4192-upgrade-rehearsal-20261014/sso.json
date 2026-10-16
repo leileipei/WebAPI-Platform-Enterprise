@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "sourceProviderId": "fc834340-2813-4c59-9d3d-f2b754c77165",
+  "targetProviderId": "9da1b3a0-831e-4f22-a2e9-e6d30351e24e",
+  "userId": "cfc402c9-e891-4822-9e8e-932ec907f90f",
+  "subject": "7e13b9b1-baf8-44a0-8671-96f25215844a",
+  "oldUserRetained": true,
+  "grantsUnchanged": true,
+  "grantTables": [
+    "application_api_permissions",
+    "permissions",
+    "role_permissions",
+    "roles",
+    "user_project_scopes",
+    "user_roles"
+  ],
+  "rolesOrScopeWrites": 0,
+  "actualOidcCodeExchange": true,
+  "meStatus": 200,
+  "callbackStatus": 303,
+  "viewerPipelinePermissions": false,
+  "browserSameSiteAcceptance": false,
+  "originalRuntimeOrIdpTouched": false,
+  "retainedFailure": "restore-sso.log",
+  "operatorInputNormalized": true
+}

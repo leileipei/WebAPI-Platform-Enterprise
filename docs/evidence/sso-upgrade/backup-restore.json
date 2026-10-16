@@ -1,0 +1,22 @@
+{
+  "complete": true,
+  "restoredIntoFreshOwnedVolumes": true,
+  "oldLoginAndBusinessData": true,
+  "newLoginAndBusinessData": true,
+  "newSsoTablesEmpty": {
+    "providers": 0,
+    "identities": 0,
+    "attempts": 0,
+    "tests": 0
+  },
+  "addedMigrations": [
+    "20261005120000_SsoOidc",
+    "20261005123210_SsoDisplayEmail",
+    "20261005152401_SsoSecretVersion"
+  ],
+  "oldSoftwareRollbackVerified": true,
+  "migrationDownPerformed": false,
+  "originalVolumesUntouched": true,
+  "projectName": "webapi-enterprise-local-test-022ed18a-48d0-4288-9ad5-e4622b0d1992",
+  "owner": "4f62c3ec-85fb-4c23-8190-4454f72d4522"
+}

@@ -1,0 +1,20 @@
+{
+  "complete": true,
+  "commit": "1b8588f95d380477882cf6e663316632560f2c82",
+  "files": [
+    "console/src/Shell.tsx",
+    "console/src/styles/tokens.css",
+    "console/src/SidebarNav.tsx",
+    "console/src/sidebar-model.mjs",
+    "console/src/sidebar-model.d.mts",
+    "console/tests/sidebar.test.mjs"
+  ],
+  "preExistingLocalFilesPreserved": 25,
+  "tests": {
+    "passed": 171,
+    "failed": 0,
+    "skipped": 0
+  },
+  "typeScriptCheck": true,
+  "pushPerformed": false
+}

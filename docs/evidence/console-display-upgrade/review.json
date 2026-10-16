@@ -1,0 +1,9 @@
+{
+  "complete": true,
+  "reviewer": "display_fix_merge_review",
+  "scope": "四个前端显示文件",
+  "importantFindings": 0,
+  "queryPaginationAndAuthorizationUnchanged": true,
+  "businessWritesUnchanged": true,
+  "testsRerunByReviewer": false
+}

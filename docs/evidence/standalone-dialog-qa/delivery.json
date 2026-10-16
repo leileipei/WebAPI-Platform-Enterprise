@@ -1,0 +1,13 @@
+{
+  "createdAt": "2026-10-06T14:36:00.273420+00:00",
+  "path": "deliverables/WebAPI_Enterprise_独立弹窗键盘交互修复_隔离验收_20261006.zip",
+  "sha256": "8c6a34aaff8a5d28748e1f5885a642a9f0c59c498e48ec69e35d4f63ec535fa1",
+  "entries": 25,
+  "zipCrcVerified": true,
+  "manifestReadback": true,
+  "secretMarkerMatches": 0,
+  "sourceFiles": 3,
+  "committed": false,
+  "merged": false,
+  "installedOn4192": false
+}

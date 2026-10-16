@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-04T16:44:24.196Z",
+  "purpose": "Read-only delivery refresh; two normal authenticated demo requests; no fault injection or service restart",
+  "status": {
+    "schemaVersion": 1,
+    "projectName": "webapi-enterprise-local",
+    "sourceRevision": "3c038e7d7fdbb5ec7574944a24a70478ddd0f5ab",
+    "bindingPhase": "Applied",
+    "pendingConfiguration": null,
+    "services": [
+      {
+        "name": "postgres",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "redis",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "collector",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "prometheus",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "loki",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "tempo",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "control-plane",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "worker",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "console",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-a",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-b",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "backend-a",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "backend-b",
+        "state": "Running",
+        "health": null
+      }
+    ],
+    "sources": [
+      {
+        "name": "collector",
+        "state": "Available",
+        "checkedAt": "2026-10-04T16:44:23.917Z"
+      },
+      {
+        "name": "prometheus",
+        "state": "Available",
+        "checkedAt": "2026-10-04T16:44:23.914Z"
+      },
+      {
+        "name": "loki",
+        "state": "Available",
+        "checkedAt": "2026-10-04T16:44:23.915Z"
+      },
+      {
+        "name": "tempo",
+        "state": "Available",
+        "checkedAt": "2026-10-04T16:44:23.917Z"
+      }
+    ],
+    "nodes": [
+      {
+        "name": "local-gateway-b",
+        "instanceId": "76e4c5dc-c31b-4a3f-9914-e58c64de6d51",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-04T16:44:20.087209+00:00",
+        "fresh": true,
+        "currentVersion": 1,
+        "currentSequence": 1,
+        "desiredVersion": 1,
+        "desiredSequence": 1,
+        "acknowledged": true
+      },
+      {
+        "name": "local-gateway-a",
+        "instanceId": "3a76a979-2ae9-4e05-987e-514e5a90e624",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-04T16:44:20.089849+00:00",
+        "fresh": true,
+        "currentVersion": 1,
+        "currentSequence": 1,
+        "desiredVersion": 1,
+        "desiredSequence": 1,
+        "acknowledged": true
+      }
+    ],
+    "storage": [
+      {
+        "name": "webapi-enterprise-local_dp-keys",
+        "volumeId": "webapi-enterprise-local_dp-keys",
+        "bytesUsed": 1001,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-a",
+        "volumeId": "webapi-enterprise-local_lkg-a",
+        "bytesUsed": 2329,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-b",
+        "volumeId": "webapi-enterprise-local_lkg-b",
+        "bytesUsed": 2329,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_loki-data",
+        "volumeId": "webapi-enterprise-local_loki-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      },
+      {
+        "name": "webapi-enterprise-local_pg",
+        "volumeId": "webapi-enterprise-local_pg",
+        "bytesUsed": 68833438,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_prometheus-data",
+        "volumeId": "webapi-enterprise-local_prometheus-data",
+        "bytesUsed": 1400208,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_tempo-data",
+        "volumeId": "webapi-enterprise-local_tempo-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      }
+    ],
+    "environmentStatus": "Active",
+    "errors": [],
+    "phase": "Ready"
+  },
+  "http": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ],
+  "alert": {
+    "id": "038697f5-a430-4446-86e4-242747de0570",
+    "status": "Resolved",
+    "resolveReason": "Recovered"
+  },
+  "oneHourMetrics": {
+    "sourceState": "Partial",
+    "coverage": {
+      "complete": false,
+      "missingNodes": [],
+      "reason": "time_window_coverage_incomplete",
+      "truncated": false
+    },
+    "range": {
+      "start": "2026-10-04T15:44:24.116+00:00",
+      "end": "2026-10-04T16:44:24.116+00:00"
+    },
+    "kpis": [
+      {
+        "metric": "request_count",
+        "value": null,
+        "unit": "requests",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "request_rps",
+        "value": null,
+        "unit": "requests/s",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "success_ratio",
+        "value": null,
+        "unit": "ratio",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "error_4xx_count",
+        "value": null,
+        "unit": "requests",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "error_4xx_ratio",
+        "value": null,
+        "unit": "ratio",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "error_5xx_count",
+        "value": null,
+        "unit": "requests",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "error_5xx_ratio",
+        "value": null,
+        "unit": "ratio",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "latency_p50_ms",
+        "value": null,
+        "unit": "ms",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "latency_p95_ms",
+        "value": null,
+        "unit": "ms",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "latency_p99_ms",
+        "value": null,
+        "unit": "ms",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "unhealthy_destinations",
+        "value": null,
+        "unit": "destinations",
+        "sampleCount": 1202,
+        "state": "Partial"
+      },
+      {
+        "metric": "cancelled_count",
+        "value": null,
+        "unit": "requests",
+        "sampleCount": 1202,
+        "state": "Partial"
+      }
+    ]
+  },
+  "originalArchivesUnchanged": true,
+  "currentDemoBackupCreated": false,
+  "productCodeChanged": false
+}

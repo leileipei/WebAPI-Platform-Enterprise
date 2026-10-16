@@ -1,10 +1,13 @@
-# WebAPI Platform Enterprise · 核心闭环
+# WebAPI Platform Enterprise
 
 原 40 页高保真交互原型保留在 `../prototype`（本机 4180）。本目录是经过确认的首期真实产品工程：.NET 10 控制面、PostgreSQL、Redis、Worker、双 YARP 网关与 React 管理控制台。控制台以实际数据库、Cookie 会话及节点确认记录工作。
 
 ## 使用与边界
 
-- [页面能力覆盖](docs/console-coverage.md)：逐一对应原 40 页；28–33页已接入真实监控/告警；16/17页已在本批独立评审版本接入四类流量策略；SSO、JWT/重试/缓存、完整 Breaking Change 引擎仍属于后续开发。
+- [本次集成与检查](docs/deployment/full-project-integration-20261016.md)：代码、历史验收、性能实验及本机部署的版本边界。
+- [页面能力覆盖](docs/console-coverage.md)及[40页需求关闭台账](docs/evidence/work-package4/requirements-status.md)：页面覆盖与逐项功能验收分别记录；当前台账仍有部分、缺失和待复验项。
+- 已交付实现包括 SSO、契约导入与兼容性检查、JWT／重试／缓存、外部通知、跨环境审批发布，以及 CORS／IP／Transform（含 JSON 请求／响应正文映射）。具体运行边界见 `docs/deployment/` 各阶段手册。
+- [第4包验收](docs/evidence/work-package4/final-summary.md)：首次改密、显式重置、Credential 使用统计和轮换；[操作手册](docs/deployment/account-credential-operations.md)。历史固定版本验收不自动代表新集成版本或4192已升级。
 - [验收与证据](docs/acceptance.md)：区分浏览器操作、数据库回归、真实容器业务响应与目标部署验收。
 - [审查修正状态](docs/evidence/core-loop/final-review.md)与[实施决策](docs/decisions.md)：3项Important修正与最终浏览器复验均已完成；全部实施裁定与延期范围已记录。
 - [配置与运维](docs/operations.md)：初始化、节点身份、快照、备份恢复和敏感日志处理。
@@ -14,7 +17,7 @@
 
 前端需要 Node.js 22+ 与 pnpm；后端验证使用 Docker Compose 的固定 SDK 镜像，无须安装本机 .NET。先在 `console` 执行 `pnpm install --frozen-lockfile`，然后 `pnpm build`。`scripts/check-console.sh` 可通过 `WEBAPI_NODE`、`WEBAPI_PNPM` 指定已安装工具。
 
-数据库回归需要显式 `.secrets/postgres-password`（仅本机、文件权限 600），没有内置密码。`./scripts/check.sh domain`、`integration`、`gateway` 使用专用 `webapi-enterprise-core-test` 项目；测试数据库与真实业务数据库分开。
+优先使用 `./scripts/check-contracts.sh domain`、`integration`、`gateway`：每次创建随机独立 owner、密码、数据库和依赖缓存，退出时校验归属后清理本次资源。支持 `WEBAPI_CONTRACT_TEST_SUBNET` 指定经检查空闲的测试网段，以及 `WEBAPI_CONTRACT_NUGET_SEED` 指定只读依赖种子卷。它们不会连接持久产品数据库。旧 `scripts/check.sh` 使用固定测试项目和显式 `.secrets/postgres-password`，不要并发用于共享环境。
 
 `./scripts/check.sh e2e` 创建全新的随机临时测试项目，完成真实审批、A→B→回滚、旧请求跨切换及故障注入，退出时销毁**本次测试自己的**卷和凭证。它只使用合成数据，不能作为持久产品环境。`./scripts/e2e.sh --browser` 会等待浏览器验收；结束后删除 `.runtime/browser-e2e.wait` 才继续测试和清理。不要同时启动两个 E2E，因为本机测试端口固定。
 

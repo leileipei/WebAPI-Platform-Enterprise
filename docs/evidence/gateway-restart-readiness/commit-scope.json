@@ -1,0 +1,16 @@
+{
+  "baseRevision": "acb10a5f06a1734aec40a5d49ec1355d9fa191c8",
+  "noAutomaticCommit": true,
+  "fileCount": 9,
+  "files": {
+    "scripts/runtime/state.mjs": "0a1dbda9d5072169896829134ac09fcc4381983f0633df2387aead468696fbb4",
+    "scripts/runtime/status.mjs": "827524b65278b9805bed02f8deb22f0be0396ac81144416c1884a253fd85f35c",
+    "src/WebApi.Infrastructure/Gateway/AckService.cs": "e5ecef04ba2fb06f7e8e279411084096c804f11adfb8af10c30f285b886c0c7f",
+    "src/WebApi.Infrastructure/Gateway/NodeRegistry.cs": "ee96859596382937eeb155cbbf928f6bced8dd0e547acf9e6fd12bafbf723857",
+    "src/WebApi.Infrastructure/Gateway/RuntimeApplicationReceipt.cs": "ec65750b74c580775b292f2294bb7f4e505990175d7f41b1b491842922f043d9",
+    "tests/WebApi.Gateway.Tests/GatewayRuntimeTests.cs": "0dae1b058d6df970a3bbf422ce9acc09e953fee56a8d9da15bbac32475381b32",
+    "tests/WebApi.Integration.Tests/AckTests.cs": "b2604b1ff5a6b1287321dd5eef95c5b3218e849df98a18350fdaf298f662b073",
+    "tests/runtime/lock-race.test.mjs": "312fe460cfc91952f49e84892072adec60df031f53a1f009caeb9ca89297fa1e",
+    "tests/runtime-integration/status-query.mjs": "46a81a6ce9bc2c28ce66968d0d4440031d24d5d33f1d2342e2d35e7b152d3793"
+  }
+}

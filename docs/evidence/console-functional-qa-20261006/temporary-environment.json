@@ -1,0 +1,15 @@
+{
+  "time": "2026-10-06T10:48:09.447Z",
+  "projectName": "webapi-enterprise-local-test-14729c15-36dd-473a-b6b8-e17d5d50e88c",
+  "temporaryPlatformRunning": 0,
+  "temporaryIdpStopped": true,
+  "platformVolumesPreserved": 13,
+  "privateFixturePreserved": true,
+  "ownerChecked": true,
+  "reason": "动态Scope撤销用例待具体授权；先停止全部临时服务，保留合成数据、权限和私有秘密供后续补验，不删除原4192资源",
+  "original4192Touched": false,
+  "vitePreviewStopped": true,
+  "reportPreviewStopped": true,
+  "temporaryBrowserTabClosed": true,
+  "viewportReset": true
+}

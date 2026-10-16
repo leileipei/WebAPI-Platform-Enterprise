@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-15",
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "integrationRevision": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+  "originalRequirementPages": 40,
+  "originalRequirementUnits": 454,
+  "originalExistingFilesPreserved": 656,
+  "productSourceUnchanged": true,
+  "designDirectionApproved": true,
+  "writtenSpecificationApproved": false,
+  "implementationStarted": false,
+  "newCommitPushOrRuntimeDeployment": false,
+  "package2Paused": true,
+  "files": [
+    {
+      "file": "docs/superpowers/specs/2026-10-15-account-credential-closeout-design.md",
+      "sha256": "b3b0c33dd71a6fb83b28c6efe99f74a592d580995d34618f612bbc4f43413994",
+      "bytes": 26390
+    },
+    {
+      "file": "docs/evidence/work-package4/2026-10-15-readiness/original-40-page-requirements.json",
+      "sha256": "8988889760ce08a2151da9fb1d868c705de6c1d20e3d11937d916496b7bbc6cd",
+      "bytes": 234202
+    }
+  ],
+  "selfReview": {
+    "placeholderScanPassed": true,
+    "firstPasswordPolicyA": true,
+    "usagePolicyA": true,
+    "sourceLossVisible": true,
+    "noBusinessRevisionFromUsage": true,
+    "noSnapshotProtocolBump": true,
+    "legacyBehaviorConflictsRecorded": true,
+    "notAll454ClaimedAccepted": true,
+    "apiAndMatchedAuthorizationWindowInCounterKey": true,
+    "idleCoveragePulseDefined": true,
+    "purposeHmacForResetIdempotency": true,
+    "gapControlBudgetDefined": true,
+    "batchReceiptRetentionExceedsPendingAge": true
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "checkedAt": "2026-10-05T07:02:09.741437+00:00",
+  "classification": "chrome-partial-recheck-device-locked",
+  "target": "http://127.0.0.1:4192/settings/system",
+  "sourceRevision": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
+  "browser": "Chrome",
+  "viewportRequested": {
+    "width": 1440,
+    "height": 1100
+  },
+  "settingsSaveExecuted": false,
+  "complete": false,
+  "steps": [
+    {
+      "step": 1,
+      "name": "原管理员登录与安全默认值",
+      "status": "passed",
+      "notes": "通过：平台级范围、5组17字段、480分钟兼容默认可见。",
+      "file": "01-security.jpg",
+      "sha256": "dd3087743fd7a4aaa0d854507e8aa42adc47c0ee6737e70d83d8aa9a9cfe8d67"
+    },
+    {
+      "step": 2,
+      "name": "发布设置鼠标导航",
+      "status": "passed",
+      "notes": "通过：进入发布分组，固定两级独立审批及保留数生效边界可见。",
+      "file": "02-release.jpg",
+      "sha256": "262cca227e3d5b63257a7c84515629e76dd07cb0907a459a2e53dcd26fd342c5"
+    },
+    {
+      "step": 3,
+      "name": "Gateway默认参数鼠标导航",
+      "status": "passed",
+      "notes": "通过：进入网关分组，30000毫秒兼容值及需部署说明可见。",
+      "file": "03-gateway.jpg",
+      "sha256": "9fa02a27658e7c36d2545d618173edb89d5724fe8419e3a62911c742f3f30ba9"
+    },
+    {
+      "step": 4,
+      "name": "审计设置鼠标导航",
+      "status": "passed",
+      "notes": "通过：进入审计分组，CSV导出兼容启用及授权约束可见。",
+      "file": "04-audit-settings.jpg",
+      "sha256": "165ed47a9fe07bdd2ca6aaf6d5715d7b426bc45bfdcbb9df9b3c24d517eaaca0"
+    },
+    {
+      "step": 5,
+      "name": "通知结构校验",
+      "status": "passed",
+      "notes": "通过：按钮返回结构校验通过，明确未解析SecretRef、未连接或发送。",
+      "file": "05-notification.jpg",
+      "sha256": "cda6cbd93641bf9a3aa9ee9d6028d1196dde7686fee898a4eff80c199e09823b"
+    },
+    {
+      "step": 6,
+      "name": "480到481修改预览与取消",
+      "status": "passed",
+      "notes": "通过：差异、确认保存及取消控件可见；取消后dialog不可见，未执行确认保存。",
+      "file": "06-preview.jpg",
+      "sha256": "d9cdcdc5e75e3f6d73676584c009445c3436bf2151560efb7e65ceeefffe8727"
+    }
+  ],
+  "pending": [
+    {
+      "step": 7,
+      "name": "弃稿确认与480恢复",
+      "status": "blocked",
+      "reason": "原生click返回confirm提示，但getJsDialog超时并重置会话；随后Chrome原生界面工具明确报告Mac锁定、自动解锁失败。未确认弃稿完成。"
+    },
+    {
+      "step": 8,
+      "name": "浏览器审计CSV下载",
+      "status": "not_started",
+      "reason": "需要先解除原生confirm及设备锁定。"
+    }
+  ],
+  "priorSealedPackagePreserved": true
+}

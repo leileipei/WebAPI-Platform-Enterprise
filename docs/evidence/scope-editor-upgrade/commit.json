@@ -1,0 +1,27 @@
+{
+  "complete": true,
+  "baseCommit": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "sourceRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "reviewedFiles": [
+    "console/src/governance/ScopeEditor.tsx",
+    "console/src/governance/ScopeRules.tsx",
+    "console/src/governance/scope-state.d.mts",
+    "console/src/governance/scope-state.mjs",
+    "console/src/pages/Governance.tsx",
+    "console/src/styles/tokens.css",
+    "console/tests/scope-state.test.mjs",
+    "console/tests/scope-view.test.mjs"
+  ],
+  "sourceHashes": {
+    "console/src/pages/Governance.tsx": "e3e7c74d2a9373114f52db3d769be0db6b5e25db51c5bf4cadb6827fcf629271",
+    "console/src/styles/tokens.css": "ce286a0d508de8001b8bd182b1f44aa814da5c6154aebbf9d5d68e5406559788",
+    "console/src/governance/scope-state.mjs": "b94e3e3950fda05017c90c0c1c9344f1a29d8a78a340acea0a016fea7348b870",
+    "console/src/governance/scope-state.d.mts": "38b1af2c7beb72f12e46821821a9b3c6552e783c44a8330be26c0d9dd3d0e694",
+    "console/src/governance/ScopeRules.tsx": "72ef969a79689d62f9efaecc8be306586063a07ba8b69e887b5a2d9f297b6d3a",
+    "console/src/governance/ScopeEditor.tsx": "6f64a468c99b9eb350527dbd091e6353cf313c5ac87d115d4218bdbe828c3f38",
+    "console/tests/scope-state.test.mjs": "8c22e80bc2f96aafc055f866d216dbfd38d92cf7cb5a8b344734d7f6598b51ae",
+    "console/tests/scope-view.test.mjs": "81e295b0eb882928212a7060fcd53432ed8e46d49b5c80586bfbf12e338872d4"
+  },
+  "pushed": false,
+  "authorization": "继续执行已明确的8文件本地提交、合并、冷备份与4192升级"
+}

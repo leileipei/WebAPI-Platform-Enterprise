@@ -1,0 +1,10 @@
+{
+  "complete": true,
+  "containersRemaining": 0,
+  "volumesRemaining": 0,
+  "secretFilesRemaining": 0,
+  "idpResourcesRemaining": 0,
+  "networksRemaining": 0,
+  "originalDataVolumesPreserved": true,
+  "privateColdBackupsRetained": true
+}

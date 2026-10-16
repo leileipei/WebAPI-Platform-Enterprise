@@ -1,0 +1,9 @@
+{
+  "complete": true,
+  "knownSecretValuesScanned": 14,
+  "filesScannedBeforeManifest": 129,
+  "secretValueMatches": 0,
+  "privateRuntimeAndBackupsExcluded": true,
+  "screenshotsVisuallyReviewed": true,
+  "scope": "current persistent platform and IdP exact known secret values; no secret contents in receipt"
+}

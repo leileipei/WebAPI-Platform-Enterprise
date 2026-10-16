@@ -1,0 +1,17 @@
+{
+  "complete": true,
+  "checkedAt": "2026-10-06T14:03:35.775521+00:00",
+  "baseCommit": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "approvedFiles": [
+    "console/src/ui.tsx",
+    "console/src/editor-focus.mjs",
+    "console/src/editor-focus.d.mts",
+    "console/tests/editor-focus.test.mjs",
+    "console/tests/editor-view.test.mjs"
+  ],
+  "sourceHashesMatch": true,
+  "preservedMainLocalFiles": 503,
+  "preexistingTrackedChanges": 7,
+  "installedRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "scope": "用户仅授权提交、合并；不进行4192升级或推送"
+}

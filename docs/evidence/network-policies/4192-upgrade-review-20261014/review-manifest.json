@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-14T12:24:59.429Z",
+  "preparationComplete": true,
+  "readyForCutover": false,
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "githubMain": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+  "artifacts": [
+    {
+      "file": "docs/deployment/network-policies-4192-upgrade-review.md",
+      "bytes": 7407,
+      "sha256": "d62a0cd750bc46b70b1384b8adf8478988019161b3b9f0e75bb26182feebc168"
+    },
+    {
+      "file": "docs/evidence/network-policies/4192-upgrade-review-20261014/preflight.json",
+      "bytes": 5933,
+      "sha256": "c8f2024211ca6ad56e4922d10797e8cd0c740c2a558f4c5c6b9575286c8c56b9"
+    },
+    {
+      "file": "docs/evidence/network-policies/4192-upgrade-review-20261014/execution-plan.json",
+      "bytes": 3646,
+      "sha256": "15c2cbd20b67329ec0e1790664cf1c77e44661ba13aa464e2a538b749adf55c2"
+    }
+  ],
+  "checks": {
+    "mainHeadStatusAndOriginalFileHashesUnchanged": true,
+    "originalRuntimeIdentityAndProtectedTablesUnchanged": true,
+    "privateConfigurationFingerprintsUnchanged": 10,
+    "originalContainersStillRunning": 14,
+    "idpContainersStillRunning": 2,
+    "idpOwnedVolumes": 4,
+    "maintenancePhase": "Ready",
+    "remoteMain": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+    "package2Paused": true,
+    "package2Running": 0,
+    "noNewBackupOrClone": true,
+    "noOriginalMigration": true,
+    "noCutover": true,
+    "noSourceCommitOrPush": true,
+    "actualUniqueSecretValuesScanned": 29,
+    "secretMatches": 0,
+    "oldBackupFilesHashVerified": 51
+  },
+  "authorizationRequired": {
+    "nextPhase": "Fresh platform/IdP cold backup, restore original9d services, isolated migration/restore/fallback rehearsal",
+    "serviceStop": true,
+    "liveCutover": false
+  }
+}

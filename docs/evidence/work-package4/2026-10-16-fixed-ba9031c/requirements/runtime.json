@@ -1,0 +1,337 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "runtimeOwner": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "verifiedAt": "2026-10-16T02:28:41.509992Z",
+  "kind": "runtime",
+  "result": "passed",
+  "scenario": "per-unit fixed live observations and strict P4 acceptance",
+  "requirementIds": [
+    "P01-C01",
+    "P01-C03",
+    "P01-A01",
+    "P01-A03",
+    "P01-S01",
+    "P01-S05",
+    "P01-P01",
+    "P18-C01",
+    "P18-C02",
+    "P18-C03",
+    "P18-C04",
+    "P18-C05",
+    "P18-A03",
+    "P19-C01",
+    "P19-C03",
+    "P19-C04",
+    "P19-C05",
+    "P19-A03",
+    "P20-C01",
+    "P20-C02",
+    "P20-C03",
+    "P20-A01",
+    "P20-S01",
+    "P20-C04",
+    "P20-C05",
+    "P20-A02",
+    "P20-A03",
+    "P20-S02",
+    "P34-C01",
+    "P34-C04",
+    "P34-C05",
+    "P34-A03",
+    "P34-S02"
+  ],
+  "checksByRequirement": {
+    "P01-C01": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "result": "passed"
+    },
+    "P01-C03": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "result": "passed"
+    },
+    "P01-A01": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "result": "passed"
+    },
+    "P01-A03": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "result": "passed"
+    },
+    "P01-S01": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "result": "passed"
+    },
+    "P01-S05": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "result": "passed"
+    },
+    "P01-P01": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "result": "passed"
+    },
+    "P18-C01": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "result": "passed"
+    },
+    "P18-C02": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "result": "passed"
+    },
+    "P18-C03": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "result": "passed"
+    },
+    "P18-C04": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "result": "passed"
+    },
+    "P18-C05": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "result": "passed"
+    },
+    "P18-A03": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "result": "passed"
+    },
+    "P19-C01": {
+      "scenario": "application-overview-visible-summary",
+      "result": "passed"
+    },
+    "P19-C03": {
+      "scenario": "application-overview-visible-summary",
+      "result": "passed"
+    },
+    "P19-C04": {
+      "scenario": "application-overview-visible-summary",
+      "result": "passed"
+    },
+    "P19-C05": {
+      "scenario": "related-application-audit-positive-and-denied",
+      "result": "passed"
+    },
+    "P19-A03": {
+      "scenario": "application-credentials-permissions-navigation",
+      "result": "passed"
+    },
+    "P20-C01": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "result": "passed"
+    },
+    "P20-C02": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "result": "passed"
+    },
+    "P20-C03": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "result": "passed"
+    },
+    "P20-A01": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "result": "passed"
+    },
+    "P20-S01": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "result": "passed"
+    },
+    "P20-C04": {
+      "scenario": "real-authorized-traffic-visible-last-used",
+      "result": "passed"
+    },
+    "P20-C05": {
+      "scenario": "test-prod-two-stage-key-rotation",
+      "result": "passed"
+    },
+    "P20-A02": {
+      "scenario": "test-prod-two-stage-key-rotation",
+      "result": "passed"
+    },
+    "P20-A03": {
+      "scenario": "test-prod-two-stage-key-rotation",
+      "result": "passed"
+    },
+    "P20-S02": {
+      "scenario": "last-working-credential-risk-preview-and-human-stale-impact-409",
+      "result": "passed"
+    },
+    "P34-C01": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "result": "passed"
+    },
+    "P34-C04": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "result": "passed"
+    },
+    "P34-C05": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "result": "passed"
+    },
+    "P34-A03": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "result": "passed"
+    },
+    "P34-S02": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "result": "passed"
+    }
+  },
+  "observations": {
+    "firstChange": {
+      "mustChangePassword": false,
+      "oldInitialPasswordStatus": 401,
+      "rolesPreserved": true,
+      "scopesPreserved": true,
+      "changeAuditCount": 1
+    },
+    "reset": {
+      "oldSessionStatus": 401,
+      "revisionBefore": 6,
+      "revisionAfter": 7,
+      "rolesPreserved": true,
+      "scopesPreserved": true
+    },
+    "created": {
+      "credentialCount": 2,
+      "originalTargetUnchanged": true,
+      "secretModalVisibleAfterClose": false
+    },
+    "impact": {
+      "targetRevision": 1,
+      "targetStatus": "Active",
+      "confirmationCheckboxCount": 0,
+      "confirmationEnabled": false,
+      "networkResponseBodyCaptured": false,
+      "lastWorkingCredentialRiskPreviewVisible": true,
+      "closeAllAccessRiskCheckboxVisible": true,
+      "originalRiskPreviewScreenshot": {
+        "path": "2026-10-16-fixed-ba9031c/requirements/ui/requirements-last-credential-risk.png",
+        "sha256": "81a3c2dd02700ac4082cdce0c4a969d7690c9fe8c92b8723ba8b99035ec34e49"
+      }
+    },
+    "summary": {
+      "originalApplication": {
+        "id": "a8bb525b-9a31-47bd-aa28-db34206abc12",
+        "organizationId": "21d8754a-56bf-441e-825a-10fd80c8248d",
+        "projectId": "11ab8c58-681a-406a-ad9c-7f872d3b4b38",
+        "code": "P4_UI_IMPACT_3580f96c9caa",
+        "name": "P4 浏览器影响冲突验收 3580f96c9caa",
+        "owner": "隔离页面验收",
+        "status": "Active",
+        "revision": 3,
+        "activation": "WorkingConfiguration",
+        "summary": {
+          "visibleActiveApiCount": 0,
+          "availableCredentials": 2,
+          "totalCredentials": 2,
+          "activation": "WorkingConfiguration"
+        }
+      },
+      "precisionSummary": {
+        "visibleActiveApiCount": 0,
+        "availableCredentials": 1,
+        "totalCredentials": 1,
+        "activation": "WorkingConfiguration"
+      },
+      "relatedAuditActions": [
+        "credential.create",
+        "credential.create",
+        "app.create"
+      ]
+    },
+    "actualTrafficUsedRows": [
+      {
+        "count": "1",
+        "visibleLastUsedAt": "2026-10-15T17:00:11.169461+00:00",
+        "coverage": "Partial"
+      },
+      {
+        "count": "1",
+        "visibleLastUsedAt": "2026-10-15T17:00:52.123135+00:00",
+        "coverage": "Partial"
+      },
+      {
+        "count": "1",
+        "visibleLastUsedAt": "2026-10-15T17:00:46.062139+00:00",
+        "coverage": "Partial"
+      },
+      {
+        "count": "1",
+        "visibleLastUsedAt": "2026-10-15T17:00:11.160359+00:00",
+        "coverage": "Partial"
+      },
+      {
+        "count": "2",
+        "visibleLastUsedAt": "2026-10-15T17:00:37.308941+00:00",
+        "coverage": "Partial"
+      }
+    ],
+    "rotation": {
+      "test": {
+        "oldAfterWorkingRevoke": 200,
+        "oldAfterSecondPublish": 401,
+        "newAfterSecondPublish": 200,
+        "oldAuthorizedCount": "6",
+        "newAuthorizedCount": "4"
+      },
+      "prod": {
+        "oldAfterWorkingRevoke": 200,
+        "oldAfterSecondPublish": 401,
+        "newAfterSecondPublish": 200,
+        "oldAuthorizedCount": "6",
+        "newAuthorizedCount": "4"
+      }
+    },
+    "sso": {
+      "hasNoLocalPassword": true,
+      "resetStatus": 409,
+      "browserSameSiteVerified": false
+    }
+  },
+  "sourceRecords": [
+    {
+      "privateRelativePath": "ui-first-change/after-human-change.json",
+      "sha256": "41ef50c2c26e8aff315781942b3cac527daf9e52837ac00ee5087b59f5fc10cf"
+    },
+    {
+      "privateRelativePath": "ui-admin-handoff/after-human-check-2.json",
+      "sha256": "0d3cd4e17b4951d3ef83e38437021e7fa9607f76e044ee49ccbdda968a56cd1b"
+    },
+    {
+      "privateRelativePath": "ui-admin-handoff/created-credential-verification.json",
+      "sha256": "ca8a223d5e2951b26624ea1722ba1d95dc672dd6db68dbb64c230930f6365e51"
+    },
+    {
+      "privateRelativePath": "ui-admin-handoff/impact-after-human-verification.json",
+      "sha256": "cd25a7441d6e677fca722eb67281b7f9f28a4bae0db1c0bfef91d6d32a894f6e"
+    },
+    {
+      "privateRelativePath": "ui/application-summary-audit-verification.json",
+      "sha256": "5e0f5133fcaa93131714cb8e924630b836f48941c12dbdeea73a6a037f5abb6e"
+    },
+    {
+      "privateRelativePath": "usage-traffic/result.json",
+      "sha256": "2281c20135d60b5a8b72051686fb1b2ace3b0b62396c31d488633c7653966671"
+    },
+    {
+      "privateRelativePath": "rotation-combined-result.json",
+      "sha256": "d8e98bbcf47a8bae5ed0e3b4b3d1656cb62782c5f6d2166241d2054f1dccc833"
+    },
+    {
+      "privateRelativePath": "sso-core-2/result.json",
+      "sha256": "b31a84ce4e074b4994adb05222bcde3e3e3aa73824c3e42850f7609efa7af2f8"
+    },
+    {
+      "privateRelativePath": "ui/observations.json",
+      "sha256": "4452af712602faec05ec32bcfd3130bfc2cb416234cf623a2fb548c6d8339d0a"
+    },
+    {
+      "privateRelativePath": "ui/handoff-risk-preview.jpg",
+      "sha256": "2a0bf7632888a5547314a6e2126cdbca946f8677f4c5574bc920ced35101d212"
+    }
+  ],
+  "strictAcceptance": {
+    "path": "2026-10-16-fixed-ba9031c/acceptance/acceptance-result.json",
+    "sha256": "1248657f05badd7e6f5ec51e3c54fb949ddc4cdec125e8a4b59e6a49a986fad0"
+  }
+}

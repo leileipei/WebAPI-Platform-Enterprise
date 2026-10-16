@@ -1,0 +1,15 @@
+{
+  "recordedAt": "2026-10-16T05:46:50.899540+00:00",
+  "mainHead": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+  "currentMainProtectedFiles": 664,
+  "originalPackage2HistoricalProtectedFiles": 649,
+  "priorAuthorizedPackage3DocumentDifferences": [
+    "docs/acceptance.md",
+    "docs/console-coverage.md"
+  ],
+  "runtimeControls": 16,
+  "legacyHarnessFiles": 54,
+  "fixedSourcesClean": true,
+  "failures": [],
+  "complete": true
+}

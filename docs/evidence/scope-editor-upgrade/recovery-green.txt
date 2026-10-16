@@ -1,0 +1,12 @@
+✔ data verification failure is recorded but cannot prevent restoring old software on the original volumes (0.364166ms)
+✔ an owner mismatch forbids any service or storage mutation (0.063833ms)
+✔ final acceptance failure triggers shared recovery then rethrows the original failure (0.15775ms)
+✔ successful acceptance never rolls back (0.071625ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32.385917

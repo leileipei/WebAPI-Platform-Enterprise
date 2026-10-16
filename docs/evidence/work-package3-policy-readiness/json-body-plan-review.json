@@ -1,0 +1,43 @@
+{
+  "capturedAt": "2026-10-13T07:57:10.299408+00:00",
+  "fixedSourceHead": "293b37f2dbd59427cd2d40f6783dc441345528ef",
+  "spec": "docs/superpowers/specs/2026-10-13-cors-ip-transform-json-body-design.md",
+  "specSha256": "494a14b5bd22c5331a7419ed383ddf516863a7c5f41f64e42be801e9c2d7c554",
+  "specApproval": {
+    "received": true,
+    "questionItemId": "[\"request_user_input_async\",\"call_732a9535238847ed8b44f7b33de4e59e\",0]",
+    "scope": "CORS_IP_Transform_headers_paths_query_and_JSON_request_response"
+  },
+  "plan": "docs/superpowers/plans/2026-10-13-cors-ip-transform-json-body.md",
+  "planSha256": "acf273a9adfc98a5bada352ce0ca00b2debb1b5fec5c2e85a6cf969cec5e074f",
+  "planApproval": "pending",
+  "executionMethod": "current_session_inline_then_whole_branch_review",
+  "productImplementationStarted": false,
+  "newCommits": 0,
+  "package2Status": "paused",
+  "checks": {
+    "sequentialTaskCount": 17,
+    "taskFilesInterfacesAndStepsPresent": true,
+    "requiredHeaderPresent": true,
+    "reviewFocusCount": 5,
+    "specAcceptanceAreas": 12,
+    "placeholderScanPassed": true,
+    "nullVsMissingConsistent": true,
+    "prerequisiteDecisionEnumsBeforeRuntime": true,
+    "domainMapperBeforePreviewAndGateway": true,
+    "actualCorsAfterLeaseUnitTests": true,
+    "fixedSnapshotBeforeFormalImageAcceptance": true,
+    "sourceFilesUnchanged": 28,
+    "existingModificationPathsVerified": 9,
+    "specLineCount": 260,
+    "planLineCount": 287
+  },
+  "selfReviewCorrections": [
+    "Registered new retry reason before response runtime consumes it.",
+    "Declared-null JSON constant accepted; missing value rejected.",
+    "Lease unit short-circuit precedes real CORS tests.",
+    "Deferred response-only admission until actual mapping so cache hit needs no body lease.",
+    "Preview raw envelope validated before DTO binding with existing scope and CSRF.",
+    "Original JSON literals preserved through UI load/save."
+  ]
+}

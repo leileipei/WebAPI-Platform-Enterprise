@@ -1,0 +1,29 @@
+{
+  "complete": true,
+  "sourceManifestHash": "d9f22240c5890740138ed1d2d8895441611b7f34c4d3079f8d5a73a70649afd5",
+  "toolManifestHash": "8f23ffa6417247bf7f803594d3f24df0cd0b6e1dd7279fa33c66292645c40eae",
+  "authorFixPasses": 1,
+  "independentReviewPasses": 1,
+  "initialImportant": 4,
+  "initialMinor": 1,
+  "minorPromotedToRequired": true,
+  "resolvedRequiredFindings": 5,
+  "blockingFindings": 0,
+  "relatedBackendGreen": 41,
+  "redGreenLogSha256": {
+    "review-backend-red.log": "597780394a252f627bec194d6db0fdc513fba2a69245c51b405e2f528f057242",
+    "review-backend-green-final.log": "e4b6c831a72d72c2b79c27aa51e955cbdd0ebfb49871bbb20bf054814de44012",
+    "review-ui-red.log": "0618577bc64145e8207f2fdc5aad186758d0f1eea5b9ba38e619fce699c44cb5",
+    "review-ui-green.log": "88ee73ab1807aabf1cd55858a5aa47d894765d3457386c0101bf87c64f3326d1",
+    "review-package-red.log": "99d0b00aaeb75e21b2a6762ed2550e5fcebe494de4d824dba6ea011390de5095",
+    "review-package-green.log": "0a5b6fd8c1ea977763b339f614f4a50b8e12a9546129b96ff914a05f89b212fb"
+  },
+  "fixes": [
+    "provider/auth_revision protected persisted secret digest; cached/evicted/newCP refusal and explicit rotate recovery",
+    "request-local successful claim owns Processing failure; duplicate rejection audited; one redemption and one success",
+    "mutation ownership independent of detail epoch; native delayedPUT/403/permission-refresh/release succeeds",
+    "actual package entry rejects stale source/tool receipts, changed inputs and foreign cleanup; archive readback verifies identities",
+    "native form matches API alias grammar and128 name limit"
+  ],
+  "secondIndependentReviewPerformed": false
+}

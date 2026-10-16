@@ -1,0 +1,14 @@
+{
+  "baseRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "files": {
+    "console/src/pages/Governance.tsx": "80141dac898f0142e81058f8e6407a4d61759f70ec25d9a5bda35c24ba710b5b",
+    "console/src/ui.tsx": "73bf9f9096d47da3ded8bf375011a20bc17de2397176e616a84143ac24ad316e",
+    "console/src/styles/tokens.css": "4b04b9ce36d3e3970811ca4977fe240e16ab06473c77a2bc48279132c8a141c8",
+    "console/src/governance/PermissionMatrix.tsx": "d13f30d54f466113b99a72053deccdb96d4fbd17917be2fd3ff4e60f0ddafcb3",
+    "console/src/governance/permission-display.mjs": "3f19f04bc7479167d46e0f7f229aec6f151559575b754dfa5d324f6b0fb23d21",
+    "console/src/governance/permission-display.d.mts": "38f80bce625d97838a43f6ecf26bfaf4d1a23bcb931b23076588ef19eb4f841d",
+    "console/tests/permission-display.test.mjs": "6885459e81e5e65e6e99cb86e3faee7506163dcd47a0117f3de2f789352951f7",
+    "console/tests/permission-matrix-view.test.mjs": "e8fab0fb3b06d7b545814299c2a66162d1c52dc625bc0324d1c6cc68d8a01456"
+  },
+  "sourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d"
+}

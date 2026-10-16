@@ -1,0 +1,21 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {rotationStep,canAdvanceRotation,maskAccessKey} from '../src/applications/rotation-state.mjs';
+const ack=()=>({configVersion:'9',deploymentSequence:'11',payloadHash:'a'.repeat(64),nodeIds:['node-a','node-b']});
+const state=()=>({oldCredentialId:'old',newCredentialId:'new',environmentId:'test',firstReleaseId:'release1',secondReleaseId:null,firstAck:ack(),secondAck:null,consumerConfirmed:false,usageState:null,oldRevoked:false});
+test('choosing old key environment and creating a new key are explicit steps',()=>{const s=state();assert.equal(rotationStep({...s,oldCredentialId:null}),'choose');assert.equal(rotationStep({...s,environmentId:null}),'choose');assert.equal(rotationStep({...s,newCredentialId:null}),'create');});
+test('created key without dual ACK cannot advance to consumer',()=>{const s=state();for(const firstAck of [null,{...ack(),nodeIds:['a']},{...ack(),nodeIds:['a','a']},{...ack(),payloadHash:null},{...ack(),configVersion:'0'},{...ack(),deploymentSequence:11}]){assert.equal(rotationStep({...s,firstAck}),'publish');assert.equal(canAdvanceRotation({...s,firstAck}),false);}});
+test('valid first ACK still requires human consumer migration confirmation',()=>{const s=state();assert.equal(rotationStep(s),'consumer');assert.equal(canAdvanceRotation(s),false);assert.equal(rotationStep({...s,consumerConfirmed:true}),'observe');});
+test('missing or mismatched hashes cannot be represented as dual-node evidence',()=>{const s=state();for(const payloadHash of [undefined,['a'.repeat(64),'b'.repeat(64)],'a'.repeat(63),'g'.repeat(64)])assert.equal(rotationStep({...s,firstAck:{...ack(),payloadHash}}),'publish');});
+test('unknown partial and unavailable observation permit an explicit risk decision without claiming zero use',()=>{
+ for(const usageState of ['Unknown','Partial','Unavailable','Available','NoData']){const s={...state(),consumerConfirmed:true,usageState};assert.equal(rotationStep(s),'revoke');assert.equal(canAdvanceRotation(s),true);}
+ assert.equal(rotationStep({...state(),consumerConfirmed:true,usageState:'pretendComplete'}),'observe');
+});
+test('work revocation still requires second release and fresh dual ACK',()=>{const s={...state(),consumerConfirmed:true,usageState:'Partial',oldRevoked:true};assert.equal(rotationStep(s),'republish');assert.equal(canAdvanceRotation(s),false);assert.equal(rotationStep({...s,secondReleaseId:'release2',secondAck:{...ack(),configVersion:'10',deploymentSequence:'12',payloadHash:'b'.repeat(64)}}),'done');});
+test('first release cannot be reused as proof of revocation or old sequence replay',()=>{
+ const s={...state(),consumerConfirmed:true,usageState:'Available',oldRevoked:true};
+ for(const change of [{secondReleaseId:'release1',secondAck:ack()},{secondReleaseId:'release2',secondAck:ack()},{secondReleaseId:'release2',secondAck:{...ack(),deploymentSequence:'10'}}])assert.equal(rotationStep({...s,...change}),'republish');
+});
+test('deployment sequence comparison is exact for arbitrary decimal size',()=>{const s={...state(),firstAck:{...ack(),deploymentSequence:'9007199254740992'},consumerConfirmed:true,usageState:'NoData',oldRevoked:true,secondReleaseId:'release2',secondAck:{...ack(),configVersion:'10',deploymentSequence:'9007199254740993'}};assert.equal(rotationStep(s),'done');});
+test('any missing earlier precondition invalidates a completed wizard',()=>{const s={...state(),consumerConfirmed:true,usageState:'NoData',oldRevoked:true,secondReleaseId:'release2',secondAck:{...ack(),configVersion:'10',deploymentSequence:'12'}};assert.equal(rotationStep(s),'done');assert.equal(canAdvanceRotation(s),true);assert.equal(rotationStep({...s,consumerConfirmed:false}),'consumer');assert.equal(rotationStep({...s,firstAck:null}),'publish');});
+test('old and new key identities must be different',()=>{const s=state();assert.equal(rotationStep({...s,newCredentialId:s.oldCredentialId}),'create');assert.equal(canAdvanceRotation({...s,newCredentialId:s.oldCredentialId}),false);});
+test('access key display always masks all but the final four characters',()=>{assert.equal(maskAccessKey('abcdef1234'),'••••1234');assert.equal(maskAccessKey('another-key1234'),'••••1234');assert.equal(maskAccessKey(null),'—');assert.equal(maskAccessKey(''),'—');});

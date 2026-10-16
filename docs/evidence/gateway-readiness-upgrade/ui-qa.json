@@ -1,0 +1,28 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T03:06:32.798Z",
+  "actualNativeBrowser": true,
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "originalAdminLogin": true,
+  "nodesBothReady": true,
+  "currentVersion": 4,
+  "currentSequence": 4,
+  "nodeDetailCurrentInstance": "338c4cd1-dafa-40e5-a6a7-bf0e02dfc4a5",
+  "runtimeAppliedEventVisible": true,
+  "realKeycloakBrowserLogin": true,
+  "viewerAccount": "sso-demo-viewer",
+  "viewerReadNodeDetail": true,
+  "editIdentityDisabledForViewer": true,
+  "viewerLogoutReturnsLogin": true,
+  "restoredAdminSession": true,
+  "handoffUrl": "http://127.0.0.1:4192/nodes",
+  "temporaryViewportReset": true,
+  "screenshots": {
+    "ui-nodes.png": "d6368dac8569430e7556df54500152502f805db38255da9dc137f331915245fb",
+    "ui-runtime-applied.png": "8605b877f28643237399eece75530dd97b522b8637e0888d534e4f1df568e771",
+    "ui-sso-viewer.png": "f3339af4ea12d2cd67b9e0e7b70f1d249db3bc2ff320c3f87901c0a40807d8c5"
+  }
+}

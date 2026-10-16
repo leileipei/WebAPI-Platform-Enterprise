@@ -1,0 +1,11 @@
+{
+  "complete": true,
+  "sourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+  "noNewMigration": true,
+  "protectedTablesPreserved": 33,
+  "oldSoftwareRollbackVerified": true,
+  "migrationNotReversed": true,
+  "desiredVersion": 4,
+  "desiredSequence": 4,
+  "originalRuntimeUnchanged": true
+}

@@ -1,0 +1,39 @@
+{
+  "complete": true,
+  "deployed": {
+    "current": "/dashboard",
+    "height": 1024,
+    "kpis": [
+      "API 总数1当前项目 · 全部 API",
+      "请求量 · 24h—数据覆盖不完整",
+      "成功率 · 24h—数据覆盖不完整",
+      "P95 延迟 · 24h—数据覆盖不完整",
+      "未确认告警0当前环境 · Open 状态",
+      "网关节点2当前环境 · 包含停用身份"
+    ],
+    "missingRankingNotice": true,
+    "overflow": false,
+    "traceSamplingCopy": false,
+    "url": "http://127.0.0.1:4192/dashboard",
+    "width": 1440
+  },
+  "coverage": {
+    "overflow": false,
+    "pending": [
+      "11"
+    ],
+    "rows": 40,
+    "workbenchRow": "2企业工作台真实只读工作台已接入复用当前授权项目/环境的 API、24h 指标、网关、未确认告警和最近发布；最近50条中的待审批不等于全部或个人任务。数据源异常与缺失分别展示。进入对应入口"
+  },
+  "checkedNavigation": [
+    "/releases",
+    "/observability/metrics?range=24h",
+    "/observability/alerts?status=Open",
+    "/nodes",
+    "/coverage"
+  ],
+  "browserBack": true,
+  "manualRefresh": true,
+  "scopeSwitchVerification": "automated permission/query/cancellation tests; existing live workspace has one environment",
+  "productionAcceptance": false
+}

@@ -1,0 +1,415 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "recordedAt": "2026-10-16T02:18:47.533484Z",
+  "closedUnits": {
+    "P01-C01": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "screens": [
+        "requirements-anonymous-login",
+        "handoff-first-change",
+        "requirements-normal-local-login"
+      ],
+      "reason": "固定版本实际匿名登录表单、已有密码登录与人工首次改密已核验；改密后正常业务可读、旧初始密码401、角色和项目只读Scope保留，新密码未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordLifecycleTests.Successful_change_restores_permissions_and_never_persists_secrets",
+        "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
+      ]
+    },
+    "P01-C03": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "screens": [
+        "requirements-anonymous-login",
+        "handoff-first-change",
+        "requirements-normal-local-login"
+      ],
+      "reason": "固定版本实际匿名登录表单、已有密码登录与人工首次改密已核验；改密后正常业务可读、旧初始密码401、角色和项目只读Scope保留，新密码未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordLifecycleTests.Successful_change_restores_permissions_and_never_persists_secrets",
+        "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
+      ]
+    },
+    "P01-A01": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "screens": [
+        "requirements-anonymous-login",
+        "handoff-first-change",
+        "requirements-normal-local-login"
+      ],
+      "reason": "固定版本实际匿名登录表单、已有密码登录与人工首次改密已核验；改密后正常业务可读、旧初始密码401、角色和项目只读Scope保留，新密码未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordLifecycleTests.Successful_change_restores_permissions_and_never_persists_secrets",
+        "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
+      ]
+    },
+    "P01-A03": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "screens": [
+        "requirements-anonymous-login",
+        "handoff-first-change",
+        "requirements-normal-local-login"
+      ],
+      "reason": "固定版本实际匿名登录表单、已有密码登录与人工首次改密已核验；改密后正常业务可读、旧初始密码401、角色和项目只读Scope保留，新密码未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordLifecycleTests.Successful_change_restores_permissions_and_never_persists_secrets",
+        "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
+      ]
+    },
+    "P01-S01": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "screens": [
+        "requirements-anonymous-login",
+        "handoff-first-change",
+        "requirements-normal-local-login"
+      ],
+      "reason": "固定版本实际匿名登录表单、已有密码登录与人工首次改密已核验；改密后正常业务可读、旧初始密码401、角色和项目只读Scope保留，新密码未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordLifecycleTests.Successful_change_restores_permissions_and_never_persists_secrets",
+        "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
+      ]
+    },
+    "P01-S05": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "screens": [
+        "requirements-anonymous-login",
+        "handoff-first-change",
+        "requirements-normal-local-login"
+      ],
+      "reason": "固定版本实际匿名登录表单、已有密码登录与人工首次改密已核验；改密后正常业务可读、旧初始密码401、角色和项目只读Scope保留，新密码未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordLifecycleTests.Successful_change_restores_permissions_and_never_persists_secrets",
+        "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
+      ]
+    },
+    "P01-P01": {
+      "scenario": "normal-login-and-human-first-password-change",
+      "screens": [
+        "requirements-anonymous-login",
+        "handoff-first-change",
+        "requirements-normal-local-login"
+      ],
+      "reason": "固定版本实际匿名登录表单、已有密码登录与人工首次改密已核验；改密后正常业务可读、旧初始密码401、角色和项目只读Scope保留，新密码未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordLifecycleTests.Successful_change_restores_permissions_and_never_persists_secrets",
+        "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
+      ]
+    },
+    "P18-C01": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "screens": [
+        "requirements-applications-list",
+        "requirements-application-audit"
+      ],
+      "reason": "实际1440px应用列表显示Owner、工作状态、按可见API去重的授权数和可用/总凭证；HTTP核对API0和凭证2/2，实际点击详情成功。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P18-C02": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "screens": [
+        "requirements-applications-list",
+        "requirements-application-audit"
+      ],
+      "reason": "实际1440px应用列表显示Owner、工作状态、按可见API去重的授权数和可用/总凭证；HTTP核对API0和凭证2/2，实际点击详情成功。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P18-C03": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "screens": [
+        "requirements-applications-list",
+        "requirements-application-audit"
+      ],
+      "reason": "实际1440px应用列表显示Owner、工作状态、按可见API去重的授权数和可用/总凭证；HTTP核对API0和凭证2/2，实际点击详情成功。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P18-C04": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "screens": [
+        "requirements-applications-list",
+        "requirements-application-audit"
+      ],
+      "reason": "实际1440px应用列表显示Owner、工作状态、按可见API去重的授权数和可用/总凭证；HTTP核对API0和凭证2/2，实际点击详情成功。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P18-C05": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "screens": [
+        "requirements-applications-list",
+        "requirements-application-audit"
+      ],
+      "reason": "实际1440px应用列表显示Owner、工作状态、按可见API去重的授权数和可用/总凭证；HTTP核对API0和凭证2/2，实际点击详情成功。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P18-A03": {
+      "scenario": "application-list-summary-and-detail-navigation",
+      "screens": [
+        "requirements-applications-list",
+        "requirements-application-audit"
+      ],
+      "reason": "实际1440px应用列表显示Owner、工作状态、按可见API去重的授权数和可用/总凭证；HTTP核对API0和凭证2/2，实际点击详情成功。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P19-C01": {
+      "scenario": "application-overview-visible-summary",
+      "screens": [
+        "overview"
+      ],
+      "reason": "实际Overview显示负责人、有效授权API去重数和可用/总凭证；HTTP核对精度样本API0、凭证1/1。权限摘要指已授权API数量，不扩张其他观测权限。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P19-C03": {
+      "scenario": "application-overview-visible-summary",
+      "screens": [
+        "overview"
+      ],
+      "reason": "实际Overview显示负责人、有效授权API去重数和可用/总凭证；HTTP核对精度样本API0、凭证1/1。权限摘要指已授权API数量，不扩张其他观测权限。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P19-C04": {
+      "scenario": "application-overview-visible-summary",
+      "screens": [
+        "overview"
+      ],
+      "reason": "实际Overview显示负责人、有效授权API去重数和可用/总凭证；HTTP核对精度样本API0、凭证1/1。权限摘要指已授权API数量，不扩张其他观测权限。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P19-C05": {
+      "scenario": "related-application-audit-positive-and-denied",
+      "screens": [
+        "requirements-application-audit",
+        "audit-denied"
+      ],
+      "reason": "有权用户实际读取两条credential.create和一条app.create关联审计；无audit.read入口及HTTP403均保留，不以Owner代替操作者。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationAuditScopeTests.Audit_resource_filter_cannot_be_supplied_by_browser"
+      ]
+    },
+    "P19-A03": {
+      "scenario": "application-credentials-permissions-navigation",
+      "screens": [
+        "first-change",
+        "requirements-api-permissions-entry"
+      ],
+      "reason": "实际进入凭证页与API授权页，项目只读Scope下新增/修改入口禁用。",
+      "testNames": [
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
+      ]
+    },
+    "P20-C01": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "screens": [
+        "first-change",
+        "secret-modal-closed"
+      ],
+      "reason": "人工创建第二凭证，HTTP及审计核对两条工作凭证；一次性APIKey弹窗关闭后DOM不再显示，列表仅末4位且展示有效窗口。Secret仅返回一次及非法窗口拒绝回归通过；人工Secret未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+        "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+      ]
+    },
+    "P20-C02": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "screens": [
+        "first-change",
+        "secret-modal-closed"
+      ],
+      "reason": "人工创建第二凭证，HTTP及审计核对两条工作凭证；一次性APIKey弹窗关闭后DOM不再显示，列表仅末4位且展示有效窗口。Secret仅返回一次及非法窗口拒绝回归通过；人工Secret未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+        "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+      ]
+    },
+    "P20-C03": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "screens": [
+        "first-change",
+        "secret-modal-closed"
+      ],
+      "reason": "人工创建第二凭证，HTTP及审计核对两条工作凭证；一次性APIKey弹窗关闭后DOM不再显示，列表仅末4位且展示有效窗口。Secret仅返回一次及非法窗口拒绝回归通过；人工Secret未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+        "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+      ]
+    },
+    "P20-A01": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "screens": [
+        "first-change",
+        "secret-modal-closed"
+      ],
+      "reason": "人工创建第二凭证，HTTP及审计核对两条工作凭证；一次性APIKey弹窗关闭后DOM不再显示，列表仅末4位且展示有效窗口。Secret仅返回一次及非法窗口拒绝回归通过；人工Secret未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+        "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+      ]
+    },
+    "P20-S01": {
+      "scenario": "human-key-create-secret-modal-closed",
+      "screens": [
+        "first-change",
+        "secret-modal-closed"
+      ],
+      "reason": "人工创建第二凭证，HTTP及审计核对两条工作凭证；一次性APIKey弹窗关闭后DOM不再显示，列表仅末4位且展示有效窗口。Secret仅返回一次及非法窗口拒绝回归通过；人工Secret未读取。",
+      "testNames": [
+        "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+        "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+      ]
+    },
+    "P20-C04": {
+      "scenario": "real-authorized-traffic-visible-last-used",
+      "screens": [
+        "exact-count",
+        "unknown",
+        "partial"
+      ],
+      "reason": "真实授权调用有非空visibleLastUsedAt；按有权环境投影最近使用，Unknown不作零。大整数UI样本为显式种子，不代表真实流量规模。",
+      "testNames": [
+        "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+        "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts"
+      ]
+    },
+    "P20-C05": {
+      "scenario": "test-prod-two-stage-key-rotation",
+      "screens": [
+        "rotation-first",
+        "rotation-second"
+      ],
+      "reason": "TEST与PROD分别经原审批/跨环境流程和双节点ACK；工作配置撤销后旧Key仍200，二次发布后401，新Key200。两阶段向导截图及完整SDK材料齐备，不把撤销改成绕过发布即时生效。",
+      "testNames": [
+        "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+        "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility"
+      ]
+    },
+    "P20-A02": {
+      "scenario": "test-prod-two-stage-key-rotation",
+      "screens": [
+        "rotation-first",
+        "rotation-second"
+      ],
+      "reason": "TEST与PROD分别经原审批/跨环境流程和双节点ACK；工作配置撤销后旧Key仍200，二次发布后401，新Key200。两阶段向导截图及完整SDK材料齐备，不把撤销改成绕过发布即时生效。",
+      "testNames": [
+        "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+        "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility"
+      ]
+    },
+    "P20-A03": {
+      "scenario": "test-prod-two-stage-key-rotation",
+      "screens": [
+        "rotation-first",
+        "rotation-second"
+      ],
+      "reason": "TEST与PROD分别经原审批/跨环境流程和双节点ACK；工作配置撤销后旧Key仍200，二次发布后401，新Key200。两阶段向导截图及完整SDK材料齐备，不把撤销改成绕过发布即时生效。",
+      "testNames": [
+        "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+        "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility"
+      ]
+    },
+    "P20-S02": {
+      "scenario": "last-working-credential-risk-preview-and-human-stale-impact-409",
+      "screens": [
+        "requirements-last-credential-risk",
+        "impact-409"
+      ],
+      "reason": "原应用单凭证窗口实际显示“最后一个当前可用的工作凭证：是”，并要求明确勾选可能关闭全部访问的风险确认；具名测试验证未授权确认被拒。后续人工确认遇到影响已变化，旧预览清除且提交禁用，HTTP复核目标仍Active修订1；未捕获浏览器响应正文，409由用户报告及固定客户端分支/可见结果共同证明。",
+      "testNames": [
+        "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+        "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+        "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility"
+      ]
+    },
+    "P34-C01": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "screens": [
+        "local-reset",
+        "requirements-sso-source"
+      ],
+      "reason": "人工本地重置修订6→7、旧会话401且角色/Scope不变；用户表显示来源、状态与须改密。真实SSO无本地密码、重置409；1440px SSO行没有本地重置入口。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordResetTests.Reset_invalidates_old_session_and_requires_temporary_login_change",
+        "WebApi.Integration.Tests.PasswordResetTests.Sso_disabled_and_self_resets_are_denied"
+      ]
+    },
+    "P34-C04": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "screens": [
+        "local-reset",
+        "requirements-sso-source"
+      ],
+      "reason": "人工本地重置修订6→7、旧会话401且角色/Scope不变；用户表显示来源、状态与须改密。真实SSO无本地密码、重置409；1440px SSO行没有本地重置入口。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordResetTests.Reset_invalidates_old_session_and_requires_temporary_login_change",
+        "WebApi.Integration.Tests.PasswordResetTests.Sso_disabled_and_self_resets_are_denied"
+      ]
+    },
+    "P34-C05": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "screens": [
+        "local-reset",
+        "requirements-sso-source"
+      ],
+      "reason": "人工本地重置修订6→7、旧会话401且角色/Scope不变；用户表显示来源、状态与须改密。真实SSO无本地密码、重置409；1440px SSO行没有本地重置入口。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordResetTests.Reset_invalidates_old_session_and_requires_temporary_login_change",
+        "WebApi.Integration.Tests.PasswordResetTests.Sso_disabled_and_self_resets_are_denied"
+      ]
+    },
+    "P34-A03": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "screens": [
+        "local-reset",
+        "requirements-sso-source"
+      ],
+      "reason": "人工本地重置修订6→7、旧会话401且角色/Scope不变；用户表显示来源、状态与须改密。真实SSO无本地密码、重置409；1440px SSO行没有本地重置入口。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordResetTests.Reset_invalidates_old_session_and_requires_temporary_login_change",
+        "WebApi.Integration.Tests.PasswordResetTests.Sso_disabled_and_self_resets_are_denied"
+      ]
+    },
+    "P34-S02": {
+      "scenario": "human-local-reset-and-sso-separation",
+      "screens": [
+        "local-reset",
+        "requirements-sso-source"
+      ],
+      "reason": "人工本地重置修订6→7、旧会话401且角色/Scope不变；用户表显示来源、状态与须改密。真实SSO无本地密码、重置409；1440px SSO行没有本地重置入口。",
+      "testNames": [
+        "WebApi.Integration.Tests.PasswordResetTests.Reset_invalidates_old_session_and_requires_temporary_login_change",
+        "WebApi.Integration.Tests.PasswordResetTests.Sso_disabled_and_self_resets_are_denied"
+      ]
+    }
+  },
+  "statusCounts": {
+    "已关闭": 33,
+    "部分": 40,
+    "缺失": 18,
+    "待复验": 363,
+    "经确认延期": 0
+  },
+  "noOriginalIdentityChanged": true
+}

@@ -1,0 +1,63 @@
+{
+  "complete": true,
+  "sourceRevision": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "origin": "http://127.0.0.1:4192",
+  "originalSessionRetained": true,
+  "captures": [
+    {
+      "file": "01-coverage-4192.jpg",
+      "url": "http://127.0.0.1:4192/coverage",
+      "time": "2026-10-06T09:48:19.307Z",
+      "checks": {
+        "newComparisonStatus": true,
+        "removedStalePendingMarker": true
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1024
+      }
+    },
+    {
+      "file": "02-approvals-4192.jpg",
+      "url": "http://127.0.0.1:4192/approvals",
+      "time": "2026-10-06T09:48:35.236Z",
+      "checks": {
+        "title": "审批中心",
+        "allReleases": 4,
+        "currentPageWaitingApproval": 0,
+        "queryAndPaginationUnchanged": true
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1024
+      },
+      "dom": {
+        "height": 1024,
+        "overflow": false,
+        "text": "发布与审批 / 审批中心\n审批中心\n\n当前环境发布记录按页筛选待审批，不代表个人可审批任务；申请人不能自批，同一人不能占用两级审批\n\n从 API 向导申请发布 →\n当前环境 · 自动刷新 5 秒\n刷新\n最近读取：17:48:34\n发布记录\t类型\t状态\t基线\t目标配置\t发布序列\t确认节点\t创建时间\t操作\n暂无记录\n全部发布共 4 条 · 本页待审批 0 条\n上一页\n1\n下一页",
+        "width": 1440
+      }
+    },
+    {
+      "file": "03-governance-4192.jpg",
+      "url": "http://127.0.0.1:4192/roles",
+      "time": "2026-10-06T09:49:00.405Z",
+      "checks": {
+        "resourceHelp": true,
+        "formSubmitted": false
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1024
+      },
+      "dom": {
+        "height": 1024,
+        "overflow": false,
+        "text": "新建角色管理\n关闭\n编码 *\n名称 *\n保存\n保存后更新管理资源；角色与数据范围按服务端权限规则生效。",
+        "width": 1440
+      }
+    }
+  ],
+  "businessWritesPerformed": false,
+  "full40PageAcceptance": false
+}

@@ -1,0 +1,241 @@
+{
+  "checkedAt": "2026-10-06T14:32:29.066Z",
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "riskSynthetic": true,
+  "rule412FrontendSimulation": true,
+  "checks": [
+    {
+      "label": "risk-initial",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "TEXTAREA",
+      "text": ""
+    },
+    {
+      "label": "risk-shift-tab-contained",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "返回检查"
+    },
+    {
+      "label": "risk-tab-contained",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "TEXTAREA",
+      "text": ""
+    },
+    {
+      "label": "risk-busy-recovery",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "TEXTAREA",
+      "text": "已检查全量报告与覆盖限制，本次为内存隔离测试。"
+    },
+    {
+      "label": "risk-busy-escape-blocked",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "TEXTAREA",
+      "text": "已检查全量报告与覆盖限制，本次为内存隔离测试。"
+    },
+    {
+      "label": "risk-busy-tab-contained",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "TEXTAREA",
+      "text": "已检查全量报告与覆盖限制，本次为内存隔离测试。"
+    },
+    {
+      "label": "risk-error-recovery",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "TEXTAREA",
+      "text": "已检查全量报告与覆盖限制，本次为内存隔离测试。"
+    },
+    {
+      "label": "risk-close-restores-trigger",
+      "confirmation": false,
+      "inside": false,
+      "modal": false,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "打开评审弹窗"
+    },
+    {
+      "label": "rule-initial",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "INPUT",
+      "text": ""
+    },
+    {
+      "label": "rule-main-shift-tab",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "保存规则"
+    },
+    {
+      "label": "rule-main-tab",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭"
+    },
+    {
+      "label": "rule-discard-initial",
+      "confirmation": true,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "继续编辑"
+    },
+    {
+      "label": "rule-discard-shift-tab",
+      "confirmation": true,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "确认放弃"
+    },
+    {
+      "label": "rule-discard-tab",
+      "confirmation": true,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "继续编辑"
+    },
+    {
+      "label": "rule-cancel-discard-recovery",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭"
+    },
+    {
+      "label": "rule-draft-preserved",
+      "pass": true
+    },
+    {
+      "label": "rule-continue-button-recovery",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭"
+    },
+    {
+      "label": "rule-close-restores-trigger",
+      "confirmation": false,
+      "inside": false,
+      "modal": false,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "新建规则"
+    },
+    {
+      "label": "rule-busy-form-fallback",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "FORM",
+      "text": "ALERT RULE · EDIT编辑告警规则关闭规则名称 *级别提示警告严重规则范围当前环境项目全部活动环境组织全部活"
+    },
+    {
+      "label": "rule-busy-tab-fallback",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "FORM",
+      "text": "ALERT RULE · EDIT编辑告警规则关闭规则名称 *级别提示警告严重规则范围当前环境项目全部活动环境组织全部活"
+    },
+    {
+      "label": "rule-busy-shift-tab-fallback",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "FORM",
+      "text": "ALERT RULE · EDIT编辑告警规则关闭规则名称 *级别提示警告严重规则范围当前环境项目全部活动环境组织全部活"
+    },
+    {
+      "label": "rule-busy-escape-blocked",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "FORM",
+      "text": "ALERT RULE · EDIT编辑告警规则关闭规则名称 *级别提示警告严重规则范围当前环境项目全部活动环境组织全部活"
+    },
+    {
+      "label": "rule-412-recovery",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭"
+    },
+    {
+      "label": "rule-412-draft-preserved",
+      "pass": true,
+      "saveDisabled": true
+    },
+    {
+      "label": "rule-adopt-revision-focus",
+      "confirmation": false,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭"
+    },
+    {
+      "label": "rule-adopt-keeps-draft",
+      "pass": true,
+      "saveEnabled": true
+    },
+    {
+      "label": "rule-edit-close-restores-trigger",
+      "confirmation": false,
+      "inside": false,
+      "modal": false,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "编辑"
+    }
+  ]
+}

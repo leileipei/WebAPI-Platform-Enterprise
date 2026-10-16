@@ -1,0 +1,181 @@
+{
+  "complete": true,
+  "release": {
+    "schemaVersion": 1,
+    "sourceRevision": "0b42f9e11977f8453887d6b23e45192ab2e42d61",
+    "createdAt": "2026-10-05T16:19:38.122Z",
+    "imageTag": "webapi-enterprise-runtime:0b42f9e11977f8453887d6b23e45192ab2e42d61",
+    "imageId": "sha256:2bcd8799e48b3452970045d619c274827f74fe866cb7f4345239a0cac2b1197a",
+    "dependencyImages": {
+      "sdk": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+      "postgres": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "redis": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "collector": "otel/opentelemetry-collector-contrib@sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+      "prometheus": "prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+      "loki": "grafana/loki@sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+      "tempo": "grafana/tempo@sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd"
+    },
+    "staticFiles": {
+      "console/dist/assets/index-BJ46Hw1a.css": "1a056acc826087e31573406004fce6e0a384afa03e54f07e2286ae75d77cfcce",
+      "console/dist/assets/index-MLEuyaG2.js": "2bc60d26f5fbe58ab9f6b251979c32e4d8d3a1ce7a4df770366be6168e61eda7",
+      "console/dist/index.html": "e952b0d624243f2b8ae210896e1f5d76743f04ac43796eb844c2fb7b3eed79d4"
+    },
+    "configVersion": 1
+  },
+  "phase": "Degraded",
+  "version": 4,
+  "sequence": 4,
+  "protectedTables": {
+    "roles": {
+      "count": 9,
+      "sha256": "d5eb95822ef7fcfc6b7e2ae69212857ab1cb559536708d3f3f734c627ea9b09a"
+    },
+    "permissions": {
+      "count": 44,
+      "sha256": "25ccdb110cfa241c22023ebd7e1afddb1fa14b6fe64591d37b3c612b0fdcb9b9"
+    },
+    "role_permissions": {
+      "count": 244,
+      "sha256": "cc1005db9c89affa0a9a1bb694da856c88fceb79e19d0a0e6ec419fdf247388c"
+    },
+    "organizations": {
+      "count": 1,
+      "sha256": "f9b2f289f89a3c0dbf951dde879a7eac37f0b1156b7a03224b2ee64194b145b5"
+    },
+    "projects": {
+      "count": 1,
+      "sha256": "b99d9fc571f4d39ad3f415f6f7f464095a7d5c35fa02a9879ddc80a1d8f4f1df"
+    },
+    "environments": {
+      "count": 1,
+      "sha256": "ac2c3d3abea91f8cedadc050eb78dfe7d16fcd6640f2e709c9b8103b493b23f9"
+    },
+    "apis": {
+      "count": 1,
+      "sha256": "06efaeb0acc10c5eb9e77682ed11f91601f24596f4a3e5aad554862c50faf1d7"
+    },
+    "api_versions": {
+      "count": 1,
+      "sha256": "f3be2bfafa3c3ee04274f252bd0d08cc4a45aad08f6fc0347012b0db8c2e53c2"
+    },
+    "api_parameters": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "api_schemas": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "api_routes": {
+      "count": 1,
+      "sha256": "492a06a6c99205d8849defe60610d2cc055b451fa2b76786f3a14682f68c7ced"
+    },
+    "upstream_clusters": {
+      "count": 1,
+      "sha256": "2b7d036ee669aeaae7668fc432b56d9c66e1c7bb4ecfa9fc70229b451f9d7d5d"
+    },
+    "upstream_destinations": {
+      "count": 2,
+      "sha256": "1117b6c4a87dcdc177479d354de635fed0f582182e14979b06841439094f2951"
+    },
+    "policies": {
+      "count": 1,
+      "sha256": "7dac7bd42b0a8c56725363d568ad4439b3acaf75e14a31d0c393e09b921b4d84"
+    },
+    "route_policy_bindings": {
+      "count": 1,
+      "sha256": "5c95376bed8e932e38983607530bb9b3939bce5b2e056409b616e65634264af8"
+    },
+    "applications": {
+      "count": 1,
+      "sha256": "951ff51760de6fbade7372966b3b9804e5ceee02e98c9a91e793cfeae778238e"
+    },
+    "application_credentials": {
+      "count": 1,
+      "sha256": "a3c08883942c0c47ab881b636ff050938cd99facfb428eaab1f04920d5c2adf7"
+    },
+    "application_api_permissions": {
+      "count": 1,
+      "sha256": "90b03fc343d60ba04643a7cbc0b2eedcfbf1f13d948d9543ba2889fab762c346"
+    },
+    "approval_flows": {
+      "count": 1,
+      "sha256": "c3128de52773688c641c1519fa09d348119261c56afb9836c36b17633ff1b487"
+    },
+    "system_settings": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "alert_rules": {
+      "count": 1,
+      "sha256": "3afe77cef23c05c95a1b6faaa68245906e79c13e97c0d6953c5dc6d0eb745ada"
+    },
+    "gateway_config_versions": {
+      "count": 4,
+      "sha256": "de21b2f31a04e742e396cb867a74dc8323546c948bf1f60b7566b140f716512d"
+    },
+    "gateway_config_snapshots": {
+      "count": 4,
+      "sha256": "858e89524a03568c52b98adc659ef66d860b9a19e02b416924bc0f449bc25997"
+    },
+    "users": {
+      "count": 4,
+      "sha256": "c0b36a47e97d1aa3bc2bf8a6e95d3bc8b5723bb9475808fcd57b5164b280ebb6"
+    },
+    "user_roles": {
+      "count": 4,
+      "sha256": "bb1594a670d21d7ac5aef261cbd09dbd0551e64723deffcf6fd1d64cf346875b"
+    },
+    "user_project_scopes": {
+      "count": 4,
+      "sha256": "4d80c16d2c7b56759cb28f93adf3e92cf566198ae96521bac0c50058d1cfddac"
+    },
+    "sso_providers": {
+      "count": 1,
+      "sha256": "ee81c30495341c25f0c299033f4d2fa04b97884b2b2807fa9cc5b97d85d23c22"
+    },
+    "user_external_identities": {
+      "count": 1,
+      "sha256": "7b2ed327731c4441f624904d746300a3450253d3a8f4b2f18ae3663584b2ed56"
+    },
+    "release_records": {
+      "count": 4,
+      "sha256": "8cc046edd3d9de89d92484349b6d789ffb34e53d0d9d2d301cfacdd51dda821d"
+    },
+    "release_targets": {
+      "count": 8,
+      "sha256": "743332761eb070d5ceae78d69ec9772444f956207275579fb58064e36932b084"
+    },
+    "gateway_acks": {
+      "count": 8,
+      "sha256": "703cc058bbb2d1c298669fbd5b24c8071a19d8c8fde64453ff283ed44967e4a0"
+    },
+    "releaseSuccessAudit": {
+      "sha256": "e3fa043e2a9a1229444d69f618409dac8a2accbd04392a4028877b2400082b78"
+    },
+    "migrations": [
+      "20261003182012_InitialCore",
+      "20261003201632_PublishCoordinatorIdentity",
+      "20261003213457_RecoveryReference",
+      "20261004030000_ObservabilityAlerts",
+      "20261005090000_SystemSettings",
+      "20261005120000_SsoOidc",
+      "20261005123210_SsoDisplayEmail",
+      "20261005152401_SsoSecretVersion"
+    ]
+  },
+  "protectedSecretFiles": 17,
+  "historicalArchives": 16,
+  "originalAdminVerified": true,
+  "existingIdpVerified": true,
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ]
+}

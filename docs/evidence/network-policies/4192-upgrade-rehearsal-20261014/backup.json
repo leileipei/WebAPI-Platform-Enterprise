@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "originalOwner": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "sourceRevision": "9d5832952ed91fb99defc2cf3eae81cd8cee3afa",
+  "imageId": "sha256:da412506d34264a9652c837f906b9436b72a4deba81d2abb0851fbf4020ca065",
+  "platform": {
+    "kind": "platform",
+    "target": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/backups/network-policies-before-bf682c8c-f680-4f6c-ac73-f11d08587a87",
+    "files": 39,
+    "manifestSha256": "348f52557b1a4da54e87c5dd093d56525b117ed68a6a3527c40bad0b7f5af1e0",
+    "hashesVerified": true
+  },
+  "idp": {
+    "kind": "idp",
+    "target": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/backups/network-policies-before-bf682c8c-f680-4f6c-ac73-f11d08587a87-idp",
+    "files": 12,
+    "manifestSha256": "deead528e731a0f3ede998471676a3c30c635ae36552c88fa7839aeb09030a34",
+    "hashesVerified": true
+  },
+  "maintenanceArchiveFiles": 173,
+  "originalRuntimePhase": "Ready",
+  "idpDiscoveryStatus": 200,
+  "originalDataAndMainFilesPreserved": true,
+  "liveCutover": false,
+  "completedAt": "2026-10-14T13:49:57.474Z"
+}

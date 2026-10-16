@@ -1,0 +1,23 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T04:41:13.895Z",
+  "currentLink": "/projects",
+  "expanded": 1,
+  "groupButtons": 10,
+  "horizontalOverflow": false,
+  "sidebarWidth": 243.99856567382812,
+  "url": "http://127.0.0.1:4192/projects",
+  "viewportWidth": 1309,
+  "checks": [
+    "initial path opens organization",
+    "click API closes organization",
+    "Space collapses",
+    "Enter expands",
+    "API catalog link opens /apis",
+    "Back opens organization",
+    "current group manually stays collapsed",
+    "platform governance exposes SSO",
+    "SSO page loads existing Keycloak provider",
+    "Back returns /projects with organization expanded"
+  ]
+}

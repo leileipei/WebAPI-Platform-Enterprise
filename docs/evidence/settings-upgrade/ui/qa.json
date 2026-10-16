@@ -1,0 +1,113 @@
+{
+  "classification": "actual-4192-browser-visual-and-selected-interaction-checks",
+  "sourceRevision": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
+  "imageId": "sha256:688cc971945d8b4a0cab6aa0bdcfd85b910ad3ec6b88c78f335411acad6aefba",
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "visualReviewComplete": true,
+  "browserInteractionsComplete": false,
+  "screenshots": [
+    {
+      "file": "ui/01-security.jpg",
+      "width": 1309,
+      "height": 1000,
+      "sha256": "8185d39550632543c2613b8f53f90d8db81672c7f7ce6caa89528980f08b9f6e"
+    },
+    {
+      "file": "ui/02-release.jpg",
+      "width": 1309,
+      "height": 1000,
+      "sha256": "4cb5966e5eaa129b3f5a2d29659b386b50e98b794fbae956df55214262d86db6"
+    },
+    {
+      "file": "ui/03-gateway.jpg",
+      "width": 1309,
+      "height": 1000,
+      "sha256": "3650712a044efa9c636566d7a599fa08bb2554ffac9bc976da6cf94122e9cf10"
+    },
+    {
+      "file": "ui/04-audit.jpg",
+      "width": 1309,
+      "height": 1000,
+      "sha256": "8ae07e1ab551f253fc49cc350220f1c90db2bd4f541f84bd66e3fa1567f2fa27"
+    },
+    {
+      "file": "ui/05-notification.jpg",
+      "width": 1309,
+      "height": 1000,
+      "sha256": "a924544732ec91842645d21fe9ea27522d06071fe3b43754ff04369b0293067c"
+    },
+    {
+      "file": "ui/06-preview.jpg",
+      "width": 1309,
+      "height": 1000,
+      "sha256": "1219a3303b03cf0975f88ff39740c935e00064bfd2f1e63697f77e73dcc7aae5"
+    },
+    {
+      "file": "ui/07-audit.jpg",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "6e88c9e0ef23456470929cb8b4cd4363ef2ba56f428704f23caf2803efbd91bb"
+    },
+    {
+      "file": "ui/08-nodes.jpg",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "89cdcf3c22860c94ad441eca830d455bb01ab329d33c71eb355cce2b353d0ecb"
+    },
+    {
+      "file": "ui/09-metrics.jpg",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "b6be3eb71e140bcaddaadf8a53dfa3e35c09a5be6efc67382304f768926e361f"
+    },
+    {
+      "file": "ui/10-review-entry.jpg",
+      "width": 1440,
+      "height": 1100,
+      "sha256": "dd3087743fd7a4aaa0d854507e8aa42adc47c0ee6737e70d83d8aa9a9cfe8d67"
+    }
+  ],
+  "checks": [
+    {
+      "name": "FiveGroupsSeventeenFieldsAndCompatibilityDefaults",
+      "pass": true
+    },
+    {
+      "name": "NotificationStructuralOnlyNoConnectionsOrSending",
+      "pass": true
+    },
+    {
+      "name": "Real480To481PreviewAndCancelNoSave",
+      "pass": true
+    },
+    {
+      "name": "AuditPageAndAuthorizedServerCsv200",
+      "pass": true
+    },
+    {
+      "name": "CurrentDualNodesReadyV3Seq3",
+      "pass": true
+    },
+    {
+      "name": "MetricsTruthfulIncompleteCoverageAfterMaintenance",
+      "pass": true
+    },
+    {
+      "name": "FreshPage480AndEmptyStoredSettings",
+      "pass": true
+    }
+  ],
+  "pending": [
+    {
+      "name": "NativeDiscardConfirmationAndBrowserMouseActions",
+      "reason": "原标签页的放弃测试草稿原生确认框使CDP超时，工具getJsDialog无法读取；Codex原生窗口控制被工具安全限制拒绝。新标签页可直接读页面并确认480默认，但鼠标动作未完成，已请求用户手动关闭确认框。未保存设置。"
+    }
+  ],
+  "notes": [
+    "前六张由旧标签页工具导出为1309x1000 JPEG，后四张为1440x1100；没有将JPEG改写或冒认为PNG。",
+    "本轮不在长期库重复隔离验收的保存/撤权用例；源码对应上一阶段530项回归和9项真实浏览器交互，未声称再次重跑。"
+  ]
+}

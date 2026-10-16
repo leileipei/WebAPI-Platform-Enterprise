@@ -1,0 +1,22 @@
+{
+  "preparedAt": "2026-10-16T04:38:10.752380+00:00",
+  "roles": {
+    "candidate": {
+      "path": "docs/evidence/settings/ui/01-security.png",
+      "sourceParent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "sha256": "001cd5e2f144c961bc25cf67bd04bbe07e1e727edca5d0220f3617085ae7947c",
+      "bytes": 182576,
+      "originalFixedInputCopyMatches": true,
+      "purpose": "Original screenshot fixture required by four runtime package unit tests, not UI acceptance evidence."
+    },
+    "baseline": {
+      "path": "docs/evidence/settings/ui/01-security.png",
+      "sourceParent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "sha256": "001cd5e2f144c961bc25cf67bd04bbe07e1e727edca5d0220f3617085ae7947c",
+      "bytes": 182576,
+      "originalFixedInputCopyMatches": true,
+      "purpose": "Original screenshot fixture required by four runtime package unit tests, not UI acceptance evidence."
+    }
+  },
+  "productChanges": false
+}

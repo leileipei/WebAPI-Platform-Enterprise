@@ -1,0 +1,27 @@
+{
+  "verifiedAt": "2026-10-16T04:37:17.352217+00:00",
+  "roles": {
+    "baseline": {
+      "originalIndexBytesSha256": "8e3acc5985521deed0193a379ccf45ddae4d0a712c7930132d1b566629135a09",
+      "currentIndexBytesSha256": "5d5c30a8625cfb64a8da8822ea3e7a42ddf73df2e99c38e787912690c4172046",
+      "indexEntriesIdenticalToHead": true,
+      "trackedEntries": 2614,
+      "noStagedChanges": true
+    },
+    "candidate": {
+      "originalIndexBytesSha256": "8c7ac4d140dcba331edd44d61bb379ac6818fdcae5ab15943d7d2a5f1b68409e",
+      "currentIndexBytesSha256": "096839320a7a23eaf93ab5b141e9b66651b27547204ab6feb5c4c259ba93df8c",
+      "indexEntriesIdenticalToHead": true,
+      "trackedEntries": 2608,
+      "noStagedChanges": true
+    },
+    "harness": {
+      "originalIndexBytesSha256": "aaea67711ba71c20d5004404088085f727f733d5fa64cf9a7c0f4f7023b9223e",
+      "currentIndexBytesSha256": "aaea67711ba71c20d5004404088085f727f733d5fa64cf9a7c0f4f7023b9223e",
+      "indexEntriesIdenticalToHead": true,
+      "trackedEntries": 2615,
+      "noStagedChanges": true
+    }
+  },
+  "explanation": "Two isolated indexes refreshed stat-cache bytes during validation; staged modes/blob IDs exactly equal each original parent. No staging or commits performed."
+}

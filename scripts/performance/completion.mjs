@@ -1,3 +1,5 @@
+import {postgresImage} from './template-fixture.mjs';
+import {approvedIndexes} from './index-experiment.mjs';
 import {buildMatrix} from './matrix.mjs';
 import {cellKey} from './report.mjs';
 import {verifyContainerResources} from './resources.mjs';
@@ -31,6 +33,22 @@ export function verifyBaselineCompletion(input={}){
   check(['source','harness','productTree','harnessTree'].every(k=>commit.test(identity[k]??''))&&sha.test(identity.harnessFingerprint??'')&&Object.keys(identity.harnessFiles??{}).length>0&&Object.values(identity.harnessFiles??{}).every(h=>sha.test(h)),'pinned-source-and-harness');
   check(sha.test(input.classificationManifestHash??''),'pinned-sql-classification');
   check(env.verified===true&&sha.test(env.fingerprint??'')&&sameKeys(Object.keys(env.services??{}),['gateway-a','gateway-b','controlplane','backend','postgres','redis','client'])&&['gateway-a','gateway-b','controlplane'].every(n=>env.runtimeState?.[n]?.serverGc===true&&env.runtimeState[n].processorCount===2)&&Object.entries({maxConnections:'100',sharedBuffers:'512MB',workMem:'16MB',maintenanceWorkMem:'256MB',parallelWorkersPerGather:'0',timezone:'UTC'}).every(([k,v])=>env.databaseActual?.[k]===v),'verified-runtime-environment');
+  if(input.experiment==='current-business-combined-v1'){
+    const p=input.combinedProof;
+    check(p?.sourceDiffVerified===true&&sha.test(p.sourceDiffSha256??'')&&p.baselineSource!==p.candidateSource&&p.candidateSource==='760493da5a5bc0f0674e7e6398260c8a5ac4a6c0'&&p.candidateProductTree==='1aa393776ac219f43c7a9de48a63632dce1c82bf'&&p.harness===identity.harness&&p.harnessFingerprint===identity.harnessFingerprint&&identity.source===(variant==='baseline'?p.baselineSource:p.candidateSource),'combined-source-difference');
+    const validRole=proof=>proof?.complete===true&&proof.experimentRoleVerified===true&&proof.role===variant&&proof.modelMatched===(variant==='candidate')&&sha.test(proof.contractSha256??'')&&sha.test(proof.metadataSha256??'')&&sha.test(proof.indexesSha256??'')&&Array.isArray(proof.missingApprovedIndexes)&&sameKeys(proof.missingApprovedIndexes,variant==='baseline'?approvedIndexes.map(i=>i.name):[]);
+    const validTemplate=(proof,key)=>{
+      const receipt=proof?.receipt,owner=input.cleanup?.owner;
+      return proof?.target?.complete===true&&proof.target.checkedBy==='migration-current-contract'&&sha.test(proof.target.schemaHash??'')&&proof.restored===true
+        &&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(owner??'')
+        &&receipt?.schemaVersion===1&&receipt.owner===owner&&receipt.key===key&&receipt.sourceProduct===p?.candidateSource&&receipt.postgresImage===postgresImage
+        &&['contractSha256','metadataSha256','privateContractSha256'].every(k=>sha.test(receipt[k]??''))&&validRole(proof.roleProof);
+    };
+    const proofs=Array.isArray(p?.fixtures)?p.fixtures:[];
+    check(sameKeys(proofs.map(x=>x.scene+':'+x.scale),['ordinary','scope','reference'].flatMap(scene=>[100,1000,10000].map(scale=>scene+':'+scale)))&&proofs.every(x=>validTemplate(x,x.scene+'-'+x.scale)),'combined-target-template-role');
+    check(validTemplate(p?.gateway,'gateway-controlplane-100'),'combined-gateway-control-database');
+    check(Array.isArray(input.micro)&&input.micro.length===3&&input.micro.every(m=>m.entries?.every(e=>e.backend===(variant==='baseline'?'runtime-linear-map-v1':'runtime-frozen-dictionary-v1'))),'combined-actual-runtime-backend');
+  }
   const cells=Array.isArray(input.cells)?input.cells:[];
   check(sameKeys(cells.map(cellKey),buildMatrix({variants:[variant]}).map(cellKey)),'gateway-matrix-144-cells');
   for(const c of cells){

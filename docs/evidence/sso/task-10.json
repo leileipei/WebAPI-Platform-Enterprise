@@ -1,0 +1,9 @@
+{
+  "complete": true,
+  "realKeycloakChecks": 10,
+  "endToEndTests": 1,
+  "browserSameSiteEvidence": "Pending final native UI QA",
+  "redEvidence": "actual real-login false; unknown-binding 401 instead of303; cancelled Pending instead ofFailed",
+  "greenEvidence": "real fixture10 and locked E2E1; protocol24",
+  "productionDeployment": false
+}

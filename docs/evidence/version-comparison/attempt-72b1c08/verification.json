@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "complete": false,
+  "sourceRevision": "72b1c089b4d5caf36e305a1c80bb046c79e01d53",
+  "image": {
+    "schemaVersion": 1,
+    "sourceRevision": "72b1c089b4d5caf36e305a1c80bb046c79e01d53",
+    "createdAt": "2026-10-06T07:24:33.174Z",
+    "imageTag": "webapi-enterprise-runtime:72b1c089b4d5caf36e305a1c80bb046c79e01d53",
+    "imageId": "sha256:b4a329f316b12936f0fb7322234fd8b903275ccbb38995868d960118cea46cad",
+    "dependencyImages": {
+      "sdk": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+      "postgres": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "redis": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "collector": "otel/opentelemetry-collector-contrib@sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+      "prometheus": "prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+      "loki": "grafana/loki@sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+      "tempo": "grafana/tempo@sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd"
+    },
+    "staticFiles": {
+      "console/dist/assets/index-BYomvMEK.js": "a0c8475393eee56bcf8b7b5276fbf0d7558bf671016b11b6e26d90b1f671fb9a",
+      "console/dist/assets/index-BtP8qqaX.css": "e1d14f326841f341d28b48a352ecdaef535b3cb16b949285d95779c343658594",
+      "console/dist/index.html": "71c8710341610626c18b5a372be313330653c56402b72451d6d921d44670224c"
+    },
+    "configVersion": 1
+  },
+  "api": {
+    "passed": true
+  },
+  "permissions": {
+    "passed": true
+  },
+  "publish": {
+    "passed": true,
+    "targets": [
+      {
+        "nodeId": "08e46b73-7dd8-405a-b7f3-9140b0d52a92",
+        "instanceId": "0e05abc7-9281-4fa5-be9a-cfd07f9f68c9",
+        "acknowledged": true,
+        "configVersion": 1,
+        "deploymentSequence": 1,
+        "errorCode": null
+      },
+      {
+        "nodeId": "1f73ac1f-6760-41eb-be62-b601c2983567",
+        "instanceId": "0fe9ce30-0b36-4440-995f-3f0a72b731c8",
+        "acknowledged": true,
+        "configVersion": 1,
+        "deploymentSequence": 1,
+        "errorCode": null
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "real-comparison-and-strong-review",
+      "passed": true,
+      "evidence": {
+        "comparisonId": "e6137cb7-5473-409d-a9b9-2082ccbfcfb2",
+        "reviewId": "e36e2059-4b76-4080-aebc-d3176e689df9",
+        "counts": {
+          "added": 0,
+          "changed": 1,
+          "removed": 0,
+          "compatible": 0,
+          "breaking": 1,
+          "unknown": 0
+        },
+        "coverage": "Complete"
+      }
+    },
+    {
+      "name": "server-target-handoff",
+      "passed": true,
+      "evidence": {
+        "targetVersionId": "cd6a3957-7f96-427c-ae17-d71b4af64a8c",
+        "reviewId": "e36e2059-4b76-4080-aebc-d3176e689df9"
+      }
+    },
+    {
+      "name": "review-revocation-denies-protected-write",
+      "passed": true,
+      "evidence": {
+        "deniedStatus": 403
+      }
+    },
+    {
+      "name": "independent-approval-and-dual-gateway-ack",
+      "passed": true,
+      "evidence": {
+        "releaseId": "8ffd8020-2f27-460d-a62a-29b1f7b7cfc0",
+        "targets": [
+          {
+            "nodeId": "08e46b73-7dd8-405a-b7f3-9140b0d52a92",
+            "instanceId": "0e05abc7-9281-4fa5-be9a-cfd07f9f68c9",
+            "acknowledged": true,
+            "configVersion": 1,
+            "deploymentSequence": 1,
+            "errorCode": null
+          },
+          {
+            "nodeId": "1f73ac1f-6760-41eb-be62-b601c2983567",
+            "instanceId": "0fe9ce30-0b36-4440-995f-3f0a72b731c8",
+            "acknowledged": true,
+            "configVersion": 1,
+            "deploymentSequence": 1,
+            "errorCode": null
+          }
+        ],
+        "configVersion": 1,
+        "deploymentSequence": 1
+      }
+    },
+    {
+      "name": "legacy-no-reference-publish",
+      "passed": true,
+      "evidence": {
+        "releaseId": "0d03fa47-83b1-4a20-b0e1-eb3be96f8fd1",
+        "targets": [
+          {
+            "nodeId": "08e46b73-7dd8-405a-b7f3-9140b0d52a92",
+            "instanceId": "0e05abc7-9281-4fa5-be9a-cfd07f9f68c9",
+            "acknowledged": true,
+            "configVersion": 2,
+            "deploymentSequence": 2,
+            "errorCode": null
+          },
+          {
+            "nodeId": "1f73ac1f-6760-41eb-be62-b601c2983567",
+            "instanceId": "0fe9ce30-0b36-4440-995f-3f0a72b731c8",
+            "acknowledged": true,
+            "configVersion": 2,
+            "deploymentSequence": 2,
+            "errorCode": null
+          }
+        ]
+      }
+    }
+  ],
+  "ui": {
+    "verified": false
+  },
+  "scope": {
+    "organizationId": "604aaff1-b9c4-4617-8851-e0fe7ab67e82",
+    "projectId": "51a308b2-f59f-4f85-8039-9180dbc06780",
+    "environmentId": "2d3f315c-b62a-462b-85de-8f426cf27e63"
+  },
+  "apiId": "a88d9b38-1a12-4502-906b-2cffd5ac5a00",
+  "comparisonId": "e6137cb7-5473-409d-a9b9-2082ccbfcfb2",
+  "reviewId": "e36e2059-4b76-4080-aebc-d3176e689df9",
+  "releaseId": "8ffd8020-2f27-460d-a62a-29b1f7b7cfc0",
+  "targetVersionId": "cd6a3957-7f96-427c-ae17-d71b4af64a8c",
+  "time": "2026-10-06T07:24:49.497Z",
+  "toolManifestHash": "17bebef3c726078c3ee3194ce2aee7849a05f40a1496e7ff8d34b8ac25ee829a",
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "networksRemaining": 0,
+    "secretsRemaining": 0
+  },
+  "incompleteReason": "Missing actual UI proof\n\nfalse !== true\n"
+}

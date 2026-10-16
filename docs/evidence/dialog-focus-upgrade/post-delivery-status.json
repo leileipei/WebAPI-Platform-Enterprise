@@ -1,0 +1,84 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T15:03:12.591Z",
+  "sourceRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "imageId": "sha256:d17c778e8fb74f267ac459ccffd50f47052b144d0feb3dc219639acc9d6b64d0",
+  "phase": "Ready",
+  "originalTablesPreserved": 33,
+  "originalLocalFilesPreserved": 539,
+  "historicalArchivesPreserved": 32,
+  "originalTrackedChangesPreserved": 7,
+  "originalSecretsSsoAndOwnerPreserved": true,
+  "maintenanceToolFilesVerified": 96,
+  "sourceFilesVerified": 8,
+  "staticFilesVerified": 3,
+  "applicationsUsingInstalledImage": 5,
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ],
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "instanceId": "ffa93bde-a397-437a-9005-c65a05a1f904",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T15:03:11.838356+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-a",
+      "instanceId": "3fbb9b4c-0576-4756-ae3d-457a5208b8b1",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T15:03:11.841276+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    }
+  ],
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available",
+      "checkedAt": "2026-10-06T15:03:12.498Z"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available",
+      "checkedAt": "2026-10-06T15:03:12.492Z"
+    },
+    {
+      "name": "loki",
+      "state": "Available",
+      "checkedAt": "2026-10-06T15:03:12.493Z"
+    },
+    {
+      "name": "tempo",
+      "state": "Available",
+      "checkedAt": "2026-10-06T15:03:12.490Z"
+    }
+  ],
+  "deliverySha256": "f5a87dd5f07834a4ec1cb5a215248ded234446fee0aa4901caaeb419c35ef781",
+  "deliveryManifestReadback": true,
+  "scope": "生成交付包后再次只读核对原环境、受保护数据及交付文件；该回执在ZIP外保存",
+  "productionAcceptance": false
+}

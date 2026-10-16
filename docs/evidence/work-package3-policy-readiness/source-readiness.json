@@ -1,0 +1,161 @@
+{
+  "capturedAt": "2026-10-13T06:27:37.085840+00:00",
+  "fixedHead": "293b37f2dbd59427cd2d40f6783dc441345528ef",
+  "status": "readiness_only_design_pending",
+  "workPackage2": "paused_by_user",
+  "transformScope": "awaiting_user_choice",
+  "newCommits": 0,
+  "productImplementationStarted": false,
+  "deploymentChanged": false,
+  "sourceFiles": [
+    {
+      "path": "src/WebApi.Contracts/Policies/PolicyContracts.cs",
+      "sha256": "b4a13ac341ebf25f373729e19d13bc8bb61e5454577d9d9402fbac9acb433c30",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Contracts/Policies/AdvancedPolicyContracts.cs",
+      "sha256": "51291da7c951f0536f7b50d7f208ff5a3428dbcd77ef3d64d671db7c804714d8",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Contracts/Policies/PolicyObservationContracts.cs",
+      "sha256": "e1a1848170d46b5937daa0fc10e574f1ff50ff70fe3a7d525f48e91e3e8a477a",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Domain/Policies/PolicyConfigurationValidator.cs",
+      "sha256": "99656a5be05518f443bccd92ba8bf5b8a52a8bbb835075d0f61eb28f209e6ea9",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Domain/Policies/PolicyBindingRules.cs",
+      "sha256": "93f1c4768dc29a20165765c3fc091b26fe1dcd7b65af14f375d45eda842447ed",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Domain/Policies/RuntimePolicyIdentity.cs",
+      "sha256": "6a25b47e3cb2aed41664ce23558bd1b82a5f9b45adeafb83f84afa10ec8c8528",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Domain/Runtime/SnapshotValidator.cs",
+      "sha256": "1818a73c1dc762a75f38bbdff8db8094811d4c525ae3fa90ddbe54a7f844a6ef",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Releases/SnapshotCompiler.cs",
+      "sha256": "65ca8573bc22304d012a77f811fb1e5e1bd57ef15dfb885090f633a0bf246e01",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Releases/ReleaseCandidateBuilder.cs",
+      "sha256": "3aba3b703d235e4f3b480ea971fe39472f337cf39dd4feb95464cc5389fd1a29",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Releases/ReleaseService.cs",
+      "sha256": "2d77606d66ff6c254afdf6ee1ce0264cec0e2f638a22abc8f401aba8de8e56ae",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Releases/PublishCoordinator.cs",
+      "sha256": "5cea5a068574f5e26e878d10ad3aabae408078de2ebe161b9226426b15afa598",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Releases/RollbackService.cs",
+      "sha256": "0993c956e36206527311ac10862bfd5766751f980dc77f912a48be6131b2f7f8",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Infrastructure/Gateway/SnapshotSchemaCapabilities.cs",
+      "sha256": "912f33c126f0a30ec06651a089a8b60f8d133083b6431c17012c8e996ff250a4",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Domain/Delivery/ArtifactPolicyTemplate.cs",
+      "sha256": "8d6a7ad256253bda10671680accda78b32c129be40ddc805edf4adb7de0aef46",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Configuration/RuntimeGenerationStore.cs",
+      "sha256": "83f0b1e14e8e7aa3d334e90b0c80157a98ced460f7ae640b702a391490ab4a8f",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Configuration/EnterpriseProxyConfigProvider.cs",
+      "sha256": "6aa5357e5cd79a59a2b3fd6a135c2cd1b6008d5360f3553dcb5e8348a0b0e225",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Security/ApiKeyMiddleware.cs",
+      "sha256": "8322853221cbd222f315f57592e7e3d9bdbf04db43e311eca2c92868176146be",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Security/GatewayPlatformHeadersMiddleware.cs",
+      "sha256": "9335677720c145383e560d953efdad8adde50935d5dbc0cc669672c07ca0d7ea",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.HttpSecurity/TrustedProxyExtensions.cs",
+      "sha256": "d68c7b52ff20c00287c7fea79bfa99a297ac4de66ee86acfd5c53d48a178d951",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Policies/TrafficExecutionContext.cs",
+      "sha256": "b92d2c48ca3882c08f8d4e2aa5a15599a1f023cffacfce335ebdd7685a2687af",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Policies/CacheKeyBuilder.cs",
+      "sha256": "9f108d944cc745ebd9ceb4d5e668a7a10d0c6d07cb5c4ed263b02734d8afe345",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Policies/CacheEligibility.cs",
+      "sha256": "8b1715ce8035973e981ebf9cef02ad5d2add46941c660cd4c53a801bb72f5f67",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Policies/CacheResponseMiddleware.cs",
+      "sha256": "32b75983c9b05a30597c30ef60e9bcc46469b33bb5469ef5886dabd6ad8ee62d",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Policies/BoundedResponseCapture.cs",
+      "sha256": "b56384cf97aaf49315a430c71e0e54e2030d1de29376688e7f56f118f57ad45d",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "src/WebApi.Gateway/Forwarding/GatewayForwardingAdapter.cs",
+      "sha256": "bb390353cd81051ed702e97c086de751e11b38bbe9cf139d5bb3a2f11bcf0612",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "console/src/pages/Policies.tsx",
+      "sha256": "e39be246ca3102890475cc8d7bb126f291f57dd3dc969b0bdecd3e98fb04ee73",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "console/src/pages/PolicyEditor.tsx",
+      "sha256": "0cbfef74582cc7e330522eaff3dd48c5e46e27b7d38b54ee46d9ddde4be8e269",
+      "matchesFixedHead": true
+    },
+    {
+      "path": "console/src/policies/policy-state.mjs",
+      "sha256": "8e94a6124ab8778903aba090315cc73c4245fb2369232e97564729a6603c6135",
+      "matchesFixedHead": true
+    }
+  ],
+  "proposalSha256": "9b9b647adae81276c016cb0d4ed95086a268926a21b44d2d951b981919531c8e",
+  "checks": {
+    "allSourceFilesMatchHead": true,
+    "draftClearlyMarked": true,
+    "scopeChoiceExplicit": true,
+    "noFalseImplementationClaim": true,
+    "package2PauseExplicit": true,
+    "requiredSectionsPresent": true
+  }
+}

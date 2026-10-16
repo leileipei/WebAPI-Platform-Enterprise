@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "projectName": "webapi-enterprise-local-test-14729c15-36dd-473a-b6b8-e17d5d50e88c",
+  "sourceRevision": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "consoleUrl": "http://127.0.0.1:53735",
+  "syntheticData": true,
+  "uniqueSessionCookies": true,
+  "publication": {
+    "configVersion": 1,
+    "sequence": 1,
+    "independentApprovals": true,
+    "dualAck": true
+  },
+  "original4192Unchanged": true
+}

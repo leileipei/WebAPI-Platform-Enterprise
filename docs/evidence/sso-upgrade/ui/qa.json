@@ -1,0 +1,84 @@
+{
+  "complete": true,
+  "checkedAt": "2026-10-05T16:33:03.160528+00:00",
+  "checksPassed": 12,
+  "checks": [
+    "Original admin local login",
+    "SSO navigation and zero real providers",
+    "Provider drawer with actual OIDC fields",
+    "Close without writing a provider",
+    "Original three local users retained",
+    "Both nodes Ready at v4 seq4",
+    "System settings TTL480 and minimum16",
+    "Return to SSO",
+    "Local platform logout",
+    "Relogin restores requested SSO path",
+    "No horizontal overflow",
+    "No browser errors or warnings"
+  ],
+  "screenshots": [
+    {
+      "file": "ui/01-login.jpg",
+      "format": "JPEG",
+      "width": 1309,
+      "height": 954,
+      "sha256": "1f95b8c515c7fbe3a9e78ecd967a00c26d8d3096d25dbc80e5821106bc9f944b",
+      "pixelReviewed": true
+    },
+    {
+      "file": "ui/02-sso-providers.jpg",
+      "format": "JPEG",
+      "width": 1309,
+      "height": 954,
+      "sha256": "b6d9846b7ea955e1e27ba4a4283635843f95f7952a81ad0062cc1e7a83f8dec0",
+      "pixelReviewed": true
+    },
+    {
+      "file": "ui/03-sso-form.jpg",
+      "format": "JPEG",
+      "width": 1309,
+      "height": 954,
+      "sha256": "8ecd28cf42665b55da8e9cdaddb0b9717d81ecfe757d8045fc50a83f4df55d3c",
+      "pixelReviewed": true
+    },
+    {
+      "file": "ui/04-users.jpg",
+      "format": "JPEG",
+      "width": 1309,
+      "height": 954,
+      "sha256": "e02c4a6b71aa7e043659b06b31705f83744669494f817cece946ac150143b03e",
+      "pixelReviewed": true
+    },
+    {
+      "file": "ui/05-nodes.jpg",
+      "format": "JPEG",
+      "width": 1309,
+      "height": 954,
+      "sha256": "8c765b141b38c94e1cae5b15aca4a07bb96488b3200e9db85ded6fba40b2e0bb",
+      "pixelReviewed": true
+    },
+    {
+      "file": "ui/06-system-settings.jpg",
+      "format": "JPEG",
+      "width": 1309,
+      "height": 954,
+      "sha256": "ae38c47fc78cd3ed1b6fb979a3230a280808b90f877ef71c90ecbc3bb661dbc3",
+      "pixelReviewed": true
+    }
+  ],
+  "requestedViewport": {
+    "width": 1440,
+    "height": 1050
+  },
+  "actualDomViewport": {
+    "width": 1309,
+    "height": 954
+  },
+  "viewportRestored": true,
+  "userTabsPreserved": true,
+  "createdTabRetainedAsDeliverable": true,
+  "providerUserOrSettingsWritesPerformed": false,
+  "browserErrors": 0,
+  "browserWarnings": 0,
+  "enterpriseIdpLoginAccepted": false
+}

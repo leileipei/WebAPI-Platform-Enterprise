@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-16T06:58:38.640904+00:00",
+  "checkedDeliverySource": "96d6fe9251ca3064179d50215d35bf840ac6906e",
+  "backendFixedSource": "16659181966d9e9f4321e5ac44cf91d35739a453",
+  "baseMain": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+  "allSelectedRegressionsPassed": true,
+  "suites": [
+    {
+      "suite": "domain",
+      "fixedSource": "b395de0137e1c0dc586c53dcce7f5027e225c128",
+      "passed": 1091,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "privateLogSha256": "cb99435b120eaff19f5db46f1bef8e0cfc43b32193e95af2dc3d53feb7dae144",
+      "privateTrxSha256": "c3a953427a4c3bcd054a1db60a20c323f38dcab2bc2a687b68bac64b0785dbf6"
+    },
+    {
+      "suite": "gateway",
+      "fixedSource": "b395de0137e1c0dc586c53dcce7f5027e225c128",
+      "passed": 446,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "privateLogSha256": "e2fa32622c38225d4fb32d80199af0dd7f71fa353b49b050fab6c5a8a7689975",
+      "privateTrxSha256": "829aceba28a5d6c5b1a4ccb222c5f2d917828e8beb7b789b9b494ae51bd2827a"
+    },
+    {
+      "suite": "integration",
+      "fixedSource": "16659181966d9e9f4321e5ac44cf91d35739a453",
+      "passed": 1575,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "privateLogSha256": "b288906c29204ff40389a5cd91d49a1946f195867f4be11fd231711bddbb16ee",
+      "privateTrxSha256": "70422e014b557af6d021a55ed98ae4c94bcd0d7c2a71ae74e6d5f76c67fdcbd5"
+    },
+    {
+      "suite": "node",
+      "fixedSource": "96d6fe9251ca3064179d50215d35bf840ac6906e",
+      "passed": 1048,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "mainAncestorsOnly": true,
+      "privateLogSha256": "84d3045a6374f49d3c1463409f7ef67cf041add83e74bdc0c8f7d932ec270199"
+    }
+  ],
+  "aggregatePassed": 4160,
+  "frontendBuild": {
+    "exitCode": 0,
+    "source": "96d6fe9251ca3064179d50215d35bf840ac6906e",
+    "vite": "6.4.3",
+    "privateLogSha256": "ab0c626db0344404c7ea71034dc5b9aa9dab303ce5d2cfb1c17e36eeb4c77ad4"
+  },
+  "frontendPackageAudit": {
+    "knownVulnerabilities": 0,
+    "fixedSource": "96d6fe9251ca3064179d50215d35bf840ac6906e",
+    "privateLogSha256": "976ffe23525157d283a5d20da1888d6659ae1fcfc5e83a34deacdc9bf7bf85b8",
+    "initialAudit": {
+      "moderate": 1,
+      "high": 1,
+      "preserved": true
+    },
+    "fixedAdvisories": [
+      "https://github.com/vitejs/launch-editor/security/advisories/GHSA-v6wh-96g9-6wx3",
+      "https://github.com/vitejs/vite/security/advisories/GHSA-fx2h-pf6j-xcff"
+    ]
+  },
+  "frontendPatchBackendEquivalence": {
+    "backendFixedSource": "16659181966d9e9f4321e5ac44cf91d35739a453",
+    "frontendFixedSource": "96d6fe9251ca3064179d50215d35bf840ac6906e",
+    "unchangedInputObjects": [
+      {
+        "path": "src",
+        "objectId": "3e76d01572806076b89d4c2b065ae8aa0428edc6"
+      },
+      {
+        "path": "tools",
+        "objectId": "03b4fa0ca3a5148a456f6053e59909028799bb30"
+      },
+      {
+        "path": "tests",
+        "objectId": "c618c6aae63f86077700570a16f9616da5e2dd33"
+      },
+      {
+        "path": "scripts",
+        "objectId": "1a26fa818fdda05dd5c0bc4c8607d279bd0b8400"
+      },
+      {
+        "path": "deploy",
+        "objectId": "1254e72c2b48faea124e44eb9623d13e89315973"
+      },
+      {
+        "path": ".config",
+        "objectId": "f60b6727724d2f612838401aa9e8af9cdabf4b6e"
+      },
+      {
+        "path": "Directory.Build.props",
+        "objectId": "e5db0cbe4ab306bfc545c64203028cc99bfe496a"
+      },
+      {
+        "path": "Directory.Packages.props",
+        "objectId": "2ea54660c82fddcf9b0c386a2293e79285fbd325"
+      },
+      {
+        "path": "WebApi.Enterprise.sln",
+        "objectId": "627fdbdce35377844ddc2f76c8c1829fdff19ae1"
+      },
+      {
+        "path": "third_party",
+        "objectId": "0f97699e9c943d2db9186802ef730b57c43c0cb5"
+      },
+      {
+        "path": "console/src",
+        "objectId": "213b8efc6e13eaa17d1540e09de1a671272749ad"
+      },
+      {
+        "path": "console/tests",
+        "objectId": "f59a86f1b05390262e3aafe2efd99d2d56c6e103"
+      }
+    ],
+    "differences": [
+      "console/package.json",
+      "console/pnpm-lock.yaml"
+    ],
+    "businessSourceUnchanged": true
+  },
+  "solutionAndSdkCompilation": {
+    "exitCode": 0,
+    "source": "16659181966d9e9f4321e5ac44cf91d35739a453",
+    "privateLogSha256": "bd3d56a50cb042c085a9af5ec5773e8ed10fdebbd6ac0ea8f4699244ee62ddbc",
+    "liveSdkRerun": false
+  },
+  "nugetVulnerabilityAudit": {
+    "knownVulnerablePackages": 0,
+    "captured": true,
+    "privateReportSha256": "2952ee7b732cd094bd02ff671efa817faf38965895b93ae5f3e8c2f65acd9852"
+  },
+  "syntax": {
+    "node": 333,
+    "shell": 18,
+    "python": 8
+  },
+  "regressionInputEquivalence": {
+    "before": "b395de0137e1c0dc586c53dcce7f5027e225c128",
+    "after": "16659181966d9e9f4321e5ac44cf91d35739a453",
+    "exactObjectIdentity": true,
+    "sameScopes": [
+      {
+        "path": "src",
+        "gitObjectId": "3e76d01572806076b89d4c2b065ae8aa0428edc6"
+      },
+      {
+        "path": "console",
+        "gitObjectId": "c8df9a1ba67c17edf8382aa03e7a148b1ef14977"
+      },
+      {
+        "path": "deploy",
+        "gitObjectId": "1254e72c2b48faea124e44eb9623d13e89315973"
+      },
+      {
+        "path": "Directory.Build.props",
+        "gitObjectId": "e5db0cbe4ab306bfc545c64203028cc99bfe496a"
+      },
+      {
+        "path": "Directory.Packages.props",
+        "gitObjectId": "2ea54660c82fddcf9b0c386a2293e79285fbd325"
+      },
+      {
+        "path": ".config",
+        "gitObjectId": "f60b6727724d2f612838401aa9e8af9cdabf4b6e"
+      },
+      {
+        "path": "third_party",
+        "gitObjectId": "0f97699e9c943d2db9186802ef730b57c43c0cb5"
+      },
+      {
+        "path": "tests/WebApi.Domain.Tests",
+        "gitObjectId": "40c05811854b6e91477bcf5888c0d6dafb7d4538"
+      },
+      {
+        "path": "tests/WebApi.Gateway.Tests",
+        "gitObjectId": "b457e75ccfb464c727fb0c3fc7fbddfd2753107b"
+      },
+      {
+        "path": "tests/WebApi.TestSupport",
+        "gitObjectId": "080bd49d846acc7c9791fc8d668e21512108b4ae"
+      }
+    ],
+    "changedScope": "Only tools/WebApi.PerformanceHost/MigrationProbe.cs and Integration regression tests; Node test constants separately rerun on567996c"
+  },
+  "repairProof": {
+    "qualification": "candidate diagnostics before fixed repair commit; full Integration above uses immutable repair commit",
+    "red": {
+      "exitCode": 1,
+      "counters": {
+        "total": "5",
+        "executed": "5",
+        "passed": "3",
+        "failed": "2",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    "green": {
+      "exitCode": 0,
+      "counters": {
+        "total": "35",
+        "executed": "35",
+        "passed": "35",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    "fix": "char alias only; fixed-length, varying-length, text, nullability, primary key and schema guards retained"
+  },
+  "preservedFailures": [
+    {
+      "kind": "initial Node test run",
+      "reason": "archive lacked side-branch Git objects; two tests fixed to use main ancestor C760; full main-only rerun passed"
+    },
+    {
+      "kind": "private Node setup",
+      "reason": "sandbox loopback denied and main-only copy initially lacked locked frontend dependencies; original outputs retained"
+    },
+    {
+      "kind": "initial Integration",
+      "exitCode": 137,
+      "complete": false,
+      "reason": "confirmed fixed-char alias defect; obsolete failing run stopped; original failures retained; complete fixed rerun above"
+    }
+  ],
+  "remainingGates": [
+    "New performance B/C/H qualification and full 144-pair/288-window acceptance remain incomplete",
+    "Current integrated product live TEST/PROD/UI/SDK acceptance was not rerun; prior fixed P4 runtime evidence remains separately identified",
+    "GitHub Actions, signing and production release/migration gates remain work-package5",
+    "No 4192 deployment performed"
+  ],
+  "githubCiConfigured": false,
+  "privateDataPublished": false,
+  "runtimeDeploymentPerformed": false,
+  "runtimePreservationBeforeMerge": {
+    "checkedAt": "2026-10-16T06:58:42.597176+00:00",
+    "originalContainers": 118,
+    "unchanged": true,
+    "reviewTestContainersRemaining": 0,
+    "deploymentPerformed": false
+  },
+  "originalMainFilesBeforeMerge": {
+    "count": 664,
+    "originalPrivateBackupAndPublicBytesMatch": true
+  }
+}

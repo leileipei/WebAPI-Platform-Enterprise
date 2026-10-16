@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+  "phase": "Ready",
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "mainHeadStatusAndFilesUnchanged": true,
+  "originalProtectedRowsPreserved": true,
+  "protectedPrivateFilesUnchanged": 20,
+  "allowedMigration": "20261012004548_ReleaseFrozenContracts",
+  "historicalCandidateBytesUnchanged": true,
+  "accountsAndScopesUnchanged": true,
+  "originalApi200BothNodes": true,
+  "livePolicyValidationAndPreviewPassed": true,
+  "originalBusinessSnapshotVersion": 4,
+  "originalDeploymentSequence": 4,
+  "readyCurrentNodes": 2,
+  "pinnedInfrastructureUnchanged": 4,
+  "originalVolumesUnchanged": 18,
+  "realSsoPassed": true,
+  "threeSourcesAvailable": true,
+  "alertsQueryable": true,
+  "package2Paused": true,
+  "package2Running": 0,
+  "noSourceCommitOrPush": true,
+  "databaseRestored": false,
+  "completedAt": "2026-10-14T15:07:00.264Z"
+}

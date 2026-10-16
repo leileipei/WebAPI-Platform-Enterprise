@@ -1,0 +1,249 @@
+{
+  "complete": true,
+  "visualReviewComplete": true,
+  "sourceManifestHash": "ba1d9eb45e46daee85f2cf2748b2a602dc30e0319ea3522ec40635a1c2289122",
+  "browser": "Codex In-app Browser",
+  "viewport": {
+    "width": 1440,
+    "height": 1050,
+    "documentScrollWidth": 1440
+  },
+  "checks": [
+    {
+      "id": "list",
+      "route": "/settings/sso",
+      "action": "列表及搜索",
+      "expected": "真实API数据和修订，状态清晰",
+      "evidence": "02-provider-list.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "new",
+      "route": "/settings/sso",
+      "action": "新增组织级配置",
+      "expected": "保存r1且保持未启用",
+      "evidence": "09-long-fields.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "edit",
+      "route": "/settings/sso",
+      "action": "编辑名称保存",
+      "expected": "治理修订增加，认证修订不变",
+      "evidence": "03-provider-drawer.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "test",
+      "route": "/settings/sso",
+      "action": "连接测试",
+      "expected": "真实分阶段结果；不冒称完成用户登录",
+      "evidence": "05-test-stages.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "default",
+      "route": "/settings/sso",
+      "action": "设为默认",
+      "expected": "成功且治理修订增加，本地管理员保留",
+      "evidence": "verification.json",
+      "status": "passed"
+    },
+    {
+      "id": "enable-disable-rotate",
+      "route": "/settings/sso",
+      "action": "启停和认证修订更新",
+      "expected": "自定义确认、当前测试门槛、会话撤销",
+      "evidence": "verification.json",
+      "status": "passed"
+    },
+    {
+      "id": "conflict",
+      "route": "/settings/sso",
+      "action": "第二操作者并发改名→旧修订保存",
+      "expected": "412保留输入→读最新→采用修订→保存",
+      "evidence": "06-conflict.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "scope",
+      "route": "/settings/sso",
+      "action": "独立组织筛选",
+      "expected": "组织源一条、平台源零条；独立于顶部Scope",
+      "evidence": "02-provider-list.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "unsaved",
+      "route": "/settings/sso",
+      "action": "修改Scopes→Escape→明确放弃",
+      "expected": "未明确放弃前输入保留，原始文本不自动修剪",
+      "evidence": "09-long-fields.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "users",
+      "route": "/users",
+      "action": "预创建、Active只读、Disabled修正",
+      "expected": "无密码/隐式角色范围；绑定真实保存",
+      "evidence": "04-sso-user.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "keyboard",
+      "route": "/users",
+      "action": "绑定详情Tab与Escape",
+      "expected": "焦点在dialog内，Escape关闭",
+      "evidence": "qa.json",
+      "status": "passed"
+    },
+    {
+      "id": "enterprise-login",
+      "route": "/login",
+      "action": "企业按钮→Keycloak→callback→complete",
+      "expected": "原生同源POST与跨站回调；同源me恢复身份",
+      "evidence": "07-keycloak.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "post-complete-write",
+      "route": "/settings/sso",
+      "action": "SSO完成后改名",
+      "expected": "新CSRF后真实写入r11成功",
+      "evidence": "cookie-evidence.json",
+      "status": "passed"
+    },
+    {
+      "id": "negative-login",
+      "route": "/login",
+      "action": "未知Subject与错误客户端秘密",
+      "expected": "可追踪通用错误，无自动开户；保留本地入口",
+      "evidence": "08-generic-failure.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "cancel-reauth",
+      "route": "/login",
+      "action": "prompt=login重验及浏览器返回",
+      "expected": "身份服务要求重验；中途返回可本地登录",
+      "evidence": "qa.json",
+      "status": "passed"
+    },
+    {
+      "id": "session-revocation",
+      "route": "/settings/sso",
+      "action": "当前SSO用户停用自己的源",
+      "expected": "下一请求401回登录；本地admin可恢复",
+      "evidence": "cookie-evidence.json",
+      "status": "passed"
+    },
+    {
+      "id": "permission-revocation",
+      "route": "/settings/sso",
+      "action": "延迟已授权GET→撤系统角色保留功能码→刷新→释放",
+      "expected": "dialogs0及referenceInputs0，旧响应不能恢复",
+      "evidence": "10-permission-revoked.jpg",
+      "status": "passed"
+    },
+    {
+      "id": "design",
+      "route": "all",
+      "action": "1440逐图验收、长字段与错误状态",
+      "expected": "企业Shell层级清晰，视口无水平溢出",
+      "evidence": "final-report.md",
+      "status": "passed"
+    }
+  ],
+  "screenshots": {
+    "01-login.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "67984ab44509ce690674704a9d5b688805640b4293ebe6199dc12343c9253dd8",
+      "pixelReviewed": true
+    },
+    "02-provider-list.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "bf13a90e3d731ab190bf7a83fefea628afe56f34700726187b4b438ea08eb8b3",
+      "pixelReviewed": true
+    },
+    "03-provider-drawer.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "018eb264c2329401158ea5260cffebcb871117cdf8a077c589450e115ccd5bfa",
+      "pixelReviewed": true
+    },
+    "04-sso-user.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "03dc58c3ef3a33e6601dd5334bebae74efb67f96d6bd93cb09fbef4880a96daa",
+      "pixelReviewed": true
+    },
+    "05-test-stages.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "54c6fd90beb502e8727d7c4bf5ab9ffb13d79d2cfc11b6ba13a712d3d7cdef92",
+      "pixelReviewed": true
+    },
+    "06-conflict.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "aed5b27278deca63ec1ca225c4f03c06ba08c0871cddee4e13aa89b5cd3a5516",
+      "pixelReviewed": true
+    },
+    "07-keycloak.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "48cbcfa075fc1bc30e28258a7eb5d46c9eca373f0402996ed443f65177fe9acd",
+      "pixelReviewed": true
+    },
+    "08-generic-failure.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "7f0b0c0fb8a635d98738a0458d2b313250ae3a77d0a4285e548c9f1e36f277fa",
+      "pixelReviewed": true
+    },
+    "09-long-fields.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "bc8f2712a2d02b1258a491881876a0bcbd3543eaec5d5ef6e59beab7e5ce85e6",
+      "pixelReviewed": true
+    },
+    "10-permission-revoked.jpg": {
+      "width": 1440,
+      "height": 1050,
+      "sha256": "d65ec7eb2b0263775683a350b103dda5e90a6a25da2877a2094ed849fd9f6593",
+      "pixelReviewed": true
+    }
+  },
+  "fixes": [
+    {
+      "id": "login-spacing",
+      "red": "nested form gaps and CTA lost",
+      "green": "final01 full CTA and18px gaps"
+    },
+    {
+      "id": "active-nav",
+      "red": {
+        "top": 1285.5,
+        "navBottom": 962
+      },
+      "green": {
+        "top": 925.5,
+        "bottom": 962,
+        "visible": true
+      }
+    },
+    {
+      "id": "binding-escape",
+      "red": false,
+      "green": true,
+      "tabFocusInDialog": true
+    }
+  ],
+  "limits": [
+    "未进行全站屏幕阅读器或完整WCAG认证",
+    "未验企业IdP、生产HTTPS或PKI",
+    "部分CRUD和默认/轮换于前一源码迭代验证，相关后端未改；最终源码再次验证关键闭环及修复"
+  ]
+}

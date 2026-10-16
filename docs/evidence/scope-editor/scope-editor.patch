@@ -1,0 +1,260 @@
+diff --git a/console/src/pages/Governance.tsx b/console/src/pages/Governance.tsx
+index 91ea7ac..93486a1 100644
+--- a/console/src/pages/Governance.tsx
++++ b/console/src/pages/Governance.tsx
+@@ -1,11 +1,11 @@
+-import {SsoUserEditor} from './SsoUserEditor';import {saveCsvBlob} from '../observability/browser-actions.mjs';import {useState,useRef,useEffect} from 'react';import {readAllPages} from '../api/paging.mjs';import {apiRequest} from '../api/client';import {useSession} from '../auth/SessionProvider';import {useWorkspace} from '../Shell';import {Editor,Table,Feedback,useRemote,type Field,Details} from '../ui';import type {Page,Resource} from '../api/types';
++import {ScopeEditor} from '../governance/ScopeEditor';import {SsoUserEditor} from './SsoUserEditor';import {saveCsvBlob} from '../observability/browser-actions.mjs';import {useState,useRef,useEffect} from 'react';import {readAllPages} from '../api/paging.mjs';import {apiRequest} from '../api/client';import {useSession} from '../auth/SessionProvider';import {useWorkspace} from '../Shell';import {Editor,Table,Feedback,useRemote,type Field,Details} from '../ui';import type {Page,Resource} from '../api/types';
+ const titles:Record<string,string>={organizations:'组织管理',projects:'项目管理',environments:'环境管理',users:'用户管理',roles:'角色管理',permissions:'权限字典',scopes:'数据权限',audit:'审计日志'};
+ const status:Field={key:'status',label:'状态',options:[{value:'Active',label:'启用'},{value:'Disabled',label:'停用'}]};
+ const resourceFields:Field[]=[{key:'code',label:'编码',required:true},{key:'name',label:'名称',required:true},status];
+ type Edit={title:string;fields:Field[];initial:Record<string,any>;path:string;method:string;revision?:number;transform?:(v:any)=>any};
+ export function Governance({kind}:{kind:string}){const ws=useWorkspace(),session=useSession(),{can,refresh}=session;const[exporting,setExporting]=useState(false),[exportNote,setExportNote]=useState(''),exportEpoch=useRef(0);
+  useEffect(()=>{const invalidate=()=>{exportEpoch.current++;setExporting(false);setExportNote('');};window.addEventListener('session-expired',invalidate);window.addEventListener('permission-refresh',invalidate);return()=>{exportEpoch.current++;window.removeEventListener('session-expired',invalidate);window.removeEventListener('permission-refresh',invalidate);};},[JSON.stringify([session.user?.id,session.user?.permissions,session.user?.scopes])]);
+- const[ssoEdit,setSsoEdit]=useState<{user?:any}|null>(null);const[edit,setEdit]=useState<Edit>(),[details,setDetails]=useState<any>(),[query,setQuery]=useState(''),[page,setPage]=useState(1),[filter,setFilter]=useState({traceId:'',resourceId:''});const users=useRemote<Page<any>>(kind==='scopes'?`/users?page=${page}`:null),roles=useRemote<any[]>(['users','roles'].includes(kind)?'/roles':null),permissions=useRemote<any[]>(kind==='roles'?'/permissions':null);
++ const[scopeEdit,setScopeEdit]=useState<any>(null);const[ssoEdit,setSsoEdit]=useState<{user?:any}|null>(null);const[edit,setEdit]=useState<Edit>(),[details,setDetails]=useState<any>(),[query,setQuery]=useState(''),[page,setPage]=useState(1),[filter,setFilter]=useState({traceId:'',resourceId:''});const users=useRemote<Page<any>>(kind==='scopes'?`/users?page=${page}`:null),roles=useRemote<any[]>(['users','roles'].includes(kind)?'/roles':null),permissions=useRemote<any[]>(kind==='roles'?'/permissions':null);
+  const path=kind==='organizations'?'/organizations':kind==='projects'?(ws.organizationId?`/organizations/${ws.organizationId}/projects`:null):kind==='environments'?(ws.projectId?`/projects/${ws.projectId}/environments`:null):kind==='scopes'?null:kind==='audit'?`/audit-logs?traceId=${encodeURIComponent(filter.traceId)}&resourceId=${encodeURIComponent(filter.resourceId)}&page=${page}`:`/${kind}`;
+  const remote=useRemote<any>(path&&(path.includes('?')?path:path+`?page=${page}`));const raw=kind==='scopes'?users.data?.items:remote.data?.items||remote.data;const rows=(Array.isArray(raw)?raw:[]).filter(r=>!query||[r.name,r.code,r.username,r.displayName,r.action].some(v=>String(v||'').toLowerCase().includes(query.toLowerCase())));
+  async function exportCsv(){const epoch=exportEpoch.current;setExporting(true);setExportNote('');try{const response=await apiRequest<Response>(`/audit-logs/export?traceId=${encodeURIComponent(filter.traceId)}&resourceId=${encodeURIComponent(filter.resourceId)}`,{responseType:'response'});const blob=await response.blob();if(exportEpoch.current!==epoch)return;saveCsvBlob(blob,`audit-${new Date().toISOString().slice(0,10)}.csv`);setExportNote(`已导出 ${response.headers.get('X-Export-Row-Count')||0} 条（授权范围内）${response.headers.get('X-Export-Truncated')==='true'?'；已达10000条或8MiB上限，请缩小筛选后分批导出':''}`);}catch(e){if(exportEpoch.current===epoch)setExportNote((e as Error).message);}finally{if(exportEpoch.current===epoch)setExporting(false);}}
+@@ -13,7 +13,7 @@ export function Governance({kind}:{kind:string}){const ws=useWorkspace(),session
+  const baseScope=kind==='organizations'?undefined:{organizationId:ws.organizationId,...(kind==='environments'?{projectId:ws.projectId}:{})};const permission=kind==='users'?'user.manage':kind==='roles'?'role.manage':kind==='scopes'?'scope.manage':`${kind.slice(0,-1)}.write`;const canCreate=can(permission,baseScope,true)&&(!['projects','environments'].includes(kind)||!!(kind==='projects'?ws.organizationId:ws.projectId));
+  function open(row?:any){const initial=row?{...row}:{status:'Active',isProduction:false,sortOrder:0};let fields=resourceFields,path=row?`/${kind}/${row.id}`:kind==='projects'?`/organizations/${ws.organizationId}/projects`:kind==='environments'?`/projects/${ws.projectId}/environments`:`/${kind}`;if(kind==='users'){fields=[...(row?[]:[{key:'username',label:'用户名',required:true},{key:'password',label:'初始密码',type:'password',required:true,help:'遵循当前平台密码策略，不会回显'}]),{key:'displayName',label:'显示名称',required:true},{key:'email',label:'邮箱',type:'email'},...(row?[status]:[])];}if(kind==='roles'){fields=resourceFields.slice(0,2);initial.organizationId=ws.organizationId||null;}if(kind==='environments')fields=[...fields,{key:'isProduction',label:'生产环境',type:'checkbox'},{key:'sortOrder',label:'排序',type:'number'},{key:'releasePolicyId',label:'审批模板 ID',help:'生产发布必须配置审批模板；可在发布中心管理'}];setEdit({title:(row?'编辑':'新建')+titles[kind],fields,initial,path,method:row?'PUT':'POST',revision:row?.revision,transform:v=>({...v,...(kind==='environments'?{releasePolicyId:v.releasePolicyId||null}:{}),...(kind==='users'?{email:v.email||null}:{})})});}
+  async function editRoles(row:any){const items=roles.data||[];setEdit({title:'分配角色 · '+row.displayName,fields:items.map(r=>({key:r.id,label:r.name+' · '+r.code,type:'checkbox'})),initial:Object.fromEntries(items.map(r=>[r.id,row.roleIds.includes(r.id)])),path:`/users/${row.id}/roles`,method:'PUT',revision:row.revision,transform:v=>({roleIds:items.filter(r=>v[r.id]).map(r=>r.id)})});}
+- async function editScopes(row:any){const grants=await apiRequest<any[]>(`/users/${row.id}/scopes`);setEdit({title:'配置数据权限 · '+row.displayName,fields:[{key:'scopes',label:'Scope 规则',type:'json',required:true,help:'organizationId 必填，projectId/environmentId 可为空；accessMode 为 read 或 read_write。空数组撤销所有范围。下方详情提供实际资源 ID。'}],initial:{scopes:JSON.stringify(grants,null,2)},path:`/users/${row.id}/scopes`,method:'PUT',revision:row.revision,transform:v=>({scopes:v.scopes})});setDetails(ws.tree);}
+- const actions=(row:any)=>kind==='audit'?<button className="text-btn" onClick={()=>setDetails(row)}>查看变更</button>:kind==='permissions'?undefined:kind==='scopes'?<button className="text-btn" disabled={!can('scope.manage')} onClick={()=>void editScopes(row)}>配置 Scope</button>:<><button className="text-btn" disabled={!can(permission,kind==='users'||kind==='roles'?undefined:{organizationId:kind==='organizations'?row.id:ws.organizationId,projectId:kind==='projects'?row.id:kind==='environments'?row.projectId:undefined,environmentId:kind==='environments'?row.id:undefined},true)||row.isSystem} onClick={()=>open(row)}>编辑</button>{kind==='users'&&row.authSource==='sso'&&<button className="text-btn" disabled={!can('user.manage')||!can('system.sso.manage')} onClick={()=>setSsoEdit({user:row})}>SSO 绑定</button>}{kind==='users'&&<button className="text-btn" disabled={!can('user.manage')} onClick={()=>void editRoles(row)}>分配角色</button>}{kind==='roles'&&<button className="text-btn" disabled={!can('role.manage')||row.isSystem} onClick={()=>{const items=permissions.data||[];setEdit({title:'角色权限 · '+row.name,fields:items.map(p=>({key:p.code,label:p.name+' · '+p.code,type:'checkbox'})),initial:Object.fromEntries(items.map(p=>[p.code,row.permissions.includes(p.code)])),path:`/roles/${row.id}/permissions`,method:'PUT',revision:row.revision,transform:v=>({permissions:items.filter(p=>v[p.code]).map(p=>p.code)})});}}>配置权限</button>}</>;
+- return <><div className="breadcrumb">管理控制台 / 资源治理</div><div className="page-head"><div><h1>{titles[kind]}</h1><p>{kind==='scopes'?'角色权限与数据范围共同决定访问能力':kind==='audit'?'查看服务端记录的操作与资源变更':'统一维护企业资源与访问边界'}</p></div>{kind==='audit'&&<button className="btn" disabled={exporting||!remote.data?.exportAllowed||!can('audit.read')} onClick={()=>void exportCsv()}>{exporting?'导出中…':'导出 CSV'}</button>}{kind==='users'&&<button className="btn" disabled={!can('user.manage')||!can('system.sso.manage')} onClick={()=>setSsoEdit({})}>＋ SSO 用户</button>}{!['permissions','audit','scopes'].includes(kind)&&<button className="btn primary" disabled={!canCreate} onClick={()=>open()}>＋ 新建</button>}</div>{kind==='audit'&&<div className="notice" role="status">{remote.data?.exportAllowed===false?'平台已关闭审计导出；日志查询仍可用':exportNote||'CSV 仅包含安全摘要列，最多10000条 / 8MiB；遵循审计权限与数据范围'}</div>}<div className="card"><div className="filter-bar"><input aria-label="搜索当前页" placeholder="搜索当前页名称 / 编码" value={query} onChange={e=>setQuery(e.target.value)}/><button className="btn" onClick={()=>{remote.reload();users.reload();ws.refresh();}}>刷新</button></div>{kind==='audit'&&<form className="filter-bar" onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);setFilter({traceId:String(f.get('traceId')),resourceId:String(f.get('resourceId'))});setPage(1);}}><input name="traceId" placeholder="Trace ID 精确筛选"/><input name="resourceId" placeholder="资源 ID 精确筛选"/><button className="btn">应用筛选</button></form>}<Feedback {...(kind==='scopes'?users:remote)}/><Table rows={rows} columns={columns} actions={kind==='permissions'?undefined:actions}/>{!['roles','permissions'].includes(kind)&&<div className="pagination"><span>共 {(kind==='scopes'?users:remote).data?.total??0} 条 · 每页 {(kind==='scopes'?users:remote).data?.pageSize||50} 条</span><div><button disabled={page===1} onClick={()=>setPage(p=>p-1)}>上一页</button><span>{page}</span><button disabled={page*((kind==='scopes'?users:remote).data?.pageSize||50)>=((kind==='scopes'?users:remote).data?.total||0)} onClick={()=>setPage(p=>p+1)}>下一页</button></div></div>}</div>{details&&<div className="card details"><button className="text-btn" onClick={()=>setDetails(undefined)}>关闭详情</button><Details value={details}/></div>}{ssoEdit&&<SsoUserEditor user={ssoEdit.user} onCancel={()=>setSsoEdit(null)} onSaved={()=>{setSsoEdit(null);remote.reload();users.reload();void refresh();}}/>}{edit&&<Editor {...edit} help="保存后更新管理资源；角色与数据范围按服务端权限规则生效。" save={async(value,key,fresh)=>{await apiRequest(edit.path,{method:edit.method,body:edit.transform?edit.transform(value):value,etag:(fresh?.revision??edit.revision)?`"${fresh?.revision??edit.revision}"`:undefined,idempotencyKey:key});remote.reload();users.reload();roles.reload();ws.refresh();await refresh();}} loadLatest={edit.method==='PUT'?async()=>{if(edit.path.startsWith('/users/'))return(await readAllPages(apiRequest,'/users')).items.find((u:any)=>u.id===edit.path.split('/')[2]);if(edit.path.startsWith('/roles/'))return(await apiRequest<any[]>('/roles')).find(r=>r.id===edit.path.split('/')[2]);return apiRequest(edit.path);}:undefined} close={()=>setEdit(undefined)}/>}</>;
++
++ const actions=(row:any)=>kind==='audit'?<button className="text-btn" onClick={()=>setDetails(row)}>查看变更</button>:kind==='permissions'?undefined:kind==='scopes'?<button className="text-btn" disabled={!can('scope.manage')} onClick={()=>setScopeEdit(row)}>配置 Scope</button>:<><button className="text-btn" disabled={!can(permission,kind==='users'||kind==='roles'?undefined:{organizationId:kind==='organizations'?row.id:ws.organizationId,projectId:kind==='projects'?row.id:kind==='environments'?row.projectId:undefined,environmentId:kind==='environments'?row.id:undefined},true)||row.isSystem} onClick={()=>open(row)}>编辑</button>{kind==='users'&&row.authSource==='sso'&&<button className="text-btn" disabled={!can('user.manage')||!can('system.sso.manage')} onClick={()=>setSsoEdit({user:row})}>SSO 绑定</button>}{kind==='users'&&<button className="text-btn" disabled={!can('user.manage')} onClick={()=>void editRoles(row)}>分配角色</button>}{kind==='roles'&&<button className="text-btn" disabled={!can('role.manage')||row.isSystem} onClick={()=>{const items=permissions.data||[];setEdit({title:'角色权限 · '+row.name,fields:items.map(p=>({key:p.code,label:p.name+' · '+p.code,type:'checkbox'})),initial:Object.fromEntries(items.map(p=>[p.code,row.permissions.includes(p.code)])),path:`/roles/${row.id}/permissions`,method:'PUT',revision:row.revision,transform:v=>({permissions:items.filter(p=>v[p.code]).map(p=>p.code)})});}}>配置权限</button>}</>;
++ return <><div className="breadcrumb">管理控制台 / 资源治理</div><div className="page-head"><div><h1>{titles[kind]}</h1><p>{kind==='scopes'?'角色权限与数据范围共同决定访问能力':kind==='audit'?'查看服务端记录的操作与资源变更':'统一维护企业资源与访问边界'}</p></div>{kind==='audit'&&<button className="btn" disabled={exporting||!remote.data?.exportAllowed||!can('audit.read')} onClick={()=>void exportCsv()}>{exporting?'导出中…':'导出 CSV'}</button>}{kind==='users'&&<button className="btn" disabled={!can('user.manage')||!can('system.sso.manage')} onClick={()=>setSsoEdit({})}>＋ SSO 用户</button>}{!['permissions','audit','scopes'].includes(kind)&&<button className="btn primary" disabled={!canCreate} onClick={()=>open()}>＋ 新建</button>}</div>{kind==='audit'&&<div className="notice" role="status">{remote.data?.exportAllowed===false?'平台已关闭审计导出；日志查询仍可用':exportNote||'CSV 仅包含安全摘要列，最多10000条 / 8MiB；遵循审计权限与数据范围'}</div>}<div className="card"><div className="filter-bar"><input aria-label="搜索当前页" placeholder="搜索当前页名称 / 编码" value={query} onChange={e=>setQuery(e.target.value)}/><button className="btn" onClick={()=>{remote.reload();users.reload();ws.refresh();}}>刷新</button></div>{kind==='audit'&&<form className="filter-bar" onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);setFilter({traceId:String(f.get('traceId')),resourceId:String(f.get('resourceId'))});setPage(1);}}><input name="traceId" placeholder="Trace ID 精确筛选"/><input name="resourceId" placeholder="资源 ID 精确筛选"/><button className="btn">应用筛选</button></form>}<Feedback {...(kind==='scopes'?users:remote)}/><Table rows={rows} columns={columns} actions={kind==='permissions'?undefined:actions}/>{!['roles','permissions'].includes(kind)&&<div className="pagination"><span>共 {(kind==='scopes'?users:remote).data?.total??0} 条 · 每页 {(kind==='scopes'?users:remote).data?.pageSize||50} 条</span><div><button disabled={page===1} onClick={()=>setPage(p=>p-1)}>上一页</button><span>{page}</span><button disabled={page*((kind==='scopes'?users:remote).data?.pageSize||50)>=((kind==='scopes'?users:remote).data?.total||0)} onClick={()=>setPage(p=>p+1)}>下一页</button></div></div>}</div>{details&&<div className="card details"><button className="text-btn" onClick={()=>setDetails(undefined)}>关闭详情</button><Details value={details}/></div>}{scopeEdit&&<ScopeEditor user={scopeEdit} onClose={()=>setScopeEdit(null)} onSaved={()=>{setScopeEdit(null);users.reload();ws.refresh();void refresh();}}/>}{ssoEdit&&<SsoUserEditor user={ssoEdit.user} onCancel={()=>setSsoEdit(null)} onSaved={()=>{setSsoEdit(null);remote.reload();users.reload();void refresh();}}/>}{edit&&<Editor {...edit} help="保存后更新管理资源；角色与数据范围按服务端权限规则生效。" save={async(value,key,fresh)=>{await apiRequest(edit.path,{method:edit.method,body:edit.transform?edit.transform(value):value,etag:(fresh?.revision??edit.revision)?`"${fresh?.revision??edit.revision}"`:undefined,idempotencyKey:key});remote.reload();users.reload();roles.reload();ws.refresh();await refresh();}} loadLatest={edit.method==='PUT'?async()=>{if(edit.path.startsWith('/users/'))return(await readAllPages(apiRequest,'/users')).items.find((u:any)=>u.id===edit.path.split('/')[2]);if(edit.path.startsWith('/roles/'))return(await apiRequest<any[]>('/roles')).find(r=>r.id===edit.path.split('/')[2]);return apiRequest(edit.path);}:undefined} close={()=>setEdit(undefined)}/>}</>;
+ }
+diff --git a/console/src/styles/tokens.css b/console/src/styles/tokens.css
+index 9bf7310..cf3cc6c 100644
+--- a/console/src/styles/tokens.css
++++ b/console/src/styles/tokens.css
+@@ -24,3 +24,6 @@ fieldset.form-grid{border:0;padding:0;margin:0;min-width:0}.form-grid .checkline
+ 
+ /* Contract evidence stays dense at 1440px and wraps within the workspace. */
+ .comparison-context,.comparison-footer{display:flex;justify-content:space-between;gap:20px;padding:20px;align-items:center;min-width:0}.comparison-context h2{margin:8px 0}.comparison-counts{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:16px 0}.comparison-badge{display:inline-flex;padding:3px 8px;border-radius:5px;background:#e7f4ed;color:#246143;font-size:12px;font-weight:600}.comparison-badge.warning{background:#fff0dc;color:#945c19}.comparison-coverage{padding:16px 20px}.comparison-coverage p,.comparison-review-note{overflow-wrap:anywhere;white-space:pre-wrap}.comparison-table{overflow:auto;max-height:640px}.comparison-table table{width:100%;table-layout:fixed}.comparison-table th:nth-child(1){width:13%}.comparison-table th:nth-child(2){width:20%}.comparison-table th:nth-child(3){width:25%}.comparison-table td{vertical-align:top;overflow-wrap:anywhere}.comparison-table details{margin-top:8px}.comparison-table summary{cursor:pointer;color:var(--accent,#2563eb)}.comparison-fragments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}.comparison-fragments>div{min-width:0}.comparison-fragments pre{max-height:260px;max-width:100%;overflow:auto;font-size:12px;padding:10px;background:#f5f7fa}.comparison-footer code,.comparison-release code{overflow-wrap:anywhere}.comparison-footer>div{min-width:0}.comparison-history-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;border-top:1px solid var(--border,#e5e7eb)}.comparison-history-row small{display:block;color:var(--muted,#6b7280);margin-top:4px}.comparison-modal{position:fixed;inset:0;background:#12203366;display:grid;place-items:center;z-index:1000;padding:24px}.comparison-dialog{width:min(620px,100%);max-height:calc(100vh - 48px);overflow:auto;padding:28px}.comparison-dialog h2{margin-top:0}.comparison-note{display:flex;flex-direction:column;gap:8px;margin:18px 0}.comparison-note textarea{resize:vertical;min-height:128px;width:100%;box-sizing:border-box}.comparison-confirm{display:flex;gap:10px;align-items:flex-start;margin-bottom:20px}.comparison-confirm input{margin-top:3px}.comparison-release{padding:20px}.comparison-release>div{padding:12px 0;border-top:1px solid var(--border,#e5e7eb)}.comparison-selection{flex-wrap:wrap}@media(max-width:1000px){.comparison-counts{grid-template-columns:repeat(3,minmax(0,1fr))}.comparison-context,.comparison-footer{align-items:flex-start;flex-direction:column}.comparison-fragments{grid-template-columns:1fr}}
++
++/* Structured data-scope editor: desktop-first, scoped to page 37. */
++.scope-editor{width:1040px;max-height:90vh}.scope-editor header{margin-bottom:18px}.scope-editor h2{margin:5px 0 6px}.scope-editor header p{margin:0;color:var(--muted)}.scope-eyebrow{font-size:12px;color:#64748b;letter-spacing:.04em}.scope-user{font-family:ui-monospace,monospace;font-size:13px}.scope-toolbar{display:flex;align-items:center;justify-content:space-between;margin:22px 0 12px}.scope-toolbar .badge{margin-left:10px}.scope-rules{border:0;margin:0;padding:0;min-width:0}.scope-rule{border:1px solid #e2e8f0;border-radius:10px;margin-bottom:12px;padding:15px;background:#fff}.scope-rule-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;font-size:13px}.scope-rule-top>span{color:#64748b}.scope-remove{margin-left:auto;color:#b42318}.scope-fields{display:grid;grid-template-columns:1fr 1.5fr 1.5fr 1.5fr 1fr;gap:12px}.scope-fields label{display:flex;flex-direction:column;gap:7px;font-size:12px;color:#475569;min-width:0}.scope-fields select{width:100%;min-width:0;font-size:13px}.scope-hint{margin:12px 0 0;color:#64748b;font-size:12px;line-height:1.7;overflow-wrap:anywhere}.scope-summary{display:flex;flex-wrap:wrap;gap:24px;padding:14px 16px;background:#f1f5f9;border-radius:8px;margin:14px 0;font-size:13px;color:#475569}.scope-summary strong{margin-left:5px;color:#14263d}.scope-grant-list{margin:10px 0;padding-left:20px;font-size:13px;line-height:1.9;overflow-wrap:anywhere}.scope-grant-list .badge{margin-left:6px}.scope-empty{padding:28px;text-align:center;border:1px dashed #cbd5e1;border-radius:8px;color:#64748b;line-height:1.9}.scope-buttons{display:flex;gap:10px;margin-top:16px}.scope-review h3{margin-top:0}.scope-warning{color:#b42318;font-weight:600}.scope-editor .error ul{padding-left:20px;margin:0}.scope-editor footer{display:flex;align-items:center;gap:16px}.scope-editor footer span{font-size:12px;color:#64748b}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:900px){.scope-fields{grid-template-columns:repeat(2,minmax(0,1fr))}.scope-editor footer{flex-wrap:wrap}}
+diff --git a/console/src/governance/scope-state.mjs b/console/src/governance/scope-state.mjs
+new file mode 100644
+index 0000000..20ffd9f
+--- /dev/null
++++ b/console/src/governance/scope-state.mjs
+@@ -0,0 +1,44 @@
++const scopeKey=s=>JSON.stringify([s.organizationId,s.projectId||null,s.environmentId||null]);
++const grantKey=g=>scopeKey(g.scope)+':'+g.accessMode;
++export const payload=rows=>({scopes:rows.map(({scope,accessMode})=>({scope:{...scope},accessMode}))});
++export const toDraft=grants=>grants.map((g,i)=>({key:'existing-'+i,level:g.scope.environmentId?'environment':g.scope.projectId?'project':'organization',scope:{...g.scope},accessMode:g.accessMode,original:{...g.scope}}));
++export const newRule=key=>({key,level:'environment',scope:{organizationId:'',projectId:null,environmentId:null},accessMode:'read'});
++export function updateRule(row,field,value){
++ const next={...row,scope:{...row.scope}};
++ if(field==='accessMode')next.accessMode=value;
++ else if(field==='level'){next.level=value;if(value==='organization'){next.scope.projectId=null;next.scope.environmentId=null;}else if(value==='project')next.scope.environmentId=null;}
++ else{next.scope[field]=value||null;if(field==='organizationId'){next.scope.projectId=null;next.scope.environmentId=null;}if(field==='projectId')next.scope.environmentId=null;}
++ return next;
++}
++export function validate(rows,tree){
++ const seen=new Set();
++ return rows.flatMap((r,i)=>{
++  const errors=[],s=r.scope,prefix=`规则 ${i+1}：`,o=tree.organizations.find(x=>x.id===s.organizationId),p=tree.projects.find(x=>x.id===s.projectId),e=tree.environments.find(x=>x.id===s.environmentId);
++  const ruleKey=grantKey(r);if(seen.has(ruleKey))errors.push(prefix+'与前面的规则完全重复，请移除重复项。');seen.add(ruleKey);
++  const unchanged=r.original&&scopeKey(s)===scopeKey(r.original);
++  if(!['read','read_write'].includes(r.accessMode))errors.push(prefix+'请选择只读或读写权限。');
++  if(!['organization','project','environment'].includes(r.level))errors.push(prefix+'请选择范围层级。');
++  if(!s.organizationId)errors.push(prefix+'请选择组织。');
++  if(r.level!=='organization'&&!s.projectId)errors.push(prefix+'请选择项目；尚未选定时不会扩大到整个组织。');
++  if(r.level==='environment'&&!s.environmentId)errors.push(prefix+'请选择环境；尚未选定时不会扩大到整个项目。');
++  if((r.level==='organization'&&(s.projectId||s.environmentId))||(r.level==='project'&&s.environmentId))errors.push(prefix+'范围层级与资源选择不一致。');
++  if(!unchanged&&((s.organizationId&&!o)||(s.projectId&&!p)||(s.environmentId&&!e)))errors.push(prefix+'新范围必须从可读取的资源中选择；已有不可见范围可原样保留。');
++  if(p&&p.organizationId!==s.organizationId)errors.push(prefix+'项目不属于所选组织。');
++  if(e&&(e.projectId!==s.projectId))errors.push(prefix+'环境不属于所选项目或组织。');
++  return errors;
++ });
++}
++export function summarize(before,after){
++ const old=[...before],next=[...after];
++ for(let i=old.length-1;i>=0;i--){const j=next.findIndex(g=>grantKey(g)===grantKey(old[i]));if(j>=0){old.splice(i,1);next.splice(j,1);}}
++ let changed=0;for(let i=old.length-1;i>=0;i--){const j=next.findIndex(g=>scopeKey(g.scope)===scopeKey(old[i].scope));if(j>=0){changed++;old.splice(i,1);next.splice(j,1);}}
++ return {added:next.length,removed:old.length,changed};
++}
++export async function loadScopeSnapshot(readUser,readGrants){
++ for(let attempt=0;attempt<3;attempt++){
++  const first=await readUser();if(!first?.revision)throw Error('用户或修订已失效，请刷新列表后重新打开。');
++  const grants=await readGrants(),last=await readUser();
++  if(first.revision===last?.revision)return {revision:first.revision,displayName:last.displayName,grants};
++ }
++ throw Error('用户修订持续变化，未采用可能过时的数据。请稍后重新读取。');
++}
+diff --git a/console/src/governance/scope-state.d.mts b/console/src/governance/scope-state.d.mts
+new file mode 100644
+index 0000000..a1b7f1c
+--- /dev/null
++++ b/console/src/governance/scope-state.d.mts
+@@ -0,0 +1,11 @@
++import type {Scope,ScopeTree} from '../api/types';
++export type Grant={scope:Scope;accessMode:string};
++export type Rule={key:string;level:string;scope:Scope;accessMode:string;original?:Scope};
++export type Snapshot={revision:number;displayName:string;grants:Grant[]};
++export function payload(rows:Rule[]):{scopes:Grant[]};
++export function toDraft(grants:Grant[]):Rule[];
++export function newRule(key:string):Rule;
++export function updateRule(row:Rule,field:string,value:string):Rule;
++export function validate(rows:Rule[],tree:ScopeTree):string[];
++export function summarize(before:Grant[],after:Grant[]):{added:number;removed:number;changed:number};
++export function loadScopeSnapshot(readUser:()=>Promise<any>,readGrants:()=>Promise<Grant[]>):Promise<Snapshot>;
+diff --git a/console/src/governance/ScopeRules.tsx b/console/src/governance/ScopeRules.tsx
+new file mode 100644
+index 0000000..3114d9d
+--- /dev/null
++++ b/console/src/governance/ScopeRules.tsx
+@@ -0,0 +1,9 @@
++import type {Resource,ScopeTree} from '../api/types';
++import {summarize,type Rule,type Grant} from './scope-state.mjs';
++const levels:Record<string,string>={organization:'整个组织',project:'整个项目',environment:'单个环境'};
++export function ScopeSummary({before,after}:{before:Grant[];after:Grant[]}){const s=summarize(before,after);return <div className="scope-summary"><span>新增 <strong>{s.added}</strong></span><span>移除 <strong>{s.removed}</strong></span><span>权限调整 <strong>{s.changed}</strong></span><span>保存后 <strong>{after.length}</strong> 条</span></div>;}
++function Options({items,value}:{items:Resource[];value?:string|null}){return <><option value="">请选择</option>{value&&!items.some(x=>x.id===value)&&<option value={value}>不可见 / 已停用 · {value}</option>}{items.map(x=><option key={x.id} value={x.id}>{x.name} · {x.code}</option>)}</>;}
++export function GrantList({grants,tree}:{grants:Grant[];tree:ScopeTree}){return <ul className="scope-grant-list">{grants.map((g,i)=><li key={i}><strong>{tree.organizations.find(x=>x.id===g.scope.organizationId)?.name||g.scope.organizationId}</strong> / {g.scope.projectId?(tree.projects.find(x=>x.id===g.scope.projectId)?.name||g.scope.projectId):'全部项目'} / {g.scope.environmentId?(tree.environments.find(x=>x.id===g.scope.environmentId)?.name||g.scope.environmentId):'全部环境'} <span className="badge blue">{g.accessMode==='read_write'?'读写':'只读'}</span></li>)}{!grants.length&&<li>无数据范围；业务资源访问将被撤销。</li>}</ul>;}
++export function ScopeRules({rows,tree,disabled,onChange,onRemove}:{rows:Rule[];tree:ScopeTree;disabled:boolean;onChange:(key:string,field:string,value:string)=>void;onRemove:(key:string)=>void}){
++ return <fieldset className="scope-rules" disabled={disabled}><legend className="sr-only">数据范围规则</legend>{rows.map((r,i)=>{const n=i+1,projects=tree.projects.filter(p=>p.organizationId===r.scope.organizationId),environments=tree.environments.filter(e=>e.projectId===r.scope.projectId);const hidden=!!r.original&&[r.scope.organizationId,r.scope.projectId,r.scope.environmentId].some((id,index)=>id&&!([tree.organizations,tree.projects,tree.environments][index]).some(x=>x.id===id));return <section className="scope-rule" key={r.key} aria-label={'规则 '+n}><div className="scope-rule-top"><strong>规则 {String(n).padStart(2,'0')}</strong><span>{levels[r.level]}</span><button type="button" className="text-btn scope-remove" aria-label={'移除规则 '+n} onClick={()=>onRemove(r.key)}>移除</button></div><div className="scope-fields"><label>范围层级<select aria-label={'规则 '+n+'范围层级'} value={r.level} onChange={e=>onChange(r.key,'level',e.target.value)}>{Object.entries(levels).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label><label>组织<select aria-label={'规则 '+n+'组织'} value={r.scope.organizationId||''} onChange={e=>onChange(r.key,'organizationId',e.target.value)}><Options items={tree.organizations} value={r.scope.organizationId}/></select></label><label>项目<select aria-label={'规则 '+n+'项目'} disabled={disabled||r.level==='organization'||!r.scope.organizationId} value={r.scope.projectId||''} onChange={e=>onChange(r.key,'projectId',e.target.value)}>{r.level==='organization'?<option value="">全部项目</option>:<Options items={projects} value={r.scope.projectId}/>}</select></label><label>环境<select aria-label={'规则 '+n+'环境'} disabled={disabled||r.level!=='environment'||!r.scope.projectId} value={r.scope.environmentId||''} onChange={e=>onChange(r.key,'environmentId',e.target.value)}>{r.level!=='environment'?<option value="">全部环境</option>:<Options items={environments} value={r.scope.environmentId}/>}</select></label><label>访问方式<select aria-label={'规则 '+n+'访问方式'} value={r.accessMode} onChange={e=>onChange(r.key,'accessMode',e.target.value)}><option value="read">只读</option><option value="read_write">读写</option></select></label></div>{r.level!=='environment'&&<p className="scope-hint">{r.level==='organization'?'覆盖该组织全部项目与环境，包括今后新增的资源。':'覆盖该项目全部环境，包括今后新增的环境。'}</p>}{hidden&&<p className="scope-hint">部分资源不可见或已停用。原始 ID 已保留；保存其他规则不会删除此范围。</p>}</section>})}{!rows.length&&<div className="scope-empty">当前草稿无数据范围。保存后，该用户将无法访问业务资源。<br/>角色权限与平台管理权限仍按原有规则生效。</div>}</fieldset>;
++}
+diff --git a/console/src/governance/ScopeEditor.tsx b/console/src/governance/ScopeEditor.tsx
+new file mode 100644
+index 0000000..b9b4276
+--- /dev/null
++++ b/console/src/governance/ScopeEditor.tsx
+@@ -0,0 +1,41 @@
++import {useEffect,useRef,useState} from 'react';
++import {apiRequest,ApiError} from '../api/client';
++import {readAllPages} from '../api/paging.mjs';
++import {useSession} from '../auth/SessionProvider';
++import {Feedback,useRemote,useUnsaved} from '../ui';
++import type {ScopeTree} from '../api/types';
++import {loadScopeSnapshot,newRule,payload,toDraft,updateRule,validate,type Rule,type Snapshot,type Grant} from './scope-state.mjs';
++import {ScopeRules,ScopeSummary,GrantList} from './ScopeRules';
++const emptyTree:ScopeTree={organizations:[],projects:[],environments:[]};
++export function ScopeEditor({user,onClose,onSaved}:{user:{id:string;displayName:string;username:string};onClose:()=>void;onSaved:()=>void}){
++ const session=useSession(),resources=useRemote<ScopeTree>('/scope-tree');
++ const [baseline,setBaseline]=useState<Snapshot>(),[rows,setRows]=useState<Rule[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[busy,setBusy]=useState(false),[discard,setDiscard]=useState(false),[review,setReview]=useState(false),[conflict,setConflict]=useState(false),[latest,setLatest]=useState<Snapshot>();
++ const root=useRef<HTMLFormElement>(null),active=useRef(true),controller=useRef<AbortController>(new AbortController()),key=useRef(crypto.randomUUID()),lock=useRef(false);
++ const authority=JSON.stringify([session.user?.id,session.user?.permissions,session.user?.scopes]);const originalAuthority=useRef(authority);
++ const tree=resources.data||emptyTree,grants=payload(rows).scopes,dirty=!!baseline&&JSON.stringify(grants)!==JSON.stringify(baseline.grants),errors=validate(rows,tree),authorized=session.can('scope.manage');
++ const blocked=busy||loading||!baseline||!authorized||resources.loading||!!resources.error||discard||review||conflict;
++ useUnsaved(dirty||busy,()=>setError('仍有未保存的修改，请先完成保存或关闭编辑器。'));
++ async function readSnapshot(signal=controller.current.signal){const options={signal};return loadScopeSnapshot(async()=> (await readAllPages(apiRequest,'/users',options)).items.find((u:any)=>u.id===user.id),()=>apiRequest<Grant[]>(`/users/${user.id}/scopes`,options));}
++ async function load(){if(lock.current)return;const requestController=controller.current;lock.current=true;setLoading(true);setError('');try{const s=await readSnapshot(requestController.signal);if(active.current&&!requestController.signal.aborted){setBaseline(s);setRows(toDraft(s.grants));}}catch(e){if(active.current&&!requestController.signal.aborted)setError((e as Error).message);}finally{if(controller.current===requestController)lock.current=false;if(active.current&&!requestController.signal.aborted)setLoading(false);}}
++ useEffect(()=>{active.current=true;controller.current=new AbortController();lock.current=false;void load();const focus=document.activeElement as HTMLElement|null;root.current?.querySelector<HTMLElement>('button')?.focus();return()=>{active.current=false;controller.current.abort();focus?.focus();};},[]);
++ useEffect(()=>{if(authority!==originalAuthority.current||!authorized){controller.current.abort();onClose();}},[authority,authorized]);
++ useEffect(()=>{const dialog=root.current;if(!dialog)return;const trap=dialog.querySelector<HTMLElement>('[role=alertdialog]')||dialog;const first=trap.querySelector<HTMLElement>('button:not(:disabled),select:not(:disabled),input:not(:disabled)');const focus=document.activeElement;if(discard||review||!dialog.contains(focus)||focus===dialog||(focus instanceof HTMLElement&&focus.matches(':disabled'))){(first||dialog).focus();}},[discard,review,busy,conflict,latest,loading]);
++ function change(next:Rule[]){setRows(next);setError('');key.current=crypto.randomUUID();}
++ function close(){if(busy)return;if(dirty)setDiscard(true);else onClose();}
++ async function save(){if(lock.current||!review||discard||conflict||!authorized||!baseline||errors.length||resources.loading||resources.error)return;lock.current=true;setBusy(true);setError('');try{await apiRequest(`/users/${user.id}/scopes`,{method:'PUT',etag:`"${baseline.revision}"`,body:payload(rows),idempotencyKey:key.current,signal:controller.current.signal});if(active.current)onSaved();}catch(e){if(!active.current)return;setReview(false);if(e instanceof ApiError&&[401,403,404].includes(e.status)){onClose();return;}setError(e instanceof ApiError&&e.status===412?'其他操作已更新此用户。你的草稿已保留；读取最新数据后再决定如何合并。':(e as Error).message);setConflict(e instanceof ApiError&&e.status===412);setLatest(undefined);}finally{lock.current=false;if(active.current)setBusy(false);}}
++ async function readLatest(){if(lock.current||!authorized)return;lock.current=true;setBusy(true);try{const s=await readSnapshot();if(active.current){setLatest(s);setError('');}}catch(e){if(active.current)setError((e as Error).message);}finally{lock.current=false;if(active.current)setBusy(false);}}
++ return <div className="overlay"><form ref={root} className="dialog scope-editor" role="dialog" tabIndex={-1} aria-modal="true" aria-labelledby="scope-editor-title" onSubmit={e=>{e.preventDefault();if(!blocked&&!errors.length)setReview(true);}} onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();if(!busy){if(discard)setDiscard(false);else if(review)setReview(false);else close();}}if(e.key==='Tab'){const trap=e.currentTarget.querySelector('[role=alertdialog]')||e.currentTarget,items=[...trap.querySelectorAll<HTMLElement>('input:not(:disabled),select:not(:disabled),textarea:not(:disabled),button:not(:disabled),a[href]')];if(!items.length){e.preventDefault();root.current?.focus();}else if(e.shiftKey&&document.activeElement===items[0]){e.preventDefault();items.at(-1)?.focus();}else if(items.length&&!e.shiftKey&&document.activeElement===items.at(-1)){e.preventDefault();items[0]?.focus();}}}}>
++  <header><div><div className="scope-eyebrow">资源治理 / 数据权限</div><h2 id="scope-editor-title">配置数据范围</h2><p>{baseline?.displayName||user.displayName} <span className="scope-user">@{user.username}</span> · {baseline?'修订 '+baseline.revision:'正在读取'}</p></div><button type="button" className="text-btn" disabled={busy} onClick={close}>关闭</button></header>
++  <div className="notice">规则按并集生效。角色决定可执行的功能，数据范围决定可访问的资源；读写范围不会新增角色权限。</div>
++  {loading&&<p className="empty" role="status">正在读取用户修订与数据范围…</p>}
++  {!loading&&!baseline&&<button type="button" className="btn" onClick={()=>void load()}>重新读取用户范围</button>}
++  <Feedback loading={resources.loading} error={resources.error}/>{resources.error&&<button type="button" className="btn" onClick={resources.reload}>重新读取资源</button>}
++  {baseline&&<><div className="scope-toolbar"><div><strong>范围规则</strong><span className="badge blue">{rows.length} 条</span></div><button type="button" className="btn" disabled={blocked} onClick={()=>change([...rows,newRule(crypto.randomUUID())])}>＋ 添加范围</button></div><ScopeRules rows={rows} tree={tree} disabled={blocked} onChange={(id,field,value)=>change(rows.map(r=>r.key===id?updateRule(r,field,value):r))} onRemove={id=>change(rows.filter(r=>r.key!==id))}/><ScopeSummary before={baseline.grants} after={grants}/></>}
++  {errors.length>0&&!loading&&!conflict&&<div className="error" role="alert"><ul>{errors.map((e,i)=><li key={i}>{e}</li>)}</ul></div>}
++  {error&&<div className="error" role="alert">{error}</div>}
++  {conflict&&<section className="notice scope-conflict" aria-label="并发冲突"><strong>草稿已保留，尚未保存</strong><p>最新内容仅用于比较，读取操作不会覆盖你的输入。</p><button type="button" className="btn" disabled={busy||discard} onClick={()=>void readLatest()}>{busy?'读取中…':'查看最新范围'}</button>{latest&&<><p>服务器修订 {latest.revision} · 以下为服务器当前范围</p><GrantList grants={latest.grants} tree={tree}/><p>保留当前草稿后，相对服务器最新内容的变更：</p><ScopeSummary before={latest.grants} after={grants}/><button type="button" className="btn" disabled={busy||discard} onClick={()=>{setBaseline(latest);setConflict(false);setLatest(undefined);key.current=crypto.randomUUID();}}>保持我的草稿，采用最新修订</button></>}</section>}
++  {review&&<section className="notice scope-review" role="alertdialog" aria-modal="true" aria-label="确认数据范围变更"><h3>{grants.length?'确认数据范围变更':'确认撤销全部数据范围'}</h3><p>即将更新 {user.displayName} 的数据范围。请核对保存后生效的规则。</p><ScopeSummary before={baseline!.grants} after={grants}/><GrantList grants={grants} tree={tree}/>{!grants.length&&<p className="scope-warning">此操作将撤销全部业务资源访问范围。请确认目标用户及影响。</p>}<div className="scope-buttons"><button type="button" className="btn" disabled={busy} onClick={()=>setReview(false)}>返回编辑</button><button type="button" className={'btn '+(grants.length?'primary':'danger')} disabled={busy||!authorized||!!errors.length} onClick={()=>void save()}>{busy?'保存中…':grants.length?'确认保存':'确认撤销全部范围'}</button></div></section>}
++  {discard&&<section className="notice" role="alertdialog" aria-modal="true" aria-label="放弃未保存的数据范围"><p>这些修改尚未保存。关闭后将放弃当前草稿。</p><button type="button" className="btn" onClick={()=>setDiscard(false)}>继续编辑</button><button type="button" className="btn danger" onClick={onClose}>确认放弃</button></section>}
++  <footer><button className="btn primary" disabled={blocked||!!errors.length}>{conflict?'待处理并发冲突':'检查变更并保存'}</button><span>保存前需确认 · 已有不可见范围保留原始 ID</span></footer>
++ </form></div>;
++}
+diff --git a/console/tests/scope-state.test.mjs b/console/tests/scope-state.test.mjs
+new file mode 100644
+index 0000000..d174736
+--- /dev/null
++++ b/console/tests/scope-state.test.mjs
+@@ -0,0 +1,51 @@
++import {test} from 'node:test';
++import assert from 'node:assert/strict';
++import {access} from 'node:fs/promises';
++let m={};
++try{await access(new URL('../src/governance/scope-state.mjs',import.meta.url));m=await import('../src/governance/scope-state.mjs');}catch(e){if(e.code!=='ENOENT')throw e;}
++const tree={organizations:[{id:'o',name:'组织'}],projects:[{id:'p',organizationId:'o',name:'项目'},{id:'p2',organizationId:'o2',name:'另一项目'}],environments:[{id:'e',projectId:'p',name:'环境'}]};
++const grant=(organizationId='o',projectId='p',environmentId='e',accessMode='read')=>({scope:{organizationId,projectId,environmentId},accessMode});
++function ready(){assert.equal(typeof m.toDraft,'function','structured scope model is implemented');}
++test('existing grants round-trip losslessly, including overlapping access modes and invisible scopes',()=>{
++ ready();const grants=[grant(),grant('o',null,null,'read_write'),grant('hidden','hidden-p',null),grant('o','p','e','read_write')];
++ const draft=m.toDraft(grants);assert.deepEqual(m.payload(draft).scopes,grants);assert.deepEqual(m.validate(draft,tree),[]);
++ assert.deepEqual(m.validate(draft,{organizations:[],projects:[],environments:[]}),[]);
++});
++test('new scopes start with a single environment and read access; incomplete selection cannot become organization-wide',()=>{
++ ready();let row=m.newRule('x');assert.equal(row.level,'environment');assert.equal(row.accessMode,'read');
++ row=m.updateRule(row,'organizationId','o');assert.equal(row.level,'environment');assert.ok(m.validate([row],tree).length);
++ row=m.updateRule(row,'projectId','p');assert.ok(m.validate([row],tree).length);
++ row=m.updateRule(row,'environmentId','e');assert.deepEqual(m.validate([row],tree),[]);
++});
++test('changing a parent clears descendants but retains the intended level until the user selects replacements',()=>{
++ ready();const row=m.toDraft([grant()])[0];const changed=m.updateRule(row,'organizationId','o2');
++ assert.equal(changed.level,'environment');assert.equal(changed.scope.projectId,null);assert.equal(changed.scope.environmentId,null);
++ assert.ok(m.validate([changed],tree).length);assert.deepEqual(row.scope,grant().scope);
++});
++test('only an explicit level change creates organization or project-wide grants',()=>{
++ ready();const row=m.toDraft([grant()])[0];
++ assert.deepEqual(m.payload([m.updateRule(row,'level','organization')]).scopes,[grant('o',null,null)]);
++ assert.deepEqual(m.payload([m.updateRule(row,'level','project')]).scopes,[grant('o','p',null)]);
++});
++test('known hierarchy mismatches and arbitrary invisible replacements are rejected while inherited IDs survive other edits',()=>{
++ ready();const row=m.toDraft([grant()])[0];assert.ok(m.validate([m.updateRule(row,'projectId','p2')],tree).length);
++ const hidden=m.toDraft([grant('hidden','hidden-p',null)])[0];assert.deepEqual(m.validate([hidden,row],tree),[]);
++ assert.ok(m.validate([m.updateRule(hidden,'projectId','forged')],tree).length);
++ assert.ok(m.validate([{...row,accessMode:'admin'}],tree).length);
++});
++test('summary counts mode changes separately and represents empty scopes as revocation, without collapsing overlaps',()=>{
++ ready();const before=[grant(),grant('o',null,null,'read_write')];
++ const after=[grant('o','p','e','read_write'),grant('o','p',null)];
++ assert.deepEqual(m.summarize(before,after),{added:1,removed:1,changed:1});
++ assert.deepEqual(m.summarize(before,[]),{added:0,removed:2,changed:0});assert.deepEqual(m.payload([]),{scopes:[]});
++});
++test('stable reads reject revision drift instead of pairing stale scopes with a newer writable revision',async()=>{
++ ready();let calls=0;
++ await assert.rejects(m.loadScopeSnapshot(async()=>({revision:++calls}),async()=>[grant()]),/修订/);
++ const stable=await m.loadScopeSnapshot(async()=>({revision:7,displayName:'用户'}),async()=>[grant()]);
++ assert.equal(stable.revision,7);assert.deepEqual(stable.grants,[grant()]);
++});
++test('exact duplicate grants cannot overstate saved counts; overlapping scopes with different access modes remain valid',()=>{
++ ready();assert.ok(m.validate(m.toDraft([grant(),grant()]),tree).some(e=>e.includes('重复')));
++ assert.deepEqual(m.validate(m.toDraft([grant(),grant('o','p','e','read_write')]),tree),[]);
++});
+diff --git a/console/tests/scope-view.test.mjs b/console/tests/scope-view.test.mjs
+new file mode 100644
+index 0000000..039ac4b
+--- /dev/null
++++ b/console/tests/scope-view.test.mjs
+@@ -0,0 +1,28 @@
++import {test,after} from 'node:test';
++import assert from 'node:assert/strict';
++import {createElement} from 'react';
++import {renderToStaticMarkup} from 'react-dom/server';
++import {createServer} from 'vite';
++import {fileURLToPath} from 'node:url';
++import {toDraft,newRule} from '../src/governance/scope-state.mjs';
++const root=fileURLToPath(new URL('..',import.meta.url));let server,views;
++after(async()=>server?.close());
++async function load(){if(!views){server=await createServer({root,configFile:false,optimizeDeps:{noDiscovery:true,include:[]},server:{middlewareMode:true,hmr:false,ws:false},appType:'custom'});views=await server.ssrLoadModule('/src/governance/ScopeRules.tsx');}return views;}
++const tree={organizations:[{id:'o',name:'组织 A',code:'ORG'}],projects:[{id:'p',name:'项目 A',code:'PROJ',organizationId:'o'},{id:'other-p',name:'不可跨选项目',code:'OTHER',organizationId:'other'}],environments:[{id:'e',name:'环境 A',code:'DEV',projectId:'p'},{id:'other-e',name:'不可跨选环境',code:'OTHER',projectId:'other-p'}]};
++const grant={scope:{organizationId:'o',projectId:'p',environmentId:'e'},accessMode:'read'};
++test('structured scope selects render accessible labels and only descendants of the selected parent',async()=>{
++ const {ScopeRules}=await load();const html=renderToStaticMarkup(createElement(ScopeRules,{rows:toDraft([grant]),tree,disabled:false,onChange(){},onRemove(){}}));
++ assert.match(html,/aria-label="规则 1组织"/);assert.match(html,/aria-label="规则 1环境"/);assert.match(html,/环境 A/);assert.doesNotMatch(html,/不可跨选/);assert.doesNotMatch(html,/<textarea/);
++});
++test('invisible original scope remains selectable, exposes its literal ID and preservation explanation',async()=>{
++ const {ScopeRules}=await load();const html=renderToStaticMarkup(createElement(ScopeRules,{rows:toDraft([{scope:{organizationId:'retained-org',projectId:null,environmentId:null},accessMode:'read_write'}]),tree,disabled:false,onChange(){},onRemove(){}}));
++ assert.match(html,/value="retained-org" selected/);assert.match(html,/原始 ID 已保留/);assert.match(html,/今后新增/);
++});
++test('locked editing disables the rule group and new rules display only read by default',async()=>{
++ const {ScopeRules}=await load();const html=renderToStaticMarkup(createElement(ScopeRules,{rows:[newRule('new')],tree,disabled:true,onChange(){},onRemove(){}}));
++ assert.match(html,/<fieldset[^>]* disabled/);assert.match(html,/value="read" selected/);assert.match(html,/value="environment" selected/);
++});
++test('empty review states explicitly revoke business scope and change summaries show all four counts',async()=>{
++ const {GrantList,ScopeSummary}=await load();const html=renderToStaticMarkup(createElement(GrantList,{grants:[],tree}));assert.match(html,/业务资源访问将被撤销/);
++ const summary=renderToStaticMarkup(createElement(ScopeSummary,{before:[grant],after:[]}));assert.match(summary,/移除 <strong>1/);assert.match(summary,/保存后 <strong>0/);
++});

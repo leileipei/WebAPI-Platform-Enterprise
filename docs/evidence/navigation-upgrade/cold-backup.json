@@ -1,0 +1,9 @@
+{
+  "complete": true,
+  "platformVolumes": 7,
+  "fileCount": 20,
+  "hashReadback": true,
+  "SSOConfigIncluded": true,
+  "originalServicesRestarted": true,
+  "independentIdpUnchanged": true
+}

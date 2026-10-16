@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-14T12:14:27.767Z",
+  "timeZone": "Asia/Shanghai",
+  "scope": "4192 upgrade preparation only",
+  "preparationComplete": true,
+  "readyForCutover": false,
+  "serviceStopAuthorized": false,
+  "cutoverAuthorized": false,
+  "installed": {
+    "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+    "projectName": "webapi-enterprise-local",
+    "ports": {
+      "console": 4192,
+      "gatewayA": 4196,
+      "gatewayB": 4197
+    },
+    "sourceRevision": "9d5832952ed91fb99defc2cf3eae81cd8cee3afa",
+    "imageId": "sha256:da412506d34264a9652c837f906b9436b72a4deba81d2abb0851fbf4020ca065",
+    "phase": "Ready",
+    "architecture": "arm64",
+    "ownedContainers": 14,
+    "ownedVolumes": 18,
+    "users": 4,
+    "environments": 6
+  },
+  "candidate": {
+    "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+    "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+    "githubMain": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+    "architecture": "arm64",
+    "os": "linux",
+    "pendingMigrations": [
+      "20261012004548_ReleaseFrozenContracts"
+    ],
+    "legacyFrozenCandidates": 4,
+    "codeEquivalentToGithubMain": true
+  },
+  "maintenance": {
+    "filesChecked": 165,
+    "allHashesValid": true,
+    "runnerHashValid": true,
+    "pinnedPatch": "9cef7cfe728ddbb98f19e7b645fda8d23eceb227",
+    "staticImportModulesCompared": 16,
+    "staticImportModulesChanged": 0,
+    "filesDifferingOutsideMaintenanceClosure": [
+      "deploy/initial-core.sql",
+      "scripts/check-contracts.sh",
+      "scripts/gateway-policies/fixture.mjs",
+      "scripts/gateway-policies/fixtures/Program.cs",
+      "scripts/gateway-policies/verify-suites.mjs"
+    ],
+    "rehearsalPending": true
+  },
+  "infrastructure": [
+    {
+      "service": "collector",
+      "originalConfigHash": "885312e9d78118d669f47e8daab57b83d6b9cc707349cff292bc8f2dbfcadd99",
+      "candidateConfigHash": "885312e9d78118d669f47e8daab57b83d6b9cc707349cff292bc8f2dbfcadd99",
+      "serviceDefinitionUnchanged": true,
+      "currentContainerMatchesPin": true
+    },
+    {
+      "service": "prometheus",
+      "originalConfigHash": "4d729081a96a39067d00ae3052f78a8d044d950dc95b05d59544bde4f5d75115",
+      "candidateConfigHash": "4d729081a96a39067d00ae3052f78a8d044d950dc95b05d59544bde4f5d75115",
+      "serviceDefinitionUnchanged": true,
+      "currentContainerMatchesPin": true
+    },
+    {
+      "service": "loki",
+      "originalConfigHash": "9fc5dd418ec0f2c44f555c0c8973dda2f2f7fe430cfb52dd8f35414366c69a4f",
+      "candidateConfigHash": "9fc5dd418ec0f2c44f555c0c8973dda2f2f7fe430cfb52dd8f35414366c69a4f",
+      "serviceDefinitionUnchanged": true,
+      "currentContainerMatchesPin": true
+    },
+    {
+      "service": "tempo",
+      "originalConfigHash": "c93fd499211945e5c4cf5df090f17b107f09d763bd641863762d66e1c80530db",
+      "candidateConfigHash": "c93fd499211945e5c4cf5df090f17b107f09d763bd641863762d66e1c80530db",
+      "serviceDefinitionUnchanged": true,
+      "currentContainerMatchesPin": true
+    }
+  ],
+  "existingBackups": [
+    {
+      "kind": "platform",
+      "manifestModifiedAt": "2026-10-11T12:11:21.997Z",
+      "files": 39,
+      "bytes": 180581685,
+      "allHashesValid": true,
+      "restorationTestedInThisReview": false
+    },
+    {
+      "kind": "idp",
+      "manifestModifiedAt": "2026-10-11T10:56:29.472Z",
+      "files": 12,
+      "bytes": 72420022,
+      "allHashesValid": true,
+      "restorationTestedInThisReview": false
+    }
+  ],
+  "idp": {
+    "ownerId": "9d746b65-b3de-4857-87e3-6e53421ffe08",
+    "containers": 2,
+    "allContainersRunning": true
+  },
+  "package2": {
+    "ownerId": "c47bddbe-ee1a-4678-964e-894861cd082d",
+    "running": 0,
+    "paused": true
+  },
+  "originalRuntimeFiles": [
+    {
+      "name": "runtime.json",
+      "sha256": "6aeba80b626517a8bef3baa1f9338e5784ad5022e4cf6b29b879703b05394e93"
+    },
+    {
+      "name": "release.json",
+      "sha256": "efd8835676d6c0193335917f4e55a17963008c0c900a5970e5f2c32f26578d50"
+    },
+    {
+      "name": "pipeline-tooling.json",
+      "sha256": "c372411c4d919ba84f71af04d5c1572f35840583e44d42896d18c5c4061ce055"
+    },
+    {
+      "name": "pipeline-tooling-runner.mjs",
+      "sha256": "bb5cb1b782c94f720c74f7b768b6a401945e7450e66182203f828dbfa9726a77"
+    },
+    {
+      "name": "pipeline-infrastructure-pin.json",
+      "sha256": "a62121a36a620c0059aa4426331096aa233363119dfa428d4ee93d70b1bdb89c"
+    },
+    {
+      "name": "pipeline-infrastructure-overlay.json",
+      "sha256": "472741df7f7a17417eca1037cb1685bcc5fafe0856d9eda9b76666f8fa839dcb"
+    },
+    {
+      "name": "sso-deployment.json",
+      "sha256": "b79401d32a03e9a5abe6c533558b18034edb76541247b1ea9dd203b1f42cae30"
+    },
+    {
+      "name": "notification-runtime.json",
+      "sha256": "b36098224f19d77e2d6908d11823162b44d95db7aea2460808073363b21053c4"
+    },
+    {
+      "name": "manage-pipeline.sh",
+      "sha256": "b6d7b8b0b06353c14eaca8bc2e73623251975187c925ba9c7dc04ff12f33bb79"
+    },
+    {
+      "name": "manage-idp.sh",
+      "sha256": "7d8a83e9a9e30bc6d6f447fd221a7481d0b2b2ef909d67c03815f99e314cba93"
+    }
+  ],
+  "scopeBoundary": {
+    "freshBackup": false,
+    "restoredClone": false,
+    "migration": false,
+    "cutover": false,
+    "newPolicyPublication": false,
+    "sourceCommit": false,
+    "push": false
+  },
+  "sampling": {
+    "explicitSamplingNamedEnvironmentVariables": [
+      {
+        "service": "control-plane",
+        "configuredSampling": []
+      },
+      {
+        "service": "gateway-a",
+        "configuredSampling": []
+      },
+      {
+        "service": "gateway-b",
+        "configuredSampling": []
+      }
+    ],
+    "effectiveSamplingAlignment": "not-established-by-environment-inspection"
+  },
+  "basis": {
+    "fixed226Tests": 3359,
+    "mergedA30Tests": 3359,
+    "strictSections": 12,
+    "cuaActions": 15,
+    "sdkE2E": 1,
+    "originalDataUpgradeRehearsal": "not-run"
+  }
+}

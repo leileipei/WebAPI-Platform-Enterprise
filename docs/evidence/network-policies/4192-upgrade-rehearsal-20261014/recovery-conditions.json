@@ -1,0 +1,16 @@
+{
+  "schemaCompatibility": {
+    "allowed": true,
+    "restoreDatabase": false,
+    "reason": "Compatible software only; preserve all new work data."
+  },
+  "schemas": [
+    "2.0",
+    "2.0",
+    "2.0"
+  ],
+  "networkPolicyRows": 3,
+  "directDowngradeAuthorized": false,
+  "operatorAllowsDirectDowngrade": false,
+  "reason": "Historical2.0 business rollback succeeded, but three new network-policy work rows remain. Earlier old-software proof covered zero such rows only; use forward repair or separately authorized full cold recovery."
+}

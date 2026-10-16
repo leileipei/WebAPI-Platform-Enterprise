@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "scope": {
+    "organizationId": "087143b3-e051-4482-9d41-9603611cf9aa",
+    "projectId": "38953ded-c3b6-436a-8329-19e2e968f9d3",
+    "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd"
+  },
+  "requestId": "0HNPA0HNMLOQT:0000000B",
+  "traceId": "0227317f40b073f08e960e1943770cd7",
+  "logsState": "Available",
+  "tracesState": "Available",
+  "metricsState": "Available",
+  "samplingUnchanged": 0.1,
+  "measuredSuccessfulRequests": 24,
+  "alertsQueryable": true,
+  "alertsTotal": 1,
+  "rulesQueryable": true,
+  "rulesTotal": 1,
+  "createdAlertOrNotification": false
+}

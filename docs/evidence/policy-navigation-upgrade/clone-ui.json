@@ -1,0 +1,32 @@
+{
+  "complete": true,
+  "time": "2026-10-06T11:41:07.665050+00:00",
+  "sourceRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "runtimeType": "fresh-owner-physical-restore",
+  "browser": "CUA in-app browser",
+  "nonDefaultTypeNavigation": true,
+  "renamedCopySuccessNavigation": true,
+  "copiedPolicyId": "4f12f031-e029-407a-b851-a1ae993d9f29",
+  "testPolicyCreatedOnlyInDisposableClone": true,
+  "businessPublishExecuted": false,
+  "captures": [
+    {
+      "file": "screenshots/01-clone-type-navigation.jpg",
+      "label": "非默认超时类型确认后进入动态新建表单",
+      "url": "http://127.0.0.1:58170/policies/new?type=timeout&scope=project",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "fc558f2f771073cf18dc5eb4239f0e2bee75e9decaeb758d8bfba0cdfa847244",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "screenshots/02-clone-copy-navigation.jpg",
+      "label": "改名复制成功后进入新副本详情",
+      "url": "http://127.0.0.1:58170/policies/4f12f031-e029-407a-b851-a1ae993d9f29",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "38b26298a15684c29f5526ca3fa4645d8a729cc67d502b23eadd1c0d1f6a1ee5",
+      "visuallyReviewed": true
+    }
+  ]
+}

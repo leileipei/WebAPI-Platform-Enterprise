@@ -1,0 +1,24 @@
+{
+  "passed": true,
+  "backups": [
+    {
+      "kind": "platform",
+      "target": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/backups/network-policies-cutover-292ae3c4-f95e-4345-8314-4cf0c5f27057",
+      "files": 39,
+      "manifestSha256": "364c09d33fae8b6967994b2496ae8c34746298c1d383d21439180908e887ec74",
+      "allHashesVerified": true
+    },
+    {
+      "kind": "idp",
+      "target": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/backups/network-policies-cutover-292ae3c4-f95e-4345-8314-4cf0c5f27057-idp",
+      "files": 12,
+      "manifestSha256": "38bfdf2c265e60a94b4e29b613ed699dc0b4ecfbeed5fbaaf2ec550d46ddba79",
+      "allHashesVerified": true
+    }
+  ],
+  "maintenanceArchiveFiles": 173,
+  "originalResumedReady": true,
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "cutoverNotYetStarted": true,
+  "completedAt": "2026-10-14T15:02:11.050Z"
+}

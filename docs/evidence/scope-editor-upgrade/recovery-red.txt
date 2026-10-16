@@ -1,0 +1,104 @@
+✖ data verification failure is recorded but cannot prevent restoring old software on the original volumes (0.593209ms)
+✖ an owner mismatch forbids any service or storage mutation (0.099375ms)
+✖ final acceptance failure triggers shared recovery then rethrows the original failure (0.07625ms)
+✖ successful acceptance never rolls back (0.364208ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36.636208
+
+✖ failing tests:
+
+test at .runtime/scope-editor-upgrade/recovery.test.mjs:3:1
+✖ data verification failure is recorded but cannot prevent restoring old software on the original volumes (0.593209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/.runtime/scope-editor-upgrade/recovery.test.mjs:3:129)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at .runtime/scope-editor-upgrade/recovery.test.mjs:4:1
+✖ an owner mismatch forbids any service or storage mutation (0.099375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/.runtime/scope-editor-upgrade/recovery.test.mjs:4:83)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at .runtime/scope-editor-upgrade/recovery.test.mjs:5:1
+✖ final acceptance failure triggers shared recovery then rethrows the original failure (0.07625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/.runtime/scope-editor-upgrade/recovery.test.mjs:5:110)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at .runtime/scope-editor-upgrade/recovery.test.mjs:6:1
+✖ successful acceptance never rolls back (0.364208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/.runtime/scope-editor-upgrade/recovery.test.mjs:6:64)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

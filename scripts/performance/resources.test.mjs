@@ -24,12 +24,12 @@ import path from 'node:path';
 import {quotas} from './environment.mjs';
 import {createOwner} from './owner.mjs';
 import {runWithContainerResources,waitForContainerSampler,verifyContainerResources} from './resources.mjs';
-async function fixtureApi({foreign=false,missingClient=false,invalidClientFrame=false,clockMs=Date.UTC(2026,9,9)}={}){
+async function fixtureApi({foreign=false,missingClient=false,invalidClientFrame=false,clientVisibleAfterMs=0,clockMs=Date.UTC(2026,9,9)}={}){
   const root=await fs.mkdtemp('/private/tmp/webapi-resource-'),owner=await createOwner(root),output=path.join(root,'results');await fs.mkdir(output);
-  const containers=Object.keys(quotas).map((service,i)=>({Id:String(i+1).repeat(64),Labels:{'com.docker.compose.project':owner.project,'com.webapi.performance.owner':foreign?'foreign':owner.owner,'com.docker.compose.service':service}}));let statsCalls=0;const responses=new Map();
+  const containers=Object.keys(quotas).map((service,i)=>({Id:String(i+1).repeat(64),Labels:{'com.docker.compose.project':owner.project,'com.webapi.performance.owner':foreign?'foreign':owner.owner,'com.docker.compose.service':service}}));let statsCalls=0,inventoryStartedAt;const responses=new Map();
   const server=createServer((request,response)=>{
     const url=new URL(request.url,'http://engine');response.setHeader('Content-Type','application/json');
-    if(url.pathname.endsWith('/containers/json')){response.end(JSON.stringify(missingClient?containers.filter(c=>c.Labels['com.docker.compose.service']!=='client'):containers));return;}
+    if(url.pathname.endsWith('/containers/json')){inventoryStartedAt??=Date.now();const omitClient=missingClient||Date.now()-inventoryStartedAt<clientVisibleAfterMs;response.end(JSON.stringify(omitClient?containers.filter(c=>c.Labels['com.docker.compose.service']!=='client'):containers));return;}
     const target=containers.find(x=>url.pathname.includes(x.Id));
     if(url.pathname.endsWith('/json')){const quota=quotas[target.Labels['com.docker.compose.service']];response.end(JSON.stringify({Id:target.Id,Image:'sha256:'+'a'.repeat(64),Config:{Labels:target.Labels},HostConfig:{NanoCpus:quota.cpus*1e9,Memory:quota.memoryBytes},State:{Running:true},secret:'canary-not-for-evidence'}));return;}
     statsCalls++;response.writeHead(200);responses.set(target.Labels['com.docker.compose.service'],response);
@@ -48,6 +48,21 @@ test('unix_engine_stream_binds_all_actual_owner_containers_and_exports_only_sele
     assert.equal(result.complete,true);assert.equal(Object.keys(result.services).length,7);assert.equal(result.services.client.summary.cpuIntervals,4);assert.equal(f.statsCalls(),7);
     const report=await fs.readFile(path.join(f.output,key+'.resources.json'),'utf8');assert.equal(report.includes('canary-not-for-evidence'),false);assert.equal(report.includes('Config'),false);
   }finally{f.server.closeAllConnections();await new Promise(resolve=>f.server.close(resolve));await fs.rm(f.root,{recursive:true,force:true});}
+});
+test('delayed_oneoff_client_inventory_is_ready_before_opening_any_measured_window',async()=>{
+ const f=await fixtureApi({clientVisibleAfterMs:11000}),key='delayed-client';let measurementStarted=false;
+ try{
+  const started=Date.now();
+  const report=await runWithContainerResources({manifest:f.owner,dockerHost:'unix://'+f.socket,apiVersion:'1.54',output:f.output,key,resultFile:'cell.json',holdClientUntilSampled:true},async()=>{
+   await waitForContainerSampler(path.join(f.output,key+'.resources-ready.json'));
+   assert.ok(Date.now()-started>=11000);measurementStarted=true;
+   await fs.writeFile(path.join(f.output,'cell.json'),JSON.stringify({complete:true,windowStartedAt:'2026-10-09T00:00:00Z',windowEndedAt:'2026-10-09T00:00:04Z'}));
+   await waitForContainerSampler(path.join(f.output,key+'.resources-finished.json'));
+  });
+  assert.equal(measurementStarted,true);assert.equal(report.complete,true);assert.equal(report.workloadCompleted,true);
+  assert.deepEqual(report.startupInventory.lastRunningServices,Object.keys(quotas).sort());assert.equal(f.statsCalls(),7);
+  assert.equal(verifyContainerResources(report,{start:report.windowStartedAt,end:report.windowEndedAt}),true);
+ }finally{f.server.closeAllConnections();await new Promise(resolve=>f.server.close(resolve));await fs.rm(f.root,{recursive:true,force:true});}
 });
 test('foreign_container_is_rejected_before_any_stats_stream_is_read',async()=>{
   const f=await fixtureApi({foreign:true}),key='foreign-test';
@@ -108,11 +123,11 @@ test('resource_diagnostic_requires_three_distinct_full_windows_and_cleanup_witho
 });
 
 test('missing_client_retains_selected_startup_inventory_and_failure_code_without_exception_text',async()=>{
- const f=await fixtureApi({missingClient:true}),key='missing-client';
+ const f=await fixtureApi({missingClient:true}),key='missing-client',started=Date.now();
  try{
   await assert.rejects(()=>runWithContainerResources({manifest:f.owner,dockerHost:'unix://'+f.socket,apiVersion:'1.54',output:f.output,key,resultFile:'cell.json'},async()=>{throw Object.assign(Error('private-canary-failure'),{code:9,signal:null});}),/missing/i);
   const report=JSON.parse(await fs.readFile(path.join(f.output,key+'.resources.json'),'utf8'));
-  assert.equal(report.complete,false);assert.equal(report.startupInventory.lastRunningServices.length,6);assert.equal(report.startupInventory.lastRunningServices.includes('client'),false);assert.ok(report.startupInventory.polls>1);assert.equal(report.workloadFailure.exitCode,9);assert.equal(JSON.stringify(report).includes('private-canary-failure'),false);
+  assert.equal(report.complete,false);assert.equal(report.startupInventory.lastRunningServices.length,6);assert.equal(report.startupInventory.lastRunningServices.includes('client'),false);assert.ok(report.startupInventory.polls>=1);assert.ok(Date.now()-started<3000,'A failed workload must not wait out the inventory startup budget');assert.equal(report.workloadFailure.exitCode,9);assert.equal(JSON.stringify(report).includes('private-canary-failure'),false);
  }finally{f.server.closeAllConnections();await new Promise(resolve=>f.server.close(resolve));await fs.rm(f.root,{recursive:true,force:true});}
 });
 

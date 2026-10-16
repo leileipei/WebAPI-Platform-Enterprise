@@ -1,0 +1,9 @@
+{
+  "time": "2026-10-06T11:01:09.428Z",
+  "exactScopesPreserved": true,
+  "customRoleUnchanged": true,
+  "exactReadPermissionsPreserved": true,
+  "apiRead": 200,
+  "extraApiWriteRetest": "not executed: automatic approval rejected scope expansion",
+  "isolatedOnly": true
+}

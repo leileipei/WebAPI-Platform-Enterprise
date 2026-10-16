@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "time": "2026-10-06T08:28:12.949Z",
+  "preflightComplete": true,
+  "deployed": false,
+  "mainMerged": false,
+  "merge": {
+    "oldRevision": "8026813e69519f59ff79cf7b5581862e5719da93",
+    "targetRevision": "17cad2315900939a1fdc2bca6f876a4649bcc06f",
+    "fastForward": true,
+    "changedFiles": 83,
+    "modifiedFilesPreserved": 6,
+    "protectedLocalFiles": 71,
+    "overlap": []
+  },
+  "runtime": {
+    "phase": "Ready",
+    "sourceRevision": "8026813e69519f59ff79cf7b5581862e5719da93",
+    "imageId": "sha256:f007c2a7966c5ec7c9f6c6cbfd3a2fedc1c6194ab086ce5ba09fab147a9e1064",
+    "ports": {
+      "console": 4192,
+      "gatewayA": 4196,
+      "gatewayB": 4197
+    },
+    "businessVersion": 4,
+    "businessSequence": 4,
+    "nodes": [
+      {
+        "name": "local-gateway-b",
+        "instanceId": "bd8db098-8d0d-4d2f-b250-28397ab47303",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T08:28:11.543598+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      },
+      {
+        "name": "local-gateway-a",
+        "instanceId": "a49510c9-d674-4994-90e8-a293c4a2dd6b",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T08:28:11.550539+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      }
+    ],
+    "sources": [
+      {
+        "name": "collector",
+        "state": "Available",
+        "checkedAt": "2026-10-06T08:28:12.292Z"
+      },
+      {
+        "name": "prometheus",
+        "state": "Available",
+        "checkedAt": "2026-10-06T08:28:12.280Z"
+      },
+      {
+        "name": "loki",
+        "state": "Available",
+        "checkedAt": "2026-10-06T08:28:12.278Z"
+      },
+      {
+        "name": "tempo",
+        "state": "Available",
+        "checkedAt": "2026-10-06T08:28:12.276Z"
+      }
+    ],
+    "requests": [
+      {
+        "port": 4196,
+        "status": 200
+      },
+      {
+        "port": 4197,
+        "status": 200
+      }
+    ],
+    "idp": {
+      "port": 4194,
+      "phase": "Ready",
+      "ownedVolumes": 4,
+      "servicesRunning": true
+    }
+  },
+  "migration": {
+    "pending": "20261006090000_ApiVersionComparisons",
+    "newTables": [
+      "api_version_comparisons",
+      "api_version_risk_reviews"
+    ],
+    "existingTablesCaptured": 31,
+    "newTablesPresent": false
+  },
+  "candidate": {
+    "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+    "imageId": "sha256:0f2b243d098d19eca5d1ea1d1acb853893cf0260495bcb230fd28386fc46962c",
+    "sourceEqualsReviewedApplication": true,
+    "independentAcceptanceComplete": true,
+    "dependencyImagesUnchanged": true,
+    "staticFiles": {
+      "console/dist/assets/index-6r1K49Kw.css": "94a3cf3a364f5ebf0b5ed60938724aa22e42821e1742396a233cbbb17f3f5b63",
+      "console/dist/assets/index-ByJIBa2q.js": "a0c8475393eee56bcf8b7b5276fbf0d7558bf671016b11b6e26d90b1f671fb9a",
+      "console/dist/index.html": "bb642c5b02ce3779ec2345bf9ac106e158b94fb3580b5b3b54fc7ad9067f35ef"
+    }
+  },
+  "preservation": {
+    "localFilesShaCaptured": 71,
+    "protectedDatabaseTables": 31,
+    "secretAndSsoFileShaCaptured": 22,
+    "toolRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+    "toolFilesVerified": 96,
+    "maintenanceSourceUnchanged": true,
+    "archivesVerified": 22
+  },
+  "notExecuted": [
+    "main merge",
+    "runtime restart",
+    "cold backup",
+    "original database migration",
+    "4192 switch"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "runtimeOwner": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "verifiedAt": "2026-10-16T02:18:47.533484Z",
+  "kind": "tests",
+  "passed": 1549,
+  "failed": 0,
+  "skipped": 0,
+  "testNames": [
+    "WebApi.Integration.Tests.ApplicationAuditScopeTests.Audit_resource_filter_cannot_be_supplied_by_browser",
+    "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+    "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+    "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+    "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+    "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+    "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+    "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+    "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+    "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce",
+    "WebApi.Integration.Tests.PasswordLifecycleTests.Successful_change_restores_permissions_and_never_persists_secrets",
+    "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes",
+    "WebApi.Integration.Tests.PasswordResetTests.Reset_invalidates_old_session_and_requires_temporary_login_change",
+    "WebApi.Integration.Tests.PasswordResetTests.Sso_disabled_and_self_resets_are_denied"
+  ],
+  "countMeaning": "Original complete fixed Integration suite total; testNames is the selected passing subset used by these requirement units.",
+  "log": {
+    "path": "2026-10-16-fixed-ba9031c/acceptance/integration.log",
+    "sha256": "f5847a67b3734d0d08af5fcc78b96ecfc6cd0b8a47c1a5b1495c9c3af1b7f9b7"
+  },
+  "suiteSourceRevisionVerified": true
+}

@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-10-05T09:38:44.535963+00:00",
+  "fileName": "audit-2026-10-05.csv",
+  "bytes": 17452,
+  "sha256": "817fb5175dcc203f0e0c7c4a99be03e032c73f03d9a2e618294bc4f92b8de322",
+  "dataRows": 75,
+  "columns": [
+    "id",
+    "createdAt",
+    "actorId",
+    "action",
+    "resourceType",
+    "resourceId",
+    "organizationId",
+    "projectId",
+    "environmentId",
+    "traceId"
+  ],
+  "chromeUiReportedComplete": true,
+  "pageReportedExportedRows": 75,
+  "downloadEventListenerTimedOut": true,
+  "contentObtainedFromActualChromeDownload": true,
+  "rawCsvIncludedInDeliverable": false
+}

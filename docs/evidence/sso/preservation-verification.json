@@ -1,0 +1,69 @@
+{
+  "mainStatusUnchanged": true,
+  "statusSha256": "aeb9687e688c89208194a91c5dc96dc09f4302c12435fbec4ff305a5479a56f2",
+  "statusHashIsNotFileContentProof": true,
+  "oldArchives": {
+    "deliverables/WebAPI_Enterprise_可观测与告警源码及验收.zip": {
+      "expected": "e88d06501b6b995f38af12057933edbae91151cfcac1d0f11d2bc9304eb29b06",
+      "actual": "e88d06501b6b995f38af12057933edbae91151cfcac1d0f11d2bc9304eb29b06",
+      "unchanged": true
+    },
+    "deliverables/WebAPI_Enterprise_核心闭环源码与验收.zip": {
+      "expected": "734ae0ecf78b92da08d03e352683453498067da8266df44b691ac1ad712d51d6",
+      "actual": "734ae0ecf78b92da08d03e352683453498067da8266df44b691ac1ad712d51d6",
+      "unchanged": true
+    },
+    "../WebAPI_Enterprise_V2_40页高保真原型_方案1.zip": {
+      "expected": "810d55a9b09cde400524e29a2c07f032cc6a584af11c56e0aa29779a9d23a5b1",
+      "actual": "810d55a9b09cde400524e29a2c07f032cc6a584af11c56e0aa29779a9d23a5b1",
+      "unchanged": true
+    },
+    "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.1.zip": {
+      "expected": "1c0ab23e44852efb6538447678b4b7ca4a3e2f2a909ebfb5a5c9fd447557d225",
+      "actual": "1c0ab23e44852efb6538447678b4b7ca4a3e2f2a909ebfb5a5c9fd447557d225",
+      "unchanged": true
+    },
+    "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.2.zip": {
+      "expected": "14b6c492d1613966de6339d813e90c8ee65abf6c11adfcb6def85f14a7ac3cda",
+      "actual": "14b6c492d1613966de6339d813e90c8ee65abf6c11adfcb6def85f14a7ac3cda",
+      "unchanged": true
+    },
+    "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.3.zip": {
+      "expected": "7b6208898c6c5e0ad7acecf6182d3cdb1209aa69a2c020e5cd1cd4f4b2ce0a63",
+      "actual": "7b6208898c6c5e0ad7acecf6182d3cdb1209aa69a2c020e5cd1cd4f4b2ce0a63",
+      "unchanged": true
+    },
+    "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.4.zip": {
+      "expected": "cc61148914306cca3f6dbe1bdc96d49677c7010932e1f5756c25622b8677f221",
+      "actual": "cc61148914306cca3f6dbe1bdc96d49677c7010932e1f5756c25622b8677f221",
+      "unchanged": true
+    },
+    "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收.zip": {
+      "expected": "87d536081e1e8611a0eea6d089b6a940487dcbe0c9fd890f6cc42bbe72858ce7",
+      "actual": "87d536081e1e8611a0eea6d089b6a940487dcbe0c9fd890f6cc42bbe72858ce7",
+      "unchanged": true
+    },
+    "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收_V1.1.zip": {
+      "expected": "cd0658aaef617b6a94206fe2d325295484bb53aa8444fb450ca84085c6655ee4",
+      "actual": "cd0658aaef617b6a94206fe2d325295484bb53aa8444fb450ca84085c6655ee4",
+      "unchanged": true
+    },
+    "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/system-settings/deliverables/WebAPI_Enterprise_系统设置源码及验收_20261005.zip": {
+      "expected": "ac70310f743ee6b30a4e45416de59047271163fb0f25a87b00bd6dc6fd83267a",
+      "actual": "ac70310f743ee6b30a4e45416de59047271163fb0f25a87b00bd6dc6fd83267a",
+      "unchanged": true
+    },
+    "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/system-settings/deliverables/WebAPI_Enterprise_系统设置浏览器复验补充_20261005.zip": {
+      "expected": "091d47a8fa6ed8a1c9bf73e40a9bdb7421d49f231ae8c75b378eb46517ad4104",
+      "actual": "091d47a8fa6ed8a1c9bf73e40a9bdb7421d49f231ae8c75b378eb46517ad4104",
+      "unchanged": true
+    },
+    "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/system-settings/deliverables/WebAPI_Enterprise_系统设置本机升级补充_20261005.zip": {
+      "expected": "5127d546d31b890ce5ae5b0570cca89308b23c1dc8831f2a148cb073f416b74b",
+      "actual": "5127d546d31b890ce5ae5b0570cca89308b23c1dc8831f2a148cb073f416b74b",
+      "unchanged": true
+    }
+  },
+  "no4192RestartOrUpgrade": true,
+  "noGitCommitPushOrMerge": true
+}

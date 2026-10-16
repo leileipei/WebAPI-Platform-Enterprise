@@ -1,0 +1,77 @@
+{
+  "passed": true,
+  "ownerId": "d7694735-5aa2-4900-921d-9f5f3897a2d7",
+  "directory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/tests/webapi-enterprise-local-test-a8d509f0-fa6d-4ec3-aed9-4c093329197f",
+  "sourceRevision": "9d5832952ed91fb99defc2cf3eae81cd8cee3afa",
+  "status": "Ready",
+  "rows": {
+    "tables": 71,
+    "oldRows": 1005,
+    "oldRowsPreserved": true,
+    "allowedNewMigrationHistoryRows": 0,
+    "newTables": []
+  },
+  "binary": {
+    "imageId": "sha256:da412506d34264a9652c837f906b9436b72a4deba81d2abb0851fbf4020ca065",
+    "applicationContainers": 8,
+    "applicationHashes": 269,
+    "staticHashes": 3
+  },
+  "calls": [
+    {
+      "port": 52902,
+      "status": 200,
+      "backendId": "A",
+      "apiKeyForwarded": false
+    },
+    {
+      "port": 52903,
+      "status": 200,
+      "backendId": "A",
+      "apiKeyForwarded": false
+    }
+  ],
+  "auth": {
+    "userId": "845f5566-d92f-4aa0-ab37-f6295696a40d",
+    "username": "admin",
+    "existingPipelinePermissions": true
+  },
+  "candidateBytesUnchanged": true,
+  "volumeBytes": {
+    "passed": true,
+    "secretFiles": 11,
+    "volumesByteEqual": [
+      "verification-reports",
+      "dp-keys",
+      "secrets-cache",
+      "notification-secrets",
+      "notification-fixture-secrets"
+    ],
+    "fileCounts": [
+      {
+        "name": "verification-reports",
+        "files": 0
+      },
+      {
+        "name": "dp-keys",
+        "files": 1
+      },
+      {
+        "name": "secrets-cache",
+        "files": 1
+      },
+      {
+        "name": "notification-secrets",
+        "files": 3
+      },
+      {
+        "name": "notification-fixture-secrets",
+        "files": 5
+      }
+    ],
+    "checkedBeforeApplicationsStarted": true
+  },
+  "source4192Changed": false,
+  "upgradedCloneOverwritten": false,
+  "idpEvidence": "Independent restored Keycloak and actual SSO on primary clone; secondary platform SSO kept disabled"
+}

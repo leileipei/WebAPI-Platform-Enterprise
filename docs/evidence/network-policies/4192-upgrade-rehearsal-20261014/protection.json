@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "originalSourceRevision": "9d5832952ed91fb99defc2cf3eae81cd8cee3afa",
+  "originalPhase": "Ready",
+  "originalOwner": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "originalContainersRunning": 14,
+  "idpContainersRunning": 2,
+  "idpDiscoveryStatus": 200,
+  "idpOriginalAndClonedSecretFilesUnchanged": 5,
+  "originalTables": 71,
+  "mainHeadStatusAndFileHashesUnchanged": true,
+  "originalProtectedRowsRetained": true,
+  "originalFingerprintFilesUnchanged": 10,
+  "package2Paused": true,
+  "package2Running": 0,
+  "clonePhase": "Ready",
+  "cloneSourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "cloneOriginalFourCandidateBytesUnchanged": true,
+  "cloneAccessGrantTablesUnchanged": [
+    "permissions",
+    "role_permissions",
+    "roles",
+    "user_project_scopes",
+    "user_roles"
+  ],
+  "original4192Cutover": false,
+  "noSourceCommitOrPush": true
+}

@@ -1,0 +1,25 @@
+{
+  "complete": true,
+  "schemaVersion": 1,
+  "sourceRevision": "1b8588f95d380477882cf6e663316632560f2c82",
+  "createdAt": "2026-10-06T04:37:35.708Z",
+  "imageTag": "webapi-enterprise-runtime:1b8588f95d380477882cf6e663316632560f2c82",
+  "imageId": "sha256:61adaed300f96cd7959a6b9b96a9b6d4c63a9235f6c8b5e1f3b97a8b6061afbb",
+  "dependencyImages": {
+    "sdk": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+    "postgres": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+    "redis": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+    "collector": "otel/opentelemetry-collector-contrib@sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+    "prometheus": "prom/prometheus@sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+    "loki": "grafana/loki@sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+    "tempo": "grafana/tempo@sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd"
+  },
+  "staticFiles": {
+    "console/dist/assets/index-BKWZviKE.css": "a3258d047b2514c0c11fbcbc3ea972ea74b91df0b94b27f658e864cf11afca5d",
+    "console/dist/assets/index-DpRWRund.js": "142da9116d5e88b3b10fc72eb4550c04deaabea1e072633cec710373096112b8",
+    "console/dist/index.html": "566f13ad11abe8db4ee5f4be22a5a4dbfb613c30a7c01d56e13c7aef533eb280"
+  },
+  "configVersion": 1,
+  "gitArchive": true,
+  "backendAndToolSourceUnchanged": true
+}

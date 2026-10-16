@@ -1,0 +1,15 @@
+{
+  "task": 5,
+  "complete": true,
+  "sourceState": "uncommitted-isolated-worktree",
+  "redFailed": 13,
+  "greenPassed": 15,
+  "greenFailed": 0,
+  "lockedRestore": true,
+  "validatedIdentityConstructor": "internal-only-control-plane-and-tests",
+  "attemptClaimWinnerCount": 1,
+  "ttlMinutesFromSettings": 17,
+  "explicitRolesAndMultiOrganizationScopesPreserved": true,
+  "profileAuditContainsOnlyChangedFieldNames": true,
+  "protocolValidationNotYetClaimed": true
+}

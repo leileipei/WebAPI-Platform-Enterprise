@@ -7,5 +7,5 @@ public interface IAuthorizationService
     Task RequireAsync(ActorContext actor, string permission, ResourceRef resource, CancellationToken cancellationToken = default);
 }
 public sealed record LoginRequest(string Username, string Password);
-public sealed record IdentityDto(Guid Id, string Username, string DisplayName, IReadOnlyList<string> Permissions, IReadOnlyList<ScopeGrantDto> Scopes);
+public sealed record IdentityDto(Guid Id, string Username, string DisplayName, IReadOnlyList<string> Permissions, IReadOnlyList<ScopeGrantDto> Scopes,string AuthSource="local",bool MustChangePassword=false);
 public sealed record ScopeGrantDto(ScopeRef Scope, string AccessMode);

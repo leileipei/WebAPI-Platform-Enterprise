@@ -1,0 +1,217 @@
+{
+  "checkedAt": "2026-10-05T09:43:07.618348+00:00",
+  "classification": "actual-4192-chrome-browser-recheck-complete",
+  "sourceRevision": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
+  "imageId": "sha256:688cc971945d8b4a0cab6aa0bdcfd85b910ad3ec6b88c78f335411acad6aefba",
+  "target": "http://127.0.0.1:4192/settings/system",
+  "browser": "Chrome",
+  "complete": true,
+  "steps": [
+    {
+      "step": 1,
+      "name": "原管理员登录与安全默认值",
+      "status": "passed",
+      "notes": "通过：平台级范围、5组17字段、480分钟兼容默认可见。",
+      "file": "01-security.jpg",
+      "sha256": "dd3087743fd7a4aaa0d854507e8aa42adc47c0ee6737e70d83d8aa9a9cfe8d67"
+    },
+    {
+      "step": 2,
+      "name": "发布设置鼠标导航",
+      "status": "passed",
+      "notes": "通过：进入发布分组，固定两级独立审批及保留数生效边界可见。",
+      "file": "02-release.jpg",
+      "sha256": "262cca227e3d5b63257a7c84515629e76dd07cb0907a459a2e53dcd26fd342c5"
+    },
+    {
+      "step": 3,
+      "name": "Gateway默认参数鼠标导航",
+      "status": "passed",
+      "notes": "通过：进入网关分组，30000毫秒兼容值及需部署说明可见。",
+      "file": "03-gateway.jpg",
+      "sha256": "9fa02a27658e7c36d2545d618173edb89d5724fe8419e3a62911c742f3f30ba9"
+    },
+    {
+      "step": 4,
+      "name": "审计设置鼠标导航",
+      "status": "passed",
+      "notes": "通过：进入审计分组，CSV导出兼容启用及授权约束可见。",
+      "file": "04-audit-settings.jpg",
+      "sha256": "165ed47a9fe07bdd2ca6aaf6d5715d7b426bc45bfdcbb9df9b3c24d517eaaca0"
+    },
+    {
+      "step": 5,
+      "name": "通知结构校验",
+      "status": "passed",
+      "notes": "通过：按钮返回结构校验通过，明确未解析SecretRef、未连接或发送。",
+      "file": "05-notification.jpg",
+      "sha256": "cda6cbd93641bf9a3aa9ee9d6028d1196dde7686fee898a4eff80c199e09823b"
+    },
+    {
+      "step": 6,
+      "name": "480到481修改预览与取消",
+      "status": "passed",
+      "notes": "通过：差异、确认保存及取消控件可见；取消后dialog不可见，未执行确认保存。",
+      "file": "06-preview.jpg",
+      "sha256": "d9cdcdc5e75e3f6d73676584c009445c3436bf2151560efb7e65ceeefffe8727"
+    },
+    {
+      "step": 7,
+      "name": "弃稿确认与480恢复",
+      "status": "passed",
+      "notes": "手动解锁后通过Chrome原生AX选择确认弃稿；页面值480且弃稿按钮消失，未执行确认保存。",
+      "file": "07-discarded.jpg"
+    },
+    {
+      "step": 8,
+      "name": "审计导航与真实CSV下载",
+      "status": "passed",
+      "notes": "鼠标打开审计并点击导出，页面已导出75条，Chrome下载UI显示完成；实际下载文件75行、10列、17452字节。事件等待工具超时不能误认为下载失败。",
+      "file": "08-audit-download.jpg",
+      "additionalFile": "09-download-complete.jpg"
+    },
+    {
+      "step": 9,
+      "name": "当前网关节点导航与ACK",
+      "status": "passed",
+      "notes": "鼠标打开节点，两实例Ready、实际和目标v3/seq3一致；后台只读复核ACK为true。",
+      "file": "10-current-nodes.jpg"
+    },
+    {
+      "step": 10,
+      "name": "返回系统设置与草稿清理",
+      "status": "passed",
+      "notes": "鼠标返回系统设置；默认480、弃稿按钮不可见；后台设置0行，保留已验证Chrome页面。",
+      "file": "11-final-settings.jpg"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "01-security.jpg",
+      "pixelSize": [
+        1440,
+        1100
+      ],
+      "sha256": "dd3087743fd7a4aaa0d854507e8aa42adc47c0ee6737e70d83d8aa9a9cfe8d67"
+    },
+    {
+      "file": "02-release.jpg",
+      "pixelSize": [
+        1440,
+        1100
+      ],
+      "sha256": "262cca227e3d5b63257a7c84515629e76dd07cb0907a459a2e53dcd26fd342c5"
+    },
+    {
+      "file": "03-gateway.jpg",
+      "pixelSize": [
+        1440,
+        1100
+      ],
+      "sha256": "9fa02a27658e7c36d2545d618173edb89d5724fe8419e3a62911c742f3f30ba9"
+    },
+    {
+      "file": "04-audit-settings.jpg",
+      "pixelSize": [
+        1440,
+        1100
+      ],
+      "sha256": "165ed47a9fe07bdd2ca6aaf6d5715d7b426bc45bfdcbb9df9b3c24d517eaaca0"
+    },
+    {
+      "file": "05-notification.jpg",
+      "pixelSize": [
+        1440,
+        1100
+      ],
+      "sha256": "cda6cbd93641bf9a3aa9ee9d6028d1196dde7686fee898a4eff80c199e09823b"
+    },
+    {
+      "file": "06-preview.jpg",
+      "pixelSize": [
+        1440,
+        1100
+      ],
+      "sha256": "d9cdcdc5e75e3f6d73676584c009445c3436bf2151560efb7e65ceeefffe8727"
+    },
+    {
+      "file": "07-discarded.jpg",
+      "pixelSize": [
+        1440,
+        664
+      ],
+      "sha256": "6125fa22006fda0e5989ad68c9e82592ca6bea689b65eccb7c82189ace57768c"
+    },
+    {
+      "file": "08-audit-download.jpg",
+      "pixelSize": [
+        1440,
+        1100
+      ],
+      "sha256": "cb0bd3cc59cc11dfa08648049f1e2209dc71eb8fe2a2f48f97e68bfbfadffec5"
+    },
+    {
+      "file": "09-download-complete.jpg",
+      "pixelSize": [
+        3456,
+        1948
+      ],
+      "sha256": "3864423c44cc80ab2e61f47d4c60e1ae9bb83480780f1ff640a530f9120a880f"
+    },
+    {
+      "file": "10-current-nodes.jpg",
+      "pixelSize": [
+        1440,
+        1100
+      ],
+      "sha256": "4e07ac3cbb5bd8fc33c33f700098689121b9061abe0cbcc108ae493ccb83a443"
+    },
+    {
+      "file": "11-final-settings.jpg",
+      "pixelSize": [
+        1440,
+        1100
+      ],
+      "sha256": "5c17025b19645b2219e1475fe4dd1a0c45823d780f0e56d171b11cded791e41a"
+    }
+  ],
+  "actualSettingsSaveExecuted": false,
+  "storedSettingsRows": 0,
+  "csvDownload": {
+    "checkedAt": "2026-10-05T09:38:44.535963+00:00",
+    "fileName": "audit-2026-10-05.csv",
+    "bytes": 17452,
+    "sha256": "817fb5175dcc203f0e0c7c4a99be03e032c73f03d9a2e618294bc4f92b8de322",
+    "dataRows": 75,
+    "columns": [
+      "id",
+      "createdAt",
+      "actorId",
+      "action",
+      "resourceType",
+      "resourceId",
+      "organizationId",
+      "projectId",
+      "environmentId",
+      "traceId"
+    ],
+    "chromeUiReportedComplete": true,
+    "pageReportedExportedRows": 75,
+    "downloadEventListenerTimedOut": true,
+    "contentObtainedFromActualChromeDownload": true,
+    "rawCsvIncludedInDeliverable": false
+  },
+  "runtimeFinalCheckFile": "runtime-final-check.json",
+  "pendingAcceptanceSteps": [],
+  "historicalToolLimits": [
+    "内置浏览器原生confirm自动读取/控制受阻；未声称该原标签页已经清除确认框。",
+    "Chrome getJsDialog超时，随后原生操作报告Mac锁定；解锁后原生AX处理Chrome确认成功。",
+    "download事件监听超时；依实际Chrome下载完成UI和文件读回证明真实下载。"
+  ],
+  "boundaries": [
+    "本批是原系统设置不可变源码对应4192的浏览器补验，不代表SSO或通知投递能力完成。",
+    "未改产品源码、提交、部署、发布或保存设置；原账号/秘密/业务ID/历史快照保全及双ACK另有当前服务端证据。",
+    "仅桌面验收；不宣称全量无障碍、移动端或生产TLS/HA/容量验收。",
+    "checkpoint是设备锁定时的历史记录；final-qa为本轮最终结果。"
+  ]
+}

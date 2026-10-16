@@ -109,12 +109,15 @@ export async function runWithContainerResources({manifest,dockerHost,apiVersion,
   if(holdClientUntilSampled)await fs.rm(path.join(output,resultFile),{force:true});
   // The workload blocks on readiness before opening its measured window. It can
   // warm up while the engine streams are established, without host exec polling.
-  const startupInventory={startedAt:new Date().toISOString(),polls:0,lastSeenAt:null,lastRunningServices:[]};let actionFailure,actionSettled=false;
+  const startupTimeoutMs=60000;
+  const startupInventory={startedAt:new Date().toISOString(),timeoutMs:startupTimeoutMs,polls:0,lastSeenAt:null,lastRunningServices:[]};let actionFailure,actionSettled=false;
   const action=Promise.resolve().then(operation);action.then(()=>{actionSettled=true;},error=>{actionSettled=true;actionFailure={observedAt:new Date().toISOString(),exitCode:Number.isInteger(error.code)?error.code:null,signal:/^SIG[A-Z0-9]+$/.test(error.signal??'')?error.signal:null};});
   let operationError;
   try{
     const filters=encodeURIComponent(JSON.stringify({label:[`com.docker.compose.project=${manifest.project}`,`com.webapi.performance.owner=${manifest.owner}`]}));
-    const deadline=Date.now()+10000;let containers;
+    // One-off container creation is outside the measured window. Wait for the
+    // actual owned inventory; a failed workload cannot become ready by waiting.
+    const deadline=Date.now()+startupTimeoutMs;let containers;
     while(Date.now()<deadline){
       const listed=await apiJson(connection,'/containers/json?all=false&filters='+filters,controller.signal);
       if(!Array.isArray(listed))throw Error('Docker container inventory invalid');
@@ -126,7 +129,9 @@ export async function runWithContainerResources({manifest,dockerHost,apiVersion,
         found.set(service,container);
       }
       startupInventory.polls++;startupInventory.lastSeenAt=new Date().toISOString();startupInventory.lastRunningServices=[...found.keys()].sort();
-      if(found.size===Object.keys(quotas).length){containers=found;break;}await delay(50);
+      if(found.size===Object.keys(quotas).length){containers=found;break;}
+      if(actionSettled)break;
+      await delay(50);
     }
     if(!containers)throw Error('Running container resource services missing');
     const firstFrames=[];

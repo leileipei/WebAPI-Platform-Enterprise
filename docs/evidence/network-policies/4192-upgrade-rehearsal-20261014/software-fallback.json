@@ -1,0 +1,91 @@
+{
+  "passed": true,
+  "conditions": {
+    "schemaVersions": [
+      "2.0",
+      "2.0",
+      "2.0"
+    ],
+    "networkPolicyRows": 0
+  },
+  "results": [
+    {
+      "sourceRevision": "9d5832952ed91fb99defc2cf3eae81cd8cee3afa",
+      "phase": "Ready",
+      "binary": {
+        "imageId": "sha256:da412506d34264a9652c837f906b9436b72a4deba81d2abb0851fbf4020ca065",
+        "applicationContainers": 8,
+        "applicationHashes": 269,
+        "staticHashes": 3
+      },
+      "calls": [
+        {
+          "port": 62868,
+          "status": 200,
+          "backendId": "A",
+          "apiKeyForwarded": false
+        },
+        {
+          "port": 62869,
+          "status": 200,
+          "backendId": "A",
+          "apiKeyForwarded": false
+        }
+      ],
+      "auth": {
+        "userId": "845f5566-d92f-4aa0-ab37-f6295696a40d",
+        "username": "admin",
+        "existingPipelinePermissions": true
+      },
+      "rows": {
+        "tables": 72,
+        "oldRows": 1043,
+        "oldRowsPreserved": true,
+        "allowedNewMigrationHistoryRows": 0,
+        "newTables": []
+      },
+      "sso": true,
+      "databaseRestored": false
+    },
+    {
+      "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+      "phase": "Ready",
+      "binary": {
+        "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+        "applicationContainers": 8,
+        "applicationHashes": 281,
+        "staticHashes": 3
+      },
+      "calls": [
+        {
+          "port": 62868,
+          "status": 200,
+          "backendId": "A",
+          "apiKeyForwarded": false
+        },
+        {
+          "port": 62869,
+          "status": 200,
+          "backendId": "A",
+          "apiKeyForwarded": false
+        }
+      ],
+      "auth": {
+        "userId": "845f5566-d92f-4aa0-ab37-f6295696a40d",
+        "username": "admin",
+        "existingPipelinePermissions": true
+      },
+      "rows": {
+        "tables": 72,
+        "oldRows": 1043,
+        "oldRowsPreserved": true,
+        "allowedNewMigrationHistoryRows": 0,
+        "newTables": []
+      },
+      "sso": true,
+      "databaseRestored": false
+    }
+  ],
+  "databaseRestored": false,
+  "original4192Changed": false
+}

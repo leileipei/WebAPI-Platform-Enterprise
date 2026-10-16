@@ -1,0 +1,50 @@
+{
+  "verifiedAt": "2026-10-16T05:46:46.533596+00:00",
+  "originalContainerIdsPreserved": 118,
+  "restoredIndependentTestContainers": 89,
+  "foreignContainerImageAndStartedAtUnchanged": 29,
+  "originalPortsLabelsHealthPreserved": true,
+  "contractTestOwners": [
+    {
+      "project": "webapi-contracts-test-0c223362-a647-4ae5-bf2d-50388f6f9d83",
+      "remaining": 0
+    },
+    {
+      "project": "webapi-contracts-test-11bcf711-35cc-45b7-ace7-4af47cff1778",
+      "remaining": 0
+    },
+    {
+      "project": "webapi-contracts-test-4c14136e-2b2f-47da-bca9-003cedc9843d",
+      "remaining": 0
+    },
+    {
+      "project": "webapi-contracts-test-578a55ee-d3c3-49aa-9e49-521e455ca831",
+      "remaining": 0
+    },
+    {
+      "project": "webapi-contracts-test-9ea0da4b-e84e-48ff-af8d-f92c3d7012b6",
+      "remaining": 0
+    },
+    {
+      "project": "webapi-contracts-test-e1e7bcb0-bf04-4938-b871-0119922ce02c",
+      "remaining": 0
+    },
+    {
+      "project": "webapi-contracts-test-f718458f-f9ba-414c-bdac-c4767ce48de4",
+      "remaining": 0
+    },
+    {
+      "project": "webapi-contracts-test-fc088273-d946-4f4a-8a9c-fb0032b37a2b",
+      "remaining": 0
+    }
+  ],
+  "ownedCleanupRemaining": 0,
+  "restoreBuildOwnedContainersRemaining": 0,
+  "retainedOwnedNuGetCache": {
+    "name": "webapi-pkcs-alignment-a88d79ae-65e2-447b-b485-796d7c980dd4-nuget",
+    "owner": "a88d79ae-65e2-447b-b485-796d7c980dd4",
+    "purpose": "Retain verified dependency cache for later separately authorized fixed validation; no application data"
+  },
+  "failures": [],
+  "complete": true
+}

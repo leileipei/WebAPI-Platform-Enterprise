@@ -1,0 +1,29 @@
+{
+  "time": "2026-10-06T10:39:34.597Z",
+  "credentialWindowRestored": true,
+  "credentialRevision": 4,
+  "alert": {
+    "id": "d61ae1b6-dd56-47b8-9b70-e51d22ca8dac",
+    "status": "Resolved",
+    "transitions": [
+      {
+        "from": null,
+        "to": "Open"
+      },
+      {
+        "from": "Open",
+        "to": "Ack"
+      },
+      {
+        "from": "Ack",
+        "to": "Resolved"
+      }
+    ]
+  },
+  "auditExport": {
+    "status": 200,
+    "rows": 100,
+    "bytes": 22775
+  },
+  "browserDownloadEventObserved": false
+}

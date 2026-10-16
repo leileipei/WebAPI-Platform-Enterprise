@@ -1,0 +1,16 @@
+{
+  "complete": true,
+  "reviewedAt": "2026-10-06T13:56:04.859541+00:00",
+  "reviewer": "scope_editor_review",
+  "remainingP1P2": 0,
+  "files": [
+    "console/src/ui.tsx",
+    "console/src/editor-focus.mjs",
+    "console/src/editor-focus.d.mts",
+    "console/tests/editor-focus.test.mjs",
+    "console/tests/editor-view.test.mjs"
+  ],
+  "targetedTestsIndependentlyPassed": 5,
+  "findings": "未发现实际P1/P2；修改仅焦点管理，字段/权限/保存/412/草稿逻辑未改。",
+  "testBoundary": "纯状态/SSR测试不能替代useEffect、DOM过滤和键盘事件验证；本批另存12项真实浏览器检查。"
+}

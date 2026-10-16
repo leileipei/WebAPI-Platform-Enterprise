@@ -1,0 +1,17 @@
+{
+  "complete": true,
+  "platformFreshOwnerEmptyVolumes": 7,
+  "idpFreshOwnerEmptyVolumes": 4,
+  "allFileHashesVerified": true,
+  "stableIdpSubjectPreserved": true,
+  "originalProviderNotConnected": true,
+  "oldSoftwareLoginAndTraffic": true,
+  "newSoftwareReadyAndTraffic": true,
+  "currentVersion": 4,
+  "currentSequence": 4,
+  "historicalPublicationAndBusinessHashesUnchanged": true,
+  "oldSoftwareRollbackVerified": true,
+  "noMigrationAdded": true,
+  "newBusinessPublish": false,
+  "originalVolumesUntouched": true
+}

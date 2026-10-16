@@ -1,0 +1,65 @@
+{
+  "complete": true,
+  "mode": "persistent",
+  "checks": [
+    {
+      "name": "actual authorization code + PKCE login",
+      "passed": true,
+      "userId": "cfc402c9-e891-4822-9e8e-932ec907f90f",
+      "subject": "7e13b9b1-baf8-44a0-8671-96f25215844a",
+      "pkce": "S256",
+      "callbackHost": "127.0.0.1"
+    },
+    {
+      "name": "Viewer scope and permission boundaries",
+      "passed": true,
+      "readEnvironment": true,
+      "providerManagementStatus": 403,
+      "apiWriteStatus": 403
+    },
+    {
+      "name": "unknown Subject denied",
+      "passed": true,
+      "status": 401,
+      "usersCreated": 0
+    },
+    {
+      "name": "normal IdP and platform restart persistence",
+      "passed": true,
+      "sameCookie": 200,
+      "stableSubject": true,
+      "normalContextSSOPersisted": true,
+      "aggregatePhase": "Degraded",
+      "currentInstanceReleaseAcks": [
+        false,
+        false
+      ],
+      "knownFrozenAckLimitation": true
+    },
+    {
+      "name": "provider revokes tickets",
+      "passed": true,
+      "disabledTicket": 401,
+      "reEnabledOldTicket": 401
+    },
+    {
+      "name": "disabled viewer revokes tickets",
+      "passed": true,
+      "disabledTicket": 401,
+      "reEnabledOldTicket": 401
+    },
+    {
+      "name": "platform logout",
+      "passed": true,
+      "meAfterLogout": 401
+    },
+    {
+      "name": "local admin recovery",
+      "passed": true,
+      "localLogin": true
+    }
+  ],
+  "providerEnabled": true,
+  "automaticDefault": false,
+  "originalLocalLoginAvailable": true
+}

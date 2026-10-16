@@ -1,0 +1,110 @@
+{
+  "ready": true,
+  "sourceRevision": "0b42f9e11977f8453887d6b23e45192ab2e42d61",
+  "imageId": "sha256:2bcd8799e48b3452970045d619c274827f74fe866cb7f4345239a0cac2b1197a",
+  "protectedTables": {
+    "roles": {
+      "count": 9,
+      "sha256": "d5eb95822ef7fcfc6b7e2ae69212857ab1cb559536708d3f3f734c627ea9b09a"
+    },
+    "permissions": {
+      "count": 44,
+      "sha256": "25ccdb110cfa241c22023ebd7e1afddb1fa14b6fe64591d37b3c612b0fdcb9b9"
+    },
+    "role_permissions": {
+      "count": 244,
+      "sha256": "cc1005db9c89affa0a9a1bb694da856c88fceb79e19d0a0e6ec419fdf247388c"
+    },
+    "organizations": {
+      "count": 1,
+      "sha256": "f9b2f289f89a3c0dbf951dde879a7eac37f0b1156b7a03224b2ee64194b145b5"
+    },
+    "projects": {
+      "count": 1,
+      "sha256": "b99d9fc571f4d39ad3f415f6f7f464095a7d5c35fa02a9879ddc80a1d8f4f1df"
+    },
+    "environments": {
+      "count": 1,
+      "sha256": "ac2c3d3abea91f8cedadc050eb78dfe7d16fcd6640f2e709c9b8103b493b23f9"
+    },
+    "apis": {
+      "count": 1,
+      "sha256": "06efaeb0acc10c5eb9e77682ed11f91601f24596f4a3e5aad554862c50faf1d7"
+    },
+    "api_versions": {
+      "count": 1,
+      "sha256": "f3be2bfafa3c3ee04274f252bd0d08cc4a45aad08f6fc0347012b0db8c2e53c2"
+    },
+    "api_parameters": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "api_schemas": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "api_routes": {
+      "count": 1,
+      "sha256": "492a06a6c99205d8849defe60610d2cc055b451fa2b76786f3a14682f68c7ced"
+    },
+    "upstream_clusters": {
+      "count": 1,
+      "sha256": "2b7d036ee669aeaae7668fc432b56d9c66e1c7bb4ecfa9fc70229b451f9d7d5d"
+    },
+    "upstream_destinations": {
+      "count": 2,
+      "sha256": "1117b6c4a87dcdc177479d354de635fed0f582182e14979b06841439094f2951"
+    },
+    "policies": {
+      "count": 1,
+      "sha256": "7dac7bd42b0a8c56725363d568ad4439b3acaf75e14a31d0c393e09b921b4d84"
+    },
+    "route_policy_bindings": {
+      "count": 1,
+      "sha256": "5c95376bed8e932e38983607530bb9b3939bce5b2e056409b616e65634264af8"
+    },
+    "applications": {
+      "count": 1,
+      "sha256": "951ff51760de6fbade7372966b3b9804e5ceee02e98c9a91e793cfeae778238e"
+    },
+    "application_credentials": {
+      "count": 1,
+      "sha256": "a3c08883942c0c47ab881b636ff050938cd99facfb428eaab1f04920d5c2adf7"
+    },
+    "application_api_permissions": {
+      "count": 1,
+      "sha256": "90b03fc343d60ba04643a7cbc0b2eedcfbf1f13d948d9543ba2889fab762c346"
+    },
+    "approval_flows": {
+      "count": 1,
+      "sha256": "c3128de52773688c641c1519fa09d348119261c56afb9836c36b17633ff1b487"
+    },
+    "system_settings": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "gateway_config_versions": {
+      "count": 4,
+      "sha256": "de21b2f31a04e742e396cb867a74dc8323546c948bf1f60b7566b140f716512d"
+    },
+    "gateway_config_snapshots": {
+      "count": 4,
+      "sha256": "858e89524a03568c52b98adc659ef66d860b9a19e02b416924bc0f449bc25997"
+    },
+    "users": {
+      "count": 3,
+      "sha256": "ef74318df73ecf4390d698f72b4b1f4baabe21406932b1aa1b5824de43edcfab"
+    },
+    "user_roles": {
+      "count": 3,
+      "sha256": "8ea95b4f1512a27c8d10bf0a13658432889686e4d3fd05bb5706d8075ee91899"
+    },
+    "user_project_scopes": {
+      "count": 3,
+      "sha256": "4b15bd9d90b21fb6f80000152223e223749777e7c4b98a390fdce6e0c1586fc1"
+    }
+  },
+  "protectedSecretFileCount": 9,
+  "mainStatusSha256": "4e9b1c1eda67bf7660710a7f8c54587cbb0c6e8d82bbddf32c339bc0e8190c82",
+  "providerCount": 0
+}

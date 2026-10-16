@@ -1,0 +1,362 @@
+[
+  {
+    "id": 1,
+    "number": 1,
+    "name": "登录页",
+    "sourceRoute": "/login",
+    "route": "/",
+    "status": "核心功能已接入",
+    "note": "未登录时提供本地 Cookie 与 OIDC SSO 登录；登录后首页显示组织管理。本地管理员恢复入口保留。"
+  },
+  {
+    "id": 2,
+    "number": 2,
+    "name": "企业工作台",
+    "sourceRoute": "/dashboard",
+    "route": "/dashboard",
+    "status": "真实只读工作台已接入",
+    "note": "复用当前授权项目/环境的 API、24h 指标、网关、未确认告警和最近发布；最近50条中的待审批不等于全部或个人任务。数据源异常与缺失分别展示。"
+  },
+  {
+    "id": 3,
+    "number": 3,
+    "name": "组织管理",
+    "sourceRoute": "/governance/organizations",
+    "route": "/organizations",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 4,
+    "number": 4,
+    "name": "项目管理",
+    "sourceRoute": "/governance/projects",
+    "route": "/projects",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 5,
+    "number": 5,
+    "name": "环境管理",
+    "sourceRoute": "/projects/{projectId}/environments",
+    "route": "/environments",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 6,
+    "number": 6,
+    "name": "API 目录",
+    "sourceRoute": "/apis",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 7,
+    "number": 7,
+    "name": "新建/编辑 API 向导",
+    "sourceRoute": "/apis/new",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 8,
+    "number": 8,
+    "name": "OpenAPI 导入",
+    "sourceRoute": "/apis/import",
+    "route": "/imports",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 9,
+    "number": 9,
+    "name": "API 详情总览",
+    "sourceRoute": "/apis/{id}",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 10,
+    "number": 10,
+    "name": "API 版本管理",
+    "sourceRoute": "/apis/{id}/versions",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 11,
+    "number": 11,
+    "name": "版本差异/Breaking Change",
+    "sourceRoute": "/apis/{id}/versions/compare",
+    "route": "/apis",
+    "status": "真实版本比较与风险评审已接入",
+    "note": "支持契约比较、历史报告、导出、追加风险评审及可选发布证据；规则覆盖限制按报告展示，正式审批与网关发布独立执行。"
+  },
+  {
+    "id": 12,
+    "number": 12,
+    "name": "Route 管理",
+    "sourceRoute": "/apis/{id}/routes",
+    "route": "/routes",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 13,
+    "number": 13,
+    "name": "Schema 与参数",
+    "sourceRoute": "/apis/{id}/schema",
+    "route": "/apis",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 14,
+    "number": 14,
+    "name": "Upstream Cluster 列表",
+    "sourceRoute": "/traffic/clusters",
+    "route": "/clusters",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 15,
+    "number": 15,
+    "name": "Cluster 详情与 Destination",
+    "sourceRoute": "/traffic/clusters/{id}",
+    "route": "/clusters",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 16,
+    "number": 16,
+    "name": "策略中心",
+    "sourceRoute": "/policies",
+    "route": "/policies",
+    "status": "真实流量策略已接入",
+    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；四类策略已接入本机控制台。"
+  },
+  {
+    "id": 17,
+    "number": 17,
+    "name": "策略编辑器",
+    "sourceRoute": "/policies/{id}",
+    "route": "/policies",
+    "status": "真实流量策略已接入",
+    "note": "认证、超时、Redis共享限流、节点独立熔断；审批发布、引用保护与412保留输入；四类策略已接入本机控制台。"
+  },
+  {
+    "id": 18,
+    "number": 18,
+    "name": "应用列表",
+    "sourceRoute": "/applications",
+    "route": "/applications",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 19,
+    "number": 19,
+    "name": "应用详情",
+    "sourceRoute": "/applications/{id}",
+    "route": "/applications",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 20,
+    "number": 20,
+    "name": "凭证管理",
+    "sourceRoute": "/applications/{id}/credentials",
+    "route": "/applications",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 21,
+    "number": 21,
+    "name": "API 授权矩阵",
+    "sourceRoute": "/applications/{id}/permissions",
+    "route": "/applications",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 22,
+    "number": 22,
+    "name": "发布中心",
+    "sourceRoute": "/releases",
+    "route": "/releases",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 23,
+    "number": 23,
+    "name": "发布详情与审批",
+    "sourceRoute": "/releases/{id}",
+    "route": "/releases",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 24,
+    "number": 24,
+    "name": "审批中心",
+    "sourceRoute": "/approvals",
+    "route": "/approvals",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 25,
+    "number": 25,
+    "name": "Config Snapshot",
+    "sourceRoute": "/gateway/configs",
+    "route": "/snapshots",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 26,
+    "number": 26,
+    "name": "Gateway 节点",
+    "sourceRoute": "/gateway/nodes",
+    "route": "/nodes",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 27,
+    "number": 27,
+    "name": "Gateway 节点详情",
+    "sourceRoute": "/gateway/nodes/{id}",
+    "route": "/nodes",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 28,
+    "number": 28,
+    "name": "监控总览",
+    "sourceRoute": "/observability/metrics",
+    "route": "/observability/metrics",
+    "status": "真实指标已接入",
+    "note": "12项KPI、7类趋势、API/应用排序和节点覆盖；实际三源验收通过，估计值与Partial明确呈现"
+  },
+  {
+    "id": 29,
+    "number": 29,
+    "name": "API 监控详情",
+    "sourceRoute": "/observability/apis/{apiId}",
+    "route": "/observability/metrics",
+    "status": "真实API监控已接入",
+    "note": "从总览进入 /observability/apis/{apiId}；支持应用/状态/后端分组、日志/Trace与规则预填"
+  },
+  {
+    "id": 30,
+    "number": 30,
+    "name": "访问日志",
+    "sourceRoute": "/observability/logs",
+    "route": "/observability/logs",
+    "status": "真实日志已接入",
+    "note": "真实Loki、签名游标、脱敏详情、授权CSV、IP只进POST；单纳秒源限制显式截断"
+  },
+  {
+    "id": 31,
+    "number": 31,
+    "name": "Trace 查询",
+    "sourceRoute": "/observability/traces",
+    "route": "/observability/traces",
+    "status": "真实链路已接入",
+    "note": "真实Tempo、安全span投影与瀑布图、跨环境同Trace隔离；源恢复重新查询"
+  },
+  {
+    "id": 32,
+    "number": 32,
+    "name": "告警中心",
+    "sourceRoute": "/observability/alerts",
+    "route": "/observability/alerts",
+    "status": "真实告警已接入",
+    "note": "PG持续告警、确认/解决/静默/取消静默、历史流转、Unknown与冻结Scope"
+  },
+  {
+    "id": 33,
+    "number": 33,
+    "name": "告警规则",
+    "sourceRoute": "/observability/alert-rules",
+    "route": "/observability/alert-rules",
+    "status": "真实规则已接入",
+    "note": "创建/编辑/启停、范围预览与只读测试、412保留输入；外部通知仅保存意向"
+  },
+  {
+    "id": 34,
+    "number": 34,
+    "name": "用户管理",
+    "sourceRoute": "/governance/users",
+    "route": "/users",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 35,
+    "number": 35,
+    "name": "角色管理",
+    "sourceRoute": "/governance/roles",
+    "route": "/roles",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 36,
+    "number": 36,
+    "name": "权限矩阵",
+    "sourceRoute": "/governance/roles/{id}/permissions",
+    "route": "/roles",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 37,
+    "number": 37,
+    "name": "数据范围",
+    "sourceRoute": "/governance/users/{id}/scopes",
+    "route": "/scopes",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 38,
+    "number": 38,
+    "name": "审计日志",
+    "sourceRoute": "/governance/audit",
+    "route": "/audit",
+    "status": "核心功能已接入",
+    "note": "详情从对应列表进入；范围详见交付覆盖文档"
+  },
+  {
+    "id": 39,
+    "number": 39,
+    "name": "SSO / OIDC 配置",
+    "sourceRoute": "/settings/sso",
+    "route": "/settings/sso",
+    "status": "真实 OIDC SSO 已接入",
+    "note": "真实 OIDC Provider 治理、显式账号绑定、修订保护与审计；本机独立 Keycloak 登录已验证。企业 IdP 与生产 TLS 需单独验收。"
+  },
+  {
+    "id": 40,
+    "number": 40,
+    "name": "系统设置",
+    "sourceRoute": "/settings/system",
+    "route": "/settings/system",
+    "status": "真实系统设置已接入",
+    "note": "平台级五组17字段；保存/预览/引用操作/修订保护与审计已接入本机控制台。新登录、新账号、新路由和审计CSV有实际消费者；部署参数、保留目标与通知仅配置意向。"
+  }
+]

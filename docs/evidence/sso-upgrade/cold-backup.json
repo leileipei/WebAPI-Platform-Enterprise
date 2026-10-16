@@ -1,0 +1,11 @@
+{
+  "complete": true,
+  "target": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/backups/sso-oidc-2026-10-05T16-20-39.505Z",
+  "volumes": 7,
+  "fileCount": 19,
+  "manifestSha256": "a2ac0c3d100d8e22018cfcf860368fcf7f7363c97c94dfcca0c768731c68054b",
+  "readbackPassed": true,
+  "sourceRevision": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
+  "phase": "Stopped",
+  "privateContentsExcluded": true
+}

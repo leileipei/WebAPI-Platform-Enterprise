@@ -3,18 +3,33 @@ using WebApi.Contracts.Policies;
 using WebApi.Domain.Policies;
 using WebApi.Gateway.Configuration;
 using System.Diagnostics;
+using System.Collections.Frozen;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 namespace WebApi.PerformanceHost;
-public sealed record LookupMeasurement(string Mode,string Operation,string Position,int Iterations,long ElapsedTicks,long AllocatedBytes,int Hits);
+public sealed record LookupMeasurement(string Mode,string Operation,string Position,int Iterations,long ElapsedTicks,long AllocatedBytes,int Hits,string Backend="legacy-array");
 public static class LookupMicroProbe
 {
+    public static string ClassifyContainers(IReadOnlyList<object> containers)
+    {
+        if(containers.Count!=7)throw new InvalidDataException("Seven actual runtime containers required.");
+        (Type Key,Type Value)[] expected=[(typeof(Guid),typeof(RuntimeRoute)),(typeof(Guid),typeof(RuntimeCluster)),(typeof(Guid),typeof(RuntimeApplication)),(typeof(string),typeof(RuntimeCredentialEntry)),(typeof(Guid),typeof(RuntimeAuthenticationEntry)),(typeof((Guid,string)),typeof(Guid)),(typeof((Guid,Guid)),typeof(IReadOnlyList<RuntimePermission>))];
+        string? backend=null;
+        for(var index=0;index<containers.Count;index++){
+            var type=containers[index]?.GetType()??throw new InvalidDataException("Missing runtime container.");Type? dictionary=null;string current;
+            if(type.IsGenericType&&type.GetGenericTypeDefinition().FullName=="WebApi.Gateway.Configuration.RuntimeLinearLookupMap`2"&&type.Assembly==typeof(RuntimeLookupIndex).Assembly){dictionary=type;current="runtime-linear-map-v1";}
+            else{for(var baseType=type;baseType is not null;baseType=baseType.BaseType)if(baseType.IsGenericType&&baseType.GetGenericTypeDefinition()==typeof(FrozenDictionary<,>)){dictionary=baseType;break;}current="runtime-frozen-dictionary-v1";}
+            if(dictionary is null||!dictionary.GenericTypeArguments.SequenceEqual(new[]{expected[index].Key,expected[index].Value})||backend is not null&&backend!=current)throw new InvalidDataException("Unknown, mismatched or mixed runtime containers.");backend=current;
+        }
+        return backend!;
+    }
     public static IReadOnlyList<LookupMeasurement> Measure(RuntimeSnapshot snapshot,byte[] payload,int iterations=10000)
     {
         if(iterations is <1 or >100000)throw new ArgumentOutOfRangeException(nameof(iterations));
         var generation=new RuntimeGeneration(new(Guid.NewGuid(),1,snapshot.ConfigVersion,Convert.ToHexStringLower(SHA256.HashData(payload)),payload.Length),payload,snapshot);
         var frozen=generation.Snapshot;var indexes=typeof(RuntimeGeneration).GetProperty("Indexes")?.GetValue(generation);
-        var mode=indexes is null?"scan":"indexed";var results=new List<LookupMeasurement>();
+        var backend=indexes is null?"legacy-array":ClassifyContainers(new[]{"Routes","Clusters","Applications","Credentials","RouteAuthentication","JwtApplications","PermissionWindows"}.Select(name=>indexes.GetType().GetProperty(name)?.GetValue(indexes)??throw new InvalidDataException("Missing runtime container.")).ToArray());
+        var mode=backend=="runtime-frozen-dictionary-v1"?"indexed":"scan";var results=new List<LookupMeasurement>();
         Func<Guid,RuntimeRoute>? indexedRoute=null;Func<Guid,RuntimeCluster>? indexedCluster=null;Func<Guid,RuntimeApplication>? indexedApp=null;
         Func<string,RuntimeCredential>? indexedCredential=null;Func<Guid,AuthenticationConfiguration?>? indexedAuthentication=null;
         Func<(Guid,string),Guid>? indexedMapping=null;Func<(Guid,Guid),IReadOnlyList<RuntimePermission>>? indexedWindows=null;
@@ -36,7 +51,7 @@ public static class LookupMicroProbe
                 var allocated=GC.GetAllocatedBytesForCurrentThread();var start=Stopwatch.GetTimestamp();var hits=0;
                 for(var i=0;i<iterations;i++)if(lookup())hits++;
                 var elapsed=Stopwatch.GetElapsedTime(start).Ticks;var delta=GC.GetAllocatedBytesForCurrentThread()-allocated;
-                results.Add(new(mode,operation,position,iterations,elapsed,delta,hits));
+                results.Add(new(mode,operation,position,iterations,elapsed,delta,hits,backend));
             }
             Run("route",indexedRoute is null?()=>frozen.Routes.Single(r=>r.Id==route.Id)!=null:()=>indexedRoute(route.Id)!=null);
             Run("cluster",indexedCluster is null?()=>frozen.Clusters.Single(c=>c.Id==cluster.Id)!=null:()=>indexedCluster(cluster.Id)!=null);

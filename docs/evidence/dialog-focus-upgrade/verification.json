@@ -1,0 +1,46 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T15:02:32.880191+00:00",
+  "scope": "通用Editor及独立告警/风险弹窗焦点修复的提交、合并与4192本机升级",
+  "sourceRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "imageId": "sha256:d17c778e8fb74f267ac459ccffd50f47052b144d0feb3dc219639acc9d6b64d0",
+  "sourceCommitted": true,
+  "mergedTo": "feature/core-loop",
+  "pushed": false,
+  "deployedOn4192": true,
+  "consoleAndRuntimeTests": {
+    "passed": 225,
+    "failed": 0
+  },
+  "backendTests": {
+    "domain": 249,
+    "gateway": 52,
+    "integration": 405,
+    "failed": 0,
+    "skipped": 0
+  },
+  "postmergeConsoleTests": {
+    "passed": 117,
+    "failed": 0
+  },
+  "cloneBrowserChecks": 17,
+  "deployedBrowserChecks": 17,
+  "previousIsolatedFrontendChecks": 27,
+  "coldBackupVolumes": {
+    "platform": 7,
+    "idp": 4
+  },
+  "physicalRestoreAndSoftwareRollbackVerified": true,
+  "realRule412AndRiskReviewOnDisposableClone": true,
+  "originalProtectedTablesPreserved": 33,
+  "originalLocalFilesPreserved": 539,
+  "historicalArchivesPreserved": 32,
+  "originalCredentialsRolesScopesSsoAndMigrationsPreserved": true,
+  "originalBrowserBusinessSaves": 0,
+  "originalNewBusinessPublish": false,
+  "businessVersion": 4,
+  "businessSequence": 4,
+  "disposableCloneCleaned": true,
+  "privateColdBackupsRetained": true,
+  "productionAcceptance": false
+}

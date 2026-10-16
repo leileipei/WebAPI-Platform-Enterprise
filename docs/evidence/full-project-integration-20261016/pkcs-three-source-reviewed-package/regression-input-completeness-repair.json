@@ -1,0 +1,20 @@
+{
+  "createdAt": "2026-10-16T04:39:49.664933+00:00",
+  "roles": {
+    "candidate": {
+      "originalSourceSubsetFiles": 1484,
+      "completeInputFiles": 2616,
+      "addedParentFiles": 1130,
+      "inputFingerprint": "af17f2c5c2b2e473737ef506028a2356e1039c5d504a8b90f58642d64323e46c"
+    },
+    "baseline": {
+      "originalSourceSubsetFiles": 1489,
+      "completeInputFiles": 2621,
+      "addedParentFiles": 1130,
+      "inputFingerprint": "c10fac124d579d2fb37bfc8c7ccb613f63b9f6a3642c6f95fa0915c0f2ed3e9c"
+    }
+  },
+  "failure": "Original qualification manifest was a source-subset hash inventory, not complete input tree. First private copy omitted root MSBuild/config/vendor inputs. Full original tracked trees are now included and hashed; original test and product source bytes retained.",
+  "productChanges": false,
+  "failedOwnerCleaned": true
+}

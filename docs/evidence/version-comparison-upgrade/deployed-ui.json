@@ -1,0 +1,31 @@
+{
+  "complete": true,
+  "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "actualBrowser": "Codex IAB",
+  "originalAdminSessionStillReadable": true,
+  "navigation": [
+    "API directory",
+    "original API detail",
+    "version comparison"
+  ],
+  "originalApiVersionCount": 1,
+  "generateDisabled": true,
+  "emptyMessage": "至少需要两个版本才能比较。",
+  "horizontalOverflow": false,
+  "sourceScreenshots": [
+    {
+      "name": "deployed-api-detail",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "5882d2aca8a3a77417ccc269eaee303d8138aa028cecb63df33790109dc6d270"
+    },
+    {
+      "name": "deployed-comparison-empty",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "d997eac0adcaf0134b29509f2fcec090afe208fbffc25af1a1bcadb0bd8a8aed"
+    }
+  ],
+  "writesInOriginalEnvironment": false,
+  "fullWriteFlowProvedInRestoredClone": true
+}

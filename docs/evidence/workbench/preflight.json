@@ -1,0 +1,18 @@
+{
+  "complete": true,
+  "phase": "Ready",
+  "protectedTables": 31,
+  "originalLocalFiles": 59,
+  "historicalArchives": 19,
+  "oldRevision": "6fcb6bb90d8c65a69104124be0fc4f18fa2512d7",
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ]
+}

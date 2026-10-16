@@ -1,0 +1,50 @@
+{
+  "complete": true,
+  "time": "2026-10-06T11:48:12.001577+00:00",
+  "reviewer": "policy_upgrade_final_review",
+  "sourceBase": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "sourceRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "conclusion": "可接受，无剩余Critical/Important/Minor问题",
+  "reviewedFiles": [
+    "console/src/pages/Policies.tsx"
+  ],
+  "sourceAndPatchShaMatched": true,
+  "navigationTestsPassed": 3,
+  "wholeSuitesReadback": [
+    {
+      "passed": 99,
+      "failed": 0
+    },
+    {
+      "passed": 99,
+      "failed": 0
+    }
+  ],
+  "diffCheckPassed": true,
+  "publicPhaseJsonConsistent": true,
+  "screenshotsShaAndSizeMatched": 5,
+  "independentlyVisuallyReviewed": 5,
+  "operationalGuardsReviewed": true,
+  "minorCorrected": [
+    {
+      "finding": "报告中观测源可用数量应为四项",
+      "resolution": "deliver.py已改为四项观测源Available；无源码变化"
+    }
+  ],
+  "remainingFindings": [],
+  "boundaries": [
+    "本机两处导航修复恢复及部署验收",
+    "原Viewer真实登录、只读权限和范围、同会话退出401，本次未执行原写403测试",
+    "复制业务写仅在可清理克隆执行",
+    "生产验收未执行"
+  ],
+  "packageReadbackPendingAtReview": true,
+  "commands": [
+    "git diff <base> <head> --stat",
+    "git diff <base> <head> -- console/src/pages/Policies.tsx",
+    "git diff --check <base> <head>",
+    "git show <head>:console/src/pages/Policies.tsx | shasum -a 256",
+    "node --test console/tests/navigation.test.mjs",
+    "Python只读JSON/SHA/尺寸核查及view_image逐张视觉核查"
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "passed": true,
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "ownerId": "e96ed9c3-bf2e-4cf4-a402-955f8634f796",
+  "policies": [
+    "cors",
+    "ip_filter",
+    "transform"
+  ],
+  "published": {
+    "id": "c19f67c6-419b-4839-b91e-9333aeaa9ffc",
+    "version": 5,
+    "sequence": 5,
+    "targets": [
+      {
+        "nodeId": "c2a62181-2f05-41ea-a48b-d9be7302adce",
+        "instanceId": "4be05a42-c6e1-4e08-821f-5f7951a8850d",
+        "acknowledged": true,
+        "configVersion": 5,
+        "deploymentSequence": 5,
+        "errorCode": null
+      },
+      {
+        "nodeId": "d1569e2a-02b6-4253-acb8-8229a2dfebb0",
+        "instanceId": "9bb31e20-af0d-4ffd-b02a-8227e997c7af",
+        "acknowledged": true,
+        "configVersion": 5,
+        "deploymentSequence": 5,
+        "errorCode": null
+      }
+    ]
+  },
+  "ipBlocked": {
+    "status": 403,
+    "bothNodes": true
+  },
+  "rollback": {
+    "id": "d60e975a-d222-41f3-b875-6dabaaf1af3b",
+    "version": 4,
+    "sequence": 7,
+    "targets": [
+      {
+        "nodeId": "c2a62181-2f05-41ea-a48b-d9be7302adce",
+        "instanceId": "4be05a42-c6e1-4e08-821f-5f7951a8850d",
+        "acknowledged": true,
+        "configVersion": 4,
+        "deploymentSequence": 7,
+        "errorCode": null
+      },
+      {
+        "nodeId": "d1569e2a-02b6-4253-acb8-8229a2dfebb0",
+        "instanceId": "9bb31e20-af0d-4ffd-b02a-8227e997c7af",
+        "acknowledged": true,
+        "configVersion": 4,
+        "deploymentSequence": 7,
+        "errorCode": null
+      }
+    ],
+    "originalBytesUnchanged": true,
+    "schemaVersion": "2.0"
+  },
+  "oldOrdersPreserved": true,
+  "original4192Changed": false
+}

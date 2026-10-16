@@ -18,6 +18,9 @@ public sealed record DatabaseIndexEvidence(string Table,string Name,IReadOnlyLis
 public sealed record DatabaseInspection(IReadOnlyList<string> AppliedMigrations,IReadOnlyList<string> PendingMigrations,bool PendingModelChanges,bool ModelMatched,IReadOnlyList<DatabaseTableEvidence> Tables,IReadOnlyList<DatabaseIndexEvidence> Indexes,string BusinessFingerprint);
 public sealed record MigrationApplyEvidence(DatabaseInspection Before,DatabaseInspection After,bool IndexOnly,bool Complete);
 public sealed record MigrationFailureEvidence(bool NoMigrationNeeded,bool FailureInjected,string? SqlState,bool DataUnchanged,bool IndexesUnchanged,bool Complete);
+public sealed record LegacyTableEvidence(string Name,IReadOnlyList<string> Columns,IReadOnlyList<string> ColumnTypes,IReadOnlyList<bool> NotNull,IReadOnlyList<string> Primary,long Rows,string DataHash);
+public sealed record LegacyContract(int SchemaVersion,IReadOnlyList<LegacyTableEvidence> Tables,IReadOnlyList<string> AppliedMigrations,IReadOnlyList<DatabaseIndexEvidence> Indexes,string SchemaHash,string Fingerprint);
+public sealed record CompatibleMigrationEvidence(DatabaseInspection Before,DatabaseInspection After,LegacyContract LegacyBefore,LegacyContract LegacyAfter,bool Complete);
 public static class MigrationProbe
 {
     private const string RouteIndexName="ix_api_routes_environment_order_path_id";
@@ -108,6 +111,91 @@ public static class MigrationProbe
         await NotificationMigrationPreflight.ValidateAsync(db,ct);await db.Database.MigrateAsync(ct);await db.Database.ExecuteSqlRawAsync("ANALYZE",ct);
         var after=await InspectAsync(db,ct);var complete=after.ModelMatched&&!after.PendingModelChanges&&after.PendingMigrations.Count==0&&(!indexOnly||before.BusinessFingerprint==after.BusinessFingerprint);
         return new(before,after,indexOnly,complete);
+    }
+    private static string LegacySchemaHash(IReadOnlyList<LegacyTableEvidence> tables)=>Hash(CanonicalJson.Serialize(tables.Select(t=>new{t.Name,t.Columns,t.ColumnTypes,t.NotNull,t.Primary}).ToArray()));
+    private static void ValidateLegacy(LegacyContract contract)
+    {
+        bool Sha(string value)=>value is not null&&Regex.IsMatch(value,"^[a-f0-9]{64}$",RegexOptions.CultureInvariant);
+        if(contract.SchemaVersion!=1||contract.Tables is null||contract.Tables.Count is 0 or >256||contract.AppliedMigrations is null||contract.Indexes is null||!Sha(contract.SchemaHash)||!Sha(contract.Fingerprint))throw new InvalidDataException("Invalid baseline contract.");
+        var names=new HashSet<string>(StringComparer.Ordinal);
+        foreach(var table in contract.Tables){
+            Quote(table.Name);if(!names.Add(table.Name)||table.Columns is null||table.Columns.Count is 0 or >256||table.ColumnTypes is null||table.NotNull is null||table.ColumnTypes.Count!=table.Columns.Count||table.NotNull.Count!=table.Columns.Count||table.Primary is null||table.Primary.Count==0||table.Rows<0||!Sha(table.DataHash))throw new InvalidDataException("Invalid baseline table.");
+            foreach(var column in table.Columns)Quote(column);
+            if(table.Columns.Distinct(StringComparer.Ordinal).Count()!=table.Columns.Count||table.Primary.Distinct(StringComparer.Ordinal).Count()!=table.Primary.Count||table.Primary.Any(p=>!table.Columns.Contains(p,StringComparer.Ordinal))||table.ColumnTypes.Any(t=>string.IsNullOrWhiteSpace(t)||t.Length>256))throw new InvalidDataException("Invalid baseline columns.");
+        }
+        if(!contract.Tables.Select(t=>t.Name).SequenceEqual(contract.Tables.Select(t=>t.Name).Order(StringComparer.Ordinal))||contract.AppliedMigrations.Count==0||contract.AppliedMigrations.Any(string.IsNullOrWhiteSpace)||contract.AppliedMigrations.Distinct(StringComparer.Ordinal).Count()!=contract.AppliedMigrations.Count||contract.Indexes.Count>4096)throw new InvalidDataException("Invalid baseline coverage.");
+        var indexes=new HashSet<string>(StringComparer.Ordinal);
+        foreach(var index in contract.Indexes){Quote(index.Name);if(!names.Contains(index.Table)||!indexes.Add(index.Table+":"+index.Name)||!index.Valid||!index.Ready||!Sha(index.DefinitionHash))throw new InvalidDataException("Invalid baseline indexes.");}
+        if(LegacySchemaHash(contract.Tables)!=contract.SchemaHash||Hash(CanonicalJson.Serialize(contract.Tables))!=contract.Fingerprint)throw new InvalidDataException("Baseline contract checksum mismatch.");
+    }
+    private static bool SameIndexes(IReadOnlyList<DatabaseIndexEvidence> expected,IReadOnlyList<DatabaseIndexEvidence> actual,bool additions)=>
+        (additions||expected.Count==actual.Count)&&expected.All(e=>actual.Any(a=>a.Table==e.Table&&a.Name==e.Name&&a.DefinitionHash==e.DefinitionHash&&a.Valid&&a.Ready&&a.Unique==e.Unique&&a.Columns.SequenceEqual(e.Columns)&&a.Descending.SequenceEqual(e.Descending)));
+    private static string CanonicalStoreType(string type)
+    {
+        var value=Regex.Replace(type.Trim().ToLowerInvariant(),@"\s+"," ",RegexOptions.CultureInvariant);
+        value=Regex.Replace(value,@"^varchar(?=\(|\[|$)","character varying",RegexOptions.CultureInvariant);
+        value=Regex.Replace(value,@"^char(?=\(|\[|$)","character",RegexOptions.CultureInvariant);
+        return value switch{"timestamptz"=>"timestamp with time zone","timestamp"=>"timestamp without time zone","int" or "int4"=>"integer","int8"=>"bigint","bool"=>"boolean",_=>value};
+    }
+    private static async Task<LegacyContract> ReadLegacyAsync(WebApiDbContext db,LegacyContract? baseline,bool additions,CancellationToken ct)
+    {
+        if(db.Database.CurrentTransaction is not null)throw new InvalidDataException("Legacy inspection requires its own snapshot.");
+        if(baseline is not null)ValidateLegacy(baseline);
+        var models=Models(db);await db.Database.OpenConnectionAsync(ct);var connection=(NpgsqlConnection)db.Database.GetDbConnection();
+        await using var transaction=await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead,ct);var native=(NpgsqlTransaction)transaction.GetDbTransaction();
+        await using(var readOnly=new NpgsqlCommand("SET TRANSACTION READ ONLY",connection,native))await readOnly.ExecuteNonQueryAsync(ct);
+        var catalog=new Dictionary<string,(string[] Columns,string[] Types,bool[] NotNull,string[] Primary)>(StringComparer.Ordinal);
+        const string sql="SELECT c.relname, ARRAY(SELECT a.attname::text FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attname), ARRAY(SELECT format_type(a.atttypid,a.atttypmod) FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attname), ARRAY(SELECT a.attnotnull FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attname), ARRAY(SELECT a.attname::text FROM pg_index i CROSS JOIN LATERAL unnest(i.indkey) WITH ORDINALITY k(attnum,ord) JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum=k.attnum WHERE i.indrelid=c.oid AND i.indisprimary ORDER BY k.ord) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p') AND c.relname <> '__EFMigrationsHistory' ORDER BY c.relname";
+        await using(var command=new NpgsqlCommand(sql,connection,native))await using(var reader=await command.ExecuteReaderAsync(ct))while(await reader.ReadAsync(ct)){
+            var name=reader.GetString(0);var columns=reader.GetFieldValue<string[]>(1);var primary=reader.GetFieldValue<string[]>(4);var model=models.SingleOrDefault(m=>m.Name==name);
+            if(model is null||columns.Any(c=>!model.Columns.Contains(c,StringComparer.Ordinal))||!primary.SequenceEqual(model.Primary,StringComparer.Ordinal))throw new InvalidDataException("Database schema outside diagnostic model.");
+            catalog.Add(name,(columns,reader.GetFieldValue<string[]>(2),reader.GetFieldValue<bool[]>(3),primary));
+        }
+        if(catalog.Count==0||baseline is not null&&(!additions&&catalog.Count!=baseline.Tables.Count||baseline.Tables.Any(t=>!catalog.ContainsKey(t.Name))))throw new InvalidDataException("Baseline table coverage mismatch.");
+        if(additions){
+            var target=db.GetService<IDesignTimeModel>().Model.GetRelationalModel().Tables.Where(t=>t.Schema is null or "public").ToDictionary(t=>t.Name,StringComparer.Ordinal);
+            if(catalog.Count!=target.Count)throw new InvalidDataException("Target table coverage mismatch.");
+            foreach(var pair in catalog){
+                if(!target.TryGetValue(pair.Key,out var table)||table.Columns.Count()!=pair.Value.Columns.Length)throw new InvalidDataException("Target column coverage mismatch.");
+                for(var index=0;index<pair.Value.Columns.Length;index++){
+                    var name=pair.Value.Columns[index];var column=table.FindColumn(name);
+                    if(column is null||CanonicalStoreType(column.StoreType)!=CanonicalStoreType(pair.Value.Types[index])||column.IsNullable==pair.Value.NotNull[index])throw new InvalidDataException($"Target schema mismatch: {pair.Key}.{name}, actual type {pair.Value.Types[index]}, not-null {pair.Value.NotNull[index]}, expected type {column?.StoreType}, not-null {!column?.IsNullable}.");
+                }
+            }
+        }
+        var result=new List<LegacyTableEvidence>();var buffer=new byte[64*1024];
+        foreach(var name in (baseline?.Tables.Select(t=>t.Name)??catalog.Keys).Order(StringComparer.Ordinal)){
+            var actual=catalog[name];var expected=baseline?.Tables.Single(t=>t.Name==name);var columns=expected?.Columns.ToArray()??actual.Columns;
+            var positions=columns.Select(c=>Array.IndexOf(actual.Columns,c)).ToArray();
+            if(positions.Any(p=>p<0)||expected is not null&&(!additions&&!actual.Columns.SequenceEqual(columns,StringComparer.Ordinal)||!actual.Primary.SequenceEqual(expected.Primary,StringComparer.Ordinal)||positions.Where(p=>p>=0).Select(p=>actual.Types[p]).SequenceEqual(expected.ColumnTypes,StringComparer.Ordinal)==false||positions.Where(p=>p>=0).Select(p=>actual.NotNull[p]).SequenceEqual(expected.NotNull)==false))throw new InvalidDataException("Baseline column or primary-key mismatch.");
+            long rows;await using(var count=new NpgsqlCommand("SELECT COUNT(*) FROM public."+Quote(name),connection,native))rows=Convert.ToInt64(await count.ExecuteScalarAsync(ct));
+            using var hash=IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            var selected=string.Join(',',columns.Select(Quote));var order=string.Join(',',actual.Primary.Select(Quote));
+            await using(var stream=await connection.BeginRawBinaryCopyAsync("COPY (SELECT "+selected+" FROM public."+Quote(name)+" ORDER BY "+order+") TO STDOUT (FORMAT BINARY)",ct)){
+                int read;while((read=await stream.ReadAsync(buffer.AsMemory(),ct))!=0)hash.AppendData(buffer,0,read);
+            }
+            result.Add(new(name,columns,positions.Select(p=>actual.Types[p]).ToArray(),positions.Select(p=>actual.NotNull[p]).ToArray(),actual.Primary,rows,Convert.ToHexStringLower(hash.GetHashAndReset())));
+        }
+        var applied=(await db.Database.GetAppliedMigrationsAsync(ct)).ToArray();await transaction.RollbackAsync(ct);
+        var inspection=await InspectAsync(db,ct);
+        return new(1,result,applied,inspection.Indexes,LegacySchemaHash(result),Hash(CanonicalJson.Serialize(result)));
+    }
+    public static Task<LegacyContract> CaptureCurrentContractAsync(WebApiDbContext db,CancellationToken ct=default)=>ReadLegacyAsync(db,null,true,ct);
+    public static async Task<LegacyContract> CaptureLegacyAsync(WebApiDbContext db,CancellationToken ct=default)=>await ReadLegacyAsync(db,null,false,ct);
+    public static async Task<CompatibleMigrationEvidence> ApplyCompatibleAsync(WebApiDbContext db,LegacyContract baseline,CancellationToken ct=default)
+    {
+        ValidateLegacy(baseline);var before=await InspectAsync(db,ct);
+        var target=(db.Database.GetMigrations()).ToArray();
+        bool SetEquals(IEnumerable<string> a,IEnumerable<string> b)=>a.Order(StringComparer.Ordinal).SequenceEqual(b.Order(StringComparer.Ordinal),StringComparer.Ordinal);
+        if(baseline.AppliedMigrations.Any(m=>!target.Contains(m,StringComparer.Ordinal)))throw new InvalidDataException("Baseline history outside target source.");
+        var repeated=SetEquals(before.AppliedMigrations,target)&&before.ModelMatched&&!before.PendingModelChanges;
+        if(!repeated&&!SetEquals(before.AppliedMigrations,baseline.AppliedMigrations))throw new InvalidDataException("Partial or different baseline history.");
+        var legacyBefore=await ReadLegacyAsync(db,baseline,repeated,ct);
+        if(legacyBefore.Fingerprint!=baseline.Fingerprint||!SameIndexes(baseline.Indexes,before.Indexes,repeated))throw new InvalidDataException("Baseline data or indexes changed.");
+        await db.Database.MigrateAsync(ct);db.ChangeTracker.Clear();var after=await InspectAsync(db,ct);var legacyAfter=await ReadLegacyAsync(db,baseline,true,ct);
+        var complete=after.ModelMatched&&!after.PendingModelChanges&&after.PendingMigrations.Count==0&&SetEquals(after.AppliedMigrations,target)&&legacyAfter.Fingerprint==baseline.Fingerprint&&SameIndexes(baseline.Indexes,after.Indexes,true);
+        if(!complete)throw new InvalidDataException("Compatibility upgrade changed baseline data, schema or indexes.");
+        return new(before,after,legacyBefore,legacyAfter,true);
     }
     public static async Task<MigrationFailureEvidence> FailAfterFirstIndexAsync(WebApiDbContext db,IReadOnlyList<MigrationOperation> operations,CancellationToken ct=default){
         ValidateOperations(db,operations);var before=await InspectAsync(db,ct);

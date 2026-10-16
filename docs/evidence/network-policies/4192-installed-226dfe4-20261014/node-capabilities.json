@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "nodes": [
+    {
+      "id": "c2a62181-2f05-41ea-a48b-d9be7302adce",
+      "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+      "nodeName": "local-gateway-a",
+      "instanceId": "257fddfa-4bb7-4da2-9027-94e2b3c0f94b",
+      "appVersion": "1.1.0",
+      "enabled": true,
+      "status": "Ready",
+      "offline": false,
+      "currentConfigVersion": 4,
+      "currentDeploymentSequence": 4,
+      "targetConfigVersion": 4,
+      "lastHeartbeatAt": "2026-10-14T15:06:13.090765+00:00",
+      "eTag": "\"257fddfa-4bb7-4da2-9027-94e2b3c0f94b:True\"",
+      "desiredConfigVersion": 4,
+      "desiredDeploymentSequence": 4,
+      "supportedSnapshotSchemas": [
+        "2.0",
+        "2.1",
+        "2.2",
+        "2.3"
+      ]
+    },
+    {
+      "id": "d1569e2a-02b6-4253-acb8-8229a2dfebb0",
+      "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+      "nodeName": "local-gateway-b",
+      "instanceId": "25366fdc-190e-4625-abd9-e3c9990f622c",
+      "appVersion": "1.1.0",
+      "enabled": true,
+      "status": "Ready",
+      "offline": false,
+      "currentConfigVersion": 4,
+      "currentDeploymentSequence": 4,
+      "targetConfigVersion": 4,
+      "lastHeartbeatAt": "2026-10-14T15:06:13.096357+00:00",
+      "eTag": "\"25366fdc-190e-4625-abd9-e3c9990f622c:True\"",
+      "desiredConfigVersion": 4,
+      "desiredDeploymentSequence": 4,
+      "supportedSnapshotSchemas": [
+        "2.0",
+        "2.1",
+        "2.2",
+        "2.3"
+      ]
+    }
+  ],
+  "oldDesiredVersionPreserved": true,
+  "oldDeploymentSequencePreserved": true
+}

@@ -1,4 +1,6 @@
 using WebApi.Contracts.Common;
+using WebApi.Contracts.Security;
+using WebApi.Infrastructure.Security;
 using WebApi.Contracts.Governance;
 using WebApi.ControlPlane.Security;
 using WebApi.Infrastructure.Governance;
@@ -24,6 +26,11 @@ public static class GovernanceEndpoints
         g.MapPut("/environments/{id:guid}",async(Guid id,UpdateEnvironmentRequest request,HttpContext ctx,GovernanceService service,CancellationToken ct)=>Command(ctx,await service.SaveEnvironmentAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct)));
         g.MapGet("/users",async(HttpContext ctx,GovernanceService service,int? page,int? pageSize,CancellationToken ct)=>Results.Ok(await service.UsersAsync(ctx.Actor(),page??1,pageSize??50,ct)));
         g.MapPost("/users",async(CreateUserRequest request,HttpContext ctx,GovernanceService service,CancellationToken ct)=>Command(ctx,await service.CreateUserAsync(request,ctx.Actor(),ct)));
+        g.MapPost("/users/{id:guid}/password-reset",async(Guid id,HttpContext ctx,PasswordLifecycleService service,CommandRequestContext command,CancellationToken ct)=>{
+            ctx.Response.Headers.CacheControl="no-store";PasswordRequestReader.RequireCommandKey(command.IdempotencyKey);
+            var request=await PasswordRequestReader.ReadAsync<ResetPasswordRequest>(ctx,16*1024,ct);
+            return Command(ctx,await service.ResetAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),command,ct));
+        });
         g.MapPut("/users/{id:guid}",async(Guid id,UpdateUserRequest request,HttpContext ctx,GovernanceService service,CancellationToken ct)=>Command(ctx,await service.SaveUserAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct)));
         g.MapPut("/users/{id:guid}/roles",async(Guid id,AssignRolesRequest request,HttpContext ctx,GovernanceService service,CancellationToken ct)=>Command(ctx,await service.AssignRolesAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct)));
         g.MapGet("/users/{id:guid}/scopes",async(Guid id,HttpContext ctx,GovernanceService service,CancellationToken ct)=>Results.Ok(await service.UserScopesAsync(id,ctx.Actor(),ct)));

@@ -1,0 +1,19 @@
+{
+  "sourceRevision": "43afb0a05e1293ba3f5640299f5b2682fbb17ca3",
+  "candidateUncommitted": true,
+  "sourceHashesVerified": 3,
+  "baselineTestsPassed": 116,
+  "redTestExpectedFailures": 1,
+  "finalTestsPassed": 117,
+  "finalTestsFailed": 0,
+  "typecheckExitCode": 0,
+  "viteBuildExitCode": 0,
+  "gitDiffCheckExitCode": 0,
+  "browserChecksPassed": 27,
+  "reviewP1P2": 0,
+  "scope": "RuleEditor and RiskReviewDialog keyboard focus only",
+  "riskSynthetic": true,
+  "rule412FrontendSimulation": true,
+  "originalBusinessWritesForwarded": 0,
+  "productionAcceptance": false
+}

@@ -1,0 +1,41 @@
+{
+  "capture": "CUA real browser screenshot; JPEG losslessly transcoded to PNG without resizing or changing pixels",
+  "screenshots": [
+    {
+      "name": "comparison",
+      "sha256": "421124b5d3c3a84c1549d54f570881b2deefef59fc16f85f1ca08c9d3dcdc61b",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "unknown",
+      "sha256": "923ae04f5e982868cea72d3c7f2f18810bf9b08e945463cfab334b2fcdcbb8b9",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "strong-confirmation",
+      "sha256": "5c1b0aacb3ea2ada3c3bb6a4a9e39829d4887ca870319d24fe39559ac9c13fa4",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "review-record",
+      "sha256": "d57b25107eb5479486296a87be117daa667116bcb6655b5b4c59086f07a117ed",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "wizard-handoff",
+      "sha256": "6cbc873b373476711cf15d207f4d1c5df218e1c784a62172685e6fc3a847ca5b",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "name": "release-summary",
+      "sha256": "3dfa6b49981b6203795eb4ebd60179c7b9860d9ad69149028ba592452720174a",
+      "width": 1440,
+      "height": 1024
+    }
+  ]
+}

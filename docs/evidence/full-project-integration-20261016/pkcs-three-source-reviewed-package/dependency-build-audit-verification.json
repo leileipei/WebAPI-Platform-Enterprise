@@ -1,0 +1,170 @@
+{
+  "verifiedAt": "2026-10-16T04:46:37.479480+00:00",
+  "roles": {
+    "baseline": {
+      "parent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "restoreStages": [
+        "force-evaluate solution,RuntimeTool,PerformanceHost",
+        "locked solution,RuntimeTool,PerformanceHost"
+      ],
+      "audit": [
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/baseline-restore-build/vulnerabilities-solution.json",
+          "sha256": "30f8944f8980cd831374b833027890440f9f697d13ea88e0dec2e28a0bbb8a21",
+          "projects": 16,
+          "knownVulnerabilities": 0
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/baseline-restore-build/vulnerabilities-runtime-tool.json",
+          "sha256": "6b0aa00c5e01a838cf1350539043888c59f3d3d6f087aaa74dd03c049a0252d1",
+          "projects": 1,
+          "knownVulnerabilities": 0
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/baseline-restore-build/vulnerabilities-performance-host.json",
+          "sha256": "7e10c49ab8351e17faa2944b62281a074ccbec0dd8be472646438e3dd83d084f",
+          "projects": 1,
+          "knownVulnerabilities": 0
+        }
+      ],
+      "build": [
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/baseline-restore-build/build-solution.log",
+          "sha256": "d1ee81b042e9956c0888bc74e03b33a5094fdf5506678c45106973b66e9b5467",
+          "zeroWarningsAndErrors": true
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/baseline-restore-build/build-runtime-tool.log",
+          "sha256": "13cbda404ce6e6db45b10e1186f4e8ed2734a69cafe1b8b4309c6c9e08d62602",
+          "zeroWarningsAndErrors": true
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/baseline-restore-build/build-performance-host.log",
+          "sha256": "ec9d2cc1dcf18c445c8ed409a73bb7a388a4e61e4d93899bd72990ebdf6bbbb2",
+          "zeroWarningsAndErrors": true
+        }
+      ],
+      "unchangedAuditAndBuildConfigSha256": {
+        "Directory.Build.props": "e12bdb14ecd296e46a21c6faa0d8d6ede284e01c52855c5da2b23b1a1d5f4402",
+        "NuGet.config": "2a775750b0a925a01306bbaa8a7ff2dc5ceffb57f9db466873c8eda286e87d59",
+        "global.json": "9969064a379ad96f0fd9358b4133bf2652018a32c60d44f37a0638168381a90d"
+      },
+      "auditSuppressionAdded": false,
+      "sdkImageDigest": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317"
+    },
+    "candidate": {
+      "parent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "restoreStages": [
+        "force-evaluate solution,RuntimeTool,PerformanceHost",
+        "locked solution,RuntimeTool,PerformanceHost"
+      ],
+      "audit": [
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/candidate-restore-build/vulnerabilities-solution.json",
+          "sha256": "30f8944f8980cd831374b833027890440f9f697d13ea88e0dec2e28a0bbb8a21",
+          "projects": 16,
+          "knownVulnerabilities": 0
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/candidate-restore-build/vulnerabilities-runtime-tool.json",
+          "sha256": "6b0aa00c5e01a838cf1350539043888c59f3d3d6f087aaa74dd03c049a0252d1",
+          "projects": 1,
+          "knownVulnerabilities": 0
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/candidate-restore-build/vulnerabilities-performance-host.json",
+          "sha256": "7e10c49ab8351e17faa2944b62281a074ccbec0dd8be472646438e3dd83d084f",
+          "projects": 1,
+          "knownVulnerabilities": 0
+        }
+      ],
+      "build": [
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/candidate-restore-build/build-solution.log",
+          "sha256": "8b5142d5c66301756f89ae5ddc8d9a5ddefc8d9fda699c76bf885a36b8325455",
+          "zeroWarningsAndErrors": true
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/candidate-restore-build/build-runtime-tool.log",
+          "sha256": "71001aac43fe0bef407743492f5156dfeec9cc44e2a8a24f67ce4208400bb52b",
+          "zeroWarningsAndErrors": true
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/candidate-restore-build/build-performance-host.log",
+          "sha256": "fd3c183d5a5acd550dd9b2a146a1d064f3c4f838a7f6e4a8ef768c90d3b4a8ae",
+          "zeroWarningsAndErrors": true
+        }
+      ],
+      "unchangedAuditAndBuildConfigSha256": {
+        "Directory.Build.props": "e12bdb14ecd296e46a21c6faa0d8d6ede284e01c52855c5da2b23b1a1d5f4402",
+        "NuGet.config": "2a775750b0a925a01306bbaa8a7ff2dc5ceffb57f9db466873c8eda286e87d59",
+        "global.json": "9969064a379ad96f0fd9358b4133bf2652018a32c60d44f37a0638168381a90d"
+      },
+      "auditSuppressionAdded": false,
+      "sdkImageDigest": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317"
+    },
+    "harness": {
+      "parent": "883060f04ab04d95fad5ae9d559d7744ff1c2120",
+      "restoreStages": [
+        "force-evaluate solution,RuntimeTool,PerformanceHost",
+        "locked solution,RuntimeTool,PerformanceHost"
+      ],
+      "audit": [
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/harness-restore-build/vulnerabilities-solution.json",
+          "sha256": "30f8944f8980cd831374b833027890440f9f697d13ea88e0dec2e28a0bbb8a21",
+          "projects": 16,
+          "knownVulnerabilities": 0
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/harness-restore-build/vulnerabilities-runtime-tool.json",
+          "sha256": "6b0aa00c5e01a838cf1350539043888c59f3d3d6f087aaa74dd03c049a0252d1",
+          "projects": 1,
+          "knownVulnerabilities": 0
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/harness-restore-build/vulnerabilities-performance-host.json",
+          "sha256": "7e10c49ab8351e17faa2944b62281a074ccbec0dd8be472646438e3dd83d084f",
+          "projects": 1,
+          "knownVulnerabilities": 0
+        }
+      ],
+      "build": [
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/harness-restore-build/build-solution.log",
+          "sha256": "1870a042a38b158d11f39dfb535c5e68920b12c03f771e9d26024f0424210946",
+          "zeroWarningsAndErrors": true
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/harness-restore-build/build-runtime-tool.log",
+          "sha256": "7f6c0555c579c65f440b6b71ecdd0d3e4ee20a0305f0630325cacd10803905cc",
+          "zeroWarningsAndErrors": true
+        },
+        {
+          "path": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/harness-restore-build/build-performance-host.log",
+          "sha256": "45701e5c13cd729522479098bf225734ed2061d01be9c26209d98f5a96dc7349",
+          "zeroWarningsAndErrors": true
+        }
+      ],
+      "unchangedAuditAndBuildConfigSha256": {
+        "Directory.Build.props": "e12bdb14ecd296e46a21c6faa0d8d6ede284e01c52855c5da2b23b1a1d5f4402",
+        "NuGet.config": "2a775750b0a925a01306bbaa8a7ff2dc5ceffb57f9db466873c8eda286e87d59",
+        "global.json": "9969064a379ad96f0fd9358b4133bf2652018a32c60d44f37a0638168381a90d"
+      },
+      "auditSuppressionAdded": false,
+      "sdkImageDigest": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317"
+    }
+  },
+  "fixedPackage": "System.Security.Cryptography.Pkcs",
+  "versionBefore": "10.0.0",
+  "versionAfter": "10.0.13",
+  "officialAdvisories": [
+    "https://github.com/advisories/GHSA-846f-f764-76mx",
+    "https://github.com/advisories/GHSA-2fmv-rv2c-59x7"
+  ],
+  "auditProjectsTotal": 54,
+  "warningErrorPolicyPreserved": true,
+  "immutable": false,
+  "formalQualified": false,
+  "complete": true
+}

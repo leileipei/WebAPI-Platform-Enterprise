@@ -1,0 +1,40 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T14:36:26.271Z",
+  "sourceRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "imageId": "sha256:d7a57d8b7fe13dfe2270e31e0eb84c042c5720778a071f00978a7f1a8784033e",
+  "phase": "Ready",
+  "protectedTablesPreserved": 33,
+  "originalLocalFilesPreserved": 443,
+  "historicalArchivesPreserved": 29,
+  "previousScopeUpgradeArchivePreserved": true,
+  "originalCredentialsSsoScopesRolesAndMigrationsPreserved": true,
+  "originalOwnerPreserved": true,
+  "newBusinessPublish": false,
+  "businessVersion": 4,
+  "businessSequence": 4,
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ],
+  "previewApiReads": 18,
+  "previewApiWriteAttempts": 1,
+  "previewInMemorySimulatedWrites": 1,
+  "mainFilesPreserved": 512,
+  "previewBusinessWritesForwarded": 0,
+  "previewStopped": true,
+  "productionAcceptance": false,
+  "deliverySha256": "8c6a34aaff8a5d28748e1f5885a642a9f0c59c498e48ec69e35d4f63ec535fa1",
+  "manifestReadback": true,
+  "reviewedSourceFilesUnchanged": 3,
+  "applicationsUsingOriginalInstalledImage": 5,
+  "sourceCommitted": false,
+  "merged": false,
+  "installedOn4192": false
+}

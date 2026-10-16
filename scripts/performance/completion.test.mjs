@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildMatrix} from './matrix.mjs';
 import {verifyBaselineCompletion} from './completion.mjs';
+import {postgresImage} from './template-fixture.mjs';
 import {quotas} from './environment.mjs';
 import {summarizeContainerWindow} from './resources.mjs';
 const hash='a'.repeat(64),source='b'.repeat(40),harness='c'.repeat(40);
@@ -43,3 +44,29 @@ test('full_baseline_gate_rejects_smoke_mutable_missing_and_tainted_evidence',()=
 });
 
 test('comparison_variant_gate_retains_complete_matrix_and_requires_candidate_indexed_micro',()=>{const candidate=fixture();candidate.mode='compare';candidate.variant='candidate';candidate.cells.forEach(c=>c.variant='candidate');candidate.micro.forEach(m=>m.entries.forEach(e=>e.mode='indexed'));assert.equal(verifyBaselineCompletion(candidate).complete,true);candidate.micro[0].entries[0].mode='scan';assert.equal(verifyBaselineCompletion(candidate).complete,false);candidate.variant='unknown';assert.equal(verifyBaselineCompletion(candidate).complete,false);});
+
+test('combined gate requires target/template/role/backend plus all legacy evidence',()=>{
+ const good=fixture();good.experiment='current-business-combined-v1';
+ // A role label and otherwise-valid legacy fixture do not prove the new experiment.
+ assert.equal(verifyBaselineCompletion(good).complete,false);
+ for(const missing of ['target','template','role','backend','window']){const input=fixture();input.experiment='current-business-combined-v1';input.combinedProof={sourceDiffVerified:true,sourceDiffSha256:hash};if(missing==='window')input.cells.pop();if(missing==='backend')input.micro.forEach(m=>m.entries.forEach(e=>e.backend='runtime-frozen-dictionary-v1'));assert.equal(verifyBaselineCompletion(input).complete,false,missing);}
+});
+
+function combinedFixture(){
+ const x=fixture();x.experiment='current-business-combined-v1';x.cleanup.owner='d09a7407-3d06-45be-932b-5037422a89d2';
+ const candidateSource='760493da5a5bc0f0674e7e6398260c8a5ac4a6c0';
+ const proof={role:'baseline',modelMatched:false,experimentRoleVerified:true,missingApprovedIndexes:['ix_api_routes_environment_order_path_id','ix_policies_organization_name_id','ix_alert_rules_organization_name_id','ix_alert_events_organization_project_started_id'],contractSha256:hash,metadataSha256:hash,indexesSha256:hash,complete:true};
+ const item=key=>({target:{complete:true,checkedBy:'migration-current-contract',schemaHash:hash},restored:true,receipt:{schemaVersion:1,owner:x.cleanup.owner,key,sourceProduct:candidateSource,postgresImage,contractSha256:hash,metadataSha256:hash,privateContractSha256:hash},roleProof:structuredClone(proof)});
+ x.combinedProof={sourceDiffVerified:true,sourceDiffSha256:hash,baselineSource:source,candidateSource,candidateProductTree:'1aa393776ac219f43c7a9de48a63632dce1c82bf',harness,harnessFingerprint:hash,fixtures:['ordinary','scope','reference'].flatMap(scene=>[100,1000,10000].map(scale=>({...item(scene+'-'+scale),scene,scale}))),gateway:item('gateway-controlplane-100')};
+ x.micro.forEach(m=>m.entries.forEach(e=>e.backend='runtime-linear-map-v1'));return x;
+}
+test('combined proof has a positive case; each required proof independently blocks completion',()=>{assert.equal(verifyBaselineCompletion(combinedFixture()).complete,true);for(const change of [x=>delete x.combinedProof.fixtures[0].target,x=>delete x.combinedProof.fixtures[0].receipt,x=>delete x.combinedProof.fixtures[0].roleProof,x=>delete x.micro[0].entries[0].backend,x=>x.cells.pop(),x=>x.combinedProof.baselineSource=x.combinedProof.candidateSource]){const x=combinedFixture();change(x);assert.equal(verifyBaselineCompletion(x).complete,false,change.toString());}});
+
+test('combined gate validates exact index names and complete gateway template proof',()=>{for(const change of [x=>x.combinedProof.fixtures[0].roleProof.missingApprovedIndexes=['wrong1','wrong2','wrong3','wrong4'],x=>delete x.combinedProof.gateway.receipt,x=>delete x.combinedProof.gateway.target.schemaHash,x=>x.combinedProof.gateway.roleProof.complete=false]){const x=combinedFixture();change(x);assert.equal(verifyBaselineCompletion(x).complete,false,change.toString());}});
+
+test('combined completion binds full template receipt to owner source and exact scene scale',()=>{
+ const changes=[x=>delete x.combinedProof.fixtures[0].receipt.schemaVersion,x=>x.combinedProof.fixtures[0].receipt.schemaVersion=2,x=>x.combinedProof.fixtures[0].receipt.owner='other-owner',x=>delete x.cleanup.owner,x=>x.combinedProof.fixtures[0].receipt.sourceProduct='e'.repeat(40),x=>x.combinedProof.fixtures[0].receipt.postgresImage='postgres:latest',x=>delete x.combinedProof.fixtures[0].receipt.privateContractSha256,x=>x.combinedProof.fixtures[0].receipt.privateContractSha256='bad',x=>{[x.combinedProof.fixtures[0].receipt,x.combinedProof.fixtures[1].receipt]=[x.combinedProof.fixtures[1].receipt,x.combinedProof.fixtures[0].receipt];},x=>x.combinedProof.gateway.receipt=x.combinedProof.fixtures[0].receipt,x=>x.combinedProof.candidateSource='e'.repeat(40)];
+ assert.equal(verifyBaselineCompletion(combinedFixture()).complete,true);
+ for(const change of changes){const x=combinedFixture();change(x);assert.equal(verifyBaselineCompletion(x).complete,false,change.toString());}
+ const candidate=combinedFixture();candidate.mode='compare';candidate.variant='candidate';candidate.identity.source=candidate.combinedProof.candidateSource;candidate.cells.forEach(c=>c.variant='candidate');candidate.micro.forEach(m=>m.entries.forEach(e=>{e.mode='indexed';e.backend='runtime-frozen-dictionary-v1';}));for(const p of [...candidate.combinedProof.fixtures,candidate.combinedProof.gateway])Object.assign(p.roleProof,{role:'candidate',modelMatched:true,missingApprovedIndexes:[]});candidate.management.forEach(m=>{m.classificationManifest.sourceCommit=candidate.identity.source;m.samples.forEach(s=>s.shapes.forEach(shape=>shape.sourceEvidence.forEach(ref=>ref.commit=candidate.identity.source)));});for(const name of ['scopeManagement','referenceManagement'])candidate[name].forEach(m=>{m.classificationManifest.sourceCommit=candidate.identity.source;m.samples.forEach(s=>s.shapes.forEach(shape=>shape.sourceEvidence.forEach(ref=>ref.commit=candidate.identity.source)));});assert.equal(verifyBaselineCompletion(candidate).complete,true);
+});

@@ -1,0 +1,21 @@
+{
+  "reviewer": "scope_editor_review",
+  "remainingP1": 0,
+  "remainingP2": 0,
+  "findings": [
+    {
+      "severity": "P2",
+      "issue": "忙碌无可用控件和取消确认时焦点可能离开弹窗",
+      "resolution": "可聚焦dialog与空Tab兜底，确认取消后恢复焦点；实际CUA复现红后验证绿",
+      "status": "fixed_verified"
+    },
+    {
+      "severity": "minor",
+      "issue": "重复规则摘要条数与后端Distinct不一致",
+      "resolution": "拦截完全重复规则并新增失败→通过测试，保留不同访问模式重叠规则",
+      "status": "fixed_verified"
+    }
+  ],
+  "targetedTestsPassed": 12,
+  "independentReviewPassed": true
+}

@@ -1,0 +1,37 @@
+{
+  "verifiedAt": "2026-10-16T04:41:40.483013+00:00",
+  "roles": {
+    "baseline": {
+      "parent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "files": 14,
+      "patchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+      "forwardCheck": true,
+      "appliedBytesEqualReviewedFiles": true,
+      "reverseCheck": true,
+      "restoredParentBytes": true,
+      "noGitRepositoryOrCommitCreated": true
+    },
+    "candidate": {
+      "parent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "files": 14,
+      "patchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+      "forwardCheck": true,
+      "appliedBytesEqualReviewedFiles": true,
+      "reverseCheck": true,
+      "restoredParentBytes": true,
+      "noGitRepositoryOrCommitCreated": true
+    },
+    "harness": {
+      "parent": "883060f04ab04d95fad5ae9d559d7744ff1c2120",
+      "files": 14,
+      "patchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+      "forwardCheck": true,
+      "appliedBytesEqualReviewedFiles": true,
+      "reverseCheck": true,
+      "restoredParentBytes": true,
+      "noGitRepositoryOrCommitCreated": true
+    }
+  },
+  "patchesIdentical": true,
+  "complete": true
+}

@@ -1,0 +1,53 @@
+node:internal/modules/esm/resolve:271
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/src/editor-focus.mjs' imported from /Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/editor-focus.test.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:271:11)
+    at moduleResolve (node:internal/modules/esm/resolve:865:10)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)
+    at #resolve (node:internal/modules/esm/loader:683:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:253:17) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/src/editor-focus.mjs'
+}
+
+Node.js v24.19.0
+✖ console/tests/editor-focus.test.mjs (29.996584ms)
+✖ the editor exposes a labelled modal with a focusable fallback for blocked controls (52.372125ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 192.528
+
+✖ failing tests:
+
+test at console/tests/editor-focus.test.mjs:1:1
+✖ console/tests/editor-focus.test.mjs (29.996584ms)
+  'test failed'
+
+test at console/tests/editor-view.test.mjs:9:1
+✖ the editor exposes a labelled modal with a focusable fallback for blocked controls (52.372125ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /<form[^>]*role="dialog"[^>]*tabindex="-1"/. Input:
+  
+  '<div class="overlay"><form class="dialog" role="dialog" aria-modal="true" aria-label="编辑项目"><header><h2>编辑项目</h2><button type="button" class="text-btn">关闭</button></header><fieldset class="form-grid"></fieldset><footer><button class="btn primary">保存</button><span>保存至工作配置，发布后才影响网关</span></footer></form></div>'
+  
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/editor-view.test.mjs:13:9)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '<div class="overlay"><form class="dialog" role="dialog" aria-modal="true" aria-label="编辑项目"><header><h2>编辑项目</h2><button type="button" class="text-btn">关闭</button></header><fieldset class="form-grid"></fieldset><footer><button class="btn primary">保存</button><span>保存至工作配置，发布后才影响网关</span></footer></form></div>',
+    expected: /<form[^>]*role="dialog"[^>]*tabindex="-1"/,
+    operator: 'match',
+    diff: 'simple'
+  }

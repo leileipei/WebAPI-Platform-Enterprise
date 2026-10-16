@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "time": "2026-10-06T11:34:07.093Z",
+  "oldRevision": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "sourceRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "fastForward": true,
+  "reviewedFiles": [
+    "console/src/pages/Policies.tsx"
+  ],
+  "approvedFileSha256": "53088ff64819a5992709722bd519b755aef3c26058bcca1ff281916e8d77a1ec",
+  "protectedLocalFiles": 413,
+  "historicalArchivesPreserved": 27,
+  "pushed": false
+}

@@ -1,0 +1,121 @@
+{
+  "complete": true,
+  "classification": "actual-persistent-4192-browser-smoke",
+  "sourceRevision": "79990836dedb5a3d8962ae2f828090b08208aff2",
+  "imageId": "sha256:3ca77a5a15b1949b0fe7a13793d0226cee56cd5b22247bcfce6e4d14ddfae006",
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "screenshots": [
+    {
+      "name": "01-policy-center",
+      "file": "ui/01-policy-center.png",
+      "sha256": "55941daf708fef85c6e60dc9d67d8a2dfcbe325b92c1028b7596f66fc6408c05",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "02-editor-authentication",
+      "file": "ui/02-editor-authentication.png",
+      "sha256": "56d47b349a9accc31cf719048a516080245dc0ffc16106a438f0458a69f587ea",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "02-editor-timeout",
+      "file": "ui/02-editor-timeout.png",
+      "sha256": "466b60ac239248c896a310a95236cdf5e19537862544f14c09ed08c9a38b3611",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "02-editor-rate_limit",
+      "file": "ui/02-editor-rate_limit.png",
+      "sha256": "0839d9a23eeb6d681e9d15334ef27425376cffb51d71d38606ad58d22ef55bad",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "02-editor-circuit_breaker",
+      "file": "ui/02-editor-circuit_breaker.png",
+      "sha256": "4c041ef3f7ff56956451629f91e7b0c6525e4deed0a6b307e9dad4f5b120237c",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "03-route-bindings",
+      "file": "ui/03-route-bindings.png",
+      "sha256": "d39508e1ac6cb9ae9b092d4f32cf3ad15f9af018fbcad1a64651ec124d069c66",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "04-current-capable-nodes",
+      "file": "ui/04-current-capable-nodes.png",
+      "sha256": "fc7e4c05b307d6b89babbf83fb5b1c944f14dbcc436719cd46ed0fbca03128d5",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "05-fresh-independent-approvals-and-acks",
+      "file": "ui/05-fresh-independent-approvals-and-acks.png",
+      "sha256": "ebab7039dd4bc16983abfd31a8dfa6d9e7b2d89a8aa4b2ce97b926d01798d4a5",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "06-observability",
+      "file": "ui/06-observability.png",
+      "sha256": "15b55ac22b8f50ab6ff0a1d776555e664fce07364e2b9ff25a4b483374fbaf98",
+      "width": 1440,
+      "height": 1100
+    }
+  ],
+  "checks": [
+    {
+      "name": "4192原admin与实际策略中心",
+      "passed": true
+    },
+    {
+      "name": "真实认证字段与服务端校验",
+      "passed": true,
+      "saved": false
+    },
+    {
+      "name": "真实超时字段与服务端校验",
+      "passed": true,
+      "saved": false
+    },
+    {
+      "name": "真实限流字段与服务端校验",
+      "passed": true,
+      "saved": false
+    },
+    {
+      "name": "真实熔断字段与服务端校验",
+      "passed": true,
+      "saved": false
+    },
+    {
+      "name": "原路由绑定入口、2.1节点与实际新发布",
+      "passed": true
+    },
+    {
+      "name": "原观测页面仍可访问",
+      "passed": true
+    }
+  ],
+  "visualReviewComplete": true,
+  "defects": [],
+  "noPolicyPersisted": true,
+  "visualReview": {
+    "method": "逐张查看真实1440px截图",
+    "reviewedScreenshots": 9,
+    "findings": [
+      "表单、绑定弹窗、发布审批和节点表格在1440px下可读，无阻挡关键操作的重叠。",
+      "熔断JSON区域与监控长页使用页面滚动；状态码输入支持横向文本滚动。",
+      "监控近1小时覆盖不足显示空值与提示，本次未证明完整1小时指标覆盖。"
+    ]
+  }
+}

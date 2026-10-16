@@ -1,0 +1,20 @@
+{
+  "complete": true,
+  "archive": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/deliverables/WebAPI_Enterprise_网关重启就绪_本机升级补充_20261006.zip",
+  "bytes": 461778,
+  "sha256": "175ac5a6abfeb39ebb086c7a96cb70a21d42171f1a573a66a15c9f6492fe34a2",
+  "entryCount": 127,
+  "crcReadbackPassed": true,
+  "allManifestHashesPassed": true,
+  "knownSecretValuesScanned": 14,
+  "knownSecretMatches": 0,
+  "sourceDeltaFiles": 9,
+  "fixedMaintenanceFiles": 96,
+  "historicalArchivesUnchanged": 16,
+  "sourceRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+  "persistent4192Upgraded": true,
+  "normalRestartReadyVerified": true,
+  "realKeycloakBrowserLoginVerified": true,
+  "privateBackupsExcluded": true,
+  "productionAcceptance": false
+}

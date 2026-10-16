@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "time": "2026-10-06T14:39:32.307Z",
+  "complete": true,
+  "deployed": false,
+  "authorization": "用户明确授权全部检查、提交、合并或部署；本批包含此前已合并通用Editor与本批3文件弹窗修复",
+  "merge": {
+    "oldRevision": "43afb0a05e1293ba3f5640299f5b2682fbb17ca3",
+    "fastForward": true,
+    "approvedFiles": [
+      "console/src/comparisons/RiskReviewDialog.tsx",
+      "console/src/observability/RuleEditor.tsx",
+      "console/tests/standalone-dialog-view.test.mjs"
+    ],
+    "protectedLocalFiles": 539,
+    "modifiedFilesPreserved": 7
+  },
+  "runtime": {
+    "phase": "Ready",
+    "sourceRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+    "imageId": "sha256:d7a57d8b7fe13dfe2270e31e0eb84c042c5720778a071f00978a7f1a8784033e",
+    "nodes": [
+      {
+        "name": "local-gateway-b",
+        "instanceId": "6bdda24f-df5b-43e8-8a5a-267d3493ff44",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T14:39:31.580083+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      },
+      {
+        "name": "local-gateway-a",
+        "instanceId": "95a90273-50df-48ba-9f49-72763f29f6d9",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T14:39:31.587675+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      }
+    ],
+    "sources": [
+      {
+        "name": "collector",
+        "state": "Available",
+        "checkedAt": "2026-10-06T14:39:31.687Z"
+      },
+      {
+        "name": "prometheus",
+        "state": "Available",
+        "checkedAt": "2026-10-06T14:39:31.668Z"
+      },
+      {
+        "name": "loki",
+        "state": "Available",
+        "checkedAt": "2026-10-06T14:39:31.688Z"
+      },
+      {
+        "name": "tempo",
+        "state": "Available",
+        "checkedAt": "2026-10-06T14:39:31.678Z"
+      }
+    ],
+    "requests": [
+      {
+        "port": 4196,
+        "status": 200
+      },
+      {
+        "port": 4197,
+        "status": 200
+      }
+    ]
+  },
+  "preservation": {
+    "databaseTables": 33,
+    "migrations": [
+      "20261003182012_InitialCore",
+      "20261003201632_PublishCoordinatorIdentity",
+      "20261003213457_RecoveryReference",
+      "20261004030000_ObservabilityAlerts",
+      "20261005090000_SystemSettings",
+      "20261005120000_SsoOidc",
+      "20261005123210_SsoDisplayEmail",
+      "20261005152401_SsoSecretVersion",
+      "20261006090000_ApiVersionComparisons"
+    ],
+    "secretAndSsoFiles": 22,
+    "toolRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+    "toolFiles": 96,
+    "archives": 32
+  },
+  "noNewDatabaseMigration": true,
+  "noNewBusinessPublish": true
+}

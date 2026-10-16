@@ -1,0 +1,20 @@
+{
+  "complete": true,
+  "time": "2026-10-06T14:40:14.252Z",
+  "oldRevision": "43afb0a05e1293ba3f5640299f5b2682fbb17ca3",
+  "sourceRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "fastForward": true,
+  "reviewedFiles": [
+    "console/src/comparisons/RiskReviewDialog.tsx",
+    "console/src/observability/RuleEditor.tsx",
+    "console/tests/standalone-dialog-view.test.mjs"
+  ],
+  "approvedFileSha256": {
+    "console/src/comparisons/RiskReviewDialog.tsx": "21ecad5c2df574932296b4112854304feef97e830576e4f22ff737b47f82d13a",
+    "console/src/observability/RuleEditor.tsx": "77c7d3ad419e39cf775c149a3ea44ddedd78a50b5467ef595f5ee5835f9cc5e2",
+    "console/tests/standalone-dialog-view.test.mjs": "be559d4aa9e0eb8e8eb1ae1c2346ee87732fd47aa53c980e280400e86304d7ce"
+  },
+  "protectedLocalFiles": 539,
+  "historicalArchivesPreserved": 32,
+  "pushed": false
+}

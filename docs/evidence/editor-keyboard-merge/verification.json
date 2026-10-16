@@ -1,0 +1,19 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T14:06:34.343722+00:00",
+  "sourceRevision": "43afb0a05e1293ba3f5640299f5b2682fbb17ca3",
+  "targetBranch": "feature/core-loop",
+  "fastForwardOnly": true,
+  "filesCommittedAndMerged": 5,
+  "precommitTestsPassed": 116,
+  "mergedTestsPassed": 116,
+  "typeScriptChecksPassedBeforeAndAfterMerge": true,
+  "mainLocalFilesPreserved": 503,
+  "originalTrackedChangesPreserved": 7,
+  "runtimeSourceRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "runtimePhase": "Ready",
+  "runtimeConfigurationFingerprintsUnchanged": true,
+  "pushed": false,
+  "serviceUpgradePerformed": false,
+  "worktreeRetained": "既有隔离工作树包含私有冷备份和历史证据，按保留约定继续保留"
+}

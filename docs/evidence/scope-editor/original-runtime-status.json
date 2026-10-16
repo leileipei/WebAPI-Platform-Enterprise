@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "projectName": "webapi-enterprise-local",
+  "sourceRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "bindingPhase": "Applied",
+  "pendingConfiguration": null,
+  "services": [
+    {
+      "name": "postgres",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "redis",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "collector",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "prometheus",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "loki",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "tempo",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "control-plane",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "worker",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "console",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "gateway-a",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "gateway-b",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "backend-a",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "backend-b",
+      "state": "Running",
+      "health": null
+    }
+  ],
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available",
+      "checkedAt": "2026-10-06T12:20:23.297Z"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available",
+      "checkedAt": "2026-10-06T12:20:23.277Z"
+    },
+    {
+      "name": "loki",
+      "state": "Available",
+      "checkedAt": "2026-10-06T12:20:23.286Z"
+    },
+    {
+      "name": "tempo",
+      "state": "Available",
+      "checkedAt": "2026-10-06T12:20:23.286Z"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "local-gateway-a",
+      "instanceId": "32fe285a-bb1a-4e1a-a6eb-d0d2992dd28f",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T12:20:23.212841+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-b",
+      "instanceId": "38dca38f-4782-40d7-9cb3-b988a39730f5",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T12:20:23.217522+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    }
+  ],
+  "storage": [
+    {
+      "name": "webapi-enterprise-local_dp-keys",
+      "volumeId": "webapi-enterprise-local_dp-keys",
+      "bytesUsed": 1001,
+      "reason": null
+    },
+    {
+      "name": "webapi-enterprise-local_lkg-a",
+      "volumeId": "webapi-enterprise-local_lkg-a",
+      "bytesUsed": 4658,
+      "reason": null
+    },
+    {
+      "name": "webapi-enterprise-local_lkg-b",
+      "volumeId": "webapi-enterprise-local_lkg-b",
+      "bytesUsed": 4658,
+      "reason": null
+    },
+    {
+      "name": "webapi-enterprise-local_loki-data",
+      "volumeId": "webapi-enterprise-local_loki-data",
+      "bytesUsed": null,
+      "reason": "Volume usage unavailable for this service image/state"
+    },
+    {
+      "name": "webapi-enterprise-local_pg",
+      "volumeId": "webapi-enterprise-local_pg",
+      "bytesUsed": 70070864,
+      "reason": null
+    },
+    {
+      "name": "webapi-enterprise-local_prometheus-data",
+      "volumeId": "webapi-enterprise-local_prometheus-data",
+      "bytesUsed": 35341919,
+      "reason": null
+    },
+    {
+      "name": "webapi-enterprise-local_tempo-data",
+      "volumeId": "webapi-enterprise-local_tempo-data",
+      "bytesUsed": null,
+      "reason": "Volume usage unavailable for this service image/state"
+    }
+  ],
+  "environmentStatus": "Active",
+  "errors": [],
+  "phase": "Ready"
+}

@@ -1,0 +1,13 @@
+{
+  "complete": true,
+  "sourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+  "baseRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "backendRuntimeDeploymentTestsAndDependencyLocksUnchanged": true,
+  "previousVerifiedBackendTests": {
+    "sourceRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+    "passed": 706,
+    "failed": 0
+  },
+  "previousTestsAreHistoricalEvidence": true,
+  "currentValidation": "本批纯前端；使用固定提交重新构建锁定后端，运行升级后登录、SSO及双网关验收"
+}

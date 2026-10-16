@@ -1,0 +1,7 @@
+{
+  "complete": true,
+  "actualOIDCLogin": true,
+  "readEnvironment": true,
+  "platformLogout": true,
+  "nativeAdminSessionUnchanged": true
+}

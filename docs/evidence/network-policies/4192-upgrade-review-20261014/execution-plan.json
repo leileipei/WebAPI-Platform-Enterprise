@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "execute": false,
+  "originalOwner": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "idpOwner": "9d746b65-b3de-4857-87e3-6e53421ffe08",
+  "originalRelease": "9d5832952ed91fb99defc2cf3eae81cd8cee3afa",
+  "candidateRelease": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "candidateImage": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+  "githubMain": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "nextAuthorization": {
+    "scope": "One maintenance window for fresh platform+IdP cold backup, immediate recovery of the current9d58329 service, then isolated restore/migration/fallback rehearsal; no4192 cutover.",
+    "serviceStopRequired": true,
+    "liveCutover": false,
+    "externalNotificationRecipients": false,
+    "package2Resume": false
+  },
+  "backupVolumeSuffixes": [
+    "pg",
+    "lkg-a",
+    "lkg-b",
+    "dp-keys",
+    "prometheus-data",
+    "loki-data",
+    "tempo-data",
+    "verification-reports",
+    "secrets-cache",
+    "notification-secrets",
+    "notification-fixture-secrets",
+    "notification-fixture-data"
+  ],
+  "idpVolumeSuffixes": [
+    "pg",
+    "secrets-postgres",
+    "secrets-keycloak",
+    "client-secret"
+  ],
+  "additionalPrivateMaintenanceArchive": [
+    "pipeline-tooling.json",
+    "pipeline-tooling-runner.mjs",
+    "manage-pipeline.sh",
+    "manage-idp.sh",
+    "pipeline-infrastructure-pin.json",
+    "pipeline-infrastructure-overlay.json",
+    "fixed-maintenance-directory-with-all-hashes",
+    "original-release-manifest"
+  ],
+  "futureFunctions": [
+    {
+      "module": "scripts/runtime/acceptance-backup.mjs",
+      "name": "createBackup",
+      "effect": "Pauses platform services then resumes the original application in finally"
+    },
+    {
+      "module": "scripts/runtime/keycloak-demo.mjs",
+      "name": "backupIdp",
+      "effect": "Pauses the owned IdP then resumes it in finally"
+    },
+    {
+      "module": "scripts/runtime/acceptance-backup.mjs",
+      "name": "restoreColdBackup",
+      "effect": "New disposable owner and fresh volumes only"
+    },
+    {
+      "module": "scripts/runtime/keycloak-demo.mjs",
+      "name": "restoreIdp",
+      "effect": "New disposable IdP tied to the disposable runtime only"
+    },
+    {
+      "module": "scripts/runtime/lifecycle.mjs",
+      "name": "initializeRuntime",
+      "effect": "Migration without bootstrap when restored state.initialized=true; preserve pinned infrastructure context"
+    }
+  ],
+  "candidateSnapshotProtocol": "2.3",
+  "existingSnapshotCompatibility": [
+    "2.0",
+    "2.1",
+    "2.2"
+  ],
+  "gates": [
+    {
+      "id": "G1",
+      "title": "Fresh owner and version fingerprints",
+      "status": "pending-maintenance-window-recheck"
+    },
+    {
+      "id": "G2",
+      "title": "Platform and IdP fresh cold backup and service recovery",
+      "status": "not-authorized"
+    },
+    {
+      "id": "G3",
+      "title": "Independent-owner old-data restore with secret and report checks",
+      "status": "not-run"
+    },
+    {
+      "id": "G4",
+      "title": "Strict four-candidate migration, both gateways and SSO acceptance",
+      "status": "not-run"
+    },
+    {
+      "id": "G5",
+      "title": "Old-software fallback and full cold-restore rehearsal in disposable clones",
+      "status": "not-run"
+    },
+    {
+      "id": "G6",
+      "title": "Separate4192 cutover authorization",
+      "status": "not-authorized"
+    },
+    {
+      "id": "G7",
+      "title": "Actual4192 version, both node instances, old rows, static hashes and UI acceptance",
+      "status": "not-run"
+    }
+  ]
+}

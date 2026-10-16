@@ -1,0 +1,43 @@
+{
+  "complete": true,
+  "sourceRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+  "csharpSuites": [
+    {
+      "suite": "WebApi.Domain.Tests",
+      "failed": 0,
+      "passed": 196,
+      "skipped": 0,
+      "total": 196
+    },
+    {
+      "suite": "WebApi.Integration.Tests",
+      "failed": 0,
+      "passed": 363,
+      "skipped": 0,
+      "total": 363
+    },
+    {
+      "suite": "WebApi.Gateway.Tests",
+      "failed": 0,
+      "passed": 52,
+      "skipped": 0,
+      "total": 52
+    }
+  ],
+  "csharpPassed": 611,
+  "runtimeConsolePassed": 167,
+  "realPostgresStatusChecks": {
+    "complete": true,
+    "realPostgres": true,
+    "checks": 20,
+    "originalRuntimeDatabaseUntouched": true,
+    "temporaryDatabaseRemovedOnExit": true
+  },
+  "logSha256": {
+    "dotnet": "ec8b78a64aaca171ae2716cb24bf9fb2f562e5a55b4281f88eb6dc19bc7e835e",
+    "tools": "26bf0b539806aa064b0cb2d2ee296640527b115a1b047d1971389c9b7a6141dd",
+    "status": "88ab93c3aaac661a7a40056350a9229396573ed96caf510d8465d930b8db7bec"
+  },
+  "classification": "fresh-precommit-tests; deployment acceptance recorded separately in final and handoff",
+  "fullExternalComposeEndToEndRerun": false
+}

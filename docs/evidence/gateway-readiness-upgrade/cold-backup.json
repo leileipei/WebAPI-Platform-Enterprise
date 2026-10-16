@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "platformVolumes": 7,
+  "idpVolumes": 4,
+  "platformFileCount": 20,
+  "idpFileCount": 12,
+  "hashReadback": true,
+  "SSOConfigIncluded": true,
+  "allOriginalServicesRestarted": true,
+  "privateLocations": {
+    "platformBackup": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.runtime/gateway-readiness-upgrade/platform-before-1791255307825",
+    "idpBackup": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/.runtime/gateway-readiness-upgrade/idp-before-1791255307825"
+  }
+}

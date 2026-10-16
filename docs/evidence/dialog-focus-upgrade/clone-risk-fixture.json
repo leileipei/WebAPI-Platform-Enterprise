@@ -1,0 +1,9 @@
+{
+  "complete": true,
+  "sourceRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "onlyDisposableClone": true,
+  "comparisonId": "8d1778a4-5d71-4a4e-8fad-319c11614104",
+  "apiId": "cf0ec918-e4ad-44ec-9db9-c3607210fbf3",
+  "breaking": 1,
+  "comparisonUrl": "http://127.0.0.1:62676/apis/cf0ec918-e4ad-44ec-9db9-c3607210fbf3/versions/compare?comparisonId=8d1778a4-5d71-4a4e-8fad-319c11614104"
+}

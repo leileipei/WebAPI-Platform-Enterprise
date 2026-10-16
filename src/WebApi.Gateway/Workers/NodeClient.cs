@@ -18,5 +18,8 @@ public sealed class NodeClient : IDisposable
     {await RegisterAsync(ct);using var response=await client.PostAsJsonAsync($"/internal/v1/nodes/{NodeId}/ack",new NodeAck(settings.InstanceId,envelope.ReleaseId,envelope.ConfigVersion,envelope.DeploymentSequence,envelope.PayloadHash,DateTimeOffset.UtcNow,success,code),ct);if(response.StatusCode==HttpStatusCode.Conflict) return;response.EnsureSuccessStatusCode();}
     public async Task HeartbeatAsync(RuntimeGenerationStore store,CancellationToken ct)
     {await RegisterAsync(ct);var generation=store.Current;using var response=await client.PostAsJsonAsync($"/internal/v1/nodes/{NodeId}/heartbeat",new NodeHeartbeat(settings.InstanceId,generation?.Envelope.ConfigVersion??0,generation?.Envelope.DeploymentSequence??0,generation is null?"NotReady":"Ready",["2.0","2.1","2.2","2.3"]),ct);response.EnsureSuccessStatusCode();}
+    // Reuse the node registration owner, bearer and three-second client deadline.
+    internal async Task<HttpResponseMessage> PostUsageAsync<T>(string resource,T request,CancellationToken ct)
+    {await RegisterAsync(ct);return await client.PostAsJsonAsync($"/internal/v1/nodes/{NodeId}/credential-usage/{resource}",request,WebApi.Contracts.CredentialUsage.UsageProtocolJson.Options,ct);}
     public void Dispose() {client.Dispose();registration.Dispose();}
 }

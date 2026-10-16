@@ -1,0 +1,43 @@
+{
+  "authorization": "User whole-project commit/merge/GitHub push request on2026-10-16 supersedes prior no-commit boundary.",
+  "startedAt": "2026-10-16T06:01:23.374509+00:00",
+  "roles": {
+    "baseline": {
+      "sourceDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.runtime/pkcs-three-source-repair-20261016/baseline",
+      "parent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "commit": "f3803852ad556be09e953e03dbf1b8fb7118ac7a",
+      "branch": "perf/pkcs-baseline-20261016",
+      "files": 14,
+      "patchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+      "matchesReviewedBytes": true,
+      "clean": true,
+      "fixedSourceTestsStillRequired": true
+    },
+    "candidate": {
+      "sourceDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.runtime/pkcs-three-source-repair-20261016/candidate",
+      "parent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "commit": "75df7e443f29cac6297ddb084a6dbc3cf5a1033a",
+      "branch": "perf/pkcs-candidate-20261016",
+      "files": 14,
+      "patchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+      "matchesReviewedBytes": true,
+      "clean": true,
+      "fixedSourceTestsStillRequired": true
+    },
+    "harness": {
+      "sourceDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.runtime/pkcs-three-source-repair-20261016/harness",
+      "parent": "883060f04ab04d95fad5ae9d559d7744ff1c2120",
+      "commit": "4882bd4f8f280b0248bb675643825a3bc0eb62f9",
+      "branch": "perf/pkcs-harness-20261016",
+      "files": 14,
+      "patchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+      "matchesReviewedBytes": true,
+      "clean": true,
+      "fixedSourceTestsStillRequired": true
+    }
+  },
+  "formalQualified": false,
+  "newFixedTripleValidationPassed": false,
+  "complete": true,
+  "endedAt": "2026-10-16T06:01:24.054151+00:00"
+}

@@ -1,0 +1,33 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "kind": "material-checks",
+  "checks": [
+    {
+      "name": "replayCount",
+      "record": "observations/actual-persistent-crash.json",
+      "pointer": "/data/replayCount",
+      "expected": "1"
+    },
+    {
+      "name": "forgedSnapshotStatus",
+      "record": "observations/actual-persistent-crash.json",
+      "pointer": "/data/forgedSnapshotStatus",
+      "expected": 422
+    },
+    {
+      "name": "wrongGrantStatus",
+      "record": "observations/actual-persistent-crash.json",
+      "pointer": "/data/wrongGrantStatus",
+      "expected": 422
+    },
+    {
+      "name": "retiredStatus",
+      "record": "observations/actual-persistent-crash.json",
+      "pointer": "/data/retiredStatus",
+      "expected": 410
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "complete": true,
+  "sourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+  "reviewer": "permission_matrix_review",
+  "blockingFindings": 0,
+  "closedP2": [
+    "筛选回车隐式提交，独立副本真实复现与修复后复测"
+  ],
+  "targetedTestsPassedByReviewer": 13,
+  "reviewedFiles": [
+    "console/src/pages/Governance.tsx",
+    "console/src/ui.tsx",
+    "console/src/styles/tokens.css",
+    "console/src/governance/PermissionMatrix.tsx",
+    "console/src/governance/permission-display.mjs",
+    "console/src/governance/permission-display.d.mts",
+    "console/tests/permission-display.test.mjs",
+    "console/tests/permission-matrix-view.test.mjs"
+  ]
+}

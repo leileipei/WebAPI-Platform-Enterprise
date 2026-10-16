@@ -1,0 +1,50 @@
+{
+  "sourceBaseRevision": "acb10a5f06a1734aec40a5d49ec1355d9fa191c8",
+  "workingTreeChangesNotCommitted": true,
+  "csharpSuites": {
+    "WebApi.Integration.Tests": {
+      "passed": 363,
+      "failed": 0,
+      "total": 363
+    },
+    "WebApi.Gateway.Tests": {
+      "passed": 52,
+      "failed": 0,
+      "total": 52
+    },
+    "WebApi.Domain.Tests": {
+      "passed": 196,
+      "failed": 0,
+      "total": 196
+    }
+  },
+  "csharpPassed": 611,
+  "runtimeConsolePassed": 167,
+  "realPostgresStatusChecks": {
+    "complete": true,
+    "realPostgres": true,
+    "checks": 20,
+    "originalRuntimeDatabaseUntouched": true,
+    "temporaryDatabaseRemovedOnExit": true
+  },
+  "redGreen": {
+    "successReleaseRestart": "baseline actual409 expected200 then new runtime receipt accepted without historical facts changing",
+    "statusReceipt": "baseline Degraded expectedReady then20 SQL checks pass",
+    "lockReleaseRace": "baseline lock collision then holder release => ENOENT; current167 suite passes"
+  },
+  "observedInitialRegressionFailure": "existing lockSerializesWriters ENOENT; deterministic real-file test added and minimal missing-lock retry fixed",
+  "firstLockFixtureTimingErrorCorrected": "resolved macOS /var to /private/var before injection; first60second timeout is not counted as valid RED evidence",
+  "review": {
+    "independentReviewers": 1,
+    "rounds": 1,
+    "critical": 0,
+    "important": 0,
+    "minor": 1,
+    "minorFixedWithRedGreen": true,
+    "authorFixPass": 1,
+    "secondIndependentReview": false
+  },
+  "concurrentReceiptCoverage": "3 requests => 1 event, 2 duplicates, extra metadata preserved",
+  "externalComposeEndToEndNotRunInThisBatch": true,
+  "persistent4192NotUpgraded": true
+}

@@ -1,0 +1,47 @@
+{
+  "scope": "仅Policies.tsx两处提交完成后的导航交接",
+  "sourceBase": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "workingFileSha256": "53088ff64819a5992709722bd519b755aef3c26058bcca1ff281916e8d77a1ec",
+  "patchSha256": "62ef1c50d7b9ab7335aa5ba301c2dd4db3ea49d9f0b13ad57d4db59459181ae7",
+  "committed": false,
+  "merged": false,
+  "deployedTo4192": false,
+  "finding": "Editor保存回调执行时dirty守卫尚未解除，非默认类型与改名复制会拦截后续导航。复制资源虽已创建，仍停留列表。",
+  "fix": "两处成功交接使用已有navigate(url,true)语义；复制仅await服务端成功后跳转；普通导航未保存保护保持。",
+  "validation": {
+    "rootFrontendTests": {
+      "passed": 99,
+      "failed": 0,
+      "log": "fix-tests.log"
+    },
+    "typescript": "通过",
+    "viteProductionBuild": "通过：6329 modules，JS479.49kB，gzip143.67kB",
+    "diffCheck": "通过",
+    "browserRed": [
+      "36-policy-type-navigation-blocked.jpg",
+      "37-policy-copy-navigation-blocked.jpg"
+    ],
+    "browserGreen": [
+      "38-policy-type-navigation-fixed.jpg",
+      "39-policy-saved.jpg",
+      "40-policy-copy-fixed.jpg"
+    ]
+  },
+  "independentReview": {
+    "conclusion": "可接受，未发现需修改的问题",
+    "navigationTestsPassed": 3,
+    "typescript": "通过",
+    "diffCheck": "通过",
+    "fullSuite": {
+      "passed": 98,
+      "failed": 1,
+      "limitation": "workbench测试监听127.0.0.1被审查沙箱EPERM阻止；与本差异无关。主验收授权环境完整99/99通过。"
+    },
+    "scopeExcluded": "其他未修改功能、原4192运行环境及生产部署"
+  },
+  "builtStaticFiles": {
+    "console/dist/index.html": "bead558443648bd348d8e2d3b30ebe3e4b06d1e296285b113380b039204013ee",
+    "console/dist/assets/index-6r1K49Kw.css": "94a3cf3a364f5ebf0b5ed60938724aa22e42821e1742396a233cbbb17f3f5b63",
+    "console/dist/assets/index-ChU-s-dX.js": "f1b18952e60ce2b089743e241e63002b9c8e5af1f2df5aa7287fede5416c5112"
+  }
+}

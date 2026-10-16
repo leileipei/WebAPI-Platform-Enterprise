@@ -1,0 +1,30 @@
+{
+  "verifiedAt": "2026-10-16T05:20:18.439722+00:00",
+  "roles": {
+    "candidate": {
+      "files": 2616,
+      "inputFingerprint": "af17f2c5c2b2e473737ef506028a2356e1039c5d504a8b90f58642d64323e46c",
+      "actualInputManifestSha256": "76677ab856d0efc566741c31c2d6339c307a84b93991c6110ff3e24b9f0f519f",
+      "allReproducedInputHashesEqualExecutedInputs": true,
+      "fullParentTreeAndApprovedOverlaysIncluded": true,
+      "privateGitMetadataCopiedFromHarnessParent": "883060f04ab04d95fad5ae9d559d7744ff1c2120",
+      "newGitCommitsCreated": 0
+    },
+    "baseline": {
+      "files": 2621,
+      "inputFingerprint": "c10fac124d579d2fb37bfc8c7ccb613f63b9f6a3642c6f95fa0915c0f2ed3e9c",
+      "actualInputManifestSha256": "2f7641117c18a44f343aeaa375d34219709b07a10a77fc18349d575312c8fd04",
+      "allReproducedInputHashesEqualExecutedInputs": true,
+      "fullParentTreeAndApprovedOverlaysIncluded": true,
+      "privateGitMetadataCopiedFromHarnessParent": "883060f04ab04d95fad5ae9d559d7744ff1c2120",
+      "newGitCommitsCreated": 0
+    }
+  },
+  "helperSha256": "f434f182423013056087be1b2c6886860ab3e824f80ff6f46ea1c72c261786c8",
+  "existingExecutedInputsModified": false,
+  "productSourceModified": false,
+  "noTestsRepeatedBecauseAllBytesIdentical": true,
+  "immutable": false,
+  "formalQualified": false,
+  "complete": true
+}

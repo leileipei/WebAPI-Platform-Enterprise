@@ -1,0 +1,165 @@
+{
+  "complete": true,
+  "sourceRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "installedUrl": "http://127.0.0.1:4192/dashboard",
+  "checks": [
+    {
+      "label": "deployed-rule-initial",
+      "confirmation": false,
+      "height": 720,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "INPUT",
+      "text": "",
+      "width": 1280
+    },
+    {
+      "label": "deployed-rule-discard-initial",
+      "confirmation": true,
+      "height": 720,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "继续编辑",
+      "width": 1280
+    },
+    {
+      "label": "deployed-rule-discard-shift-tab",
+      "confirmation": true,
+      "height": 720,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "确认放弃",
+      "width": 1280
+    },
+    {
+      "label": "deployed-rule-discard-tab",
+      "confirmation": true,
+      "height": 720,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "继续编辑",
+      "width": 1280
+    },
+    {
+      "label": "deployed-rule-cancel-recovery",
+      "confirmation": false,
+      "height": 720,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭",
+      "width": 1280
+    },
+    {
+      "label": "deployed-rule-draft-preserved",
+      "pass": true
+    },
+    {
+      "label": "deployed-rule-main-shift-tab-1440",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "保存规则",
+      "width": 1440
+    },
+    {
+      "label": "deployed-rule-main-tab-1440",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭",
+      "width": 1440
+    },
+    {
+      "label": "deployed-rule-close-restores-trigger",
+      "confirmation": false,
+      "height": 1024,
+      "inside": false,
+      "modal": false,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "新建规则",
+      "width": 1440
+    },
+    {
+      "label": "deployed-common-cancel-recovery",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭",
+      "width": 1440
+    },
+    {
+      "label": "deployed-common-draft-preserved",
+      "pass": true
+    },
+    {
+      "label": "deployed-common-shift-tab",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "保存",
+      "width": 1440
+    },
+    {
+      "label": "deployed-common-tab",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭",
+      "width": 1440
+    },
+    {
+      "label": "deployed-common-close-restores-trigger",
+      "confirmation": false,
+      "height": 1024,
+      "inside": false,
+      "modal": false,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "＋ 新建",
+      "width": 1440
+    },
+    {
+      "label": "deployed-navigation-projects",
+      "pass": true
+    },
+    {
+      "label": "deployed-navigation-gateway",
+      "initialLocatorLabel": "Gateway 节点",
+      "observedHeading": "网关节点",
+      "pass": true
+    },
+    {
+      "label": "deployed-navigation-dashboard",
+      "pass": true,
+      "readyNodes": 2
+    }
+  ],
+  "originalBusinessSaves": 0,
+  "ruleAndCommonDraftsDiscarded": true,
+  "riskRealWriteOnlyOnDisposableClone": true
+}

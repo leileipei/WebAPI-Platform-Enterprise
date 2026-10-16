@@ -1,0 +1,39 @@
+{
+  "complete": true,
+  "time": "2026-10-06T11:43:58.473493+00:00",
+  "sourceRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "browser": "CUA in-app browser",
+  "nonDefaultTypeNavigationVerified": true,
+  "copyTestExecutedOnlyInClone": true,
+  "originalBusinessWritesExecuted": false,
+  "originalPolicyCount": 1,
+  "captures": [
+    {
+      "file": "screenshots/03-4192-policy-list.jpg",
+      "label": "原策略清单保留",
+      "url": "http://127.0.0.1:4192/policies",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "07df2ab0760370a0f653b459591885e4df845669542c388fc5f69c47b54c7cdd",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "screenshots/04-4192-type-navigation.jpg",
+      "label": "选择超时后进入新建表单，未提交新策略",
+      "url": "http://127.0.0.1:4192/policies/new?type=timeout&scope=project",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "fc558f2f771073cf18dc5eb4239f0e2bee75e9decaeb758d8bfba0cdfa847244",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "screenshots/05-4192-policy-detail.jpg",
+      "label": "原策略详情与v4运行引用只读检查",
+      "url": "http://127.0.0.1:4192/policies/fc8525b2-3927-4f84-ba0c-ac903e69512a",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "8c87822d43fcb69fac14f499406262f34babce82cfa93381fc0a0e8580eaa4f7",
+      "visuallyReviewed": true
+    }
+  ]
+}

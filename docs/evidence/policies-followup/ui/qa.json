@@ -1,0 +1,52 @@
+{
+  "complete": true,
+  "sourceRevision": "79990836dedb5a3d8962ae2f828090b08208aff2",
+  "viewport": {
+    "width": 1440,
+    "height": 1100
+  },
+  "screenshots": [
+    {
+      "file": "ui/01-one-hour-metrics-partial.png",
+      "sha256": "ff196eef7bf8ad180ef362f4e7d80054bfee6ab2feb308712f14bf663fd8ed5a",
+      "width": 1440,
+      "height": 1639
+    },
+    {
+      "file": "ui/02-real-request-log-detail.png",
+      "sha256": "da15d0ed68f049beff14ab121d54e6946d6582e1797b3303e5a4f3531d76302d",
+      "width": 1440,
+      "height": 1121
+    },
+    {
+      "file": "ui/03-parent-context-partial-trace.png",
+      "sha256": "730339d7ae7e9bf3d45a1e1db7fc53ecce289093e5dd0a7ec9ee35a851fdcc6b",
+      "width": 1440,
+      "height": 1579
+    },
+    {
+      "file": "ui/04-sampled-root-trace.png",
+      "sha256": "550ccd70962dd4cbd13825c1a7967739507aacc7b4efaa0ffed859ec33ee9a47",
+      "width": 1440,
+      "height": 1509
+    }
+  ],
+  "pageErrors": [],
+  "visualReviewComplete": true,
+  "checks": [
+    "默认1小时保持真实Partial与空值",
+    "实际日志详情显示v2/seq2与关联TraceId",
+    "外部父span未采集时正确呈现部分链路",
+    "已采样网关根调用链呈现实际server/client spans"
+  ],
+  "noConfigurationChanges": true,
+  "visualReview": {
+    "reviewedScreenshots": 4,
+    "method": "逐图像素检查完整长页与详情抽屉",
+    "findings": [
+      "1440px下关键文字、日志详情及瀑布图可读，无水平溢出。",
+      "近1小时窗口保持覆盖不足提示与空值。",
+      "带外部父上下文的探针标记部分链路，已采样根请求显示已收到链路；不将窗口覆盖和单链路结构完整性混为一谈。"
+    ]
+  }
+}

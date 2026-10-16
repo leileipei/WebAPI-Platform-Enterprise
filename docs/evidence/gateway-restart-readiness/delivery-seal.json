@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "archive": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/deliverables/WebAPI_Enterprise_网关重启就绪修复_20261006.zip",
+  "bytes": 41320,
+  "sha256": "200f6422d64ede55b53ecd28a5b342d75f9e979f9a0711b85064057df4825662",
+  "entryCount": 22,
+  "crcReadbackPassed": true,
+  "allManifestHashesPassed": true,
+  "knownSecretMatches": 0,
+  "sourceFiles": 9,
+  "historicalArchivesUnchanged": 15,
+  "candidateNotCommitted": true,
+  "persistent4192NotUpgraded": true
+}

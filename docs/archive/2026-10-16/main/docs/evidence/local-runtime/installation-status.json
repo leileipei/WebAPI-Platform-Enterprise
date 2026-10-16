@@ -1,0 +1,191 @@
+{
+  "checkedAt": "2026-10-04T16:37:57.921Z",
+  "persistentProject": "webapi-enterprise-local",
+  "initialized": true,
+  "bound": true,
+  "phase": "Ready",
+  "administrator": "admin",
+  "sourceRevision": "3c038e7d7fdbb5ec7574944a24a70478ddd0f5ab",
+  "consoleUrl": "http://127.0.0.1:4192",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "services": [
+    {
+      "name": "postgres",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "redis",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "collector",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "prometheus",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "loki",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "tempo",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "control-plane",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "worker",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "console",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "gateway-a",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "gateway-b",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "backend-a",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "backend-b",
+      "state": "Running",
+      "health": null
+    }
+  ],
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available",
+      "checkedAt": "2026-10-04T16:37:57.796Z"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available",
+      "checkedAt": "2026-10-04T16:37:57.788Z"
+    },
+    {
+      "name": "loki",
+      "state": "Available",
+      "checkedAt": "2026-10-04T16:37:57.787Z"
+    },
+    {
+      "name": "tempo",
+      "state": "Available",
+      "checkedAt": "2026-10-04T16:37:57.788Z"
+    }
+  ],
+  "persistentVolumes": [
+    "webapi-enterprise-local_dp-keys",
+    "webapi-enterprise-local_lkg-a",
+    "webapi-enterprise-local_lkg-b",
+    "webapi-enterprise-local_loki-data",
+    "webapi-enterprise-local_pg",
+    "webapi-enterprise-local_prometheus-data",
+    "webapi-enterprise-local_secrets-control-plane",
+    "webapi-enterprise-local_secrets-gateway-a",
+    "webapi-enterprise-local_secrets-gateway-b",
+    "webapi-enterprise-local_secrets-migrator",
+    "webapi-enterprise-local_secrets-postgres",
+    "webapi-enterprise-local_secrets-worker",
+    "webapi-enterprise-local_tempo-data"
+  ],
+  "administratorLoginVerified": true,
+  "bootstrapPasswordFileMode": "0600",
+  "businessCounts": {
+    "users": 3,
+    "organizations": 1,
+    "projects": 1,
+    "environments": 1,
+    "apis": 1,
+    "alertRules": 1,
+    "gatewayNodes": 2
+  },
+  "onlyConsoleLoopbackPortPublished": false,
+  "pendingInput": [],
+  "preservedOldEnvironment": {
+    "unchanged": true,
+    "containerIdentitiesAndMounts": true,
+    "endpoints": {
+      "4180": 200,
+      "4181": 200,
+      "5090": 404
+    },
+    "archives": {
+      "deliverables/WebAPI_Enterprise_可观测与告警源码及验收.zip": "e88d06501b6b995f38af12057933edbae91151cfcac1d0f11d2bc9304eb29b06",
+      "deliverables/WebAPI_Enterprise_核心闭环源码与验收.zip": "734ae0ecf78b92da08d03e352683453498067da8266df44b691ac1ad712d51d6",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1.zip": "810d55a9b09cde400524e29a2c07f032cc6a584af11c56e0aa29779a9d23a5b1",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.1.zip": "1c0ab23e44852efb6538447678b4b7ca4a3e2f2a909ebfb5a5c9fd447557d225",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.2.zip": "14b6c492d1613966de6339d813e90c8ee65abf6c11adfcb6def85f14a7ac3cda",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.3.zip": "7b6208898c6c5e0ad7acecf6182d3cdb1209aa69a2c020e5cd1cd4f4b2ce0a63",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.4.zip": "cc61148914306cca3f6dbe1bdc96d49677c7010932e1f5756c25622b8677f221",
+      "deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收.zip": "87d536081e1e8611a0eea6d089b6a940487dcbe0c9fd890f6cc42bbe72858ce7",
+      "deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收_V1.1.zip": "cd0658aaef617b6a94206fe2d325295484bb53aa8444fb450ca84085c6655ee4",
+      "deliverables/manifest-local-runtime.json": "ffee33f060548d9d5b4f328525b54570dedb402afb416ea16a83e0b48434efa7",
+      "deliverables/manifest-local-runtime-v1.1.json": "401ea45dc8d785581c4c74403acadfdc0f646b07868b381c36f83317cbc82aa6"
+    }
+  },
+  "deliveryArchiveUnchanged": true,
+  "actualAcceptance": "Persistent local demo: two independent approvals, dual current-instance ACK, both gateways HTTP 200, metrics/logs/Trace collected, alert Open -> Ack -> Resolved (Recovered), and audits verified.",
+  "demoEnabled": true,
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "instanceId": "76e4c5dc-c31b-4a3f-9914-e58c64de6d51",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-04T16:37:54.365515+00:00",
+      "fresh": true,
+      "currentVersion": 1,
+      "currentSequence": 1,
+      "desiredVersion": 1,
+      "desiredSequence": 1,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-a",
+      "instanceId": "3a76a979-2ae9-4e05-987e-514e5a90e624",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-04T16:37:54.37031+00:00",
+      "fresh": true,
+      "currentVersion": 1,
+      "currentSequence": 1,
+      "desiredVersion": 1,
+      "desiredSequence": 1,
+      "acknowledged": true
+    }
+  ],
+  "loopbackPortsPublished": [
+    4192,
+    4196,
+    4197
+  ],
+  "demoEvidence": "docs/evidence/local-runtime/demo-activation.json"
+}

@@ -1,0 +1,36 @@
+{
+  "verifiedAt": "2026-10-16T02:29:59.321282+00:00",
+  "head": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+  "headUnchanged": true,
+  "protectedFiles": 664,
+  "changedFiles": [],
+  "protectedControls": 16,
+  "changedControls": [],
+  "userCount": 4,
+  "usersUnchanged": true,
+  "roleScopesUnchanged": true,
+  "originalServices": [
+    {
+      "name": "webapi-enterprise-local-control-plane-1",
+      "running": true,
+      "health": "healthy",
+      "image": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    {
+      "name": "webapi-enterprise-local-gateway-a-1",
+      "running": true,
+      "health": "healthy",
+      "image": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    },
+    {
+      "name": "webapi-enterprise-local-gateway-b-1",
+      "running": true,
+      "health": "healthy",
+      "image": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa"
+    }
+  ],
+  "originalHttpRequestsByThisProbe": 0,
+  "readOnlyDatabaseTransaction": true,
+  "passed": true,
+  "accountDigestSerialization": "Python json.dumps(sort_keys=True,ensure_ascii=False), default separators; exact baseline encoding"
+}
