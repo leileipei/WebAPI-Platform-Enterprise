@@ -22,7 +22,7 @@ const owner='d09a7407-3d06-45be-932b-5037422a89d2';
 const manifest={owner,project:`webapi-performance-${owner}`};
 test('mutable_harness_validation_exports_fixed_product_without_current_src_overlay',async()=>{
   const sources=await import('./sources.mjs');assert.equal(typeof sources.exportValidationInputs,'function');
-  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),source='40759aac50f1a6281223b0ec0d45d58e6fb44cb5',harness='9f4d114c61df320aa13499dd608b605410bbecd6';
+  const repo=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..'),source='40759aac50f1a6281223b0ec0d45d58e6fb44cb5',harness='760493da5a5bc0f0674e7e6398260c8a5ac4a6c0';
   const directory=fs.mkdtempSync(path.join(os.tmpdir(),'webapi-fixed-product-validation-'));
   try{
     const target=path.join(directory,'source');const identity=await sources.exportValidationInputs({repo,source,harness,directory:target});
