@@ -1,0 +1,27 @@
+{
+  "complete": true,
+  "sourceManifestHash": "d9f22240c5890740138ed1d2d8895441611b7f34c4d3079f8d5a73a70649afd5",
+  "toolManifestHash": "8f23ffa6417247bf7f803594d3f24df0cd0b6e1dd7279fa33c66292645c40eae",
+  "counts": {
+    "domain": 196,
+    "integration": 347,
+    "gateway": 51,
+    "console": 70,
+    "runtime": 17,
+    "endToEnd": 1
+  },
+  "totalTests": 682,
+  "failed": 0,
+  "realIdpScenarioChecks": 10,
+  "consoleBuild": true,
+  "lockedDotnetRestore": true,
+  "logSha256": {
+    "domain": "0f07e5e4e75134ebb6f932bfbef06b5e52c1258c90bbb8891c2ac0527ff87516",
+    "integration": "64c09f705ca2ac680b09524d9c8c1c12680b512273d5b968a76d1f85f8de33e9",
+    "gateway": "252d28c765bb0760b394b8a58282e2ea35a3ad981f4f2213e6072aa9991cb00f",
+    "console": "ebdce36afb2f6af321144036e84b69ab9134933f67488feb22764f9dff50088b",
+    "runtime": "fb43fc2a498716a869fc8511bacfaec601027bf4c3331dc21e1a6b18ae7d1ef4",
+    "realIdp": "0739cbf4a26149a27726d0ff9559a38c842e4b95b73159558352499b8d598d69"
+  },
+  "productionDeployment": false
+}

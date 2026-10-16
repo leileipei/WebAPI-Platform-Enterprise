@@ -1,0 +1,21 @@
+{
+  "userAnswer": "a",
+  "authorized": [
+    "main local fast-forward merge",
+    "owned platform and IdP cold backup",
+    "isolated restore/migration/software rollback rehearsal",
+    "4192 upgrade after rehearsal succeeds"
+  ],
+  "preserve": [
+    "original edits",
+    "accounts/passwords/roles/scopes",
+    "SSO identity and settings",
+    "business v4/seq4",
+    "original data volumes and historical archives"
+  ],
+  "notAuthorized": [
+    "push",
+    "original data deletion",
+    "new business publication"
+  ]
+}

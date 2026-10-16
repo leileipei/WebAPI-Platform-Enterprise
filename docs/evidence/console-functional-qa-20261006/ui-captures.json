@@ -1,0 +1,1984 @@
+[
+  {
+    "file": "01-login.jpg",
+    "time": "2026-10-06T10:07:18.968Z",
+    "checks": {
+      "page": 1,
+      "unauthenticatedForm": true
+    },
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "统一管理 API连接每一个业务系统",
+        "登录管理控制台"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "W\nWEBAPI PLATFORM ENTERPRISE\n统一管理 API\n连接每一个业务系统\n\n从工作草稿到审批发布，以可靠的配置和清晰的运行事实管理企业 API。\n\n01　配置与版本管理\n02　独立审批与可追溯发布\n03　多节点运行状态\nMANAGEMENT CONSOLE\n登录管理控制台\n\n选择企业身份源，或使用已开通的本地账号\n\n本地账号登录\n用户名\n密码\n登录\n企业账号与权限由平台管理员显式开通。\n平台退出仅结束本平台会话，身份服务会话可能仍然有效。",
+      "url": "http://127.0.0.1:53735/",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "02-login-denied.jpg",
+    "time": "2026-10-06T10:07:52.666Z",
+    "checks": {
+      "page": 1,
+      "wrongPasswordDenied": true,
+      "genericError": "用户名或密码错误"
+    },
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "统一管理 API连接每一个业务系统",
+        "登录管理控制台"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "W\nWEBAPI PLATFORM ENTERPRISE\n统一管理 API\n连接每一个业务系统\n\n从工作草稿到审批发布，以可靠的配置和清晰的运行事实管理企业 API。\n\n01　配置与版本管理\n02　独立审批与可追溯发布\n03　多节点运行状态\nMANAGEMENT CONSOLE\n登录管理控制台\n\n选择企业身份源，或使用已开通的本地账号\n\n用户名或密码错误。\n本地账号登录\n用户名\n密码\n登录\n企业账号与权限由平台管理员显式开通。\n平台退出仅结束本平台会话，身份服务会话可能仍然有效。",
+      "url": "http://127.0.0.1:53735/",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "03-organizations.jpg",
+    "time": "2026-10-06T10:08:20.667Z",
+    "checks": {
+      "page": 3,
+      "realLogin": true,
+      "syntheticOrganizationVisible": true
+    },
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "组织管理"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n组织管理\n\n统一维护企业资源与访问边界\n\n＋ 新建\n刷新\n名称\t编码\t状态\t修订\t操作\n独立运行环境验收组织\tRUNTIME_QA\tActive\t1\t\n编辑\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/organizations",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "04-permission-matrix.jpg",
+    "time": "2026-10-06T10:12:29.079Z",
+    "checks": [
+      "独立验收自定义角色",
+      "44 项权限编辑控件",
+      "系统角色不可编辑"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "INPUT"
+      },
+      "headings": [
+        "角色管理",
+        "角色权限 · 验收自定义角色"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n角色管理\n\n统一维护企业资源与访问边界\n\n＋ 新建\n刷新\n角色编码\t角色名称\t系统角色\t修订\t操作\nApiApprover\tAPI审批人员\t是\t1\t\n编辑\n配置权限\n\nApiDeveloper\tAPI开发人员\t是\t1\t\n编辑\n配置权限\n\nViewer\t只读用户\t是\t1\t\n编辑\n配置权限\n\nSecurityReviewer\t安全审核人员\t是\t1\t\n编辑\n配置权限\n\nAuditor\t审计人员\t是\t1\t\n编辑\n配置权限\n\nPlatformAdmin\t平台管理员\t是\t1\t\n编辑\n配置权限\n\nOrganizationAdmin\t组织管理员\t是\t1\t\n编辑\n配置权限\n\nOperator\t运维人员\t是\t1\t\n编辑\n配置权限\n\nProjectAdmin\t项目管理员\t是\t1\t\n编辑\n配置权限\n\nQA_CUSTOM\t验收自定义角色\t否\t1\t\n编辑\n配置权限\n角色权限 · 验收自定义角色\n关闭\nalert.operate · alert.operate\nalert.read · alert.read\nalert.rule.manage · alert.rule.manage\napi.approve · api.approve\napi.create · api.create\napi.edit · api.edit\napi.read · api.read\napi.schema.read · api.schema.read\napi.schema.write · api.schema.write\napi.version.read · api.version.read\napi.version.write · api.version.write\napp.permission.manage · app.permission.manage\napp.read · app.read\napp.write · app.write\napproval.act · approval.act\naudit.read · audit.read\ncluster.read · cluster.read\ncluster.write · cluster.write\ncredential.manage · credential.manage\nenvironment.read · environment.read\nenvironment.write · environment.write\ngateway.config.read · gateway.config.read\ngateway.operate · gateway.operate\ngateway.read · gateway.read\nlog.read · log.read\nmetrics.read · metrics.read\norganization.read · organization.read\norganization.write · organization.write\npolicy.read · policy.read\npolicy.write · policy.write\nproject.read · project.read\nproject.write · project.write\nrelease.create · release.create\nrelease.publish · release.publish\nrelease.read · release.read\nrelease.rollback · release.rollback\nrole.manage · role.manage\nroute.read · route.read\nroute.write · route.write\nscope.manage · scope.manage\nsystem.manage · system.manage\nsystem.sso.manage · system.sso.manage\ntrace.read · trace.read\nuser.manage · user.manage\n保存\n保存后更新管理资源；角色与数据范围按服务端权限规则生效。",
+      "url": "http://127.0.0.1:53735/roles",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "05-role-saved.jpg",
+    "time": "2026-10-06T10:13:05.657Z",
+    "checks": [
+      "权限通过实际表单保存",
+      "修订从 1 变为 2"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "角色管理"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n角色管理\n\n统一维护企业资源与访问边界\n\n＋ 新建\n刷新\n角色编码\t角色名称\t系统角色\t修订\t操作\nApiApprover\tAPI审批人员\t是\t1\t\n编辑\n配置权限\n\nApiDeveloper\tAPI开发人员\t是\t1\t\n编辑\n配置权限\n\nViewer\t只读用户\t是\t1\t\n编辑\n配置权限\n\nSecurityReviewer\t安全审核人员\t是\t1\t\n编辑\n配置权限\n\nAuditor\t审计人员\t是\t1\t\n编辑\n配置权限\n\nPlatformAdmin\t平台管理员\t是\t1\t\n编辑\n配置权限\n\nOrganizationAdmin\t组织管理员\t是\t1\t\n编辑\n配置权限\n\nOperator\t运维人员\t是\t1\t\n编辑\n配置权限\n\nProjectAdmin\t项目管理员\t是\t1\t\n编辑\n配置权限\n\nQA_CUSTOM\t验收自定义角色\t否\t2\t\n编辑\n配置权限",
+      "url": "http://127.0.0.1:53735/roles",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "06-api-detail-versions.jpg",
+    "time": "2026-10-06T10:13:17.638Z",
+    "checks": [
+      "已发布版本封存不可编辑",
+      "环境运行版本 1",
+      "API 详情与版本列表"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "真实运行验收 API"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 目录 / 详情\n真实运行验收 API\n\nRUNTIME_ORDERS　工作修订 1\n\n运行监控\n编辑 API\n版本比较与评审\n配置与发布向导 →\n工作修订\n1\n当前环境节点一致配置版本\n1\nAPI 版本数量\n1\n待处理发布\n—\n版本\n参数\nSchema\nOpenAPI\n＋ 新建版本\n版本号\t状态\t变更类型\t修订\t封存时间\t操作\n1.0.0\tPublished\tcompatible\t1\t2026-10-06T10:06:19.353031+00:00\t\n定义\n编辑",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "07-parameters-saved.jpg",
+    "time": "2026-10-06T10:13:58.573Z",
+    "checks": [
+      "草稿参数写入成功",
+      "必填字段保留",
+      "实际表单闭环"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "真实运行验收 API"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 目录 / 详情\n真实运行验收 API\n\nRUNTIME_ORDERS　工作修订 1\n\n运行监控\n编辑 API\n版本比较与评审\n配置与发布向导 →\n工作修订\n1\n当前环境节点一致配置版本\n1\nAPI 版本数量\n3\n待处理发布\n—\n版本\n参数\nSchema\nOpenAPI\nAPI 版本 \n3.0.0 · Draft\n2.0.0 · Draft\n1.0.0 · Published\n参数定义\n＋ 新增\n位置\t名称\t类型\t必填\t说明\t操作\nquery\ttenant\tstring\t是\t隔离验收租户参数\t\n编辑\n移除工作定义",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "08-schema-conflict.jpg",
+    "time": "2026-10-06T10:15:49.333Z",
+    "checks": [
+      "并发修改返回 412",
+      "输入保留",
+      "禁止直接覆盖最新修订"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "真实运行验收 API",
+        "Schema 编辑"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 目录 / 详情\n真实运行验收 API\n\nRUNTIME_ORDERS　工作修订 1\n\n运行监控\n编辑 API\n版本比较与评审\n配置与发布向导 →\n工作修订\n1\n当前环境节点一致配置版本\n1\nAPI 版本数量\n3\n待处理发布\n—\n版本\n参数\nSchema\nOpenAPI\nAPI 版本 \n3.0.0 · Draft\n2.0.0 · Draft\n1.0.0 · Published\n请求 / 响应 Schema\n＋ 新增\n用途\t名称\t状态码\t内容类型\tSchema 摘要\t操作\n暂无记录\nSchema 编辑\n关闭\nSchema 用途 *\n请选择\nrequest\nresponse\n名称 *\n响应状态码\nContent Type *\nJSON Schema *\n示例 JSON\n数据已更新，请刷新后重试。\n你的输入已保留。先查看服务器最新内容，再决定如何合并。查看最新内容\n保存\n保存至工作配置，发布后才影响网关",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "09-schema-saved.jpg",
+    "time": "2026-10-06T10:16:00.430Z",
+    "checks": [
+      "412 后显式采用最新修订",
+      "Schema 输入成功保存",
+      "Schema 摘要可见"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "真实运行验收 API"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 目录 / 详情\n真实运行验收 API\n\nRUNTIME_ORDERS　工作修订 1\n\n运行监控\n编辑 API\n版本比较与评审\n配置与发布向导 →\n工作修订\n1\n当前环境节点一致配置版本\n1\nAPI 版本数量\n3\n待处理发布\n—\n版本\n参数\nSchema\nOpenAPI\nAPI 版本 \n3.0.0 · Draft\n2.0.0 · Draft\n1.0.0 · Published\n请求 / 响应 Schema\n＋ 新增\n用途\t名称\t状态码\t内容类型\tSchema 摘要\t操作\nresponse\tOrderResponse\t200\tapplication/json\t5f9e2e21befb73befe3d1c17363dc26f993efa802c67a5eefbf0e7a13d6cefa4\t\n编辑\n移除工作定义",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "10-version-comparison.jpg",
+    "time": "2026-10-06T10:16:23.937Z",
+    "checks": [
+      "真实报告 2.0.0 → 3.0.0",
+      "Breaking 2 / Unknown 3",
+      "Limited 覆盖限制显式呈现"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "版本比较与风险评审",
+        "2.0.0 → 3.0.0"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 详情 / 版本比较\n版本比较与风险评审\n\n真实运行验收 API · 不可变报告与可追溯评审\n\n比较基线 \n选择基线\n3.0.0 · Draft · R4\n2.0.0 · Draft · R1\n1.0.0 · Published · R1\n→\n目标版本 \n选择目标\n3.0.0 · Draft · R4\n2.0.0 · Draft · R1\n1.0.0 · Published · R1\n生成契约比较\n刷新版本与修订\n用户选择的比较基线 → 目标版本\n2.0.0 → 3.0.0\n\n人工变更类型：breaking · 比较时修订 1 / 4\n\n契约当前有效\n\n覆盖：Limited · compatibility-v1\n\n比较基线由用户选择。发布环境的配置基线与此版本独立；风险评审不替代正式审批。自动判定仅覆盖受支持的契约结构。\n新增\n3\n修改\n2\n删除\n0\n兼容\n1\n破坏性\n2\n未知\n3\n覆盖限制 · 始终展示\n\nUnknown to · /parameters/tenant · OpenAPI 与维护参数定义不一致。\n\n风险 \n全部\nCompatible\nBreaking\nUnknown\n变化 \n全部\nAdded\nChanged\nRemoved\n来源 \n全部\nopenapi\nparameters\nschemas\n搜索 \n展示 5 / 5\n变化 / 风险\t来源与 Operation\t契约路径\t原因与安全片段\nAdded\nBreaking\topenapi\nGET /orders\t/parameters/query:tenant\t新增请求参数。\n查看变化片段\n\nChanged\nUnknown\topenapi\nGET /orders\t/response:200:application~1json/properties/id/type\tSchema 约束变化，按请求/响应方向判断。\n查看变化片段\n\nChanged\nCompatible\topenapi\n—\t/info\t文档元数据变化。\n查看变化片段\n\nAdded\nBreaking\tparameters\n—\t/parameters/query:tenant\t新增请求参数。\n查看变化片段\n\nAdded\nUnknown\tschemas\n—\t/schemas/response:OrderResponse:200:application~1json\t新增 Schema 定义。\n查看变化片段\n不可变报告 · 7aab640c-bdc9-4e10-b023-2e5ecaed2169\n\n报告哈希 a5e3bfbff2a7822d699630778f91eeaebe5c68ae3f47db110bb8a997d08eefca\n\n导出 JSON\n导出 CSV\n风险评审\n历史比较报告\n2.0.0 → 3.0.0\n2026-10-06T10:16:16.136231+00:00 · Limited\n破坏性 2 · 未知 3\n打开报告",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f/versions/compare",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "11-risk-confirmation.jpg",
+    "time": "2026-10-06T10:16:30.846Z",
+    "checks": [
+      "全量风险强确认",
+      "说明必填",
+      "独立于发布审批"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "INPUT"
+      },
+      "headings": [
+        "版本比较与风险评审",
+        "2.0.0 → 3.0.0",
+        "确认接受契约风险"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 详情 / 版本比较\n版本比较与风险评审\n\n真实运行验收 API · 不可变报告与可追溯评审\n\n比较基线 \n选择基线\n3.0.0 · Draft · R4\n2.0.0 · Draft · R1\n1.0.0 · Published · R1\n→\n目标版本 \n选择目标\n3.0.0 · Draft · R4\n2.0.0 · Draft · R1\n1.0.0 · Published · R1\n生成契约比较\n刷新版本与修订\n用户选择的比较基线 → 目标版本\n2.0.0 → 3.0.0\n\n人工变更类型：breaking · 比较时修订 1 / 4\n\n契约当前有效\n\n覆盖：Limited · compatibility-v1\n\n比较基线由用户选择。发布环境的配置基线与此版本独立；风险评审不替代正式审批。自动判定仅覆盖受支持的契约结构。\n新增\n3\n修改\n2\n删除\n0\n兼容\n1\n破坏性\n2\n未知\n3\n覆盖限制 · 始终展示\n\nUnknown to · /parameters/tenant · OpenAPI 与维护参数定义不一致。\n\n风险 \n全部\nCompatible\nBreaking\nUnknown\n变化 \n全部\nAdded\nChanged\nRemoved\n来源 \n全部\nopenapi\nparameters\nschemas\n搜索 \n展示 5 / 5\n变化 / 风险\t来源与 Operation\t契约路径\t原因与安全片段\nAdded\nBreaking\topenapi\nGET /orders\t/parameters/query:tenant\t新增请求参数。\n查看变化片段\n\nChanged\nUnknown\topenapi\nGET /orders\t/response:200:application~1json/properties/id/type\tSchema 约束变化，按请求/响应方向判断。\n查看变化片段\n\nChanged\nCompatible\topenapi\n—\t/info\t文档元数据变化。\n查看变化片段\n\nAdded\nBreaking\tparameters\n—\t/parameters/query:tenant\t新增请求参数。\n查看变化片段\n\nAdded\nUnknown\tschemas\n—\t/schemas/response:OrderResponse:200:application~1json\t新增 Schema 定义。\n查看变化片段\n不可变报告 · 7aab640c-bdc9-4e10-b023-2e5ecaed2169\n\n报告哈希 a5e3bfbff2a7822d699630778f91eeaebe5c68ae3f47db110bb8a997d08eefca\n\n导出 JSON\n导出 CSV\n风险评审\n历史比较报告\n2.0.0 → 3.0.0\n2026-10-06T10:16:16.136231+00:00 · Limited\n破坏性 2 · 未知 3\n打开报告\n确认接受契约风险\n\n2.0.0 → 3.0.0 · 全量报告\n\n破坏性 2 · 未知 3 · 覆盖 Limited。筛选不会减少评审风险数量。此记录不能替代发布审批。\n风险接受说明（10–2,000 字）\n25 / 2,000\n我已查看全量报告与覆盖限制，确认接受破坏性及未知风险。\n返回检查\n确认并记录评审",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f/versions/compare",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "12-review-recorded.jpg",
+    "time": "2026-10-06T10:16:35.811Z",
+    "checks": [
+      "评审记录 AcceptedRisk",
+      "评审人和时间可追溯",
+      "带评审进入向导"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "版本比较与风险评审",
+        "2.0.0 → 3.0.0"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 详情 / 版本比较\n版本比较与风险评审\n\n真实运行验收 API · 不可变报告与可追溯评审\n\n携带评审进入发布向导 →\n比较基线 \n选择基线\n3.0.0 · Draft · R4\n2.0.0 · Draft · R1\n1.0.0 · Published · R1\n→\n目标版本 \n选择目标\n3.0.0 · Draft · R4\n2.0.0 · Draft · R1\n1.0.0 · Published · R1\n生成契约比较\n刷新版本与修订\n用户选择的比较基线 → 目标版本\n2.0.0 → 3.0.0\n\n人工变更类型：breaking · 比较时修订 1 / 4\n\n契约当前有效\n\n覆盖：Limited · compatibility-v1\n\n比较基线由用户选择。发布环境的配置基线与此版本独立；风险评审不替代正式审批。自动判定仅覆盖受支持的契约结构。\n新增\n3\n修改\n2\n删除\n0\n兼容\n1\n破坏性\n2\n未知\n3\n覆盖限制 · 始终展示\n\nUnknown to · /parameters/tenant · OpenAPI 与维护参数定义不一致。\n\n风险 \n全部\nCompatible\nBreaking\nUnknown\n变化 \n全部\nAdded\nChanged\nRemoved\n来源 \n全部\nopenapi\nparameters\nschemas\n搜索 \n展示 5 / 5\n变化 / 风险\t来源与 Operation\t契约路径\t原因与安全片段\nAdded\nBreaking\topenapi\nGET /orders\t/parameters/query:tenant\t新增请求参数。\n查看变化片段\n\nChanged\nUnknown\topenapi\nGET /orders\t/response:200:application~1json/properties/id/type\tSchema 约束变化，按请求/响应方向判断。\n查看变化片段\n\nChanged\nCompatible\topenapi\n—\t/info\t文档元数据变化。\n查看变化片段\n\nAdded\nBreaking\tparameters\n—\t/parameters/query:tenant\t新增请求参数。\n查看变化片段\n\nAdded\nUnknown\tschemas\n—\t/schemas/response:OrderResponse:200:application~1json\t新增 Schema 定义。\n查看变化片段\n不可变报告 · 7aab640c-bdc9-4e10-b023-2e5ecaed2169\n\n报告哈希 a5e3bfbff2a7822d699630778f91eeaebe5c68ae3f47db110bb8a997d08eefca\n\n导出 JSON\n导出 CSV\n风险评审\n最近风险评审 · AcceptedRisk\n\n仅用于隔离验收合成接口，已查看全部差异与覆盖限制。\n\n2026-10-06T10:16:30.9344619+00:00 · c8c573c3-b8f9-49f3-b366-0cec69a17335\n\n历史比较报告\n2.0.0 → 3.0.0\n2026-10-06T10:16:16.136231+00:00 · Limited\n破坏性 2 · 未知 3\n打开报告",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f/versions/compare",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "13-wizard-review.jpg",
+    "time": "2026-10-06T10:16:50.641Z",
+    "checks": [
+      "六步向导可跳转",
+      "服务端固定评审目标",
+      "发布基线 1 / 正式审批独立"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "配置与发布",
+        "发布 Review"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 详情 / 配置与发布向导\n配置与发布\n\n逐步维护工作草稿，Review 后创建并提交真实发布申请\n\n1\n基本信息\n2\nAPI 版本\n3\n参数定义\n4\n请求与响应\n5\n路由与后端\n6\nReview 与提交\n前五步各自保存到工作区。第六步创建发布草稿，提交时冻结候选；风险评审与正式审批分别记录。\nAPI 版本 \n请先新建版本\n3.0.0 · Draft\n2.0.0 · Draft\n1.0.0 · Published\n刷新工作数据\n退出评审关联并重新选择版本\n契约风险评审证据\n\n2.0.0 → 3.0.0 · AcceptedRisk · Limited\n\n破坏性 2 · 未知 3 · compatibility-v1\n\n评审人 c8c573c3-b8f9-49f3-b366-0cec69a17335 · 2026-10-06T10:16:30.934461+00:00\n\n仅用于隔离验收合成接口，已查看全部差异与覆盖限制。\n\n评审 1259e20a-6b5b-412a-ac7e-8d033d7b9646 · 报告哈希 a5e3bfbff2a7822d699630778f91eeaebe5c68ae3f47db110bb8a997d08eefca\n\n关联记录是契约检查证据，正式审批与节点确认仍需独立完成。\n\n已进入评审关联模式，目标从服务端解析并固定。更换版本须退出关联并重新比较。\n\n发布 Review\n\n当前环境目标配置版本：1。创建及提交时服务端会再次核对资源修订与关联评审。\n\n创建发布草稿并预览\n上一步\n6 / 6\n下一步",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f/wizard?reviewId=1259e20a-6b5b-412a-ac7e-8d033d7b9646",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "14-route-saved.jpg",
+    "time": "2026-10-06T10:17:03.835Z",
+    "checks": [
+      "路由关联草稿版本 3.0.0",
+      "工作配置保存未直接切换网关"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "配置与发布",
+        "路由配置"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 详情 / 配置与发布向导\n配置与发布\n\n逐步维护工作草稿，Review 后创建并提交真实发布申请\n\n1\n基本信息\n2\nAPI 版本\n3\n参数定义\n4\n请求与响应\n5\n路由与后端\n6\nReview 与提交\n前五步各自保存到工作区。第六步创建发布草稿，提交时冻结候选；风险评审与正式审批分别记录。\nAPI 管理 / 路由配置\n路由配置\n\nAPI 版本保持全局定义，路由单独关联当前环境\n\n＋ 新建路由\n此处修改仅更新工作区。新建 / 编辑路由不会直接切换生产请求，必须通过审批发布。\n配置 API \n请选择 API\n真实运行验收 API\n刷新\n路由\t路径\t方法\t版本 ID\t优先级\t启用\t修订\t操作\nRuntimeOrders\t/orders/{**path}\tGET\t3814b168-f5a2-4d60-a6d1-e15f6af3efb6\t100\t是\t2\t\n编辑\n策略绑定\n共 1 条 · 每页 50 条\n上一页\n1\n下一页\n上一步\n5 / 6\n下一步",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f/wizard?reviewId=1259e20a-6b5b-412a-ac7e-8d033d7b9646",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "15-release-waiting.jpg",
+    "time": "2026-10-06T10:17:35.500Z",
+    "checks": [
+      "申请人不能审批本人申请",
+      "两步独立角色审批",
+      "风险评审不替代审批"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "发布详情"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "发布中心 / 发布详情\n发布详情\n\nREL-abbc7680669645a0a75757110bc09784\n\nWaitingApproval\n基线配置版本\n1\n目标配置版本\n待构建\n下发序列\n待下发\n目标实例确认\n0 / 0\n批准当前步骤\n拒绝\n取消申请\n\n你是申请人，不能审批本次申请。请由不同的审批账号依次完成。\n\n契约风险评审证据\n\n2.0.0 → 3.0.0 · AcceptedRisk · Limited\n\n破坏性 2 · 未知 3 · compatibility-v1\n\n评审人 c8c573c3-b8f9-49f3-b366-0cec69a17335 · 2026-10-06T10:16:30.934461+00:00\n\n仅用于隔离验收合成接口，已查看全部差异与覆盖限制。\n\n评审 1259e20a-6b5b-412a-ac7e-8d033d7b9646 · 报告哈希 a5e3bfbff2a7822d699630778f91eeaebe5c68ae3f47db110bb8a997d08eefca\n\n关联记录是契约检查证据，正式审批与节点确认仍需独立完成。\n\n审批与节点\n候选内容\n基础资源比较\n独立审批\n步骤\t角色\t结果\t实际审批人\t意见\t时间\n1\tApiApprover\tPending\t—\t—\t—\n2\tSecurityReviewer\tPending\t—\t—\t—\n冻结目标实例与真实 ACK\n节点\t进程实例\t成功确认\t确认版本\t确认序列\t错误代码\t操作\n暂无记录\n\n最近读取 18:17:34　　",
+      "url": "http://127.0.0.1:53735/releases/c20345be-d2ee-4bbe-8b0d-0b57b796bc04",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "16-api-approved.jpg",
+    "time": "2026-10-06T10:17:57.730Z",
+    "checks": [
+      "API 审批人实际表单批准",
+      "下一步仍需安全审核"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "发布详情"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "发布中心 / 发布详情\n发布详情\n\nREL-abbc7680669645a0a75757110bc09784\n\nWaitingApproval\n基线配置版本\n1\n目标配置版本\n待构建\n下发序列\n待下发\n目标实例确认\n0 / 0\n批准当前步骤\n拒绝\n取消申请\n契约风险评审证据\n\n2.0.0 → 3.0.0 · AcceptedRisk · Limited\n\n破坏性 2 · 未知 3 · compatibility-v1\n\n评审人 c8c573c3-b8f9-49f3-b366-0cec69a17335 · 2026-10-06T10:16:30.934461+00:00\n\n仅用于隔离验收合成接口，已查看全部差异与覆盖限制。\n\n评审 1259e20a-6b5b-412a-ac7e-8d033d7b9646 · 报告哈希 a5e3bfbff2a7822d699630778f91eeaebe5c68ae3f47db110bb8a997d08eefca\n\n关联记录是契约检查证据，正式审批与节点确认仍需独立完成。\n\n审批与节点\n候选内容\n基础资源比较\n独立审批\n步骤\t角色\t结果\t实际审批人\t意见\t时间\n1\tApiApprover\tApproved\t6e9a3795-6f8e-4294-9351-a92ede5ab335\t隔离验收：API 契约检查通过，正式独立审批第一步。\t2026-10-06T10:17:57.477353+00:00\n2\tSecurityReviewer\tPending\t—\t—\t—\n冻结目标实例与真实 ACK\n节点\t进程实例\t成功确认\t确认版本\t确认序列\t错误代码\t操作\n暂无记录\n\n最近读取 18:17:57　　",
+      "url": "http://127.0.0.1:53735/releases/c20345be-d2ee-4bbe-8b0d-0b57b796bc04",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "17-security-approved.jpg",
+    "time": "2026-10-06T10:18:06.575Z",
+    "checks": [
+      "不同账号完成第二审批步骤",
+      "状态 Approved"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "发布详情"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "发布中心 / 发布详情\n发布详情\n\nREL-abbc7680669645a0a75757110bc09784\n\nReady\n基线配置版本\n1\n目标配置版本\n待构建\n下发序列\n待下发\n目标实例确认\n0 / 0\n发布到全部启用节点\n取消申请\n契约风险评审证据\n\n2.0.0 → 3.0.0 · AcceptedRisk · Limited\n\n破坏性 2 · 未知 3 · compatibility-v1\n\n评审人 c8c573c3-b8f9-49f3-b366-0cec69a17335 · 2026-10-06T10:16:30.934461+00:00\n\n仅用于隔离验收合成接口，已查看全部差异与覆盖限制。\n\n评审 1259e20a-6b5b-412a-ac7e-8d033d7b9646 · 报告哈希 a5e3bfbff2a7822d699630778f91eeaebe5c68ae3f47db110bb8a997d08eefca\n\n关联记录是契约检查证据，正式审批与节点确认仍需独立完成。\n\n审批与节点\n候选内容\n基础资源比较\n独立审批\n步骤\t角色\t结果\t实际审批人\t意见\t时间\n1\tApiApprover\tApproved\t6e9a3795-6f8e-4294-9351-a92ede5ab335\t隔离验收：API 契约检查通过，正式独立审批第一步。\t2026-10-06T10:17:57.477353+00:00\n2\tSecurityReviewer\tApproved\tc16be8bf-398e-4b32-b6d3-5c0ab8355168\t隔离验收：安全审核检查通过，独立审批第二步。\t2026-10-06T10:18:06.221611+00:00\n冻结目标实例与真实 ACK\n节点\t进程实例\t成功确认\t确认版本\t确认序列\t错误代码\t操作\n暂无记录\n\n最近读取 18:18:06　　",
+      "url": "http://127.0.0.1:53735/releases/c20345be-d2ee-4bbe-8b0d-0b57b796bc04",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "18-release-succeeded.jpg",
+    "time": "2026-10-06T10:19:02.693Z",
+    "checks": [
+      "界面审批与发布闭环",
+      "2 / 2 实际节点确认",
+      "配置版本 2 / 下发序列 2"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "发布详情"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "发布中心 / 发布详情\n发布详情\n\nREL-abbc7680669645a0a75757110bc09784\n\nSucceeded\n基线配置版本\n1\n目标配置版本\n2\n下发序列\n2\n目标实例确认\n2 / 2\n申请历史回滚\n契约风险评审证据\n\n2.0.0 → 3.0.0 · AcceptedRisk · Limited\n\n破坏性 2 · 未知 3 · compatibility-v1\n\n评审人 c8c573c3-b8f9-49f3-b366-0cec69a17335 · 2026-10-06T10:16:30.934461+00:00\n\n仅用于隔离验收合成接口，已查看全部差异与覆盖限制。\n\n评审 1259e20a-6b5b-412a-ac7e-8d033d7b9646 · 报告哈希 a5e3bfbff2a7822d699630778f91eeaebe5c68ae3f47db110bb8a997d08eefca\n\n关联记录是契约检查证据，正式审批与节点确认仍需独立完成。\n\n审批与节点\n候选内容\n基础资源比较\n独立审批\n步骤\t角色\t结果\t实际审批人\t意见\t时间\n1\tApiApprover\tApproved\t6e9a3795-6f8e-4294-9351-a92ede5ab335\t隔离验收：API 契约检查通过，正式独立审批第一步。\t2026-10-06T10:17:57.477353+00:00\n2\tSecurityReviewer\tApproved\tc16be8bf-398e-4b32-b6d3-5c0ab8355168\t隔离验收：安全审核检查通过，独立审批第二步。\t2026-10-06T10:18:06.221611+00:00\n冻结目标实例与真实 ACK\n节点\t进程实例\t成功确认\t确认版本\t确认序列\t错误代码\t操作\n0524a24d-0daa-44c5-951c-60d5f7ca3a7f\t8ae49076-4acd-4dde-bfcc-2178532b55a7\t是\t2\t2\t—\t\n运行详情\n\ndfda7699-0ea2-4b83-929a-7f95f314c356\t1ad0114f-8314-493b-bafa-64e6a9f919dd\t是\t2\t2\t—\t\n运行详情\n\n最近读取 18:18:59　　",
+      "url": "http://127.0.0.1:53735/releases/c20345be-d2ee-4bbe-8b0d-0b57b796bc04",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "19-node-detail.jpg",
+    "time": "2026-10-06T10:19:29.081Z",
+    "checks": [
+      "真实实例身份与心跳",
+      "ACK 与事件详情",
+      "发布详情导航进入"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "local-gateway-b"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "网关节点 / 节点详情\nlocal-gateway-b\n\n身份停用与运行进程分别管理\n\n编辑身份状态\n{\n  \"id\": \"0524a24d-0daa-44c5-951c-60d5f7ca3a7f\",\n  \"environmentId\": \"74a15802-2d9b-4240-9b07-6a56b436ab79\",\n  \"nodeName\": \"local-gateway-b\",\n  \"instanceId\": \"8ae49076-4acd-4dde-bfcc-2178532b55a7\",\n  \"appVersion\": \"1.1.0\",\n  \"enabled\": true,\n  \"status\": \"Ready\",\n  \"offline\": false,\n  \"currentConfigVersion\": 2,\n  \"currentDeploymentSequence\": 2,\n  \"targetConfigVersion\": 2,\n  \"lastHeartbeatAt\": \"2026-10-06T10:19:23.113693+00:00\",\n  \"eTag\": \"\\\"8ae49076-4acd-4dde-bfcc-2178532b55a7:True\\\"\",\n  \"desiredConfigVersion\": 2,\n  \"desiredDeploymentSequence\": 2,\n  \"supportedSnapshotSchemas\": [\n    \"2.0\",\n    \"2.1\"\n  ]\n}\n真实注册 / 心跳 / ACK 事件\n时间\t类型\t说明\t安全诊断内容\n2026-10-06T10:18:16.067048+00:00\tapplied\t配置已应用\t{\"errorCode\": null, \"releaseId\": \"c20345be-d2ee-4bbe-8b0d-0b57b796bc04\", \"configVersion\": 2, \"deploymentSequence\": 2}\n2026-10-06T10:06:20.210274+00:00\tapplied\t配置已应用\t{\"errorCode\": null, \"releaseId\": \"52b35769-1add-423b-b6c5-9de4ed79e949\", \"configVersion\": 1, \"deploymentSequence\": 1}\n2026-10-06T10:06:16.050829+00:00\tregistered\t节点实例注册\t{\"instanceId\": \"8ae49076-4acd-4dde-bfcc-2178532b55a7\"}\n2026-10-06T10:04:57.048895+00:00\tregistered\t节点实例注册\t{\"instanceId\": \"7d06ebce-f8f3-4c0a-adb6-1effa2ce6dae\"}\n共 4 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/nodes/0524a24d-0daa-44c5-951c-60d5f7ca3a7f",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "20-dashboard.jpg",
+    "time": "2026-10-06T10:19:29.414Z",
+    "checks": [
+      "真实指标与网关聚合",
+      "工作台授权范围",
+      "空值与来源状态呈现"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "企业工作台"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "工作台 / 企业工作台\nENTERPRISE · WORKBENCH\n企业工作台\n\nAPI 运行与治理总览 · 仅展示当前授权范围内的真实数据\n\n查看监控 →\n刷新数据\nAPI 总数：当前项目\n运行指标、网关、告警与发布：当前环境\n窗口截止 2026/10/6 18:19:29 · 每 30 秒重新查询\nAPI 总数\n1\n当前项目 · 全部 API\n请求量 · 24h\n—\n数据覆盖不完整\n成功率 · 24h\n—\n数据覆盖不完整\nP95 延迟 · 24h\n—\n数据覆盖不完整\n未确认告警\n0\n当前环境 · Open 状态\n网关节点\n2\n当前环境 · 包含停用身份\n数据覆盖不完整\n\n未完整覆盖的指标保持空值，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:19:24\n重新查询\n请求趋势 · 近 24 小时\nrequests/s · 样本 0\n暂无可用趋势样本\n查看同源数据表（最多 600 点）\n\n请求量和趋势为采集估计；空白或断点表示缺失数据。\n\nGateway 运行状态\n节点总数 2 · 展示前 5 个\n全部节点 →\n节点 / 状态\t配置 / 序列\t与目标一致\nlocal-gateway-a\nReady\n\tv2 / seq 2\n目标 v2 / seq 2\n\t一致\nlocal-gateway-b\nReady\n\tv2 / seq 2\n目标 v2 / seq 2\n\t一致\nTop API · 请求量\n近 24 小时 · 前 5 名\n详细指标 →\nAPI\t请求量\t成功率\tP95\n当前窗口暂无可用 API 排名\n未确认告警\n仅 Open 状态 · 展示最近 5 条\n告警中心 →\n告警\t级别\t发生时间\n当前环境没有未确认告警\n最近发布\n当前环境 · 展示最近 5 条\n发布中心 →\n发布编号\t状态\t目标配置 / 序列\t发布确认\t创建时间\nREL-abbc7680669645a0a75757110bc09784\tSucceeded\tv2 / seq 2\t2 / 2\t2026/10/6 18:17:04\nREL-1cff99e8d81f40c3915e227c3aa77ce9\tSucceeded\tv1 / seq 1\t2 / 2\t2026/10/6 18:06:18\n最近发布中的待审批\n在最近 50 条发布中筛选，不代表全部任务或个人可审批任务\n审批中心 →\n最近 50 条发布中没有待审批记录\n\n各模块独立查询，时间可能略有差异；工作配置与网关运行配置分别保留原事实。工作台中的快捷入口遵循已有服务端权限。",
+      "url": "http://127.0.0.1:53735/dashboard",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "21-projects.jpg",
+    "time": "2026-10-06T10:19:29.545Z",
+    "checks": [
+      "项目列表真实读取",
+      "统一范围 Shell",
+      "当前页搜索入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "项目管理"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n项目管理\n\n统一维护企业资源与访问边界\n\n＋ 新建\n刷新\n名称\t编码\t状态\t修订\t操作\n独立运行环境验收项目\tRUNTIME_QA\tActive\t1\t\n编辑\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/projects",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "22-environments.jpg",
+    "time": "2026-10-06T10:19:29.685Z",
+    "checks": [
+      "环境列表与生产标识",
+      "目标版本 2 与发布序列 2"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "环境管理"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n环境管理\n\n统一维护企业资源与访问边界\n\n＋ 新建\n刷新\n名称\t编码\t状态\t生产环境\t目标版本\t发布序列\t修订\t操作\n真实审批验收环境\tRUNTIME_QA\tActive\t是\t2\t2\t1\t\n编辑\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/environments",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "23-unsaved-guard.jpg",
+    "time": "2026-10-06T10:19:53.041Z",
+    "checks": [
+      "未保存输入离开时提示",
+      "生产环境与审批模板保留"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "环境管理",
+        "编辑环境管理"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n环境管理\n\n统一维护企业资源与访问边界\n\n＋ 新建\n刷新\n名称\t编码\t状态\t生产环境\t目标版本\t发布序列\t修订\t操作\n真实审批验收环境\tRUNTIME_QA\tActive\t是\t2\t2\t1\t\n编辑\n共 1 条 · 每页 50 条\n上一页\n1\n下一页\n编辑环境管理\n关闭\n编码 *\n名称 *\n状态\n请选择\n启用\n停用\n生产环境\n排序\n审批模板 ID\n生产发布必须配置审批模板；可在发布中心管理\n\n放弃后，这些修改不会保存。\n\n继续编辑确认放弃\n保存\n保存后更新管理资源；角色与数据范围按服务端权限规则生效。",
+      "url": "http://127.0.0.1:53735/environments",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "24-environment-roundtrip.jpg",
+    "time": "2026-10-06T10:20:04.404Z",
+    "checks": [
+      "环境实际编辑并恢复",
+      "审批模板与生产标识保留",
+      "修订递增为 3"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "环境管理"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n环境管理\n\n统一维护企业资源与访问边界\n\n＋ 新建\n刷新\n名称\t编码\t状态\t生产环境\t目标版本\t发布序列\t修订\t操作\n真实审批验收环境\tRUNTIME_QA\tActive\t是\t2\t2\t3\t\n编辑\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/environments",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "25-api-catalog.jpg",
+    "time": "2026-10-06T10:20:04.709Z",
+    "checks": [
+      "API 目录与分组真实数据",
+      "详情与向导导航",
+      "分页状态"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "API 目录"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / API 目录\nAPI 目录\n\n统一管理 API 定义、版本与发布工作区\n\n管理分组\n＋ 新建 API\n当前目录为工作配置。保存 API 或路由不会直接改变网关，实际运行状态请查看 API 详情与发布中心。\n刷新\nAPI 名称\t编码\t生命周期\t工作修订\t操作\n真实运行验收 API\tRUNTIME_ORDERS\tDraft\t1\t\n查看详情\n配置与发布\n共 1 条\n上一页\n1\n下一页\nAPI 分组\n名称\t父分组 ID\t排序\t操作\n暂无记录",
+      "url": "http://127.0.0.1:53735/apis",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "26-api-create.jpg",
+    "time": "2026-10-06T10:20:21.245Z",
+    "checks": [
+      "新建 API 表单",
+      "默认负责人当前账号",
+      "业务生命周期字段保留"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "INPUT"
+      },
+      "headings": [
+        "API 目录",
+        "新建 API"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / API 目录\nAPI 目录\n\n统一管理 API 定义、版本与发布工作区\n\n管理分组\n＋ 新建 API\n当前目录为工作配置。保存 API 或路由不会直接改变网关，实际运行状态请查看 API 详情与发布中心。\n刷新\nAPI 名称\t编码\t生命周期\t工作修订\t操作\n真实运行验收 API\tRUNTIME_ORDERS\tDraft\t1\t\n查看详情\n配置与发布\n共 1 条\n上一页\n1\n下一页\nAPI 分组\n名称\t父分组 ID\t排序\t操作\n暂无记录\n新建 API\n关闭\nAPI 编码 *\nAPI 名称 *\n说明\n分组 ID\n可留空；分组在目录中管理\n负责人用户 ID\n默认当前用户\n生命周期\n请选择\nDraft\nActive\nDeprecated\nRetired\n保存\n保存至工作配置，发布后才影响网关",
+      "url": "http://127.0.0.1:53735/apis",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "27-api-created.jpg",
+    "time": "2026-10-06T10:20:21.551Z",
+    "checks": [
+      "新建 API 实际成功",
+      "详情自动导航",
+      "无版本空状态"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "界面新建验收 API"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 目录 / 详情\n界面新建验收 API\n\nUI_QA　工作修订 1\n\n运行监控\n编辑 API\n版本比较与评审\n配置与发布向导 →\n工作修订\n1\n当前环境节点一致配置版本\n2\nAPI 版本数量\n0\n待处理发布\n—\n版本\n参数\nSchema\nOpenAPI\n＋ 新建版本\n版本号\t状态\t变更类型\t修订\t封存时间\t操作\n暂无记录",
+      "url": "http://127.0.0.1:53735/apis/4da31c3b-3c7d-4c13-a1e4-c25def618539",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "28-openapi-import.jpg",
+    "time": "2026-10-06T10:20:21.853Z",
+    "checks": [
+      "OpenAPI 导入入口",
+      "预览与实际提交分离"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "OpenAPI 导入"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / OpenAPI 导入\nOpenAPI 导入\n\n解析、映射、整批提交到工作配置\n\n首期支持 OpenAPI 3 JSON 与文档内引用，每个 Operation 对应独立 API Version。外部引用、循环引用与不支持的结构会被明确拒绝，原文保留。\n目标后端集群 \n请选择\nRuntimeBackend\nOpenAPI JSON 原文\n解析并预览\n配置后端",
+      "url": "http://127.0.0.1:53735/imports",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "29-import-invalid.jpg",
+    "time": "2026-10-06T10:20:38.807Z",
+    "checks": [
+      "无效 JSON 明确拒绝",
+      "原输入保留",
+      "未创建业务资源"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "OpenAPI 导入"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / OpenAPI 导入\nOpenAPI 导入\n\n解析、映射、整批提交到工作配置\n\n首期支持 OpenAPI 3 JSON 与文档内引用，每个 Operation 对应独立 API Version。外部引用、循环引用与不支持的结构会被明确拒绝，原文保留。\n目标后端集群 \n请选择\nRuntimeBackend\nOpenAPI JSON 原文\n解析并预览\n配置后端\nOpenAPI JSON无法解析。　输入原文已保留。",
+      "url": "http://127.0.0.1:53735/imports",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "30-import-preview.jpg",
+    "time": "2026-10-06T10:20:45.433Z",
+    "checks": [
+      "服务端解析 1 个 Operation",
+      "限制明确",
+      "映射与整批提交入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "OpenAPI 导入"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / OpenAPI 导入\nOpenAPI 导入\n\n解析、映射、整批提交到工作配置\n\n首期支持 OpenAPI 3 JSON 与文档内引用，每个 Operation 对应独立 API Version。外部引用、循环引用与不支持的结构会被明确拒绝，原文保留。\n目标后端集群 \n请选择\nRuntimeBackend\nOpenAPI JSON 原文\n解析并预览\n配置后端\n导入映射 · 1 个 Operation\n首期按Operation分别映射API Version；完整YAML、URL抓取、循环及外部引用暂不支持。；导入预览不授权提交，提交会再次校验权限、原文、目标及路由冲突。\nOperation\t方法\t路径\t支持\t限制\t操作\nqaImport\tGET\t/qa-import\t是\t\t\n映射目标\n确认整批导入",
+      "url": "http://127.0.0.1:53735/imports",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "31-import-succeeded.jpg",
+    "time": "2026-10-06T10:20:51.487Z",
+    "checks": [
+      "整批导入实际写入版本与路由",
+      "提供 API 回看链接"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "OpenAPI 导入"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / OpenAPI 导入\nOpenAPI 导入\n\n解析、映射、整批提交到工作配置\n\n首期支持 OpenAPI 3 JSON 与文档内引用，每个 Operation 对应独立 API Version。外部引用、循环引用与不支持的结构会被明确拒绝，原文保留。\n目标后端集群 \n请选择\nRuntimeBackend\nOpenAPI JSON 原文\n解析并预览\n配置后端\n已写入工作配置\nOperation\t版本 ID\t路由 ID\t操作\nqaImport\tf24579f2-40d3-48f5-b70a-ad3dc8db755a\t0be976c6-fa67-429f-8b28-a7ba878563ec\t\n查看 API",
+      "url": "http://127.0.0.1:53735/imports",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "32-routes.jpg",
+    "time": "2026-10-06T10:20:51.721Z",
+    "checks": [
+      "当前环境两条工作路由",
+      "版本 / 集群 / 策略绑定入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "路由配置"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / 路由配置\n路由配置\n\nAPI 版本保持全局定义，路由单独关联当前环境\n\n＋ 新建路由\n此处修改仅更新工作区。新建 / 编辑路由不会直接切换生产请求，必须通过审批发布。\n配置 API \n请选择 API\n真实运行验收 API\n界面新建验收 API\n导入验收查询\n刷新\n路由\t路径\t方法\t版本 ID\t优先级\t启用\t修订\t操作\nqaImport\t/qa-import\tGET\tf24579f2-40d3-48f5-b70a-ad3dc8db755a\t100\t是\t1\t\n编辑\n策略绑定\n\nRuntimeOrders\t/orders/{**path}\tGET\t3814b168-f5a2-4d60-a6d1-e15f6af3efb6\t100\t是\t2\t\n编辑\n策略绑定\n共 2 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/routes",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "33-clusters.jpg",
+    "time": "2026-10-06T10:20:51.942Z",
+    "checks": [
+      "后端集群列表",
+      "详情入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "后端集群"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "后端集群\n后端集群\n\n环境专属的后端连接与健康检查工作配置\n\n＋ 新建集群\n工作配置保存后仍需发布。正在运行的后端地址来自已激活 Snapshot。\n集群名称\t负载均衡\t健康检查\t状态\t修订\t操作\nRuntimeBackend\tRoundRobin\t否\tActive\t1\t\n查看实例\n编辑\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/clusters",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "34-cluster-detail.jpg",
+    "time": "2026-10-06T10:21:09.151Z",
+    "checks": [
+      "真实 Destination 地址 / 权重 / 启用状态",
+      "集群详情与编辑入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "RuntimeBackend"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "后端集群 / 实例配置\nRuntimeBackend\n\n环境专属的后端连接与健康检查工作配置\n\n编辑集群\n＋ 新增实例\n工作配置保存后仍需发布。正在运行的后端地址来自已激活 Snapshot。\n实例\t地址\t权重\t启用\t修订\t操作\nbackend-a\thttp://backend-a:8080/\t1\t是\t1\t\n编辑",
+      "url": "http://127.0.0.1:53735/clusters/9bb27f78-5700-4070-bd8a-dfb3d9d80dc2",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "35-policies.jpg",
+    "time": "2026-10-06T10:21:09.466Z",
+    "checks": [
+      "策略中心四类入口",
+      "工作配置与发布边界"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "策略中心"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / 流量策略\n策略中心\n\n复用认证、超时、共享限流和节点熔断配置\n\n＋ 新建策略\n策略保存到工作区；修改或启停不会立即改变运行请求。共享策略按目标环境逐次审批发布。\n全部策略\n认证\n超时\n限流\n熔断\n重试 / JWT / 缓存\n资源范围\n当前项目与组织共享\n当前组织\n名称搜索\n工作状态\n全部\n启用\n停用\n刷新\n策略名称\t类型\t范围\t工作状态\t工作 / 运行修订\t可见引用\t发布差异\t操作\nRouteAuth-0be976c6-fa67-429f-8b28-a7ba878563ec\nc8572785-6320-4db5-853e-e83f41e06302\n\t认证\t项目\t启用\tr1\n无可见运行引用\n\t1\t未发布 / 需核对\t\n详情 / 引用\n复制\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/policies",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "36-policy-type-navigation-blocked.jpg",
+    "time": "2026-10-06T10:22:19.854Z",
+    "checks": [
+      "缺陷复现：选择超时后仍停留列表",
+      "弹窗关闭但配置页未打开"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "策略中心"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / 流量策略\n策略中心\n\n复用认证、超时、共享限流和节点熔断配置\n\n＋ 新建策略\n策略保存到工作区；修改或启停不会立即改变运行请求。共享策略按目标环境逐次审批发布。\n全部策略\n认证\n超时\n限流\n熔断\n重试 / JWT / 缓存\n资源范围\n当前项目与组织共享\n当前组织\n名称搜索\n工作状态\n全部\n启用\n停用\n刷新\n策略名称\t类型\t范围\t工作状态\t工作 / 运行修订\t可见引用\t发布差异\t操作\nRouteAuth-0be976c6-fa67-429f-8b28-a7ba878563ec\nc8572785-6320-4db5-853e-e83f41e06302\n\t认证\t项目\t启用\tr1\n无可见运行引用\n\t1\t未发布 / 需核对\t\n详情 / 引用\n复制\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/policies",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "defect-before-fix"
+  },
+  {
+    "file": "37-policy-copy-navigation-blocked.jpg",
+    "time": "2026-10-06T10:22:26.254Z",
+    "checks": [
+      "缺陷复现：复制已成功但导航被阻止"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "策略中心"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 管理 / 流量策略\n策略中心\n\n复用认证、超时、共享限流和节点熔断配置\n\n＋ 新建策略\n策略保存到工作区；修改或启停不会立即改变运行请求。共享策略按目标环境逐次审批发布。\n全部策略\n认证\n超时\n限流\n熔断\n重试 / JWT / 缓存\n资源范围\n当前项目与组织共享\n当前组织\n名称搜索\n工作状态\n全部\n启用\n停用\n刷新\n策略名称\t类型\t范围\t工作状态\t工作 / 运行修订\t可见引用\t发布差异\t操作\nRouteAuth-0be976c6-fa67-429f-8b28-a7ba878563ec\nc8572785-6320-4db5-853e-e83f41e06302\n\t认证\t项目\t启用\tr1\n无可见运行引用\n\t1\t未发布 / 需核对\t\n详情 / 引用\n复制\n\n复制导航缺陷复现\n8c5d8f45-75e7-4689-a327-3909cbcacd98\n\t认证\t项目\t启用\tr1\n无可见运行引用\n\t0\t未发布 / 需核对\t\n详情 / 引用\n复制\n共 2 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/policies",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "defect-before-fix"
+  },
+  {
+    "file": "38-policy-type-navigation-fixed.jpg",
+    "time": "2026-10-06T10:24:31.604Z",
+    "checks": [
+      "修复后：非默认类型成功导航",
+      "独立源码预览 / 合成后端"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "新建超时策略"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "策略中心 / 新建策略\n新建超时策略\n\n项目策略 · 工作修订 尚未创建\n\n提交发布\n保存工作配置\n执行顺序固定为认证 → 限流 → 熔断 → 代理。Priority 不改变执行顺序；停用配置在下一次发布后生效。\n工作配置\n策略名称 *\n策略类型\n类型和资源范围创建后不可修改\n启用工作配置\n保存后须经审批发布才影响网关\n超时（ms）\n名称应为 1–128 字符，不能使用 RouteAuth- 系统前缀\n校验配置\n放弃未保存修改\n只读 JSON 预览\n{\n  \"timeoutMs\": 30000\n}",
+      "url": "http://127.0.0.1:5174/policies/new?type=timeout&scope=project",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "39-policy-saved.jpg",
+    "time": "2026-10-06T10:24:44.696Z",
+    "checks": [
+      "超时策略实际保存",
+      "配置值 2500 ms",
+      "只读 JSON 与结构表单一致"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "QA 超时策略"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "策略中心 / 策略详情\nQA 超时策略\n\n项目策略 · 工作修订 r1\n\n提交发布\n保存工作配置\n执行顺序固定为认证 → 限流 → 熔断 → 代理。Priority 不改变执行顺序；停用配置在下一次发布后生效。\n工作配置\n策略名称 *\n策略类型\n类型和资源范围创建后不可修改\n启用工作配置\n保存后须经审批发布才影响网关\n超时（ms）\n校验配置\n放弃未保存修改\n删除策略\n只读 JSON 预览\n{\n  \"timeoutMs\": 2500\n}\n引用与运行修订\n\n仅统计你可见的引用；工作配置、冻结申请和运行快照分别展示。\n\n引用类型\t资源\t环境\t引用修订\t配置版本\t操作\n暂无记录\n共 0 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:5174/policies/bb29d5d4-fdac-4911-b7a7-3a2837323d1d",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "40-policy-copy-fixed.jpg",
+    "time": "2026-10-06T10:24:45.304Z",
+    "checks": [
+      "自定义名称复制后导航成功",
+      "新 ID / r1",
+      "绑定不复制"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "QA 复制导航复测"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "策略中心 / 策略详情\nQA 复制导航复测\n\n项目策略 · 工作修订 r1\n\n提交发布\n保存工作配置\n执行顺序固定为认证 → 限流 → 熔断 → 代理。Priority 不改变执行顺序；停用配置在下一次发布后生效。\n工作配置\n策略名称 *\n策略类型\n类型和资源范围创建后不可修改\n启用工作配置\n保存后须经审批发布才影响网关\n超时（ms）\n校验配置\n放弃未保存修改\n删除策略\n只读 JSON 预览\n{\n  \"timeoutMs\": 2500\n}\n引用与运行修订\n\n仅统计你可见的引用；工作配置、冻结申请和运行快照分别展示。\n\n引用类型\t资源\t环境\t引用修订\t配置版本\t操作\n暂无记录\n共 0 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:5174/policies/cba9fadd-83d8-419e-89c0-147d25b30fe8",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "41-applications.jpg",
+    "time": "2026-10-06T10:25:16.793Z",
+    "checks": [
+      "真实应用列表",
+      "编辑与接入详情入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "应用管理"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "应用接入\n应用管理\n\n管理消费方身份、凭证窗口与 API 授权\n\n＋ 新建应用\n应用、凭证及授权保存为工作配置。网关认证采用已发布 Snapshot 的应用状态、有效期与授权集合。\n应用名称\t编码\t负责人\t状态\t修订\t操作\n验收消费方\tRUNTIME_CONSUMER\t运行验收\tActive\t3\t\n详情与接入\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/applications",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "42-application-credentials.jpg",
+    "time": "2026-10-06T10:25:37.934Z",
+    "checks": [
+      "应用详情实际凭证窗口",
+      "Secret 仅后四位",
+      "保存与运行配置明确分离"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "验收消费方"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "应用接入 / 应用详情\n验收消费方\n\n管理消费方身份、凭证窗口与 API 授权\n\n编辑应用\n应用、凭证及授权保存为工作配置。网关认证采用已发布 Snapshot 的应用状态、有效期与授权集合。\n凭证\nAPI 授权\n运行版本\n＋ 创建凭证\nSecret 只显示一次，请在关闭前自行保存。\nAccess Key\tSecret 后四位\t状态\t生效\t失效\t修订\t操作\nak_4FagcPR3ydmPvTIC85fzJw\tE8Os\tActive\t2026-10-06T10:03:58.181+00:00\t2026-10-06T11:04:58.181+00:00\t1\t\n有效期 / 撤销",
+      "url": "http://127.0.0.1:53735/applications/0fd7f780-07e1-4daa-a8d1-020420d0a051",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "43-credential-invalid-window.jpg",
+    "time": "2026-10-06T10:25:45.715Z",
+    "checks": [
+      "无效有效期拒绝",
+      "输入保留",
+      "Secret 不回显"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "验收消费方"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "应用接入 / 应用详情\n验收消费方\n\n管理消费方身份、凭证窗口与 API 授权\n\n编辑应用\n应用、凭证及授权保存为工作配置。网关认证采用已发布 Snapshot 的应用状态、有效期与授权集合。\n凭证\nAPI 授权\n运行版本\n＋ 创建凭证\nSecret 只显示一次，请在关闭前自行保存。\nAccess Key\tSecret 后四位\t状态\t生效\t失效\t修订\t操作\nak_4FagcPR3ydmPvTIC85fzJw\tE8Os\tActive\t2026-10-06T10:03:00+00:00\t2026-10-06T11:04:00+00:00\t2\t\n有效期 / 撤销",
+      "url": "http://127.0.0.1:53735/applications/0fd7f780-07e1-4daa-a8d1-020420d0a051",
+      "width": 1440
+    },
+    "accepted": false,
+    "supersededBy": "77-credential-invalid-window-confirmed.jpg",
+    "visualReviewed": true,
+    "classification": "rejected-attempt"
+  },
+  {
+    "file": "44-application-permissions.jpg",
+    "time": "2026-10-06T10:26:29.487Z",
+    "checks": [
+      "实际 API / 环境授权集合",
+      "有效窗口",
+      "工作授权与发布边界"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "验收消费方"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "应用接入 / 应用详情\n验收消费方\n\n管理消费方身份、凭证窗口与 API 授权\n\n编辑应用\n应用、凭证及授权保存为工作配置。网关认证采用已发布 Snapshot 的应用状态、有效期与授权集合。\n凭证\nAPI 授权\n运行版本\n＋ 新增授权\nAPI ID\t环境 ID\t生效\t失效\t修订\t操作\ncc8f0cd5-bf81-4df6-9ea5-40742ba5690f\t74a15802-2d9b-4240-9b07-6a56b436ab79\t2026-10-06T10:03:58.219+00:00\t—\t1\t\n编辑授权",
+      "url": "http://127.0.0.1:53735/applications/0fd7f780-07e1-4daa-a8d1-020420d0a051",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "45-application-authorization-settled.jpg",
+    "time": "2026-10-06T10:26:42.878Z",
+    "checks": [
+      "授权列表已稳定",
+      "API ID 与环境 ID",
+      "工作授权有效窗口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "验收消费方"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "应用接入 / 应用详情\n验收消费方\n\n管理消费方身份、凭证窗口与 API 授权\n\n编辑应用\n应用、凭证及授权保存为工作配置。网关认证采用已发布 Snapshot 的应用状态、有效期与授权集合。\n凭证\nAPI 授权\n运行版本\n＋ 新增授权\nAPI ID\t环境 ID\t生效\t失效\t修订\t操作\ncc8f0cd5-bf81-4df6-9ea5-40742ba5690f\t74a15802-2d9b-4240-9b07-6a56b436ab79\t2026-10-06T10:03:58.219+00:00\t—\t1\t\n编辑授权",
+      "url": "http://127.0.0.1:53735/applications/0fd7f780-07e1-4daa-a8d1-020420d0a051",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "46-releases.jpg",
+    "time": "2026-10-06T10:26:43.278Z",
+    "checks": [
+      "真实发布中心两次成功记录",
+      "审批中心导航",
+      "总数与当前页待审批区分"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "发布中心"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "发布与审批 / 发布中心\n发布中心\n\n审批冻结候选内容，异步下发并等待全部目标节点确认\n\n从 API 向导申请发布 →\n当前环境 · 自动刷新 5 秒\n刷新\n最近读取：18:26:43\n发布记录\t类型\t状态\t基线\t目标配置\t发布序列\t确认节点\t创建时间\t操作\nREL-abbc7680669645a0a75757110bc09784\tpublish\tSucceeded\t1\t2\t2\t2 / 2\t2026-10-06T10:17:04.258039+00:00\t\n详情 · 我的申请\n\nREL-1cff99e8d81f40c3915e227c3aa77ce9\tpublish\tSucceeded\t0\t1\t1\t2 / 2\t2026-10-06T10:06:18.356394+00:00\t\n详情 · 我的申请\n共 2 条\n上一页\n1\n下一页\n审批模板\n＋ 新建模板\n模板名称\t模板 ID\t启用\t修订\t操作\n真实两级独立审批\t06efa718-a091-47e2-934f-89d4a2aff81b\t是\t1\t\n编辑模板\n模板通过环境管理中的审批模板 ID 绑定。已有申请使用提交时冻结的审批规则。",
+      "url": "http://127.0.0.1:53735/releases",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "47-approvals.jpg",
+    "time": "2026-10-06T10:26:43.470Z",
+    "checks": [
+      "独立审批中心",
+      "审批完成后的空状态"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "审批中心"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "发布与审批 / 审批中心\n审批中心\n\n当前环境发布记录按页筛选待审批，不代表个人可审批任务；申请人不能自批，同一人不能占用两级审批\n\n从 API 向导申请发布 →\n当前环境 · 自动刷新 5 秒\n刷新\n最近读取：18:26:43\n发布记录\t类型\t状态\t基线\t目标配置\t发布序列\t确认节点\t创建时间\t操作\n暂无记录\n全部发布共 2 条 · 本页待审批 0 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/approvals",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "48-snapshots.jpg",
+    "time": "2026-10-06T10:26:43.585Z",
+    "checks": [
+      "真实不可变 Snapshot 列表",
+      "配置版本与发布时间"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "配置快照"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "发布与审批 / Config Snapshot\n配置快照\n\n历史配置原始摘要与脱敏管理视图\n\n相同配置版本可能被多次下发；最新发布序列与历史版本号分别展示。下载的是脱敏管理视图，不包含 Secret 或凭证摘要，不能用作网关运行文件。\n配置版本\t原始字节 SHA256\t字节数\t最新下发序列\t最新状态\t创建时间\t操作\n2\t477a15c85f03872c6799d4738665aa57bc9fcc6f83e7971454f6ffa43e6f08c3\t1373\t2\tSucceeded\t2026-10-06T10:18:15.559204+00:00\t\n查看管理视图\n下载 JSON\n\n1\tc16164b46d1625932eff99ecfa3390039d0eac9ced2d7523b3b660ecfbcdde8d\t1373\t1\tSucceeded\t2026-10-06T10:06:19.333659+00:00\t\n查看管理视图\n下载 JSON\n共 2 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/snapshots",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "49-nodes.jpg",
+    "time": "2026-10-06T10:26:43.890Z",
+    "checks": [
+      "双节点状态 Ready",
+      "目标 / 当前配置与序列"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "网关节点"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "网关运行 / 节点\n网关节点\n\n真实进程身份、心跳、当前配置与目标发布序列\n\n刷新\n高级策略需要全部启用目标实例明确声明 2.1 能力；不能仅靠版本字符串判断。启用节点必须全部在线且不少于 2 个才能发布。心跳不是 ACK；相同配置版本不同 sequence 仍属于不同下发。停用身份不会停止代理进程。\n节点名称\t快照能力\t报告状态\t身份启用\t实际配置 / 序列\t目标配置 / 序列\t与目标一致\t最后心跳\t操作\nlocal-gateway-a\t2.0、2.1\tReady\t是\tv2 / seq 2\tv2 / seq 2\t是\t2026-10-06T10:26:39.185963+00:00\t\n查看详情\n\nlocal-gateway-b\t2.0、2.1\tReady\t是\tv2 / seq 2\tv2 / seq 2\t是\t2026-10-06T10:26:39.194743+00:00\t\n查看详情\n共 2 条 · 每页 50 条\n上一页\n1\n下一页\n\n最后读取：18:26:43　自动刷新 5 秒",
+      "url": "http://127.0.0.1:53735/nodes",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "50-metrics.jpg",
+    "time": "2026-10-06T10:26:44.297Z",
+    "checks": [
+      "真实指标源查询",
+      "采集覆盖与估计值边界"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "监控总览"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 监控总览\nOBSERVABILITY · OVERVIEW\n监控总览\n\n追踪请求流量、服务质量与采集覆盖\n\n刷新窗口\n近 1 小时\n近 6 小时\n近 24 小时\n近 7 天\n数据范围\n当前环境\n全部可访问环境\n截止 2026/10/6 18:26:44\n数据覆盖不完整\n\n未完整覆盖的指标保持空值，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:26:41\n重新查询\n请求总数\n—\n暂无可用指标 · 样本 24\n平均吞吐 RPS\n—\n暂无可用指标 · 样本 24\n请求成功率\n—\n暂无可用指标 · 样本 24\nP95 延迟\n—\n暂无可用指标 · 样本 24\n5xx 占比\n—\n暂无可用指标 · 样本 24\n异常后端目标\n—\n暂无可用指标 · 样本 24\n趋势指标\n平均吞吐 RPS\n请求成功率\n4xx 占比\n5xx 占比\nP50 延迟\nP95 延迟\nP99 延迟\n熔断拒绝请求\n限流存储故障请求\n请求吞吐趋势\nrequests/s · 样本 24\n暂无可用趋势样本\n查看同源数据表（最多 600 点）\nP95 延迟\nms · 样本 24\n暂无可用趋势样本\n查看同源数据表（最多 600 点）\n5xx 错误占比\n% · 样本 24\n暂无可用趋势样本\n查看同源数据表（最多 600 点）\nP50 延迟\n—\nP99 延迟\n—\n4xx 请求\n—\n4xx 占比\n—\n5xx 请求\n—\n客户端取消\n—\n熔断拒绝请求\n—\n限流存储故障请求\n—\n调用排行榜\n按所选指标降序 · 授权范围内聚合\n排序\n请求量\n慢 API · P95\n慢 API · P99\n5xx 占比\n分组\nAPI\n应用\n后端目标\nHTTP 状态\n不分组\n资源\t请求量\t平均 RPS\t成功率\tP95 延迟\t5xx 占比\t关联数据\n真实运行验收 API\t—\t—\t—\t—\t—\t访问日志\n共 1 个分组 · 每页 50 个\n上一页\n1\n下一页\n采集节点与后端健康\n健康状态来源于网关实际探测\n节点\t环境\t采集\tHealthy\tUnhealthy\tUnknown / Disabled\nlocal-gateway-a\t真实审批验收环境\t新鲜\t0\t0\t1\nlocal-gateway-b\t真实审批验收环境\t新鲜\t0\t0\t1\n查看访问日志 →\n查找调用链 →\n请求数与分位延迟为采样估计 · 熔断 / 限流尚未启用",
+      "url": "http://127.0.0.1:53735/observability/metrics?range=1h&group=Api&page=1&end=2026-10-06T10%3A26%3A44.021Z",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "51-api-metrics.jpg",
+    "time": "2026-10-06T10:27:12.514Z",
+    "checks": [
+      "指标总览真实详情导航",
+      "筛选窗口继承",
+      "Partial 不显示伪数值"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "API 监控详情"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / API 监控详情\nOBSERVABILITY · API INSIGHTS\nAPI 监控详情\n\n查看当前 API 在授权环境中的调用；后端健康暂不支持 API 维度\n\n创建告警规则\nAPI 定义 \n刷新窗口\n近 1 小时\n近 6 小时\n近 24 小时\n近 7 天\n数据范围\n当前环境\n全部可访问环境\n截止 2026/10/6 18:26:44\n数据覆盖不完整\n\n未完整覆盖的指标保持空值，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:26:41\n重新查询\n请求总数\n—\n暂无可用指标 · 样本 24\n平均吞吐 RPS\n—\n暂无可用指标 · 样本 24\n请求成功率\n—\n暂无可用指标 · 样本 24\nP95 延迟\n—\n暂无可用指标 · 样本 24\n5xx 占比\n—\n暂无可用指标 · 样本 24\n异常后端目标\n—\n该维度暂不支持 · 样本 24\n趋势指标\n平均吞吐 RPS\n请求成功率\n4xx 占比\n5xx 占比\nP50 延迟\nP95 延迟\nP99 延迟\n熔断拒绝请求\n限流存储故障请求\n请求吞吐趋势\nrequests/s · 样本 24\n暂无可用趋势样本\n查看同源数据表（最多 600 点）\nP95 延迟\nms · 样本 24\n暂无可用趋势样本\n查看同源数据表（最多 600 点）\n5xx 错误占比\n% · 样本 24\n暂无可用趋势样本\n查看同源数据表（最多 600 点）\nP50 延迟\n—\nP99 延迟\n—\n4xx 请求\n—\n4xx 占比\n—\n5xx 请求\n—\n客户端取消\n—\n熔断拒绝请求\n—\n限流存储故障请求\n—\n调用排行榜\n按所选指标降序 · 授权范围内聚合\n排序\n请求量\n慢 API · P95\n慢 API · P99\n5xx 占比\n分组\nAPI\n应用\n后端目标\nHTTP 状态\n不分组\n资源\t请求量\t平均 RPS\t成功率\tP95 延迟\t5xx 占比\t关联数据\n真实运行验收 API\t—\t—\t—\t—\t—\t访问日志\n共 1 个分组 · 每页 50 个\n上一页\n1\n下一页\n采集节点\n后端健康暂不支持 API / 应用维度，显示 —\n节点\t环境\t采集\tHealthy\tUnhealthy\tUnknown / Disabled\nlocal-gateway-b\t真实审批验收环境\t新鲜\t—\t—\t—\nlocal-gateway-a\t真实审批验收环境\t新鲜\t—\t—\t—\n查看访问日志 →\n查找调用链 →\n请求数与分位延迟为采样估计 · 熔断 / 限流尚未启用",
+      "url": "http://127.0.0.1:53735/observability/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f?range=1h&group=Api&page=1&end=2026-10-06T10%3A26%3A44.021Z",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "52-logs.jpg",
+    "time": "2026-10-06T10:27:12.920Z",
+    "checks": [
+      "真实 Loki 查询",
+      "脱敏字段与窗口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "访问日志"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 访问日志\nOBSERVABILITY · ACCESS LOGS\n访问日志\n\n检索请求事实，关联调用链与当前运行配置\n\n刷新窗口\n导出当前查询\n近 1 小时\n近 6 小时\n近 24 小时\n近 7 天\n数据范围\n当前环境\n全部可访问环境\n截止 2026/10/6 18:27:12 · 每 30 秒检查\n查询条件\nIP 不保留在地址或浏览器历史中\nAPI\n应用\n后端目标\nHTTP 状态\n最小时延 ms\n最大时延 ms\n精确 IP\n关键词\n策略 ID\n策略决策\n全部\nAllowed\nExceeded\nStoreRejected\nBypass\nHalfOpenProbe\nOpenRejected\nW3C TraceId\n查询日志\n重置筛选\n固定截止时间 · 每页最多 50 条 · 无请求正文或原始 IP\n数据覆盖不完整\n\n当前结果仅覆盖已收到的数据，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:27:09\n重新查询\n请求记录\n只展示当前授权范围内已收到的访问日志\nTime\tTraceId\tAPI\tApp\tMethod / Path\tStatus\tDuration\tOutcome\t节点 / 运行版本\t操作\n2026/10/6 18:18:56\ta695804551e4…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.49 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\ta48929e95605…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.66 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t5a5643b1e406…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.64 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\ta20bea281930…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.56 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t2174fb659d05…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.71 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t810b28736369…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.85 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t5280b151f759…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.63 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t4f849ab222ec…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.68 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t4637b2fc3409…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.87 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t0097bd074e25…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.57 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tc9109cf81f7a…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.49 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t95869380093c…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.58 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tbf9f88d62a3d…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.73 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tf02505309d38…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.97 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t5e8a21ca84ff…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.55 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tc6809c41c33e…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.67 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tee964af77e61…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.60 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t8f5ebf629284…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.71 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t61ada6a6011a…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.93 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tbc0cdfb23d24…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.83 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tc6aa7ccc7f20…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.77 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t26512e357ef0…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.95 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tc2ec462121fc…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t1.98 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t3458c11bcec4…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t5.17 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:06:21\td5ef9ab3badf…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t28.28 ms\tCompleted\tlocal-gateway-b\nv1 / seq 1\n\t查看详情 \n2026/10/6 18:06:21\t9846bb7f92df…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t74.06 ms\tCompleted\tlocal-gateway-a\nv1 / seq 1\n\t查看详情 \n本页 26 条 · 按时间倒序\n上一页\n下一页",
+      "url": "http://127.0.0.1:53735/observability/logs?range=1h&group=Api&page=1&end=2026-10-06T10%3A27%3A12.648Z",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "53-log-detail.jpg",
+    "time": "2026-10-06T10:27:19.213Z",
+    "checks": [
+      "日志真实详情",
+      "安全投影字段",
+      "关联 Trace 入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": "关闭详情",
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "访问日志",
+        "请求日志详情"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 访问日志\nOBSERVABILITY · ACCESS LOGS\n访问日志\n\n检索请求事实，关联调用链与当前运行配置\n\n刷新窗口\n导出当前查询\n近 1 小时\n近 6 小时\n近 24 小时\n近 7 天\n数据范围\n当前环境\n全部可访问环境\n截止 2026/10/6 18:27:12 · 每 30 秒检查\n查询条件\nIP 不保留在地址或浏览器历史中\nAPI\n应用\n后端目标\nHTTP 状态\n最小时延 ms\n最大时延 ms\n精确 IP\n关键词\n策略 ID\n策略决策\n全部\nAllowed\nExceeded\nStoreRejected\nBypass\nHalfOpenProbe\nOpenRejected\nW3C TraceId\n查询日志\n重置筛选\n固定截止时间 · 每页最多 50 条 · 无请求正文或原始 IP\n数据覆盖不完整\n\n当前结果仅覆盖已收到的数据，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:27:09\n重新查询\n请求记录\n只展示当前授权范围内已收到的访问日志\nTime\tTraceId\tAPI\tApp\tMethod / Path\tStatus\tDuration\tOutcome\t节点 / 运行版本\t操作\n2026/10/6 18:18:56\ta695804551e4…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.49 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\ta48929e95605…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.66 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t5a5643b1e406…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.64 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\ta20bea281930…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.56 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t2174fb659d05…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.71 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t810b28736369…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.85 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t5280b151f759…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.63 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t4f849ab222ec…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.68 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t4637b2fc3409…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.87 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t0097bd074e25…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.57 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tc9109cf81f7a…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.49 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t95869380093c…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.58 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tbf9f88d62a3d…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.73 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tf02505309d38…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.97 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t5e8a21ca84ff…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.55 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tc6809c41c33e…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.67 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tee964af77e61…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.60 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t8f5ebf629284…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.71 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t61ada6a6011a…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.93 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tbc0cdfb23d24…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.83 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tc6aa7ccc7f20…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.77 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t26512e357ef0…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t0.95 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\tc2ec462121fc…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t1.98 ms\tCompleted\tlocal-gateway-b\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:18:56\t3458c11bcec4…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t5.17 ms\tCompleted\tlocal-gateway-a\nv2 / seq 2\n\t查看详情 \n2026/10/6 18:06:21\td5ef9ab3badf…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t28.28 ms\tCompleted\tlocal-gateway-b\nv1 / seq 1\n\t查看详情 \n2026/10/6 18:06:21\t9846bb7f92df…\tcc8f0cd5\t0fd7f780-07e\tGET /orders/{**path}\t200\t74.06 ms\tCompleted\tlocal-gateway-a\nv1 / seq 1\n\t查看详情 \n本页 26 条 · 按时间倒序\n上一页\n下一页\nREQUEST INVESTIGATION\n请求日志详情\n关闭\n数据覆盖不完整\n\n当前结果仅覆盖已收到的数据，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:27:09\n重新查询\n日志 ID\n793dff93-f762-49cf-944f-73ca21fc7256\n时间\n2026-10-06T10:18:56.2317798+00:00\n环境\n真实审批验收环境\nAPI\ncc8f0cd5-bf81-4df6-9ea5-40742ba5690f\n应用\n0fd7f780-07e1-4daa-a8d1-020420d0a051\nMethod\nGET\n路由模板\n/orders/{**path}\nHTTP 状态\n200\n耗时 ms\n0.491\n调用结果\nCompleted\nRequestId\n0HNP3I5S8F93P:0000000C\nW3C TraceId\na695804551e4502836a4ea463db3665b\n脱敏 IP\n192.168.228.xxx\n节点\nlocal-gateway-b\n运行配置版本\n2\n部署序列\n2\n实际后端目标\n7bc6e28f-01c0-465b-849a-07ab9940141c\n策略决策\n[]\n打开此请求调用链 →",
+      "url": "http://127.0.0.1:53735/observability/logs?range=1h&group=Api&page=1&end=2026-10-06T10%3A27%3A12.648Z",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "54-trace-waterfall.jpg",
+    "time": "2026-10-06T10:27:40.487Z",
+    "checks": [
+      "从日志关联实际 Trace",
+      "2 个真实 span",
+      "Server / Client 瀑布图"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "Trace 查询"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / Trace 查询\nOBSERVABILITY · DISTRIBUTED TRACING\nTrace 查询\n\n从授权请求定位真实 server / client 调用及耗时\n\n刷新窗口\n近 1 小时\n近 6 小时\n近 24 小时\n近 7 天\n数据范围\n当前环境\n全部可访问环境\n截止 2026/10/6 18:27:12 · 每 30 秒检查\n链路条件\nTraceId 不作为访问权限证明\nAPI\n最小时延 ms\n策略 ID\n策略决策\n全部\nAllowed\nExceeded\nStoreRejected\nBypass\nHalfOpenProbe\nOpenRejected\nW3C TraceId\n调用结果\n全部结果\n成功\n错误\n查询链路\n重置筛选\n当前配置采样率 100% · 未命中可能未采样或超过保留期\n数据覆盖不完整\n\n当前结果仅覆盖已收到的数据，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:27:09\n重新查询\n调用链列表\n起止时间与耗时由当前可见 span 计算\nTraceId\t开始时间\t总耗时\t调用结果\t操作\na695804551e4502836a4ea463db3665b\t2026/10/6 18:18:56\t0.49 ms\t成功\t\n复制\n查看链路\n访问日志\n本页 1 条 · 按时间倒序\n上一页\n下一页\nTRACE DETAIL\na695804551e4502836a4ea463db3665b\n复制 TraceId\n关联日志 →\n关闭链路\n数据覆盖不完整\n\n当前结果仅覆盖已收到的数据，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:27:09\n重新查询\n调用链瀑布图\n2 个可访问 span · 相对首个可见 span 的真实时间\n已收到链路\nSPAN / SERVICE\n0 ms\n0.49 ms\ngateway.request\nServer · 0.49 ms\ngateway.proxy\nClient · 0.37 ms\n查看时间与关联表格",
+      "url": "http://127.0.0.1:53735/observability/traces?range=1h&group=Api&page=1&trace=a695804551e4502836a4ea463db3665b&end=2026-10-06T10%3A27%3A12.648Z",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "55-alerts.jpg",
+    "time": "2026-10-06T10:27:40.611Z",
+    "checks": [
+      "告警中心实际查询",
+      "状态筛选与空状态"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "告警中心"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 告警中心\nOBSERVABILITY · ALERT INBOX\n告警中心\n\n以事件追踪实际故障、处理状态与恢复事实\n\n管理规则 \n刷新\n数据范围\n当前环境\n全部可访问环境\n级别\n全部级别\n提示\n警告\n严重\n来源\n指标 Metrics\n状态\n全部状态\n待处理\n已确认\n已解决\n静默中\n每15秒更新 · 通知渠道待接入\n告警事件\n同一故障仅一个活动事件；人工解决后等待实际恢复重新布防\n级别 / 状态\t事件与规则\t环境 / 来源\t触发时间\t最近有效观测\t操作\n当前筛选暂无告警事件\n共 0 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/observability/alerts",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "56-alert-rules.jpg",
+    "time": "2026-10-06T10:27:40.820Z",
+    "checks": [
+      "规则管理实际查询",
+      "范围预览 / 测试 / 启停入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "告警规则"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 告警规则\nOBSERVABILITY · RULE GOVERNANCE\n告警规则\n\n配置有限指标比较、持续时间和动态环境范围\n\n告警中心 \n刷新\n新建规则\n显示范围\n当前环境及覆盖当前环境的规则\n全部可访问环境\n仅显示具有完整规则管理权限的定义 · 每15秒更新\n规则采用自己的查询窗口。未知或过期数据不会被当成恢复；修改逻辑或禁用会结束旧逻辑事件。邮件、Webhook、企业 IM 仅记录通知意向，待接入。\n规则 / 级别\t比较条件\t范围 / 目标\t窗口 / 持续\t评估与最近有效观测\t状态 / 修订\t操作\n当前范围暂无可管理规则\n共 0 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/observability/alert-rules",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "57-alert-rule-tested.jpg",
+    "time": "2026-10-06T10:28:18.470Z",
+    "checks": [
+      "规则动态范围预览",
+      "只读测试实际指标",
+      "外部通知仅意向"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "告警规则",
+        "新建告警规则"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 告警规则\nOBSERVABILITY · RULE GOVERNANCE\n告警规则\n\n配置有限指标比较、持续时间和动态环境范围\n\n告警中心 \n刷新\n新建规则\n显示范围\n当前环境及覆盖当前环境的规则\n全部可访问环境\n仅显示具有完整规则管理权限的定义 · 每15秒更新\n规则采用自己的查询窗口。未知或过期数据不会被当成恢复；修改逻辑或禁用会结束旧逻辑事件。邮件、Webhook、企业 IM 仅记录通知意向，待接入。\n规则 / 级别\t比较条件\t范围 / 目标\t窗口 / 持续\t评估与最近有效观测\t状态 / 修订\t操作\n当前范围暂无可管理规则\n共 0 条 · 每页 50 条\n上一页\n1\n下一页\nALERT RULE · CREATE\n新建告警规则\n关闭\n规则名称 *\n级别\n提示\n警告\n严重\n规则范围\n当前环境\n项目全部活动环境\n组织全部活动环境\n组织\n规则项目\n独立运行环境验收项目\n规则环境\n真实审批验收环境\n观测指标\n请求吞吐 RPS\n5xx 错误率（0–1）\nP95 延迟（ms）\n异常后端数量\n监控目标\n环境聚合\n指定 API\n指定后端目标\n比较表达式 *\n例：latency_p95_ms > 800。用空格分隔所选指标、比较符和非负阈值。\n查询窗口 / 秒\n规则使用自身窗口，与监控页面的查询时间独立。\n条件持续 / 秒\n0秒立即触发；Unknown会中断Pending持续计时。\n保存后启用规则\n通知策略\n\n控制台告警已启用。以下渠道仅记录意向，尚未发送外部通知。\n\n邮件 · 待接入\nWebhook · 待接入\n企业 IM · 待接入\nScope 预览 · 1 个活动环境\n\n真实审批验收环境\n\n仅当前指定环境 · 目标变化将按实际资源校验\n只读测试：Unknown · 数据不足或源不可用，无法判定\n\n74a15802-2d9b-4240-9b07-6a56b436ab79：—\n\n此测试未保存规则、未推进持续时间、未创建事件。\n预览范围\n只读测试\n保存规则\n修订 新建 · 逻辑 新建 · 未保存修改",
+      "url": "http://127.0.0.1:53735/observability/alert-rules",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "58-alert-rule-saved.jpg",
+    "time": "2026-10-06T10:28:18.772Z",
+    "checks": [
+      "告警规则实际保存",
+      "60 秒窗口 / 0 秒持续",
+      "启用定义修订 1"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "告警规则"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 告警规则\nOBSERVABILITY · RULE GOVERNANCE\n告警规则\n\n配置有限指标比较、持续时间和动态环境范围\n\n告警中心 \n刷新\n新建规则\n显示范围\n当前环境及覆盖当前环境的规则\n全部可访问环境\n仅显示具有完整规则管理权限的定义 · 每15秒更新\n规则采用自己的查询窗口。未知或过期数据不会被当成恢复；修改逻辑或禁用会结束旧逻辑事件。邮件、Webhook、企业 IM 仅记录通知意向，待接入。\n规则“QA 真实延迟告警”已保存 · 修订 1，逻辑 1。\n规则 / 级别\t比较条件\t范围 / 目标\t窗口 / 持续\t评估与最近有效观测\t状态 / 修订\t操作\nQA 真实延迟告警\n警告\n\tlatency_p95_ms > 0\nP95 延迟（ms）\n\t真实审批验收环境\n环境聚合\n\t60s / 0s\n控制台\n\t\nUnknown\n尚无有效观测\n\t启用\n修订 1 · 逻辑 1\n\t\n编辑\n禁用\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/observability/alert-rules",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "59-alert-live.jpg",
+    "time": "2026-10-06T10:29:19.090Z",
+    "checks": [
+      "真实指标触发事件查询",
+      "人工处理入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "告警中心"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 告警中心\nOBSERVABILITY · ALERT INBOX\n告警中心\n\n以事件追踪实际故障、处理状态与恢复事实\n\n管理规则 \n刷新\n数据范围\n当前环境\n全部可访问环境\n级别\n全部级别\n提示\n警告\n严重\n来源\n指标 Metrics\n状态\n全部状态\n待处理\n已确认\n已解决\n静默中\n每15秒更新 · 通知渠道待接入\n告警事件\n同一故障仅一个活动事件；人工解决后等待实际恢复重新布防\n级别 / 状态\t事件与规则\t环境 / 来源\t触发时间\t最近有效观测\t操作\n\n警告\n待处理\n\tQA 真实延迟告警 · latency_p95_ms > 0\nlatency_p95_ms 满足告警阈值。 · 第1次\n\t真实审批验收环境\nMetrics · Environment\n\t2026/10/6 18:28:45\t\n有效观测\n2026/10/6 18:28:40 · 37秒前\n\t\n确认\n静默\n解决\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/observability/alerts",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "60-alert-acked.jpg",
+    "time": "2026-10-06T10:29:29.459Z",
+    "checks": [
+      "真实告警确认",
+      "状态 Ack",
+      "首位确认人可追溯"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "告警中心"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 告警中心\nOBSERVABILITY · ALERT INBOX\n告警中心\n\n以事件追踪实际故障、处理状态与恢复事实\n\n管理规则 \n刷新\n数据范围\n当前环境\n全部可访问环境\n级别\n全部级别\n提示\n警告\n严重\n来源\n指标 Metrics\n状态\n全部状态\n待处理\n已确认\n已解决\n静默中\n每15秒更新 · 通知渠道待接入\n告警事件\n同一故障仅一个活动事件；人工解决后等待实际恢复重新布防\n级别 / 状态\t事件与规则\t环境 / 来源\t触发时间\t最近有效观测\t操作\n\n警告\n已确认\n\tQA 真实延迟告警 · latency_p95_ms > 0\nlatency_p95_ms 满足告警阈值。 · 第1次\n\t真实审批验收环境\nMetrics · Environment\n\t2026/10/6 18:28:45\t\n有效观测\n2026/10/6 18:28:40 · 48秒前\n\t\n确认\n静默\n解决\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/observability/alerts",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "61-alert-resolved-history.jpg",
+    "time": "2026-10-06T10:29:39.711Z",
+    "checks": [
+      "真实告警人工解决",
+      "事件流转历史",
+      "人工处理不冒充实际恢复"
+    ],
+    "dom": {
+      "focus": {
+        "label": "关闭详情",
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "告警中心",
+        "告警事件详情"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / 告警中心\nOBSERVABILITY · ALERT INBOX\n告警中心\n\n以事件追踪实际故障、处理状态与恢复事实\n\n管理规则 \n刷新\n数据范围\n当前环境\n全部可访问环境\n级别\n全部级别\n提示\n警告\n严重\n来源\n指标 Metrics\n状态\n全部状态\n待处理\n已确认\n已解决\n静默中\n每15秒更新 · 通知渠道待接入\n告警事件\n同一故障仅一个活动事件；人工解决后等待实际恢复重新布防\n级别 / 状态\t事件与规则\t环境 / 来源\t触发时间\t最近有效观测\t操作\n\n警告\n已解决\n\tQA 真实延迟告警 · latency_p95_ms > 0\nlatency_p95_ms 满足告警阈值。 · 第1次\n\t真实审批验收环境\nMetrics · Environment\n\t2026/10/6 18:28:45\t\n历史观测\n2026/10/6 18:28:56 · 42秒前\n\t\n确认\n静默\n解决\n共 1 条 · 每页 50 条\n上一页\n1\n下一页\nALERT EVENT\n告警事件详情\n关闭\n警告\n已解决\nQA 真实延迟告警 · latency_p95_ms > 0\n\nlatency_p95_ms 满足告警阈值。\n\n确认\n静默\n解决\n事件 ID\nd61ae1b6-dd56-47b8-9b70-e51d22ca8dac\n发生序号\n1\n规则 / 逻辑修订\n1 / 1\n环境\n真实审批验收环境\n条件起始 / 触发\n2026/10/6 18:28:10 / 2026/10/6 18:28:45\n最近有效观测\n历史观测\n2026/10/6 18:28:56 · 42秒前\n最近值 / 条件\n4.956521739130435 / 成立\n首位确认人 / 时间\nc8c573c3-b8f9-49f3-b366-0cec69a17335 / 2026/10/6 18:29:29\n静默截止 / 原因\n— / —\n解决人 / 原因\nc8c573c3-b8f9-49f3-b366-0cec69a17335 / 合成流量验收已完成，人工解决仅用于验证事件处理链路。\n人工解决后的持续故障处于抑制状态；实际恢复后重新布防，新故障生成新事件。外部通知渠道待接入。\n查看关联环境指标 →\n查看当前规则 →\n处理时间线\n2026/10/6 18:28:45\n待处理\n\n阈值满足\n\n系统 · 关联 alert:7937517ad8e947a8be570012dd169c21:3\n2026/10/6 18:29:29\n待处理 → 已确认\n\n确认\n\nc8c573c3-b8f9-49f3-b366-0cec69a17335 · 关联 0HNP3I6QAK6PK:00000030\n2026/10/6 18:29:39\n已确认 → 已解决\n\n合成流量验收已完成，人工解决仅用于验证事件处理链路。\n\nc8c573c3-b8f9-49f3-b366-0cec69a17335 · 关联 0HNP3I6QAK6PK:00000032",
+      "url": "http://127.0.0.1:53735/observability/alerts",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "62-users.jpg",
+    "time": "2026-10-06T10:29:40.118Z",
+    "checks": [
+      "本地与 SSO 用户真实列表",
+      "状态 / 修订 / 角色入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "用户管理"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n用户管理\n\n统一维护企业资源与访问边界\n\n＋ SSO 用户\n＋ 新建\n刷新\n用户名\t认证来源\t姓名\t邮箱\t状态\t修订\t操作\nqa-admin\tlocal\t平台管理员\t—\tActive\t1\t\n编辑\n分配角色\n\nqa-scoped\tlocal\t验收范围用户\t—\tActive\t4\t\n编辑\n分配角色\n\nqa-viewer\tlocal\t验收只读用户\t—\tActive\t4\t\n编辑\n分配角色\n\nruntime-qa-approver\tlocal\truntime-qa-approver\t—\tActive\t3\t\n编辑\n分配角色\n\nruntime-qa-security\tlocal\truntime-qa-security\t—\tActive\t3\t\n编辑\n分配角色\n\nsso-demo-viewer\tsso\t本机 SSO 演示 · 只读用户\tsso-demo-viewer@example.test\tActive\t3\t\n编辑\nSSO 绑定\n分配角色\n共 6 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/users",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "63-permission-dictionary.jpg",
+    "time": "2026-10-06T10:29:40.458Z",
+    "checks": [
+      "44 项服务端权限字典",
+      "只读字典无写入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "权限字典"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n权限字典\n\n统一维护企业资源与访问边界\n\n刷新\n权限编码\t权限名称\t模块\t说明\nalert.operate\talert.operate\talert\t源文档平台功能权限\nalert.read\talert.read\talert\t源文档平台功能权限\nalert.rule.manage\talert.rule.manage\talert\t源文档平台功能权限\napi.approve\tapi.approve\tapi\t源文档平台功能权限\napi.create\tapi.create\tapi\t源文档平台功能权限\napi.edit\tapi.edit\tapi\t源文档平台功能权限\napi.read\tapi.read\tapi\t源文档平台功能权限\napi.schema.read\tapi.schema.read\tapi\t源文档平台功能权限\napi.schema.write\tapi.schema.write\tapi\t源文档平台功能权限\napi.version.read\tapi.version.read\tapi\t源文档平台功能权限\napi.version.write\tapi.version.write\tapi\t源文档平台功能权限\napp.permission.manage\tapp.permission.manage\tapp\t源文档平台功能权限\napp.read\tapp.read\tapp\t源文档平台功能权限\napp.write\tapp.write\tapp\t源文档平台功能权限\napproval.act\tapproval.act\tapproval\t源文档平台功能权限\naudit.read\taudit.read\taudit\t源文档平台功能权限\ncluster.read\tcluster.read\tcluster\t源文档平台功能权限\ncluster.write\tcluster.write\tcluster\t源文档平台功能权限\ncredential.manage\tcredential.manage\tcredential\t源文档平台功能权限\nenvironment.read\tenvironment.read\tenvironment\t源文档平台功能权限\nenvironment.write\tenvironment.write\tenvironment\t源文档平台功能权限\ngateway.config.read\tgateway.config.read\tgateway\t源文档平台功能权限\ngateway.operate\tgateway.operate\tgateway\t源文档平台功能权限\ngateway.read\tgateway.read\tgateway\t源文档平台功能权限\nlog.read\tlog.read\tlog\t源文档平台功能权限\nmetrics.read\tmetrics.read\tmetrics\t源文档平台功能权限\norganization.read\torganization.read\torganization\t源文档平台功能权限\norganization.write\torganization.write\torganization\t源文档平台功能权限\npolicy.read\tpolicy.read\tpolicy\t源文档平台功能权限\npolicy.write\tpolicy.write\tpolicy\t源文档平台功能权限\nproject.read\tproject.read\tproject\t源文档平台功能权限\nproject.write\tproject.write\tproject\t源文档平台功能权限\nrelease.create\trelease.create\trelease\t源文档平台功能权限\nrelease.publish\trelease.publish\trelease\t源文档平台功能权限\nrelease.read\trelease.read\trelease\t源文档平台功能权限\nrelease.rollback\trelease.rollback\trelease\t源文档平台功能权限\nrole.manage\trole.manage\trole\t源文档平台功能权限\nroute.read\troute.read\troute\t源文档平台功能权限\nroute.write\troute.write\troute\t源文档平台功能权限\nscope.manage\tscope.manage\tscope\t源文档平台功能权限\nsystem.manage\tsystem.manage\tsystem\t源文档平台功能权限\nsystem.sso.manage\tsystem.sso.manage\tsystem\t源文档平台功能权限\ntrace.read\ttrace.read\ttrace\t源文档平台功能权限\nuser.manage\tuser.manage\tuser\t源文档平台功能权限",
+      "url": "http://127.0.0.1:53735/permissions",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "64-data-scopes.jpg",
+    "time": "2026-10-06T10:29:40.747Z",
+    "checks": [
+      "用户范围管理真实列表",
+      "角色与范围共同生效"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "数据权限"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n数据权限\n\n角色权限与数据范围共同决定访问能力\n\n刷新\n用户名\t认证来源\t姓名\t邮箱\t状态\t修订\t操作\nqa-admin\tlocal\t平台管理员\t—\tActive\t1\t\n配置 Scope\n\nqa-scoped\tlocal\t验收范围用户\t—\tActive\t4\t\n配置 Scope\n\nqa-viewer\tlocal\t验收只读用户\t—\tActive\t4\t\n配置 Scope\n\nruntime-qa-approver\tlocal\truntime-qa-approver\t—\tActive\t3\t\n配置 Scope\n\nruntime-qa-security\tlocal\truntime-qa-security\t—\tActive\t3\t\n配置 Scope\n\nsso-demo-viewer\tsso\t本机 SSO 演示 · 只读用户\tsso-demo-viewer@example.test\tActive\t3\t\n配置 Scope\n共 6 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/scopes",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "65-scope-invalid-json.jpg",
+    "time": "2026-10-06T10:30:09.847Z",
+    "checks": [
+      "无效 JSON 提交拒绝",
+      "原输入保留",
+      "当前 Scope 编辑仍为 JSON，体验改进待处理"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "数据权限",
+        "配置数据权限 · 验收范围用户"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n数据权限\n\n角色权限与数据范围共同决定访问能力\n\n刷新\n用户名\t认证来源\t姓名\t邮箱\t状态\t修订\t操作\nqa-admin\tlocal\t平台管理员\t—\tActive\t1\t\n配置 Scope\n\nqa-scoped\tlocal\t验收范围用户\t—\tActive\t4\t\n配置 Scope\n\nqa-viewer\tlocal\t验收只读用户\t—\tActive\t4\t\n配置 Scope\n\nruntime-qa-approver\tlocal\truntime-qa-approver\t—\tActive\t3\t\n配置 Scope\n\nruntime-qa-security\tlocal\truntime-qa-security\t—\tActive\t3\t\n配置 Scope\n\nsso-demo-viewer\tsso\t本机 SSO 演示 · 只读用户\tsso-demo-viewer@example.test\tActive\t3\t\n配置 Scope\n共 6 条 · 每页 50 条\n上一页\n1\n下一页\n关闭详情\n{\n  \"organizations\": [\n    {\n      \"id\": \"8d210fe9-2622-494e-81e8-34f6d4f5b69e\",\n      \"code\": \"RUNTIME_QA\",\n      \"name\": \"独立运行环境验收组织\",\n      \"status\": \"Active\",\n      \"revision\": 1\n    }\n  ],\n  \"projects\": [\n    {\n      \"id\": \"d8e91b70-2b9d-4d09-bb02-ede0a35ebeda\",\n      \"organizationId\": \"8d210fe9-2622-494e-81e8-34f6d4f5b69e\",\n      \"code\": \"RUNTIME_QA\",\n      \"name\": \"独立运行环境验收项目\",\n      \"status\": \"Active\",\n      \"revision\": 1,\n      \"ownerUserId\": \"c8c573c3-b8f9-49f3-b366-0cec69a17335\"\n    }\n  ],\n  \"environments\": [\n    {\n      \"id\": \"74a15802-2d9b-4240-9b07-6a56b436ab79\",\n      \"projectId\": \"d8e91b70-2b9d-4d09-bb02-ede0a35ebeda\",\n      \"code\": \"RUNTIME_QA\",\n      \"name\": \"真实审批验收环境\",\n      \"status\": \"Active\",\n      \"isProduction\": true,\n      \"sortOrder\": 0,\n      \"releasePolicyId\": \"06efa718-a091-47e2-934f-89d4a2aff81b\",\n      \"desiredConfigVersion\": 2,\n      \"deploymentSequence\": 2,\n      \"revision\": 3\n    }\n  ]\n}\n配置数据权限 · 验收范围用户\n关闭\nScope 规则 *\norganizationId 必填，projectId/environmentId 可为空；accessMode 为 read 或 read_write。空数组撤销所有范围。下方详情提供实际资源 ID。\nUnexpected end of JSON input\n保存\n保存后更新管理资源；角色与数据范围按服务端权限规则生效。",
+      "url": "http://127.0.0.1:53735/scopes",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "66-scope-saved.jpg",
+    "time": "2026-10-06T10:30:10.255Z",
+    "checks": [
+      "Scope 实际表单保存",
+      "用户修订递增",
+      "角色功能权限仍独立约束"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "数据权限"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n数据权限\n\n角色权限与数据范围共同决定访问能力\n\n刷新\n用户名\t认证来源\t姓名\t邮箱\t状态\t修订\t操作\nqa-admin\tlocal\t平台管理员\t—\tActive\t1\t\n配置 Scope\n\nqa-scoped\tlocal\t验收范围用户\t—\tActive\t5\t\n配置 Scope\n\nqa-viewer\tlocal\t验收只读用户\t—\tActive\t4\t\n配置 Scope\n\nruntime-qa-approver\tlocal\truntime-qa-approver\t—\tActive\t3\t\n配置 Scope\n\nruntime-qa-security\tlocal\truntime-qa-security\t—\tActive\t3\t\n配置 Scope\n\nsso-demo-viewer\tsso\t本机 SSO 演示 · 只读用户\tsso-demo-viewer@example.test\tActive\t3\t\n配置 Scope\n共 6 条 · 每页 50 条\n上一页\n1\n下一页\n关闭详情\n{\n  \"organizations\": [\n    {\n      \"id\": \"8d210fe9-2622-494e-81e8-34f6d4f5b69e\",\n      \"code\": \"RUNTIME_QA\",\n      \"name\": \"独立运行环境验收组织\",\n      \"status\": \"Active\",\n      \"revision\": 1\n    }\n  ],\n  \"projects\": [\n    {\n      \"id\": \"d8e91b70-2b9d-4d09-bb02-ede0a35ebeda\",\n      \"organizationId\": \"8d210fe9-2622-494e-81e8-34f6d4f5b69e\",\n      \"code\": \"RUNTIME_QA\",\n      \"name\": \"独立运行环境验收项目\",\n      \"status\": \"Active\",\n      \"revision\": 1,\n      \"ownerUserId\": \"c8c573c3-b8f9-49f3-b366-0cec69a17335\"\n    }\n  ],\n  \"environments\": [\n    {\n      \"id\": \"74a15802-2d9b-4240-9b07-6a56b436ab79\",\n      \"projectId\": \"d8e91b70-2b9d-4d09-bb02-ede0a35ebeda\",\n      \"code\": \"RUNTIME_QA\",\n      \"name\": \"真实审批验收环境\",\n      \"status\": \"Active\",\n      \"isProduction\": true,\n      \"sortOrder\": 0,\n      \"releasePolicyId\": \"06efa718-a091-47e2-934f-89d4a2aff81b\",\n      \"desiredConfigVersion\": 2,\n      \"deploymentSequence\": 2,\n      \"revision\": 3\n    }\n  ]\n}",
+      "url": "http://127.0.0.1:53735/scopes",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "67-audit.jpg",
+    "time": "2026-10-06T10:30:10.657Z",
+    "checks": [
+      "真实操作审计列表",
+      "变更详情与授权 CSV 入口"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "审计日志"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n审计日志\n\n查看服务端记录的操作与资源变更\n\n导出 CSV\nCSV 仅包含安全摘要列，最多10000条 / 8MiB；遵循审计权限与数据范围\n刷新\n应用筛选\n时间\t操作\t资源类型\t资源 ID\tTrace ID\t操作\n2026-10-06T10:30:09.898431+00:00\tuser.scopes\tUserProjectScope\t28aa9225-8ec7-4374-8358-02e3f17c153e\t0HNP3I6QAK6RM:0000000B\t\n查看变更\n\n2026-10-06T10:29:39.055168+00:00\talert.resolve\tAlertEventTransition\t7a79c61b-5aa9-4714-ae7a-58365675c171\t0HNP3I6QAK6PK:00000032\t\n查看变更\n\n2026-10-06T10:29:29.291728+00:00\talert.ack\tAlertEventTransition\t0826c263-3387-4bce-956c-192c9c8aa3e7\t0HNP3I6QAK6PK:00000030\t\n查看变更\n\n2026-10-06T10:29:00.864682+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6PK:00000022\t\n查看变更\n\n2026-10-06T10:28:45.711365+00:00\talert.triggered\tAlertEvent\td61ae1b6-dd56-47b8-9b70-e51d22ca8dac\talert:7937517ad8e947a8be570012dd169c21:3\t\n查看变更\n\n2026-10-06T10:28:18.557206+00:00\talert.rule.create\tAlertRule\t7937517a-d8e9-47a8-be57-0012dd169c21\t0HNP3I6QAK6PK:0000001D\t\n查看变更\n\n2026-10-06T10:28:06.06144+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6PK:00000017\t\n查看变更\n\n2026-10-06T10:25:45.511723+00:00\tcredential.update\tApplicationCredential\tb528d836-b1be-4bb4-bc07-8d074aecda59\t0HNP3I6QAK6PK:0000000C\t\n查看变更\n\n2026-10-06T10:24:45.144154+00:00\tpolicy.save\tPolicy\tcba9fadd-83d8-419e-89c0-147d25b30fe8\t0HNP3I6QAK6PK:00000005\t\n查看变更\n\n2026-10-06T10:24:44.517249+00:00\tpolicy.save\tPolicy\tbb29d5d4-fdac-4911-b7a7-3a2837323d1d\t0HNP3I6QAK6PJ:0000000B\t\n查看变更\n\n2026-10-06T10:22:25.983784+00:00\tpolicy.save\tPolicy\t8c5d8f45-75e7-4689-a327-3909cbcacd98\t0HNP3I6QAK6OP:00000002\t\n查看变更\n\n2026-10-06T10:20:45.513498+00:00\topenapi.import\tApi\t28eb5198-f7c7-468b-a525-42f21ead769f\t0HNP3I6QAK6NK:00000010\t\n查看变更\n\n2026-10-06T10:20:21.317919+00:00\tapi.create\tApi\t4da31c3b-3c7d-4c13-a1e4-c25def618539\t0HNP3I6QAK6NK:00000008\t\n查看变更\n\n2026-10-06T10:20:04.140563+00:00\tenvironment.update\tEnvironmentRecord\t74a15802-2d9b-4240-9b07-6a56b436ab79\t0HNP3I6QAK6NJ:00000003\t\n查看变更\n\n2026-10-06T10:20:03.610433+00:00\tenvironment.update\tEnvironmentRecord\t74a15802-2d9b-4240-9b07-6a56b436ab79\t0HNP3I6QAK6N1:0000000F\t\n查看变更\n\n2026-10-06T10:18:56.1476+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6MT:00000021\t\n查看变更\n\n2026-10-06T10:18:35.773461+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6MT:00000017\t\n查看变更\n\n2026-10-06T10:18:16.089244+00:00\trelease.succeeded\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6N1:00000005\t\n查看变更\n\n2026-10-06T10:18:15.55974+00:00\trelease.snapshot.persisted\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6N1:00000005\t\n查看变更\n\n2026-10-06T10:18:14.901741+00:00\trelease.publish\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6N1:00000005\t\n查看变更\n\n2026-10-06T10:18:07.010497+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6MT:00000006\t\n查看变更\n\n2026-10-06T10:18:06.223872+00:00\trelease.approve\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6MS:00000009\t\n查看变更\n\n2026-10-06T10:17:58.145161+00:00\tauth.login\tuser\tc16be8bf-398e-4b32-b6d3-5c0ab8355168\t0HNP3I6QAK6MB:00000007\t\n查看变更\n\n2026-10-06T10:17:57.481487+00:00\trelease.approve\tApprovalTask\tb76f5695-23d1-440a-84e5-1a3c4c291611\t0HNP3I6QAK6MC:00000019\t\n查看变更\n\n2026-10-06T10:17:42.74348+00:00\tauth.login\tuser\t6e9a3795-6f8e-4294-9351-a92ede5ab335\t0HNP3I6QAK6KM:0000004C\t\n查看变更\n\n2026-10-06T10:17:10.015086+00:00\trelease.submit\tApprovalTask\tb76f5695-23d1-440a-84e5-1a3c4c291611\t0HNP3I6QAK6MC:0000000B\t\n查看变更\n\n2026-10-06T10:17:04.2721+00:00\trelease.create\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6MC:00000009\t\n查看变更\n\n2026-10-06T10:17:03.534159+00:00\troute.save\tApiRoute\tbf21d68b-acf0-4d43-b1d7-f9292055cfba\t0HNP3I6QAK6MC:00000002\t\n查看变更\n\n2026-10-06T10:16:30.941194+00:00\tcomparison.risk_accepted\tApiVersionRiskReview\t1259e20a-6b5b-412a-ac7e-8d033d7b9646\t0HNP3I6QAK6KM:0000003A\t\n查看变更\n\n2026-10-06T10:16:16.148219+00:00\tcomparison.created\tApiVersionComparison\t7aab640c-bdc9-4e10-b023-2e5ecaed2169\t0HNP3I6QAK6KM:00000038\t\n查看变更\n\n2026-10-06T10:16:00.194709+00:00\tapi.schemas.save\tApiSchema\t4a3eca43-d3e8-49a4-bfde-c44159a52525\t0HNP3I6QAK6KM:00000034\t\n查看变更\n\n2026-10-06T10:15:44.430041+00:00\tapi.parameters.save\tApiVersion\t3814b168-f5a2-4d60-a6d1-e15f6af3efb6\t0HNP3I6QAK6KM:00000030\t\n查看变更\n\n2026-10-06T10:15:44.397644+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6KM:0000002C\t\n查看变更\n\n2026-10-06T10:15:29.361377+00:00\tuser.scopes\tUserProjectScope\te5b4c328-d7c1-4ed1-8468-b457ea2b4145\t0HNP3I6QAK6KM:00000027\t\n查看变更\n\n2026-10-06T10:15:29.33895+00:00\tauth.login\tuser\t376da010-e9a9-4601-aae3-4f477ab918af\t0HNP3I6QAK6KM:00000023\t\n查看变更\n\n2026-10-06T10:15:29.239805+00:00\tuser.scopes\tUserProjectScope\t984d91b5-3c45-4d1c-92bc-c335b4c2a3fb\t0HNP3I6QAK6KM:0000001E\t\n查看变更\n\n2026-10-06T10:15:29.21678+00:00\tauth.login\tuser\t1e0a0d1c-d08f-4455-9f59-b001c4b35cf2\t0HNP3I6QAK6KM:0000001A\t\n查看变更\n\n2026-10-06T10:15:29.127043+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6KM:00000017\t\n查看变更\n\n2026-10-06T10:14:50.920998+00:00\tauth.login\tuser\t1e0a0d1c-d08f-4455-9f59-b001c4b35cf2\t0HNP3I6QAK6KM:00000014\t\n查看变更\n\n2026-10-06T10:14:50.83524+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6KM:00000011\t\n查看变更\n\n2026-10-06T10:14:34.958038+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6KM:0000000E\t\n查看变更\n\n2026-10-06T10:13:58.342254+00:00\tapi.parameters.save\tApiParameter\tf2d97b9b-3e92-46d2-a0ca-77a47482fe50\t0HNP3I6QAK6KM:0000000A\t\n查看变更\n\n2026-10-06T10:13:44.354474+00:00\tapi.version.create\tApiVersion\t3814b168-f5a2-4d60-a6d1-e15f6af3efb6\t0HNP3I6QAK6KM:00000007\t\n查看变更\n\n2026-10-06T10:13:31.458176+00:00\tapi.version.create\tApiVersion\t3c1fa6e8-a246-4c31-a579-cfaedec4fa3a\t0HNP3I6QAK6KM:00000005\t\n查看变更\n\n2026-10-06T10:12:44.349531+00:00\trole.permissions\tRolePermission\t87025da9-a7dd-41df-aa04-b22c0642f819\t0HNP3I6QAK6KL:00000001\t\n查看变更\n\n2026-10-06T10:08:07.694943+00:00\tsettings.sso.provider.enable\tSsoProvider\t4e6c9f14-b334-4167-b349-c5144d584614\t0HNP3I6QAK6IQ:00000014\t\n查看变更\n\n2026-10-06T10:08:07.670155+00:00\tuser.scopes\tUserProjectScope\t20c7842b-5afb-47be-8a0a-c99bb366d7a0\t0HNP3I6QAK6IQ:00000012\t\n查看变更\n\n2026-10-06T10:08:07.604517+00:00\tuser.roles\tUserRole\t5fa791f3-66f9-409c-901f-677abce326d0\t0HNP3I6QAK6IQ:0000000D\t\n查看变更\n\n2026-10-06T10:08:07.523536+00:00\tuser.sso.create\tUserRecord\t5fa791f3-66f9-409c-901f-677abce326d0\t0HNP3I6QAK6IQ:00000009\t\n查看变更\n\n2026-10-06T10:08:07.476202+00:00\tsettings.sso.provider.test\tSsoProvider\t4e6c9f14-b334-4167-b349-c5144d584614\t0HNP3I6QAK6IQ:00000006\t\n查看变更\n共 93 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/audit",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "68-sso-settings.jpg",
+    "time": "2026-10-06T10:30:11.063Z",
+    "checks": [
+      "独立 Keycloak 配置真实读取",
+      "Provider 启用与显式绑定"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "SSO 身份源 OIDC",
+        "已配置身份源"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "审计与设置 / 企业单点登录\nSSO 身份源 OIDC\n\n统一企业身份接入 · 独立平台治理 · 本地管理员保留恢复入口\n\n新增身份源\n显式账号绑定与平台权限\n\n登录后沿用平台角色和数据范围。企业身份源不会自动创建账号或授予权限。\n\n服务端修订保护\n操作可审计\n已配置身份源\n可按名称、Issuer 或所属组织查找\n刷新列表\n搜索\n治理范围\n全部平台与组织身份源\n独立运行环境验收组织\n筛选独立于顶部业务范围\n身份源 / Issuer\t范围\t状态\t修订\t最近连接测试\t操作\n本机 SSO 演示 · Keycloak\nhttp://localhost:54574/realms/webapi-local-demo\n\t平台级\t已启用\tr2\n认证 r2\n\t通过\nr1 · 2026/10/6 18:08:07\n\t配置与测试\n共 1 条 · 每页 50 条\n上一页\n1\n下一页\n连接测试检查部署引用、Discovery、JWKS 和协议声明。客户端认证及用户登录需要独立完成登录验收。",
+      "url": "http://127.0.0.1:53735/settings/sso",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "69-system-settings.jpg",
+    "time": "2026-10-06T10:30:11.472Z",
+    "checks": [
+      "五组 17 字段",
+      "实际消费者与配置意向边界"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "系统设置 平台级",
+        "安全策略"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "审计与设置 / 系统设置\n系统设置 平台级\n\n统一配置治理 · 当前组织与项目选择不会改变设置范围\n\n读取最新配置\n5 个配置分组 · 17 个字段\n尚未保存 · 显示默认与建议\n服务端权限 · 修订保护 · 操作审计\n安全策略\n会话与新账号\n发布设置\n审批与保留目标\nGateway 默认参数\n新路由与部署意向\n审计设置\n导出与保留目标\n通知配置\n引用与结构校验\n平台级管理\n修改需先预览并确认\n安全策略\n\n每个字段显示配置来源与实际生效条件\n\nSession TTL / 分钟\n兼容默认\n用于后续新登录，已有票据到期时间保持不变 · 范围 5–1440\n密码最小长度\n兼容默认\n用于后续创建本地账号，已有密码仍可正常登录 · 范围 16–128\n密码复杂度\n兼容默认\n仅长度（兼容默认）\n字母与数字\n大小写、数字与特殊字符\n用于后续创建本地账号，已有密码仍可正常登录\nAllowed Origins\n兼容默认\n配置意向；本期不执行连接、发送、跨域或历史清理\n预览并保存\n测试配置结构\n保存不会自动部署网关或清理历史数据",
+      "url": "http://127.0.0.1:53735/settings/system",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "70-system-setting-saved.jpg",
+    "time": "2026-10-06T10:35:23.462Z",
+    "checks": [
+      "合成环境审计保留配置意向365→366",
+      "保存修订1；未执行历史清理"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "系统设置 平台级",
+        "审计设置"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "审计与设置 / 系统设置\n系统设置 平台级\n\n统一配置治理 · 当前组织与项目选择不会改变设置范围\n\n读取最新配置\n5 个配置分组 · 17 个字段\n已保存修订 1\n服务端权限 · 修订保护 · 操作审计\n安全策略\n会话与新账号\n发布设置\n审批与保留目标\nGateway 默认参数\n新路由与部署意向\n审计设置\n导出与保留目标\n通知配置\n引用与结构校验\n平台级管理\n修改需先预览并确认\n审计设置\n\n每个字段显示配置来源与实际生效条件\n\n 保存成功。请按字段提示核对生效条件。\n审计日志保留 / 天\n已保存配置\n配置意向；本期不执行连接、发送、跨域或历史清理 · 范围 30–3650\n允许审计 CSV 导出\n已保存配置\n允许授权用户导出\n保存后控制新导出请求，仍需 audit.read 与授权范围\n预览并保存\n测试配置结构\n保存不会自动部署网关或清理历史数据",
+      "url": "http://127.0.0.1:53735/settings/system",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "71-scoped-readonly.jpg",
+    "time": "2026-10-06T10:35:53.414Z",
+    "checks": [
+      "自定义角色6项读取权限",
+      "Scope允许读取，API编辑/新版本禁用"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "真实运行验收 API"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 目录 / 详情\n真实运行验收 API\n\nRUNTIME_ORDERS　工作修订 1\n\n编辑 API\n版本比较与评审\n配置与发布向导 →\n工作修订\n1\n当前环境节点一致配置版本\n2\nAPI 版本数量\n3\n待处理发布\n—\n版本\n参数\nSchema\nOpenAPI\n＋ 新建版本\n版本号\t状态\t变更类型\t修订\t封存时间\t操作\n3.0.0\tPublished\tbreaking\t4\t2026-10-06T10:18:15.559705+00:00\t\n定义\n编辑\n\n2.0.0\tDraft\tcompatible\t1\t—\t\n定义\n编辑\n\n1.0.0\tPublished\tcompatible\t1\t2026-10-06T10:06:19.353031+00:00\t\n定义\n编辑",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "72-sso-login-options.jpg",
+    "time": "2026-10-06T10:36:20.514Z",
+    "checks": [
+      "企业SSO与本地登录并列",
+      "独立Keycloak连接启用"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "统一管理 API连接每一个业务系统",
+        "登录管理控制台"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "W\nWEBAPI PLATFORM ENTERPRISE\n统一管理 API\n连接每一个业务系统\n\n从工作草稿到审批发布，以可靠的配置和清晰的运行事实管理企业 API。\n\n01　配置与版本管理\n02　独立审批与可追溯发布\n03　多节点运行状态\nMANAGEMENT CONSOLE\n登录管理控制台\n\n选择企业身份源，或使用已开通的本地账号\n\n企业单点登录\n本机 SSO 演示 · Keycloak\n→\n在身份服务重新验证账号\n本地账号登录\n用户名\n密码\n登录\n企业账号与权限由平台管理员显式开通。\n平台退出仅结束本平台会话，身份服务会话可能仍然有效。",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "73-keycloak-login.jpg",
+    "time": "2026-10-06T10:36:43.391Z",
+    "checks": [
+      "真实Keycloak身份验证表单",
+      "截图无密码、授权码或Token"
+    ],
+    "dom": {
+      "focus": {
+        "label": "username",
+        "tag": "INPUT"
+      },
+      "headings": [
+        "\n\n        Sign in to your account\n\n"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "Sign in to your account\nUsername or email\nPassword\nSign In",
+      "url": "http://localhost:54574/realms/webapi-local-demo/protocol/openid-connect/auth",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "74-sso-out-of-scope.jpg",
+    "time": "2026-10-06T10:36:59.667Z",
+    "checks": [
+      "SSO回调恢复身份sso-demo-viewer",
+      "未授权的项目API不可读，编辑禁用"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "API 详情"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "API 目录 / 详情\nAPI 详情\n\n　工作修订 —\n\n运行监控\n编辑 API\n配置与发布向导 →\n资源不存在或不可访问。",
+      "url": "http://127.0.0.1:53735/apis/cc8f0cd5-bf81-4df6-9ea5-40742ba5690f",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "75-sso-readonly-organization.jpg",
+    "time": "2026-10-06T10:37:10.484Z",
+    "checks": [
+      "真实SSO登录成功",
+      "授权组织可见，新建编辑禁用"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "组织管理"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n组织管理\n\n统一维护企业资源与访问边界\n\n＋ 新建\n刷新\n名称\t编码\t状态\t修订\t操作\n独立运行环境验收组织\tRUNTIME_QA\tActive\t1\t\n编辑\n共 1 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/organizations",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "76-sso-logout.jpg",
+    "time": "2026-10-06T10:37:10.790Z",
+    "checks": [
+      "平台退出回到登录页",
+      "界面明确平台与身份源会话边界"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "统一管理 API连接每一个业务系统",
+        "登录管理控制台"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "W\nWEBAPI PLATFORM ENTERPRISE\n统一管理 API\n连接每一个业务系统\n\n从工作草稿到审批发布，以可靠的配置和清晰的运行事实管理企业 API。\n\n01　配置与版本管理\n02　独立审批与可追溯发布\n03　多节点运行状态\nMANAGEMENT CONSOLE\n登录管理控制台\n\n选择企业身份源，或使用已开通的本地账号\n\n企业单点登录\n本机 SSO 演示 · Keycloak\n→\n在身份服务重新验证账号\n本地账号登录\n用户名\n密码\n登录\n企业账号与权限由平台管理员显式开通。\n平台退出仅结束本平台会话，身份服务会话可能仍然有效。",
+      "url": "http://127.0.0.1:53735/organizations",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "77-credential-invalid-window-confirmed.jpg",
+    "time": "2026-10-06T10:38:27.826Z",
+    "checks": [
+      "失效17:00早于生效18:03",
+      "界面拒绝非法窗口并保留输入",
+      "原生日期键盘事件补验"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "验收消费方",
+        "编辑凭证窗口"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "应用接入 / 应用详情\n验收消费方\n\n管理消费方身份、凭证窗口与 API 授权\n\n编辑应用\n应用、凭证及授权保存为工作配置。网关认证采用已发布 Snapshot 的应用状态、有效期与授权集合。\n凭证\nAPI 授权\n运行版本\n＋ 创建凭证\nSecret 只显示一次，请在关闭前自行保存。\nAccess Key\tSecret 后四位\t状态\t生效\t失效\t修订\t操作\nak_4FagcPR3ydmPvTIC85fzJw\tE8Os\tActive\t2026-10-06T10:03:00+00:00\t2027-09-06T09:00:00+00:00\t3\t\n有效期 / 撤销\n编辑凭证窗口\n关闭\n生效时间 *\n失效时间 *\n状态\n请选择\nActive\nRevoked\n有效期结束必须晚于开始时间。\n保存\n保存至工作配置，发布后才影响网关",
+      "url": "http://127.0.0.1:53735/applications/0fd7f780-07e1-4daa-a8d1-020420d0a051",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "78-credential-window-restored.jpg",
+    "time": "2026-10-06T10:38:28.165Z",
+    "checks": [
+      "还原测试凭证工作窗口2026-10-06 19:04",
+      "修订4，未发布任何窗口变更"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "验收消费方"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "应用接入 / 应用详情\n验收消费方\n\n管理消费方身份、凭证窗口与 API 授权\n\n编辑应用\n应用、凭证及授权保存为工作配置。网关认证采用已发布 Snapshot 的应用状态、有效期与授权集合。\n凭证\nAPI 授权\n运行版本\n＋ 创建凭证\nSecret 只显示一次，请在关闭前自行保存。\nAccess Key\tSecret 后四位\t状态\t生效\t失效\t修订\t操作\nak_4FagcPR3ydmPvTIC85fzJw\tE8Os\tActive\t2026-10-06T10:03:00+00:00\t2026-10-06T11:04:00+00:00\t4\t\n有效期 / 撤销",
+      "url": "http://127.0.0.1:53735/applications/0fd7f780-07e1-4daa-a8d1-020420d0a051",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "79-audit-export-feedback.jpg",
+    "time": "2026-10-06T10:39:38.621Z",
+    "checks": [
+      "界面已导出99条；随后API补验100条（新增一次测试登录审计）",
+      "浏览器下载事件未捕获；API下载100条安全摘要CSV补验"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BODY"
+      },
+      "headings": [
+        "审计日志"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "管理控制台 / 资源治理\n审计日志\n\n查看服务端记录的操作与资源变更\n\n导出 CSV\n已导出 99 条（授权范围内）\n刷新\n应用筛选\n时间\t操作\t资源类型\t资源 ID\tTrace ID\t操作\n2026-10-06T10:38:27.889603+00:00\tcredential.update\tApplicationCredential\tb528d836-b1be-4bb4-bc07-8d074aecda59\t0HNP3I6QAK6TO:00000024\t\n查看变更\n\n2026-10-06T10:37:59.560929+00:00\tcredential.update\tApplicationCredential\tb528d836-b1be-4bb4-bc07-8d074aecda59\t0HNP3I6QAK6TO:00000021\t\n查看变更\n\n2026-10-06T10:37:44.831743+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6UG:00000008\t\n查看变更\n\n2026-10-06T10:36:43.577025+00:00\tauth.sso.login\tuser\t5fa791f3-66f9-409c-901f-677abce326d0\t0HNP3I6QAK6TO:00000012\t\n查看变更\n\n2026-10-06T10:35:39.528798+00:00\tauth.login\tuser\t1e0a0d1c-d08f-4455-9f59-b001c4b35cf2\t0HNP3I6QAK6TO:00000007\t\n查看变更\n\n2026-10-06T10:35:07.810099+00:00\tsettings.system.audit.update\tSystemSetting\tsystem.audit\t0HNP3I6QAK6TO:00000003\t\n查看变更\n\n2026-10-06T10:30:09.898431+00:00\tuser.scopes\tUserProjectScope\t28aa9225-8ec7-4374-8358-02e3f17c153e\t0HNP3I6QAK6RM:0000000B\t\n查看变更\n\n2026-10-06T10:29:39.055168+00:00\talert.resolve\tAlertEventTransition\t7a79c61b-5aa9-4714-ae7a-58365675c171\t0HNP3I6QAK6PK:00000032\t\n查看变更\n\n2026-10-06T10:29:29.291728+00:00\talert.ack\tAlertEventTransition\t0826c263-3387-4bce-956c-192c9c8aa3e7\t0HNP3I6QAK6PK:00000030\t\n查看变更\n\n2026-10-06T10:29:00.864682+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6PK:00000022\t\n查看变更\n\n2026-10-06T10:28:45.711365+00:00\talert.triggered\tAlertEvent\td61ae1b6-dd56-47b8-9b70-e51d22ca8dac\talert:7937517ad8e947a8be570012dd169c21:3\t\n查看变更\n\n2026-10-06T10:28:18.557206+00:00\talert.rule.create\tAlertRule\t7937517a-d8e9-47a8-be57-0012dd169c21\t0HNP3I6QAK6PK:0000001D\t\n查看变更\n\n2026-10-06T10:28:06.06144+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6PK:00000017\t\n查看变更\n\n2026-10-06T10:25:45.511723+00:00\tcredential.update\tApplicationCredential\tb528d836-b1be-4bb4-bc07-8d074aecda59\t0HNP3I6QAK6PK:0000000C\t\n查看变更\n\n2026-10-06T10:24:45.144154+00:00\tpolicy.save\tPolicy\tcba9fadd-83d8-419e-89c0-147d25b30fe8\t0HNP3I6QAK6PK:00000005\t\n查看变更\n\n2026-10-06T10:24:44.517249+00:00\tpolicy.save\tPolicy\tbb29d5d4-fdac-4911-b7a7-3a2837323d1d\t0HNP3I6QAK6PJ:0000000B\t\n查看变更\n\n2026-10-06T10:22:25.983784+00:00\tpolicy.save\tPolicy\t8c5d8f45-75e7-4689-a327-3909cbcacd98\t0HNP3I6QAK6OP:00000002\t\n查看变更\n\n2026-10-06T10:20:45.513498+00:00\topenapi.import\tApi\t28eb5198-f7c7-468b-a525-42f21ead769f\t0HNP3I6QAK6NK:00000010\t\n查看变更\n\n2026-10-06T10:20:21.317919+00:00\tapi.create\tApi\t4da31c3b-3c7d-4c13-a1e4-c25def618539\t0HNP3I6QAK6NK:00000008\t\n查看变更\n\n2026-10-06T10:20:04.140563+00:00\tenvironment.update\tEnvironmentRecord\t74a15802-2d9b-4240-9b07-6a56b436ab79\t0HNP3I6QAK6NJ:00000003\t\n查看变更\n\n2026-10-06T10:20:03.610433+00:00\tenvironment.update\tEnvironmentRecord\t74a15802-2d9b-4240-9b07-6a56b436ab79\t0HNP3I6QAK6N1:0000000F\t\n查看变更\n\n2026-10-06T10:18:56.1476+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6MT:00000021\t\n查看变更\n\n2026-10-06T10:18:35.773461+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6MT:00000017\t\n查看变更\n\n2026-10-06T10:18:16.089244+00:00\trelease.succeeded\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6N1:00000005\t\n查看变更\n\n2026-10-06T10:18:15.55974+00:00\trelease.snapshot.persisted\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6N1:00000005\t\n查看变更\n\n2026-10-06T10:18:14.901741+00:00\trelease.publish\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6N1:00000005\t\n查看变更\n\n2026-10-06T10:18:07.010497+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6MT:00000006\t\n查看变更\n\n2026-10-06T10:18:06.223872+00:00\trelease.approve\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6MS:00000009\t\n查看变更\n\n2026-10-06T10:17:58.145161+00:00\tauth.login\tuser\tc16be8bf-398e-4b32-b6d3-5c0ab8355168\t0HNP3I6QAK6MB:00000007\t\n查看变更\n\n2026-10-06T10:17:57.481487+00:00\trelease.approve\tApprovalTask\tb76f5695-23d1-440a-84e5-1a3c4c291611\t0HNP3I6QAK6MC:00000019\t\n查看变更\n\n2026-10-06T10:17:42.74348+00:00\tauth.login\tuser\t6e9a3795-6f8e-4294-9351-a92ede5ab335\t0HNP3I6QAK6KM:0000004C\t\n查看变更\n\n2026-10-06T10:17:10.015086+00:00\trelease.submit\tApprovalTask\tb76f5695-23d1-440a-84e5-1a3c4c291611\t0HNP3I6QAK6MC:0000000B\t\n查看变更\n\n2026-10-06T10:17:04.2721+00:00\trelease.create\tReleaseRecord\tc20345be-d2ee-4bbe-8b0d-0b57b796bc04\t0HNP3I6QAK6MC:00000009\t\n查看变更\n\n2026-10-06T10:17:03.534159+00:00\troute.save\tApiRoute\tbf21d68b-acf0-4d43-b1d7-f9292055cfba\t0HNP3I6QAK6MC:00000002\t\n查看变更\n\n2026-10-06T10:16:30.941194+00:00\tcomparison.risk_accepted\tApiVersionRiskReview\t1259e20a-6b5b-412a-ac7e-8d033d7b9646\t0HNP3I6QAK6KM:0000003A\t\n查看变更\n\n2026-10-06T10:16:16.148219+00:00\tcomparison.created\tApiVersionComparison\t7aab640c-bdc9-4e10-b023-2e5ecaed2169\t0HNP3I6QAK6KM:00000038\t\n查看变更\n\n2026-10-06T10:16:00.194709+00:00\tapi.schemas.save\tApiSchema\t4a3eca43-d3e8-49a4-bfde-c44159a52525\t0HNP3I6QAK6KM:00000034\t\n查看变更\n\n2026-10-06T10:15:44.430041+00:00\tapi.parameters.save\tApiVersion\t3814b168-f5a2-4d60-a6d1-e15f6af3efb6\t0HNP3I6QAK6KM:00000030\t\n查看变更\n\n2026-10-06T10:15:44.397644+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6KM:0000002C\t\n查看变更\n\n2026-10-06T10:15:29.361377+00:00\tuser.scopes\tUserProjectScope\te5b4c328-d7c1-4ed1-8468-b457ea2b4145\t0HNP3I6QAK6KM:00000027\t\n查看变更\n\n2026-10-06T10:15:29.33895+00:00\tauth.login\tuser\t376da010-e9a9-4601-aae3-4f477ab918af\t0HNP3I6QAK6KM:00000023\t\n查看变更\n\n2026-10-06T10:15:29.239805+00:00\tuser.scopes\tUserProjectScope\t984d91b5-3c45-4d1c-92bc-c335b4c2a3fb\t0HNP3I6QAK6KM:0000001E\t\n查看变更\n\n2026-10-06T10:15:29.21678+00:00\tauth.login\tuser\t1e0a0d1c-d08f-4455-9f59-b001c4b35cf2\t0HNP3I6QAK6KM:0000001A\t\n查看变更\n\n2026-10-06T10:15:29.127043+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6KM:00000017\t\n查看变更\n\n2026-10-06T10:14:50.920998+00:00\tauth.login\tuser\t1e0a0d1c-d08f-4455-9f59-b001c4b35cf2\t0HNP3I6QAK6KM:00000014\t\n查看变更\n\n2026-10-06T10:14:50.83524+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6KM:00000011\t\n查看变更\n\n2026-10-06T10:14:34.958038+00:00\tauth.login\tuser\tc8c573c3-b8f9-49f3-b366-0cec69a17335\t0HNP3I6QAK6KM:0000000E\t\n查看变更\n\n2026-10-06T10:13:58.342254+00:00\tapi.parameters.save\tApiParameter\tf2d97b9b-3e92-46d2-a0ca-77a47482fe50\t0HNP3I6QAK6KM:0000000A\t\n查看变更\n\n2026-10-06T10:13:44.354474+00:00\tapi.version.create\tApiVersion\t3814b168-f5a2-4d60-a6d1-e15f6af3efb6\t0HNP3I6QAK6KM:00000007\t\n查看变更\n\n2026-10-06T10:13:31.458176+00:00\tapi.version.create\tApiVersion\t3c1fa6e8-a246-4c31-a579-cfaedec4fa3a\t0HNP3I6QAK6KM:00000005\t\n查看变更\n共 99 条 · 每页 50 条\n上一页\n1\n下一页",
+      "url": "http://127.0.0.1:53735/audit",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  },
+  {
+    "file": "80-trace-waterfall-visible.jpg",
+    "time": "2026-10-06T10:42:04.749Z",
+    "checks": [
+      "真实Gateway Server/Client 2个span",
+      "瀑布图可见；Partial来源明确展示"
+    ],
+    "dom": {
+      "focus": {
+        "label": null,
+        "tag": "BUTTON"
+      },
+      "headings": [
+        "Trace 查询"
+      ],
+      "height": 1024,
+      "overflow": false,
+      "text": "运行监控 / Trace 查询\nOBSERVABILITY · DISTRIBUTED TRACING\nTrace 查询\n\n从授权请求定位真实 server / client 调用及耗时\n\n刷新窗口\n近 1 小时\n近 6 小时\n近 24 小时\n近 7 天\n数据范围\n当前环境\n全部可访问环境\n截止 2026/10/6 18:27:12 · 每 30 秒检查\n链路条件\nTraceId 不作为访问权限证明\nAPI\n最小时延 ms\n策略 ID\n策略决策\n全部\nAllowed\nExceeded\nStoreRejected\nBypass\nHalfOpenProbe\nOpenRejected\nW3C TraceId\n调用结果\n全部结果\n成功\n错误\n查询链路\n重置筛选\n当前配置采样率 100% · 未命中可能未采样或超过保留期\n数据覆盖不完整\n\n当前结果仅覆盖已收到的数据，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:27:09\n重新查询\n调用链列表\n起止时间与耗时由当前可见 span 计算\nTraceId\t开始时间\t总耗时\t调用结果\t操作\na695804551e4502836a4ea463db3665b\t2026/10/6 18:18:56\t0.49 ms\t成功\t\n复制\n查看链路\n访问日志\n本页 1 条 · 按时间倒序\n上一页\n下一页\nTRACE DETAIL\na695804551e4502836a4ea463db3665b\n复制 TraceId\n关联日志 →\n关闭链路\n数据覆盖不完整\n\n当前结果仅覆盖已收到的数据，请检查采集节点或缩短时间范围。 采集覆盖不足。\n\n采集观察 2026/10/6 18:27:09\n重新查询\n调用链瀑布图\n2 个可访问 span · 相对首个可见 span 的真实时间\n已收到链路\nSPAN / SERVICE\n0 ms\n0.49 ms\ngateway.request\nServer · 0.49 ms\ngateway.proxy\nClient · 0.37 ms\n查看时间与关联表格",
+      "url": "http://127.0.0.1:53735/observability/traces?range=1h&group=Api&page=1&trace=a695804551e4502836a4ea463db3665b&end=2026-10-06T10%3A27%3A12.648Z",
+      "width": 1440
+    },
+    "visualReviewed": true,
+    "classification": "validated-state"
+  }
+]

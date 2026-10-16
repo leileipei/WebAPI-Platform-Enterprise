@@ -1,0 +1,39 @@
+✔ existing grants round-trip losslessly, including overlapping access modes and invisible scopes (0.624958ms)
+✔ new scopes start with a single environment and read access; incomplete selection cannot become organization-wide (0.370708ms)
+✔ changing a parent clears descendants but retains the intended level until the user selects replacements (0.054333ms)
+✔ only an explicit level change creates organization or project-wide grants (0.048667ms)
+✔ known hierarchy mismatches and arbitrary invisible replacements are rejected while inherited IDs survive other edits (0.057667ms)
+✔ summary counts mode changes separately and represents empty scopes as revocation, without collapsing overlaps (0.085958ms)
+✔ stable reads reject revision drift instead of pairing stale scopes with a newer writable revision (0.188459ms)
+✖ exact duplicate grants cannot overstate saved counts; overlapping scopes with different access modes remain valid (1.834416ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38.574208
+
+✖ failing tests:
+
+test at console/tests/scope-state.test.mjs:48:1
+✖ exact duplicate grants cannot overstate saved counts; overlapping scopes with different access modes remain valid (1.834416ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(m.validate(m.toDraft([grant(),grant()]),tree).some(e=>e.includes('重复')))
+  
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:49:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

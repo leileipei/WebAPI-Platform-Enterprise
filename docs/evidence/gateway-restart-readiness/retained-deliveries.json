@@ -1,0 +1,80 @@
+{
+  "unchanged": true,
+  "count": 15,
+  "files": [
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/deliverables/WebAPI_Enterprise_可观测与告警源码及验收.zip",
+      "sha256": "e88d06501b6b995f38af12057933edbae91151cfcac1d0f11d2bc9304eb29b06",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/deliverables/WebAPI_Enterprise_核心闭环源码与验收.zip",
+      "sha256": "734ae0ecf78b92da08d03e352683453498067da8266df44b691ac1ad712d51d6",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/../WebAPI_Enterprise_V2_40页高保真原型_方案1.zip",
+      "sha256": "810d55a9b09cde400524e29a2c07f032cc6a584af11c56e0aa29779a9d23a5b1",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.1.zip",
+      "sha256": "1c0ab23e44852efb6538447678b4b7ca4a3e2f2a909ebfb5a5c9fd447557d225",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.2.zip",
+      "sha256": "14b6c492d1613966de6339d813e90c8ee65abf6c11adfcb6def85f14a7ac3cda",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.3.zip",
+      "sha256": "7b6208898c6c5e0ad7acecf6182d3cdb1209aa69a2c020e5cd1cd4f4b2ce0a63",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.4.zip",
+      "sha256": "cc61148914306cca3f6dbe1bdc96d49677c7010932e1f5756c25622b8677f221",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收.zip",
+      "sha256": "87d536081e1e8611a0eea6d089b6a940487dcbe0c9fd890f6cc42bbe72858ce7",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收_V1.1.zip",
+      "sha256": "cd0658aaef617b6a94206fe2d325295484bb53aa8444fb450ca84085c6655ee4",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/system-settings/deliverables/WebAPI_Enterprise_系统设置源码及验收_20261005.zip",
+      "sha256": "ac70310f743ee6b30a4e45416de59047271163fb0f25a87b00bd6dc6fd83267a",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/system-settings/deliverables/WebAPI_Enterprise_系统设置浏览器复验补充_20261005.zip",
+      "sha256": "091d47a8fa6ed8a1c9bf73e40a9bdb7421d49f231ae8c75b378eb46517ad4104",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/system-settings/deliverables/WebAPI_Enterprise_系统设置本机升级补充_20261005.zip",
+      "sha256": "5127d546d31b890ce5ae5b0570cca89308b23c1dc8831f2a148cb073f416b74b",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/sso-oidc/deliverables/WebAPI_Enterprise_SSO_OIDC_20261005.zip",
+      "sha256": "822a6fba1de099cc048d879e8438293d7b850b6ebb534c872146cda9a629f978",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/sso-oidc/deliverables/WebAPI_Enterprise_SSO_OIDC_本机升级补充_20261006.zip",
+      "sha256": "ddb8c6065a2ed1e9aba3786c0df6fb7542c1106e756b5b05de260684d868b4b1",
+      "unchanged": true
+    },
+    {
+      "file": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/local-keycloak-demo/deliverables/WebAPI_Enterprise_本机Keycloak_SSO演示补充_20261006.zip",
+      "sha256": "7e8a678e03a6db56531c3a9c37630cd3ac6f07c656a4764dad4c048284115abf"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "time": "2026-10-06T10:48:54.901Z",
+  "phase": "Ready",
+  "sourceRevision": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "originalReleaseAndStateUnchanged": true,
+  "protectedLocalFiles": 196,
+  "protectedFileDifferences": [],
+  "staticHashesMatched": 3,
+  "servicesRunning": 13,
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available"
+    },
+    {
+      "name": "loki",
+      "state": "Available"
+    },
+    {
+      "name": "tempo",
+      "state": "Available"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "local-gateway-a",
+      "version": 4,
+      "sequence": 4,
+      "fresh": true,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-b",
+      "version": 4,
+      "sequence": 4,
+      "fresh": true,
+      "acknowledged": true
+    }
+  ],
+  "originalKeycloakDiscovery": 200,
+  "scope": "只读运行状态、文件与静态包核查；本轮未向4192业务接口写入，未执行数据库全表前后哈希比较"
+}

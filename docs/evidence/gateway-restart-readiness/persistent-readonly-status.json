@@ -1,0 +1,11 @@
+{
+  "originalApplicationRevision": "0b42f9e11977f8453887d6b23e45192ab2e42d61",
+  "phase": "Degraded",
+  "servicesRunning": 13,
+  "sourcesAvailable": true,
+  "currentVersion": 4,
+  "currentSequence": 4,
+  "newReadQueryOnActualSchemaPassed": true,
+  "runtimeReceiptsExist": false,
+  "originalDeploymentChanged": false
+}

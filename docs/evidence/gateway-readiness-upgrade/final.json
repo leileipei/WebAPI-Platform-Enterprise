@@ -1,0 +1,205 @@
+{
+  "complete": true,
+  "status": {
+    "schemaVersion": 1,
+    "projectName": "webapi-enterprise-local",
+    "sourceRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+    "bindingPhase": "Applied",
+    "pendingConfiguration": null,
+    "services": [
+      {
+        "name": "postgres",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "redis",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "collector",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "prometheus",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "loki",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "tempo",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "control-plane",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "worker",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "console",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-a",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-b",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "backend-a",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "backend-b",
+        "state": "Running",
+        "health": null
+      }
+    ],
+    "sources": [
+      {
+        "name": "collector",
+        "state": "Available",
+        "checkedAt": "2026-10-06T03:01:50.717Z"
+      },
+      {
+        "name": "prometheus",
+        "state": "Available",
+        "checkedAt": "2026-10-06T03:01:50.716Z"
+      },
+      {
+        "name": "loki",
+        "state": "Available",
+        "checkedAt": "2026-10-06T03:01:50.717Z"
+      },
+      {
+        "name": "tempo",
+        "state": "Available",
+        "checkedAt": "2026-10-06T03:01:50.717Z"
+      }
+    ],
+    "nodes": [
+      {
+        "name": "local-gateway-b",
+        "instanceId": "be392f81-36d5-49c1-bb4c-856457288e36",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T03:01:50.60314+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      },
+      {
+        "name": "local-gateway-a",
+        "instanceId": "338c4cd1-dafa-40e5-a6a7-bf0e02dfc4a5",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T03:01:50.606396+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      }
+    ],
+    "storage": [
+      {
+        "name": "webapi-enterprise-local_dp-keys",
+        "volumeId": "webapi-enterprise-local_dp-keys",
+        "bytesUsed": 1001,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-a",
+        "volumeId": "webapi-enterprise-local_lkg-a",
+        "bytesUsed": 4658,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-b",
+        "volumeId": "webapi-enterprise-local_lkg-b",
+        "bytesUsed": 4658,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_loki-data",
+        "volumeId": "webapi-enterprise-local_loki-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      },
+      {
+        "name": "webapi-enterprise-local_pg",
+        "volumeId": "webapi-enterprise-local_pg",
+        "bytesUsed": 69696808,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_prometheus-data",
+        "volumeId": "webapi-enterprise-local_prometheus-data",
+        "bytesUsed": 26506478,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_tempo-data",
+        "volumeId": "webapi-enterprise-local_tempo-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      }
+    ],
+    "environmentStatus": "Active",
+    "errors": [],
+    "phase": "Ready"
+  },
+  "sourceRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+  "imageId": "sha256:9d350a453b8f8441e68d786283bfe13374b0bf5660cce02e33e972af4d246f17",
+  "originalAccountsAndPasswords": true,
+  "realKeycloakViewerLogin": true,
+  "viewerWriteRejected403": true,
+  "logoutSameClient401": true,
+  "normalFrozenMaintenanceRestartReady": true,
+  "idpRestartPreservesSubject": true,
+  "originalBusinessAndPublicationHashesUnchanged": true,
+  "secretsAndSSOConfigUnchanged": true,
+  "currentVersion": 4,
+  "currentSequence": 4,
+  "newBusinessPublish": false,
+  "historicalArchivesUnchanged": 16,
+  "toolFileCount": 96,
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ],
+  "privateBackupsExcluded": true,
+  "productionAcceptance": false
+}

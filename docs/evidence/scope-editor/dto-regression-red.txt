@@ -1,0 +1,91 @@
+✖ existing grants round-trip losslessly, including overlapping access modes and invisible scopes (1.038375ms)
+✖ new scopes start with a single environment and read access; incomplete selection cannot become organization-wide (0.463625ms)
+✔ changing a parent clears descendants but retains the intended level until the user selects replacements (0.081792ms)
+✔ only an explicit level change creates organization or project-wide grants (0.064ms)
+✖ known hierarchy mismatches and arbitrary invisible replacements are rejected while inherited IDs survive other edits (0.103292ms)
+✔ summary counts mode changes separately and represents empty scopes as revocation, without collapsing overlaps (0.08475ms)
+✔ stable reads reject revision drift instead of pairing stale scopes with a newer writable revision (0.202667ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 4
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 40.16
+
+✖ failing tests:
+
+test at console/tests/scope-state.test.mjs:9:1
+✖ existing grants round-trip losslessly, including overlapping access modes and invisible scopes (1.038375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   '规则 1：环境不属于所选项目或组织。',
+  +   '规则 4：环境不属于所选项目或组织。'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:11:88)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '规则 1：环境不属于所选项目或组织。', '规则 4：环境不属于所选项目或组织。' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at console/tests/scope-state.test.mjs:14:1
+✖ new scopes start with a single environment and read access; incomplete selection cannot become organization-wide (0.463625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   '规则 1：环境不属于所选项目或组织。'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:18:51)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '规则 1：环境不属于所选项目或组织。' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at console/tests/scope-state.test.mjs:30:1
+✖ known hierarchy mismatches and arbitrary invisible replacements are rejected while inherited IDs survive other edits (0.103292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   '规则 2：环境不属于所选项目或组织。'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/.worktrees/gateway-restart-readiness/console/tests/scope-state.test.mjs:32:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '规则 2：环境不属于所选项目或组织。' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

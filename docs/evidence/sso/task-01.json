@@ -1,0 +1,32 @@
+{
+  "complete": true,
+  "baseCommit": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
+  "classification": "uncommitted-isolated-worktree",
+  "red": {
+    "domain": 29,
+    "integration": 2,
+    "node": 2
+  },
+  "green": {
+    "domain": 175,
+    "integration": 274,
+    "node": 2
+  },
+  "sqlRegression": "GeneratedSqlCanRunTwiceOnFreshDatabase RED to GREEN",
+  "files": {
+    "src/WebApi.Contracts/Sso/SsoContracts.cs": "67d0f8a50424f31b5e6152879ff4d00e1ff86dfcd1f9e1b4c8cfc90b8bd4c24f",
+    "src/WebApi.Infrastructure/Sso/SsoOptions.cs": "2dc5fb2730d905a653fec22a0b0fbd516d32b0b636408adb287474c35347262b",
+    "src/WebApi.Infrastructure/Sso/SsoProviderValidator.cs": "87395ed9968344699b9f2b35167ed8e989e3051a63b46439af6d6e6bddc79805",
+    "src/WebApi.Infrastructure/Persistence/Entities/SsoLoginAttempt.cs": "e01cd6b7a6994b504152cb90862d14c785edf64529716b23986ae603e3b337f8",
+    "src/WebApi.Infrastructure/Persistence/Entities/SsoProvider.cs": "d2fca92de96ee3d029f14bd49e3aa44e97edef604da2cbb439d1596114dadedf",
+    "src/WebApi.Infrastructure/Persistence/Entities/SsoProviderTest.cs": "e8aa822188f9e823a54f79a44d1aecb1635ad376cbbdc992bebcbf773bbeef48",
+    "src/WebApi.Infrastructure/Persistence/Configurations/SsoLoginAttemptConfiguration.cs": "5456a57506ca712887754ddc13e1c6260b874d76683f95ad3e86a98f04f01fd3",
+    "src/WebApi.Infrastructure/Persistence/Configurations/SsoProviderConfiguration.cs": "f2aa0e85dffd80cfbc4782d0e08276b679c40c4ed97f29da7dbdfd936d47f228",
+    "src/WebApi.Infrastructure/Persistence/Configurations/SsoProviderTestConfiguration.cs": "cb390a1c1c83a2a4cf149a20852f09f093f56e5df11fd925a4cf8d9387b143ad",
+    "deploy/initial-core.sql": "473533c50b1a7a7e87ea88d78ec5a6059d35189a8360a9d802aeede84663be1e",
+    "deploy/compose.sso-test.yml": "d5f27912c4c4f7d6c54a6aec27c1cd8e977809ba84797f27af86c90ba6a68bbb",
+    "scripts/check-sso.sh": "3a1d13c8403f6a4ab12420b0ddcc317c08acb91c73686100586e44850be4c6fc",
+    "scripts/sso/evidence.mjs": "163977970504955a656d35a1b933e5a492e0c4d846b20aafc3a3dd4499ab8934",
+    "src/WebApi.Infrastructure/Persistence/Migrations/20261005120000_SsoOidc.cs": "003158123cedd24e433a30bf3ef9ce07227faf6c15d04438b42028b19ba98699"
+  }
+}

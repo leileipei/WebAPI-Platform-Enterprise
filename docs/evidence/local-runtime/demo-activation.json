@@ -1,0 +1,644 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-04T16:37:57.921Z",
+  "mode": "local-demo-only",
+  "complete": true,
+  "authorization": "User selected A: local demo configuration with independent reviewers, API, dual gateways and console-only alert",
+  "persistentProject": "webapi-enterprise-local",
+  "sourceRevision": "3c038e7d7fdbb5ec7574944a24a70478ddd0f5ab",
+  "imageId": "sha256:345e20a3a4c95bf4b33899908a8664b7599af20d6a74fe4ae54d0e31fe622673",
+  "consoleUrl": "http://127.0.0.1:4192",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "resources": {
+    "organization": {
+      "id": "087143b3-e051-4482-9d41-9603611cf9aa",
+      "revision": 1
+    },
+    "project": {
+      "id": "38953ded-c3b6-436a-8329-19e2e968f9d3",
+      "revision": 1
+    },
+    "flow": {
+      "id": "d4b15809-5bcf-4a78-b8f8-86d96a81adb9",
+      "revision": 1
+    },
+    "environment": {
+      "id": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+      "revision": 1
+    },
+    "local-demo-api-approver": {
+      "id": "e0ce262d-580c-4d07-a1c8-35464b50df99",
+      "rolesAssigned": true,
+      "scopesAssigned": true
+    },
+    "local-demo-security-reviewer": {
+      "id": "4ad3bc95-d073-4a55-9fcb-8ea2c8ceaf5a",
+      "rolesAssigned": true,
+      "scopesAssigned": true
+    },
+    "api": {
+      "id": "cf0ec918-e4ad-44ec-9db9-c3607210fbf3"
+    },
+    "cluster": {
+      "id": "2febcd43-84d7-4f2f-a9b9-62fe3394c6a8",
+      "revision": 1
+    },
+    "backend-a": {
+      "id": "980532cc-1c30-43c9-a15c-4dd3686ede0a",
+      "revision": 1
+    },
+    "backend-b": {
+      "id": "c85de471-ea6f-483a-b3f8-3817112cb25f",
+      "revision": 1
+    },
+    "application": {
+      "id": "e69e4b11-a4d9-412f-a079-0d9b1e986bd2",
+      "revision": 1
+    },
+    "permission": {
+      "id": "d38399e7-c9c1-405d-9364-cccae332a225",
+      "revision": 1
+    },
+    "version": {
+      "id": "bda27e8b-1cbf-4a53-af37-7d96ffb340ac",
+      "revision": 1
+    },
+    "route": {
+      "id": "6dd3efbe-da75-4c97-a2ba-2f477c4e0e50",
+      "revision": 1
+    },
+    "release": {
+      "id": "62cea196-a074-4fdc-ae5e-b7d9a05e8877"
+    },
+    "alertRule": {
+      "id": "35b3f813-0f7d-431e-a25f-c360fb3d7f8a",
+      "revision": 1
+    }
+  },
+  "credential": {
+    "id": "363ba6db-6284-4fcb-a639-119d527dba20",
+    "expiresAt": "2026-11-03T16:22:15.617+00:00",
+    "privateFile": ".runtime/local/demo/consumer-api-key"
+  },
+  "reviewers": {
+    "checkedAt": "2026-10-04T16:29:27.451Z",
+    "distinctPasswords": true,
+    "results": [
+      {
+        "username": "local-demo-api-approver",
+        "organizationCount": 1,
+        "environmentCount": 1,
+        "userAdministrationStatus": 403,
+        "passwordFileMode": "600"
+      },
+      {
+        "username": "local-demo-security-reviewer",
+        "organizationCount": 1,
+        "environmentCount": 1,
+        "userAdministrationStatus": 403,
+        "passwordFileMode": "600"
+      }
+    ]
+  },
+  "productionPolicyExplanation": "isProduction=true only exercises the existing two independent approval policy; this is local demo data, not enterprise production acceptance",
+  "publication": {
+    "releaseId": "62cea196-a074-4fdc-ae5e-b7d9a05e8877",
+    "state": "Succeeded",
+    "targets": [
+      {
+        "nodeId": "c2a62181-2f05-41ea-a48b-d9be7302adce",
+        "instanceId": "3a76a979-2ae9-4e05-987e-514e5a90e624",
+        "acknowledged": true,
+        "configVersion": 1,
+        "deploymentSequence": 1,
+        "errorCode": null
+      },
+      {
+        "nodeId": "d1569e2a-02b6-4253-acb8-8229a2dfebb0",
+        "instanceId": "76e4c5dc-c31b-4a3f-9914-e58c64de6d51",
+        "acknowledged": true,
+        "configVersion": 1,
+        "deploymentSequence": 1,
+        "errorCode": null
+      }
+    ]
+  },
+  "requests": {
+    "count": 874,
+    "statusCounts": {
+      "200": 800,
+      "502": 74
+    },
+    "first": [
+      {
+        "status": 200,
+        "node": 0,
+        "at": "2026-10-04T16:25:43.188Z"
+      },
+      {
+        "status": 200,
+        "node": 1,
+        "at": "2026-10-04T16:25:43.190Z"
+      }
+    ],
+    "last": [
+      {
+        "status": 200,
+        "node": 0,
+        "at": "2026-10-04T16:30:00.644Z"
+      },
+      {
+        "status": 200,
+        "node": 1,
+        "at": "2026-10-04T16:30:00.900Z"
+      }
+    ]
+  },
+  "telemetry": {
+    "trace": {
+      "traceId": "8cb55e8fa71b354bb7cb31949b6b710a",
+      "spanCount": 2,
+      "sourceState": "Available",
+      "partialTrace": false,
+      "coverage": {
+        "complete": true,
+        "missingNodes": [],
+        "reason": null,
+        "truncated": false
+      }
+    },
+    "logSource": "Available",
+    "logCount": 50,
+    "metrics": {
+      "sourceState": "Available",
+      "coverage": {
+        "complete": true,
+        "missingNodes": [],
+        "reason": null,
+        "truncated": false
+      },
+      "range": {
+        "start": "2026-10-04T16:25:48.29+00:00",
+        "end": "2026-10-04T16:26:48.29+00:00"
+      },
+      "kpis": [
+        {
+          "metric": "request_count",
+          "value": 238.9696374075415,
+          "unit": "requests",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "request_rps",
+          "value": 3.982827290125692,
+          "unit": "requests/s",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "success_ratio",
+          "value": 1,
+          "unit": "ratio",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "error_4xx_count",
+          "value": 0,
+          "unit": "requests",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "error_4xx_ratio",
+          "value": 0,
+          "unit": "ratio",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "error_5xx_count",
+          "value": 0,
+          "unit": "requests",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "error_5xx_ratio",
+          "value": 0,
+          "unit": "ratio",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "latency_p50_ms",
+          "value": 2.521834061135371,
+          "unit": "ms",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "latency_p95_ms",
+          "value": 4.791484716157205,
+          "unit": "ms",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "latency_p99_ms",
+          "value": 4.993231441048035,
+          "unit": "ms",
+          "sampleCount": 239,
+          "state": "Available"
+        },
+        {
+          "metric": "unhealthy_destinations",
+          "value": null,
+          "unit": "destinations",
+          "sampleCount": 239,
+          "state": "NoData"
+        },
+        {
+          "metric": "cancelled_count",
+          "value": 0,
+          "unit": "requests",
+          "sampleCount": 239,
+          "state": "Available"
+        }
+      ]
+    },
+    "checkedAt": "2026-10-04T16:27:18.313Z"
+  },
+  "alert": {
+    "ruleId": "35b3f813-0f7d-431e-a25f-c360fb3d7f8a",
+    "eventId": "038697f5-a430-4446-86e4-242747de0570",
+    "status": "Resolved",
+    "resolveReason": "Recovered",
+    "transitions": [
+      {
+        "id": "e840222d-0830-477c-aa53-92971cb0a175",
+        "fromStatus": null,
+        "toStatus": "Open",
+        "actorId": null,
+        "reason": "Triggered",
+        "occurredAt": "2026-10-04T16:28:30.401594+00:00",
+        "correlationId": "alert:35b3f8130f7d431ea25fc360fb3d7f8a:26"
+      },
+      {
+        "id": "f890c15b-9327-4476-8907-85c86436bf6c",
+        "fromStatus": "Open",
+        "toStatus": "Ack",
+        "actorId": "845f5566-d92f-4aa0-ab37-f6295696a40d",
+        "reason": "Ack",
+        "occurredAt": "2026-10-04T16:28:30.712303+00:00",
+        "correlationId": "0HNP26EIRBAEG:0000011E"
+      },
+      {
+        "id": "67442908-b78f-439b-8486-66c8b68810a0",
+        "fromStatus": "Ack",
+        "toStatus": "Resolved",
+        "actorId": null,
+        "reason": "Recovered",
+        "occurredAt": "2026-10-04T16:30:00.760589+00:00",
+        "correlationId": "alert:35b3f8130f7d431ea25fc360fb3d7f8a:32"
+      }
+    ],
+    "auditActions": [
+      "alert.resolved",
+      "alert.triggered",
+      "alert.ack"
+    ]
+  },
+  "backendRestoredAt": "2026-10-04T16:30:01.533Z",
+  "status": {
+    "schemaVersion": 1,
+    "projectName": "webapi-enterprise-local",
+    "sourceRevision": "3c038e7d7fdbb5ec7574944a24a70478ddd0f5ab",
+    "bindingPhase": "Applied",
+    "pendingConfiguration": null,
+    "services": [
+      {
+        "name": "postgres",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "redis",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "collector",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "prometheus",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "loki",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "tempo",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "control-plane",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "worker",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "console",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-a",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-b",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "backend-a",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "backend-b",
+        "state": "Running",
+        "health": null
+      }
+    ],
+    "sources": [
+      {
+        "name": "collector",
+        "state": "Available",
+        "checkedAt": "2026-10-04T16:37:57.796Z"
+      },
+      {
+        "name": "prometheus",
+        "state": "Available",
+        "checkedAt": "2026-10-04T16:37:57.788Z"
+      },
+      {
+        "name": "loki",
+        "state": "Available",
+        "checkedAt": "2026-10-04T16:37:57.787Z"
+      },
+      {
+        "name": "tempo",
+        "state": "Available",
+        "checkedAt": "2026-10-04T16:37:57.788Z"
+      }
+    ],
+    "nodes": [
+      {
+        "name": "local-gateway-b",
+        "instanceId": "76e4c5dc-c31b-4a3f-9914-e58c64de6d51",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-04T16:37:54.365515+00:00",
+        "fresh": true,
+        "currentVersion": 1,
+        "currentSequence": 1,
+        "desiredVersion": 1,
+        "desiredSequence": 1,
+        "acknowledged": true
+      },
+      {
+        "name": "local-gateway-a",
+        "instanceId": "3a76a979-2ae9-4e05-987e-514e5a90e624",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-04T16:37:54.37031+00:00",
+        "fresh": true,
+        "currentVersion": 1,
+        "currentSequence": 1,
+        "desiredVersion": 1,
+        "desiredSequence": 1,
+        "acknowledged": true
+      }
+    ],
+    "storage": [
+      {
+        "name": "webapi-enterprise-local_dp-keys",
+        "volumeId": "webapi-enterprise-local_dp-keys",
+        "bytesUsed": 1001,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-a",
+        "volumeId": "webapi-enterprise-local_lkg-a",
+        "bytesUsed": 2329,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-b",
+        "volumeId": "webapi-enterprise-local_lkg-b",
+        "bytesUsed": 2329,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_loki-data",
+        "volumeId": "webapi-enterprise-local_loki-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      },
+      {
+        "name": "webapi-enterprise-local_pg",
+        "volumeId": "webapi-enterprise-local_pg",
+        "bytesUsed": 52047982,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_prometheus-data",
+        "volumeId": "webapi-enterprise-local_prometheus-data",
+        "bytesUsed": 1208657,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_tempo-data",
+        "volumeId": "webapi-enterprise-local_tempo-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      }
+    ],
+    "environmentStatus": "Active",
+    "errors": [],
+    "phase": "Ready"
+  },
+  "businessCounts": {
+    "users": 3,
+    "organizations": 1,
+    "projects": 1,
+    "environments": 1,
+    "apis": 1,
+    "alertRules": 1,
+    "gatewayNodes": 2
+  },
+  "preservedOldEnvironment": {
+    "unchanged": true,
+    "containerIdentitiesAndMounts": true,
+    "endpoints": {
+      "4180": 200,
+      "4181": 200,
+      "5090": 404
+    },
+    "archives": {
+      "deliverables/WebAPI_Enterprise_可观测与告警源码及验收.zip": "e88d06501b6b995f38af12057933edbae91151cfcac1d0f11d2bc9304eb29b06",
+      "deliverables/WebAPI_Enterprise_核心闭环源码与验收.zip": "734ae0ecf78b92da08d03e352683453498067da8266df44b691ac1ad712d51d6",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1.zip": "810d55a9b09cde400524e29a2c07f032cc6a584af11c56e0aa29779a9d23a5b1",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.1.zip": "1c0ab23e44852efb6538447678b4b7ca4a3e2f2a909ebfb5a5c9fd447557d225",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.2.zip": "14b6c492d1613966de6339d813e90c8ee65abf6c11adfcb6def85f14a7ac3cda",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.3.zip": "7b6208898c6c5e0ad7acecf6182d3cdb1209aa69a2c020e5cd1cd4f4b2ce0a63",
+      "../WebAPI_Enterprise_V2_40页高保真原型_方案1_V1.4.zip": "cc61148914306cca3f6dbe1bdc96d49677c7010932e1f5756c25622b8677f221",
+      "deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收.zip": "87d536081e1e8611a0eea6d089b6a940487dcbe0c9fd890f6cc42bbe72858ce7",
+      "deliverables/WebAPI_Enterprise_独立本机运行环境源码及验收_V1.1.zip": "cd0658aaef617b6a94206fe2d325295484bb53aa8444fb450ca84085c6655ee4",
+      "deliverables/manifest-local-runtime.json": "ffee33f060548d9d5b4f328525b54570dedb402afb416ea16a83e0b48434efa7",
+      "deliverables/manifest-local-runtime-v1.1.json": "401ea45dc8d785581c4c74403acadfdc0f646b07868b381c36f83317cbc82aa6"
+    }
+  },
+  "defaultSettings": {
+    "rootTraceSampleRatio": 0.1,
+    "metricExportIntervalSeconds": 15,
+    "workerIntervalSeconds": 15,
+    "evaluationDelaySeconds": 30,
+    "alertWindowSeconds": 60,
+    "alertForSeconds": 30,
+    "externalNotificationChannels": []
+  },
+  "limitations": [
+    "Real enterprise upstream, TLS/HA, capacity and external notifications are not accepted by this local demo.",
+    "Fresh deployment has insufficient history for the default 1-hour UI metric window; values stay null until coverage is complete.",
+    "Disabled active health checks keep backend health Unknown/Disabled; this is not inferred from HTTP 200."
+  ],
+  "probeCorrection": {
+    "initialCheck": "Remote synthetic traceparent generated visible spans with a missing external parent; API correctly reported Partial. The probe initially expected Available and failed.",
+    "action": "Removed synthetic remote parent and retained real source/coverage states; no application or deployment configuration changed.",
+    "result": {
+      "traceId": "8cb55e8fa71b354bb7cb31949b6b710a",
+      "spanCount": 2,
+      "sourceState": "Available",
+      "partialTrace": false,
+      "coverage": {
+        "complete": true,
+        "missingNodes": [],
+        "reason": null,
+        "truncated": false
+      }
+    }
+  },
+  "ui": {
+    "checkedAt": "2026-10-04T16:35:37.601Z",
+    "consoleLoginVerified": true,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "releaseIndependentApprovalsAndDualAckVisible": true,
+    "currentNodesReadyVisible": true,
+    "realLogsVisible": true,
+    "sampledTraceSpansVisible": true,
+    "traceToLogNavigationVerified": true,
+    "alertAckAndRecoveredVisible": true,
+    "oneHourPartialNoticeVisible": true,
+    "screenshots": [
+      {
+        "file": "demo-alert-ack-1440.png",
+        "width": 1440,
+        "height": 900,
+        "sha256": "10e59aed1c02c9f06eb4b01e91413275f025e7dc495846e699c2939b24748754",
+        "visuallyReviewed": true
+      },
+      {
+        "file": "demo-alert-recovered-1440.png",
+        "width": 1440,
+        "height": 900,
+        "sha256": "96d46353ad8e882fd03eee2cc812f8ce2ee13e0e88a600f173d125b8068065f3",
+        "visuallyReviewed": true
+      },
+      {
+        "file": "demo-linked-log-1440.png",
+        "width": 1440,
+        "height": 1117,
+        "sha256": "e4641e86e6dca22df5f2df498b0f6ea9f7b9c5d16cc4833ea81fc6a794932ecb",
+        "visuallyReviewed": true
+      },
+      {
+        "file": "demo-logs-1440.png",
+        "width": 1440,
+        "height": 900,
+        "sha256": "593a70f5c292461998be334104aa7aa8617f545920facbb02f6e513f8532153a",
+        "visuallyReviewed": true
+      },
+      {
+        "file": "demo-metrics-1440.png",
+        "width": 1440,
+        "height": 900,
+        "sha256": "9fd856a2f679c2c6999871afcde39b19de46344355bdeb09d981bac8c40b002a",
+        "visuallyReviewed": true
+      },
+      {
+        "file": "demo-nodes-current-1440.png",
+        "width": 1440,
+        "height": 900,
+        "sha256": "f36396c609cc2f1b32a4cede867cd1baa78b16e473268faf7ae014808e22f793",
+        "visuallyReviewed": true
+      },
+      {
+        "file": "demo-nodes-initial.png",
+        "width": 1309,
+        "height": 818,
+        "sha256": "69448640d3e66dfdcc9438536861d62ca27b78176a1e8286cbca464770306b79",
+        "visuallyReviewed": true
+      },
+      {
+        "file": "demo-release-initial.png",
+        "width": 1309,
+        "height": 818,
+        "sha256": "397b35d34172d2d1188686d884a2be7f509918939af7da60903eb447533901b5",
+        "visuallyReviewed": true
+      },
+      {
+        "file": "demo-trace-1440.png",
+        "width": 1440,
+        "height": 900,
+        "sha256": "cb1c51d9ec7f7d01b454fcee81f8733b11faf50f3950d443b8c5ad0fe2f79bf4",
+        "visuallyReviewed": true
+      },
+      {
+        "file": "demo-trace-detail-1440.png",
+        "width": 1440,
+        "height": 1503,
+        "sha256": "79056cc5ec89fbd736a1e7aec8861bbbf391a287ff137b918f2366c6d0f9f203",
+        "visuallyReviewed": true
+      }
+    ],
+    "captureNote": "Initial node/release images were captured at 1309x818; later desktop QA captures are 1440px wide. Actual dimensions and hashes are recorded for each image."
+  },
+  "finalChecks": {
+    "sourceAndServicesAvailable": true,
+    "screenshotHashesMatch": true,
+    "oldArchiveAndManifestHashesMatch": true,
+    "privateCredentialsExcluded": true
+  }
+}

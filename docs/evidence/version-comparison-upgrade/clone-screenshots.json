@@ -1,0 +1,30 @@
+{
+  "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "capture": "Actual CUA browser JPEG, lossless PNG transcode with no resize",
+  "screenshots": [
+    {
+      "name": "clone-comparison",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "009cb68fed71d006a388e11750ceef855d9d3f7ec47774730d20f66f856ba007"
+    },
+    {
+      "name": "clone-confirmation",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "86f37a96def07523d1e2a6d2a380a0d39376cc6f02fa297180614951190b8d27"
+    },
+    {
+      "name": "clone-wizard",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "3e70b0864229d3bec0ecce4afdcd03dcaebf946b40f082b74f7e7e4cb9f5a42c"
+    },
+    {
+      "name": "clone-release",
+      "width": 1440,
+      "height": 1024,
+      "sha256": "6c14a82a5ac667c79d2518c03d8c7b451853b516375e667592c5b068a48f90b1"
+    }
+  ]
+}

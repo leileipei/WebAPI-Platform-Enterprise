@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "time": "2026-10-06T13:17:20.035Z",
+  "complete": true,
+  "deployed": false,
+  "authorization": "用户在明确8文件本地提交、合并、冷备份及4192升级授权选项后回复继续",
+  "merge": {
+    "oldRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+    "fastForward": true,
+    "approvedFiles": [
+      "console/src/governance/ScopeEditor.tsx",
+      "console/src/governance/ScopeRules.tsx",
+      "console/src/governance/scope-state.d.mts",
+      "console/src/governance/scope-state.mjs",
+      "console/src/pages/Governance.tsx",
+      "console/src/styles/tokens.css",
+      "console/tests/scope-state.test.mjs",
+      "console/tests/scope-view.test.mjs"
+    ],
+    "protectedLocalFiles": 443,
+    "modifiedFilesPreserved": 7
+  },
+  "runtime": {
+    "phase": "Ready",
+    "sourceRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+    "imageId": "sha256:5e726ccd22b8a3758ff8546d17f2fca4a5d4ad4e2759ddc2c43a1ea5ff434992",
+    "nodes": [
+      {
+        "name": "local-gateway-b",
+        "instanceId": "38dca38f-4782-40d7-9cb3-b988a39730f5",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T13:17:19.161269+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      },
+      {
+        "name": "local-gateway-a",
+        "instanceId": "32fe285a-bb1a-4e1a-a6eb-d0d2992dd28f",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T13:17:19.157447+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      }
+    ],
+    "sources": [
+      {
+        "name": "collector",
+        "state": "Available",
+        "checkedAt": "2026-10-06T13:17:19.412Z"
+      },
+      {
+        "name": "prometheus",
+        "state": "Available",
+        "checkedAt": "2026-10-06T13:17:19.403Z"
+      },
+      {
+        "name": "loki",
+        "state": "Available",
+        "checkedAt": "2026-10-06T13:17:19.400Z"
+      },
+      {
+        "name": "tempo",
+        "state": "Available",
+        "checkedAt": "2026-10-06T13:17:19.400Z"
+      }
+    ],
+    "requests": [
+      {
+        "port": 4196,
+        "status": 200
+      },
+      {
+        "port": 4197,
+        "status": 200
+      }
+    ]
+  },
+  "preservation": {
+    "databaseTables": 33,
+    "migrations": [
+      "20261003182012_InitialCore",
+      "20261003201632_PublishCoordinatorIdentity",
+      "20261003213457_RecoveryReference",
+      "20261004030000_ObservabilityAlerts",
+      "20261005090000_SystemSettings",
+      "20261005120000_SsoOidc",
+      "20261005123210_SsoDisplayEmail",
+      "20261005152401_SsoSecretVersion",
+      "20261006090000_ApiVersionComparisons"
+    ],
+    "secretAndSsoFiles": 22,
+    "toolRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+    "toolFiles": 96,
+    "archives": 29
+  },
+  "noNewDatabaseMigration": true,
+  "noNewBusinessPublish": true
+}

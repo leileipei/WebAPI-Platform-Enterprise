@@ -1,0 +1,34 @@
+{
+  "checkedAt": "2026-10-05T02:55:01.438Z",
+  "classification": "actual-root-trace-probe-boundary",
+  "rootTraceProbeAttemptPassed": false,
+  "configuredSampling": {
+    "ratio": 0.1,
+    "mode": "ParentBasedTraceIdRatioBased"
+  },
+  "observations": [
+    {
+      "nodeName": "local-gateway-b",
+      "traceId": "2cbeecca05590837e127338d4c13ee72",
+      "httpStatus": 404,
+      "traceFound": false
+    },
+    {
+      "nodeName": "local-gateway-a",
+      "traceId": "05efd0bc39d8f83b1bf98f5c58f89945",
+      "httpStatus": 200,
+      "traceFound": true,
+      "sourceState": "Available",
+      "partialTrace": false,
+      "coverage": {
+        "complete": true,
+        "missingNodes": [],
+        "reason": null,
+        "truncated": false
+      },
+      "spanCount": 2
+    }
+  ],
+  "conclusion": "无外部父上下文的两次探针未保证命中10%采样；404表示当前范围未找到链路，不能据此判定源故障或声称完整链路验收通过。",
+  "noConfigurationChanges": true
+}

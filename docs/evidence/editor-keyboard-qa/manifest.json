@@ -1,0 +1,31 @@
+{
+  "baseCommit": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "files": {
+    "01-before-focus-loss.jpg": "c4b5882bc787470d5e48133f94640cb08bd3cdcc01c82840087bed0dfe62299f",
+    "02-after-focus-restored.jpg": "10021dd2f8aaca7fc148a1806015f3988c1ec1fd1dbe4217b63f42a69ff5987b",
+    "03-busy-fallback.jpg": "5dc70ef837f893cc5e3d01cc99f9fe30a664b2378a5a9799bd2cdcc5396bf0c9",
+    "baseline-tests.txt": "7522de34ddd37bb6b08a34d65d5da34da235eb7f283442a243762e1383c4a544",
+    "browser-results.json": "ffd1f85571ed07ae5ab274509d9513df5949b849a76b681e2be99657cd917acd",
+    "build.txt": "4a2bbacc25de7a3cbcf247bb5447cc0893a4eed213bf6ac86899e6feed626bf8",
+    "changes.patch": "7c1b9b29b9d4d92ba520ecb03a0edd30518729d5d074f321647a809fdfc598b7",
+    "full-tests.txt": "c68b4885e3bcabf18f29461ea8a7cb10e230544edc6c5e4c2d6efb5744fb9ac3",
+    "green-tests.txt": "0f2d82235f166197f0047fcd448b098d50a60d2baedd10d0e113c2be8186634a",
+    "original-preserved.json": "2668ca32c5edb69d9096fd5155a3c185e6b21ebb510133d3ec20ea5533ab5c56",
+    "patch-readback.json": "dcbafb6bdb16f77957ce24ae1bd60629c2516547e232942c05cc0f001147b853",
+    "red-behavior.txt": "60aca96894034cf08302b36ed7e7af9cb16ad68584343162c6495bfec1b9a5ce",
+    "red-tests.txt": "c6eeb7c6e3645785c888c254b2b9bc626b08312e98087f5c8277fd0091950369",
+    "report.html": "1989dde797e7489300f9c5676d3cd283b16a787e62ab2306dc5c0d8a76118649",
+    "result.md": "9eaa42a4be590d9634c246b32b23513e05c33081a97615a254080d1f0abac70d",
+    "review.json": "1e37105d5f8e4212a5ee3ac09fcdd13058d5cf46866aac2e79de02cdee7370cf",
+    "source/console/src/editor-focus.d.mts": "4540ca760de2191322e958d2f68e2c4350c2fd202912cbc0304f1757d8da9d7e",
+    "source/console/src/editor-focus.mjs": "3451d07db6553fc61cd35b7e3bb5e8ececdc23c8e9f011e31f4235ea8cf81e09",
+    "source/console/src/ui.tsx": "e2538bca383accd9935950ffa388d0095a9e88dea1fee5c2ea07e1132cab0756",
+    "source/console/tests/editor-focus.test.mjs": "cb571e4ad19b964de873a9481ff6c4598bba017187d8125b24c51368d52a1028",
+    "source/console/tests/editor-view.test.mjs": "8fe4d9a739224d9e06d2b891d0f6133f3e67db851b91556bc65037a395ec9037",
+    "source-manifest.json": "98e39877724c5735a703ed9be79198b6a9c36f8d084726ffa77475d50dc76b9e",
+    "typecheck.json": "ac7c0c545efc1cdf436099dd58cfc08025e59f28dbc2f7b6a521fd482da42974",
+    "verification.json": "963629e3c2ae8d061af1052bf70592d1bc70bb44053d577cd179bfddd7662f93"
+  },
+  "credentialsIncluded": false,
+  "sensitiveMarkerMatches": 0
+}

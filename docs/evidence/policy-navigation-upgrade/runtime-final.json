@@ -1,0 +1,70 @@
+{
+  "complete": true,
+  "time": "2026-10-06T11:44:47.506Z",
+  "phase": "Ready",
+  "sourceRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "platformServicesRunning": 13,
+  "platformDataVolumes": 7,
+  "platformCredentialVolumes": 6,
+  "idpServicesRunning": 2,
+  "idpDataVolumes": 4,
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "instanceId": "38dca38f-4782-40d7-9cb3-b988a39730f5",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T11:44:47.088105+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-a",
+      "instanceId": "32fe285a-bb1a-4e1a-a6eb-d0d2992dd28f",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T11:44:47.097302+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    }
+  ],
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available",
+      "checkedAt": "2026-10-06T11:44:47.071Z"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available",
+      "checkedAt": "2026-10-06T11:44:47.070Z"
+    },
+    {
+      "name": "loki",
+      "state": "Available",
+      "checkedAt": "2026-10-06T11:44:47.071Z"
+    },
+    {
+      "name": "tempo",
+      "state": "Available",
+      "checkedAt": "2026-10-06T11:44:47.071Z"
+    }
+  ],
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "cases": [
+    {
+      "case": "组织→项目→环境联动",
+      "method": "实际UI＋回归测试",
+      "result": "下级只列出所属资源，环境按真实DTO的projectId关联",
+      "evidence": "03-parent-clears-descendants.jpg"
+    },
+    {
+      "case": "默认单环境只读与必填校验",
+      "method": "实际UI＋模型测试",
+      "result": "未选齐时禁止保存，改变上级不会自动变成整组织授权",
+      "evidence": "02-incomplete-range-blocked.jpg"
+    },
+    {
+      "case": "明确整组织／整项目范围",
+      "method": "UI与模型测试",
+      "result": "提示包括今后新增资源；保留read/read_write语义",
+      "evidence": "01-structured-editor.jpg"
+    },
+    {
+      "case": "已有不可见ID保留",
+      "method": "模型＋SSR测试",
+      "result": "原范围原样往返，任意新不可见ID不可伪造；此项未另改真实资源状态",
+      "evidence": "test-green.txt"
+    },
+    {
+      "case": "完全重复规则拦截",
+      "method": "实际UI＋回归测试",
+      "result": "完全相同范围及访问模式不能重复；不同模式的重叠范围保留",
+      "evidence": "13-duplicate-rule-blocked.jpg"
+    },
+    {
+      "case": "摘要与显式确认",
+      "method": "实际UI",
+      "result": "新增／移除／权限调整／保存后条数，确认期间规则锁定",
+      "evidence": "05-save-review.jpg"
+    },
+    {
+      "case": "保存及服务端修订",
+      "method": "实际UI＋服务端读取",
+      "result": "同范围保存修订7→8；更新列表及会话",
+      "evidence": "06-saved-revision.jpg"
+    },
+    {
+      "case": "412并发冲突",
+      "method": "实际UI＋合成并发",
+      "result": "保留只读草稿，最新修订9及真实授权只用于比较，显式采用后保存至10",
+      "evidence": "08-latest-grants-comparison.jpg"
+    },
+    {
+      "case": "空范围明确撤销",
+      "method": "实际UI＋既有会话API",
+      "result": "原既有会话200→404；恢复相同授权后200，角色及权限集合未改",
+      "evidence": "10-revoke-confirmation.jpg"
+    },
+    {
+      "case": "未保存草稿保护",
+      "method": "实际UI",
+      "result": "关闭需确认放弃；浏览器返回被拦截，URL和输入保留",
+      "evidence": "12-dirty-back-blocked.jpg"
+    },
+    {
+      "case": "焦点与键盘",
+      "method": "实际UI＋独立审查",
+      "result": "初始聚焦关闭，取消确认后焦点回到弹窗，Shift+Tab循环；忙碌兜底经代码复查",
+      "evidence": "09-focus-restored.jpg"
+    },
+    {
+      "case": "无scope.manage权限",
+      "method": "实际UI",
+      "result": "qa-viewer显示缺少权限，无法读取用户列表或打开编辑器",
+      "evidence": "14-viewer-scope-denied.jpg"
+    },
+    {
+      "case": "1440×1024设计QA",
+      "method": "截图与只读DOM",
+      "result": "页面及弹窗均无水平溢出，最终2条原授权完整展示",
+      "evidence": "15-final-restored-editor.jpg"
+    },
+    {
+      "case": "原环境与本机文件保留",
+      "method": "只读状态及哈希",
+      "result": "4192仍为2744fbf、Ready，原本机修改/交付物未变，测试原授权已恢复",
+      "evidence": "preservation.json"
+    }
+  ],
+  "allPassed": true,
+  "original4192NotUpgraded": true,
+  "review": {
+    "remainingP1": 0,
+    "remainingP2": 0,
+    "reviewer": "scope_editor_review",
+    "targetedTestsPassed": 12
+  },
+  "testAccount": "qa-scoped",
+  "existingSessionApiStatusSequence": [
+    200,
+    404,
+    200
+  ],
+  "targetScopeGrantCountRestored": 2,
+  "note": "浏览器案例经CUA实际操作；不是自动浏览器测试结果。未运行新的全40页遍历或生产验收。"
+}

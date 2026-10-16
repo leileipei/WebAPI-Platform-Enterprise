@@ -1,0 +1,32 @@
+{
+  "complete": true,
+  "time": "2026-10-06T13:27:29.973Z",
+  "sourceRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "url": "http://127.0.0.1:59769/scopes",
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "structuredReadExistingScope": true,
+  "readScopePreserved": true,
+  "newRuleDefaultsEnvironmentRead": true,
+  "incompleteRangeSaveBlocked": true,
+  "discardExplicitConfirmation": true,
+  "authorizationSaved": false,
+  "jsonEditorRemoved": true,
+  "horizontalOverflow": false,
+  "captures": [
+    {
+      "file": "01-clone-structured-editor.jpg",
+      "label": "恢复环境结构化编辑器"
+    },
+    {
+      "file": "02-clone-incomplete-range.jpg",
+      "label": "未完成范围禁止保存"
+    },
+    {
+      "file": "03-clone-discard-guard.jpg",
+      "label": "草稿放弃需确认"
+    }
+  ]
+}

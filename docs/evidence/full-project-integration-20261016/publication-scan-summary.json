@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-16T06:07:58.866820+00:00",
+  "decision": "no_confirmed_plaintext_credential_found_in_scanned_pending_files",
+  "summary": {
+    "inventoryEntries": 1364,
+    "ordinaryFiles": 1359,
+    "textFilesScanned": 830,
+    "imageFilesCoveredByDeduplicatedOCR": 526,
+    "uniqueImagesSuccessfullyOCRed": 303,
+    "ocrRecognizedLines": 9986,
+    "confirmedCredentialLeaks": 0,
+    "supplementaryTextEntropyCandidatesReviewed": 80,
+    "supplementaryOCRSensitiveLabelImagesReviewed": 30,
+    "supplementaryOCREntropyCandidatesReviewed": 20,
+    "excludedNonfilesOrGeneratedBinaries": 8,
+    "inventoryDriftCount": 0,
+    "additionalCommittedP4Files": 79,
+    "additionalCommittedP4TextFiles": 58,
+    "additionalCommittedP4Images": 21,
+    "totalTextFilesScannedIncludingP4": 888,
+    "totalImagePathsScannedIncludingP4": 547,
+    "totalUniqueImagesOCRedIncludingP4": 324
+  },
+  "coverageBoundaries": [
+    "No .secrets files, live private input directories, Docker data, environment credential stores or real credential values were read. Therefore this is a format/context scan, not equality comparison with live secrets.",
+    "All 303 unique images were recognized entirely on device using Apple Vision, covering all 526 pending image paths by SHA256. No images or OCR were uploaded externally.",
+    "Initial sandboxed OCR failed generically on 303 images. A local unrestricted single-image probe succeeded, followed by the successful 303-image batch. CPU-only sandbox retry also failed.",
+    "OCR is imperfect: Chinese labels sometimes misrecognized, small or low contrast text may be missed. No full-resolution pixel review through an external model was performed. No claim of zero possible image leakage is made.",
+    "Four unique credential table screenshots contain nonsecret Access Key identifiers and Secret last-four columns, not a detected one-time full Secret. Matching DOM capture text supports the table context.",
+    "Eight generated/symlink/binary artifacts are excluded rather than credential-cleared.",
+    "Existing committed history, already tracked files outside the pending inventories and performance raw diagnostics are outside this delegated review. GitHub empty secret-scanning alerts are not evidence for custom credential absence.",
+    "Eligible means no blocking credential evidence found for the inventoried bytes. Private operational logs/data remain local under exclusion rules; release packaging must use an explicit allowlist.",
+    "P4 supplemental review explicitly covers all 79 docs/acceptance, deployment and work-package4 evidence paths added by commit a0e828a64f427715abfbd7e8268c37b27ec231ea, including 58 full text files and 21 local-OCR images. Other committed history remains outside this review."
+  ],
+  "methods": [
+    "UTF-8 full file scan: JWT, Bearer, provider tokens, private keys, credential assignments, connection passwords, credential URIs, cookies, custom platform prefixes",
+    "Supplementary sensitive-key adjacency and high-entropy token contextual classification",
+    "On-device Swift Vision accurate OCR in English and Simplified Chinese with SHA256 deduplication",
+    "Metadata-only reporting, no matched credential values"
+  ],
+  "reportContainsCredentialValues": false,
+  "originalFilesModifiedByReviewer": false
+}

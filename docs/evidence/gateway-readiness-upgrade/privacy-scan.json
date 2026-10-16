@@ -1,0 +1,9 @@
+{
+  "complete": true,
+  "knownCurrentSecretValuesScanned": 14,
+  "secretValueMatches": 0,
+  "privateRuntimeBackupsSessionsAndDependenciesExcluded": true,
+  "sourceFilesByteIdenticalToAuthorizedCommit": true,
+  "fixedToolFilesByteIdenticalToInstalledCommit": true,
+  "scanCoversEveryDecompressedZipEntry": true
+}

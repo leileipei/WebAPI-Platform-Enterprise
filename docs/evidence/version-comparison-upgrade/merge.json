@@ -1,0 +1,22 @@
+{
+  "mainMerged": true,
+  "targetRevision": "17cad2315900939a1fdc2bca6f876a4649bcc06f",
+  "fastForward": true,
+  "existingFilesPreserved": 71,
+  "existingTrackedEditsPreserved": 6,
+  "applicationSourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "sourceInputEquality": "passed",
+  "runtimeNotSwitched": true,
+  "consoleTests": 99,
+  "runtimeTests": 104,
+  "typeScript": "passed",
+  "viteBuild": "passed",
+  "firstConsoleAttempt": {
+    "passed": false,
+    "reason": "Sandbox blocked temporary localhost listening; unchanged source rerun with local-port permission passed"
+  },
+  "logSha256": {
+    "merge-console-retry.log": "41ab9cfebb6c59986b6de5f6dced81c515a6481ecbfb32c5934ca629bcc6da5a",
+    "merge-runtime.log": "db368ad138b63485ecb269f680409c45d206fa97bdf6fee6a5dd7734129ebc1f"
+  }
+}

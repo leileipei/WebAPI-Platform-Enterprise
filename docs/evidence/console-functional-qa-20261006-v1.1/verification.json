@@ -1,0 +1,20 @@
+{
+  "time": "2026-10-06T11:03:16.711421+00:00",
+  "pageMatrixRows": 40,
+  "screenshots": 83,
+  "allReportLinksPresent": true,
+  "actualSecretMarkersChecked": 22,
+  "secretMarkerFileMatches": [],
+  "payloadExcludes": [
+    "private runtime",
+    "password files",
+    "account secrets",
+    "database",
+    "backups",
+    "Docker images",
+    "full source tree"
+  ],
+  "sourcePatchHashMatched": true,
+  "scopeRevocation": "completed: 404, same-session data cleared, exact scopes restored, 200",
+  "original4192Upgrade": "not executed"
+}

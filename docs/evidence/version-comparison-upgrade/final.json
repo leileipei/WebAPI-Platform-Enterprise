@@ -1,0 +1,30 @@
+{
+  "complete": true,
+  "phase": "Ready",
+  "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "imageId": "sha256:0f2b243d098d19eca5d1ea1d1acb853893cf0260495bcb230fd28386fc46962c",
+  "originalPasswordsAndThreeLocalAccounts": true,
+  "realKeycloakViewerLogin": true,
+  "viewerReadAndWriteDenied403": true,
+  "logoutSameClient401": true,
+  "staticFilesVerified": 3,
+  "protectedTablesPreserved": 31,
+  "historicalArchivesPreserved": 22,
+  "originalLocalFilesPreserved": 71,
+  "originalSecretsSsoAndPublicationUnchanged": true,
+  "newTablesEmpty": true,
+  "businessVersion": 4,
+  "businessSequence": 4,
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ],
+  "maintenanceToolRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+  "productionAcceptance": false
+}

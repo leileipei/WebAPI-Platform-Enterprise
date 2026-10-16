@@ -1,0 +1,23 @@
+{
+  "verifiedAt": "2026-10-16T05:21:11.270303+00:00",
+  "roles": {
+    "candidate": {
+      "parent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "productFiles": 583,
+      "allRegressionProductBytesEqualPatchedRoleSources": true,
+      "allFourteenApprovedDependencyFilesMatch": true,
+      "inputManifestSha256": "76677ab856d0efc566741c31c2d6339c307a84b93991c6110ff3e24b9f0f519f"
+    },
+    "baseline": {
+      "parent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "productFiles": 584,
+      "allRegressionProductBytesEqualPatchedRoleSources": true,
+      "allFourteenApprovedDependencyFilesMatch": true,
+      "inputManifestSha256": "2f7641117c18a44f343aeaa375d34219709b07a10a77fc18349d575312c8fd04"
+    }
+  },
+  "sourceUncommitted": true,
+  "immutable": false,
+  "formalQualified": false,
+  "complete": true
+}

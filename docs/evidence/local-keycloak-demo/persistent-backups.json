@@ -1,0 +1,17 @@
+{
+  "complete": true,
+  "platformVolumes": 7,
+  "idpVolumes": 4,
+  "platformFiles": 20,
+  "idpFiles": 12,
+  "SSOConfigIncluded": true,
+  "reviewerCredentialsIncluded": true,
+  "allFilesHashReadback": true,
+  "originalRestarted": true,
+  "privateLocations": {
+    "platformBackup": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/local-keycloak-demo/.runtime/local-keycloak-demo/persistent-platform-1791222155740",
+    "idpBackup": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/local-keycloak-demo/.runtime/local-keycloak-demo/persistent-idp-1791222155740"
+  },
+  "restoreEvidence": "backup-restore.json",
+  "restoreEvidenceScope": "Separate disposable SSO instance, not a claim that this final persistent backup has itself been restored."
+}

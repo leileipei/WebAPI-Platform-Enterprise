@@ -1,0 +1,74 @@
+  Determining projects to restore...
+  Restored /workspace/src/WebApi.TestBackend/WebApi.TestBackend.csproj (in 54 ms).
+  Restored /workspace/src/WebApi.ConsoleHost/WebApi.ConsoleHost.csproj (in 1.47 sec).
+  Restored /workspace/src/WebApi.Gateway/WebApi.Gateway.csproj (in 1.48 sec).
+  Restored /workspace/src/WebApi.ControlPlane/WebApi.ControlPlane.csproj (in 2.23 sec).
+  Restored /workspace/tests/WebApi.TestSupport/WebApi.TestSupport.csproj (in 2.23 sec).
+  Restored /workspace/tests/WebApi.Gateway.Tests/WebApi.Gateway.Tests.csproj (in 2.26 sec).
+  3 of 9 projects are up-to-date for restore.
+  WebApi.Contracts -> /workspace/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  WebApi.Domain -> /workspace/src/WebApi.Domain/bin/Release/net10.0/WebApi.Domain.dll
+  WebApi.Infrastructure -> /workspace/src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.dll
+  WebApi.TestBackend -> /workspace/src/WebApi.TestBackend/bin/Release/net10.0/WebApi.TestBackend.dll
+  WebApi.ConsoleHost -> /workspace/src/WebApi.ConsoleHost/bin/Release/net10.0/WebApi.ConsoleHost.dll
+  WebApi.Gateway -> /workspace/src/WebApi.Gateway/bin/Release/net10.0/WebApi.Gateway.dll
+  WebApi.ControlPlane -> /workspace/src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll
+  WebApi.TestSupport -> /workspace/tests/WebApi.TestSupport/bin/Release/net10.0/WebApi.TestSupport.dll
+  WebApi.Gateway.Tests -> /workspace/tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll
+Test run for /workspace/tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed WebApi.Gateway.Tests.RedisRateLimitTests.TwoClientsShareExactBurstAtFrozenRedisTime [10 s]
+  Error Message:
+   StackExchange.Redis.RedisConnectionException : It was not possible to connect to the redis server(s). Error connecting right now. To allow this multiplexer to continue retrying until it's able to connect, use abortConnect=false in your connection string or AbortOnConnectFail=false; in your code.
+  Stack Trace:
+     at StackExchange.Redis.ConnectionMultiplexer.ConnectImplAsync(ConfigurationOptions configuration, TextWriter writer, Nullable`1 serverType, CircuitBreaker groupCircuitBreaker, Boolean isGroupMember) in /_/src/StackExchange.Redis/ConnectionMultiplexer.cs:line 661
+   at WebApi.Gateway.Tests.RedisRateLimitTests.TwoClientsShareExactBurstAtFrozenRedisTime() in /workspace/tests/WebApi.Gateway.Tests/RedisRateLimitTests.cs:line 21
+--- End of stack trace from previous location ---
+  Failed WebApi.Gateway.Tests.RedisRateLimitTests.DifferentAppsAndRoutesIsolated [176 ms]
+  Error Message:
+   StackExchange.Redis.RedisConnectionException : It was not possible to connect to the redis server(s). Error connecting right now. To allow this multiplexer to continue retrying until it's able to connect, use abortConnect=false in your connection string or AbortOnConnectFail=false; in your code.
+  Stack Trace:
+     at StackExchange.Redis.ConnectionMultiplexer.ConnectImplAsync(ConfigurationOptions configuration, TextWriter writer, Nullable`1 serverType, CircuitBreaker groupCircuitBreaker, Boolean isGroupMember) in /_/src/StackExchange.Redis/ConnectionMultiplexer.cs:line 661
+   at WebApi.Gateway.Tests.RedisRateLimitTests.DifferentAppsAndRoutesIsolated() in /workspace/tests/WebApi.Gateway.Tests/RedisRateLimitTests.cs:line 27
+--- End of stack trace from previous location ---
+  Failed WebApi.Gateway.Tests.RedisRateLimitTests.ElapsedTimeRefillsAndSetsBoundedTtl [170 ms]
+  Error Message:
+   StackExchange.Redis.RedisConnectionException : It was not possible to connect to the redis server(s). Error connecting right now. To allow this multiplexer to continue retrying until it's able to connect, use abortConnect=false in your connection string or AbortOnConnectFail=false; in your code.
+  Stack Trace:
+     at StackExchange.Redis.ConnectionMultiplexer.ConnectImplAsync(ConfigurationOptions configuration, TextWriter writer, Nullable`1 serverType, CircuitBreaker groupCircuitBreaker, Boolean isGroupMember) in /_/src/StackExchange.Redis/ConnectionMultiplexer.cs:line 661
+   at WebApi.Gateway.Tests.RedisRateLimitTests.ElapsedTimeRefillsAndSetsBoundedTtl() in /workspace/tests/WebApi.Gateway.Tests/RedisRateLimitTests.cs:line 25
+--- End of stack trace from previous location ---
+  Failed WebApi.Gateway.Tests.RedisRateLimitTests.RedisClockRollbackDoesNotRefillAlreadyAccountedTime [166 ms]
+  Error Message:
+   StackExchange.Redis.RedisConnectionException : It was not possible to connect to the redis server(s). Error connecting right now. To allow this multiplexer to continue retrying until it's able to connect, use abortConnect=false in your connection string or AbortOnConnectFail=false; in your code.
+  Stack Trace:
+     at StackExchange.Redis.ConnectionMultiplexer.ConnectImplAsync(ConfigurationOptions configuration, TextWriter writer, Nullable`1 serverType, CircuitBreaker groupCircuitBreaker, Boolean isGroupMember) in /_/src/StackExchange.Redis/ConnectionMultiplexer.cs:line 661
+   at WebApi.Gateway.Tests.RedisRateLimitTests.RedisClockRollbackDoesNotRefillAlreadyAccountedTime() in /workspace/tests/WebApi.Gateway.Tests/RedisRateLimitTests.cs:line 32
+--- End of stack trace from previous location ---
+  Failed WebApi.Gateway.Tests.RedisRateLimitTests.SameAppCredentialsShareBucket [168 ms]
+  Error Message:
+   StackExchange.Redis.RedisConnectionException : It was not possible to connect to the redis server(s). Error connecting right now. To allow this multiplexer to continue retrying until it's able to connect, use abortConnect=false in your connection string or AbortOnConnectFail=false; in your code.
+  Stack Trace:
+     at StackExchange.Redis.ConnectionMultiplexer.ConnectImplAsync(ConfigurationOptions configuration, TextWriter writer, Nullable`1 serverType, CircuitBreaker groupCircuitBreaker, Boolean isGroupMember) in /_/src/StackExchange.Redis/ConnectionMultiplexer.cs:line 661
+   at WebApi.Gateway.Tests.RedisRateLimitTests.SameAppCredentialsShareBucket() in /workspace/tests/WebApi.Gateway.Tests/RedisRateLimitTests.cs:line 29
+--- End of stack trace from previous location ---
+  Failed WebApi.Gateway.Tests.RedisRateLimitTests.ProductionRedisTimeUsesSharedBucketWithoutTestClock [166 ms]
+  Error Message:
+   StackExchange.Redis.RedisConnectionException : It was not possible to connect to the redis server(s). Error connecting right now. To allow this multiplexer to continue retrying until it's able to connect, use abortConnect=false in your connection string or AbortOnConnectFail=false; in your code.
+  Stack Trace:
+     at StackExchange.Redis.ConnectionMultiplexer.ConnectImplAsync(ConfigurationOptions configuration, TextWriter writer, Nullable`1 serverType, CircuitBreaker groupCircuitBreaker, Boolean isGroupMember) in /_/src/StackExchange.Redis/ConnectionMultiplexer.cs:line 661
+   at WebApi.Gateway.Tests.RedisRateLimitTests.ProductionRedisTimeUsesSharedBucketWithoutTestClock() in /workspace/tests/WebApi.Gateway.Tests/RedisRateLimitTests.cs:line 42
+--- End of stack trace from previous location ---
+Results File: /workspace/test-results/Gateway.trx
+
+Failed!  - Failed:     6, Passed:    46, Skipped:     0, Total:    52, Duration: 30 s - WebApi.Gateway.Tests.dll (net10.0)
+
+ Container webapi-dialog-unit-2ca117de-1c86-43a4-b4e8-8cecff01af44-sdk-run-8838cb88d3d4 Creating 
+ Container webapi-dialog-unit-2ca117de-1c86-43a4-b4e8-8cecff01af44-sdk-run-8838cb88d3d4 Created 
+[xUnit.net 00:00:10.31]     WebApi.Gateway.Tests.RedisRateLimitTests.TwoClientsShareExactBurstAtFrozenRedisTime [FAIL]
+[xUnit.net 00:00:11.06]     WebApi.Gateway.Tests.RedisRateLimitTests.DifferentAppsAndRoutesIsolated [FAIL]
+[xUnit.net 00:00:11.23]     WebApi.Gateway.Tests.RedisRateLimitTests.ElapsedTimeRefillsAndSetsBoundedTtl [FAIL]
+[xUnit.net 00:00:11.40]     WebApi.Gateway.Tests.RedisRateLimitTests.RedisClockRollbackDoesNotRefillAlreadyAccountedTime [FAIL]
+[xUnit.net 00:00:11.57]     WebApi.Gateway.Tests.RedisRateLimitTests.SameAppCredentialsShareBucket [FAIL]
+[xUnit.net 00:00:11.74]     WebApi.Gateway.Tests.RedisRateLimitTests.ProductionRedisTimeUsesSharedBucketWithoutTestClock [FAIL]
+

@@ -1,0 +1,44 @@
+[
+  {
+    "file": "01-provider-list.jpg",
+    "format": "JPEG",
+    "width": 1440,
+    "height": 1000
+  },
+  {
+    "file": "02-provider-config.jpg",
+    "format": "JPEG",
+    "width": 1440,
+    "height": 1000
+  },
+  {
+    "file": "03-enterprise-login.jpg",
+    "format": "JPEG",
+    "width": 1440,
+    "height": 1000
+  },
+  {
+    "file": "04-keycloak-login.jpg",
+    "format": "JPEG",
+    "width": 1440,
+    "height": 1000
+  },
+  {
+    "file": "05-viewer-permission-boundary.jpg",
+    "format": "JPEG",
+    "width": 1440,
+    "height": 1000
+  },
+  {
+    "file": "06-viewer-environment.jpg",
+    "format": "JPEG",
+    "width": 1440,
+    "height": 1000
+  },
+  {
+    "file": "07-local-admin-recovery.jpg",
+    "format": "JPEG",
+    "width": 1440,
+    "height": 1000
+  }
+]

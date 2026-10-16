@@ -1,0 +1,17 @@
+{
+  "complete": true,
+  "sourceRevision": "0b42f9e11977f8453887d6b23e45192ab2e42d61",
+  "ownerUnchanged": true,
+  "originalCredentialsUnchanged": true,
+  "allProtectedRowsAndHistoricalSnapshotsUnchanged": true,
+  "addedMigrations": [
+    "20261005120000_SsoOidc",
+    "20261005123210_SsoDisplayEmail",
+    "20261005152401_SsoSecretVersion"
+  ],
+  "providerRows": 0,
+  "identityRows": 0,
+  "fixtureEnabled": false,
+  "enterpriseIdpConfigured": false,
+  "administratorLoginVerified": true
+}

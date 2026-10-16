@@ -1,0 +1,22 @@
+{
+  "console/src/Shell.tsx": "31fff861de11f3e150d3a8b91d276adba4ba9f790f9b6164b5d30fcbc0c8d4b7",
+  "console/src/styles/tokens.css": "2755a471c91de92c88366b69f7450833baf02fc791bec63bb57362a6ca4b91e6",
+  "console/src/SidebarNav.tsx": "c3949c690a9979ce5179ee8c57523fe34c55e58c32d175261df7e0e09a2a1c1e",
+  "console/src/sidebar-model.mjs": "68a0c705fba2ce32211f3ffe934f43f61dc0a893a04dc430f138e9862b70a631",
+  "console/src/sidebar-model.d.mts": "6b66298405d04bd6d99fafb2acd76052882486c8f96bf2b477a8c692e1214615",
+  "console/tests/sidebar.test.mjs": "9f65084f7462f10d1985ab95a24cc177f5b4eb9a76b5de5d917ac1472016821b",
+  "docs/evidence/navigation-upgrade/cold-backup.json": "f06258b08d3e45c262eb3595c50ce735b75b46b21c5a19a5adc9fab5e1aa1d4e",
+  "docs/evidence/navigation-upgrade/result.md": "43f498789f6e6e703fdc8aeb27cc3e5ffc6e2b62d468db258a9ec556d37c0a16",
+  "docs/evidence/navigation-upgrade/immutable-build.json": "d1b905cd862345748cfe2bd980a38578e9f274f631b3e1b32e05378057f88e04",
+  "docs/evidence/navigation-upgrade/import.json": "8d1fffd4e9d2a158217a44f788467676fe923412115e4a5d0844d8128ca6ecfc",
+  "docs/evidence/navigation-upgrade/ui-collapsed-4192.png": "c8584aadfbbe4e82dc678fd62ca2237bda1ba5749b77ee497fb096ee26e39e64",
+  "docs/evidence/navigation-upgrade/ui-sso-4192.png": "b76426d2dfe46899fe78e55cd2913412950ba9ac2a7c89b51f9daa95c1cac88a",
+  "docs/evidence/navigation-upgrade/upgrade.json": "d086b68237421e7a8db01c0bd2a519ad645e30d717d63cb25615e339b975ec44",
+  "docs/evidence/navigation-upgrade/ui-before-4192.png": "755caf217110d983e00f8ab38763d0988d0f83ba1af3ff7908c61e4e9a405573",
+  "docs/evidence/navigation-upgrade/verification.json": "102e91e360663bcadd8e5f76bb7ab7725fb0ef20a04384ac5238be0d976028dd",
+  "docs/evidence/navigation-upgrade/source-commit.json": "35c4d5394570ec9ce267032e5e8a8c7348c94d9422272b7066d2d3b92e7627e7",
+  "docs/evidence/navigation-upgrade/final.json": "607a0ae0b51bd2bfbd836444d31accb63ec6838b3272e7b472c165b1ae2e136b",
+  "docs/evidence/navigation-upgrade/ui-qa.json": "0e59842ffb14bb0354c0b3f0bec238aa05b6e68262c8824aa61736c12c4f8e3e",
+  "docs/evidence/navigation-upgrade/preflight.json": "eb73c2b450dc1e135215430cd446b317b6166a8f38a65e22d9553bb1d7c99118",
+  "docs/evidence/navigation-upgrade/ui-after-4192.png": "e72ecf837a1b8b0e638e6616726d9c22df613e90cdb880f938f8af158ced1535"
+}

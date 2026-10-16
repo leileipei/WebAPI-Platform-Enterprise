@@ -1,0 +1,13 @@
+{
+  "complete": true,
+  "baseRevision": "43afb0a05e1293ba3f5640299f5b2682fbb17ca3",
+  "changedTrackedFiles": [
+    "console/src/observability/RuleEditor.tsx",
+    "console/src/comparisons/RiskReviewDialog.tsx"
+  ],
+  "addedFiles": [
+    "console/tests/standalone-dialog-view.test.mjs"
+  ],
+  "matchedSourceHashes": 3,
+  "archiveEntries": 954
+}

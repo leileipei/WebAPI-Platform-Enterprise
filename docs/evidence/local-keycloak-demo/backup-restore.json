@@ -1,0 +1,45 @@
+{
+  "complete": true,
+  "platformVolumes": 7,
+  "idpVolumes": 4,
+  "sourceSSOConfigIncluded": true,
+  "newOwnerSSODisabled": true,
+  "interruptionAfterFirstVolumeInjected": true,
+  "servicesStoppedBeforeResuming": true,
+  "completedVolumeMarkerUnchanged": true,
+  "stableSubjectAfterRestore": true,
+  "oldProviderDisabledByAPI": true,
+  "originalViewerIdRetained": true,
+  "actualRestoredLogin": true,
+  "restoredReadScope": true,
+  "restoredWriteStatus": 403,
+  "validationLog": ".runtime/local-keycloak-demo/restore-check.log",
+  "cleanup": [
+    {
+      "name": "restore-pointer.json",
+      "idpCleanup": {
+        "projectName": "webapi-local-idp-a3b1c59f-a783-4335-a41f-fc70669c9667",
+        "resourcesRemaining": 0
+      },
+      "platformCleanup": {
+        "containersRemaining": 0,
+        "volumesRemaining": 0,
+        "secretFilesRemaining": 0
+      }
+    },
+    {
+      "name": "isolated-pointer.json",
+      "idpCleanup": {
+        "projectName": "webapi-local-idp-4a77c40a-f86a-46d2-8a1a-c779c79ff084",
+        "resourcesRemaining": 0
+      },
+      "platformCleanup": {
+        "containersRemaining": 0,
+        "volumesRemaining": 0,
+        "secretFilesRemaining": 0
+      }
+    }
+  ],
+  "firstCleanupFailure": "Client-secret volume was still mounted by disposable control-plane; fixed cleanup order and resumed.",
+  "privateBackupsRetained": true
+}

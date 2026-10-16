@@ -1,0 +1,37 @@
+{
+  "toolCommit": "acb10a5f06a1734aec40a5d49ec1355d9fa191c8",
+  "applicationCommit": "0b42f9e11977f8453887d6b23e45192ab2e42d61",
+  "unitTests": {
+    "passed": 166,
+    "failed": 0
+  },
+  "review": {
+    "reviewers": 1,
+    "rounds": 1,
+    "authorFixPass": 1,
+    "critical": 0,
+    "important": 2,
+    "minor": 3,
+    "secondIndependentReview": false
+  },
+  "backupRestore": "backup-restore.json",
+  "isolatedRealFlows": "isolated-live.json",
+  "portChoice": {
+    "planned": 4193,
+    "occupiedBy": "existing Node listener",
+    "selected": 4194,
+    "oldListenerStopped": false
+  },
+  "knownGatewayRestartLimitation": "Release ACK is frozen to previous instance; new instances report Ready at v4/seq4, aggregate state Degraded. No extra publication or fabricated ACK.",
+  "persistentRealFlows": "persistent-live.json",
+  "nativeUI": "ui/qa.json",
+  "currentBackups": "persistent-backups.json",
+  "originalDataPreserved": true,
+  "doubleGatewayStatus": [
+    200,
+    200
+  ],
+  "SSODemoComplete": true,
+  "aggregatePlatformPhase": "Degraded",
+  "completePlatformReadyClaim": false
+}

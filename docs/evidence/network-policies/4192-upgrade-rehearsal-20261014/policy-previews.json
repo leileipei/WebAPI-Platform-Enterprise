@@ -1,0 +1,23 @@
+{
+  "scope": {
+    "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+    "projectId": "38953ded-c3b6-436a-8329-19e2e968f9d3",
+    "organizationId": "087143b3-e051-4482-9d41-9603611cf9aa"
+  },
+  "request": {
+    "outputJson": "{\"items\":[\"original\",\"mapped\"],\"n\":9007199254740993,\"copy\":{\"x\":1},\"copied\":{\"x\":1},\"moved\":\"m\"}",
+    "operationCount": 5,
+    "kind": "JsonMappingPreview",
+    "actualForwarding": false
+  },
+  "response": {
+    "outputJson": "{\"body\":{\"items\":[\"upstream\",\"response\"]}}",
+    "operationCount": 1,
+    "kind": "JsonMappingPreview",
+    "actualForwarding": false
+  },
+  "onlyPreview": true,
+  "originalApiVersionsIncludedInNewRelease": [
+    "bda27e8b-1cbf-4a53-af37-7d96ffb340ac"
+  ]
+}

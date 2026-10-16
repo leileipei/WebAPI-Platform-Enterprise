@@ -1,0 +1,52 @@
+{
+  "dialogHorizontalOverflow": false,
+  "draftRows": 2,
+  "focusInDialog": true,
+  "horizontalOverflow": false,
+  "selects": [
+    {
+      "label": "规则 1范围层级",
+      "value": "environment"
+    },
+    {
+      "label": "规则 1组织",
+      "value": "8d210fe9-2622-494e-81e8-34f6d4f5b69e"
+    },
+    {
+      "label": "规则 1项目",
+      "value": "d8e91b70-2b9d-4d09-bb02-ede0a35ebeda"
+    },
+    {
+      "label": "规则 1环境",
+      "value": "74a15802-2d9b-4240-9b07-6a56b436ab79"
+    },
+    {
+      "label": "规则 1访问方式",
+      "value": "read"
+    },
+    {
+      "label": "规则 2范围层级",
+      "value": "project"
+    },
+    {
+      "label": "规则 2组织",
+      "value": "8d210fe9-2622-494e-81e8-34f6d4f5b69e"
+    },
+    {
+      "label": "规则 2项目",
+      "value": "d8e91b70-2b9d-4d09-bb02-ede0a35ebeda"
+    },
+    {
+      "label": "规则 2环境",
+      "value": ""
+    },
+    {
+      "label": "规则 2访问方式",
+      "value": "read_write"
+    }
+  ],
+  "viewport": {
+    "height": 1024,
+    "width": 1440
+  }
+}

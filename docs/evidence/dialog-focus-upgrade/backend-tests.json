@@ -1,0 +1,25 @@
+{
+  "complete": true,
+  "sourceRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "disposableDatabase": true,
+  "suites": [
+    {
+      "suite": "Domain",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:   249, Skipped:     0, Total:   249, Duration: 10 s - WebApi.Domain.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "suite": "Gateway",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:    52, Skipped:     0, Total:    52, Duration: 32 s - WebApi.Gateway.Tests.dll (net10.0)"
+      ]
+    },
+    {
+      "suite": "Integration",
+      "summary": [
+        "Passed!  - Failed:     0, Passed:   405, Skipped:     0, Total:   405, Duration: 2 m 45 s - WebApi.Integration.Tests.dll (net10.0)"
+      ]
+    }
+  ]
+}

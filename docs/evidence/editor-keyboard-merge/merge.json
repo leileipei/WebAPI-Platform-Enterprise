@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "mergedAt": "2026-10-06T14:04:46.716069+00:00",
+  "sourceRevision": "43afb0a05e1293ba3f5640299f5b2682fbb17ca3",
+  "targetBranch": "feature/core-loop",
+  "fastForwardOnly": true,
+  "filesMerged": 5,
+  "originalLocalFilesPreserved": 503,
+  "originalTrackedChangesPreserved": 7,
+  "installedRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "runtimeFilesUnchanged": true,
+  "pushed": false,
+  "serviceUpgradePerformed": false
+}

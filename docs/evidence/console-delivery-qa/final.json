@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "phase": "Ready",
+  "sourceRevision": "6fcb6bb90d8c65a69104124be0fc4f18fa2512d7",
+  "liveStaticFilesMatchImmutableBuild": 3,
+  "originalLocalFilesPreserved": true,
+  "protectedTables": 31,
+  "originalAccountsAndPasswords": true,
+  "realKeycloakViewerLogin": true,
+  "viewerWriteRejected403": true,
+  "logoutSameClient401": true,
+  "originalSecretsSsoAndPublicationUnchanged": true,
+  "toolingFilesVerified": 96,
+  "historicalArchivesUnchanged": 18,
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ],
+  "productionAcceptance": false
+}

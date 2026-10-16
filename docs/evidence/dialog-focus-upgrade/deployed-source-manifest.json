@@ -1,0 +1,16 @@
+{
+  "installedBefore": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "sourceRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "committed": true,
+  "merged": true,
+  "files": {
+    "console/src/comparisons/RiskReviewDialog.tsx": "21ecad5c2df574932296b4112854304feef97e830576e4f22ff737b47f82d13a",
+    "console/src/editor-focus.d.mts": "4540ca760de2191322e958d2f68e2c4350c2fd202912cbc0304f1757d8da9d7e",
+    "console/src/editor-focus.mjs": "3451d07db6553fc61cd35b7e3bb5e8ececdc23c8e9f011e31f4235ea8cf81e09",
+    "console/src/observability/RuleEditor.tsx": "77c7d3ad419e39cf775c149a3ea44ddedd78a50b5467ef595f5ee5835f9cc5e2",
+    "console/src/ui.tsx": "e2538bca383accd9935950ffa388d0095a9e88dea1fee5c2ea07e1132cab0756",
+    "console/tests/editor-focus.test.mjs": "cb571e4ad19b964de873a9481ff6c4598bba017187d8125b24c51368d52a1028",
+    "console/tests/editor-view.test.mjs": "8fe4d9a739224d9e06d2b891d0f6133f3e67db851b91556bc65037a395ec9037",
+    "console/tests/standalone-dialog-view.test.mjs": "be559d4aa9e0eb8e8eb1ae1c2346ee87732fd47aa53c980e280400e86304d7ce"
+  }
+}

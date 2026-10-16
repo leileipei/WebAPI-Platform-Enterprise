@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "complete": true,
+  "time": "2026-10-06T09:50:39.237659+00:00",
+  "scope": "三个显示修复在4192本机部署验收",
+  "sourceRevision": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "imageId": "sha256:cce2e8c0c69ea326926077efa544f8c55788589ccfd4ec13239e6ca8ef4a24e3",
+  "phase": "Ready",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197,
+    "keycloak": 4194
+  },
+  "consoleTests": {
+    "passed": 99,
+    "failed": 0
+  },
+  "databaseTablesPreserved": 33,
+  "migrationsUnchanged": true,
+  "coldBackup": {
+    "platformVolumes": 7,
+    "idpVolumes": 4,
+    "hashReadback": true,
+    "platformRestoreThisBatch": true,
+    "softwareRollbackThisBatch": true,
+    "idpRestoreThisBatch": false
+  },
+  "accountAndSso": {
+    "originalThreeLocalAccountsVerified": true,
+    "realKeycloakViewerVerified": true,
+    "viewerWriteDenied403": true,
+    "logout401": true,
+    "credentialsIncluded": false
+  },
+  "businessVersion": 4,
+  "businessSequence": 4,
+  "newBusinessPublish": false,
+  "originalLocalFilesPreserved": 168,
+  "historicalArchivesPreserved": 24,
+  "screenshots": [
+    "01-coverage-4192.jpg",
+    "02-approvals-4192.jpg",
+    "03-governance-4192.jpg"
+  ],
+  "full40PageInteractionAcceptance": false,
+  "productionAcceptance": false,
+  "priorQaPackageUnmodified": true,
+  "disposableCloneCleaned": true
+}

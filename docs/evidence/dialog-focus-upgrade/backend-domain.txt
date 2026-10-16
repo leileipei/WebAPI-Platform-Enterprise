@@ -1,0 +1,15 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  WebApi.Contracts -> /workspace/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  WebApi.Domain -> /workspace/src/WebApi.Domain/bin/Release/net10.0/WebApi.Domain.dll
+  WebApi.Infrastructure -> /workspace/src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.dll
+  WebApi.Domain.Tests -> /workspace/tests/WebApi.Domain.Tests/bin/Release/net10.0/WebApi.Domain.Tests.dll
+Test run for /workspace/tests/WebApi.Domain.Tests/bin/Release/net10.0/WebApi.Domain.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /workspace/test-results/Domain.trx
+Results File: /workspace/test-results/Domain.trx
+
+Passed!  - Failed:     0, Passed:   249, Skipped:     0, Total:   249, Duration: 10 s - WebApi.Domain.Tests.dll (net10.0)
+
+ Container webapi-dialog-unit-6505d448-8788-4fb8-811a-1aafd05a9118-sdk-run-1629b607c63b Creating 
+ Container webapi-dialog-unit-6505d448-8788-4fb8-811a-1aafd05a9118-sdk-run-1629b607c63b Created 

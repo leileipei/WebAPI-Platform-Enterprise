@@ -1,0 +1,3 @@
+recordType,engineVersion,fingerprint,coverage,source,operation,pointer,change,risk,reason,before,after
+"Finding","compatibility-v1","a812d8fa676717be2cd909b243d98495a71f6922d3a8b8fbb8ec9be038c53496","Complete","openapi","GET /orders","/parameters/query:name/required","Changed","Breaking","请求参数必填性变化。","false","true"
+"Summary","compatibility-v1","a812d8fa676717be2cd909b243d98495a71f6922d3a8b8fbb8ec9be038c53496","Complete","","","","","","{""Added"":0,""Changed"":1,""Removed"":0,""Compatible"":0,""Breaking"":1,""Unknown"":0}","",""

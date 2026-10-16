@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "realOidcCodeExchange": true,
+  "callbackStatus": 303,
+  "meStatus": 200,
+  "originalUserId": "cfc402c9-e891-4822-9e8e-932ec907f90f",
+  "providerUnchanged": true,
+  "rolesAndScopesWritten": false,
+  "browserSameSiteAcceptance": false
+}

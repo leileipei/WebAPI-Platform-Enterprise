@@ -1,0 +1,9 @@
+{
+  "complete": true,
+  "fileCount": 19,
+  "manifestSha256": "81abb0224b89388bc05e865bccb1f14fa50ac5f8e3b08655e8d7b183960b54c9",
+  "volumes": 7,
+  "originalRestarted": true,
+  "originalPreserved": true,
+  "privateBackup": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/local-keycloak-demo/.runtime/local-keycloak-demo/platform-before-keycloak-1791220082844"
+}

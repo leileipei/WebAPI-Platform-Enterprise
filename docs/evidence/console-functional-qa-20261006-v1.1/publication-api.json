@@ -1,0 +1,11 @@
+{
+  "time": "2026-10-06T10:28:06.153Z",
+  "state": "Succeeded",
+  "configVersion": 2,
+  "sequence": 2,
+  "independentApprovals": true,
+  "dualAck": true,
+  "riskReviewLinked": true,
+  "proxyRequests": 24,
+  "allProxy200": true
+}

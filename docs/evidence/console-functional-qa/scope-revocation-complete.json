@@ -1,0 +1,29 @@
+{
+  "time": "2026-10-06T10:59:44.304222+00:00",
+  "authorization": "用户在明确询问两个测试Scope暂时撤销、验证并恢复后回复继续",
+  "environment": "独立53735合成环境",
+  "user": "qa-scoped",
+  "sameBrowserSession": true,
+  "before": "项目API可读，编辑禁用",
+  "afterRevoke": {
+    "apiHttpStatus": 404,
+    "scopeCount": 0,
+    "afterPermissionRefresh": "API名称与版本列表清除，组织/项目/环境选择均无可访问项"
+  },
+  "afterRestore": {
+    "apiHttpStatus": 200,
+    "scopeCount": 2,
+    "exactSavedScopesRestored": true,
+    "roleUnchanged": true,
+    "browserReadRestored": true,
+    "editingRemainsDisabled": true
+  },
+  "original4192Touched": false,
+  "screens": [
+    "81-scope-before-revoke.jpg",
+    "82-scope-revoked-existing-session.jpg",
+    "83-scope-restored-existing-session.jpg"
+  ],
+  "postRestoreReadonlyChecks": "原自定义角色、精确6项读取权限与原两个Scope一致，API读取200",
+  "extraApiWriteNegativeRetest": "自动审批认为超出本次Scope授权而拒绝，未执行；采用只读角色核对与界面禁用状态，不声称本次重测403"
+}

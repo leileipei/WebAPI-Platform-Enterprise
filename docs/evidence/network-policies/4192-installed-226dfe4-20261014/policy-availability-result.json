@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "validation": [
+    {
+      "type": "cors",
+      "result": {
+        "valid": true,
+        "normalizedConfig": "{\"allowCredentials\":true,\"allowedHeaders\":[\"Content-Type\",\"X-API-Key\"],\"allowedMethods\":[\"GET\",\"POST\",\"OPTIONS\"],\"allowedOrigins\":[\"https://cutover-check.example.test\"],\"exposedHeaders\":[\"X-Network-QA\"],\"maxAgeSeconds\":600}"
+      }
+    },
+    {
+      "type": "ip_filter",
+      "result": {
+        "valid": true,
+        "normalizedConfig": "{\"mode\":\"AllowList\",\"ranges\":[\"10.0.0.0/8\",\"::1/128\"]}"
+      }
+    },
+    {
+      "type": "transform",
+      "result": {
+        "valid": true,
+        "normalizedConfig": "{\"path\":{\"addPrefix\":\"/__network\",\"removePrefix\":\"/network\"},\"query\":[{\"action\":\"Remove\",\"name\":\"omit\"},{\"action\":\"Set\",\"name\":\"qa\",\"value\":\"1\"}],\"requestBody\":{\"maxBodyBytes\":1024,\"methods\":[\"POST\"],\"operations\":[{\"op\":\"add\",\"path\":\"/items/-\",\"value\":\"mapped\"},{\"op\":\"replace\",\"path\":\"/n\",\"value\":9007199254740993},{\"op\":\"remove\",\"path\":\"/drop\"},{\"from\":\"/copy\",\"op\":\"copy\",\"path\":\"/copied\"},{\"from\":\"/move\",\"op\":\"move\",\"path\":\"/moved\"}]},\"requestHeaders\":[{\"action\":\"Set\",\"name\":\"X-Network-QA\",\"value\":\"qa\"}],\"responseBody\":{\"maxBodyBytes\":1024,\"operations\":[{\"op\":\"add\",\"path\":\"/body/items/-\",\"value\":\"response\"}],\"statusCodes\":[200]},\"responseHeaders\":[{\"action\":\"Set\",\"name\":\"X-Network-QA\",\"value\":\"qa\"}]}"
+      }
+    }
+  ],
+  "requestPreview": {
+    "outputJson": "{\"items\":[\"original\",\"mapped\"],\"n\":9007199254740993,\"copy\":{\"x\":1},\"copied\":{\"x\":1},\"moved\":\"m\"}",
+    "operationCount": 5,
+    "kind": "JsonMappingPreview",
+    "actualForwarding": false
+  },
+  "responsePreview": {
+    "outputJson": "{\"body\":{\"items\":[\"upstream\",\"response\"]}}",
+    "operationCount": 1,
+    "kind": "JsonMappingPreview",
+    "actualForwarding": false
+  },
+  "persistedPolicyWrites": 0,
+  "publishedNewSnapshot": false,
+  "actualPolicyExecution": "Previously verified on independent restored clone; live original route kept unchanged"
+}

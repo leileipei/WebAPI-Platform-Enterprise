@@ -1,0 +1,45 @@
+{
+  "complete": true,
+  "sourceRevision": "8026813e69519f59ff79cf7b5581862e5719da93",
+  "baseRevision": "6fcb6bb90d8c65a69104124be0fc4f18fa2512d7",
+  "files": [
+    "console/src/coverage.json",
+    "console/src/main.tsx",
+    "console/src/pages/Coverage.tsx",
+    "console/src/pages/Workbench.tsx",
+    "console/src/sidebar-model.mjs",
+    "console/src/styles/tokens.css",
+    "console/src/workbench/WorkbenchView.tsx",
+    "console/src/workbench/model.d.mts",
+    "console/src/workbench/model.mjs",
+    "console/tests/sidebar.test.mjs",
+    "console/tests/workbench-view.test.mjs",
+    "console/tests/workbench.test.mjs",
+    "docs/console-coverage.md",
+    "docs/deployment/current-local-status.md",
+    "docs/workbench.md"
+  ],
+  "tests": {
+    "passed": 182,
+    "failed": 0,
+    "skipped": 0
+  },
+  "typeScriptCheck": true,
+  "testFirst": {
+    "navigation": true,
+    "model": true,
+    "view": true,
+    "rankingCorrection": true
+  },
+  "independentReview": {
+    "blockingIssues": 0,
+    "importantFindingsClosed": [
+      "missing-count ranking",
+      "Trace sampling copy"
+    ],
+    "readyToMerge": true
+  },
+  "fastForwardMerged": true,
+  "backendAndToolSourceChanged": false,
+  "pushPerformed": false
+}

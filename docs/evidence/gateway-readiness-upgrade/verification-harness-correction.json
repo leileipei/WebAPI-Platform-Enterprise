@@ -1,0 +1,9 @@
+{
+  "classification": "verification-script-correction",
+  "applicationSourceChanged": false,
+  "firstAttemptStoppedBeforeRestart": true,
+  "reason": "Logout response updated LocalClient cookie jar; assertion incorrectly reused separate SsoBrowser cookie jar.",
+  "correctedCheck": "After logout, the same LocalClient /auth/me must reject with 401.",
+  "sessionBoundary": "Application logout clears the requesting client cookie. It does not revoke a separately copied authentication cookie before expiry or account/provider invalidation.",
+  "retryRequired": true
+}

@@ -1,29 +1,31 @@
 # 原40页面与真实管理控制台对应
 
+2026-10-16集成说明：以[本次交付边界](deployment/full-project-integration-20261016.md)及[454项逐条台账](evidence/work-package4/requirements-status.md)为当前索引；下文阶段性部署措辞属于对应历史记录。
+
 原V1.4完整高保真原型保留在 ../prototype，下面说明新真实服务控制台的能力。已接入指核心API真实读写，不代表原页所有后续能力已经实现；后续能力不会显示模拟成功。
 
 |原页|页面|真实入口|状态与范围|
 |---|---|---|---|
-|1|登录|/|已接入本地Cookie与OIDC SSO登录；保留本地管理员恢复入口，首次改密后续|
+|1|登录|/|已接入本地Cookie与OIDC SSO登录；保留本地管理员恢复入口，新建本地用户与新安装管理员首次改密、显式密码重置已实现；现有账号保留、SSO由IdP管理|
 |2|企业工作台|`/dashboard`|真实只读聚合；当前项目 API、当前环境24h指标/节点/告警/最近发布；待审批仅最近50条|
 |3|组织|/organizations|已接入|
 |4|项目|/projects|已接入；负责人由创建者记录|
 |5|环境|/environments|已接入；环境访问地址、前缀及授权内网入口已完成独立审查并安装至4192|
 |6|API目录|/apis|已接入；完整标签与指标后续|
 |7|六步向导|/apis/{id}/wizard|已接入逐步保存与发布Review|
-|8|OpenAPI导入|/imports|已接入3 JSON原文、Operation映射；URL/YAML后续|
+|8|OpenAPI导入|/imports|已接入OpenAPI JSON／YAML文本与URL导入、Operation映射；详见契约管理完成手册|
 |9|API详情|/apis/{id}|已接入工作/运行/待发布事实；实际路由地址、无凭证示例及环境OpenAPI副本已安装至4192|
 |10|版本|/apis/{id}|已接入版本Tab|
 |11|版本比较与风险评审|/apis/{id}/versions/compare|真实比较、历史/导出、追加风险评审和可选发布证据已完成固定源码隔离验收及1440px UI QA；规则覆盖受限；4192软件包已升级，该比较流程本批未复验|
 |12|Route|/routes|已接入环境专属路由；本包9类策略绑定、组织共享选择及优先级编辑已通过固定隔离验收，4192未安装本包|
-|13|参数Schema|/apis/{id}|已接入参数/Schema Tab与原文编辑；完整树和例验证后续|
+|13|参数Schema|/apis/{id}|已接入参数／Schema树、原文编辑及示例校验；具体规则边界见契约管理完成手册|
 |14|Cluster|/clusters|已接入|
 |15|Destination|/clusters/{id}|已接入权重/健康配置；立即探测后续|
 |16|策略中心|/policies|已接入9类真实策略列表、类型/范围过滤、复制、引用与工作/运行修订；CORS/IP/Transform本包已通过固定隔离验收|
 |17|策略编辑|/policies/{id}|已接入9类动态字段、CORS/IP、Header/路径/Query与双向JSON映射、同引擎只读预览、服务端校验、412保留输入、引用保护及审批发布；本包4192升级未执行|
 |18|应用|/applications|已接入|
 |19|应用详情|/applications/{id}|已接入|
-|20|凭证|/applications/{id}|已接入凭证Tab，一次性Secret及有效期/撤销|
+|20|凭证|/applications/{id}|已接入凭证Tab，一次性Secret及有效期／撤销；第4包补充按环境使用计数、最近使用、完整性状态和轮换，未部署4192|
 |21|API授权|/applications/{id}|已接入授权Tab及环境/窗口|
 |22|发布与交付中心|/releases；/delivery/overview|已接入原发布、跨环境交付、不可变制品、晋级与标准阶段流水线；原4192已安装，任意脚本/分支/并行编排后续|
 |23|发布详情|/releases/{id}|原审批/ACK/回滚/制品/晋级追溯已安装4192；本包CORS/IP及JSON双向冻结Review、快照2.3能力门禁已通过固定隔离验收，4192未安装本包|
@@ -36,8 +38,8 @@
 |30|访问日志|/observability/logs|已接入真实Loki、签名游标、脱敏详情/CSV与只在POST内存使用的精确IP筛选；源上限显式截断；本包策略决策/JSON实际操作数已通过固定隔离验收|
 |31|Trace|/observability/traces|已接入真实Tempo、Server/Client瀑布图、安全span标签；同Trace跨环境隔离，缺失/采样/源故障分开；本包CORS/IP/Transform决策及JSON实际操作数已通过固定隔离验收|
 |32|告警中心|/observability/alerts|已接入PG事件、Ack/Resolve/Silence/Unsilence与流转；Unknown不当恢复，Metrics关联选择冻结环境|
-|33|告警规则|/observability/alert-rules|已接入创建/编辑/启停、范围预览、只读测试与412保护；Email/Webhook/EnterpriseIm仅意向|
-|34|用户|/users|已接入平台级用户治理|
+|33|告警规则|/observability/alert-rules|已接入创建/编辑/启停、范围预览、只读测试与412保护；外部通知投递与恢复见通知阶段手册；真实企业端点仍需目标环境验收|
+|34|用户|/users|已接入平台级用户治理、显式本地密码重置与首次改密闭环（第4包尚未部署4192）|
 |35|角色|/roles|已接入系统角色只读与自定义角色|
 |36|权限矩阵|/roles|已接入角色权限选择|
 |37|数据范围|/scopes|已接入精确Scope规则；结构化表单继续优化|

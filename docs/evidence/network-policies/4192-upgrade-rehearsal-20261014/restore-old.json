@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "ownerId": "e96ed9c3-bf2e-4cf4-a402-955f8634f796",
+  "sourceRevision": "9d5832952ed91fb99defc2cf3eae81cd8cee3afa",
+  "status": "Ready",
+  "rows": {
+    "tables": 71,
+    "oldRows": 1005,
+    "oldRowsPreserved": true,
+    "newTables": []
+  },
+  "binary": {
+    "imageId": "sha256:da412506d34264a9652c837f906b9436b72a4deba81d2abb0851fbf4020ca065",
+    "applicationContainers": 8,
+    "applicationHashes": 269,
+    "staticHashes": 3
+  },
+  "calls": [
+    {
+      "port": 62868,
+      "status": 200,
+      "backendId": "A",
+      "apiKeyForwarded": false
+    },
+    {
+      "port": 62869,
+      "status": 200,
+      "backendId": "A",
+      "apiKeyForwarded": false
+    }
+  ],
+  "authentication": {
+    "userId": "845f5566-d92f-4aa0-ab37-f6295696a40d",
+    "username": "admin",
+    "existingPipelinePermissions": true
+  },
+  "ssoLiveIdpDisconnected": true,
+  "original4192Touched": false
+}

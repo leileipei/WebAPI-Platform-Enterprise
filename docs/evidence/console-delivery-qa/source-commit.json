@@ -1,0 +1,26 @@
+{
+  "complete": true,
+  "sourceRevision": "6fcb6bb90d8c65a69104124be0fc4f18fa2512d7",
+  "files": [
+    "console/src/sidebar-model.mjs",
+    "console/tests/sidebar.test.mjs",
+    "console/src/pages/Coverage.tsx",
+    "console/src/coverage.json",
+    "docs/console-coverage.md",
+    "docs/deployment/current-local-status.md",
+    "docs/deployment/local-keycloak-demo.md"
+  ],
+  "tests": {
+    "passed": 172,
+    "failed": 0,
+    "skipped": 0
+  },
+  "rootRegression": {
+    "red": true,
+    "green": true
+  },
+  "typeScriptCheck": true,
+  "independentReview": "ready to merge; documentation finding closed",
+  "backendAndToolSourceChanged": false,
+  "pushPerformed": false
+}

@@ -1,0 +1,33 @@
+{
+  "complete": true,
+  "reviewScope": "Policies.tsx两处成功后的导航交接，保留原未保存守卫",
+  "sourceBase": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "sourceRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "sourceSha256": "53088ff64819a5992709722bd519b755aef3c26058bcca1ff281916e8d77a1ec",
+  "patchSha256": "62ef1c50d7b9ab7335aa5ba301c2dd4db3ea49d9f0b13ad57d4db59459181ae7",
+  "independentSourceReview": {
+    "conclusion": "可接受，未发现需修改的问题",
+    "navigationTestsPassed": 3,
+    "typescript": "通过",
+    "diffCheck": "通过",
+    "fullSuite": {
+      "passed": 98,
+      "failed": 1,
+      "limitation": "workbench测试监听127.0.0.1被审查沙箱EPERM阻止；与本差异无关。主验收授权环境完整99/99通过。"
+    },
+    "scopeExcluded": "其他未修改功能、原4192运行环境及生产部署"
+  },
+  "freshTests": {
+    "beforeCommit": {
+      "passed": 99,
+      "failed": 0,
+      "log": "frontend-tests.log"
+    },
+    "afterMerge": {
+      "passed": 99,
+      "failed": 0,
+      "log": "merged-frontend-tests.log"
+    }
+  },
+  "uiRedGreenHistory": "../console-functional-qa-20261006-v1.1/report.html"
+}

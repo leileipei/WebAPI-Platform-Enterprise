@@ -1,0 +1,177 @@
+{
+  "complete": true,
+  "classification": "actual-cold-backup-restoration-migration-and-software-rollback",
+  "steps": [
+    "cold-backup",
+    "old-restore",
+    "migration-rehearsal",
+    "software-rollback",
+    "owned-restore-cleanup"
+  ],
+  "before": {
+    "ids": {
+      "users": [
+        "4ad3bc95-d073-4a55-9fcb-8ea2c8ceaf5a",
+        "845f5566-d92f-4aa0-ab37-f6295696a40d",
+        "e0ce262d-580c-4d07-a1c8-35464b50df99"
+      ],
+      "organizations": [
+        "087143b3-e051-4482-9d41-9603611cf9aa"
+      ],
+      "projects": [
+        "38953ded-c3b6-436a-8329-19e2e968f9d3"
+      ],
+      "environments": [
+        "7be0c798-d71a-4337-96ef-3d8e3f2e92dd"
+      ],
+      "apis": [
+        "cf0ec918-e4ad-44ec-9db9-c3607210fbf3"
+      ],
+      "api_versions": [
+        "bda27e8b-1cbf-4a53-af37-7d96ffb340ac"
+      ],
+      "api_routes": [
+        "6dd3efbe-da75-4c97-a2ba-2f477c4e0e50"
+      ],
+      "upstream_clusters": [
+        "2febcd43-84d7-4f2f-a9b9-62fe3394c6a8"
+      ],
+      "applications": [
+        "e69e4b11-a4d9-412f-a079-0d9b1e986bd2"
+      ],
+      "application_credentials": [
+        "363ba6db-6284-4fcb-a639-119d527dba20"
+      ],
+      "application_api_permissions": [
+        "d38399e7-c9c1-405d-9364-cccae332a225"
+      ],
+      "alert_rules": [
+        "35b3f813-0f7d-431e-a25f-c360fb3d7f8a"
+      ],
+      "alert_events": [
+        "038697f5-a430-4446-86e4-242747de0570"
+      ]
+    },
+    "snapshots": [
+      {
+        "id": "125f4687-75f1-489d-baee-45f5b85d1ca5",
+        "version": 1,
+        "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+        "sha256": "a1c9559e73197338332385dc2463c569eed3418aaac86279ffd2b847562c3569"
+      },
+      {
+        "id": "95368703-ee27-4187-bce6-08ff9e6389eb",
+        "version": 2,
+        "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+        "sha256": "df162b6330aee91f5bfd4eda9fba80a333098ab840eeeee8bd4084f19b60ac8b"
+      }
+    ],
+    "migrations": [
+      "20261003182012_InitialCore",
+      "20261003201632_PublishCoordinatorIdentity",
+      "20261003213457_RecoveryReference",
+      "20261004030000_ObservabilityAlerts"
+    ],
+    "settingsRows": null
+  },
+  "backup": {
+    "directory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/backups/system-settings-2026-10-05T05-51-22.813Z",
+    "files": 21,
+    "volumes": 7,
+    "manifestSha256": "134d74c5e3840af52d281ecdfd600fd6ed2ea2d7a03c7f8fd6f3d51aa7ff319b",
+    "allHashesReadBack": true,
+    "demoIncluded": true
+  },
+  "oldRestore": {
+    "hashesVerified": true,
+    "idsAndHistoricalSnapshotsPreserved": true,
+    "credentialsPreserved": true,
+    "traffic": [
+      {
+        "port": 61081,
+        "status": 200
+      },
+      {
+        "port": 61082,
+        "status": 200
+      }
+    ]
+  },
+  "migrationRehearsal": {
+    "newMigrationOnly": true,
+    "emptySettingsTable": true,
+    "defaultsAndCsv": {
+      "groups": [
+        {
+          "group": "security",
+          "revision": 0,
+          "fields": 4
+        },
+        {
+          "group": "release",
+          "revision": 0,
+          "fields": 2
+        },
+        {
+          "group": "gateway",
+          "revision": 0,
+          "fields": 3
+        },
+        {
+          "group": "audit",
+          "revision": 0,
+          "fields": 2
+        },
+        {
+          "group": "notification",
+          "revision": 0,
+          "fields": 6
+        }
+      ],
+      "fields": 17,
+      "compatibilityDefaults": true,
+      "structuralOnly": true,
+      "settingsRemainEmpty": true,
+      "csv": {
+        "status": 200,
+        "bytes": 14836,
+        "rows": 65,
+        "truncated": "false"
+      }
+    },
+    "traffic": [
+      {
+        "port": 61081,
+        "status": 200
+      },
+      {
+        "port": 61082,
+        "status": 200
+      }
+    ],
+    "idsAndHistoricalSnapshotsPreserved": true
+  },
+  "softwareRollback": {
+    "oldImage": "sha256:3ca77a5a15b1949b0fe7a13793d0226cee56cd5b22247bcfce6e4d14ddfae006",
+    "newTableRetained": true,
+    "migrationNotReverted": true,
+    "traffic": [
+      {
+        "port": 61081,
+        "status": 200
+      },
+      {
+        "port": 61082,
+        "status": 200
+      }
+    ],
+    "login": true,
+    "idsAndHistoricalSnapshotsPreserved": true
+  },
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  },
+  "checkedAt": "2026-10-05T05:53:38.699Z"
+}

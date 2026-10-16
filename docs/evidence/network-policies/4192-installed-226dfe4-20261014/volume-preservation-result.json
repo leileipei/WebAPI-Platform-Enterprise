@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "liveVolumesByteEqualToImmediatelyPreCutoverBackup": [
+    "verification-reports",
+    "dp-keys",
+    "secrets-cache",
+    "notification-secrets",
+    "notification-fixture-secrets"
+  ],
+  "fileCounts": [
+    {
+      "name": "verification-reports",
+      "files": 0
+    },
+    {
+      "name": "dp-keys",
+      "files": 1
+    },
+    {
+      "name": "secrets-cache",
+      "files": 1
+    },
+    {
+      "name": "notification-secrets",
+      "files": 3
+    },
+    {
+      "name": "notification-fixture-secrets",
+      "files": 5
+    }
+  ],
+  "readOnly": true,
+  "originalIdpContainersRunningAndImagesUnchanged": 2
+}

@@ -1,0 +1,43 @@
+{
+  "complete": true,
+  "time": "2026-10-06T11:48:12.025679+00:00",
+  "scope": "Policies.tsx两处导航修复合并及4192本机部署验收",
+  "sourceRevision": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "imageId": "sha256:5e726ccd22b8a3758ff8546d17f2fca4a5d4ad4e2759ddc2c43a1ea5ff434992",
+  "phase": "Ready",
+  "consoleTestsBeforeCommit": {
+    "passed": 99,
+    "failed": 0
+  },
+  "consoleTestsAfterMerge": {
+    "passed": 99,
+    "failed": 0
+  },
+  "databaseTablesPreserved": 33,
+  "migrationsUnchanged": true,
+  "coldBackup": {
+    "platformVolumes": 7,
+    "idpVolumes": 4,
+    "filesReadback": 32,
+    "platformPhysicalRestoreThisBatch": true,
+    "idpPhysicalRestoreThisBatch": true,
+    "softwareRollbackThisBatch": true
+  },
+  "originalAccountsAndSso": {
+    "threeLocalAccountsVerified": true,
+    "realKeycloakViewerLogin": true,
+    "readOnlyScopeVerified": true,
+    "logoutSameSession401": true,
+    "credentialsIncluded": false
+  },
+  "businessVersion": 4,
+  "businessSequence": 4,
+  "newBusinessPublish": false,
+  "originalLocalFilesPreserved": 413,
+  "historicalArchivesPreserved": 27,
+  "originalPoliciesCreated": 0,
+  "originalPoliciesUnchanged": true,
+  "disposableCloneCleaned": true,
+  "productionAcceptance": false,
+  "prior40PageQaPackagesUnmodified": true
+}

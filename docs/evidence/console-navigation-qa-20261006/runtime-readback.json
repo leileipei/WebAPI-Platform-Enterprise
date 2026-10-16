@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "projectName": "webapi-enterprise-local",
+  "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "phase": "Ready",
+  "services": [
+    {
+      "name": "postgres",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "redis",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "collector",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "prometheus",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "loki",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "tempo",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "control-plane",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "worker",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "console",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "gateway-a",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "gateway-b",
+      "state": "Running",
+      "health": "healthy"
+    },
+    {
+      "name": "backend-a",
+      "state": "Running",
+      "health": null
+    },
+    {
+      "name": "backend-b",
+      "state": "Running",
+      "health": null
+    }
+  ],
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available",
+      "checkedAt": "2026-10-06T09:31:16.633Z"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available",
+      "checkedAt": "2026-10-06T09:31:16.630Z"
+    },
+    {
+      "name": "loki",
+      "state": "Available",
+      "checkedAt": "2026-10-06T09:31:16.630Z"
+    },
+    {
+      "name": "tempo",
+      "state": "Available",
+      "checkedAt": "2026-10-06T09:31:16.626Z"
+    }
+  ],
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "instanceId": "958f5507-4ddf-451b-ab97-9e59886450b6",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T09:31:16.018843+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-a",
+      "instanceId": "e9c69837-f289-4d0b-b7c6-1e2bb5354734",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T09:31:16.012411+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    }
+  ]
+}

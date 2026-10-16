@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "classification": "actual-uncommitted-reviewed-tools",
+  "files": {
+    "scripts/check-sso.sh": "3a1d13c8403f6a4ab12420b0ddcc317c08acb91c73686100586e44850be4c6fc",
+    "scripts/check-console.sh": "c975caeec8b0ef5a67a6acaa0cef504e50bd374c32bc83aac5c7d770cf4c18ec",
+    "scripts/local-client.mjs": "f90800ae1277c3afae22e7a5d529be2e137a8c7f638ebe9b05659e1a3eca8156",
+    "scripts/policies/build-source.mjs": "c385227d8a3240122af900a8a7d1d8afd146fe6cdf226b3654d4960999b5c9a5",
+    "scripts/package-sso.py": "a50ec8e21d15d657ff8ff9ad298b9d86c3e49e97195244192df6064b26139105",
+    ".config/dotnet-tools.json": "ef15b10f5bdfb5b4b82faafb42aa3da35b6120149cbd62d92c5efc970de802b3",
+    "scripts/sso/acceptance.mjs": "e4c8463e8ce11140fd9356c31c014ea8f21341ee87fe33ed43c968ab676e1b00",
+    "scripts/sso/cleanup.mjs": "46ba72ff703c6cdd449528dc41e87522d5110bc082f832cea22ab94671b00dcc",
+    "scripts/sso/evidence.mjs": "d57c2430dc22bac281628ba1664c9e8e72bc3ba9c66173e49aa72871915f3411",
+    "scripts/sso/fixture.mjs": "4cc2bb9bcbd7543e4493d57ee4c81b63a8764912e0f947ab9636859b55201681",
+    "scripts/sso/qa-checklist.json": "c1cc2867fd68d2c8e95fd77f92ea04cc4d6036b6944e531ec8ffbe589a5e0c34",
+    "scripts/sso/review-actions.mjs": "34c5a3eeac3dee8c742a9dfbd5ffe370d0802b9af179f9acec3ca02626fda644",
+    "scripts/sso/scenario.mjs": "4b978a82f5f5d67c215dae398fd3c67ec335c306c861bd0d008d723fa78c4b36",
+    "scripts/sso/verify.mjs": "15a80051bcef01a46541f93ed2ac88a6f02f72f1087006493b80d490279585d8"
+  }
+}

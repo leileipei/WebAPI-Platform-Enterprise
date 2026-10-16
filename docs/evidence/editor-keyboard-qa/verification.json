@@ -1,0 +1,28 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T13:59:57.413291+00:00",
+  "scope": "通用Editor取消草稿确认、Tab循环及保存阻塞焦点修复",
+  "baseCommit": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "sourceFiles": 5,
+  "sourceCommitted": false,
+  "merged": false,
+  "installedOn4192": false,
+  "consoleTests": {
+    "passed": 116,
+    "failed": 0,
+    "baselinePassed": 111,
+    "added": 5
+  },
+  "browserChecks": 12,
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "reviewRemainingP1P2": 0,
+  "patchReadback": true,
+  "originalRuntime": "84ab385 / Ready / v4 / seq4",
+  "originalProtectedTablesPreserved": 33,
+  "previewBusinessWritesForwarded": 0,
+  "previewStopped": true,
+  "productionAcceptance": false
+}

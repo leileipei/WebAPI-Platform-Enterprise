@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "originalNavigationEntries": 26,
+  "allOriginalRoutesPreserved": true,
+  "navigationGroups": 10,
+  "backendAndDatabaseAndDeploymentFilesChanged": false,
+  "redEvidence": "ui-before-4192.png",
+  "tests": {
+    "passed": 171,
+    "failed": 0,
+    "skipped": 0
+  },
+  "typeScriptCheck": true,
+  "sourceRevision": "1b8588f95d380477882cf6e663316632560f2c82"
+}

@@ -1,0 +1,88 @@
+{
+  "checkedAt": "2026-10-04T16:35:37.601Z",
+  "consoleLoginVerified": true,
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "releaseIndependentApprovalsAndDualAckVisible": true,
+  "currentNodesReadyVisible": true,
+  "realLogsVisible": true,
+  "sampledTraceSpansVisible": true,
+  "traceToLogNavigationVerified": true,
+  "alertAckAndRecoveredVisible": true,
+  "oneHourPartialNoticeVisible": true,
+  "screenshots": [
+    {
+      "file": "demo-alert-ack-1440.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "10e59aed1c02c9f06eb4b01e91413275f025e7dc495846e699c2939b24748754",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "demo-alert-recovered-1440.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "96d46353ad8e882fd03eee2cc812f8ce2ee13e0e88a600f173d125b8068065f3",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "demo-linked-log-1440.png",
+      "width": 1440,
+      "height": 1117,
+      "sha256": "e4641e86e6dca22df5f2df498b0f6ea9f7b9c5d16cc4833ea81fc6a794932ecb",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "demo-logs-1440.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "593a70f5c292461998be334104aa7aa8617f545920facbb02f6e513f8532153a",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "demo-metrics-1440.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "9fd856a2f679c2c6999871afcde39b19de46344355bdeb09d981bac8c40b002a",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "demo-nodes-current-1440.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "f36396c609cc2f1b32a4cede867cd1baa78b16e473268faf7ae014808e22f793",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "demo-nodes-initial.png",
+      "width": 1309,
+      "height": 818,
+      "sha256": "69448640d3e66dfdcc9438536861d62ca27b78176a1e8286cbca464770306b79",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "demo-release-initial.png",
+      "width": 1309,
+      "height": 818,
+      "sha256": "397b35d34172d2d1188686d884a2be7f509918939af7da60903eb447533901b5",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "demo-trace-1440.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "cb1c51d9ec7f7d01b454fcee81f8733b11faf50f3950d443b8c5ad0fe2f79bf4",
+      "visuallyReviewed": true
+    },
+    {
+      "file": "demo-trace-detail-1440.png",
+      "width": 1440,
+      "height": 1503,
+      "sha256": "79056cc5ec89fbd736a1e7aec8861bbbf391a287ff137b918f2366c6d0f9f203",
+      "visuallyReviewed": true
+    }
+  ],
+  "captureNote": "Initial node/release images were captured at 1309x818; later desktop QA captures are 1440px wide. Actual dimensions and hashes are recorded for each image."
+}

@@ -1,0 +1,18 @@
+{
+  "complete": true,
+  "providerId": "fc834340-2813-4c59-9d3d-f2b754c77165",
+  "userId": "cfc402c9-e891-4822-9e8e-932ec907f90f",
+  "username": "sso-demo-viewer",
+  "subject": "7e13b9b1-baf8-44a0-8671-96f25215844a",
+  "role": "Viewer",
+  "scope": {
+    "organizationId": "087143b3-e051-4482-9d41-9603611cf9aa",
+    "projectId": "38953ded-c3b6-436a-8329-19e2e968f9d3",
+    "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd"
+  },
+  "accessMode": "read",
+  "providerEnabled": true,
+  "automaticDefault": false,
+  "originalPreserved": true,
+  "applicationImageUnchanged": "sha256:2bcd8799e48b3452970045d619c274827f74fe866cb7f4345239a0cac2b1197a"
+}

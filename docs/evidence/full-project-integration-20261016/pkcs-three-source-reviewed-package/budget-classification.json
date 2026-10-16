@@ -1,0 +1,126 @@
+{
+  "parents": {
+    "baseline": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+    "candidate": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+    "harness": "883060f04ab04d95fad5ae9d559d7744ff1c2120"
+  },
+  "immutable": false,
+  "formalQualified": false,
+  "sourceUncommitted": true,
+  "rawFailures": 22,
+  "expectedCosts": 22,
+  "blocked": 0,
+  "exactOriginalCases": true,
+  "results": [
+    {
+      "originalCase": "WebApi.Integration.Tests.CoreListQueryTests.CoreListsRespectPageAndSqlBudgets(kind: \"route\", budget: 4)",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-11; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.GovernanceGatewayQueryTests.UserRolesLoadedOnlyForPage",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-14; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.CoreListQueryTests.RouteCultureSortingMatchesLegacyComparerAcrossPages(culture: \"tr-TR\")",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-01; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.CoreListQueryTests.CoreListsRespectPageAndSqlBudgets(kind: \"cluster\", budget: 3)",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-10; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.CoreListQueryTests.RouteCultureSortingMatchesLegacyComparerAcrossPages(culture: \"\")",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-01; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.GovernanceGatewayQueryTests.EventsCapTotalAt10000AndPageWithinCap",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-14; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.PolicyReferenceQueryTests.ReferenceSourcesRequireIndependentPermissions(permission: \"release.read\", count: 100, kind: \"FrozenRelease\")",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-20; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.AlertListQueryTests.AlertsSqlDoesNotGrowPerPageItem(kind: \"events\", budget: 6)",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-17; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.GovernanceGatewayQueryTests.GatewayNodesRetainEnvironmentStateAndEtag",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-14; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.ScopedListQueryTests.OrganizationPolicySharesOnlyWithAuthorizedActiveDescendants",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-13; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.GovernanceGatewayQueryTests.EventOutOfRangeKeepsCappedTotalWithoutReadingEvents",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-16; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.ScopedListQueryTests.PolicyFiltersStablePagingAndRevocationRemainUnchanged",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-13; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.CoreListQueryTests.RouteLightweightKeysAndFullPageRelationsStaySeparated",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-03; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.CoreListQueryTests.CoreListsRespectPageAndSqlBudgets(kind: \"api\", budget: 2)",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-09; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.AlertListQueryTests.AlertsSqlDoesNotGrowPerPageItem(kind: \"rules\", budget: 10)",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-17; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-13; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.PolicyReferenceQueryTests.ValidOversizeAndMultibytePayloadsUseActualSqlByteDescriptors",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-19; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.PolicyReferenceQueryTests.VisibleTotalIncludesAllThreeSourcesAndRuntimeIsDistinct",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-18; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.GovernanceGatewayQueryTests.SnapshotListDoesNotLoadPayloadAndUsesLatestSequence",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-14; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.CoreListQueryTests.ClampAndDuplicateSortValuesRemainStable",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-12; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.CoreListQueryTests.RouteCultureSortingMatchesLegacyComparerAcrossPages(culture: \"en-US\")",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-01; original test failure remains retained"
+    },
+    {
+      "originalCase": "WebApi.Integration.Tests.CoreListQueryTests.RouteCultureSortingMatchesLegacyComparerAcrossPages(culture: \"zh-CN\")",
+      "classification": "expected-counterfactual-cost",
+      "reason": "Exact approved registration budget-01; original test failure remains retained"
+    }
+  ]
+}

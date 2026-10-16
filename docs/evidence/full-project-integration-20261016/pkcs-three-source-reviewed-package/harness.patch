@@ -1,0 +1,453 @@
+diff --git a/Directory.Packages.props b/Directory.Packages.props
+index 67c9b985b1d86599d399dd146a4c28644431c871..def752dc957ffff1a8a23233b51d1e1ee18f5bdd 100644
+--- a/Directory.Packages.props
++++ b/Directory.Packages.props
+@@ -20,4 +20,5 @@
+ <PackageVersion Include="YamlDotNet" Version="18.1.0" />
+ <PackageVersion Include="Humanizer.Core" Version="3.0.10" />
+ <PackageVersion Include="MailKit" Version="4.17.0" />
++<PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+ </ItemGroup></Project>
+diff --git a/src/WebApi.ControlPlane/packages.lock.json b/src/WebApi.ControlPlane/packages.lock.json
+index 00ee7bb31852ff9f43bb426b5f417ca40601ec82..a89fa0edb2e4ebf942905a104cd712b9607b5dc9 100644
+--- a/src/WebApi.ControlPlane/packages.lock.json
++++ b/src/WebApi.ControlPlane/packages.lock.json
+@@ -98,11 +98,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "json.more": {
+         "type": "Project"
+       },
+@@ -144,6 +139,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -260,6 +256,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/src/WebApi.Gateway/packages.lock.json b/src/WebApi.Gateway/packages.lock.json
+index c484fe88d45e48e75fec398ac8f769f1d48931a3..1103e2371c1f89ce6b08fb9410fb2f5cf3acc3ba 100644
+--- a/src/WebApi.Gateway/packages.lock.json
++++ b/src/WebApi.Gateway/packages.lock.json
+@@ -135,11 +135,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "json.more": {
+         "type": "Project"
+       },
+@@ -181,6 +176,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -278,6 +274,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/src/WebApi.Infrastructure/WebApi.Infrastructure.csproj b/src/WebApi.Infrastructure/WebApi.Infrastructure.csproj
+index 64253d2bb6fbdb212f0d36d1c8a0fbbf62048b2f..2560d3da5dad2c401b72de2e19b8982cc3338251 100644
+--- a/src/WebApi.Infrastructure/WebApi.Infrastructure.csproj
++++ b/src/WebApi.Infrastructure/WebApi.Infrastructure.csproj
+@@ -1 +1 @@
+-<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="MailKit"/><PackageReference Include="YamlDotNet"/><ProjectReference Include="../../third_party/json-everything/src/JsonSchema/JsonSchema.csproj"/><PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect"/><FrameworkReference Include="Microsoft.AspNetCore.App"/><PackageReference Include="StackExchange.Redis"/><PackageReference Include="OpenTelemetry"/><PackageReference Include="OpenTelemetry.Extensions.Hosting"/><PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/><PackageReference Include="Microsoft.EntityFrameworkCore"/><PackageReference Include="Microsoft.EntityFrameworkCore.Relational"/><PackageReference Include="Microsoft.EntityFrameworkCore.Design"><PrivateAssets>all</PrivateAssets></PackageReference><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/><ProjectReference Include="../WebApi.Domain/WebApi.Domain.csproj"/><ProjectReference Include="../WebApi.Contracts/WebApi.Contracts.csproj"/></ItemGroup></Project>
++<Project Sdk="Microsoft.NET.Sdk"><ItemGroup><PackageReference Include="MailKit"/><PackageReference Include="System.Security.Cryptography.Pkcs"/><PackageReference Include="YamlDotNet"/><ProjectReference Include="../../third_party/json-everything/src/JsonSchema/JsonSchema.csproj"/><PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect"/><FrameworkReference Include="Microsoft.AspNetCore.App"/><PackageReference Include="StackExchange.Redis"/><PackageReference Include="OpenTelemetry"/><PackageReference Include="OpenTelemetry.Extensions.Hosting"/><PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/><PackageReference Include="Microsoft.EntityFrameworkCore"/><PackageReference Include="Microsoft.EntityFrameworkCore.Relational"/><PackageReference Include="Microsoft.EntityFrameworkCore.Design"><PrivateAssets>all</PrivateAssets></PackageReference><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL"/><ProjectReference Include="../WebApi.Domain/WebApi.Domain.csproj"/><ProjectReference Include="../WebApi.Contracts/WebApi.Contracts.csproj"/></ItemGroup></Project>
+diff --git a/src/WebApi.Infrastructure/packages.lock.json b/src/WebApi.Infrastructure/packages.lock.json
+index 68de7313cb371f0c7c67be2141e0edb69231e03c..eb4f9a2fb3ba1b0f20f90ada455929a078ea0dbf 100644
+--- a/src/WebApi.Infrastructure/packages.lock.json
++++ b/src/WebApi.Infrastructure/packages.lock.json
+@@ -105,6 +105,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "Direct",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "Direct",
+         "requested": "[18.1.0, )",
+@@ -339,11 +345,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "json.more": {
+         "type": "Project"
+       },
+diff --git a/src/WebApi.Migrator/packages.lock.json b/src/WebApi.Migrator/packages.lock.json
+index 7f326e1afccc026c2968fa3d158748c9f4ffe944..04efbe6ef9504208b1439996c092d72230cef427 100644
+--- a/src/WebApi.Migrator/packages.lock.json
++++ b/src/WebApi.Migrator/packages.lock.json
+@@ -249,11 +249,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "json.more": {
+         "type": "Project"
+       },
+@@ -292,6 +287,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -419,6 +415,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/src/WebApi.RuntimeTool/packages.lock.json b/src/WebApi.RuntimeTool/packages.lock.json
+index 7f326e1afccc026c2968fa3d158748c9f4ffe944..04efbe6ef9504208b1439996c092d72230cef427 100644
+--- a/src/WebApi.RuntimeTool/packages.lock.json
++++ b/src/WebApi.RuntimeTool/packages.lock.json
+@@ -249,11 +249,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "json.more": {
+         "type": "Project"
+       },
+@@ -292,6 +287,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -419,6 +415,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/src/WebApi.Worker/packages.lock.json b/src/WebApi.Worker/packages.lock.json
+index 7a66a06c37b02482534b6edffb9bcabd8786bc7b..563031d4d30c6ee2db0c6ba70e72cf1644eabddf 100644
+--- a/src/WebApi.Worker/packages.lock.json
++++ b/src/WebApi.Worker/packages.lock.json
+@@ -89,11 +89,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "json.more": {
+         "type": "Project"
+       },
+@@ -132,6 +127,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -248,6 +244,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/tests/WebApi.Domain.Tests/packages.lock.json b/tests/WebApi.Domain.Tests/packages.lock.json
+index cb905215789c20711702692d2503270869930440..7044dc34b5f5c256dca57ab0288d99344b7e3db5 100644
+--- a/tests/WebApi.Domain.Tests/packages.lock.json
++++ b/tests/WebApi.Domain.Tests/packages.lock.json
+@@ -294,11 +294,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "xunit.abstractions": {
+         "type": "Transitive",
+         "resolved": "2.0.3",
+@@ -377,6 +372,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -504,6 +500,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/tests/WebApi.Gateway.Tests/packages.lock.json b/tests/WebApi.Gateway.Tests/packages.lock.json
+index f6c12cfd2bc3027d212abcf53bdc03b575bb1d6b..5834dc0d9e099a07744d285ab4f622babbdad275 100644
+--- a/tests/WebApi.Gateway.Tests/packages.lock.json
++++ b/tests/WebApi.Gateway.Tests/packages.lock.json
+@@ -294,11 +294,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "xunit.abstractions": {
+         "type": "Transitive",
+         "resolved": "2.0.3",
+@@ -407,6 +402,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -580,6 +576,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/tests/WebApi.Integration.Tests/packages.lock.json b/tests/WebApi.Integration.Tests/packages.lock.json
+index 1e5a6e17ff0a56f8e22bdab47e3ea6543003f5c1..5b482e5e5a962aeef1b902badcb5befbc52b0126 100644
+--- a/tests/WebApi.Integration.Tests/packages.lock.json
++++ b/tests/WebApi.Integration.Tests/packages.lock.json
+@@ -294,11 +294,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "xunit.abstractions": {
+         "type": "Transitive",
+         "resolved": "2.0.3",
+@@ -407,6 +402,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -596,6 +592,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/tests/WebApi.NotificationFixtureHost/packages.lock.json b/tests/WebApi.NotificationFixtureHost/packages.lock.json
+index 7a66a06c37b02482534b6edffb9bcabd8786bc7b..563031d4d30c6ee2db0c6ba70e72cf1644eabddf 100644
+--- a/tests/WebApi.NotificationFixtureHost/packages.lock.json
++++ b/tests/WebApi.NotificationFixtureHost/packages.lock.json
+@@ -89,11 +89,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "json.more": {
+         "type": "Project"
+       },
+@@ -132,6 +127,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -248,6 +244,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/tests/WebApi.TestSupport/packages.lock.json b/tests/WebApi.TestSupport/packages.lock.json
+index 114bb8f592e2e155d3c0a9367f5e91c0ba5b5e10..3b843125c83e098dabb3d3cdfa0b759ea4d83385 100644
+--- a/tests/WebApi.TestSupport/packages.lock.json
++++ b/tests/WebApi.TestSupport/packages.lock.json
+@@ -89,11 +89,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "json.more": {
+         "type": "Project"
+       },
+@@ -150,6 +145,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -281,6 +277,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",
+diff --git a/tools/WebApi.PerformanceHost/packages.lock.json b/tools/WebApi.PerformanceHost/packages.lock.json
+index 4d4d3034d873c6d85b943ade573100a99ad0ef33..4f37c81c9610207ed7d225d734e1a5c0bd71b44f 100644
+--- a/tools/WebApi.PerformanceHost/packages.lock.json
++++ b/tools/WebApi.PerformanceHost/packages.lock.json
+@@ -89,11 +89,6 @@
+         "resolved": "10.0.12",
+         "contentHash": "jDix4bBMYnpZdSPcnY+KDV6ik3SRMzpMKby/bZl/XUwIiflwRNAFZ0oOl61R/pSaveIJ8t1gs2BUlrGsPs/bcg=="
+       },
+-      "System.Security.Cryptography.Pkcs": {
+-        "type": "Transitive",
+-        "resolved": "10.0.0",
+-        "contentHash": "UPWqLSygJlFerRi9XNIuM0a1VC8gHUIufyP24xQ0sc+XimqUAEcjpOz9DhKpyDjH+5B/wO3RpC0KpkEeDj/ddg=="
+-      },
+       "json.more": {
+         "type": "Project"
+       },
+@@ -155,6 +150,7 @@
+           "OpenTelemetry.Exporter.OpenTelemetryProtocol": "[1.19.1, )",
+           "OpenTelemetry.Extensions.Hosting": "[1.19.1, )",
+           "StackExchange.Redis": "[3.3.1, )",
++          "System.Security.Cryptography.Pkcs": "[10.0.13, )",
+           "WebApi.Contracts": "[1.0.0, )",
+           "WebApi.Domain": "[1.0.0, )",
+           "YamlDotNet": "[18.1.0, )"
+@@ -298,6 +294,12 @@
+           "System.IO.Hashing": "10.0.12"
+         }
+       },
++      "System.Security.Cryptography.Pkcs": {
++        "type": "CentralTransitive",
++        "requested": "[10.0.13, )",
++        "resolved": "10.0.13",
++        "contentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw=="
++      },
+       "YamlDotNet": {
+         "type": "CentralTransitive",
+         "requested": "[18.1.0, )",

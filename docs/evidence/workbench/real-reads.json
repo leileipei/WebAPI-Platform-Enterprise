@@ -1,0 +1,65 @@
+{
+  "complete": true,
+  "accounts": [
+    {
+      "username": "admin",
+      "scope": "existing bound environment",
+      "modules": {
+        "api": {
+          "state": "ready",
+          "total": 1,
+          "rows": 1
+        },
+        "metrics": {
+          "state": "ready",
+          "sourceState": "Partial"
+        },
+        "nodes": {
+          "state": "ready",
+          "total": 2,
+          "rows": 2
+        },
+        "alerts": {
+          "state": "ready",
+          "total": 0,
+          "rows": 0
+        },
+        "releases": {
+          "state": "ready",
+          "total": 4,
+          "rows": 4
+        }
+      }
+    },
+    {
+      "username": "sso-demo-viewer",
+      "scope": "existing bound environment",
+      "modules": {
+        "api": {
+          "state": "denied"
+        },
+        "metrics": {
+          "state": "ready",
+          "sourceState": "Partial"
+        },
+        "nodes": {
+          "state": "ready",
+          "total": 2,
+          "rows": 2
+        },
+        "alerts": {
+          "state": "ready",
+          "total": 0,
+          "rows": 0
+        },
+        "releases": {
+          "state": "ready",
+          "total": 4,
+          "rows": 4
+        }
+      }
+    }
+  ],
+  "viewerSessionClosed": true,
+  "readOnlyBusinessQueries": true
+}

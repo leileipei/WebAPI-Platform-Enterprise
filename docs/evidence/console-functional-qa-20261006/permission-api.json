@@ -1,0 +1,16 @@
+{
+  "time": "2026-10-06T10:15:29.379Z",
+  "matrixSaved": true,
+  "exactCodes": [
+    "api.read",
+    "api.schema.read",
+    "api.version.read",
+    "environment.read",
+    "organization.read",
+    "project.read"
+  ],
+  "environmentOnlyCannotReadProjectDefinition": 404,
+  "projectScopeReadAllowed": true,
+  "customRoleWriteDenied": 403,
+  "viewerWriteDenied": 403
+}

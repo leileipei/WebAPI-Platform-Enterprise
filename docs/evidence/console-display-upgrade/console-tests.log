@@ -1,0 +1,146 @@
+✔ 412 retains input; explicit latest revision adoption retains duration and values (0.574458ms)
+✔ readonly Unknown test preserves null and never marks draft saved (0.143334ms)
+✔ only finite allowlisted rule expressions; ratio range and target applicability (0.390709ms)
+✔ all deferred channels explicitly pending rather than sent (0.084583ms)
+✔ event filters have independent status/severity and reset pagination (0.134959ms)
+✔ server freshness accounts for query delay; UI does not mark a valid delayed observation Unknown (0.056333ms)
+✔ disabled rules display their intentional pause rather than a source failure (0.037084ms)
+✔ resolved event observations are explicitly historical (0.029417ms)
+✔ expression grammar matches the server three-token finite number contract (0.074708ms)
+✔ write carries cookie CSRF ETag and stable idempotency; csrf refreshed after login (16.603959ms)
+✔ 412 exposes conflict and trace without automatic destructive retry (0.419ms)
+✔ resource 403 and hidden-resource 404 trigger authority refresh; 412 retains editing authority (0.684292ms)
+✔ ReviewHandoffUsesServerTargetAndLocksWizardVersion (1.015667ms)
+✔ ChangedTargetCannotCarryOldReview or stale handoff (0.172ms)
+✔ UnknownCoverageSurvivesEmptyFilter and FilteredRowsNeverChangeReviewTotals (0.837416ms)
+✔ VersionSelectionClearsEffectiveReview and query preserves only report identifier (0.18075ms)
+✔ WorkspaceAbortRejectsLateTransport (0.715542ms)
+✔ ReadDeadlineRejectsLateTransportAndCannotPublishTimedOutReport (6.8165ms)
+✔ FailedCreateRetainsCommentAndSameRetryKey and payload changes rotate key (0.138625ms)
+✔ ConflictCloseAndNewReportPreserveCommentButResetConfirmation (0.225917ms)
+✔ CommandTimeoutIs15Seconds and late transport cannot restore result (6.733792ms)
+✔ CompareRoutePrecedesGenericDetail (0.306ms)
+WebSocket server error:
+Error: listen EPERM: operation not permitted 0.0.0.0:24678
+    at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+    at listenInCluster (node:net:2224:12)
+    at Server.listen (node:net:2344:7)
+    at Object.listen (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:32481:23)
+    at Object.listen (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:39124:30)
+    at DevEnvironment.listen (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:47961:14)
+    at file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:38765:52
+    at Array.map (<anonymous>)
+    at file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:38765:39
+    at async _createServer (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:38785:5)
+✔ NoVersionsAndDeniedStatesHaveNoEnabledActions (50.1035ms)
+✔ ManualChangeTypeIsSeparateFromDetectedRisk and coverage always visible (1.606834ms)
+✔ BreakingDialogHasFullCountsRequiredCommentAndCheckbox (5.815792ms)
+✔ ReleaseSummaryDoesNotInventReviewForLegacyCandidate (2.767875ms)
+✔ discard confirmation and other blocking states cannot submit an editor (0.417625ms)
+✔ ordinary navigation updates accepted path and clean Back works (1.055459ms)
+✔ unsaved Back restores original URL without changing rendered page; accepted discard enables Back (0.191584ms)
+✔ dirty import blocks sidebar navigation, while successful committed save may navigate (0.0875ms)
+✔ filter edit discards cursor and retains fixed cutoff; IP never reaches URL (2.546208ms)
+✔ cursor Back restores a read page and scope/filter changes clear trail (1.173917ms)
+✔ waterfall uses real relative time and duration and tolerates missing/cyclic parents (0.470083ms)
+✔ CSV status uses explicit rows/truncation/source headers; missing metadata cannot claim complete (10.450709ms)
+✔ CSV transport returns original response and preserves authority failure handling (1.322334ms)
+✔ copy falls back when browser clipboard denies, and removes temporary selection (0.635708ms)
+✔ CSV download attaches the link before clicking and removes it afterwards (0.175334ms)
+✔ query denial, invalid filters and source failure have distinct user-facing states (0.083167ms)
+✔ validated URL keeps allowed filters and never contains raw IP (0.947584ms)
+✔ metric sort and trend URL accepts only defined metrics and preserves navigation (1.807917ms)
+✔ scope switch aborts old requests, clears cursor and rejects a late response (0.135167ms)
+✔ fixed UTC cutoff survives query roundtrip; new duration resets cursor (1.555625ms)
+✔ query updates and Back emit search without changing accepted pathname or guards (0.730709ms)
+✔ unknown values stay blank while known zero keeps its unit (0.088917ms)
+✔ chart leaves a gap across missing samples and caps source rows at 600 (0.706833ms)
+✔ scope switch removes URL cursor and resets page while preserving time cutoff (0.303167ms)
+✔ resource selectors follow all returned pages and keep existing filters (0.509125ms)
+✔ paged selector propagates resource denial instead of returning a partial authorized cache (0.216542ms)
+✔ page query replaces an existing page without losing filters (0.056709ms)
+✔ AllFourDefaultsAndValidation (1.939583ms)
+✔ ConflictRetainsDirtyInput (0.20675ms)
+✔ ScopeSwitchIgnoresLateResponse (0.048584ms)
+✔ CopyDoesNotReuseBindingOrEtag (0.061292ms)
+✔ LegacyDraftRefreshIsExplicit (0.343083ms)
+✔ DisabledTypesCannotSave (0.067042ms)
+✔ InvalidFieldsHaveSpecificFeedback (0.560208ms)
+✔ UnselectedPolicyFiltersAreOmittedFromRequest (0.197625ms)
+✔ CircuitDefaultCountsEveryServerError (0.157791ms)
+✔ a repeated group click closes its links and opening another replaces it (0.314917ms)
+✔ detail routes and settings select their original group without prefix collisions (0.151833ms)
+✔ collapsed navigation hides its links; opening API exposes actual entries and current page (100.742917ms)
+✔ settings remain reachable in platform governance (1.7385ms)
+✔ the signed-in root page highlights the organization list it actually renders (1.694042ms)
+✔ workbench navigation opens the dashboard while root keeps organization selection (1.524625ms)
+✔ provider discovery is same origin and never automatically redirects (14.026ms)
+✔ failed provider read exposes retry error independently of local login (0.288458ms)
+✔ start uses same origin native POST hidden CSRF and only controlled parameters (0.543084ms)
+✔ completion restores identity then CSRF before navigation and does not navigate after failed restore (0.151792ms)
+✔ error and return path accept only approved values (0.135042ms)
+✔ late result cannot replace another provider (1.7225ms)
+✔ revision conflict retains draft and requires explicit review (0.181833ms)
+✔ revoked authority clears references and late responses (0.083958ms)
+✔ unrelated business scopes do not remount platform identity but SSO authority changes do (0.082417ms)
+✔ historical failed expired and future tests cannot enable a source (1.230875ms)
+✔ retry semantics separate operations and preserve equivalent request ordering (0.247959ms)
+✔ dirty navigation needs explicit discard decision (0.122625ms)
+✔ provider native form accepts the same names and secret aliases as the API (0.566583ms)
+✔ a completed mutation releases its own busy gate after detail epoch advances (0.415541ms)
+✔ SSO user payload only explicit identity fields never password or roles (0.664166ms)
+✔ binding subject remains case sensitive and only disabled SSO users with dual permissions can edit (0.122167ms)
+✔ preservesDraftOn412 (0.41ms)
+✔ sameSemanticRetryKeepsIdempotencyKey (0.233708ms)
+✔ secretKeepDoesNotSendPlaceholder (0.43275ms)
+✔ revokeClearsDraftAndLateResponseCannotRestoreIt (0.080541ms)
+✔ dirtyNavigationRequiresExplicitDiscard (0.064542ms)
+✔ notificationStructuralTestNeverClaimsDelivery (0.120542ms)
+✔ lateRouteDefaultDoesNotOverwriteInput (0.068791ms)
+✔ conflictRequiresFreshReadBeforeAdoptingRevision (0.061791ms)
+✔ OriginsDraftKeepsNewlinesUntilCommandBoundary (0.234792ms)
+✔ PlatformSettingsShellDoesNotRemountForUnrelatedAuthority (0.172458ms)
+WebSocket server error:
+Error: listen EPERM: operation not permitted 0.0.0.0:24678
+    at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+    at listenInCluster (node:net:2224:12)
+    at Server.listen (node:net:2344:7)
+    at Object.listen (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:32481:23)
+    at Object.listen (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:39124:30)
+    at DevEnvironment.listen (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:47961:14)
+    at file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:38765:52
+    at Array.map (<anonymous>)
+    at file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:38765:39
+    at async _createServer (file:///Users/leo.cui/Documents/WebAPI%20Platform%20Enterprise/enterprise/console/node_modules/.pnpm/vite@6.4.2_@types+node@22.19.0/node_modules/vite/dist/node/chunks/dep-Dq2t6Dq0.js:38785:5)
+✔ a denied workbench shows no resource detail links or invented zero counts (144.628833ms)
+✔ workbench renders scoped counts, partial coverage and real detail links without claiming all pending tasks (2.644333ms)
+✔ missing request counts cannot create a Top API ranking and Trace sampling is not called request sampling (1.700375ms)
+✔ workbench uses project API total and current environment 24h metrics with top API ranking (1.185625ms)
+✔ workbench checks project API permission independently from environment and skips denied reads (0.208417ms)
+✔ no workspace cannot trigger global or empty-id reads (0.097458ms)
+✖ one failing source does not erase successful modules and HTTP access loss clears its data (4.024375ms)
+✔ an aborted scope request cannot publish late results even if transport ignores abort (0.1275ms)
+✔ missing, stale, unavailable and non-finite metrics cannot become healthy-looking numbers (0.146458ms)
+ℹ tests 99
+ℹ suites 0
+ℹ pass 98
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 308.286625
+
+✖ failing tests:
+
+test at console/tests/workbench.test.mjs:32:1
+✖ one failing source does not erase successful modules and HTTP access loss clears its data (4.024375ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at node:net:2448:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }

@@ -1,0 +1,21 @@
+{
+  "complete": true,
+  "sourceRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "applicationSourceReviewedFiles": 8,
+  "applicationReviewer": "scope_editor_review",
+  "previousApplicationReviewP1": 0,
+  "previousApplicationReviewP2": 0,
+  "operationReview": {
+    "fixedP2": [
+      "数据保留验收失败不再阻断原卷旧软件恢复",
+      "最终验收与部署UI失败复用同一恢复入口"
+    ],
+    "remainingP1": 0,
+    "remainingP2": 0,
+    "recoveryPureTests": {
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "applicationSourceAndPermissionsChangedDuringOperationReview": false
+}

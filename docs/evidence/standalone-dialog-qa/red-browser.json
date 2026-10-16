@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "ruleCancel": {
+    "inside": false,
+    "tag": "BODY"
+  },
+  "riskInitialShiftTab": {
+    "inside": false,
+    "tag": "BUTTON",
+    "text": "结束内存阻塞"
+  },
+  "originalRuleWrites": 0,
+  "riskReport": "synthetic in-memory"
+}

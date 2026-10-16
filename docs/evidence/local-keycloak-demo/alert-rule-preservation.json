@@ -1,0 +1,7 @@
+{
+  "complete": true,
+  "originalRuleCount": 1,
+  "unchanged": true,
+  "sha256": "3afe77cef23c05c95a1b6faaa68245906e79c13e97c0d6953c5dc6d0eb745ada",
+  "baseline": "Previous SSO upgrade private baseline, directly rechecked against current database; no raw rows exported."
+}

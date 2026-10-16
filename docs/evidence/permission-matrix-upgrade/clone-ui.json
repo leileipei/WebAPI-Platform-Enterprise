@@ -1,0 +1,102 @@
+{
+  "complete": true,
+  "sourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+  "onlyDisposableClone": true,
+  "unassignedTestRole": true,
+  "checks": [
+    {
+      "label": "system-role-write-blocked",
+      "pass": true
+    },
+    {
+      "label": "matrix-all-44",
+      "pass": true
+    },
+    {
+      "label": "initial-focus-search",
+      "pass": true
+    },
+    {
+      "label": "1440-contained",
+      "pass": true
+    },
+    {
+      "label": "search-enter-keeps-draft",
+      "pass": true
+    },
+    {
+      "label": "filter-exact-two",
+      "pass": true
+    },
+    {
+      "label": "discard-confirmation-focused",
+      "pass": true
+    },
+    {
+      "label": "discard-backward-wrap",
+      "pass": true
+    },
+    {
+      "label": "discard-forward-wrap",
+      "pass": true
+    },
+    {
+      "label": "cancel-discard-retains-draft",
+      "pass": true
+    },
+    {
+      "label": "matrix-dialog-backward-wrap",
+      "pass": true
+    },
+    {
+      "label": "matrix-dialog-forward-wrap",
+      "pass": true
+    },
+    {
+      "label": "1280-contained",
+      "pass": true
+    },
+    {
+      "label": "real-412-keeps-input",
+      "pass": true
+    },
+    {
+      "label": "adopt-revision-keeps-selection",
+      "pass": true
+    },
+    {
+      "label": "hidden-draft-count-stays-one",
+      "pass": true
+    },
+    {
+      "label": "explicit-save-closes-and-revises",
+      "pass": true
+    },
+    {
+      "label": "saved-readonly-exact-assignment",
+      "pass": true
+    },
+    {
+      "label": "dictionary-chinese-search-one",
+      "pass": true
+    },
+    {
+      "label": "dictionary-chinese-module-eight",
+      "pass": true
+    },
+    {
+      "label": "dictionary-code-search-retained",
+      "pass": true
+    }
+  ],
+  "realRole412": true,
+  "realRoleSaved": true,
+  "searchEnterDidNotSave": true,
+  "hiddenPermissionsPreserved": true,
+  "saveReducedPermissions": true,
+  "afterRevision": 4,
+  "afterPermissions": [
+    "api.version.read"
+  ],
+  "originalBusinessSaves": 0
+}

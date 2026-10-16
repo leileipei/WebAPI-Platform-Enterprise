@@ -1,0 +1,11 @@
+{
+  "complete": true,
+  "reviewer": "policy_upgrade_final_review",
+  "readOnly": true,
+  "p1p2": 0,
+  "relatedTestsPassed": 8,
+  "combinedFileHashesMatched": 8,
+  "preflightBuildBackupRestoreRehearsalAndFinalEvidenceConsistent": true,
+  "deployedUiChecksVerified": 17,
+  "cleanupPending": true
+}

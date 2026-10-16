@@ -1,0 +1,409 @@
+{
+  "complete": true,
+  "createdAt": "2026-10-06T09:33:06.398342+00:00",
+  "auditScope": "4192 admin只读入口、当前状态与1440px页面检查；非40页完整功能验收",
+  "sourceBase": "17cad2315900939a1fdc2bca6f876a4649bcc06f",
+  "runtimeSource": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "previewPort": 4198,
+  "previewDeployedTo4192": false,
+  "coverageRows": 40,
+  "rowsWithCurrentPageEvidence": 38,
+  "notFullyRechecked": [
+    1,
+    36
+  ],
+  "screenshots": 48,
+  "acceptedScreenshots": 47,
+  "rejectedAsCurrentEvidence": [
+    "01-coverage-before.jpg"
+  ],
+  "originalStatesChecked": 43,
+  "horizontalOverflowCount": 0,
+  "tests": {
+    "baseline": 99,
+    "final": 99,
+    "failures": 0,
+    "typecheck": "passed",
+    "viteBuild": "passed",
+    "wrapperBuildAttempt": "pnpm入口触发依赖目录重建确认，非TTY失败；未安装或清理依赖，直接使用既有tsc/Vite通过"
+  },
+  "mainLocalFilesPreserved": 71,
+  "historicalArchivesPreserved": 22,
+  "sourceFiles": [
+    "console/src/coverage.json",
+    "console/src/pages/Coverage.tsx",
+    "console/src/pages/Governance.tsx",
+    "console/src/pages/Releases.tsx"
+  ],
+  "mainMerged": false,
+  "committed": false,
+  "productionAcceptance": false,
+  "findings": [
+    {
+      "id": "F1",
+      "priority": "P2",
+      "title": "版本比较覆盖说明仍停留执行前状态",
+      "before": "02-coverage-current.jpg",
+      "after": "46-coverage-preview.jpg",
+      "resolution": "4198修正并验证；4192尚未安装本批修正。"
+    },
+    {
+      "id": "F2",
+      "priority": "P2",
+      "title": "审批空列表混用了全部发布数量且标题暗示个人任务",
+      "before": "15-approvals.jpg",
+      "after": "47-approvals-preview.jpg",
+      "resolution": "4198改为审批中心，并分开标注全部发布与本页待审批；查询、分页、权限保持原逻辑。"
+    },
+    {
+      "id": "F3",
+      "priority": "P2",
+      "title": "治理表单错误复用网关发布生效说明",
+      "before": "43-role-create-form.jpg",
+      "after": "48-governance-preview.jpg",
+      "resolution": "治理Editor单独传入管理资源与服务端权限说明；网关配置Editor默认说明保持。"
+    },
+    {
+      "id": "F4",
+      "priority": "P2",
+      "title": "数据范围编辑仍依赖JSON与资源ID",
+      "before": "45-scope-form.jpg",
+      "after": null,
+      "resolution": "已记录后续体验改进；本批保留字段与权限行为。"
+    },
+    {
+      "id": "F5",
+      "priority": "P3",
+      "title": "旧浏览器标签保留升级前页面",
+      "before": "01-coverage-before.jpg",
+      "after": "02-coverage-current.jpg",
+      "resolution": "受影响覆盖标签显式刷新后工作台可用。01仅作为旧标签证据，不用于判断当前安装。"
+    }
+  ],
+  "pageMatrix": [
+    {
+      "number": 1,
+      "name": "登录页",
+      "entry": "/",
+      "result": "未登录屏本轮未复验",
+      "screenshot": null,
+      "limitations": "保持已有 admin 会话；根入口显示组织管理。本轮不退出原用户会话。"
+    },
+    {
+      "number": 2,
+      "name": "企业工作台",
+      "entry": "/dashboard",
+      "result": "入口及当前页面可读",
+      "screenshot": "04-dashboard.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 3,
+      "name": "组织管理",
+      "entry": "/organizations",
+      "result": "入口及当前页面可读",
+      "screenshot": "05-organizations.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 4,
+      "name": "项目管理",
+      "entry": "/projects",
+      "result": "入口及当前页面可读",
+      "screenshot": "06-projects.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 5,
+      "name": "环境管理",
+      "entry": "/environments",
+      "result": "入口及当前页面可读",
+      "screenshot": "07-environments.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 6,
+      "name": "API 目录",
+      "entry": "/apis",
+      "result": "入口及当前页面可读",
+      "screenshot": "08-apis.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 7,
+      "name": "新建/编辑 API 向导",
+      "entry": "/apis",
+      "result": "入口及当前页面可读",
+      "screenshot": "34-api-wizard.jpg",
+      "limitations": "打开六步向导首步；未保存或创建发布草稿。"
+    },
+    {
+      "number": 8,
+      "name": "OpenAPI 导入",
+      "entry": "/imports",
+      "result": "入口及当前页面可读",
+      "screenshot": "09-imports.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 9,
+      "name": "API 详情总览",
+      "entry": "/apis",
+      "result": "入口及当前页面可读",
+      "screenshot": "30-api-detail.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 10,
+      "name": "API 版本管理",
+      "entry": "/apis",
+      "result": "入口及当前页面可读",
+      "screenshot": "30-api-detail.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 11,
+      "name": "版本差异/Breaking Change",
+      "entry": "/apis",
+      "result": "入口及当前页面可读",
+      "screenshot": "33-version-compare.jpg",
+      "limitations": "真实单版本空态；功能完整流程沿用上一批副本验收，本轮不伪造第二版本。"
+    },
+    {
+      "number": 12,
+      "name": "Route 管理",
+      "entry": "/routes",
+      "result": "入口及当前页面可读",
+      "screenshot": "10-routes.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 13,
+      "name": "Schema 与参数",
+      "entry": "/apis",
+      "result": "入口及当前页面可读",
+      "screenshot": "32-api-schema.jpg",
+      "limitations": "参数与 Schema 两个标签可读，Published 版本封存与禁用控件正确；不新增定义。"
+    },
+    {
+      "number": 14,
+      "name": "Upstream Cluster 列表",
+      "entry": "/clusters",
+      "result": "入口及当前页面可读",
+      "screenshot": "11-clusters.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 15,
+      "name": "Cluster 详情与 Destination",
+      "entry": "/clusters",
+      "result": "入口及当前页面可读",
+      "screenshot": "35-cluster-destinations.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 16,
+      "name": "策略中心",
+      "entry": "/policies",
+      "result": "入口及当前页面可读",
+      "screenshot": "12-policies.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 17,
+      "name": "策略编辑器",
+      "entry": "/policies",
+      "result": "入口及当前页面可读",
+      "screenshot": "36-policy-detail.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 18,
+      "name": "应用列表",
+      "entry": "/applications",
+      "result": "入口及当前页面可读",
+      "screenshot": "13-applications.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 19,
+      "name": "应用详情",
+      "entry": "/applications",
+      "result": "入口及当前页面可读",
+      "screenshot": "37-application-detail.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 20,
+      "name": "凭证管理",
+      "entry": "/applications",
+      "result": "入口及当前页面可读",
+      "screenshot": "37-application-detail.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 21,
+      "name": "API 授权矩阵",
+      "entry": "/applications",
+      "result": "入口及当前页面可读",
+      "screenshot": "38-application-permissions.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 22,
+      "name": "发布中心",
+      "entry": "/releases",
+      "result": "入口及当前页面可读",
+      "screenshot": "14-releases.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 23,
+      "name": "发布详情与审批",
+      "entry": "/releases",
+      "result": "入口及当前页面可读",
+      "screenshot": "39-release-detail.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 24,
+      "name": "审批中心",
+      "entry": "/approvals",
+      "result": "入口及当前页面可读",
+      "screenshot": "15-approvals.jpg",
+      "limitations": "原4192显示总发布数而非待审批数；4198已明确区分全部发布与本页待审批，不变更筛选及分页逻辑。"
+    },
+    {
+      "number": 25,
+      "name": "Config Snapshot",
+      "entry": "/snapshots",
+      "result": "入口及当前页面可读",
+      "screenshot": "16-snapshots.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 26,
+      "name": "Gateway 节点",
+      "entry": "/nodes",
+      "result": "入口及当前页面可读",
+      "screenshot": "17-nodes.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 27,
+      "name": "Gateway 节点详情",
+      "entry": "/nodes",
+      "result": "入口及当前页面可读",
+      "screenshot": "40-node-detail.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 28,
+      "name": "监控总览",
+      "entry": "/observability/metrics",
+      "result": "入口及当前页面可读",
+      "screenshot": "18-metrics.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 29,
+      "name": "API 监控详情",
+      "entry": "/observability/metrics",
+      "result": "入口及当前页面可读",
+      "screenshot": "41-api-metrics.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 30,
+      "name": "访问日志",
+      "entry": "/observability/logs",
+      "result": "入口及当前页面可读",
+      "screenshot": "19-logs.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 31,
+      "name": "Trace 查询",
+      "entry": "/observability/traces",
+      "result": "入口及当前页面可读",
+      "screenshot": "20-traces.jpg",
+      "limitations": "当前一小时窗口 NoTrace；没有新增调用或将空态当作链路完整验证。"
+    },
+    {
+      "number": 32,
+      "name": "告警中心",
+      "entry": "/observability/alerts",
+      "result": "入口及当前页面可读",
+      "screenshot": "21-alerts.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 33,
+      "name": "告警规则",
+      "entry": "/observability/alert-rules",
+      "result": "入口及当前页面可读",
+      "screenshot": "22-alert-rules.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 34,
+      "name": "用户管理",
+      "entry": "/users",
+      "result": "入口及当前页面可读",
+      "screenshot": "23-users.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 35,
+      "name": "角色管理",
+      "entry": "/roles",
+      "result": "入口及当前页面可读",
+      "screenshot": "24-roles.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 36,
+      "name": "权限矩阵",
+      "entry": "/roles",
+      "result": "仅父入口核对；矩阵未复验",
+      "screenshot": "42-role-permissions-entry.jpg",
+      "limitations": "原库只有系统角色；配置权限按钮按既有规则禁用。没有创建自定义角色或调整权限。"
+    },
+    {
+      "number": 37,
+      "name": "数据范围",
+      "entry": "/scopes",
+      "result": "入口及当前页面可读",
+      "screenshot": "45-scope-form.jpg",
+      "limitations": "JSON Scope表单与资源ID可读；尚未升级为结构化选择器，不保存权限变更。"
+    },
+    {
+      "number": 38,
+      "name": "审计日志",
+      "entry": "/audit",
+      "result": "入口及当前页面可读",
+      "screenshot": "26-audit.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 39,
+      "name": "SSO / OIDC 配置",
+      "entry": "/settings/sso",
+      "result": "入口及当前页面可读",
+      "screenshot": "27-sso.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    },
+    {
+      "number": 40,
+      "name": "系统设置",
+      "entry": "/settings/system",
+      "result": "入口及当前页面可读",
+      "screenshot": "28-settings.jpg",
+      "limitations": "只读入口与当前状态检查；不代表全部字段、写入交互或权限验收。"
+    }
+  ],
+  "accessibilityLimits": [
+    "截图未发现空白/错页或整页横向溢出；密集12px左右说明文字仍有可读性风险。",
+    "已观察治理表单标签与初始输入焦点；未验证焦点陷阱、完整键盘流程、屏幕阅读器、色彩对比或缩放重排。"
+  ]
+}

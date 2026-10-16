@@ -1,0 +1,377 @@
+{
+  "complete": true,
+  "classification": "actual-owned-persistent-system-settings-upgrade",
+  "workingCandidateEqualsPrevious": true,
+  "checkedAt": "2026-10-05T05:54:40.267Z",
+  "sourceRevision": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
+  "imageId": "sha256:688cc971945d8b4a0cab6aa0bdcfd85b910ad3ec6b88c78f335411acad6aefba",
+  "consoleUrl": "http://127.0.0.1:4192",
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "oldImageId": "sha256:3ca77a5a15b1949b0fe7a13793d0226cee56cd5b22247bcfce6e4d14ddfae006",
+  "backupManifestSha256": "134d74c5e3840af52d281ecdfd600fd6ed2ea2d7a03c7f8fd6f3d51aa7ff319b",
+  "newMigration": "20261005090000_SystemSettings",
+  "settingsRows": 0,
+  "feature": {
+    "groups": [
+      {
+        "group": "security",
+        "revision": 0,
+        "fields": 4
+      },
+      {
+        "group": "release",
+        "revision": 0,
+        "fields": 2
+      },
+      {
+        "group": "gateway",
+        "revision": 0,
+        "fields": 3
+      },
+      {
+        "group": "audit",
+        "revision": 0,
+        "fields": 2
+      },
+      {
+        "group": "notification",
+        "revision": 0,
+        "fields": 6
+      }
+    ],
+    "fields": 17,
+    "compatibilityDefaults": true,
+    "structuralOnly": true,
+    "settingsRemainEmpty": true,
+    "csv": {
+      "status": 200,
+      "bytes": 14662,
+      "rows": 64,
+      "truncated": "false"
+    }
+  },
+  "originalCredentialsUnchanged": true,
+  "originalBusinessIdsUnchanged": true,
+  "originalHistoricalSnapshotsUnchanged": true,
+  "originalBusinessRuntimeEqual": true,
+  "runtimeSchema": "2.0",
+  "baselineSnapshotSha256": "df162b6330aee91f5bfd4eda9fba80a333098ab840eeeee8bd4084f19b60ac8b",
+  "newSnapshotSha256": "5c15c35b8ad41ddc22916784559bb0a65a85451b3528141b7703a0b377066595",
+  "gatewayRequests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ],
+  "publication": {
+    "id": "e7c76bab-4a7a-46ce-96f2-a1a18c2c8824",
+    "state": "Succeeded",
+    "targetConfigVersion": 3,
+    "deploymentSequence": 3,
+    "approvals": [
+      {
+        "actorId": "e0ce262d-580c-4d07-a1c8-35464b50df99",
+        "stepOrder": 1,
+        "status": "Approved"
+      },
+      {
+        "actorId": "4ad3bc95-d073-4a55-9fcb-8ea2c8ceaf5a",
+        "stepOrder": 2,
+        "status": "Approved"
+      }
+    ],
+    "targets": [
+      {
+        "nodeId": "c2a62181-2f05-41ea-a48b-d9be7302adce",
+        "instanceId": "eaf55b2b-0495-4ab0-9435-2d9d24305ba4",
+        "acknowledged": true,
+        "configVersion": 3,
+        "deploymentSequence": 3,
+        "errorCode": null
+      },
+      {
+        "nodeId": "d1569e2a-02b6-4253-acb8-8229a2dfebb0",
+        "instanceId": "73a80ae7-1f1c-489a-b0c7-45f89dfec1ad",
+        "acknowledged": true,
+        "configVersion": 3,
+        "deploymentSequence": 3,
+        "errorCode": null
+      }
+    ]
+  },
+  "images": [
+    {
+      "service": "gateway-a",
+      "imageId": "sha256:688cc971945d8b4a0cab6aa0bdcfd85b910ad3ec6b88c78f335411acad6aefba"
+    },
+    {
+      "service": "gateway-b",
+      "imageId": "sha256:688cc971945d8b4a0cab6aa0bdcfd85b910ad3ec6b88c78f335411acad6aefba"
+    },
+    {
+      "service": "control-plane",
+      "imageId": "sha256:688cc971945d8b4a0cab6aa0bdcfd85b910ad3ec6b88c78f335411acad6aefba"
+    },
+    {
+      "service": "worker",
+      "imageId": "sha256:688cc971945d8b4a0cab6aa0bdcfd85b910ad3ec6b88c78f335411acad6aefba"
+    },
+    {
+      "service": "console",
+      "imageId": "sha256:688cc971945d8b4a0cab6aa0bdcfd85b910ad3ec6b88c78f335411acad6aefba"
+    }
+  ],
+  "status": {
+    "schemaVersion": 1,
+    "projectName": "webapi-enterprise-local",
+    "sourceRevision": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
+    "bindingPhase": "Applied",
+    "pendingConfiguration": null,
+    "services": [
+      {
+        "name": "postgres",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "redis",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "collector",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "prometheus",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "loki",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "tempo",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "control-plane",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "worker",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "console",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-a",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "gateway-b",
+        "state": "Running",
+        "health": "healthy"
+      },
+      {
+        "name": "backend-a",
+        "state": "Running",
+        "health": null
+      },
+      {
+        "name": "backend-b",
+        "state": "Running",
+        "health": null
+      }
+    ],
+    "sources": [
+      {
+        "name": "collector",
+        "state": "Available",
+        "checkedAt": "2026-10-05T05:54:36.230Z"
+      },
+      {
+        "name": "prometheus",
+        "state": "Available",
+        "checkedAt": "2026-10-05T05:54:36.230Z"
+      },
+      {
+        "name": "loki",
+        "state": "Available",
+        "checkedAt": "2026-10-05T05:54:36.230Z"
+      },
+      {
+        "name": "tempo",
+        "state": "Available",
+        "checkedAt": "2026-10-05T05:54:36.229Z"
+      }
+    ],
+    "nodes": [
+      {
+        "name": "local-gateway-a",
+        "instanceId": "eaf55b2b-0495-4ab0-9435-2d9d24305ba4",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-05T05:54:35.477467+00:00",
+        "fresh": true,
+        "currentVersion": 3,
+        "currentSequence": 3,
+        "desiredVersion": 3,
+        "desiredSequence": 3,
+        "acknowledged": true
+      },
+      {
+        "name": "local-gateway-b",
+        "instanceId": "73a80ae7-1f1c-489a-b0c7-45f89dfec1ad",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-05T05:54:35.489985+00:00",
+        "fresh": true,
+        "currentVersion": 3,
+        "currentSequence": 3,
+        "desiredVersion": 3,
+        "desiredSequence": 3,
+        "acknowledged": true
+      }
+    ],
+    "storage": [
+      {
+        "name": "webapi-enterprise-local_dp-keys",
+        "volumeId": "webapi-enterprise-local_dp-keys",
+        "bytesUsed": 1001,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-a",
+        "volumeId": "webapi-enterprise-local_lkg-a",
+        "bytesUsed": 4658,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_lkg-b",
+        "volumeId": "webapi-enterprise-local_lkg-b",
+        "bytesUsed": 4658,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_loki-data",
+        "volumeId": "webapi-enterprise-local_loki-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      },
+      {
+        "name": "webapi-enterprise-local_pg",
+        "volumeId": "webapi-enterprise-local_pg",
+        "bytesUsed": 68942878,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_prometheus-data",
+        "volumeId": "webapi-enterprise-local_prometheus-data",
+        "bytesUsed": 16277150,
+        "reason": null
+      },
+      {
+        "name": "webapi-enterprise-local_tempo-data",
+        "volumeId": "webapi-enterprise-local_tempo-data",
+        "bytesUsed": null,
+        "reason": "Volume usage unavailable for this service image/state"
+      }
+    ],
+    "environmentStatus": "Active",
+    "errors": [],
+    "phase": "Ready"
+  },
+  "after": {
+    "ids": {
+      "users": [
+        "4ad3bc95-d073-4a55-9fcb-8ea2c8ceaf5a",
+        "845f5566-d92f-4aa0-ab37-f6295696a40d",
+        "e0ce262d-580c-4d07-a1c8-35464b50df99"
+      ],
+      "organizations": [
+        "087143b3-e051-4482-9d41-9603611cf9aa"
+      ],
+      "projects": [
+        "38953ded-c3b6-436a-8329-19e2e968f9d3"
+      ],
+      "environments": [
+        "7be0c798-d71a-4337-96ef-3d8e3f2e92dd"
+      ],
+      "apis": [
+        "cf0ec918-e4ad-44ec-9db9-c3607210fbf3"
+      ],
+      "api_versions": [
+        "bda27e8b-1cbf-4a53-af37-7d96ffb340ac"
+      ],
+      "api_routes": [
+        "6dd3efbe-da75-4c97-a2ba-2f477c4e0e50"
+      ],
+      "upstream_clusters": [
+        "2febcd43-84d7-4f2f-a9b9-62fe3394c6a8"
+      ],
+      "applications": [
+        "e69e4b11-a4d9-412f-a079-0d9b1e986bd2"
+      ],
+      "application_credentials": [
+        "363ba6db-6284-4fcb-a639-119d527dba20"
+      ],
+      "application_api_permissions": [
+        "d38399e7-c9c1-405d-9364-cccae332a225"
+      ],
+      "alert_rules": [
+        "35b3f813-0f7d-431e-a25f-c360fb3d7f8a"
+      ],
+      "alert_events": [
+        "038697f5-a430-4446-86e4-242747de0570"
+      ]
+    },
+    "snapshots": [
+      {
+        "id": "125f4687-75f1-489d-baee-45f5b85d1ca5",
+        "version": 1,
+        "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+        "sha256": "a1c9559e73197338332385dc2463c569eed3418aaac86279ffd2b847562c3569"
+      },
+      {
+        "id": "95368703-ee27-4187-bce6-08ff9e6389eb",
+        "version": 2,
+        "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+        "sha256": "df162b6330aee91f5bfd4eda9fba80a333098ab840eeeee8bd4084f19b60ac8b"
+      },
+      {
+        "id": "f6c04e48-381a-41eb-8bc9-f5593b0ddd0e",
+        "version": 3,
+        "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd",
+        "sha256": "5c15c35b8ad41ddc22916784559bb0a65a85451b3528141b7703a0b377066595"
+      }
+    ],
+    "migrations": [
+      "20261003182012_InitialCore",
+      "20261003201632_PublishCoordinatorIdentity",
+      "20261003213457_RecoveryReference",
+      "20261004030000_ObservabilityAlerts",
+      "20261005090000_SystemSettings"
+    ],
+    "settingsRows": 0
+  }
+}

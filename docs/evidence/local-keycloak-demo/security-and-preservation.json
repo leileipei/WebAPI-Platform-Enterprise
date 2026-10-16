@@ -1,0 +1,46 @@
+{
+  "complete": true,
+  "viewer": {
+    "active": true,
+    "authSource": "sso",
+    "role": "Viewer",
+    "roleCount": 1,
+    "readScope": {
+      "organizationId": "087143b3-e051-4482-9d41-9603611cf9aa",
+      "projectId": "38953ded-c3b6-436a-8329-19e2e968f9d3",
+      "environmentId": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd"
+    },
+    "scopeCount": 1,
+    "explicitSubject": "7e13b9b1-baf8-44a0-8671-96f25215844a"
+  },
+  "idp": {
+    "port": 4194,
+    "publishedOnlyLoopback": true,
+    "databasePortNotPublished": true,
+    "volumeCount": 4,
+    "exactCallback": "http://127.0.0.1:4192/auth/oidc/callback/fc834340-2813-4c59-9d3d-f2b754c77165",
+    "pkce": "S256",
+    "passwordGrantDisabled": true,
+    "implicitDisabled": true
+  },
+  "clientSecret": {
+    "permissions": "10001:10001:600",
+    "readOnlyMount": true,
+    "ownerVerified": true,
+    "contentsExcluded": true
+  },
+  "gatewayRequests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ],
+  "immutableToolFileCount": 96,
+  "immutableToolsReadback": true,
+  "retainedArchiveCount": 14,
+  "retainedArchivesUnchanged": true
+}

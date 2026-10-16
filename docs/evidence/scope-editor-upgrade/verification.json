@@ -1,0 +1,50 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T13:35:47.754692+00:00",
+  "scope": "第37页数据范围结构化编辑器合并及4192本机部署验收",
+  "sourceRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "imageId": "sha256:d7a57d8b7fe13dfe2270e31e0eb84c042c5720778a071f00978a7f1a8784033e",
+  "phase": "Ready",
+  "consoleTestsBeforeCommit": {
+    "passed": 111,
+    "failed": 0
+  },
+  "consoleTestsAfterMerge": {
+    "passed": 111,
+    "failed": 0
+  },
+  "privateRecoveryTests": {
+    "passed": 4,
+    "failed": 0
+  },
+  "reviewedSourceFiles": 8,
+  "databaseTablesPreserved": 33,
+  "migrationsUnchanged": true,
+  "coldBackup": {
+    "platformVolumes": 7,
+    "idpVolumes": 4,
+    "filesReadback": 32,
+    "platformPhysicalRestoreThisBatch": true,
+    "idpPhysicalRestoreThisBatch": true,
+    "softwareRollbackThisBatch": true
+  },
+  "originalAccountsAndSso": {
+    "threeLocalAccountsVerified": true,
+    "realKeycloakViewerLogin": true,
+    "readOnlyScopeVerified": true,
+    "logoutSameSession401": true,
+    "credentialsIncluded": false
+  },
+  "businessVersion": 4,
+  "businessSequence": 4,
+  "newBusinessPublish": false,
+  "originalLocalFilesPreserved": 443,
+  "historicalArchivesPreserved": 29,
+  "originalScopesAndRolesUnchanged": true,
+  "disposableCloneCleaned": true,
+  "productionAcceptance": false,
+  "prior40PageQaPackagesUnmodified": true,
+  "priorScopeIsolatedQaPackageUnmodified": true,
+  "originalEnvironmentScopeWrites": 0,
+  "pushed": false
+}

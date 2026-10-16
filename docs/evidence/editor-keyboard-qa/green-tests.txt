@@ -1,0 +1,13 @@
+✔ Tab wraps only at the active dialog boundaries and preserves native traversal inside (0.346292ms)
+✔ lost or removed focus re-enters the current confirmation in the requested direction (0.054875ms)
+✔ a busy dialog without available controls traps Tab on its focusable container (0.091667ms)
+✔ cancelling a removed confirmation restores focus without stealing it from an active input (0.045833ms)
+✔ the editor exposes a labelled modal with a focusable fallback for blocked controls (51.018292ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 192.796458

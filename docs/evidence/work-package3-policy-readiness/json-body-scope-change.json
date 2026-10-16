@@ -1,0 +1,35 @@
+{
+  "at": "2026-10-13T07:14:18.584089+00:00",
+  "sourceHead": "293b37f2dbd59427cd2d40f6783dc441345528ef",
+  "scopeHistory": [
+    {
+      "scope": "A",
+      "userSelectionReceived": true,
+      "writtenSpecApprovalReceived": true
+    },
+    {
+      "scope": "headers_paths_query_and_json_request_response_body",
+      "explicitUserRequest": "同时加入JSON请求体／响应体字段映射",
+      "writtenSpecApprovalReceived": false
+    }
+  ],
+  "writtenSpecStatus": "expanded_body_spec_awaiting_review",
+  "planStatus": "previous_A_draft_superseded",
+  "productImplementationStarted": false,
+  "package2Status": "paused",
+  "specPath": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/docs/superpowers/specs/2026-10-13-cors-ip-transform-json-body-design.md",
+  "specSha256": "494a14b5bd22c5331a7419ed383ddf516863a7c5f41f64e42be801e9c2d7c554",
+  "checks": {
+    "jsonExamplesValid": 4,
+    "acceptanceAreasPresent": 12,
+    "placeholderScanPassed": true,
+    "sourceFilesUnchanged": 28,
+    "oldPlanExplicitlySuperseded": true,
+    "bodyAtomicFailureDefined": true,
+    "boundedDecodeAndConcurrencyDefined": true,
+    "noNewPostRetry": true,
+    "onlyFinalResponseMapped": true,
+    "cachedFinalRepresentationNotRemapped": true,
+    "sameEnginePreviewDefined": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "complete": true,
+  "source": "navigation-restore",
+  "previewPort": 4193,
+  "destinationPort": 4192,
+  "files": [
+    "console/src/Shell.tsx",
+    "console/src/styles/tokens.css",
+    "console/src/SidebarNav.tsx",
+    "console/src/sidebar-model.mjs",
+    "console/src/sidebar-model.d.mts",
+    "console/tests/sidebar.test.mjs"
+  ],
+  "allSixByteIdentical": true,
+  "backendToolSourceChanged": false
+}

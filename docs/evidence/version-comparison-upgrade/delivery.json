@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "path": "deliverables/WebAPI_Enterprise_版本比较与风险评审_4192升级补充_20261006.zip",
+  "sha256": "16353a4befee0e525940419dc12543e4c5cf1520ab4b2179288f9290f1f21164",
+  "entries": 27,
+  "crc": "passed",
+  "allEntryShaReadback": "passed",
+  "actualSecretMarkerMatches": 0,
+  "runtime4192Upgraded": true,
+  "mainMerged": true,
+  "applicationSourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "mainSourceRevision": "17cad2315900939a1fdc2bca6f876a4649bcc06f",
+  "productionAcceptance": false
+}

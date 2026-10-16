@@ -1,0 +1,396 @@
+{
+  "preparedAt": "2026-10-16T05:49:23.719411+00:00",
+  "purpose": "Exact three-source14-file local commit review only; no commit authorized by this package",
+  "roles": {
+    "baseline": {
+      "sourceDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.runtime/pkcs-three-source-repair-20261016/baseline",
+      "parent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "patch": "baseline.patch",
+      "patchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+      "files": [
+        {
+          "path": "Directory.Packages.props",
+          "beforeSha256": "8e5f452a7eabab26b2b845a9056af8d0158a1623c02be56fc499e236cb7f8219",
+          "afterSha256": "786da4e53e1a69e2ddd121e02c3141f4af76cdbfa4dd1c2c1271a2cc3a8d6c88",
+          "beforeBytes": 1719,
+          "afterBytes": 1800
+        },
+        {
+          "path": "src/WebApi.Infrastructure/WebApi.Infrastructure.csproj",
+          "beforeSha256": "202769ff554e7519f27d56a84fe422d7a9bcd62bcb06666f9b7490c939f92b40",
+          "afterSha256": "38e4c7bbad8329f84727914c1f2ab70ae369b2cdc70b1adbd23639d376758796",
+          "beforeBytes": 1055,
+          "afterBytes": 1118
+        },
+        {
+          "path": "src/WebApi.ControlPlane/packages.lock.json",
+          "beforeSha256": "37599e2de24c2c1c6a159040eb0dfd155bf73c253149fd95784f11f8d98e2ef2",
+          "afterSha256": "4d12d61fc2ecee412e18321672f9bd7c5d3bc7af7b7ac22fce412b20d3ab3d21",
+          "beforeBytes": 10454,
+          "afterBytes": 10560
+        },
+        {
+          "path": "src/WebApi.Gateway/packages.lock.json",
+          "beforeSha256": "36e96f11bf85d9c4139c36c0936cfd533fd5ed8c89e582cecfcde2b30771b870",
+          "afterSha256": "dd0f18175a0dc7abd1b8f411bbecba8728bff93c6900d3975ef5239e2e503e56",
+          "beforeBytes": 11115,
+          "afterBytes": 11221
+        },
+        {
+          "path": "src/WebApi.Infrastructure/packages.lock.json",
+          "beforeSha256": "689d07f6a87b320d30951c052574009a8c85bb376720156be959094737e31d14",
+          "afterSha256": "e13a5e97282cfe3819e9cce6a51ab777b8a5b18212e3e3b879b1615f73a3bd22",
+          "beforeBytes": 15838,
+          "afterBytes": 15871
+        },
+        {
+          "path": "src/WebApi.Migrator/packages.lock.json",
+          "beforeSha256": "a40559886978627e3b6f341fe759e99f8acc9463228188214ff13cd20a965939",
+          "afterSha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "beforeBytes": 18115,
+          "afterBytes": 18221
+        },
+        {
+          "path": "src/WebApi.RuntimeTool/packages.lock.json",
+          "beforeSha256": "a40559886978627e3b6f341fe759e99f8acc9463228188214ff13cd20a965939",
+          "afterSha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "beforeBytes": 18115,
+          "afterBytes": 18221
+        },
+        {
+          "path": "src/WebApi.Worker/packages.lock.json",
+          "beforeSha256": "806ab07dd79e111d1b9fa613d54b566c9f30d8f9d0a0a391598765852af72d9a",
+          "afterSha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "beforeBytes": 10004,
+          "afterBytes": 10110
+        },
+        {
+          "path": "tests/WebApi.Domain.Tests/packages.lock.json",
+          "beforeSha256": "722f9d730e896712640fe32119aeffaa9877fb0391f6560443a7c1a93a941fbc",
+          "afterSha256": "723da87f845bfc45c62cbc62a87f8fd75df00e9f907d8f80810579035f498032",
+          "beforeBytes": 21471,
+          "afterBytes": 21577
+        },
+        {
+          "path": "tests/WebApi.Gateway.Tests/packages.lock.json",
+          "beforeSha256": "dda3b41e533b0bf6133fd983aca6ae91e48fab0c3649455d06139f5686a80084",
+          "afterSha256": "5fded73f359d9d8935b84913ca84244bc4476356b53da4a51185438b8e90dafa",
+          "beforeBytes": 24570,
+          "afterBytes": 24676
+        },
+        {
+          "path": "tests/WebApi.Integration.Tests/packages.lock.json",
+          "beforeSha256": "34b6fcb1ed54c0e3b137b83dafffeceaa3a689d89941deb2b550630e0f418a23",
+          "afterSha256": "381e788bc00f9eb9854f876654ed209b81fd7fea732de15225e95ab82016f6a6",
+          "beforeBytes": 24987,
+          "afterBytes": 25093
+        },
+        {
+          "path": "tests/WebApi.NotificationFixtureHost/packages.lock.json",
+          "beforeSha256": "806ab07dd79e111d1b9fa613d54b566c9f30d8f9d0a0a391598765852af72d9a",
+          "afterSha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "beforeBytes": 10004,
+          "afterBytes": 10110
+        },
+        {
+          "path": "tests/WebApi.TestSupport/packages.lock.json",
+          "beforeSha256": "22906cbd48ae0c49db275fab6ff6bf0c7b01ecf6ac53a943617d6f10138f3beb",
+          "afterSha256": "4fd5cf10d214d18e27c61999a5aa9098595bd342c002dedabf16aca3a049dd75",
+          "beforeBytes": 11419,
+          "afterBytes": 11525
+        },
+        {
+          "path": "tools/WebApi.PerformanceHost/packages.lock.json",
+          "beforeSha256": "a8cc2ded59ce47e2645c4cc9cd0d29e9c80ed554945b68af072dd6fc556a2006",
+          "afterSha256": "7b4f2d9539a73e334d760641fd528dbaa519b4b33d5bb413d42e75112d56679b",
+          "beforeBytes": 12327,
+          "afterBytes": 12433
+        }
+      ],
+      "changedFiles": 14,
+      "headUnchanged": true,
+      "noStagedChanges": true
+    },
+    "candidate": {
+      "sourceDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.runtime/pkcs-three-source-repair-20261016/candidate",
+      "parent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "patch": "candidate.patch",
+      "patchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+      "files": [
+        {
+          "path": "Directory.Packages.props",
+          "beforeSha256": "8e5f452a7eabab26b2b845a9056af8d0158a1623c02be56fc499e236cb7f8219",
+          "afterSha256": "786da4e53e1a69e2ddd121e02c3141f4af76cdbfa4dd1c2c1271a2cc3a8d6c88",
+          "beforeBytes": 1719,
+          "afterBytes": 1800
+        },
+        {
+          "path": "src/WebApi.Infrastructure/WebApi.Infrastructure.csproj",
+          "beforeSha256": "202769ff554e7519f27d56a84fe422d7a9bcd62bcb06666f9b7490c939f92b40",
+          "afterSha256": "38e4c7bbad8329f84727914c1f2ab70ae369b2cdc70b1adbd23639d376758796",
+          "beforeBytes": 1055,
+          "afterBytes": 1118
+        },
+        {
+          "path": "src/WebApi.ControlPlane/packages.lock.json",
+          "beforeSha256": "37599e2de24c2c1c6a159040eb0dfd155bf73c253149fd95784f11f8d98e2ef2",
+          "afterSha256": "4d12d61fc2ecee412e18321672f9bd7c5d3bc7af7b7ac22fce412b20d3ab3d21",
+          "beforeBytes": 10454,
+          "afterBytes": 10560
+        },
+        {
+          "path": "src/WebApi.Gateway/packages.lock.json",
+          "beforeSha256": "36e96f11bf85d9c4139c36c0936cfd533fd5ed8c89e582cecfcde2b30771b870",
+          "afterSha256": "dd0f18175a0dc7abd1b8f411bbecba8728bff93c6900d3975ef5239e2e503e56",
+          "beforeBytes": 11115,
+          "afterBytes": 11221
+        },
+        {
+          "path": "src/WebApi.Infrastructure/packages.lock.json",
+          "beforeSha256": "689d07f6a87b320d30951c052574009a8c85bb376720156be959094737e31d14",
+          "afterSha256": "e13a5e97282cfe3819e9cce6a51ab777b8a5b18212e3e3b879b1615f73a3bd22",
+          "beforeBytes": 15838,
+          "afterBytes": 15871
+        },
+        {
+          "path": "src/WebApi.Migrator/packages.lock.json",
+          "beforeSha256": "a40559886978627e3b6f341fe759e99f8acc9463228188214ff13cd20a965939",
+          "afterSha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "beforeBytes": 18115,
+          "afterBytes": 18221
+        },
+        {
+          "path": "src/WebApi.RuntimeTool/packages.lock.json",
+          "beforeSha256": "a40559886978627e3b6f341fe759e99f8acc9463228188214ff13cd20a965939",
+          "afterSha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "beforeBytes": 18115,
+          "afterBytes": 18221
+        },
+        {
+          "path": "src/WebApi.Worker/packages.lock.json",
+          "beforeSha256": "806ab07dd79e111d1b9fa613d54b566c9f30d8f9d0a0a391598765852af72d9a",
+          "afterSha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "beforeBytes": 10004,
+          "afterBytes": 10110
+        },
+        {
+          "path": "tests/WebApi.Domain.Tests/packages.lock.json",
+          "beforeSha256": "722f9d730e896712640fe32119aeffaa9877fb0391f6560443a7c1a93a941fbc",
+          "afterSha256": "723da87f845bfc45c62cbc62a87f8fd75df00e9f907d8f80810579035f498032",
+          "beforeBytes": 21471,
+          "afterBytes": 21577
+        },
+        {
+          "path": "tests/WebApi.Gateway.Tests/packages.lock.json",
+          "beforeSha256": "dda3b41e533b0bf6133fd983aca6ae91e48fab0c3649455d06139f5686a80084",
+          "afterSha256": "5fded73f359d9d8935b84913ca84244bc4476356b53da4a51185438b8e90dafa",
+          "beforeBytes": 24570,
+          "afterBytes": 24676
+        },
+        {
+          "path": "tests/WebApi.Integration.Tests/packages.lock.json",
+          "beforeSha256": "34b6fcb1ed54c0e3b137b83dafffeceaa3a689d89941deb2b550630e0f418a23",
+          "afterSha256": "381e788bc00f9eb9854f876654ed209b81fd7fea732de15225e95ab82016f6a6",
+          "beforeBytes": 24987,
+          "afterBytes": 25093
+        },
+        {
+          "path": "tests/WebApi.NotificationFixtureHost/packages.lock.json",
+          "beforeSha256": "806ab07dd79e111d1b9fa613d54b566c9f30d8f9d0a0a391598765852af72d9a",
+          "afterSha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "beforeBytes": 10004,
+          "afterBytes": 10110
+        },
+        {
+          "path": "tests/WebApi.TestSupport/packages.lock.json",
+          "beforeSha256": "22906cbd48ae0c49db275fab6ff6bf0c7b01ecf6ac53a943617d6f10138f3beb",
+          "afterSha256": "4fd5cf10d214d18e27c61999a5aa9098595bd342c002dedabf16aca3a049dd75",
+          "beforeBytes": 11419,
+          "afterBytes": 11525
+        },
+        {
+          "path": "tools/WebApi.PerformanceHost/packages.lock.json",
+          "beforeSha256": "a8cc2ded59ce47e2645c4cc9cd0d29e9c80ed554945b68af072dd6fc556a2006",
+          "afterSha256": "7b4f2d9539a73e334d760641fd528dbaa519b4b33d5bb413d42e75112d56679b",
+          "beforeBytes": 12327,
+          "afterBytes": 12433
+        }
+      ],
+      "changedFiles": 14,
+      "headUnchanged": true,
+      "noStagedChanges": true
+    },
+    "harness": {
+      "sourceDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.runtime/pkcs-three-source-repair-20261016/harness",
+      "parent": "883060f04ab04d95fad5ae9d559d7744ff1c2120",
+      "patch": "harness.patch",
+      "patchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+      "files": [
+        {
+          "path": "Directory.Packages.props",
+          "beforeSha256": "8e5f452a7eabab26b2b845a9056af8d0158a1623c02be56fc499e236cb7f8219",
+          "afterSha256": "786da4e53e1a69e2ddd121e02c3141f4af76cdbfa4dd1c2c1271a2cc3a8d6c88",
+          "beforeBytes": 1719,
+          "afterBytes": 1800
+        },
+        {
+          "path": "src/WebApi.Infrastructure/WebApi.Infrastructure.csproj",
+          "beforeSha256": "202769ff554e7519f27d56a84fe422d7a9bcd62bcb06666f9b7490c939f92b40",
+          "afterSha256": "38e4c7bbad8329f84727914c1f2ab70ae369b2cdc70b1adbd23639d376758796",
+          "beforeBytes": 1055,
+          "afterBytes": 1118
+        },
+        {
+          "path": "src/WebApi.ControlPlane/packages.lock.json",
+          "beforeSha256": "37599e2de24c2c1c6a159040eb0dfd155bf73c253149fd95784f11f8d98e2ef2",
+          "afterSha256": "4d12d61fc2ecee412e18321672f9bd7c5d3bc7af7b7ac22fce412b20d3ab3d21",
+          "beforeBytes": 10454,
+          "afterBytes": 10560
+        },
+        {
+          "path": "src/WebApi.Gateway/packages.lock.json",
+          "beforeSha256": "36e96f11bf85d9c4139c36c0936cfd533fd5ed8c89e582cecfcde2b30771b870",
+          "afterSha256": "dd0f18175a0dc7abd1b8f411bbecba8728bff93c6900d3975ef5239e2e503e56",
+          "beforeBytes": 11115,
+          "afterBytes": 11221
+        },
+        {
+          "path": "src/WebApi.Infrastructure/packages.lock.json",
+          "beforeSha256": "689d07f6a87b320d30951c052574009a8c85bb376720156be959094737e31d14",
+          "afterSha256": "e13a5e97282cfe3819e9cce6a51ab777b8a5b18212e3e3b879b1615f73a3bd22",
+          "beforeBytes": 15838,
+          "afterBytes": 15871
+        },
+        {
+          "path": "src/WebApi.Migrator/packages.lock.json",
+          "beforeSha256": "a40559886978627e3b6f341fe759e99f8acc9463228188214ff13cd20a965939",
+          "afterSha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "beforeBytes": 18115,
+          "afterBytes": 18221
+        },
+        {
+          "path": "src/WebApi.RuntimeTool/packages.lock.json",
+          "beforeSha256": "a40559886978627e3b6f341fe759e99f8acc9463228188214ff13cd20a965939",
+          "afterSha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "beforeBytes": 18115,
+          "afterBytes": 18221
+        },
+        {
+          "path": "src/WebApi.Worker/packages.lock.json",
+          "beforeSha256": "806ab07dd79e111d1b9fa613d54b566c9f30d8f9d0a0a391598765852af72d9a",
+          "afterSha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "beforeBytes": 10004,
+          "afterBytes": 10110
+        },
+        {
+          "path": "tests/WebApi.Domain.Tests/packages.lock.json",
+          "beforeSha256": "722f9d730e896712640fe32119aeffaa9877fb0391f6560443a7c1a93a941fbc",
+          "afterSha256": "723da87f845bfc45c62cbc62a87f8fd75df00e9f907d8f80810579035f498032",
+          "beforeBytes": 21471,
+          "afterBytes": 21577
+        },
+        {
+          "path": "tests/WebApi.Gateway.Tests/packages.lock.json",
+          "beforeSha256": "dda3b41e533b0bf6133fd983aca6ae91e48fab0c3649455d06139f5686a80084",
+          "afterSha256": "5fded73f359d9d8935b84913ca84244bc4476356b53da4a51185438b8e90dafa",
+          "beforeBytes": 24570,
+          "afterBytes": 24676
+        },
+        {
+          "path": "tests/WebApi.Integration.Tests/packages.lock.json",
+          "beforeSha256": "34b6fcb1ed54c0e3b137b83dafffeceaa3a689d89941deb2b550630e0f418a23",
+          "afterSha256": "381e788bc00f9eb9854f876654ed209b81fd7fea732de15225e95ab82016f6a6",
+          "beforeBytes": 24987,
+          "afterBytes": 25093
+        },
+        {
+          "path": "tests/WebApi.NotificationFixtureHost/packages.lock.json",
+          "beforeSha256": "806ab07dd79e111d1b9fa613d54b566c9f30d8f9d0a0a391598765852af72d9a",
+          "afterSha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "beforeBytes": 10004,
+          "afterBytes": 10110
+        },
+        {
+          "path": "tests/WebApi.TestSupport/packages.lock.json",
+          "beforeSha256": "22906cbd48ae0c49db275fab6ff6bf0c7b01ecf6ac53a943617d6f10138f3beb",
+          "afterSha256": "4fd5cf10d214d18e27c61999a5aa9098595bd342c002dedabf16aca3a049dd75",
+          "beforeBytes": 11419,
+          "afterBytes": 11525
+        },
+        {
+          "path": "tools/WebApi.PerformanceHost/packages.lock.json",
+          "beforeSha256": "a8cc2ded59ce47e2645c4cc9cd0d29e9c80ed554945b68af072dd6fc556a2006",
+          "afterSha256": "7b4f2d9539a73e334d760641fd528dbaa519b4b33d5bb413d42e75112d56679b",
+          "beforeBytes": 12327,
+          "afterBytes": 12433
+        }
+      ],
+      "changedFiles": 14,
+      "headUnchanged": true,
+      "noStagedChanges": true
+    }
+  },
+  "totalChangedFiles": 42,
+  "commonPatchSha256": "93325b7818349a2f3f4cbe03ae25b075fd0b5a1a0bb5ada5b75ff36c443e4776",
+  "workingTreeValidationComplete": true,
+  "newCommitsCreated": 0,
+  "pushes": 0,
+  "mainMerges": 0,
+  "deploy4192": false,
+  "immutable": false,
+  "formalQualified": false,
+  "newFormalWindows": 0,
+  "newFixedSourceValidationStillRequired": true,
+  "originalParentsPreserved": true,
+  "candidateRegression": {
+    "testsExecuted": 2899,
+    "passed": 2899,
+    "rawFailed": 0,
+    "skipped": 0,
+    "inputFiles": 2616,
+    "inputHashesUnchangedAfterTests": true,
+    "inputFingerprint": "af17f2c5c2b2e473737ef506028a2356e1039c5d504a8b90f58642d64323e46c",
+    "inputManifestSha256": "76677ab856d0efc566741c31c2d6339c307a84b93991c6110ff3e24b9f0f519f"
+  },
+  "baselineRegression": {
+    "testsExecuted": 2985,
+    "passed": 2963,
+    "rawFailed": 22,
+    "skipped": 0,
+    "inputFiles": 2621,
+    "inputHashesUnchangedAfterTests": true,
+    "inputFingerprint": "c10fac124d579d2fb37bfc8c7ccb613f63b9f6a3642c6f95fa0915c0f2ed3e9c",
+    "inputManifestSha256": "2f7641117c18a44f343aeaa375d34219709b07a10a77fc18349d575312c8fd04",
+    "classifiedExpectedCosts": 22,
+    "blocked": 0,
+    "separateIndependentProofs": 82
+  },
+  "notExecutedForNewFixedSources": [
+    "New B/C/H immutable commit build",
+    "Fresh SQL/EXPLAIN and schema/index parity gates for new triple",
+    "S/M/L qualification and runtime image identity gates for new triple",
+    "Full144pairs/288windows under renewed resources and fresh validity windows",
+    "G5/G6 final performance qualification"
+  ],
+  "evidenceFiles": {
+    "alignment-verification.json": "62681344bb4872ffe3a51b14a7fae61ed703c6c565699e3d56907639d439e468",
+    "dependency-build-audit-verification.json": "3ae66f640c055f6d7bcd6164609f8cb20e8d6260625fe29b4e3e809c112bc85d",
+    "resolved-artifact-dependency-verification.json": "1049fc76eb8814c82564860ced9c06a825a4447df8051b327443fd802eaff1a5",
+    "regression-input-summary.json": "6c795af650fec5a3af6f00c42660fb345334e86cafb0fa1f703c97912760ba84",
+    "regression-product-source-verification.json": "7b74f150c4ec1fec31caf7c4afa939f8cff264470aaea6420a6854a78d8d68e2",
+    "input-reproduction-verification.json": "65234b709e9a07ce54228717b0f59da3e3a22f316bcfd2bb39d69bd0dcf658c8",
+    "regression-input-completeness-repair.json": "51b2d06dd8606ee9d14564e620cdd7daf1ac22cc8aab403c81849f051fcf4e3c",
+    "supplementary-regression-fixture.json": "eabb04a946c747bfa03b3515c7133e53709d935fe16729ea5b98511b3ba1459f",
+    "regression-results.json": "30f980b7c0a5d053f8586f09c43615608d9f3ccdb064c4dd3b75fb3d464739d3",
+    "regression-verification.json": "5d0cedbe4d6f5a0498804a82ce24b21b01a05696afd1664a9898ef178451535c",
+    "build-identity-extraction.json": "0924295113a35c45ec201110d74983ce71a2c0bf73df17c4154ce04b10c8c4de",
+    "budget-classification.json": "302be5f4c3ed6365cd7272e6c039e7b3ddf00c003dc275550b8ef0e1c4a92250",
+    "patch-replay-verification.json": "a70a6e6bf26fd9d485f9b134143887f337f30e3a8c218d0cbd1ca4abdc935e48",
+    "index-metadata-verification.json": "c5147352d47e9823dc16a300c7e33c995db9830a92fb651cdde54651e56ccb1d",
+    "independent-review-initial.json": "e8ded905643a190481f963d9c74cf6df5370e9225746dd620651be892316bcf0",
+    "independent-review-final.json": "2215e5bcf968e4cd229a11b102a3333b93d286c19d26c50714c663cf56771754",
+    "runtime-preservation-verification.json": "cee9b76f7ec8e9c9da13fa12d01c495d63ba6ef493bea3131488f47cd584e5d8",
+    "original-environment-protection.json": "29bc5d53831883f0e2dcf3b69d06a3c4358814ee2868cd933631a430c05c00fd",
+    "preserved-failures-and-boundaries.json": "5ba1f802f83ac03d921d88c63ed08851dce7c5bd0e6c0afaaa082b80a0deb1b8"
+  }
+}

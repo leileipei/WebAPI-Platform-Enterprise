@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "calls": [
+    {
+      "port": 62868,
+      "status": 200,
+      "requestId": "0HNP9VTAVU5UT:00000001",
+      "path": "/__network/echo",
+      "query": "qa=1",
+      "requestHeader": "qa",
+      "responseHeader": "qa",
+      "jsonMappings": true,
+      "integerPreserved": true,
+      "apiKeyForwarded": false
+    },
+    {
+      "port": 62869,
+      "status": 200,
+      "requestId": "0HNP9VTAVSK0R:00000001",
+      "path": "/__network/echo",
+      "query": "qa=1",
+      "requestHeader": "qa",
+      "responseHeader": "qa",
+      "jsonMappings": true,
+      "integerPreserved": true,
+      "apiKeyForwarded": false
+    }
+  ],
+  "corsPreflight": 204,
+  "corsDenied": 403,
+  "oldOrdersPreserved": true
+}

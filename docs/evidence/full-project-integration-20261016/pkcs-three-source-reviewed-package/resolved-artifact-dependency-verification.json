@@ -1,0 +1,207 @@
+{
+  "verifiedAt": "2026-10-16T05:26:49.419743+00:00",
+  "roles": {
+    "baseline": {
+      "parent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "builtDependencyManifests": 12,
+      "artifacts": [
+        {
+          "file": "src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.deps.json",
+          "sha256": "54122502f5da43b65a98049e353da611178d2d72cd0e586fed91647e1184672d",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Gateway/bin/Release/net10.0/WebApi.Gateway.deps.json",
+          "sha256": "86f45bd49235ec32215af9bfae299c20eb8aecbeb766c65ffcf7b819331aa1bb",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.deps.json",
+          "sha256": "2493cc6fc04f927a91b66c6fd5c3f9175eba633740ae28c710e561eea2fdb362",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.deps.json",
+          "sha256": "ce2b369319f1ce14ea2ec9d7c9f89a9de68a16931ecb80888d489aa8f1de5125",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.RuntimeTool/bin/Release/net10.0/WebApi.RuntimeTool.deps.json",
+          "sha256": "e7915c12ed044619ca39e0b4cb86345da506e1fa8159656d1947d1d235ec4cc7",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Worker/bin/Release/net10.0/WebApi.Worker.deps.json",
+          "sha256": "038eefea62f2bd5a8dd9f9e2351879c95f7f145205dd65e00b1b0c65c4d7120e",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.Domain.Tests/bin/Release/net10.0/WebApi.Domain.Tests.deps.json",
+          "sha256": "25b91c72aa69b1b12399037fea9f93b8505ae2a63db8ac783d011143c46d4a38",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.deps.json",
+          "sha256": "c729199ec13207ff6a45fbaecbd3f999ebdb516601bf078e4c0b4b26a238318f",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.deps.json",
+          "sha256": "224700271cb14f551a6803aa3565519fd4fc31bf40ca9da901f4be5c579a218a",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.NotificationFixtureHost/bin/Release/net10.0/WebApi.NotificationFixtureHost.deps.json",
+          "sha256": "e52d71abedbf426420aaf72abb60c5e8b889b95b03b90ad9ba5c2638568068d6",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.TestSupport/bin/Release/net10.0/WebApi.TestSupport.deps.json",
+          "sha256": "3519b3718fc19b30da05c9651efb6068aa966f7345926a3a59b4f84bc1590d21",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tools/WebApi.PerformanceHost/bin/Release/net10.0/WebApi.PerformanceHost.deps.json",
+          "sha256": "56bb605a9ee4f9c364f387f89c8d99594e4ac06ee54abe68f73a80e3980417d5",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        }
+      ]
+    },
+    "candidate": {
+      "parent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "builtDependencyManifests": 12,
+      "artifacts": [
+        {
+          "file": "src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.deps.json",
+          "sha256": "54122502f5da43b65a98049e353da611178d2d72cd0e586fed91647e1184672d",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Gateway/bin/Release/net10.0/WebApi.Gateway.deps.json",
+          "sha256": "86f45bd49235ec32215af9bfae299c20eb8aecbeb766c65ffcf7b819331aa1bb",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.deps.json",
+          "sha256": "2493cc6fc04f927a91b66c6fd5c3f9175eba633740ae28c710e561eea2fdb362",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.deps.json",
+          "sha256": "ce2b369319f1ce14ea2ec9d7c9f89a9de68a16931ecb80888d489aa8f1de5125",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.RuntimeTool/bin/Release/net10.0/WebApi.RuntimeTool.deps.json",
+          "sha256": "e7915c12ed044619ca39e0b4cb86345da506e1fa8159656d1947d1d235ec4cc7",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Worker/bin/Release/net10.0/WebApi.Worker.deps.json",
+          "sha256": "038eefea62f2bd5a8dd9f9e2351879c95f7f145205dd65e00b1b0c65c4d7120e",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.Domain.Tests/bin/Release/net10.0/WebApi.Domain.Tests.deps.json",
+          "sha256": "25b91c72aa69b1b12399037fea9f93b8505ae2a63db8ac783d011143c46d4a38",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.deps.json",
+          "sha256": "c729199ec13207ff6a45fbaecbd3f999ebdb516601bf078e4c0b4b26a238318f",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.deps.json",
+          "sha256": "224700271cb14f551a6803aa3565519fd4fc31bf40ca9da901f4be5c579a218a",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.NotificationFixtureHost/bin/Release/net10.0/WebApi.NotificationFixtureHost.deps.json",
+          "sha256": "e52d71abedbf426420aaf72abb60c5e8b889b95b03b90ad9ba5c2638568068d6",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.TestSupport/bin/Release/net10.0/WebApi.TestSupport.deps.json",
+          "sha256": "3519b3718fc19b30da05c9651efb6068aa966f7345926a3a59b4f84bc1590d21",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tools/WebApi.PerformanceHost/bin/Release/net10.0/WebApi.PerformanceHost.deps.json",
+          "sha256": "56bb605a9ee4f9c364f387f89c8d99594e4ac06ee54abe68f73a80e3980417d5",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        }
+      ]
+    },
+    "harness": {
+      "parent": "883060f04ab04d95fad5ae9d559d7744ff1c2120",
+      "builtDependencyManifests": 12,
+      "artifacts": [
+        {
+          "file": "src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.deps.json",
+          "sha256": "54122502f5da43b65a98049e353da611178d2d72cd0e586fed91647e1184672d",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Gateway/bin/Release/net10.0/WebApi.Gateway.deps.json",
+          "sha256": "86f45bd49235ec32215af9bfae299c20eb8aecbeb766c65ffcf7b819331aa1bb",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.deps.json",
+          "sha256": "2493cc6fc04f927a91b66c6fd5c3f9175eba633740ae28c710e561eea2fdb362",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.deps.json",
+          "sha256": "ce2b369319f1ce14ea2ec9d7c9f89a9de68a16931ecb80888d489aa8f1de5125",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.RuntimeTool/bin/Release/net10.0/WebApi.RuntimeTool.deps.json",
+          "sha256": "e7915c12ed044619ca39e0b4cb86345da506e1fa8159656d1947d1d235ec4cc7",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "src/WebApi.Worker/bin/Release/net10.0/WebApi.Worker.deps.json",
+          "sha256": "038eefea62f2bd5a8dd9f9e2351879c95f7f145205dd65e00b1b0c65c4d7120e",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.Domain.Tests/bin/Release/net10.0/WebApi.Domain.Tests.deps.json",
+          "sha256": "25b91c72aa69b1b12399037fea9f93b8505ae2a63db8ac783d011143c46d4a38",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.deps.json",
+          "sha256": "c729199ec13207ff6a45fbaecbd3f999ebdb516601bf078e4c0b4b26a238318f",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.deps.json",
+          "sha256": "224700271cb14f551a6803aa3565519fd4fc31bf40ca9da901f4be5c579a218a",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.NotificationFixtureHost/bin/Release/net10.0/WebApi.NotificationFixtureHost.deps.json",
+          "sha256": "e52d71abedbf426420aaf72abb60c5e8b889b95b03b90ad9ba5c2638568068d6",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tests/WebApi.TestSupport/bin/Release/net10.0/WebApi.TestSupport.deps.json",
+          "sha256": "3519b3718fc19b30da05c9651efb6068aa966f7345926a3a59b4f84bc1590d21",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        },
+        {
+          "file": "tools/WebApi.PerformanceHost/bin/Release/net10.0/WebApi.PerformanceHost.deps.json",
+          "sha256": "56bb605a9ee4f9c364f387f89c8d99594e4ac06ee54abe68f73a80e3980417d5",
+          "resolvedPkcsPackage": "System.Security.Cryptography.Pkcs/10.0.13"
+        }
+      ]
+    }
+  },
+  "allBuiltConsumersUsePatchedPackage": true,
+  "immutable": false,
+  "formalQualified": false,
+  "complete": true
+}

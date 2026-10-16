@@ -1,0 +1,76 @@
+{
+  "complete": true,
+  "releaseId": "6ee3a3b6-ac89-4330-b82b-e5a9fd5d435a",
+  "independentApprovals": [
+    {
+      "actorId": "e0ce262d-580c-4d07-a1c8-35464b50df99",
+      "roleCode": "ApiApprover",
+      "status": "Approved"
+    },
+    {
+      "actorId": "4ad3bc95-d073-4a55-9fcb-8ea2c8ceaf5a",
+      "roleCode": "SecurityReviewer",
+      "status": "Approved"
+    }
+  ],
+  "targetConfigVersion": 4,
+  "deploymentSequence": 4,
+  "targets": [
+    {
+      "nodeId": "c2a62181-2f05-41ea-a48b-d9be7302adce",
+      "instanceId": "782b8ee5-ac78-4ccb-81b9-3c7efbaed1b0",
+      "acknowledged": true,
+      "configVersion": 4,
+      "deploymentSequence": 4,
+      "errorCode": null
+    },
+    {
+      "nodeId": "d1569e2a-02b6-4253-acb8-8229a2dfebb0",
+      "instanceId": "11251f33-c8f5-4d6f-8ba3-4cd073665870",
+      "acknowledged": true,
+      "configVersion": 4,
+      "deploymentSequence": 4,
+      "errorCode": null
+    }
+  ],
+  "currentNodes": [
+    {
+      "name": "local-gateway-b",
+      "instanceId": "11251f33-c8f5-4d6f-8ba3-4cd073665870",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-05T16:24:34.035148+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-a",
+      "instanceId": "782b8ee5-ac78-4ccb-81b9-3c7efbaed1b0",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-05T16:24:34.024838+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "acknowledged": true
+    }
+  ],
+  "equivalentCandidateConfirmed": true,
+  "currentInstanceAck": true,
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "baseCommit": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "filesChanged": [
+    "console/src/editor-focus.d.mts",
+    "console/src/editor-focus.mjs",
+    "console/src/ui.tsx",
+    "console/tests/editor-focus.test.mjs",
+    "console/tests/editor-view.test.mjs"
+  ],
+  "sourceHashesMatch": true,
+  "freshGitArchiveApplied": true,
+  "unrelatedFilesChanged": 0,
+  "enclosingRepositoryExcluded": true
+}

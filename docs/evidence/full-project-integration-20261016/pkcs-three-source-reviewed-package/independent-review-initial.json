@@ -1,0 +1,28 @@
+{
+  "reviewedAt": "2026-10-16T04:43:47.861099+00:00",
+  "reviewer": "/root/pkcs_three_source_review",
+  "readOnly": true,
+  "critical": 0,
+  "important": 0,
+  "unresolvedMinor": 0,
+  "resolvedMinor": [
+    {
+      "file": "regression-input-summary.json",
+      "issue": "Source-subset counts/fingerprints remained after full parent tree completion",
+      "resolution": "Refreshed complete counts/fingerprints/manifest SHA; original summary retained and independently rechecked"
+    }
+  ],
+  "verified": [
+    "Three original parent HEADs and empty index;14 changed files per source; exact patch bytes and file hashes",
+    "Only Pkcs dependency/Infrastructure edge semantic changes in12locks; no unrelated dependency drift",
+    "C/H identical product sources; B/C14 original counterfactual source differences retained",
+    "Nine successful zero-warning builds and nine vulnerability audits",
+    "Full parent trees and regression input hashes; original assertions and strict budget mapping unchanged"
+  ],
+  "pendingAtReview": [
+    "C gateway/integration and B complete regression",
+    "Actual B raw TRX plus independent proof TRX and strict exact cost classification"
+  ],
+  "boundary": "SourceRevisionId denotes historical parent only; working-tree dependency patches must be identified by exact patch/full input manifests. immutable=false, formalQualified=false.",
+  "finalEvidenceReviewPending": true
+}

@@ -1,0 +1,11 @@
+{
+  "complete": true,
+  "archive": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/deliverables/WebAPI_Enterprise_4193\u5bfc\u822a\u5408\u5e76_4192\u66f4\u65b0_20261006.zip",
+  "sha256": "6fb29ec27d22e197b7a49b1ddce4a9c5a8d54a66035aa0a047d90c65054f5dfe",
+  "entries": 21,
+  "crcPassed": true,
+  "allPayloadHashesPassed": true,
+  "knownSecretsScanned": 14,
+  "secretMatches": 0,
+  "privateBackupsExcluded": true
+}

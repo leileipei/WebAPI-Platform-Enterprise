@@ -1,0 +1,22 @@
+{
+  "task": 3,
+  "complete": true,
+  "sourceState": "uncommitted-isolated-worktree",
+  "redFailures": 8,
+  "rotationRedFailures": 1,
+  "greenPassed": 13,
+  "greenFailed": 0,
+  "lockedRestore": true,
+  "facts": [
+    "real-platform-authority",
+    "outside-lock-network-and-revision-recheck",
+    "current-test-15-minute-enable",
+    "atomic-default-switch-and-both-row-audit",
+    "name-only-keeps-auth-revision",
+    "explicit-secret-rotation-bumps-auth-revision",
+    "replay-does-not-add-audit",
+    "revoked-permission-blocks-replay",
+    "public-dto-three-fields",
+    "no-client-login-proof-claimed"
+  ]
+}

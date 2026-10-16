@@ -1,0 +1,88 @@
+{
+  "complete": true,
+  "capture": "native Codex in-app browser, AX actions and screenshot inspection",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "screenshots": [
+    {
+      "file": "01-provider-list.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "02-provider-config.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "03-enterprise-login.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "04-keycloak-login.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "05-viewer-permission-boundary.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "06-viewer-environment.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "07-local-admin-recovery.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 1000
+    }
+  ],
+  "checks": [
+    {
+      "name": "enabledProviderList",
+      "passed": true
+    },
+    {
+      "name": "precise4194IssuerAnd4192Callback",
+      "passed": true
+    },
+    {
+      "name": "nativeKeycloakLoginAndPlatformReturn",
+      "passed": true
+    },
+    {
+      "name": "ViewerSSOManagementDeniedAndDraftCleared",
+      "passed": true
+    },
+    {
+      "name": "environmentReadOnlyAndEditDisabled",
+      "passed": true
+    },
+    {
+      "name": "localAdminLoginAndEditRestored",
+      "passed": true
+    }
+  ],
+  "expectedScopeBoundary": {
+    "environmentLevelRead": "environment accessible",
+    "projectApiCatalog": "not accessible with environment-only scope; no scope escalation"
+  },
+  "browserWarningsErrorsObserved": [],
+  "narrowPanelCapturesDiscarded": true,
+  "allSevenImagesVisuallyReviewed": true,
+  "temporaryViewportReset": true,
+  "userTabsPreserved": true,
+  "adminSessionRestored": true
+}

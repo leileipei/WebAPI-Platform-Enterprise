@@ -1,0 +1,50 @@
+{
+  "passed": true,
+  "pinnedServices": [
+    {
+      "service": "collector",
+      "containerId": "3c9eecee05bc8628237584da2955eb1d3575145bff5f9457f2fba485e9d6f068",
+      "imageId": "sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+      "configurationHash": "885312e9d78118d669f47e8daab57b83d6b9cc707349cff292bc8f2dbfcadd99"
+    },
+    {
+      "service": "prometheus",
+      "containerId": "da94a24dfe299b39547eef3564edc9612f2161b643ab3ee37c8f252583e4db9b",
+      "imageId": "sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+      "configurationHash": "4d729081a96a39067d00ae3052f78a8d044d950dc95b05d59544bde4f5d75115"
+    },
+    {
+      "service": "loki",
+      "containerId": "9d6f288d40714f7013959e3691de30a325bcab033a601feda6e1d61340d4aeaa",
+      "imageId": "sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+      "configurationHash": "9fc5dd418ec0f2c44f555c0c8973dda2f2f7fe430cfb52dd8f35414366c69a4f"
+    },
+    {
+      "service": "tempo",
+      "containerId": "060588b7dc8e628cd8a7a7ce19c3508678842cd07ec0f032792ee06c32546640",
+      "imageId": "sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd",
+      "configurationHash": "c93fd499211945e5c4cf5df090f17b107f09d763bd641863762d66e1c80530db"
+    }
+  ],
+  "originalVolumesUnchanged": 18,
+  "sampling": [
+    {
+      "service": "control-plane",
+      "values": [
+        "Observability__TraceSampleRatio=0.1"
+      ]
+    },
+    {
+      "service": "gateway-a",
+      "values": [
+        "Observability__TraceSampleRatio=0.1"
+      ]
+    },
+    {
+      "service": "gateway-b",
+      "values": [
+        "Observability__TraceSampleRatio=0.1"
+      ]
+    }
+  ]
+}

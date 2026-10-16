@@ -1,0 +1,24 @@
+{
+  "complete": true,
+  "classification": "actual-owned-cold-backup-and-isolated-restore",
+  "backupDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/backups/traffic-policies-2026-10-05T02-35-58.389Z",
+  "manifestHash": "2ddb6a2fd941f0cb0af81de392f8db59cab314221c91fce2edbe90b15b8231a1",
+  "fileCount": 21,
+  "physicalVolumes": 7,
+  "logicalDumpPresent": true,
+  "extraDemoCredentialsPreserved": true,
+  "restoredOriginalResourceIds": true,
+  "restoredOriginalSnapshotHash": "a1c9559e73197338332385dc2463c569eed3418aaac86279ffd2b847562c3569",
+  "dualLkgStatuses": [
+    200,
+    200
+  ],
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretFilesRemaining": 0
+  },
+  "originalProject": "webapi-enterprise-local",
+  "originalState": "StoppedForApprovedUpgrade",
+  "checkedAt": "2026-10-05T02:36:45.033Z"
+}

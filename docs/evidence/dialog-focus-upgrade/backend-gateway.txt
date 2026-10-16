@@ -1,0 +1,20 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  WebApi.Contracts -> /workspace/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  WebApi.Domain -> /workspace/src/WebApi.Domain/bin/Release/net10.0/WebApi.Domain.dll
+  WebApi.TestBackend -> /workspace/src/WebApi.TestBackend/bin/Release/net10.0/WebApi.TestBackend.dll
+  WebApi.ConsoleHost -> /workspace/src/WebApi.ConsoleHost/bin/Release/net10.0/WebApi.ConsoleHost.dll
+  WebApi.Infrastructure -> /workspace/src/WebApi.Infrastructure/bin/Release/net10.0/WebApi.Infrastructure.dll
+  WebApi.Gateway -> /workspace/src/WebApi.Gateway/bin/Release/net10.0/WebApi.Gateway.dll
+  WebApi.ControlPlane -> /workspace/src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll
+  WebApi.TestSupport -> /workspace/tests/WebApi.TestSupport/bin/Release/net10.0/WebApi.TestSupport.dll
+  WebApi.Gateway.Tests -> /workspace/tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll
+Test run for /workspace/tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: /workspace/test-results/Gateway.trx
+Results File: /workspace/test-results/Gateway.trx
+
+Passed!  - Failed:     0, Passed:    52, Skipped:     0, Total:    52, Duration: 32 s - WebApi.Gateway.Tests.dll (net10.0)
+
+ Container webapi-dialog-unit-6505d448-8788-4fb8-811a-1aafd05a9118-sdk-run-c035694e32d6 Creating 
+ Container webapi-dialog-unit-6505d448-8788-4fb8-811a-1aafd05a9118-sdk-run-c035694e32d6 Created 

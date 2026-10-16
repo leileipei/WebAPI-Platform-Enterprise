@@ -1,0 +1,518 @@
+{
+  "verifiedAt": "2026-10-16T05:46:51.822548+00:00",
+  "roles": {
+    "baseline": {
+      "parent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "changedFiles": [
+        {
+          "path": "Directory.Packages.props",
+          "sha256": "786da4e53e1a69e2ddd121e02c3141f4af76cdbfa4dd1c2c1271a2cc3a8d6c88",
+          "bytes": 1800
+        },
+        {
+          "path": "src/WebApi.Infrastructure/WebApi.Infrastructure.csproj",
+          "sha256": "38e4c7bbad8329f84727914c1f2ab70ae369b2cdc70b1adbd23639d376758796",
+          "bytes": 1118
+        },
+        {
+          "path": "src/WebApi.ControlPlane/packages.lock.json",
+          "sha256": "4d12d61fc2ecee412e18321672f9bd7c5d3bc7af7b7ac22fce412b20d3ab3d21",
+          "bytes": 10560
+        },
+        {
+          "path": "src/WebApi.Gateway/packages.lock.json",
+          "sha256": "dd0f18175a0dc7abd1b8f411bbecba8728bff93c6900d3975ef5239e2e503e56",
+          "bytes": 11221
+        },
+        {
+          "path": "src/WebApi.Infrastructure/packages.lock.json",
+          "sha256": "e13a5e97282cfe3819e9cce6a51ab777b8a5b18212e3e3b879b1615f73a3bd22",
+          "bytes": 15871
+        },
+        {
+          "path": "src/WebApi.Migrator/packages.lock.json",
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "bytes": 18221
+        },
+        {
+          "path": "src/WebApi.RuntimeTool/packages.lock.json",
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "bytes": 18221
+        },
+        {
+          "path": "src/WebApi.Worker/packages.lock.json",
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "bytes": 10110
+        },
+        {
+          "path": "tests/WebApi.Domain.Tests/packages.lock.json",
+          "sha256": "723da87f845bfc45c62cbc62a87f8fd75df00e9f907d8f80810579035f498032",
+          "bytes": 21577
+        },
+        {
+          "path": "tests/WebApi.Gateway.Tests/packages.lock.json",
+          "sha256": "5fded73f359d9d8935b84913ca84244bc4476356b53da4a51185438b8e90dafa",
+          "bytes": 24676
+        },
+        {
+          "path": "tests/WebApi.Integration.Tests/packages.lock.json",
+          "sha256": "381e788bc00f9eb9854f876654ed209b81fd7fea732de15225e95ab82016f6a6",
+          "bytes": 25093
+        },
+        {
+          "path": "tests/WebApi.NotificationFixtureHost/packages.lock.json",
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "bytes": 10110
+        },
+        {
+          "path": "tests/WebApi.TestSupport/packages.lock.json",
+          "sha256": "4fd5cf10d214d18e27c61999a5aa9098595bd342c002dedabf16aca3a049dd75",
+          "bytes": 11525
+        },
+        {
+          "path": "tools/WebApi.PerformanceHost/packages.lock.json",
+          "sha256": "7b4f2d9539a73e334d760641fd528dbaa519b4b33d5bb413d42e75112d56679b",
+          "bytes": 12433
+        }
+      ],
+      "lockFiles": {
+        "src/WebApi.ControlPlane/packages.lock.json": {
+          "sha256": "4d12d61fc2ecee412e18321672f9bd7c5d3bc7af7b7ac22fce412b20d3ab3d21",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.Gateway/packages.lock.json": {
+          "sha256": "dd0f18175a0dc7abd1b8f411bbecba8728bff93c6900d3975ef5239e2e503e56",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.Infrastructure/packages.lock.json": {
+          "sha256": "e13a5e97282cfe3819e9cce6a51ab777b8a5b18212e3e3b879b1615f73a3bd22",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs"
+          ]
+        },
+        "src/WebApi.Migrator/packages.lock.json": {
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.RuntimeTool/packages.lock.json": {
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.Worker/packages.lock.json": {
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.Domain.Tests/packages.lock.json": {
+          "sha256": "723da87f845bfc45c62cbc62a87f8fd75df00e9f907d8f80810579035f498032",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.Gateway.Tests/packages.lock.json": {
+          "sha256": "5fded73f359d9d8935b84913ca84244bc4476356b53da4a51185438b8e90dafa",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.Integration.Tests/packages.lock.json": {
+          "sha256": "381e788bc00f9eb9854f876654ed209b81fd7fea732de15225e95ab82016f6a6",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.NotificationFixtureHost/packages.lock.json": {
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.TestSupport/packages.lock.json": {
+          "sha256": "4fd5cf10d214d18e27c61999a5aa9098595bd342c002dedabf16aca3a049dd75",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tools/WebApi.PerformanceHost/packages.lock.json": {
+          "sha256": "7b4f2d9539a73e334d760641fd528dbaa519b4b33d5bb413d42e75112d56679b",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        }
+      },
+      "resolvedGraphSha256": "37689ab83476d1a7e0ce706651280a7d6bb3d308451f42a284b69b7e17035ed8",
+      "indexEntriesAndHeadUnchanged": true,
+      "restoreAuditBuildPassed": true
+    },
+    "candidate": {
+      "parent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "changedFiles": [
+        {
+          "path": "Directory.Packages.props",
+          "sha256": "786da4e53e1a69e2ddd121e02c3141f4af76cdbfa4dd1c2c1271a2cc3a8d6c88",
+          "bytes": 1800
+        },
+        {
+          "path": "src/WebApi.Infrastructure/WebApi.Infrastructure.csproj",
+          "sha256": "38e4c7bbad8329f84727914c1f2ab70ae369b2cdc70b1adbd23639d376758796",
+          "bytes": 1118
+        },
+        {
+          "path": "src/WebApi.ControlPlane/packages.lock.json",
+          "sha256": "4d12d61fc2ecee412e18321672f9bd7c5d3bc7af7b7ac22fce412b20d3ab3d21",
+          "bytes": 10560
+        },
+        {
+          "path": "src/WebApi.Gateway/packages.lock.json",
+          "sha256": "dd0f18175a0dc7abd1b8f411bbecba8728bff93c6900d3975ef5239e2e503e56",
+          "bytes": 11221
+        },
+        {
+          "path": "src/WebApi.Infrastructure/packages.lock.json",
+          "sha256": "e13a5e97282cfe3819e9cce6a51ab777b8a5b18212e3e3b879b1615f73a3bd22",
+          "bytes": 15871
+        },
+        {
+          "path": "src/WebApi.Migrator/packages.lock.json",
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "bytes": 18221
+        },
+        {
+          "path": "src/WebApi.RuntimeTool/packages.lock.json",
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "bytes": 18221
+        },
+        {
+          "path": "src/WebApi.Worker/packages.lock.json",
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "bytes": 10110
+        },
+        {
+          "path": "tests/WebApi.Domain.Tests/packages.lock.json",
+          "sha256": "723da87f845bfc45c62cbc62a87f8fd75df00e9f907d8f80810579035f498032",
+          "bytes": 21577
+        },
+        {
+          "path": "tests/WebApi.Gateway.Tests/packages.lock.json",
+          "sha256": "5fded73f359d9d8935b84913ca84244bc4476356b53da4a51185438b8e90dafa",
+          "bytes": 24676
+        },
+        {
+          "path": "tests/WebApi.Integration.Tests/packages.lock.json",
+          "sha256": "381e788bc00f9eb9854f876654ed209b81fd7fea732de15225e95ab82016f6a6",
+          "bytes": 25093
+        },
+        {
+          "path": "tests/WebApi.NotificationFixtureHost/packages.lock.json",
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "bytes": 10110
+        },
+        {
+          "path": "tests/WebApi.TestSupport/packages.lock.json",
+          "sha256": "4fd5cf10d214d18e27c61999a5aa9098595bd342c002dedabf16aca3a049dd75",
+          "bytes": 11525
+        },
+        {
+          "path": "tools/WebApi.PerformanceHost/packages.lock.json",
+          "sha256": "7b4f2d9539a73e334d760641fd528dbaa519b4b33d5bb413d42e75112d56679b",
+          "bytes": 12433
+        }
+      ],
+      "lockFiles": {
+        "src/WebApi.ControlPlane/packages.lock.json": {
+          "sha256": "4d12d61fc2ecee412e18321672f9bd7c5d3bc7af7b7ac22fce412b20d3ab3d21",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.Gateway/packages.lock.json": {
+          "sha256": "dd0f18175a0dc7abd1b8f411bbecba8728bff93c6900d3975ef5239e2e503e56",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.Infrastructure/packages.lock.json": {
+          "sha256": "e13a5e97282cfe3819e9cce6a51ab777b8a5b18212e3e3b879b1615f73a3bd22",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs"
+          ]
+        },
+        "src/WebApi.Migrator/packages.lock.json": {
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.RuntimeTool/packages.lock.json": {
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.Worker/packages.lock.json": {
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.Domain.Tests/packages.lock.json": {
+          "sha256": "723da87f845bfc45c62cbc62a87f8fd75df00e9f907d8f80810579035f498032",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.Gateway.Tests/packages.lock.json": {
+          "sha256": "5fded73f359d9d8935b84913ca84244bc4476356b53da4a51185438b8e90dafa",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.Integration.Tests/packages.lock.json": {
+          "sha256": "381e788bc00f9eb9854f876654ed209b81fd7fea732de15225e95ab82016f6a6",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.NotificationFixtureHost/packages.lock.json": {
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.TestSupport/packages.lock.json": {
+          "sha256": "4fd5cf10d214d18e27c61999a5aa9098595bd342c002dedabf16aca3a049dd75",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tools/WebApi.PerformanceHost/packages.lock.json": {
+          "sha256": "7b4f2d9539a73e334d760641fd528dbaa519b4b33d5bb413d42e75112d56679b",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        }
+      },
+      "resolvedGraphSha256": "37689ab83476d1a7e0ce706651280a7d6bb3d308451f42a284b69b7e17035ed8",
+      "indexEntriesAndHeadUnchanged": true,
+      "restoreAuditBuildPassed": true
+    },
+    "harness": {
+      "parent": "883060f04ab04d95fad5ae9d559d7744ff1c2120",
+      "changedFiles": [
+        {
+          "path": "Directory.Packages.props",
+          "sha256": "786da4e53e1a69e2ddd121e02c3141f4af76cdbfa4dd1c2c1271a2cc3a8d6c88",
+          "bytes": 1800
+        },
+        {
+          "path": "src/WebApi.Infrastructure/WebApi.Infrastructure.csproj",
+          "sha256": "38e4c7bbad8329f84727914c1f2ab70ae369b2cdc70b1adbd23639d376758796",
+          "bytes": 1118
+        },
+        {
+          "path": "src/WebApi.ControlPlane/packages.lock.json",
+          "sha256": "4d12d61fc2ecee412e18321672f9bd7c5d3bc7af7b7ac22fce412b20d3ab3d21",
+          "bytes": 10560
+        },
+        {
+          "path": "src/WebApi.Gateway/packages.lock.json",
+          "sha256": "dd0f18175a0dc7abd1b8f411bbecba8728bff93c6900d3975ef5239e2e503e56",
+          "bytes": 11221
+        },
+        {
+          "path": "src/WebApi.Infrastructure/packages.lock.json",
+          "sha256": "e13a5e97282cfe3819e9cce6a51ab777b8a5b18212e3e3b879b1615f73a3bd22",
+          "bytes": 15871
+        },
+        {
+          "path": "src/WebApi.Migrator/packages.lock.json",
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "bytes": 18221
+        },
+        {
+          "path": "src/WebApi.RuntimeTool/packages.lock.json",
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "bytes": 18221
+        },
+        {
+          "path": "src/WebApi.Worker/packages.lock.json",
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "bytes": 10110
+        },
+        {
+          "path": "tests/WebApi.Domain.Tests/packages.lock.json",
+          "sha256": "723da87f845bfc45c62cbc62a87f8fd75df00e9f907d8f80810579035f498032",
+          "bytes": 21577
+        },
+        {
+          "path": "tests/WebApi.Gateway.Tests/packages.lock.json",
+          "sha256": "5fded73f359d9d8935b84913ca84244bc4476356b53da4a51185438b8e90dafa",
+          "bytes": 24676
+        },
+        {
+          "path": "tests/WebApi.Integration.Tests/packages.lock.json",
+          "sha256": "381e788bc00f9eb9854f876654ed209b81fd7fea732de15225e95ab82016f6a6",
+          "bytes": 25093
+        },
+        {
+          "path": "tests/WebApi.NotificationFixtureHost/packages.lock.json",
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "bytes": 10110
+        },
+        {
+          "path": "tests/WebApi.TestSupport/packages.lock.json",
+          "sha256": "4fd5cf10d214d18e27c61999a5aa9098595bd342c002dedabf16aca3a049dd75",
+          "bytes": 11525
+        },
+        {
+          "path": "tools/WebApi.PerformanceHost/packages.lock.json",
+          "sha256": "7b4f2d9539a73e334d760641fd528dbaa519b4b33d5bb413d42e75112d56679b",
+          "bytes": 12433
+        }
+      ],
+      "lockFiles": {
+        "src/WebApi.ControlPlane/packages.lock.json": {
+          "sha256": "4d12d61fc2ecee412e18321672f9bd7c5d3bc7af7b7ac22fce412b20d3ab3d21",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.Gateway/packages.lock.json": {
+          "sha256": "dd0f18175a0dc7abd1b8f411bbecba8728bff93c6900d3975ef5239e2e503e56",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.Infrastructure/packages.lock.json": {
+          "sha256": "e13a5e97282cfe3819e9cce6a51ab777b8a5b18212e3e3b879b1615f73a3bd22",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs"
+          ]
+        },
+        "src/WebApi.Migrator/packages.lock.json": {
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.RuntimeTool/packages.lock.json": {
+          "sha256": "fef536d32af29e733c9a110c5988b26636af6b628702b16bbcc773eab91546af",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "src/WebApi.Worker/packages.lock.json": {
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.Domain.Tests/packages.lock.json": {
+          "sha256": "723da87f845bfc45c62cbc62a87f8fd75df00e9f907d8f80810579035f498032",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.Gateway.Tests/packages.lock.json": {
+          "sha256": "5fded73f359d9d8935b84913ca84244bc4476356b53da4a51185438b8e90dafa",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.Integration.Tests/packages.lock.json": {
+          "sha256": "381e788bc00f9eb9854f876654ed209b81fd7fea732de15225e95ab82016f6a6",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.NotificationFixtureHost/packages.lock.json": {
+          "sha256": "c3455879e459ef67bc2703bbe598a63d3bcb7525a849516bd0e318b877d29c00",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tests/WebApi.TestSupport/packages.lock.json": {
+          "sha256": "4fd5cf10d214d18e27c61999a5aa9098595bd342c002dedabf16aca3a049dd75",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        },
+        "tools/WebApi.PerformanceHost/packages.lock.json": {
+          "sha256": "7b4f2d9539a73e334d760641fd528dbaa519b4b33d5bb413d42e75112d56679b",
+          "changedPackages": [
+            "System.Security.Cryptography.Pkcs",
+            "webapi.infrastructure"
+          ]
+        }
+      },
+      "resolvedGraphSha256": "37689ab83476d1a7e0ce706651280a7d6bb3d308451f42a284b69b7e17035ed8",
+      "indexEntriesAndHeadUnchanged": true,
+      "restoreAuditBuildPassed": true
+    }
+  },
+  "commonChangedFilesIdentical": true,
+  "resolvedGraphsIdentical": true,
+  "candidateHarnessProductSourcesIdentical": true,
+  "originalCounterfactualDifferencePaths": [
+    "src/WebApi.Gateway/Configuration/RuntimeLinearLookupMap.cs",
+    "src/WebApi.Gateway/Configuration/RuntimeLookupIndex.cs",
+    "src/WebApi.Infrastructure/Alerts/AlertEventService.cs",
+    "src/WebApi.Infrastructure/Alerts/AlertListReader.cs",
+    "src/WebApi.Infrastructure/Alerts/AlertRuleService.cs",
+    "src/WebApi.Infrastructure/Applications/ApplicationService.cs",
+    "src/WebApi.Infrastructure/Catalog/CatalogService.cs",
+    "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+    "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+    "src/WebApi.Infrastructure/Policies/PolicyReferenceReader.cs",
+    "src/WebApi.Infrastructure/Policies/PolicyService.cs",
+    "src/WebApi.Infrastructure/Releases/ReleaseService.cs",
+    "src/WebApi.Infrastructure/Routing/ClusterService.cs",
+    "src/WebApi.Infrastructure/Routing/RouteService.cs"
+  ],
+  "originalCounterfactualFourteenPathsUnchanged": true,
+  "unrelatedDependencyDrift": false,
+  "immutable": false,
+  "formalQualified": false,
+  "complete": true
+}

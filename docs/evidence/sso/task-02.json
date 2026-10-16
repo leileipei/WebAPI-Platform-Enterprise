@@ -1,0 +1,34 @@
+{
+  "task": 2,
+  "complete": true,
+  "baseCommit": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
+  "sourceState": "uncommitted-isolated-worktree",
+  "red": {
+    "failed": 17,
+    "passed": 0
+  },
+  "green": {
+    "domainPassed": 196,
+    "domainFailed": 0,
+    "lockedRestore": true
+  },
+  "transportFacts": {
+    "dnsRebindingRejectedBeforeSocket": true,
+    "redirectNotFollowed": true,
+    "tokenChunkedBodyLimitBytes": 131072,
+    "discoveryTimeoutSeconds": 10,
+    "metadataLimitBytes": 262144
+  },
+  "deferredToTask6": [
+    "unknown-kid-single-refresh",
+    "token-jku-x5u"
+  ],
+  "sources": {
+    "src/WebApi.Infrastructure/Sso/OidcMetadataClient.cs": "3ff720193545e77c27fe71ddd475e38d8f582f82e8d46915e47191477fba05b8",
+    "src/WebApi.Infrastructure/Sso/SsoBackchannelHandler.cs": "a871c5978aa12dc25f6448b8e338b0f5717d3b49b0a2b01616946d9eb811c621",
+    "src/WebApi.Infrastructure/Sso/OidcAddressPolicy.cs": "cda7c156a6c56d069b26ee5364566afdef744497b35881e99e80c2553c8d9c06",
+    "src/WebApi.Infrastructure/Sso/SsoSecretResolver.cs": "f25dc154e4f8e29f92f3de63b6fc585f091496fb56b1dc2cc6b51d4f1fae5edf",
+    "src/WebApi.Infrastructure/Sso/SsoOptions.cs": "2dc5fb2730d905a653fec22a0b0fbd516d32b0b636408adb287474c35347262b",
+    "src/WebApi.Infrastructure/Sso/SsoProviderValidator.cs": "87395ed9968344699b9f2b35167ed8e989e3051a63b46439af6d6e6bddc79805"
+  }
+}

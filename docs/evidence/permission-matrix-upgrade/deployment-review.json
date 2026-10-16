@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "sourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+  "blockingFindings": 0,
+  "reviewer": "permission_matrix_deploy_review",
+  "recoveryTestsPassed": 4,
+  "verifiedProtectedLocalFiles": 597,
+  "verifiedHistoricalArchives": 33,
+  "verifiedSecretsAndSsoFiles": 20,
+  "verifiedFixedToolFiles": 96,
+  "ownerAndBindingPreserved": true,
+  "uuidCloneIsolationVerified": true,
+  "failureKeepsOriginalVolumesAndRecoversOldSoftware": true,
+  "strictGateIncrementReviewed": true
+}

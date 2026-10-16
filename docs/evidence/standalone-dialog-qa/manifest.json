@@ -1,0 +1,29 @@
+{
+  "files": {
+    "source-manifest.json": "41387e13a505c1f79a8c1774b1176303a169bf2f80f524664ed38db3249060bf",
+    "patch-readback.json": "63ef63081ab49616b74f7079dda8bcbbf9eb54f4dd353a24bc741565e0ead588",
+    "green-browser.json": "99bf0ea3e2df465ddf07329d0abc63cf66378de29a8a53c3a18f47ecad553ec8",
+    "full-tests.txt": "a4a0d657b717b5874ce21217f6ac48c807964f659aac7555adc0e40ad5f02a9f",
+    "result.md": "5afc829ade14f8c7c7a399ddc427e954783cf4c2b21b408d40e0b439a4b3bb91",
+    "02-risk-before-tab-escape.jpg": "0306d5bde6a598ad4815726c4fc881771486af5f734dfe53c8ba9c9f9fa75eb9",
+    "changes.patch": "0f603bc1304f971577357b6855d636f9d8db8e916dbc08cea229eade7775a197",
+    "baseline-tests.txt": "5c18aa9e473343fcd38a37580bccd0ef11794824c0cdaa089fc86895c689ecf3",
+    "06-rule-revision-draft.jpg": "b470e967cd925ef6cedeaa65c2033b7c57489e6c1089f3f8748f0138a0ec0559",
+    "04-rule-after-cancel.jpg": "ad4670aaa62389f49a3021bada05446653ac14c5925beb88cb2fa9ef4795a4d2",
+    "red-tests.txt": "308544f3ffff8fabaddf1172fc95ec2beded8ae4242f3c7b84f9c4606aa17313",
+    "03-risk-after.jpg": "dd66c048ea5e6df6e4a7600b8d1802d52678ebf068439281e134116db41ce161",
+    "build.txt": "9a990953f17cf144e6d097cd79e5a98f54696af7576f814892338f2bbe178198",
+    "red-browser.json": "e48413f996010e4d708bb1d67f64ace8b97b05be761567d85aa611c3df80bd22",
+    "05-rule-busy.jpg": "0e90f5746fa3093c2e0d0883169f58a7f18b8ab9c7ad89b0414fc7e647abe7c9",
+    "original-preserved.json": "7975905a5d972403b1478dbb4a304a190596b3b7801144ae67094c16e3efdf4c",
+    "verification.json": "c188ef3f0ab24f1c4020b7a9f5d9f65876c173e414d85ab5ef74c776f6eb3603",
+    "01-rule-before-focus-loss.jpg": "8a21a19a2b3931a0b69ff6beda4a73f5e10874633ca0bf03b24750ada80b6821",
+    "typecheck.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "review.json": "41f293d7de42146a18cc062264e8aad94ec7dbd709e260ab2904fd710c586e6e",
+    "report.html": "11b51d4887a2fdebc1ad12b7ac6d229183a71f1de11b806d4c2ac699dfeac640",
+    "source/console/tests/standalone-dialog-view.test.mjs": "be559d4aa9e0eb8e8eb1ae1c2346ee87732fd47aa53c980e280400e86304d7ce",
+    "source/console/src/comparisons/RiskReviewDialog.tsx": "21ecad5c2df574932296b4112854304feef97e830576e4f22ff737b47f82d13a",
+    "source/console/src/observability/RuleEditor.tsx": "77c7d3ad419e39cf775c149a3ea44ddedd78a50b5467ef595f5ee5835f9cc5e2"
+  },
+  "secretMarkerMatches": 0
+}

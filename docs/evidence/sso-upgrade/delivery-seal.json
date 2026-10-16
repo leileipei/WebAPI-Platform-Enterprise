@@ -1,0 +1,17 @@
+{
+  "complete": true,
+  "checkedAt": "2026-10-05T16:34:27.115699+00:00",
+  "archive": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/sso-oidc/deliverables/WebAPI_Enterprise_SSO_OIDC_\u672c\u673a\u5347\u7ea7\u8865\u5145_20261006.zip",
+  "sha256": "ddb8c6065a2ed1e9aba3786c0df6fb7542c1106e756b5b05de260684d868b4b1",
+  "bytes": 244668,
+  "entries": 24,
+  "zipCrcPassed": true,
+  "fileHashesPassed": true,
+  "retainedArchivesUnchanged": 13,
+  "plaintextSecretHits": 0,
+  "privateRuntimeExcluded": true,
+  "sourceRevision": "0b42f9e11977f8453887d6b23e45192ab2e42d61",
+  "productionDeployment": false,
+  "enterpriseIdpConfigured": false,
+  "sealReceiptExternal": true
+}

@@ -1,0 +1,63 @@
+{
+  "complete": true,
+  "time": "2026-10-06T13:30:31.569Z",
+  "sourceRevision": "84ab38588495024803eb01e60261e0bf1a32c1cf",
+  "url": "http://127.0.0.1:4192/scopes",
+  "readOnlyVerification": true,
+  "originalUserScopeWrites": 0,
+  "existingUserRevision": 6,
+  "structuredReadExistingScope": true,
+  "originalReadScopePreserved": true,
+  "confirmationPreviewRendered": true,
+  "confirmationNotSubmitted": true,
+  "jsonEditorRemoved": true,
+  "horizontalOverflow": false,
+  "dialogOverflow": false,
+  "focusInDialog": true,
+  "dom": {
+    "dialogOverflow": false,
+    "focusInDialog": true,
+    "horizontalOverflow": false,
+    "jsonEditors": 0,
+    "selected": [
+      {
+        "label": "规则 1范围层级",
+        "value": "environment"
+      },
+      {
+        "label": "规则 1组织",
+        "value": "087143b3-e051-4482-9d41-9603611cf9aa"
+      },
+      {
+        "label": "规则 1项目",
+        "value": "38953ded-c3b6-436a-8329-19e2e968f9d3"
+      },
+      {
+        "label": "规则 1环境",
+        "value": "7be0c798-d71a-4337-96ef-3d8e3f2e92dd"
+      },
+      {
+        "label": "规则 1访问方式",
+        "value": "read"
+      }
+    ],
+    "viewport": {
+      "height": 1024,
+      "width": 1440
+    }
+  },
+  "captures": [
+    {
+      "file": "04-installed-scope-page.jpg",
+      "label": "4192数据范围页面"
+    },
+    {
+      "file": "05-installed-structured-editor.jpg",
+      "label": "4192结构化范围编辑器"
+    },
+    {
+      "file": "06-installed-confirmation-preview.jpg",
+      "label": "确认预览（未提交原授权）"
+    }
+  ]
+}

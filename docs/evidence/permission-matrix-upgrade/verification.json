@@ -1,0 +1,44 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T15:38:25.076792+00:00",
+  "sourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+  "imageId": "sha256:3130d5faecbe8868d70f42fd51b768a8f2f4315202171e764df06503af6538a0",
+  "committed": true,
+  "mergedTo": "feature/core-loop",
+  "pushed": false,
+  "deployedOn4192": true,
+  "permissionsLocalized": 44,
+  "rolesOriginallyPresent": 9,
+  "unitTests": {
+    "passed": 232,
+    "failed": 0
+  },
+  "postmergeFrontendTests": {
+    "passed": 124,
+    "failed": 0
+  },
+  "cloneBrowserChecks": 21,
+  "installedBrowserChecks": 14,
+  "typeScriptViteAndLockedBackendBuildPassed": true,
+  "backendAndRuntimeSourceUnchanged": true,
+  "coldBackupVolumes": {
+    "platform": 7,
+    "idp": 4
+  },
+  "physicalRestoreAndOldSoftwareRollbackVerified": true,
+  "realRole412OnDisposableClone": true,
+  "searchEnterDidNotSave": true,
+  "hiddenPermissionSaveVerified": true,
+  "originalProtectedTablesPreserved": 33,
+  "originalLocalFilesPreserved": 597,
+  "historicalArchivesPreserved": 33,
+  "originalRolePermissionsScopesAccountsSsoPreserved": true,
+  "originalBusinessSaves": 0,
+  "noNewMigration": true,
+  "noNewBusinessPublish": true,
+  "businessVersion": 4,
+  "businessSequence": 4,
+  "disposableCloneCleaned": true,
+  "privateColdBackupsRetained": true,
+  "productionAcceptance": false
+}

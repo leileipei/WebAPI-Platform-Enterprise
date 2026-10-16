@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-06T05:05:04.355Z",
+  "root": {
+    "currentLink": "/organizations",
+    "expanded": 1,
+    "height": 1126,
+    "horizontalOverflow": false,
+    "url": "http://127.0.0.1:4192/",
+    "width": 1584
+  },
+  "coverage": {
+    "height": 1126,
+    "horizontalOverflow": false,
+    "pendingRows": [
+      "2",
+      "11"
+    ],
+    "rowCount": 40,
+    "settingsRow": "40\t系统设置\t真实系统设置已接入\t平台级五组17字段；保存/预览/引用操作/修订保护与审计已接入本机控制台。新登录、新账号、新路由和审计CSV有实际消费者；部署参数、保留目标与通知仅配置意向。\t\n进入对应入口",
+    "ssoRow": "39\tSSO / OIDC 配置\t真实 OIDC SSO 已接入\t真实 OIDC Provider 治理、显式账号绑定、修订保护与审计；本机独立 Keycloak 登录已验证。企业 IdP 与生产 TLS 需单独验收。\t\n进入对应入口",
+    "staleUpgradeNote": false,
+    "url": "http://127.0.0.1:4192/coverage",
+    "width": 1584
+  },
+  "prototypeNavigationEntries": 40,
+  "viewportOverrideReset": true,
+  "scope": "首页、覆盖页、SSO、系统设置与原型导航；未逐页重新验收全部业务流程"
+}

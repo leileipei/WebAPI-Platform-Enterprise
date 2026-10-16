@@ -1,0 +1,13 @@
+{
+  "complete": true,
+  "time": "2026-10-06T14:49:18.770Z",
+  "physicalIdpVolumesRestored": 4,
+  "backupHashesVerified": true,
+  "freshIdpOwner": true,
+  "originalSubjectAndPlatformUserPreserved": true,
+  "realOidcLogin": true,
+  "readOnlyViewerScope": true,
+  "logoutSameSession401": true,
+  "reboundOnlyDisposableClone": true,
+  "originalIdpAndPlatformConfigurationUnchanged": true
+}

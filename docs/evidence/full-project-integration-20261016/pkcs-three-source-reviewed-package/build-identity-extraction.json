@@ -1,0 +1,81 @@
+{
+  "extractedAt": "2026-10-16T05:46:29.854034+00:00",
+  "rows": [
+    {
+      "role": "candidate",
+      "suite": "domain",
+      "logSha256": "bf842dca2d4db7d44796351b0c43b5d8f9ef4b70fc404f917ba7cd75dff5d405",
+      "historicalParent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "informationalVersionRecords": 5,
+      "allVersionsContainHistoricalParent": true,
+      "dllHashRecords": 10,
+      "correctedIdentityFileSha256": "019b6d14b7d2004168e20584daa519e759b5341be80c83571a6661df8ab740ad"
+    },
+    {
+      "role": "candidate",
+      "suite": "gateway",
+      "logSha256": "92d10be0f6cbec3a034dc9db2087baab5b255ef8d60ebcc5bc7c564540c586a3",
+      "historicalParent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "informationalVersionRecords": 12,
+      "allVersionsContainHistoricalParent": true,
+      "dllHashRecords": 43,
+      "correctedIdentityFileSha256": "098489535368c7d11588cc9b093221164139778169c212f576b2c4bcff83e8c0"
+    },
+    {
+      "role": "candidate",
+      "suite": "integration",
+      "logSha256": "461678c853ac0d7c3a476ca6c5760ee91f2fde16b049388c9eb3c6310821a520",
+      "historicalParent": "760493da5a5bc0f0674e7e6398260c8a5ac4a6c0",
+      "informationalVersionRecords": 14,
+      "allVersionsContainHistoricalParent": true,
+      "dllHashRecords": 59,
+      "correctedIdentityFileSha256": "30511faca3030f5087604093a6a17b28e22bde9d3d710f3dca42d510b9156184"
+    },
+    {
+      "role": "baseline",
+      "suite": "domain",
+      "logSha256": "843e87472895569eb867dbd75b9c3a4ea14238ebe1c770b0aeb4b8d63e724b22",
+      "historicalParent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "informationalVersionRecords": 5,
+      "allVersionsContainHistoricalParent": true,
+      "dllHashRecords": 10,
+      "correctedIdentityFileSha256": "b2a858d2f820b95cad8812c2e5720d8d3b7cdabbbae5256af827f89a188748ec"
+    },
+    {
+      "role": "baseline",
+      "suite": "gateway",
+      "logSha256": "a71b439a89002edae7293d32270382163f34cb28808cd7a93ab8475c66b6ffbb",
+      "historicalParent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "informationalVersionRecords": 12,
+      "allVersionsContainHistoricalParent": true,
+      "dllHashRecords": 43,
+      "correctedIdentityFileSha256": "5bbe8f89eb032bacf87cb814b25d6968a5972aac09b075d089ebf6f8f1732b76"
+    },
+    {
+      "role": "baseline",
+      "suite": "integration",
+      "logSha256": "d55c5ba93d68511af45b644266c4720bb2d987f35b47e810d36161034e2cbaf7",
+      "historicalParent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "informationalVersionRecords": 14,
+      "allVersionsContainHistoricalParent": true,
+      "dllHashRecords": 59,
+      "correctedIdentityFileSha256": "90a23993e68c18062ab9a3f089b202bef9ff1fe96296d985f6d3949ed5944749"
+    },
+    {
+      "role": "baseline",
+      "suite": "counterfactual-proofs",
+      "logSha256": "159edc51dad2f5654fb8430c657ca9a6ffd8ee2a1dde32e5ed74571adcd0e5bd",
+      "historicalParent": "f31887ee2ee551a466bf399fda2b26cdee67902e",
+      "informationalVersionRecords": 14,
+      "allVersionsContainHistoricalParent": true,
+      "dllHashRecords": 59,
+      "correctedIdentityFileSha256": "e41939d045b7091659d0f42a5624a9096c8a74725933698b8b0caf198afe6a17"
+    }
+  ],
+  "source": "Existing untouched raw build/test logs",
+  "originalExtractionIssue": "Literal function-like match missed the actual AssemblyInformationalVersionAttribute suffix; original raw metadata was complete. Original DLL-only extractions retained.",
+  "testsRepeated": false,
+  "productChanges": false,
+  "immutable": false,
+  "formalQualified": false
+}

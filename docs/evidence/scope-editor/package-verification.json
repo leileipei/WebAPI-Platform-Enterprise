@@ -1,0 +1,11 @@
+{
+  "zip": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-restart-readiness/deliverables/WebAPI_Enterprise_第37页数据范围编辑器_隔离验收_20261006.zip",
+  "sha256": "76d353e134db648aec05d1b1700bf1b0ed9d531407c2cd3406ecf05cd181daf3",
+  "entries": 41,
+  "crcPassed": true,
+  "manifestReadbackPassed": true,
+  "exactCredentialMatches": 0,
+  "sourceFiles": 8,
+  "baseCommit": "2744fbf4be551447b6fee4ac947ff56710cc9c7f",
+  "status": "isolated_verified_not_committed_not_installed"
+}

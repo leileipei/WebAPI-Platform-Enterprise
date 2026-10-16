@@ -1,0 +1,15 @@
+{
+  "complete": true,
+  "archive": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/local-keycloak-demo/deliverables/WebAPI_Enterprise_本机Keycloak_SSO演示补充_20261006.zip",
+  "bytes": 587766,
+  "sha256": "7e8a678e03a6db56531c3a9c37630cd3ac6f07c656a4764dad4c048284115abf",
+  "entryCount": 131,
+  "crcReadbackPassed": true,
+  "allManifestHashesPassed": true,
+  "knownSecretsAbsent": true,
+  "toolRevision": "acb10a5f06a1734aec40a5d49ec1355d9fa191c8",
+  "immutableRuntimeFiles": 96,
+  "applicationRevision": "0b42f9e11977f8453887d6b23e45192ab2e42d61",
+  "noSecondCommit": true,
+  "historicalArchivesNotOverwritten": true
+}

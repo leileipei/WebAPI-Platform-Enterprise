@@ -1,0 +1,51 @@
+{
+  "complete": true,
+  "sourceRevision": "943143fdf4022f55b599fd521cf2e4fbe74a502d",
+  "imageId": "sha256:0f2b243d098d19eca5d1ea1d1acb853893cf0260495bcb230fd28386fc46962c",
+  "phase": "Ready",
+  "nodes": [
+    {
+      "name": "local-gateway-a",
+      "instanceId": "e9c69837-f289-4d0b-b7c6-1e2bb5354734",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T08:40:55.504798+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-b",
+      "instanceId": "958f5507-4ddf-451b-ab97-9e59886450b6",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T08:40:56.494288+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    }
+  ],
+  "requests": [
+    {
+      "port": 4196,
+      "status": 200
+    },
+    {
+      "port": 4197,
+      "status": 200
+    }
+  ],
+  "originalOwnerBindingDataAccountsAndSecretsPreserved": true,
+  "newTablesEmpty": true,
+  "newBusinessPublish": false
+}

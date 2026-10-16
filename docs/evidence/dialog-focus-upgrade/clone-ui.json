@@ -1,0 +1,169 @@
+{
+  "complete": true,
+  "sourceRevision": "975c7b5eef3800cfc0bf57252f04f605c1e282f3",
+  "onlyDisposableClone": true,
+  "realRule412AndSuccess": true,
+  "realRiskReportAndReviewSaved": true,
+  "checks": [
+    {
+      "label": "clone-common-initial",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "INPUT",
+      "text": "",
+      "width": 1440
+    },
+    {
+      "label": "clone-common-discard-shift-tab",
+      "confirmation": true,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "确认放弃",
+      "width": 1440
+    },
+    {
+      "label": "clone-common-discard-tab",
+      "confirmation": true,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "继续编辑",
+      "width": 1440
+    },
+    {
+      "label": "clone-common-cancel-recovery",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭",
+      "width": 1440
+    },
+    {
+      "label": "clone-common-draft-preserved",
+      "pass": true
+    },
+    {
+      "label": "clone-common-close-restores-trigger",
+      "confirmation": false,
+      "height": 1024,
+      "inside": false,
+      "modal": false,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "＋ 新建",
+      "width": 1440
+    },
+    {
+      "label": "clone-rule-cancel-recovery",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭",
+      "width": 1440
+    },
+    {
+      "label": "clone-rule-real-412-focus",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭",
+      "width": 1440
+    },
+    {
+      "label": "clone-rule-real-412-draft",
+      "pass": true,
+      "saveDisabled": true
+    },
+    {
+      "label": "clone-rule-adopt-focus",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭",
+      "width": 1440
+    },
+    {
+      "label": "clone-rule-adopt-draft-preserved",
+      "pass": true
+    },
+    {
+      "label": "clone-rule-success-restores-trigger",
+      "confirmation": false,
+      "height": 1024,
+      "inside": false,
+      "modal": false,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "编辑",
+      "width": 1440
+    },
+    {
+      "label": "clone-risk-initial",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "TEXTAREA",
+      "text": "",
+      "width": 1440
+    },
+    {
+      "label": "clone-risk-shift-tab",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "返回检查",
+      "width": 1440
+    },
+    {
+      "label": "clone-risk-tab",
+      "confirmation": false,
+      "height": 1024,
+      "inside": true,
+      "modal": true,
+      "overflow": false,
+      "tag": "TEXTAREA",
+      "text": "",
+      "width": 1440
+    },
+    {
+      "label": "clone-risk-success-restores-trigger",
+      "confirmation": false,
+      "height": 1024,
+      "inside": false,
+      "modal": false,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "风险评审",
+      "width": 1440
+    },
+    {
+      "label": "clone-risk-real-saved",
+      "pass": true
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T12:24:40.009213+08:00",
+  "merge": {
+    "complete": true,
+    "method": "fast-forward",
+    "targetBranch": "feature/core-loop",
+    "fromRevision": "5f2871ac378c936a0e27bf15d6a47ece4ed97765",
+    "mergedRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+    "integratedExistingCommits": 5,
+    "newCommitCreated": false,
+    "pushed": false,
+    "originalLocalFilesProtected": 25,
+    "originalFilesByteIdenticalExceptResolvedDocuments": 23,
+    "resolvedLocalDocuments": [
+      "README.md",
+      "docs/acceptance.md"
+    ],
+    "identicalUntrackedPlansNowTracked": [
+      "docs/superpowers/plans/2026-10-05-traffic-policies-implementation.md",
+      "docs/superpowers/specs/2026-10-05-traffic-policies-design.md"
+    ],
+    "localChangesStillUncommitted": true,
+    "mainSourceMatchesTestedCommit": true,
+    "retainedWorktreeForPrivateBackupsAndDeliverables": true
+  },
+  "checks": {
+    "blockingFinding": false,
+    "priorIndependentReviewRemediationVerified": true,
+    "freshCsharpSuitesOnMergedCommit": [
+      {
+        "failed": 0,
+        "passed": 196,
+        "skipped": 0,
+        "total": 196,
+        "suite": "WebApi.Domain.Tests"
+      },
+      {
+        "failed": 0,
+        "passed": 363,
+        "skipped": 0,
+        "total": 363,
+        "suite": "WebApi.Integration.Tests"
+      },
+      {
+        "failed": 0,
+        "passed": 52,
+        "skipped": 0,
+        "total": 52,
+        "suite": "WebApi.Gateway.Tests"
+      }
+    ],
+    "csharpPassed": 611,
+    "runtimeConsoleBeforeAndAfterPassed": 167,
+    "realPostgresStatusChecks": 20,
+    "typeScriptAndViteBuildPassed": true,
+    "sourceMatchesMergedImmutableCommit": true,
+    "workingDiffCheckPassed": true,
+    "privateTestLogSha256": {
+      "dotnet-after.log": "a20d8b0d1dca7ed27dcba66a204d2f4c6cc6e7b0b8880cf3ba3fe36f75aacdf7",
+      "unit-before-retry.log": "468180d18c077fe08d880f6d080eefc8f0f024287943d318a0d2872041ca6a25",
+      "unit-after.log": "5519d5160188a3cc87223edd7f44e08d54d5cd158707150b4b3e4f9b49bf800a",
+      "status-before.log": "88ab93c3aaac661a7a40056350a9229396573ed96caf510d8465d930b8db7bec"
+    }
+  },
+  "runtimePreservation": {
+    "complete": true,
+    "protectedTablesUnchanged": 31,
+    "releaseSuccessAuditUnchanged": true,
+    "originalSecretFilesAndSsoConfigUnchanged": true,
+    "toolFileCountVerified": 96,
+    "originalRuntimeReady": true,
+    "businessVersion": 4,
+    "businessSequence": 4,
+    "noRuntimeRestartDuringMerge": true
+  },
+  "retainedArchives": {
+    "complete": true,
+    "historicalZipCount": 17,
+    "allArchiveHashesUnchanged": true,
+    "latestSupplementCRCAndPayloadHashesPassed": true
+  },
+  "runtime": {
+    "phase": "Ready",
+    "sourceRevision": "63681d172cfff7fdd5a80efb7bdd7dfbb2a32c10",
+    "nodes": [
+      {
+        "name": "local-gateway-a",
+        "instanceId": "338c4cd1-dafa-40e5-a6a7-bf0e02dfc4a5",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T04:21:42.388722+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      },
+      {
+        "name": "local-gateway-b",
+        "instanceId": "be392f81-36d5-49c1-bb4c-856457288e36",
+        "enabled": true,
+        "reportedStatus": "Ready",
+        "lastHeartbeatAt": "2026-10-06T04:21:42.393904+00:00",
+        "fresh": true,
+        "currentVersion": 4,
+        "currentSequence": 4,
+        "desiredVersion": 4,
+        "desiredSequence": 4,
+        "publicationAcknowledged": false,
+        "runtimeConfirmed": true,
+        "acknowledged": true
+      }
+    ],
+    "idpContainersRunning": true,
+    "idpVolumeCount": 4
+  },
+  "validationRunnerCorrection": {
+    "firstAttemptNotCountedAsPassing": true,
+    "firstAttempt": "Archive test files were invoked from pre-merge main directory; policy runner relative script paths failed, and lifecycle test subprocess hit a Node native assertion.",
+    "retry": "Re-run from immutable source root with temporary localhost-port permission; all167 passed. Product source unchanged."
+  },
+  "limits": {
+    "fullExternalComposeEndToEndRerun": false,
+    "productionAcceptance": false,
+    "newRuntimeRestart": false
+  }
+}

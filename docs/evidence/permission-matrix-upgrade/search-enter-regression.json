@@ -1,0 +1,27 @@
+{
+  "complete": true,
+  "onlyDisposableClone": true,
+  "originalBusinessSaves": 0,
+  "unassignedTestRole": true,
+  "beforeFix": {
+    "implicitSubmitReproduced": true,
+    "beforeRevision": 2,
+    "afterRevision": 3,
+    "remainingPermissions": [
+      "api.version.read"
+    ]
+  },
+  "afterFix": {
+    "searchEnterKeptDialogOpen": true,
+    "serverRevisionStayed": 4,
+    "draftSelected": 1,
+    "serverSelected": 2
+  },
+  "explicitSave": {
+    "afterRevision": 5,
+    "hiddenAssignedPermissionPreserved": true,
+    "remainingPermissions": [
+      "api.version.read"
+    ]
+  }
+}

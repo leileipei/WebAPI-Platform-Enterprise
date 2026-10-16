@@ -1,0 +1,22 @@
+{
+  "priorPerformancePairs": 133,
+  "priorPerformanceWindows": 266,
+  "oldPerformanceEvidenceRetained": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/task12-formal",
+  "oldPerformanceResultsArePartial": true,
+  "oldPerformanceQualificationPassed": false,
+  "oldNewWindowsCombined": false,
+  "nativeResumeBlockedBy": "System.Security.Cryptography.Pkcs10.0.0 NU1902/NU1903",
+  "nativeBlockedBuildLog": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/docs/evidence/gateway-query-performance/current-business-combined-baseline/formal-resume-20261016T032144Z/baseline/build.log",
+  "nativeBlockedBuildLogSha256": "2914a2819100ce83ac3e727b8f2a3a7c797f90ccbdb6f174c453a0f2db15e2f3",
+  "nativeResumeNewWindows": 0,
+  "nativeFailedOwnerCleaned": true,
+  "privateNativeFailureInputsRetainedNotPackaged": true,
+  "privateInputPreparationFailuresRetained": [
+    "regression-attempt1-missing-fixture",
+    "regression-attempt2-incomplete-root-inputs"
+  ],
+  "currentRawBaselineFailuresRetained": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/gateway-query-performance/.superpowers/sdd/2026-10-12-current-business-combined-performance-baseline/pkcs-three-source-repair-20261016/baseline-integration.trx",
+  "currentRawBaselineFailures": 22,
+  "currentExpectedCostFailures": 22,
+  "currentBlockedFailures": 0
+}

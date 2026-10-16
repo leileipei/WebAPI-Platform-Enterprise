@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "classification": "real-isolated-keycloak",
+  "complete": true,
+  "project": "webapi-sso-test-e798f596-e2bd-45de-a081-44c82c796628",
+  "keycloakImage": "quay.io/keycloak/keycloak@sha256:b0f60d489d51c5d113390bdf5461d4c06e6051be026c05549f2e1e10ec352bcc",
+  "image": {
+    "tag": "webapi-sso-fixture:d9f22240c5890740138e",
+    "digest": "sha256:9c1b75a65e325218e3e2d3982f1137b1b74d77410d6ca1130e097c01d5bb1c5c",
+    "baseCommit": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
+    "sourceManifestHash": "d9f22240c5890740138ed1d2d8895441611b7f34c4d3079f8d5a73a70649afd5",
+    "classification": "actual-uncommitted-build-source"
+  },
+  "sameSiteEvidence": {
+    "platformHost": "127.0.0.1",
+    "idpHost": "localhost",
+    "browserVerified": true,
+    "browserEvidence": "docs/evidence/sso/ui/cookie-evidence.json",
+    "completePageRestoredSession": true,
+    "formInitiatedReauthenticationVerified": true
+  },
+  "checks": [
+    {
+      "name": "real-login",
+      "pass": true,
+      "evidence": {
+        "meStatus": 200,
+        "successAuditsAdded": 1,
+        "explicitUser": true,
+        "issuerHost": "localhost",
+        "pkce": "S256",
+        "responseMode": "query"
+      }
+    },
+    {
+      "name": "cross-site-cookies",
+      "pass": true,
+      "evidence": {
+        "temporarySameSite": "Lax",
+        "platformSameSite": "Strict",
+        "temporaryHttpOnly": true,
+        "callbackPathLimited": true,
+        "verifiedOverHttp": true,
+        "browserSameSitePending": true
+      }
+    },
+    {
+      "name": "unknown-subject",
+      "pass": true,
+      "evidence": {
+        "meStatus": 401,
+        "successAuditsAdded": 0,
+        "usersCreated": 0
+      }
+    },
+    {
+      "name": "wrong-secret",
+      "pass": true,
+      "evidence": {
+        "meStatus": 401,
+        "successAuditsAdded": 0,
+        "structuralTestDoesNotProveClientAuthentication": true
+      }
+    },
+    {
+      "name": "two-control-planes",
+      "pass": true,
+      "evidence": {
+        "sharedDatabase": true,
+        "sharedPrivateKeyRing": true,
+        "secondInstanceMeStatus": 200
+      }
+    },
+    {
+      "name": "restart-replay",
+      "pass": true,
+      "evidence": {
+        "meAfterRestart": 200,
+        "successAuditsAdded": 0,
+        "tokenExchangesAdded": 0
+      }
+    },
+    {
+      "name": "provider-revocation",
+      "pass": true,
+      "evidence": {
+        "primaryMeStatus": 401,
+        "secondaryMeStatus": 401,
+        "reEnableRevivesOldSession": false
+      }
+    },
+    {
+      "name": "secret-rotation",
+      "pass": true,
+      "evidence": {
+        "oldSessionMeStatus": 401,
+        "newLoginMeStatus": 200,
+        "explicitAuthRevision": true
+      }
+    },
+    {
+      "name": "interrupted-attempt",
+      "pass": true,
+      "evidence": {
+        "durableProcessingObserved": true,
+        "replayAfterRestartRejected": true,
+        "successAuditsAdded": 0,
+        "tokenExchangesAdded": 0
+      }
+    },
+    {
+      "name": "local-admin",
+      "pass": true,
+      "evidence": {
+        "loginPassed": true,
+        "hashAndStampPreserved": true,
+        "username": "fixture-admin"
+      }
+    }
+  ],
+  "time": "2026-10-05T15:29:36.887Z",
+  "endToEndTests": {
+    "passed": 1,
+    "failed": 0,
+    "lockedRestore": true
+  },
+  "review": {
+    "retained": true,
+    "project": "webapi-sso-test-e798f596-e2bd-45de-a081-44c82c796628",
+    "url": "http://127.0.0.1:54874"
+  },
+  "toolManifestHash": "8f23ffa6417247bf7f803594d3f24df0cd0b6e1dd7279fa33c66292645c40eae"
+}

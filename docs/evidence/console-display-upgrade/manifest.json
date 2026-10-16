@@ -1,0 +1,33 @@
+{
+  "files": {
+    "01-coverage-4192.jpg": "8d8ce635497595451c586d578c9e19b99e9519adb3522fe674f6bd2b27660b66",
+    "02-approvals-4192.jpg": "f63ccf2570f0a49f7a811cdea1146f226f71b243cb8fe43daff5f0bec3348468",
+    "03-governance-4192.jpg": "9b9e8ad812873e032a524bda8e86b160ad218c45c5a4a244f07223eaaa72a0e0",
+    "cleanup.json": "23e41c87c0329a10004d02ca07c50eedb6c41ac8b769a45836744ca7d83f1652",
+    "cold-backup.json": "cf252dcc8797538a78ec353d4d2858b498c5d7b6ffb717618d9672c2ec501a77",
+    "console-tests-authorized.log": "ad494c66e1612d2d55d07c0aa5cff0cb406aaba60a2a8d6e48e6a99d6412ca6c",
+    "console-tests.log": "d7958ccc83fd16ea3acc756c5205957678bc42c7db48f83dfb5052c0d83047e5",
+    "deployed-ui.json": "fae4bbda5735e49c4f4ee36406b4404e37f15493e73dfafa44f304d2e136a870",
+    "display-fixes.patch": "0a21b5363e113ec8bb9059e7bed535d1e2dc3c584e97616c769ea5d13eb47a5f",
+    "execution-ledger.md": "1cd50f2d5275375e647707a39c978da6bd9e8cbd8be2a3532f3c6f00064ed129",
+    "final.json": "b538174dcdf69259306a2a665c3f8fa0cc50aac4bd9f16ae94c99dd1b3475307",
+    "immutable-build.json": "f343fc679b9c5c07dc832e90ab5e48820f06c847e555f118f78842e3a4e330ed",
+    "merge.json": "d694280e08b02147323958aaff3fa192d73623ff3b9b45f544a010b62928d7f3",
+    "preflight.json": "81f1e3bcb4d10e2103e4c150213e4d53cf56210aa5aac63bee5814c4d93ecd9a",
+    "preservation-baseline.json": "5013cd662eb8aa80ebf1c0255c730c4557360b805c2c9a509eb8677a300d857d",
+    "report.html": "38c0d503b7f50a0dd0e8421723be50d2a89db79db769120f4bcee3a970f39ae6",
+    "restore.json": "90940af636c183dfad80755dde9af57ffdb103eb43da3029ae8b2ede3136a0c7",
+    "review.json": "336c35ac46f9ad2bc347aa0954607ae231037e997902575f4eb69f199da5d95f",
+    "runtime-final.json": "bc18bfc63652e809c57f8aff1095001019f5728533f99089e5223201f35aa08b",
+    "software-rehearsal.json": "dbcac9333bec975a31189196ca2b799a79cecc7faf5d2bb973aad7338ddaad11",
+    "source/console/src/coverage.json": "501f7073a956fee58991eeea578e4000b7d0128ba23feee4a4c9e9a0e38da9d0",
+    "source/console/src/pages/Coverage.tsx": "5421ddb3b85b5937af6baafbae70fa79096c97eb3c629a5bc7d6ce8a0a3b7359",
+    "source/console/src/pages/Governance.tsx": "31b8244fa8a864e4157b85f15936e09297f3c99846e6cf109970a1a077056590",
+    "source/console/src/pages/Releases.tsx": "f83f4551a0192d680798188ffa5c92bfd7982becf31c6e434d1d245c3a361e9b",
+    "upgrade.json": "b967a20d562e2a1b4f606fd65402752722494b321f8c1b1ff1e9ba33a1216c43",
+    "verification.json": "386e0d8a6b89f10eae06a3bb2fbee3322a8e7b152f770273f4b36d26b62379c8"
+  },
+  "sourceRevision": "d0555941bd134737544bdf1d06164a5bbe5a8b0e",
+  "credentialsIncluded": false,
+  "sensitiveMarkerMatches": 0
+}

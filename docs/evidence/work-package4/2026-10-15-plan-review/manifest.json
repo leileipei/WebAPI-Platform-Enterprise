@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-10-15",
+  "kind": "implementation-plan-self-review",
+  "sourceRevision": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+  "productSourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "approvedSpecification": {
+    "path": "docs/superpowers/specs/2026-10-15-account-credential-closeout-design.md",
+    "sha256": "b3b0c33dd71a6fb83b28c6efe99f74a592d580995d34618f612bbc4f43413994",
+    "approved": true,
+    "questionItemId": "[\"request_user_input_async\",\"call_fc201ed9eb904a0c8c8d6e7bef51b4eb\",0]",
+    "answer": "A：认可书面规格，继续编写实施计划（推荐）"
+  },
+  "plans": [
+    {
+      "path": "docs/superpowers/plans/2026-10-15-account-credential-closeout-a-accounts.md",
+      "sha256": "e558cb5b43a3297d2c0f37187940f97bb5c5462c23917910c8acfd37f2d755e5",
+      "bytes": 16493
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-15-account-credential-closeout-b-usage.md",
+      "sha256": "d9f60fa2dc2b57533d651d514c99e6cf19e2f31fbd8481d00aa6f857797b14c7",
+      "bytes": 25428
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-15-account-credential-closeout-c-delivery.md",
+      "sha256": "71d30511436408df1d75091e07ac46656f0a6aae83eded8f7f4e9f0c1cf83f43",
+      "bytes": 20865
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-15-account-credential-closeout.md",
+      "sha256": "8a2e467fc458830cf59fcaad749eb9151cc3f14da95120ae972396049d66a2fc",
+      "bytes": 8999
+    }
+  ],
+  "tasks": [
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7",
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5"
+  ],
+  "specSectionCoverage": {
+    "1": [
+      "master",
+      "C4"
+    ],
+    "2": [
+      "master",
+      "C4"
+    ],
+    "3": [
+      "A1"
+    ],
+    "4": [
+      "A2",
+      "A3",
+      "A5"
+    ],
+    "5": [
+      "A4",
+      "A5"
+    ],
+    "6": [
+      "B4"
+    ],
+    "7": [
+      "B4",
+      "B5",
+      "B6"
+    ],
+    "8": [
+      "B1",
+      "B3",
+      "B6"
+    ],
+    "9": [
+      "B2",
+      "B3",
+      "B7"
+    ],
+    "10": [
+      "B7",
+      "C2"
+    ],
+    "11": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "12": [
+      "A1",
+      "A5",
+      "B6",
+      "C5"
+    ],
+    "13": [
+      "C4"
+    ],
+    "14": [
+      "C5"
+    ],
+    "15": [
+      "master"
+    ]
+  },
+  "acceptanceCoverage": {
+    "P4-01": [
+      "A1",
+      "A2",
+      "A5",
+      "C5"
+    ],
+    "P4-02": [
+      "A2",
+      "A3",
+      "A5",
+      "C5"
+    ],
+    "P4-03": [
+      "A4",
+      "A5",
+      "C5"
+    ],
+    "P4-04": [
+      "B4",
+      "B6",
+      "C5"
+    ],
+    "P4-05": [
+      "B1",
+      "B3",
+      "B6",
+      "C5"
+    ],
+    "P4-06": [
+      "B5",
+      "B6",
+      "C5"
+    ],
+    "P4-07": [
+      "B2",
+      "B3",
+      "B7",
+      "C5"
+    ],
+    "P4-08": [
+      "C1",
+      "C3",
+      "C5"
+    ],
+    "P4-09": [
+      "A5",
+      "C2",
+      "C3",
+      "C5"
+    ],
+    "P4-10": [
+      "C4",
+      "C5"
+    ]
+  },
+  "selfReview": {
+    "method": "self; no subagent",
+    "specCoverage": true,
+    "stepSpecificity": true,
+    "interfacesAndTypesChecked": true,
+    "fiveReviewFocusClassesHaveTests": true,
+    "proportion": "17 tasks across 3 subsystem plans plus master; records/signatures/assertions only, no implementation function bodies",
+    "issuesFixed": [
+      "Actual permission user.manage mapped to specification user.write wording without adding permissions",
+      "Reused GatewaySettings.InstanceId instead of nonexistent NodeClient.CurrentInstance",
+      "GatewayNodeEvent tests use EventType",
+      "All existing CredentialDto mappings included in visible-environment LastUsed filtering",
+      "Window sums support values beyond Int64 and JS safe integers using numeric/text/BigInteger",
+      "Fresh-account fixtures explicitly change via HTTP and keep per-user private password files",
+      "SDK E2E uses dedicated owner context, not legacy fixed-port launcher"
+    ]
+  },
+  "authorization": {
+    "planApproved": false,
+    "executionMethod": "current-session-inline",
+    "implementationStarted": false,
+    "productTestsExecuted": false,
+    "fixedBuildExecuted": false,
+    "commitAuthorized": false,
+    "commitCreated": false,
+    "pushExecuted": false,
+    "mainMergeExecuted": false,
+    "deploymentExecuted": false,
+    "package2Paused": true
+  },
+  "preservation": {
+    "baseline": ".runtime/reviews/work-package4-plan-20261015/source-before.json",
+    "existingFilesContentAndGitStatusPreserved": 659,
+    "productDiffPaths": [],
+    "runtimeControlFileHashesPreserved": [
+      ".runtime/local/release.json"
+    ],
+    "runtimeLiveStatusRechecked": false,
+    "runtimeMutationPerformed": false
+  },
+  "reviewGate": {
+    "skill": "/Users/leo.cui/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/writing-plans/SKILL.md",
+    "quote": "wait for that review before implementation",
+    "status": "awaiting-user-plan-review"
+  },
+  "notAcceptance": "This receipt verifies plan structure and preservation only; product implementation and all planned tests remain unexecuted."
+}

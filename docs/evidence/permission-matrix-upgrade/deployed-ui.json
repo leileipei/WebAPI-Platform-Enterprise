@@ -1,0 +1,70 @@
+{
+  "complete": true,
+  "sourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+  "checks": [
+    {
+      "label": "original-nine-roles-no-test-role",
+      "pass": true
+    },
+    {
+      "label": "system-role-still-immutable",
+      "pass": true
+    },
+    {
+      "label": "original-all-44-readonly",
+      "pass": true
+    },
+    {
+      "label": "original-chinese-filter-two",
+      "pass": true
+    },
+    {
+      "label": "1440-no-page-overflow",
+      "pass": true
+    },
+    {
+      "label": "deployed-chinese-dictionary-search",
+      "pass": true
+    },
+    {
+      "label": "deployed-module-search-eight",
+      "pass": true
+    },
+    {
+      "label": "deployed-dictionary-all-44",
+      "pass": true
+    },
+    {
+      "label": "generic-editor-still-two-fields",
+      "pass": true
+    },
+    {
+      "label": "generic-dirty-confirmation",
+      "pass": true
+    },
+    {
+      "label": "generic-cancel-focus-recovered",
+      "pass": true
+    },
+    {
+      "label": "1280-generic-editor-contained",
+      "pass": true
+    },
+    {
+      "label": "unsaved-role-never-created",
+      "pass": true
+    },
+    {
+      "label": "1280-matrix-contained",
+      "pass": true
+    }
+  ],
+  "originalBusinessSaves": 0,
+  "originalPermissionsChanged": false,
+  "originalRoleCount": 9,
+  "dialogDraftDiscarded": true,
+  "viewports": [
+    1440,
+    1280
+  ]
+}

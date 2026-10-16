@@ -1,0 +1,14 @@
+{
+  "complete": true,
+  "sourceManifestHash": "d9f22240c5890740138ed1d2d8895441611b7f34c4d3079f8d5a73a70649afd5",
+  "blockingFindings": 0,
+  "critical": 0,
+  "independentReviewedSourceManifestHash": "ba1d9eb45e46daee85f2cf2748b2a602dc30e0319ea3522ec40635a1c2289122",
+  "independentReviewPasses": 1,
+  "authorFixPassComplete": true,
+  "toolManifestHash": "8f23ffa6417247bf7f803594d3f24df0cd0b6e1dd7279fa33c66292645c40eae",
+  "initialBlockingFindings": 4,
+  "resolvedRequiredFindings": 5,
+  "fixPassEvidence": "docs/evidence/sso/review-fix-pass.json",
+  "secondIndependentReviewPerformed": false
+}

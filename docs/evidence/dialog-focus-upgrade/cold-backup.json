@@ -1,0 +1,11 @@
+{
+  "complete": true,
+  "platformVolumes": 7,
+  "idpVolumes": 4,
+  "platformFiles": 20,
+  "idpFiles": 12,
+  "hashReadback": true,
+  "originalServicesRestored": true,
+  "originalProtectedDataAndSecretsPreserved": true,
+  "privateBackup": true
+}

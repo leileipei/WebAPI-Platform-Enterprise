@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+.superpowers/
+.worktrees/
+.runtime/
+.secrets/
+node_modules/
+**/*.user
+**/*.trx
+**/TestResults/
+console/dist/
+deliverables/
+
+# Also ignore linked dependency directories in isolated worktrees.
+console/node_modules

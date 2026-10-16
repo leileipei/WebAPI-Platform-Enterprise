@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "projectName": "webapi-enterprise-local",
+  "toolRevision": "acb10a5f06a1734aec40a5d49ec1355d9fa191c8",
+  "fixedDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/local/tooling/acb10a5f06a1734aec40a5d49ec1355d9fa191c8",
+  "files": {
+    "scripts/local-keycloak.sh": "50dac9c8f07948f28c1c6c95ad3bb53c3355a1bd9cd8bd18cdfc900f62856c42",
+    "scripts/runtime/status.mjs": "dc912ea8ca1687df2c2f128648a79dcd1dd01ece454371602201bf7e6e537151",
+    "scripts/runtime/context.mjs": "e16ae188ab1d1b82637b3d227ca2f6de08bfabb6acc948ff4a4806c0bdb18b3f",
+    "scripts/runtime/acceptance.mjs": "30d41e36ba26cebba9f5f7e6cff0438da8355f67c179d5254fc979e9e5e6ee97",
+    "scripts/runtime/configure.mjs": "e9ec6a7222e6c35e7909febc94487e82d2518977bc0a96a716c738a6b752af8a",
+    "scripts/runtime/state.mjs": "3fd23ab54a07ec01cbd7f2eb7fa448eedabe2649a39e1ae31865d451e738a23b",
+    "scripts/runtime/lifecycle.mjs": "1f016c540f152d89c6383ac41fffa8f21800445d57d7a2617a00687c88e9bf98",
+    "scripts/runtime/keycloak-cli.mjs": "48647342c7bc336151e5bd07123a8831b559fde1cdf9165a017128aa39c2c6ee",
+    "scripts/runtime/acceptance-scenario.mjs": "670f5065c8b208c84cf27b47fcc2720363033c96843ae0231046bd8cc54892c7",
+    "scripts/runtime/sso-demo-platform.mjs": "825e4c5a5a70468cfd2d5f0246952e9d9fcf713bdb4d2e90b2cf0cd4b69fe62d",
+    "scripts/runtime/sso-deployment.mjs": "7b67aa780380957e3501d4319a0e2054d56d79045a6fc742556e3e73b3299eb7",
+    "scripts/runtime/fixture-guard.mjs": "e8dfae33bc0ce9c0e6b7eada2b6e47483cfd70bf4fba3769dff4966611e0ad37",
+    "scripts/runtime/build.mjs": "1eb4809b130d825f6739d3d870a239c9405e04466755e8c45cc7b921dd2b8647",
+    "scripts/runtime/resource-sampling.mjs": "ffa9722f296c60965738a7806118fd145c65f62b51d61cd3fefddeacefc5a70a",
+    "scripts/runtime/docker.mjs": "278567ae6f4044c95ea2f2cbb287c89b2610251f70f75f88a61beb5f8d16de8f",
+    "scripts/runtime/acceptance-backup.mjs": "8945964c77f7809140ee0c75f84d1458a31a236da55928908c5d21514fa3e59c",
+    "scripts/runtime/keycloak-demo.mjs": "9face011d161412a103d17892f0c080d23717d5bcb685f24f961a61ed3b94f63",
+    "scripts/runtime/cli.mjs": "9b4a56385c99ad937f40d1eed6586f18852dbaf053d89ff12eb40c9d1a6c4c81"
+  },
+  "maintenanceEntries": [
+    "manage.sh",
+    "manage-idp.sh"
+  ],
+  "applicationSourceRevision": "0b42f9e11977f8453887d6b23e45192ab2e42d61"
+}

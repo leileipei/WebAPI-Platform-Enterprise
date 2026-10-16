@@ -1,0 +1,8 @@
+{
+  "complete": true,
+  "exactPrivateValuesChecked": 11,
+  "filesScanned": 22,
+  "hits": 0,
+  "runtimeBackupsPasswordsApiKeysAndCookiesExcluded": true,
+  "scope": "Exact retained local secret values and session cookie values; not a universal secret detector."
+}

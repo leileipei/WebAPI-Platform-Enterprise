@@ -1,0 +1,24 @@
+{
+  "at": "2026-10-13T06:42:32.183677+00:00",
+  "sourceHead": "293b37f2dbd59427cd2d40f6783dc441345528ef",
+  "transformScope": "A_selected_by_user",
+  "writtenSpecStatus": "awaiting_user_review",
+  "planStatus": "not_started",
+  "productImplementationStarted": false,
+  "package2Status": "paused",
+  "specPath": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/docs/superpowers/specs/2026-10-13-cors-ip-transform-design.md",
+  "specSha256": "5820962e5c8f9ec1f452e2baf11e8caab76479e830c79fc97ec30f8d34283209",
+  "checks": {
+    "jsonExamplesValid": 3,
+    "acceptanceAreasPresent": 12,
+    "placeholderScanPassed": true,
+    "sourceFilesUnchanged": 28
+  },
+  "selfReview": [
+    "Frozen candidate and retained baseline both participate in schema selection.",
+    "Dynamic hop-by-hop conflicts cannot reintroduce protected headers.",
+    "CORS preflight matching includes Origin and original HTTP method.",
+    "Cache keeps Origin partition and upstream Vary semantics.",
+    "No implementation or deployment acceptance is claimed."
+  ]
+}

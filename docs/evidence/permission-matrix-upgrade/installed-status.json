@@ -1,0 +1,65 @@
+{
+  "complete": true,
+  "verifiedAt": "2026-10-06T15:38:25.076792+00:00",
+  "consoleUrl": "http://127.0.0.1:4192/roles",
+  "sourceRevision": "1259ba0dc3eafca883ede8797fb91b90612a998d",
+  "imageId": "sha256:3130d5faecbe8868d70f42fd51b768a8f2f4315202171e764df06503af6538a0",
+  "phase": "Ready",
+  "platformServicesRunning": 13,
+  "keycloakServicesRunning": 2,
+  "nodes": [
+    {
+      "name": "local-gateway-b",
+      "instanceId": "92854b19-2b45-41e2-8365-852e9d065a55",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T15:38:24.2262+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    },
+    {
+      "name": "local-gateway-a",
+      "instanceId": "e0d3bd62-02c4-4cc6-80dc-594697489bfb",
+      "enabled": true,
+      "reportedStatus": "Ready",
+      "lastHeartbeatAt": "2026-10-06T15:38:24.230378+00:00",
+      "fresh": true,
+      "currentVersion": 4,
+      "currentSequence": 4,
+      "desiredVersion": 4,
+      "desiredSequence": 4,
+      "publicationAcknowledged": false,
+      "runtimeConfirmed": true,
+      "acknowledged": true
+    }
+  ],
+  "sources": [
+    {
+      "name": "collector",
+      "state": "Available",
+      "checkedAt": "2026-10-06T15:38:24.467Z"
+    },
+    {
+      "name": "prometheus",
+      "state": "Available",
+      "checkedAt": "2026-10-06T15:38:24.461Z"
+    },
+    {
+      "name": "loki",
+      "state": "Available",
+      "checkedAt": "2026-10-06T15:38:24.462Z"
+    },
+    {
+      "name": "tempo",
+      "state": "Available",
+      "checkedAt": "2026-10-06T15:38:24.460Z"
+    }
+  ],
+  "productionAcceptance": false
+}

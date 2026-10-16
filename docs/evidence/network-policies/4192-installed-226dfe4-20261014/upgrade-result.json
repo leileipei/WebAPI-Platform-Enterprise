@@ -1,0 +1,92 @@
+{
+  "passed": true,
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "ports": {
+    "console": 4192,
+    "gatewayA": 4196,
+    "gatewayB": 4197
+  },
+  "phase": "Ready",
+  "migration": {
+    "passed": true,
+    "migrationHistory": [
+      "20261003182012_InitialCore",
+      "20261003201632_PublishCoordinatorIdentity",
+      "20261003213457_RecoveryReference",
+      "20261004030000_ObservabilityAlerts",
+      "20261005090000_SystemSettings",
+      "20261005120000_SsoOidc",
+      "20261005123210_SsoDisplayEmail",
+      "20261005152401_SsoSecretVersion",
+      "20261006090000_ApiVersionComparisons",
+      "20261006165518_ContractManagement",
+      "20261008020000_ApprovalInboxIndexes",
+      "20261008030000_ExternalNotifications",
+      "20261009010000_EnvironmentAccessAddresses",
+      "20261009011000_ReleaseAccessContexts",
+      "20261009020000_ReleaseDelivery",
+      "20261009030000_ReleasePipelines",
+      "20261010010000_PipelineProjectionCursor",
+      "20261010091247_GatewayQueryIndexes",
+      "20261012004548_ReleaseFrozenContracts"
+    ],
+    "rows": 4,
+    "mismatches": 0,
+    "originalCandidateBytesUnchanged": true,
+    "protectedTables": 71,
+    "protectedRows": 1011,
+    "originalRowsPreserved": true,
+    "allowedMigrationHistoryRows": 1,
+    "newTables": [
+      "release_frozen_contracts"
+    ],
+    "beforeApplicationStartup": true
+  },
+  "rows": {
+    "protectedTables": 71,
+    "protectedRows": 1011,
+    "originalRowsPreserved": true,
+    "allowedMigrationHistoryRows": 1,
+    "newTables": [
+      "release_frozen_contracts"
+    ]
+  },
+  "binary": {
+    "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+    "applicationContainers": 8,
+    "applicationHashes": 281,
+    "staticHashes": 3
+  },
+  "calls": [
+    {
+      "port": 4196,
+      "status": 200,
+      "backendId": "A",
+      "apiKeyForwarded": false
+    },
+    {
+      "port": 4197,
+      "status": 200,
+      "backendId": "A",
+      "apiKeyForwarded": false
+    }
+  ],
+  "authentication": {
+    "userId": "845f5566-d92f-4aa0-ab37-f6295696a40d",
+    "username": "admin",
+    "existingPipelinePermissions": true
+  },
+  "maintenance": {
+    "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+    "toolingRevision": "0ecdb46e1891045fcdfdb571e70d884d35661095",
+    "patchRevision": "9cef7cfe728ddbb98f19e7b645fda8d23eceb227",
+    "fixedDirectory": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/local/pipeline-tools-0ecdb46e1891045fcdfdb571e70d884d35661095-utf8-9cef7cf",
+    "files": 165,
+    "runnerUnchanged": true,
+    "onlyManifestSourceRevisionChanged": true
+  },
+  "databaseRestored": false,
+  "completedAt": "2026-10-14T15:05:35.590Z"
+}

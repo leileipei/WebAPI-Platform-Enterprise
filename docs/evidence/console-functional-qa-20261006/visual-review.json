@@ -1,0 +1,21 @@
+{
+  "time": "2026-10-06T10:45:56.193327+00:00",
+  "viewport": [
+    1440,
+    1024
+  ],
+  "originalScreenshots": 80,
+  "exactBytesPreserved": true,
+  "allDimensionsVerified": true,
+  "globalHorizontalOverflowObserved": false,
+  "reviewMethod": "79张原始截图以14张联系表逐张布局复核；01/04及关键08/18/40/77/80原图复核，第80张原图单独复核。",
+  "rejectedAttempt": "43日期fill未进入React提交状态，不能计通过；77采用原生键盘事件补验通过。",
+  "keyboard": "已检查通用Editor Tab/ShiftTab焦点约束、Escape脏数据确认、确认后焦点返回；未覆盖全部页签与抽屉。",
+  "remaining": [
+    "Scope仍为JSON/UUID编辑器，错误消息含原始英文JSON语法文本。",
+    "API授权当前表格形式；尚非完整可视化授权矩阵。",
+    "12px辅助文字需后续结合缩放与可访问性设计调整；未执行全量读屏、对比度或缩放验收。",
+    "Snapshot及节点详情仍含原始JSON管理视图。"
+  ],
+  "productionAcceptance": false
+}

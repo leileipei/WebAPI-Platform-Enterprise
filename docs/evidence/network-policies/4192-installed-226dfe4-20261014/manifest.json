@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-14T15:13:04.779Z",
+  "installed": true,
+  "accepted": true,
+  "sourceRevision": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "imageId": "sha256:4223703e79dfc88fe13631a32ac7bedf0c0a6da81370dd0610b908a7e6b9a8aa",
+  "ownerId": "6d7e3fda-88ea-4315-a8ef-df9e7cd995c8",
+  "phase": "Ready",
+  "original4192Cutover": true,
+  "package2Paused": true,
+  "noSourceCommitOrPush": true,
+  "artifacts": [
+    {
+      "name": "backup-result.json",
+      "bytes": 921,
+      "sha256": "2ff1f5b84b20bed80079792524f57b24603b5b1e1d5a928658614938a6f8bb84"
+    },
+    {
+      "name": "immediate-migration-result.json",
+      "bytes": 1117,
+      "sha256": "0200dea693ad45d237ae08368fbafc0a31e4c20c96b569fe4f8e87802e843e3b"
+    },
+    {
+      "name": "upgrade-result.json",
+      "bytes": 2866,
+      "sha256": "efc8bea967471c45d757dae09201d1d258308d984ca52ff04ab525280ec8edb3"
+    },
+    {
+      "name": "sso-result.json",
+      "bytes": 258,
+      "sha256": "7b3ad528f10780aca0cc5d9e3c3a0d4fb27e9b7b8f5fa6b83070febca4c54e6b"
+    },
+    {
+      "name": "policy-availability-result.json",
+      "bytes": 2187,
+      "sha256": "5ba51dacedef43ba9e10595fe4b6a885d5684a6fca6c0308bcc361c9af88a871"
+    },
+    {
+      "name": "node-capabilities.json",
+      "bytes": 1572,
+      "sha256": "8c2ff5ecb3aa6667ec4b4cbad445531113c3d6d017fb042b28d8f83bf5fb3f25"
+    },
+    {
+      "name": "infrastructure-result.json",
+      "bytes": 1714,
+      "sha256": "6a1eb26a349de43652be8ffb2f0f5ce2e39036a5d833741c3ae4598cb52342d0"
+    },
+    {
+      "name": "observation-result.json",
+      "bytes": 592,
+      "sha256": "78eb310f0deb78e064ec34dd586830da57f9c8e613fe60942964d2c98e3b1f13"
+    },
+    {
+      "name": "volume-preservation-result.json",
+      "bytes": 635,
+      "sha256": "1a6d1cb7d0574857b7c8186a051982c8d78e2f5be37b30b53ab679c423534842"
+    },
+    {
+      "name": "acceptance-result.json",
+      "bytes": 1096,
+      "sha256": "71185656390b980d4828d02d2f49491903bbd1fd2a1f6e1b078177f2d988155a"
+    }
+  ],
+  "document": {
+    "file": "docs/deployment/network-policies-4192-installed-226dfe4.md",
+    "bytes": 6260,
+    "sha256": "6f83ee9d07619557c3033439250f398ce3df98b0d4daa7a468a2a081b341c403"
+  },
+  "actualPrivateValuesScanned": 34,
+  "secretMatches": 0
+}

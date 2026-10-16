@@ -1,0 +1,121 @@
+{
+  "complete": true,
+  "viewport": {
+    "width": 1440,
+    "height": 1024
+  },
+  "source": "隔离工作树84ab385+5文件未提交修复",
+  "realPage": "只读代理4192真实数据",
+  "busyScenario": "真实Editor组件+仅内存save promise，未调用业务写API",
+  "checks": [
+    {
+      "case": "discard-open",
+      "confirmation": true,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "继续编辑"
+    },
+    {
+      "case": "discard-shift-tab",
+      "confirmation": true,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "确认放弃"
+    },
+    {
+      "case": "discard-tab",
+      "confirmation": true,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "继续编辑"
+    },
+    {
+      "case": "cancel-recovered",
+      "confirmation": false,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭"
+    },
+    {
+      "case": "editor-shift-tab",
+      "confirmation": false,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "保存"
+    },
+    {
+      "case": "editor-tab",
+      "confirmation": false,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭"
+    },
+    {
+      "case": "escape-cancel-recovered",
+      "confirmation": false,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭"
+    },
+    {
+      "case": "close-restored-trigger",
+      "confirmation": false,
+      "disabled": false,
+      "inside": false,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "＋ 新建"
+    },
+    {
+      "case": "busy-no-controls-root",
+      "confirmation": false,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "FORM",
+      "text": "保存阻塞键盘检查关闭保存中…保存至工作配置，发布后才影响网关"
+    },
+    {
+      "case": "busy-tab-contained",
+      "confirmation": false,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "FORM",
+      "text": "保存阻塞键盘检查关闭保存中…保存至工作配置，发布后才影响网关"
+    },
+    {
+      "case": "busy-shift-tab-contained",
+      "confirmation": false,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "FORM",
+      "text": "保存阻塞键盘检查关闭保存中…保存至工作配置，发布后才影响网关"
+    },
+    {
+      "case": "save-failure-recovers-focus",
+      "confirmation": false,
+      "disabled": false,
+      "inside": true,
+      "overflow": false,
+      "tag": "BUTTON",
+      "text": "关闭"
+    }
+  ],
+  "originalScopeWrites": 0
+}
