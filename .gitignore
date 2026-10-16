@@ -1,6 +1,7 @@
 **/bin/
 **/obj/
 .superpowers/
+.worktrees/
 .runtime/
 .secrets/
 node_modules/
