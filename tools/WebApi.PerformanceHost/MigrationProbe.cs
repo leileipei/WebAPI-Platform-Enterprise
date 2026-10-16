@@ -134,6 +134,7 @@ public static class MigrationProbe
     {
         var value=Regex.Replace(type.Trim().ToLowerInvariant(),@"\s+"," ",RegexOptions.CultureInvariant);
         value=Regex.Replace(value,@"^varchar(?=\(|\[|$)","character varying",RegexOptions.CultureInvariant);
+        value=Regex.Replace(value,@"^char(?=\(|\[|$)","character",RegexOptions.CultureInvariant);
         return value switch{"timestamptz"=>"timestamp with time zone","timestamp"=>"timestamp without time zone","int" or "int4"=>"integer","int8"=>"bigint","bool"=>"boolean",_=>value};
     }
     private static async Task<LegacyContract> ReadLegacyAsync(WebApiDbContext db,LegacyContract? baseline,bool additions,CancellationToken ct)

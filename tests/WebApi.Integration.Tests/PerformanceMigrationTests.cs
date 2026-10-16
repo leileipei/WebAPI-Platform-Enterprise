@@ -97,6 +97,28 @@ public sealed class PerformanceMigrationTests
         Assert.Equal(canary,(await db.Set<Organization>().SingleAsync()).Name);
     }
     [Theory]
+    [InlineData("character",true)]
+    [InlineData("char-alias",true)]
+    [InlineData("shorter",false)]
+    [InlineData("varying",false)]
+    [InlineData("text",false)]
+    public async Task CurrentContractPreservesFixedCharacterLengthAndType(string shape,bool accepted)
+    {
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();await db.Database.MigrateAsync();
+        await db.Database.ExecuteSqlRawAsync(shape switch{
+            "character"=>"ALTER TABLE credential_usage_batches ALTER COLUMN core_hash TYPE character(64)",
+            "char-alias"=>"ALTER TABLE credential_usage_batches ALTER COLUMN core_hash TYPE char(64)",
+            "shorter"=>"ALTER TABLE credential_usage_batches ALTER COLUMN core_hash TYPE character(63)",
+            "varying"=>"ALTER TABLE credential_usage_batches ALTER COLUMN core_hash TYPE character varying(64)",
+            _=>"ALTER TABLE credential_usage_batches ALTER COLUMN core_hash TYPE text"
+        });
+        if(accepted){
+            var contract=await MigrationProbe.CaptureCurrentContractAsync(db);
+            var table=Assert.Single(contract.Tables,t=>t.Name=="credential_usage_batches");
+            Assert.Equal("character(64)",table.ColumnTypes[table.Columns.ToList().IndexOf("core_hash")]);
+        }else await Assert.ThrowsAsync<InvalidDataException>(()=>MigrationProbe.CaptureCurrentContractAsync(db));
+    }
+    [Theory]
     [InlineData("varchar")]
     [InlineData("not-null")]
     [InlineData("new-table-field")]
