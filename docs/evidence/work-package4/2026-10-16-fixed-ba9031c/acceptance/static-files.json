@@ -1,0 +1,16 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "expected": {
+    "console/dist/assets/index-B-bNgDZU.js": "131f6dc5247db3e405093b10acad3b25b5236478215eecc7e2906cff59ba08ee",
+    "console/dist/assets/index-DEw4ls4J.css": "4fcce3ac76567ebb63c6263d3daf1e26245d47ff0b050522bff9f242c7b83002",
+    "console/dist/index.html": "1e0d4ebfd50737c7005f780946cf02c776e8d674fc6400014b60fc587001b79b"
+  },
+  "actual": {
+    "console/dist/assets/index-B-bNgDZU.js": "131f6dc5247db3e405093b10acad3b25b5236478215eecc7e2906cff59ba08ee",
+    "console/dist/assets/index-DEw4ls4J.css": "4fcce3ac76567ebb63c6263d3daf1e26245d47ff0b050522bff9f242c7b83002",
+    "console/dist/index.html": "1e0d4ebfd50737c7005f780946cf02c776e8d674fc6400014b60fc587001b79b"
+  }
+}

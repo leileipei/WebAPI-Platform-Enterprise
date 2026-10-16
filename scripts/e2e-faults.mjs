@@ -1,7 +1,7 @@
 import fs from 'node:fs';import crypto from 'node:crypto';import assert from 'node:assert/strict';import {execFileSync} from 'node:child_process';import {LocalClient} from './local-client.mjs';
 const dir=process.env.WEBAPI_E2E_DIRECTORY,project=process.env.WEBAPI_E2E_PROJECT;
 if(!project?.startsWith('webapi-enterprise-e2e-')||!dir?.includes(project))throw new Error('Only a disposable named E2E project may be faulted');
-const context=JSON.parse(fs.readFileSync(dir+'/context.json')),password=fs.readFileSync(dir+'/password','utf8'),key=fs.readFileSync(dir+'/credential','utf8'),clients=[];for(const name of ['e2e-admin','e2e-approver','e2e-security']){const c=new LocalClient('http://127.0.0.1:5092');await c.login(name,password);clients.push(c);}const[admin,approver,security]=clients,checks=[];
+const context=JSON.parse(fs.readFileSync(dir+'/context.json')),password=fs.readFileSync(dir+'/password','utf8'),key=fs.readFileSync(dir+'/credential','utf8'),clients=[];for(const name of ['e2e-admin','e2e-approver','e2e-security']){const c=new LocalClient('http://127.0.0.1:5092');await c.login(name,context.passwordFiles?.[name]?fs.readFileSync(context.passwordFiles[name].replace('/workspace/'+process.env.WEBAPI_E2E_RELATIVE_DIR,dir),'utf8'):password);clients.push(c);}const[admin,approver,security]=clients,checks=[];
 const compose=(...args)=>execFileSync('docker',['compose','-f','deploy/compose.e2e.yml',...args],{env:process.env,encoding:'utf8',stdio:['pipe','pipe','pipe']});
 const sql=text=>compose('exec','-T','postgres','psql','-U','webapi','-d','webapi','-v','ON_ERROR_STOP=1','-c',text);
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));

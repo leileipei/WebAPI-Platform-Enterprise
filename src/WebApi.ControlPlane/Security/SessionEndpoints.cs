@@ -74,9 +74,25 @@ public static class SessionEndpoints
             {
                 await WriteOutsideAuthentication(ctx,new("auth.login.failed",null,ctx.Connection.RemoteIpAddress,ctx.TraceIdentifier,identity.AuditAccount,"invalid_credentials"),ct);throw;
             }
-            await issuer.IssueAsync(ctx,user.Id,user.SecurityStamp,security.SessionTtlMinutes,null,ct);
+            if(user.MustChangePassword)await issuer.IssueRestrictedAsync(ctx,user.Id,user.SecurityStamp,security.SessionTtlMinutes,ct);
+            else await issuer.IssueAsync(ctx,user.Id,user.SecurityStamp,security.SessionTtlMinutes,null,ct);
             return Results.Ok(await accounts.IdentityAsync(user.Id,ct));
         }).AllowAnonymous();
+        group.MapPost("/change-password",async(HttpContext ctx,PasswordLifecycleService lifecycle,SystemSettingsReader settings,ILoginRateStore rates,LoginKeyHasher keys,PlatformSessionIssuer issuer,CommandRequestContext command,CancellationToken ct)=>{
+            ctx.Response.Headers.CacheControl="no-store";PasswordRequestReader.RequireCommandKey(command.IdempotencyKey);
+            var request=await PasswordRequestReader.ReadAsync<ChangePasswordRequest>(ctx,32*1024,ct);
+            var security=await settings.SecurityAsync(ct);var identity=keys.PasswordChangeKeys(ctx.Connection.RemoteIpAddress,ctx.Actor().UserId);
+            var decision=await rates.TryAcquireAsync(new(identity,new(security.LoginIpMaxAttempts,security.LoginIpWindowSeconds,security.LoginAccountMaxAttempts,security.LoginAccountWindowSeconds)),ct);
+            if(decision.Kind==LoginRateDecisionKind.Unavailable)throw new ApiException(503,"login_protection_unavailable","密码保护暂不可用，请稍后重试。");
+            if(decision.Kind==LoginRateDecisionKind.Limited)
+            {
+                ctx.Response.Headers.RetryAfter=decision.RetryAfterSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                throw new ApiException(429,"password_change_rate_limited","改密尝试过于频繁，请稍后重试。");
+            }
+            var grant=await lifecycle.ChangeAsync(ctx.Actor(),ctx.User.FindFirstValue("security_stamp")??"",request,ct);
+            await ctx.SignOutAsync();await issuer.IssueAsync(ctx,grant.UserId,grant.SecurityStamp,security.SessionTtlMinutes,null,ct);
+            return Results.Ok(grant.Identity);
+        }).RequireAuthorization();
         group.MapPost("/logout",async (HttpContext ctx,CancellationToken ct)=>{
             var user=ctx.Actor().UserId;await ctx.SignOutAsync();ctx.Response.Headers.CacheControl="no-store";
             try{await WriteOutsideAuthentication(ctx,new("auth.logout",user,ctx.Connection.RemoteIpAddress,ctx.TraceIdentifier,null,"logged_out"),ct);}

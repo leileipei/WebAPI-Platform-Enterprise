@@ -1,0 +1,15 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "ownerId": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "sourceManifestSha256": "185b0f08715a9c03b097ab7c59e3c63c16c4498339cbc7197a29cb6c2894f250",
+  "archiveSha256": "3e35c4c93811ba342d21e848b7b83952b1bfeb311d26aa584d7607d7637ec7e3",
+  "passed": 10,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "logSha256": "dfbda2436cac0ec13843ba39dc62aa393e85fefbfc29c7982342260c053b2fc0",
+  "workspace": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/account-credential-closeout/.superpowers/sdd/2026-10-15-account-credential-closeout/fixed-ba9031c/sdk-live/sdk-fixed-AysAyc",
+  "log": "sdk.log"
+}

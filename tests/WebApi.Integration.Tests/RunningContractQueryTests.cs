@@ -60,7 +60,7 @@ public sealed class RunningContractQueryTests
     {
         await using var s=new DeploymentScenario();await Configure(s,new Capture());var releaseId=await s.PublishAsync();await using var db=s.Api.Context();
         var bytes=(await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==releaseId)).CandidateBytes!.ToArray();
-        var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261010091247_GatewayQueryIndexes");var before=await MigrationProbe.InspectAsync(db);await migrator.MigrateAsync();
+        var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261010091247_GatewayQueryIndexes");var before=await MigrationProbe.InspectAsync(db);await migrator.MigrateAsync("20261012004548_ReleaseFrozenContracts");
         Assert.True(await db.Database.SqlQueryRaw<bool>("SELECT to_regclass('public.release_frozen_contracts') IS NOT NULL AS \"Value\"").SingleAsync());
         Assert.Equal(1,await db.Database.SqlQueryRaw<int>("SELECT count(*)::int AS \"Value\" FROM release_frozen_contracts").SingleAsync());
         Assert.Equal(bytes,(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==releaseId)).CandidateBytes);

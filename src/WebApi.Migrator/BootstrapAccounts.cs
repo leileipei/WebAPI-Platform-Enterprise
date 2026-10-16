@@ -26,7 +26,7 @@ public static class BootstrapAccounts
             if(permission is null) {permission=new Permission {Code=code,Module=code.Split('.')[0],Name=code,Description="首期平台管理权限"};db.Add(permission);}
             if(!await db.Set<RolePermission>().AnyAsync(x=>x.RoleId==role.Id && x.PermissionId==permission.Id,ct)) db.Add(new RolePermission {RoleId=role.Id,PermissionId=permission.Id});
         }
-        var user=new UserRecord {Username=username,DisplayName="平台管理员",SecurityStamp=Guid.NewGuid().ToString("N")};
+        var user=new UserRecord {Username=username,DisplayName="平台管理员",MustChangePassword=true,SecurityStamp=Guid.NewGuid().ToString("N")};
         user.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(user,password);db.Add(user);db.Add(new UserRole {UserId=user.Id,RoleId=role.Id});
         db.Add(new AuditLog {UserId=user.Id,Action="platform.bootstrap",ResourceType="user",ResourceId=user.Id.ToString(),TraceId=Guid.NewGuid().ToString("N")});
         await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);

@@ -1,0 +1,1105 @@
+{
+  "schemaVersion": 1,
+  "candidateBaseRevision": "a30ce5bf8291539eac2640ea02839b403ccd68c8",
+  "originalDocumentSha256": "643be90df86238c03711d21b48cc92442edbb979f428d3fa0827ef4c9e199fca",
+  "sourceRevision": null,
+  "pages": [
+    {
+      "page": 1,
+      "name": "登录页",
+      "route": "/",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Login.tsx",
+          "sha256": "2c884eb8f956452b92bb05a03a864f9c4605e3cd0d6f7281cca69ee1f4cbe975"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Security/PasswordLifecycleService.cs",
+          "sha256": "74eea80ec9c3cbb2013640e38b07b1aef59aed31449816508d6a3c2a54ff2410"
+        },
+        {
+          "path": "console/src/pages/ChangePassword.tsx",
+          "sha256": "fba9bf2f8f31c75273e941c1cced7999b497774ff0c54a227457d1ba81476ced"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Security/PasswordLifecycleGuard.cs",
+          "sha256": "9a2ed49351d762d5036c2545071443f49c331ba45bcda67318f07c0fa99533f0"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P01-C05",
+          "status": "缺失",
+          "reason": "登录页当前展示品牌文案，未展示原文要求的具体版本号和环境标识。"
+        },
+        {
+          "id": "P01-S03",
+          "status": "部分",
+          "reason": "已实现登录窗口限速与错误提示；原文“账号锁定”与临时限速、停用账号的关系尚需按真实运行行为复核。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 2,
+      "name": "企业工作台",
+      "route": "/dashboard",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Workbench.tsx",
+          "sha256": "3b7100ddb0196c5b4136c7c5f32370f9b9658e39d9508425fe67a5fcea518765"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Observability/ObservationQueryService.cs",
+          "sha256": "a337c4af5489b6f7ba372c1db6b34ad6de70745de12b221703dbb86491b38d23"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 3,
+      "name": "组织管理",
+      "route": "/organizations",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Governance.tsx",
+          "sha256": "81a492ecc48481d3449df0350c903c99fc516ad820bad5e98c681fab75d391d8"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "sha256": "8d52d4a3b1cde7b5a4e6fe388f490fab707bb9e942d9a757a51fba640d935c46"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P03-C02",
+          "status": "部分",
+          "reason": "新建/编辑采用既有Editor弹窗，尚未采用原文指定的Drawer表现；资源保存功能另行验收。"
+        },
+        {
+          "id": "P03-C04",
+          "status": "部分",
+          "reason": "角色/Scope管理可维护管理员权限，组织页尚无单独管理员设置控件。"
+        },
+        {
+          "id": "P03-A04",
+          "status": "部分",
+          "reason": "当前为组织表格和通用编辑器，尚无独立组织详情导航闭环。"
+        },
+        {
+          "id": "P03-S03",
+          "status": "部分",
+          "reason": "平台最后管理员保护不直接证明组织级唯一管理员保护；保留组织范围的专门验收缺口。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 4,
+      "name": "项目管理",
+      "route": "/projects",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Governance.tsx",
+          "sha256": "81a492ecc48481d3449df0350c903c99fc516ad820bad5e98c681fab75d391d8"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "sha256": "8d52d4a3b1cde7b5a4e6fe388f490fab707bb9e942d9a757a51fba640d935c46"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P04-C02",
+          "status": "部分",
+          "reason": "Project实体含OwnerUserId，当前项目通用编辑器/表格尚未提供完整Owner配置与展示。"
+        },
+        {
+          "id": "P04-C03",
+          "status": "缺失",
+          "reason": "当前项目表未展示环境数量汇总。"
+        },
+        {
+          "id": "P04-C04",
+          "status": "缺失",
+          "reason": "当前项目表未展示API数量汇总。"
+        },
+        {
+          "id": "P04-C05",
+          "status": "缺失",
+          "reason": "当前项目表未展示应用数量汇总。"
+        },
+        {
+          "id": "P04-A03",
+          "status": "部分",
+          "reason": "Project实体已有Owner字段，但项目页面未提供设置Owner操作。"
+        },
+        {
+          "id": "P04-A04",
+          "status": "部分",
+          "reason": "全局Scope可选择项目，项目表尚无独立“进入项目”的行操作。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 5,
+      "name": "环境管理",
+      "route": "/environments",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Governance.tsx",
+          "sha256": "81a492ecc48481d3449df0350c903c99fc516ad820bad5e98c681fab75d391d8"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "sha256": "8d52d4a3b1cde7b5a4e6fe388f490fab707bb9e942d9a757a51fba640d935c46"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P05-C04",
+          "status": "部分",
+          "reason": "节点环境绑定由已有独立运行配置/注册完成，环境页面尚无完整Gateway绑定编辑控件。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 6,
+      "name": "API 目录",
+      "route": "/apis",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/ApiCatalog.tsx",
+          "sha256": "6c83a10350f286e20435a5fedb977f62f9ce0732cfb78daf8024729fd8b56c95"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Catalog/CatalogService.cs",
+          "sha256": "7e276b1a31f322218e790fb3914e9d1e490759ca72517921603a22bdae0aacf2"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P06-C01",
+          "status": "部分",
+          "reason": "目录提供当前页名称/编码搜索，尚未达到原文高级搜索的多字段组合范围。"
+        },
+        {
+          "id": "P06-C03",
+          "status": "缺失",
+          "reason": "当前API目录表未展示Method Badge。"
+        },
+        {
+          "id": "P06-C04",
+          "status": "部分",
+          "reason": "版本可在API详情维护，目录行尚未直接展示Version。"
+        },
+        {
+          "id": "P06-C06",
+          "status": "部分",
+          "reason": "运行监控提供健康相关信息，目录表尚无逐API健康度展示。"
+        },
+        {
+          "id": "P06-C07",
+          "status": "部分",
+          "reason": "API编辑器有负责人字段，目录表尚未展示Owner列。"
+        },
+        {
+          "id": "P06-C08",
+          "status": "缺失",
+          "reason": "当前API目录表未展示标签控件。"
+        },
+        {
+          "id": "P06-A05",
+          "status": "缺失",
+          "reason": "当前目录页未提供批量导出操作；单版本OpenAPI下载不等同批量导出。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 7,
+      "name": "新建/编辑 API 向导",
+      "route": "/apis",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/ApiWizard.tsx",
+          "sha256": "30b0048f68c086e90550609aa713a7a4446d087167ff03971a928d173e986c0a"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Catalog/CatalogService.cs",
+          "sha256": "7e276b1a31f322218e790fb3914e9d1e490759ca72517921603a22bdae0aacf2"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P07-C04",
+          "status": "待复验",
+          "reason": "现有Cluster选择器与本项对应；第五步集成新建Cluster/Destination/测试转发的新增提议已另行暂缓，不能据此延期原选择器要求。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 8,
+      "name": "OpenAPI 导入",
+      "route": "/imports",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/OpenApiImport.tsx",
+          "sha256": "973086653105583611ad047e9750b506fd2b6f5cca87e9a76b2b250c0938d25c"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Catalog/ImportPreviewService.cs",
+          "sha256": "e38bff49a0d059a61a4a560f92b01da804e1c6ad43718acd4f45649a48848427"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 9,
+      "name": "API 详情总览",
+      "route": "/apis",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/ApiDetail.tsx",
+          "sha256": "7cdddabcfdd6896846434921c820f5eb7731cf15a58561c1b1131ddf1e491140"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Catalog/CatalogService.cs",
+          "sha256": "7e276b1a31f322218e790fb3914e9d1e490759ca72517921603a22bdae0aacf2"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 10,
+      "name": "API 版本管理",
+      "route": "/apis",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/ApiDetail.tsx",
+          "sha256": "7cdddabcfdd6896846434921c820f5eb7731cf15a58561c1b1131ddf1e491140"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Catalog/CatalogService.cs",
+          "sha256": "7e276b1a31f322218e790fb3914e9d1e490759ca72517921603a22bdae0aacf2"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P10-C01",
+          "status": "部分",
+          "reason": "当前以版本列表维护版本，不是原文指定的时间线表现。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 11,
+      "name": "版本差异/Breaking Change",
+      "route": "/apis",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/VersionCompare.tsx",
+          "sha256": "ed3347bf34e4f14b4341da4a27b5d4f13d5b3be42dc1e0e0bffce641676fa91e"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Comparisons/VersionComparisonService.cs",
+          "sha256": "71c3aa6df43e37437ec9649603716f5dc50ba8837bd7d32396feeff897d337c9"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 12,
+      "name": "Route 管理",
+      "route": "/routes",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Routes.tsx",
+          "sha256": "d021586c0ac31ab3af8d8cb81f125f85e40ac9c53c9d591485f8e9d8212e95b3"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Routing/RouteService.cs",
+          "sha256": "20159b9642aa60c4ab6fd0c5974e3845a380235450e386e0e646c81676a895e0"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P12-A04",
+          "status": "部分",
+          "reason": "已有审批驱动的跨环境Promotion能力，Route列表尚无独立复制到环境按钮。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 13,
+      "name": "Schema 与参数",
+      "route": "/apis",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/SchemaEditor.tsx",
+          "sha256": "221f9afa6da775af09f2438d2e64bd2ef8ec3bd4b7787441a6329896ce0221b3"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Catalog/SchemaValidationService.cs",
+          "sha256": "4a7976a8435fe371a93a2ff7ab2958922d862bcd90748f141f96ca43515bbff7"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 14,
+      "name": "Upstream Cluster 列表",
+      "route": "/clusters",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Clusters.tsx",
+          "sha256": "fc7c0ef56b8745b220341f1ce7f3be9c42cbaf5bbd3ac1289860a0960c59f2e2"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Routing/ClusterService.cs",
+          "sha256": "f6a24edd5594065021d05fd6f68a92dfba52c3a9ce44288dd09f02464f8f30b2"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P14-C03",
+          "status": "部分",
+          "reason": "运行监控可观察Destination健康；Cluster列表当前主要展示健康检查开关，缺少健康数量汇总。"
+        },
+        {
+          "id": "P14-C04",
+          "status": "缺失",
+          "reason": "当前Cluster列表未展示Route引用数。"
+        },
+        {
+          "id": "P14-A04",
+          "status": "缺失",
+          "reason": "当前Cluster列表无复制行操作。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 15,
+      "name": "Cluster 详情与 Destination",
+      "route": "/clusters",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Clusters.tsx",
+          "sha256": "fc7c0ef56b8745b220341f1ce7f3be9c42cbaf5bbd3ac1289860a0960c59f2e2"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Routing/ClusterService.cs",
+          "sha256": "f6a24edd5594065021d05fd6f68a92dfba52c3a9ce44288dd09f02464f8f30b2"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P15-C04",
+          "status": "部分",
+          "reason": "已有主动健康配置和运行探测机制；当前Destination页面没有完整Active/Passive健康状态组合展示。"
+        },
+        {
+          "id": "P15-C05",
+          "status": "缺失",
+          "reason": "当前Cluster详情未提供引用Route列表。"
+        },
+        {
+          "id": "P15-A03",
+          "status": "缺失",
+          "reason": "当前Destination页面没有“立即探测”操作；周期性探测不等同手工探测。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 16,
+      "name": "策略中心",
+      "route": "/policies",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Policies.tsx",
+          "sha256": "e39be246ca3102890475cc8d7bb126f291f57dd3dc969b0bdecd3e98fb04ee73"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Policies/PolicyService.cs",
+          "sha256": "10aff5391eedc84e1e05a4fdf4d11b0d071bc6cfcbb8c30bc441c87ea810d196"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 17,
+      "name": "策略编辑器",
+      "route": "/policies",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/PolicyEditor.tsx",
+          "sha256": "117b5ff4085002fd2ecb657ba41a77b4cd871af9f93c254097b9a3f8692e3b0c"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Policies/PolicyService.cs",
+          "sha256": "10aff5391eedc84e1e05a4fdf4d11b0d071bc6cfcbb8c30bc441c87ea810d196"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 18,
+      "name": "应用列表",
+      "route": "/applications",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Applications.tsx",
+          "sha256": "1bad7ccc48ab60240853a6d5c2377499df26e9ddaf43c150be7fa2353f91d3cf"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Applications/ApplicationOverviewQuery.cs",
+          "sha256": "33d23a7f871ecbe2529707e69fbcaf399c4477f84158473cc5b61876704cf9fe"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Applications/ApplicationService.cs",
+          "sha256": "317f41da006df8e4e17dac97354dbca44b40548bb76c1bbe4a9a63e4954d6c04"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P18-S01",
+          "status": "部分",
+          "reason": "原文要求停用立即影响数据面，与已批准的不可变发布模型冲突。当前停用保存为工作配置、经审批发布生效；本包不改为管理库实时鉴权，也不将原文字面要求标为关闭。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 19,
+      "name": "应用详情",
+      "route": "/applications",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Applications.tsx",
+          "sha256": "1bad7ccc48ab60240853a6d5c2377499df26e9ddaf43c150be7fa2353f91d3cf"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Applications/ApplicationOverviewQuery.cs",
+          "sha256": "33d23a7f871ecbe2529707e69fbcaf399c4477f84158473cc5b61876704cf9fe"
+        },
+        {
+          "path": "console/src/applications/ApplicationOverview.tsx",
+          "sha256": "0b303a26e6cc66e5d697968c31dd77314c69cee9798fd7a1c4a4d79d56bdbe36"
+        },
+        {
+          "path": "console/src/applications/ApplicationMetrics.tsx",
+          "sha256": "40158e633ca3c074b82aea19a34638dac8141bd95b79b2dc1719226044b93fe7"
+        },
+        {
+          "path": "console/src/applications/ApplicationAudit.tsx",
+          "sha256": "e40587e14100e77560407658f6aaf84ef9948f1063347989763ac2ce8c87d282"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Applications/ApplicationAuditQuery.cs",
+          "sha256": "1a7758554173781bcc5bc549dd928a59ea553b5cb4665e352e2b9af6f4b44ea8"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 20,
+      "name": "凭证管理",
+      "route": "/applications",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Credentials.tsx",
+          "sha256": "207dbc73a72db3dfb5f7146d6a3ba3bd1bbba6a027b8486c699d6cdb224c7033"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/CredentialUsage/CredentialUsageQuery.cs",
+          "sha256": "1ad11fa51f3be2a3816ef4311bdc077211147ff63719159cf3d0ad34ecd664d3"
+        },
+        {
+          "path": "console/src/applications/CredentialRotationWizard.tsx",
+          "sha256": "7fe5c2ba41a0c7db7e6172c25539b03200ce7b8fcbfba6d4f568be75d049192f"
+        },
+        {
+          "path": "console/src/applications/CredentialImpactDialog.tsx",
+          "sha256": "adf2d27ad2d7756a33a0a7481a9fbac68f291980ae810ffc7e0f589fb96f1fe2"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Applications/CredentialImpactService.cs",
+          "sha256": "36d95a9432823a55818c49406b06dc87c27486e0d75be71f36932da5b3735920"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Applications/CredentialRolloutQuery.cs",
+          "sha256": "645491661b98b3ad80dafbb3f110d58d927f0903071b36b541ab9aa16e85985b"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 21,
+      "name": "API 授权矩阵",
+      "route": "/applications",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/ApplicationPermissions.tsx",
+          "sha256": "c038bb8cf7dc10512ec5457752a544aae1c878354550c9b7826080c50d35d5bf"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Applications/ApplicationService.cs",
+          "sha256": "317f41da006df8e4e17dac97354dbca44b40548bb76c1bbe4a9a63e4954d6c04"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P21-C01",
+          "status": "部分",
+          "reason": "当前授权以列表和单条编辑器呈现，尚非完整环境矩阵交互。"
+        },
+        {
+          "id": "P21-C02",
+          "status": "部分",
+          "reason": "列表含环境ID字段，尚非按环境展开的矩阵列。"
+        },
+        {
+          "id": "P21-C04",
+          "status": "缺失",
+          "reason": "当前API授权页未提供批量选择控件。"
+        },
+        {
+          "id": "P21-C05",
+          "status": "部分",
+          "reason": "凭证变更已有本包影响预览；授权矩阵自身尚无同等完整影响预览，不能以凭证预览代替。"
+        },
+        {
+          "id": "P21-A02",
+          "status": "部分",
+          "reason": "后端保留撤权服务，当前授权表行操作仅提供编辑，需补页面撤权闭环。"
+        },
+        {
+          "id": "P21-S01",
+          "status": "部分",
+          "reason": "生产发布已有审批；授权工作配置页面尚缺专门的PROD权限风险确认。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 22,
+      "name": "发布中心",
+      "route": "/releases",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Releases.tsx",
+          "sha256": "f83f4551a0192d680798188ffa5c92bfd7982becf31c6e434d1d245c3a361e9b"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Releases/ReleaseService.cs",
+          "sha256": "ddf3036cf43305dd95bdcd7f6b409ae55c9386b8f2d75eb45f7881b3bcddf2d7"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 23,
+      "name": "发布详情与审批",
+      "route": "/releases",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/ReleaseDetail.tsx",
+          "sha256": "48d09d695460b669c56b6b0555b984d1ceff7f4369802931a9a482306f25e83e"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Releases/ReleaseService.cs",
+          "sha256": "ddf3036cf43305dd95bdcd7f6b409ae55c9386b8f2d75eb45f7881b3bcddf2d7"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 24,
+      "name": "审批中心",
+      "route": "/approvals",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Approvals.tsx",
+          "sha256": "b3a0ff5707a9bc9556c80e08ed07276ecd440f166641b73e202565c396c01d11"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Releases/ApprovalInboxService.cs",
+          "sha256": "a072d88532c36818d445dd264292e803763f2878c5772f4a70f86b2919a6e024"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 25,
+      "name": "Config Snapshot",
+      "route": "/snapshots",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Snapshots.tsx",
+          "sha256": "47c0fc17e2b65be1dd3344b7034f6dc6efc53b749d27c5a71278c1c4bfc4f397"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "sha256": "6ba519afc6dd8a9c33789781946fcc5389571cb177e13f3868f01307df770afa"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P25-C03",
+          "status": "部分",
+          "reason": "已有快照与发布序列来源，当前列表未提供完整Release详情直接导航。"
+        },
+        {
+          "id": "P25-C04",
+          "status": "缺失",
+          "reason": "当前快照页面无独立Snapshot Diff控件；API版本差异不是快照差异。"
+        },
+        {
+          "id": "P25-A02",
+          "status": "缺失",
+          "reason": "当前快照页无两快照比较操作。"
+        },
+        {
+          "id": "P25-A03",
+          "status": "部分",
+          "reason": "回滚通过原发布中心完成，快照页面尚缺直接回滚入口。"
+        },
+        {
+          "id": "P25-S01",
+          "status": "部分",
+          "reason": "当前展示配置版本及最新部署状态；未将原文整组Snapshot状态逐一映射为已验收。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 26,
+      "name": "Gateway 节点",
+      "route": "/nodes",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/GatewayNodes.tsx",
+          "sha256": "2a14095e736e019e5267ea569fcfdc45a50db293c7dae5ff2c3f058b35758e9c"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "sha256": "6ba519afc6dd8a9c33789781946fcc5389571cb177e13f3868f01307df770afa"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P26-A02",
+          "status": "部分",
+          "reason": "节点自动拉取/应用配置，控制台提供刷新和身份管理；尚无单独手动Reload命令入口。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 27,
+      "name": "Gateway 节点详情",
+      "route": "/nodes",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/GatewayNodeDetail.tsx",
+          "sha256": "203d17cbed4d59d28e7985462ec13f7bc19e68894471d23b3011f3e66de801c7"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Gateway/GatewayReadService.cs",
+          "sha256": "6ba519afc6dd8a9c33789781946fcc5389571cb177e13f3868f01307df770afa"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P27-C01",
+          "status": "部分",
+          "reason": "节点详情和事件已有诊断信息，尚无完整CPU/内存等资源指标面板。"
+        },
+        {
+          "id": "P27-C02",
+          "status": "部分",
+          "reason": "服务端节点详情有配置事实；LKG文件状态与管理视图仍需专门运行证明，不能由JSON详情推定完整。"
+        },
+        {
+          "id": "P27-A01",
+          "status": "缺失",
+          "reason": "当前节点详情没有单独Retry操作。"
+        },
+        {
+          "id": "P27-A03",
+          "status": "缺失",
+          "reason": "当前节点详情没有诊断包下载操作。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 28,
+      "name": "监控总览",
+      "route": "/observability/metrics",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/MetricsOverview.tsx",
+          "sha256": "2f19351ed58e28e070f62715dcd79d093f26b1dd7b5d254ca58f5c7ac1d2988c"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Observability/ObservationQueryService.cs",
+          "sha256": "a337c4af5489b6f7ba372c1db6b34ad6de70745de12b221703dbb86491b38d23"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 29,
+      "name": "API 监控详情",
+      "route": "/observability/metrics",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/ApiMetrics.tsx",
+          "sha256": "68c49bd40b32aeea7b63dbb04a40b85176c613af0be2b3887098e92a62350fae"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Observability/ObservationQueryService.cs",
+          "sha256": "a337c4af5489b6f7ba372c1db6b34ad6de70745de12b221703dbb86491b38d23"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 30,
+      "name": "访问日志",
+      "route": "/observability/logs",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/AccessLogs.tsx",
+          "sha256": "c0026ea6bb1565aa2adda08c3577db48299a801b1a8fda9f1a9896eb73125ca0"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Observability/AccessLogQueryService.cs",
+          "sha256": "dd83e20f3ada7724253cfcf47384070fef136d0f71957e707036f10a7979ebda"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 31,
+      "name": "Trace 查询",
+      "route": "/observability/traces",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Traces.tsx",
+          "sha256": "8270395d66a597f1b65e006167966c488aeecd05e45cd67977a1175a2c8cadcb"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Observability/TraceQueryService.cs",
+          "sha256": "17156fd940c2839d33802cbd304a830f553ba8aaae405e13e4852cb053accaa2"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 32,
+      "name": "告警中心",
+      "route": "/observability/alerts",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/AlertCenter.tsx",
+          "sha256": "14cad02e914f6f1f9b38534d427f10bf8da9452d99dcf2a2a0dc1af28db41f2c"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Alerts/AlertEventService.cs",
+          "sha256": "9ef64f55894ba83583867663ecc6a1c5a8b700b5b7854d48bad43ea7887b23c5"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 33,
+      "name": "告警规则",
+      "route": "/observability/alert-rules",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/AlertRules.tsx",
+          "sha256": "1ff4d9c56533ba9adb8391399c6906481d2232128e4c06ae22b5c74976598a23"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Alerts/AlertRuleService.cs",
+          "sha256": "4f585bd63aa0fae81db8a55077201e654ae674a72603a8fb4922b755d656f782"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 34,
+      "name": "用户管理",
+      "route": "/users",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Governance.tsx",
+          "sha256": "81a492ecc48481d3449df0350c903c99fc516ad820bad5e98c681fab75d391d8"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Security/AccountService.cs",
+          "sha256": "cc824482b5c7970fec96ec21a80ccfc445c44abce4c8c998c8de8ea7e0cd9374"
+        },
+        {
+          "path": "console/src/auth/PasswordResetDialog.tsx",
+          "sha256": "cd7054151f339902166f2eeccb5f1d956c3ac4385219b6710c35185e28a134c6"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Security/PasswordLifecycleService.cs",
+          "sha256": "74eea80ec9c3cbb2013640e38b07b1aef59aed31449816508d6a3c2a54ff2410"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 35,
+      "name": "角色管理",
+      "route": "/roles",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Governance.tsx",
+          "sha256": "81a492ecc48481d3449df0350c903c99fc516ad820bad5e98c681fab75d391d8"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "sha256": "8d52d4a3b1cde7b5a4e6fe388f490fab707bb9e942d9a757a51fba640d935c46"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P35-C03",
+          "status": "部分",
+          "reason": "可查看权限矩阵，角色列表当前未直接展示权限数。"
+        },
+        {
+          "id": "P35-C04",
+          "status": "缺失",
+          "reason": "当前角色表未展示用户数。"
+        },
+        {
+          "id": "P35-A02",
+          "status": "缺失",
+          "reason": "当前角色页面没有复制角色操作。"
+        },
+        {
+          "id": "P35-A04",
+          "status": "部分",
+          "reason": "后端有自定义角色删除及引用保护，页面尚无完整删除入口。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 36,
+      "name": "权限矩阵",
+      "route": "/roles",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Governance.tsx",
+          "sha256": "81a492ecc48481d3449df0350c903c99fc516ad820bad5e98c681fab75d391d8"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "sha256": "8d52d4a3b1cde7b5a4e6fe388f490fab707bb9e942d9a757a51fba640d935c46"
+        },
+        {
+          "path": "console/src/governance/PermissionMatrix.tsx",
+          "sha256": "d13f30d54f466113b99a72053deccdb96d4fbd17917be2fd3ff4e60f0ddafcb3"
+        }
+      ],
+      "findings": [
+        {
+          "id": "P36-C03",
+          "status": "部分",
+          "reason": "矩阵提供依赖权限的通用说明，不自动增加依赖；尚缺逐项依赖关系提示。"
+        },
+        {
+          "id": "P36-S01",
+          "status": "部分",
+          "reason": "已有管理/发布权限通用风险提示，尚缺逐危险权限的细化提示验收。"
+        }
+      ],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 37,
+      "name": "数据范围",
+      "route": "/scopes",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Governance.tsx",
+          "sha256": "81a492ecc48481d3449df0350c903c99fc516ad820bad5e98c681fab75d391d8"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+          "sha256": "8d52d4a3b1cde7b5a4e6fe388f490fab707bb9e942d9a757a51fba640d935c46"
+        },
+        {
+          "path": "console/src/governance/ScopeEditor.tsx",
+          "sha256": "6f64a468c99b9eb350527dbd091e6353cf313c5ac87d115d4218bdbe828c3f38"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 38,
+      "name": "审计日志",
+      "route": "/audit",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/Governance.tsx",
+          "sha256": "81a492ecc48481d3449df0350c903c99fc516ad820bad5e98c681fab75d391d8"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Governance/AuditAccessQuery.cs",
+          "sha256": "223aa73dde337a97659a78aa21de53d4b41c64222d11337f249eda235467f6c8"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 39,
+      "name": "SSO / OIDC 配置",
+      "route": "/settings/sso",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/SsoProviders.tsx",
+          "sha256": "18715a381f46cac13b2449f17f49c440da17e0a8fffa43b79211fb82b70971a5"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Sso/SsoProviderService.cs",
+          "sha256": "6a30584f0505a841e3caca128541d2f1c1bb3fee6c93e7eb61f4a7b2671d7460"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    },
+    {
+      "page": 40,
+      "name": "系统设置",
+      "route": "/settings/system",
+      "reviewKind": "source-inspection-uncommitted-candidate",
+      "implementationPaths": [
+        {
+          "path": "console/src/pages/SystemSettings.tsx",
+          "sha256": "e7f1aebfe56e18be27906c7b4fdc73b5f4325139f37be6d9cf49bf25eedb5880"
+        },
+        {
+          "path": "src/WebApi.Infrastructure/Settings/SystemSettingsService.cs",
+          "sha256": "5ab2e30474bb7f647cd3028d1fb50fc1ff7acc9f20a55532e109ef4d94c61125"
+        }
+      ],
+      "findings": [],
+      "runtimeStatus": "not_run_for_fixed_candidate",
+      "ui1440Status": "not_run_for_fixed_candidate"
+    }
+  ]
+}

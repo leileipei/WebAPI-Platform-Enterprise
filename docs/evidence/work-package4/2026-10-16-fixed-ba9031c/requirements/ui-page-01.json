@@ -1,0 +1,36 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "runtimeOwner": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "verifiedAt": "2026-10-16T02:18:47.533484Z",
+  "kind": "ui",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "requirementIds": [
+    "P01-C01",
+    "P01-C03",
+    "P01-A01",
+    "P01-A03",
+    "P01-S01",
+    "P01-S05",
+    "P01-P01"
+  ],
+  "screenshots": [
+    {
+      "path": "2026-10-16-fixed-ba9031c/requirements/ui/handoff-first-change.png",
+      "sha256": "7c10fe5502906b30b71429a72dd6ad9a58f0f562619c33713555c3501a9511f3"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/requirements/ui/requirements-anonymous-login.png",
+      "sha256": "d2f67d176fb7fecf4cbf1c8fa8352e6fcf9e1bd49018a722cbd8d503675b7802"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/requirements/ui/requirements-normal-local-login.png",
+      "sha256": "c2453b34c341bacabb34ef703712ec0e5f5c930cd8d641be1b42617089ffec20"
+    }
+  ],
+  "boundary": "Actual CUA screenshots. Supplementary Secret-close screenshot is not an additional1440px action; all14 action PNG sizes independently gated."
+}

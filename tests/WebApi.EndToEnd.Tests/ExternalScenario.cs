@@ -6,19 +6,39 @@ namespace WebApi.EndToEnd.Tests;
 public sealed class ExternalScenario : IAsyncDisposable
 {
     private readonly HttpClient api=new(new HttpClientHandler{CookieContainer=new CookieContainer(),AllowAutoRedirect=false});private readonly List<HttpClient> reviewers=[];private HttpClient[] gateways=[];private JsonElement context;private string credential="";private int version;
+    public ExternalScenario(){}
+    internal ExternalScenario(HttpClient apiClient,JsonElement fixtureContext,IEnumerable<HttpClient> reviewClients)
+    {api.Dispose();api=apiClient;context=fixtureContext.Clone();reviewers.AddRange(reviewClients);}
     public static async Task<ExternalScenario> ConnectAsync()
     {
         var file=System.Environment.GetEnvironmentVariable("WEBAPI_E2E_CONTEXT_FILE");Assert.True(file is not null&&File.Exists(file),"E2E requires dedicated Compose and context; run scripts/e2e.sh.");var s=new ExternalScenario{context=JsonDocument.Parse(await File.ReadAllTextAsync(file!)).RootElement.Clone()};s.api.BaseAddress=new Uri("http://control-plane:8080");s.gateways=[new(){BaseAddress=new Uri("http://gateway-a:8080")},new(){BaseAddress=new Uri("http://gateway-b:8080")}];await s.LoginAsync(s.api,"e2e-admin");foreach(var username in new[]{"e2e-approver","e2e-security"}){var client=new HttpClient(new HttpClientHandler{CookieContainer=new CookieContainer()}){BaseAddress=s.api.BaseAddress};await s.LoginAsync(client,username);s.reviewers.Add(client);}var versions=await s.GetAsync($"/apis/{s.Id("apiId")}/versions");s.version=versions.EnumerateArray().Select(v=>int.TryParse(v.GetProperty("version").GetString()!.Split('.')[0],out var n)?n:0).DefaultIfEmpty().Max();s.credential=await File.ReadAllTextAsync(s.context.GetProperty("credentialFile").GetString()!);return s;
     }
-    public async Task LoginAsync(HttpClient client,string username)=>await WriteAsync(client,"/auth/login",new{username,password=await File.ReadAllTextAsync(context.GetProperty("passwordFile").GetString()!)});
+    public async Task LoginAsync(HttpClient client,string username)
+    {
+        var file=context.TryGetProperty("passwordFiles",out var files)&&files.TryGetProperty(username,out var perUser)?perUser.GetString()!:context.GetProperty("passwordFile").GetString()!;
+        var identity=await WriteAsync(client,"/auth/login",new{username,password=await File.ReadAllTextAsync(file)});
+        Assert.False(identity.TryGetProperty("mustChangePassword",out var required)&&required.GetBoolean(),"Dedicated fixture must explicitly complete initial password change before SDK business scenarios.");
+    }
     public static async Task<JsonElement> WriteAsync(HttpClient client,string path,object? body=null,string? etag=null,string method="POST")
     {using var csrf=await client.GetAsync("/api/v1/auth/csrf");csrf.EnsureSuccessStatusCode();var token=(await csrf.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString();using var request=new HttpRequestMessage(new(method),"/api/v1"+path){Content=body is null?null:JsonContent.Create(body)};request.Headers.Add("X-CSRF-Token",token);request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("N"));if(etag is not null)request.Headers.Add("If-Match",etag);using var response=await client.SendAsync(request);Assert.True(response.IsSuccessStatusCode,$"{path} failed HTTP {(int)response.StatusCode}");return response.StatusCode==HttpStatusCode.NoContent?default:await response.Content.ReadFromJsonAsync<JsonElement>();}
     private string Id(string name)=>context.GetProperty(name).GetString()!;
     public async Task<JsonElement> GetAsync(string path){using var r=await api.GetAsync("/api/v1"+path);r.EnsureSuccessStatusCode();return await r.Content.ReadFromJsonAsync<JsonElement>();}
     public async Task<JsonElement> PublishAsync(string backend,string routePath="/orders")
     {
-        version++;var v=await WriteAsync(api,$"/apis/{Id("apiId")}/versions",new{version=$"{version}.0.0"});var cluster=await GetAsync($"/clusters/{Id("clusterId")}");var dst=cluster.GetProperty("destinations")[0];await WriteAsync(api,$"/destinations/{dst.GetProperty("id").GetString()}",new{name="test-backend",address=$"http://backend-{backend.ToLowerInvariant()}:8080/",weight=1,enabled=true},$"\"{dst.GetProperty("revision").GetInt64()}\"","PUT");var routes=await GetAsync($"/environments/{Id("environmentId")}/routes");var existing=routes.GetProperty("items").EnumerateArray().FirstOrDefault();var routeBody=new{apiVersionId=v.GetProperty("id").GetString(),routeName="Orders",path=routePath,methods=new[]{"GET"},clusterId=Id("clusterId"),priority=100,enabled=true,timeoutMs=30000};if(existing.ValueKind==JsonValueKind.Undefined)await WriteAsync(api,$"/environments/{Id("environmentId")}/routes",routeBody);else await WriteAsync(api,$"/routes/{existing.GetProperty("id").GetString()}",routeBody,$"\"{existing.GetProperty("revision").GetInt64()}\"","PUT");
-        var env=await GetAsync($"/environments/{Id("environmentId")}");var current=env.GetProperty("desiredConfigVersion");var r=await WriteAsync(api,$"/environments/{Id("environmentId")}/releases",new{baseConfigVersion=current.ValueKind==JsonValueKind.Null?0:current.GetInt64(),versionIds=new[]{v.GetProperty("id").GetString()},resourceRevisions=new[]{new{type="version",id=v.GetProperty("id").GetString(),revision=v.GetProperty("revision").GetInt64()}}});var id=r.GetProperty("id").GetString()!;await ApproveAndPublishAsync(id);return await WaitAsync(id);
+        version++;var v=await WriteAsync(api,$"/apis/{Id("apiId")}/versions",new{version=$"{version}.0.0"});var cluster=await GetAsync($"/clusters/{Id("clusterId")}");var dst=cluster.GetProperty("destinations")[0];await WriteAsync(api,$"/destinations/{dst.GetProperty("id").GetString()}",new{name="test-backend",address=$"http://backend-{backend.ToLowerInvariant()}:8080/",weight=1,enabled=true},$"\"{dst.GetProperty("revision").GetInt64()}\"","PUT");var existing=await OwnedOrdersRouteAsync();var routeBody=new{apiVersionId=v.GetProperty("id").GetString(),routeName="Orders",path=routePath,methods=new[]{"GET"},clusterId=Id("clusterId"),priority=100,enabled=true,timeoutMs=30000};if(existing.ValueKind==JsonValueKind.Undefined)await WriteAsync(api,$"/environments/{Id("environmentId")}/routes",routeBody);else await WriteAsync(api,$"/routes/{existing.GetProperty("id").GetString()}",routeBody,$"\"{existing.GetProperty("revision").GetInt64()}\"","PUT");
+        var env=await GetAsync($"/environments/{Id("environmentId")}");var current=env.GetProperty("desiredConfigVersion");var baseline=current.ValueKind==JsonValueKind.Null?0:current.GetInt64();var versionIds=new[]{v.GetProperty("id").GetString()};var preview=await WriteAsync(api,$"/environments/{Id("environmentId")}/releases/preview",new{baseConfigVersion=baseline,versionIds});var r=await WriteAsync(api,$"/environments/{Id("environmentId")}/releases",new{baseConfigVersion=baseline,versionIds,resourceRevisions=preview.GetProperty("resourceRevisions")});var id=r.GetProperty("id").GetString()!;await ApproveAndPublishAsync(id);return await WaitAsync(id);
+    }
+    private async Task<JsonElement> OwnedOrdersRouteAsync()
+    {
+        var versions=await GetAsync($"/apis/{Id("apiId")}/versions");var ids=versions.EnumerateArray().Select(v=>v.GetProperty("id").GetGuid()).ToHashSet();JsonElement selected=default;
+        for(var page=1;page<=1000;page++)
+        {
+            var routes=await GetAsync($"/environments/{Id("environmentId")}/routes?page={page}&pageSize=100");
+            foreach(var route in routes.GetProperty("items").EnumerateArray().Where(r=>ids.Contains(r.GetProperty("apiVersionId").GetGuid())&&r.GetProperty("routeName").GetString()=="Orders"))
+            {Assert.Equal(JsonValueKind.Undefined,selected.ValueKind);Assert.Equal(Id("clusterId"),route.GetProperty("clusterId").GetString());selected=route.Clone();}
+            if(page*100>=routes.GetProperty("total").GetInt32())return selected;
+        }
+        Assert.Fail("Dedicated SDK route lookup exceeded its bounded fixture limit.");return default;
     }
     private async Task ApproveAndPublishAsync(string id)
     {await WriteAsync(api,$"/releases/{id}/submit");await WriteAsync(reviewers[0],$"/releases/{id}/approve",new{comment="独立 API 验收审核"});await WriteAsync(reviewers[1],$"/releases/{id}/approve",new{comment="独立安全验收审核"});await WriteAsync(api,$"/releases/{id}/publish");}

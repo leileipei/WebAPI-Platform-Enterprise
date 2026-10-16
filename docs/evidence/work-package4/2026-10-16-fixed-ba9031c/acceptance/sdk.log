@@ -1,0 +1,32 @@
+WEBAPI_FIXED_SOURCE ba9031c643aeb6050e2789fa56c5f6ddba0eeee7
+  Determining projects to restore...
+  Restored /workspace/src/WebApi.Contracts/WebApi.Contracts.csproj (in 51 ms).
+  Restored /workspace/tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj (in 1.08 sec).
+  WebApi.Contracts -> /workspace/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  WebApi.EndToEnd.Tests -> /workspace/tests/WebApi.EndToEnd.Tests/bin/Release/net10.0/WebApi.EndToEnd.Tests.dll
+Test run for /workspace/tests/WebApi.EndToEnd.Tests/bin/Release/net10.0/WebApi.EndToEnd.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+/workspace/tests/WebApi.EndToEnd.Tests/bin/Release/net10.0/WebApi.EndToEnd.Tests.dll
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.5+1b188a7b0a (64-bit .NET 10.0.12)
+[xUnit.net 00:00:00.04]   Discovering: WebApi.EndToEnd.Tests
+[xUnit.net 00:00:00.05]   Discovered:  WebApi.EndToEnd.Tests
+[xUnit.net 00:00:00.06]   Starting:    WebApi.EndToEnd.Tests
+  Passed WebApi.EndToEnd.Tests.SsoLoopTests.RealOidcLoginAndRevocationSurviveRestartWithoutChangingLocalAdministrator [5 ms]
+  Passed WebApi.EndToEnd.Tests.ObservabilityFaultTests.ActualContainerFaultEvidenceContainsRecoveryAndCoreContinuity [2 ms]
+  Passed WebApi.EndToEnd.Tests.NetworkPolicyLoopTests.FixedImageIndependentNetworkPolicyEvidenceIsComplete [17 ms]
+  Passed WebApi.EndToEnd.Tests.ObservabilityLoopTests.RealTwoGatewayCountersLogsAndServerClientSpans [4 s]
+  Passed WebApi.EndToEnd.Tests.TrafficPolicyLoopTests.RealDoubleGatewayAndThreeSources [1 ms]
+  Passed WebApi.EndToEnd.Tests.PasswordLifecycleFlowTests.New_local_account_changes_before_business_and_keeps_assigned_scope [351 ms]
+  Passed WebApi.EndToEnd.Tests.SystemSettingsLoopTests.SettingsChangeRequiresNormalPublishToReachBothGateways [1 ms]
+  Passed WebApi.EndToEnd.Tests.CoreLoopTests.RealApprovedReleaseChangesBothGatewayResponses [7 s]
+  Passed WebApi.EndToEnd.Tests.CredentialRotationFlowTests.Real_dual_key_rotation_preserves_unrelated_resources_and_counts_authorized_calls [17 s]
+[xUnit.net 00:00:29.91]   Finished:    WebApi.EndToEnd.Tests
+  Passed WebApi.EndToEnd.Tests.SdkPublicationFixtureTests.Legacy_SDK_publish_uses_complete_frozen_preview_and_never_updates_an_unrelated_route [6 ms]
+
+Test Run Successful.
+Total tests: 10
+     Passed: 10
+ Total time: 30.0729 Seconds
+
+
+WEBAPI_EXIT 0

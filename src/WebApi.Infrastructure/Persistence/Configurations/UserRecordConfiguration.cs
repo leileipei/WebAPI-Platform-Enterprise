@@ -12,6 +12,8 @@ public sealed class UserRecordConfiguration : IEntityTypeConfiguration<UserRecor
         b.Property(x => x.DisplayName).HasColumnName("display_name").HasColumnType("varchar(128)").IsRequired();
         b.Property(x => x.Email).HasColumnName("email").HasColumnType("varchar(256)");
         b.Property(x => x.PasswordHash).HasColumnName("password_hash").HasColumnType("varchar(256)");
+        b.Property(x => x.MustChangePassword).HasColumnName("must_change_password").HasColumnType("boolean").IsRequired().HasDefaultValue(false);
+        b.Property(x => x.PasswordChangedAt).HasColumnName("password_changed_at").HasColumnType("timestamptz");
         b.Property(x => x.Status).HasColumnName("status").HasColumnType("varchar(24)").IsRequired();
         b.Property(x => x.AuthSource).HasColumnName("auth_source").HasColumnType("varchar(24)").IsRequired();
         b.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamptz").IsRequired();

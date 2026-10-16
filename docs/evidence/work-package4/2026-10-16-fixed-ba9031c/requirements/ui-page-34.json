@@ -1,0 +1,30 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "runtimeOwner": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "verifiedAt": "2026-10-16T02:28:41.509992Z",
+  "kind": "ui",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "requirementIds": [
+    "P34-C01",
+    "P34-C04",
+    "P34-C05",
+    "P34-A03",
+    "P34-S02"
+  ],
+  "screenshots": [
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/local-reset.png",
+      "sha256": "bf5d8bcc73765f698fb49099ad7e485ae93932dca22ad5499dd85f2425663eb6"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/requirements/ui/requirements-sso-source.png",
+      "sha256": "c34170850be6854ef3425a39f7497d319835743ef4ed0f78ff88bf67a1ea07d5"
+    }
+  ],
+  "boundary": "Actual CUA screenshots. Supplementary Secret-close screenshot is not an additional1440px action; all14 action PNG sizes independently gated."
+}

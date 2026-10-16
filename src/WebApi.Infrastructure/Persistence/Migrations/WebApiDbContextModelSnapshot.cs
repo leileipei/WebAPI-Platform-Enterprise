@@ -1605,6 +1605,251 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.ToTable("audit_logs", (string)null);
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageBatch", b =>
+                {
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("CollectorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collector_id");
+
+                    b.Property<long>("Sequence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("sequence");
+
+                    b.Property<DateTimeOffset?>("AcceptedThrough")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("accepted_through");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("applied_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("CoreHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)")
+                        .HasColumnName("core_hash");
+
+                    b.HasKey("NodeId", "CollectorId", "Sequence");
+
+                    b.HasIndex("AppliedAt")
+                        .HasDatabaseName("ix_usage_batches_applied");
+
+                    b.ToTable("credential_usage_batches", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_usage_batch_hash", "core_hash ~ '^[0-9a-f]{64}$'");
+
+                            t.HasCheckConstraint("ck_usage_batch_sequence", "sequence > 0");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageCollector", b =>
+                {
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("CollectorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collector_id");
+
+                    b.Property<long>("AcceptedSequence")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("accepted_sequence");
+
+                    b.Property<DateTimeOffset?>("AcceptedThrough")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("accepted_through");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("closed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<string>("Protocol")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(8)")
+                        .HasDefaultValue("1.0")
+                        .HasColumnName("protocol");
+
+                    b.HasKey("NodeId", "CollectorId");
+
+                    b.HasIndex("ClosedAt")
+                        .HasDatabaseName("ix_usage_collectors_closed");
+
+                    b.ToTable("credential_usage_collectors", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_usage_collector_protocol", "protocol = '1.0'");
+
+                            t.HasCheckConstraint("ck_usage_collector_sequence", "accepted_sequence >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageCollectorInstance", b =>
+                {
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("CollectorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("collector_id");
+
+                    b.Property<Guid>("InstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_id");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("ended_at");
+
+                    b.Property<string>("IdentityProof")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("current")
+                        .HasColumnName("identity_proof");
+
+                    b.Property<DateTimeOffset>("RegisteredAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("registered_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("NodeId", "CollectorId", "InstanceId");
+
+                    b.HasIndex("EndedAt")
+                        .HasDatabaseName("ix_usage_instances_ended");
+
+                    b.ToTable("credential_usage_collector_instances", (string)null);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageCoverage", b =>
+                {
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<DateTimeOffset>("HourStart")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("hour_start");
+
+                    b.Property<DateTimeOffset?>("AcceptedThrough")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("accepted_through");
+
+                    b.Property<DateTimeOffset?>("DurableThrough")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("durable_through");
+
+                    b.Property<string>("Gaps")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("gaps")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("Intervals")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("intervals")
+                        .HasDefaultValueSql("'[]'::jsonb");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(16)")
+                        .HasDefaultValue("Partial")
+                        .HasColumnName("state");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("EnvironmentId", "NodeId", "HourStart");
+
+                    b.HasIndex("HourStart")
+                        .HasDatabaseName("ix_usage_coverage_retention");
+
+                    b.ToTable("credential_usage_coverage", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_usage_coverage_arrays", "jsonb_typeof(intervals)='array' AND jsonb_typeof(gaps)='array'");
+
+                            t.HasCheckConstraint("ck_usage_coverage_budget", "octet_length(intervals::text)+octet_length(gaps::text)<=1048576");
+
+                            t.HasCheckConstraint("ck_usage_coverage_hour", "hour_start = date_trunc('hour', hour_start AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'");
+
+                            t.HasCheckConstraint("ck_usage_coverage_state", "state IN ('Available','NoData','Partial','Unknown','Unavailable')");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageHourly", b =>
+                {
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid>("CredentialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("credential_id");
+
+                    b.Property<DateTimeOffset>("HourStart")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("hour_start");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("application_id");
+
+                    b.Property<long>("Count")
+                        .HasColumnType("bigint")
+                        .HasColumnName("count");
+
+                    b.Property<DateTimeOffset>("LastUsedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("last_used_at");
+
+                    b.HasKey("EnvironmentId", "CredentialId", "HourStart");
+
+                    b.HasIndex("HourStart")
+                        .HasDatabaseName("ix_usage_hourly_retention");
+
+                    b.HasIndex("ApplicationId", "HourStart", "EnvironmentId")
+                        .HasDatabaseName("ix_usage_hourly_application_window");
+
+                    b.ToTable("credential_usage_hourly", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_usage_hourly_count", "count > 0");
+
+                            t.HasCheckConstraint("ck_usage_hourly_hour", "hour_start = date_trunc('hour', hour_start AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'");
+
+                            t.HasCheckConstraint("ck_usage_hourly_last_used", "last_used_at >= hour_start AND last_used_at < hour_start + INTERVAL '1 hour'");
+                        });
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4817,6 +5062,16 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("varchar(256)")
                         .HasColumnName("email");
 
+                    b.Property<bool>("MustChangePassword")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("must_change_password");
+
+                    b.Property<DateTimeOffset?>("PasswordChangedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("password_changed_at");
+
                     b.Property<string>("PasswordHash")
                         .HasColumnType("varchar(256)")
                         .HasColumnName("password_hash");
@@ -5299,6 +5554,33 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("ReleaseId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageBatch", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.CredentialUsageCollector", null)
+                        .WithMany()
+                        .HasForeignKey("NodeId", "CollectorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageCollector", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.GatewayNode", null)
+                        .WithMany()
+                        .HasForeignKey("NodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageCollectorInstance", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.CredentialUsageCollector", null)
+                        .WithMany()
+                        .HasForeignKey("NodeId", "CollectorId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

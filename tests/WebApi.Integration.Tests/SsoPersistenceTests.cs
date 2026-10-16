@@ -14,7 +14,7 @@ public sealed class SsoPersistenceTests
         await using(var db=database.Context())
         {
             await db.GetService<IMigrator>().MigrateAsync("20261005090000_SystemSettings");
-            db.Add(new UserRecord{Id=id,Username="existing-admin",DisplayName="Existing",PasswordHash=hash,SecurityStamp="existing-stamp"});await db.SaveChangesAsync();
+            await db.InsertHistoricalUserAsync(new UserRecord{Id=id,Username="existing-admin",DisplayName="Existing",PasswordHash=hash,SecurityStamp="existing-stamp"});
             await db.Database.MigrateAsync();
             var user=await db.Set<UserRecord>().SingleAsync(x=>x.Id==id);Assert.Equal(hash,user.PasswordHash);Assert.Equal("local",user.AuthSource);
             var exists=await db.Database.SqlQueryRaw<bool>("SELECT to_regclass('public.sso_providers') IS NOT NULL AS \"Value\"").SingleAsync();Assert.True(exists,"SSO table must be created by migration.");

@@ -1,0 +1,59 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "runtimeOwner": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "verifiedAt": "2026-10-16T02:28:41.509992Z",
+  "kind": "ui",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "requirementIds": [
+    "P20-C01",
+    "P20-C02",
+    "P20-C03",
+    "P20-A01",
+    "P20-S01",
+    "P20-C04",
+    "P20-C05",
+    "P20-A02",
+    "P20-A03",
+    "P20-S02"
+  ],
+  "screenshots": [
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/exact-count-partial.png",
+      "sha256": "5eb1103ad167fbd12efdce77b0bad3c3e4c45b52235db928befe655bc2f3b9f4"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/first-change.png",
+      "sha256": "34e71cb25b07511ab42ca607b111d363489271a43623121e1ce3d7a60c9353ff"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/impact-409.png",
+      "sha256": "6c2df59b628367ea3685d268b16a318be44f2014671b3591ce92c2d6d732947c"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/rotation-first-1440.png",
+      "sha256": "90e75640113044bb7c96bb46469408f972195ed69ff1190547138425f04607c9"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/rotation-second-confirmed-1440.png",
+      "sha256": "46472a09639558a86247d91bd430d37b65bf6eabe5252c09843b9cd2f2dbba7c"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/secret-modal-closed.png",
+      "sha256": "d7751c50e4f114b0a07b0bfac81a71912818b773064f8e6f01fe63825dda3bdf"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/unknown-no-source.png",
+      "sha256": "76f93d83c7a9e271d46d408c05c640297de2479ab3edc367eac6666955ae4a7b"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/requirements/ui/requirements-last-credential-risk.png",
+      "sha256": "81a3c2dd02700ac4082cdce0c4a969d7690c9fe8c92b8723ba8b99035ec34e49"
+    }
+  ],
+  "boundary": "Actual CUA screenshots. Supplementary Secret-close screenshot is not an additional1440px action; all14 action PNG sizes independently gated."
+}

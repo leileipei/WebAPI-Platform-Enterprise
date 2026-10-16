@@ -1,3 +1,4 @@
+using WebApi.Infrastructure.CredentialUsage;
 using WebApi.Contracts.Security;
 using WebApi.HttpSecurity;
 using WebApi.ControlPlane.Sso;
@@ -62,7 +63,7 @@ public static class ControlPlaneApp
         builder.Services.AddSingleton(NodeEnrollmentSettings.Read(builder.Configuration));builder.Services.AddScoped<NodeIdentityService>();builder.Services.AddScoped<NodeRegistry>();builder.Services.AddScoped<AckService>();builder.Services.AddScoped<ReleaseTimeoutService>();
         builder.Services.AddScoped<GatewayReadService>();
         builder.Services.TryAddSingleton(AlertEvaluationSettings.Read(builder.Configuration));builder.Services.AddScoped<AlertRuleScopeResolver>();builder.Services.AddScoped<AlertRuleService>();builder.Services.AddScoped<AlertListReader>();builder.Services.AddScoped<AlertEventService>();builder.Services.AddScoped<AlertSilenceExpiryService>();
-        builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<OpenApiImportService>();
+        builder.Services.AddScoped<ApplicationService>();builder.Services.AddScoped<CredentialImpactService>();builder.Services.AddScoped<CredentialRolloutQuery>();builder.Services.AddScoped<ApplicationOverviewQuery>();builder.Services.AddScoped<ApplicationAuditQuery>();builder.Services.AddScoped<OpenApiImportService>();
         builder.Services.TryAddSingleton(NotificationDeploymentSettings.Read(builder.Configuration,builder.Environment));builder.Services.TryAddSingleton<INotificationSecretResolver,NotificationSecretResolver>();builder.Services.AddSingleton<NotificationSecretVersion>();builder.Services.AddScoped<NotificationConfigurationService>();builder.Services.AddScoped<NotificationPlanner>();builder.Services.TryAddSingleton<INotificationDnsResolver,NotificationDnsResolver>();builder.Services.AddScoped<INotificationAddressPolicy,NotificationAddressPolicy>();builder.Services.AddScoped<SmtpNotificationTransport>();builder.Services.AddScoped<WebhookNotificationTransport>();builder.Services.TryAddScoped<INotificationTransport,NotificationTransport>();builder.Services.AddScoped<NotificationDeliveryStore>();builder.Services.AddScoped<NotificationDispatcher>();builder.Services.AddScoped<NotificationQueryService>();builder.Services.AddScoped<NotificationTestService>();
         builder.Services.TryAddSingleton(ImportSourceSettings.Read(builder.Configuration,builder.Environment));
         builder.Services.TryAddSingleton<WebApi.Infrastructure.Contracts.IContractDnsResolver,WebApi.Infrastructure.Contracts.SystemContractDnsResolver>();
@@ -73,7 +74,7 @@ public static class ControlPlaneApp
         var origins=UpstreamAddressPolicy.ReadAllowedOrigins(builder.Configuration);
         builder.Services.AddSingleton(new UpstreamAddressPolicy(origins));
         builder.Services.TryAddSingleton<TimeProvider>(TimeProvider.System);builder.Services.AddScoped<SettingsPreviewProtector>();builder.Services.AddScoped<SystemSettingsService>();builder.Services.AddScoped<SystemSettingsReader>();builder.Services.AddScoped<AuditAccessQuery>();builder.Services.AddScoped<AuditExportService>();builder.Services.AddScoped<WebApi.Infrastructure.Delivery.ProjectDeliveryPolicyService>();builder.Services.AddScoped<WebApi.Infrastructure.Delivery.Pipelines.PipelineDefinitionService>();builder.Services.AddScoped<WebApi.Infrastructure.Delivery.Pipelines.PipelineActivationService>();builder.Services.AddScoped<WebApi.Infrastructure.Delivery.Pipelines.PipelineRunService>();builder.Services.AddScoped<WebApi.Infrastructure.Delivery.Pipelines.PipelineRecoveryService>();builder.Services.AddScoped<GovernanceService>();builder.Services.AddScoped<EnvironmentApiAddressService>();builder.Services.AddScoped<EnvironmentApiDocumentService>();builder.Services.AddScoped<ScopeResolver>();builder.Services.AddScoped<AuditedCommandExecutor>();
-        builder.Services.AddScoped<AccountService>();builder.Services.AddScoped<AuthorizationService>();builder.Services.AddScoped<CollectionAuthorizationQuery>();
+        builder.Services.TryAddSingleton(CredentialUsageRetentionOptions.Read(builder.Configuration));builder.Services.AddScoped<CredentialUsageCleanupService>();builder.Services.TryAddSingleton<UsageIngestBudget>();builder.Services.AddScoped<UsageCollectorRegistry>();builder.Services.AddScoped<UsageSnapshotProofReader>();builder.Services.AddScoped<CredentialUsageIngestService>();builder.Services.AddScoped<CredentialUsageQuery>();builder.Services.AddScoped<UsageCoverageReader>();builder.Services.AddScoped<PasswordLifecycleService>();builder.Services.AddScoped<PasswordLifecycleGuard>();builder.Services.AddScoped<AccountService>();builder.Services.AddScoped<AuthorizationService>();builder.Services.AddScoped<CollectionAuthorizationQuery>();
         builder.Services.Configure<SsoOptions>(builder.Configuration.GetSection("Sso"));
         // URI keys contain ':' and cannot be represented by flattened configuration paths.
         // This explicit development-fixture adapter preserves exact origins for the socket override.
@@ -119,7 +120,12 @@ public static class ControlPlaneApp
                     if(!Guid.TryParse(providerValue,out var provider)||!long.TryParse(revisionValue,System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var revision)||
                         !Guid.TryParse(bindingValue,out var binding)||!await ctx.HttpContext.RequestServices.GetRequiredService<SsoSessionValidator>().ValidateAsync(id,stamp??"",provider,revision,binding,ctx.HttpContext.RequestAborted))ctx.RejectPrincipal();
                 }
-                else if(!await db.Set<UserRecord>().AsNoTracking().AnyAsync(x=>x.Id==id && x.Status=="Active" && x.SecurityStamp==stamp,ctx.HttpContext.RequestAborted)) ctx.RejectPrincipal();
+                else
+                {
+                    var required=await db.Set<UserRecord>().AsNoTracking().Where(x=>x.Id==id&&x.Status=="Active"&&x.SecurityStamp==stamp).Select(x=>(bool?)x.MustChangePassword).SingleOrDefaultAsync(ctx.HttpContext.RequestAborted);
+                    if(required is null)ctx.RejectPrincipal();
+                    else ctx.HttpContext.Items[PasswordChangeRequiredMiddleware.RequiredItemKey]=required.Value;
+                }
             };
         });
         builder.Services.AddAuthentication().AddOpenIdConnect("oidc-template",_=>{});
@@ -131,7 +137,7 @@ public static class ControlPlaneApp
         builder.Services.AddAntiforgery(options=>{options.HeaderName="X-CSRF-Token";options.Cookie.Name=builder.Configuration["Antiforgery:CookieName"]??"WebApi.Csrf";options.Cookie.HttpOnly=true;options.Cookie.SameSite=SameSiteMode.Strict;options.Cookie.SecurePolicy=local?CookieSecurePolicy.SameAsRequest:CookieSecurePolicy.Always;});
         var app=builder.Build();app.UseTrustedProxyBoundary();
         app.Use(ProblemDetailsMapping.HandleAsync);
-        app.UseMiddleware<SsoProtocolMiddleware>();app.UseAuthentication();app.UseAuthorization();
+        app.UseMiddleware<SsoProtocolMiddleware>();app.UseAuthentication();app.UseAuthorization();app.UseMiddleware<PasswordChangeRequiredMiddleware>();
         app.Use(async(ctx,next)=>{
             if(ctx.Request.Path.StartsWithSegments("/api/v1") && !HttpMethods.IsGet(ctx.Request.Method) && !HttpMethods.IsHead(ctx.Request.Method) && !HttpMethods.IsOptions(ctx.Request.Method))
             {
@@ -142,6 +148,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapEnvironmentAccess();app.MapCatalog();app.MapSchemaValidation();app.MapImportSourcePolicies();app.MapImportSessions();app.MapComparisons();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapDelivery();app.MapPipelines();app.MapVerificationReports();app.MapApprovalInbox();app.MapInternalNodes();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();WebApi.ControlPlane.Notifications.NotificationEndpoints.MapNotifications(app);return app;
+        app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapEnvironmentAccess();app.MapCatalog();app.MapSchemaValidation();app.MapImportSourcePolicies();app.MapImportSessions();app.MapComparisons();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapDelivery();app.MapPipelines();app.MapVerificationReports();app.MapApprovalInbox();app.MapInternalNodes();app.MapCredentialUsage();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();WebApi.ControlPlane.Notifications.NotificationEndpoints.MapNotifications(app);return app;
     }
 }

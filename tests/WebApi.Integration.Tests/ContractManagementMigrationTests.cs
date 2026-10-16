@@ -17,7 +17,8 @@ public sealed class ContractManagementMigrationTests
         var target = db.Database.GetMigrations().Single(x => x.EndsWith("_ContractManagement", StringComparison.Ordinal));
         var previous = db.Database.GetMigrations().TakeWhile(x => !x.EndsWith("_ContractManagement", StringComparison.Ordinal)).Last();
         await db.GetService<IMigrator>().MigrateAsync(previous);
-        db.Add(new UserRecord { Username = "retained", DisplayName = "保留用户", PasswordHash = "isolated-synthetic-hash", SecurityStamp = "retained-stamp" });
+        // Seed the historical schema explicitly; the current EF user model has later columns.
+        await db.Database.ExecuteSqlRawAsync("INSERT INTO users(username,display_name,password_hash,security_stamp,status,auth_source,created_at,updated_at) VALUES ('retained','保留用户','isolated-synthetic-hash','retained-stamp','Active','local',NOW(),NOW())");
         db.Add(new Organization { Code = "RETAINED", Name = "保留组织" }); await db.SaveChangesAsync();
         var before = await Snapshot(database);
         await db.GetService<IMigrator>().MigrateAsync(target);

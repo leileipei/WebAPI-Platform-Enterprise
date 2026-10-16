@@ -1,3 +1,4 @@
+import {completeInitialPasswordChange} from '../account-credential/auth.mjs';
 import { gzipSync, brotliCompressSync } from 'node:zlib';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -10,6 +11,7 @@ import { randomUUID, randomBytes } from 'node:crypto';
 import { loadState, writePrivate, safeFile, ownedDirectory } from '../runtime/state.mjs';
 import { loadRelease } from '../runtime/lifecycle.mjs';
 import { prepareContext } from '../runtime/context.mjs';
+import { validateFixture } from '../runtime/fixture-guard.mjs';
 import { docker, inspectResources } from '../runtime/docker.mjs';
 import { prepareScenario, until } from '../runtime/acceptance-scenario.mjs';
 import { ContractClient } from '../contracts/scenario.mjs';
@@ -220,12 +222,15 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     const stale = await management(admin, '/policies/' + created.value.id, { method: 'PUT', headers: { 'If-Match': '"' + created.value.versionNo + '"' }, body: { name: created.value.name, type: 'cors', config: JSON.stringify(corsConfig), enabled: true } });
     assert.equal(stale.status, 412);
     const roles = await admin.request('/roles');
-    const readonlyPassword = randomBytes(32).toString('base64url');
+    const readonlyInitialPassword = randomBytes(32).toString('base64url')+'Aa1!';
+    let readonlyPassword=readonlyInitialPassword;
     let readonlyUser = await admin.request('/users', { method: 'POST', body: { username: 'network-read-' + tag, displayName: 'Network readonly', password: readonlyPassword } });
     readonlyUser = await admin.request('/users/' + readonlyUser.id + '/roles', { method: 'PUT', headers: { 'If-Match': '"' + readonlyUser.revision + '"' }, body: { roleIds: [roles.find(r => r.isSystem && r.code === 'PlatformAdmin').id] } });
     await admin.request('/users/' + readonlyUser.id + '/scopes', { method: 'PUT', headers: { 'If-Match': '"' + readonlyUser.revision + '"' }, body: { scopes: [{ scope: { organizationId: scope.organizationId }, accessMode: 'read' }] } });
     const readonly = new ContractClient(s.endpoint);
-    await readonly.login(readonlyUser.username, readonlyPassword);
+    const readonlyIdentity=await readonly.login(readonlyUser.username, readonlyPassword);
+    if(readonlyIdentity.mustChangePassword){readonlyPassword=randomBytes(32).toString('base64url')+'Aa1!';await writePrivate(path.join(cloneDirectory,'secrets/qa-network-read-password'),readonlyPassword);await completeInitialPasswordChange({client:readonly,identity:readonlyIdentity,currentPassword:readonlyInitialPassword,newPassword:readonlyPassword});}
+    s.privatePasswords.push(readonlyInitialPassword,readonlyPassword);
     const denied = await management(readonly, '/policies/' + policies.get('transform').id, { method: 'PUT', headers: { 'If-Match': '"' + policies.get('transform').versionNo + '"' }, body: { name: 'denied', type: 'transform', config: transformConfig, enabled: true } });
     assert.equal(denied.status, 403);
     const foreign = await admin.request('/organizations', { method: 'POST', body: { code: 'NETWORK_FOREIGN_' + tag, name: '未授权独立组织' } });
@@ -407,7 +412,7 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
             v.data?.items?.some(x => x.traceId === request.traceId && x.status === request.status), 90),
     })));
     const promoted = await runNetworkPromotion({ s, admin, state, release, ctx, scope, version, latest, backend, record, tag, originB, ipConfig, configs, readonly, foreign });
-    const privateValues = ['PRIVATE_REQUEST_NETWORK', 'PRIVATE_RESPONSE_NETWORK', apiKey, s.password, readonlyPassword, promoted.targetKey, ...Object.values(backend.tokens)];
+    const privateValues = ['PRIVATE_REQUEST_NETWORK', 'PRIVATE_RESPONSE_NETWORK', apiKey, ...s.privatePasswords, readonlyPassword, promoted.targetKey, ...Object.values(backend.tokens)];
     assert(privateValues.every(secret => !JSON.stringify(observation).includes(secret)));
     await record('P3-10', { ...observation, privateCanariesExcluded: true });
     await writePrivate(path.join(fixtureDirectory, 'private-values.json'), privateValues);
@@ -440,7 +445,7 @@ export function networkPolicyPromotionTargetConfigurations(templates, { targetOr
         return { type: template.type, config };
     });
 }
-export async function createNetworkPolicyPromotionActor({ admin, endpoint, password, suffix, permissions, scope, tag }) {
+export async function createNetworkPolicyPromotionActor({ admin, endpoint, password, suffix, permissions, scope, tag, directory, privatePasswords = [] }) {
     // Release artifacts include project-owned policies. An environment-only grant
     // cannot read that owning scope, even when policy.read is present.
     const actorScope = { ...scope };
@@ -455,7 +460,8 @@ export async function createNetworkPolicyPromotionActor({ admin, endpoint, passw
     user = await admin.request('/users/' + user.id + '/roles', { method: 'PUT', headers: { 'If-Match': '"' + user.revision + '"' }, body: { roleIds: [role.id] } });
     await admin.request('/users/' + user.id + '/scopes', { method: 'PUT', headers: { 'If-Match': '"' + user.revision + '"' }, body: { scopes: grants } });
     const client = new ContractClient(endpoint);
-    await client.login(user.username, password);
+    const identity=await client.login(user.username,password);
+    if(identity?.mustChangePassword){validateFixture(path.basename(directory),directory);const changed=randomBytes(32).toString('base64url')+'Aa1!';await writePrivate(path.join(directory,'secrets/qa-'+user.id+'-password'),changed);await completeInitialPasswordChange({client,identity,currentPassword:password,newPassword:changed});privatePasswords.push(changed);}
     return client;
 }
 async function runNetworkPromotion(args) {
@@ -501,7 +507,7 @@ async function runNetworkPromotionWithEntry({ s, admin, state, release, ctx, sco
     await until(() => admin.request('/releases/' + baseline.id), r => r.state === 'Succeeded' && r.targets.length === 2 && r.targets.every(t => t.acknowledged), 120);
     const deliveryPolicy = await admin.request('/projects/' + scope.projectId + '/delivery-policy');
     await admin.request('/projects/' + scope.projectId + '/delivery-policy', { method: 'PUT', headers: { 'If-Match': '"' + deliveryPolicy.revision + '"' }, body: { sourceEnvironmentId: source.id, targetEnvironmentId: target.id, mode: 'PromotionRequired', requiredTestTypes: ['InterfaceFunction', 'Integration', 'ContractCompatibility'], verificationValidityMinutes: 1440 } });
-    const actor = (suffix, permissions, actorScope) => createNetworkPolicyPromotionActor({ admin, endpoint: s.endpoint, password: s.password, suffix, permissions, scope: actorScope, tag });
+    const actor = (suffix, permissions, actorScope) => createNetworkPolicyPromotionActor({ admin, endpoint: s.endpoint, password: s.password, suffix, permissions, scope: actorScope, tag, directory:s.directory, privatePasswords:s.privatePasswords });
     const acceptor = await actor('Acceptor', ['release.test.accept'], scope), verifier = await actor('Verifier', ['release.verify'], { organizationId: scope.organizationId, projectId: scope.projectId }), outsider = await actor('Foreign', [], { organizationId: foreign.id });
     const artifact = await admin.request('/releases/' + latest.id + '/artifacts', { method: 'POST' }), verificationIds = [];
     for (const type of ['InterfaceFunction', 'Integration', 'ContractCompatibility']) {

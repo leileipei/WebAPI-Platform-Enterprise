@@ -17,6 +17,7 @@ namespace WebApi.Integration.Tests.Support;
 public sealed class ApiFixture : IAsyncDisposable
 {
     public PostgresDatabase Database { get; } = new();
+    // Existing-account fixture. First-login tests explicitly set MustChangePassword and use real HTTP changes.
     public UserRecord User { get; } = new() { Username = "actor_"+Guid.NewGuid().ToString("N"), DisplayName="测试用户", SecurityStamp=Guid.NewGuid().ToString("N") };
     public string Password { get; } = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     public string LoginProtectionDirectory { get; } = Path.Combine(Path.GetTempPath(),"webapi-login-"+Guid.NewGuid().ToString("N"));

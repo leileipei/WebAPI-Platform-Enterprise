@@ -1,0 +1,42 @@
+{
+  "sourceRevision": "ba9031c643aeb6050e2789fa56c5f6ddba0eeee7",
+  "runtimeOwner": "9eb85269-863c-4615-b5c5-27e30ad9a362",
+  "imageId": "sha256:12d0dc1bfe3d22ab36310b634f1cb4af4bd7ed61615b8256c116782fef43cc9b",
+  "projectName": "webapi-enterprise-local-test-9e5c1f1b-6372-485a-ae9e-a68c06ccdde1",
+  "verifiedAt": "2026-10-16T02:18:47.533484Z",
+  "kind": "ui",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "requirementIds": [
+    "P19-C01",
+    "P19-C03",
+    "P19-C04",
+    "P19-C05",
+    "P19-A03"
+  ],
+  "screenshots": [
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/audit-denied.png",
+      "sha256": "8e7189ebc6209d7da6bdfd664dae45f53228c3262dc70d24e2f8af410e9159a9"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/first-change.png",
+      "sha256": "34e71cb25b07511ab42ca607b111d363489271a43623121e1ce3d7a60c9353ff"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/acceptance/ui/overview-minimal-reader.png",
+      "sha256": "47277e58be74e24c0707629a8578b51cc0af602d8fd14d2a443bce4e16a77979"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/requirements/ui/requirements-api-permissions-entry.png",
+      "sha256": "f6b1946594233bbbcad377820eda64f3489f60ca0e12b3b82ffa11d641b19a85"
+    },
+    {
+      "path": "2026-10-16-fixed-ba9031c/requirements/ui/requirements-application-audit.png",
+      "sha256": "bb6272d21c440bff50039f4fc53e5e26477518a140b8695942799a1981255f48"
+    }
+  ],
+  "boundary": "Actual CUA screenshots. Supplementary Secret-close screenshot is not an additional1440px action; all14 action PNG sizes independently gated."
+}
