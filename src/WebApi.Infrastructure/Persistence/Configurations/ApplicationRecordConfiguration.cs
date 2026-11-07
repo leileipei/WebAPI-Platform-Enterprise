@@ -16,6 +16,9 @@ public sealed class ApplicationRecordConfiguration : IEntityTypeConfiguration<Ap
         b.Property(x => x.Status).HasColumnName("status").HasColumnType("varchar(24)").IsRequired();
         b.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamptz").IsRequired();
         b.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamptz").IsRequired();
+        b.Property(x => x.OwnerUserId).HasColumnName("owner_user_id").HasColumnType("uuid");
+        b.Property(x => x.OwnerRevision).HasColumnName("owner_revision").HasColumnType("bigint").IsRequired().HasDefaultValue(1L);
+        b.Property(x => x.AuthorizationRevision).HasColumnName("authorization_revision").HasColumnType("bigint").IsRequired().HasDefaultValue(1L);
         b.Property(x => x.Revision).HasColumnName("revision").HasColumnType("bigint").IsRequired().IsConcurrencyToken().HasDefaultValue(1L);
     }
 }

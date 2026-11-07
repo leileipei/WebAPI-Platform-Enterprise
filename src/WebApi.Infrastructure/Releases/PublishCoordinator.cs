@@ -16,7 +16,10 @@ using WebApi.Infrastructure.Security;
 using WebApi.Infrastructure.Gateway;
 using WebApi.Infrastructure.Policies;
 namespace WebApi.Infrastructure.Releases;
-public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSeconds=120,int AckTimeoutSeconds=120);
+public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSeconds=120,int AckTimeoutSeconds=120)
+{
+    public int EffectiveMinimumNodes => Math.Max(2,MinimumNodes);
+}
 public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution,GatewayPolicyDeploymentRules? deployment=null)
 {
     private readonly GatewayPolicyDeploymentRules bodyLimits=deployment??new();
@@ -55,7 +58,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
     private async Task<GatewayNode[]> TargetsAsync(Guid envId,CancellationToken ct)
     {
         var nodes=await db.Set<GatewayNode>().Where(n=>n.EnvironmentId==envId&&n.Enabled).OrderBy(n=>n.Id).ToArrayAsync(ct);var threshold=DateTimeOffset.UtcNow.AddSeconds(-settings.HeartbeatGraceSeconds);
-        if(nodes.Length<settings.MinimumNodes||nodes.Any(n=>n.IdentityHash.Length!=64||!Guid.TryParse(n.InstanceId,out _)||n.LastHeartbeatAt is null||n.LastHeartbeatAt<threshold)) throw new ApiException(409,"gateway_cohort_unavailable","至少需要两个有效注册节点，且全部已启用节点必须在线；不会缩减确认目标。");return nodes;
+        if(nodes.Length<settings.EffectiveMinimumNodes||nodes.Any(n=>n.IdentityHash.Length!=64||!Guid.TryParse(n.InstanceId,out _)||n.LastHeartbeatAt is null||n.LastHeartbeatAt<threshold)) throw new ApiException(409,"gateway_cohort_unavailable","至少需要两个有效注册节点，且全部已启用节点必须在线；不会缩减确认目标。");return nodes;
     }
     public async Task ValidateCohortAsync(Guid envId,CancellationToken ct=default)=>await TargetsAsync(envId,ct);
     public async Task ValidateTargetSchemaAsync(Guid envId,long version,CancellationToken ct=default)
@@ -69,7 +72,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
     public async Task<bool> BuildNextAsync(CancellationToken ct=default)
     {
         await using var tx=await db.Database.BeginTransactionAsync(ct);
-        await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
+        await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
         var selected=await db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.Status=="Building").OrderBy(r=>r.CreatedAt).ThenBy(r=>r.Id).FirstOrDefaultAsync(ct);
         if(selected is null){await tx.CommitAsync(ct);return false;}
         await deliveryExecution.LockReleaseAsync(selected,ct);

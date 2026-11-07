@@ -62,7 +62,7 @@ public static class SessionEndpoints
                 user=await accounts.AuthenticateAsync(request,ct);
                 // Recheck status inside the write transaction; locks serialize concurrent user disablement.
                 await using var tx=await db.Database.BeginTransactionAsync(ct);
-                await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
+                await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
                 user=await db.Set<UserRecord>().FromSqlInterpolated($"SELECT * FROM users WHERE id={user.Id} FOR UPDATE").AsNoTracking().SingleAsync(ct);
                 if(user.Status!="Active"||user.AuthSource!="local"||user.PasswordHash is null||hasher.VerifyHashedPassword(user,user.PasswordHash,request.Password)==Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
                     throw new ApiException(401,"invalid_credentials","用户名或密码错误。");

@@ -43,6 +43,8 @@ public sealed class RedisSnapshotStore(string connection,string keyPrefix="webap
     public static void Validate(Guid envId,SnapshotEnvelope envelope,ReadOnlySpan<byte> payload)
     {
         if(envelope.ReleaseId==Guid.Empty||envelope.DeploymentSequence<=0||envelope.ConfigVersion<=0||payload.Length!=envelope.SizeBytes||payload.Length>16*1024*1024||Convert.ToHexStringLower(SHA256.HashData(payload))!=envelope.PayloadHash) throw new InvalidDataException("Invalid snapshot envelope or payload hash.");
+        // Fail closed until node-bound security admission is integrated; parsing alone is not authorization.
+        if(SnapshotDialectClassifier.Classify(payload) is SnapshotDialect.Governance23 or SnapshotDialect.Governance24) throw new InvalidDataException("Governance snapshot security admission is unavailable.");
         var snapshot=SnapshotValidator.ParsePayload(payload,envId);if(snapshot.ConfigVersion!=envelope.ConfigVersion) throw new InvalidDataException("Snapshot version mismatch.");SnapshotValidator.Validate(snapshot,envId);
     }
     public void Dispose() {mux?.Dispose();connectionLock.Dispose();}

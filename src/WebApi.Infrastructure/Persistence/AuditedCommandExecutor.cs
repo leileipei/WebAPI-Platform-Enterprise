@@ -7,16 +7,35 @@ using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Domain.Notifications;
 namespace WebApi.Infrastructure.Persistence;
 public sealed record AuditRequestMetadata(System.Net.IPAddress? Ip);
+public sealed record ApplicationPermissionAuditSnapshot(Guid Id,Guid ApplicationId,Guid ApiId,Guid EnvironmentId,DateTimeOffset ValidFrom,DateTimeOffset? ExpiresAt,Guid CreatedBy,long Revision)
+{
+    public static ApplicationPermissionAuditSnapshot From(ApplicationApiPermission permission)
+        =>new(permission.Id,permission.ApplicationId,permission.ApiId,permission.EnvironmentId,permission.ValidFrom,permission.ExpiresAt,permission.CreatedBy,permission.Revision);
+}
 public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetadata? metadata=null)
 {
     private static readonly HashSet<string> fields=["MustChangePassword","PasswordChangedAt","Id","Code","Name","Status","DisplayName","Revision","EnvironmentId","ProjectId","OrganizationId","Version","Path","NormalizedPath","Methods","Enabled","TimeoutMs","ApplicationId","ApiId","ConfigVersion","DeploymentSequence","ReleaseNo","RoleId","UserId","PermissionId","AccessMode","ValidFrom","ExpiresAt","ReleaseId","ApiVersionId","ClusterId","CreatedBy","AssigneeUserId","StepOrder","ActedAt","Priority","Weight","OwnerUserId","LifecycleStatus","ReleaseType","RollbackOf","RecoveryOf","FromConfigVersion","ToConfigVersion","DeadlineAt","FailureCode","Metric","Expression","Severity","ForSeconds","WindowSeconds","TargetType","TargetId","LogicRevision","RuleId","RuleRevision","ResourceKey","ResourceType","ResourceId","OccurrenceNo","ResolvedBy","ResolveReason","ResolvedAt","AckedBy","AckedAt","SilencedBy","SilencedUntil","SilenceReason","FromStatus","ToStatus","ActorId","Reason","OccurredAt","CorrelationId","Phase","PendingSince","SuppressedAt","LastEventId"];
+    // A set-based update bypasses EF's change tracker. Record its explicit,
+    // already-filtered before/after values in the same audited transaction.
+    public void RecordPermissionMove(ActorContext actor,ScopeRef scope,ApplicationPermissionAuditSnapshot before,ApplicationPermissionAuditSnapshot after)
+    {
+        if(db.Database.CurrentTransaction is null) throw new InvalidOperationException("Direct audit requires the active command transaction.");
+        if(before.Id!=after.Id||before.ApplicationId!=after.ApplicationId) throw new InvalidOperationException("Permission audit identity changed.");
+        const string resourceType=nameof(ApplicationApiPermission);
+        db.Add(new AuditLog {
+            UserId=actor.UserId,OrganizationId=scope.OrganizationId==Guid.Empty?null:scope.OrganizationId,ProjectId=scope.ProjectId,EnvironmentId=scope.EnvironmentId,
+            Action="app.permission.save",ResourceType=resourceType,ResourceId=before.Id.ToString(),TraceId=actor.TraceId,Ip=metadata?.Ip,
+            BeforeJson=JsonSerializer.Serialize(new[]{new {Type=resourceType,Fields=before}}),
+            AfterJson=JsonSerializer.Serialize(new[]{new {Type=resourceType,Fields=after}})
+        });
+    }
     public async Task<T> ExecuteAsync<T>(ActorContext actor,ScopeRef scope,string action,Func<WebApiDbContext,CancellationToken,Task<T>> command,CancellationToken cancellationToken=default)
     {
         var owned=db.Database.CurrentTransaction is null?await db.Database.BeginTransactionAsync(cancellationToken):null;
         try
         {
             // All authorization-changing commands and protected writes share this transaction lock.
-            await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",cancellationToken);
+            await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",cancellationToken);
             if(!await db.Set<UserRecord>().AsNoTracking().AnyAsync(x=>x.Id==actor.UserId && x.Status=="Active",cancellationToken)) throw new ApiException(401,"inactive_session","会话已失效。");
             var value=await command(db,cancellationToken);
             db.ChangeTracker.DetectChanges();
@@ -65,6 +84,8 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             captured["AccessAddressHash"]=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(values)));
             captured["ChangedFields"]=e.Properties.Where(p=>!Equals(p.OriginalValue,p.CurrentValue)).Select(p=>p.Metadata.Name).ToArray();
         }
+        if(e.Entity is EnvironmentSecurityInitialization)
+            foreach(var name in new[]{"State","FreshProofId","EvidenceHash","ConfirmedBy","ConfirmedAt"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
         if(e.Entity is AlertRule)
         {
             captured.Remove("Notification");var property=e.Property(nameof(AlertRule.Notification));var json=(string?)(original?property.OriginalValue:property.CurrentValue);

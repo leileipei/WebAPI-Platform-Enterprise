@@ -126,7 +126,7 @@ public sealed class NotificationPlanner(WebApiDbContext db,AlertRuleScopeResolve
         if(db.Database.CurrentTransaction is not null)throw new InvalidOperationException("Recovery coordination owns its transaction.");
         db.ChangeTracker.DetectChanges();if(db.ChangeTracker.Entries().Any(x=>x.State is EntityState.Added or EntityState.Modified or EntityState.Deleted))throw new InvalidOperationException("Recovery coordination requires a saved context.");db.ChangeTracker.Clear();
         var metadata=await db.Set<AlertEvent>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==eventId,ct);if(metadata is null)return false;
-        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
+        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT 1 FROM alert_rules WHERE id={metadata.RuleId} FOR UPDATE",ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"SELECT 1 FROM alert_evaluation_states WHERE rule_id={metadata.RuleId} AND logic_revision={metadata.LogicRevision} AND environment_id={metadata.EnvironmentId} AND resource_key={metadata.ResourceKey} FOR UPDATE",ct);
         var alert=await db.Set<AlertEvent>().FromSqlInterpolated($"SELECT * FROM alert_events WHERE id={eventId} FOR UPDATE").SingleAsync(ct);

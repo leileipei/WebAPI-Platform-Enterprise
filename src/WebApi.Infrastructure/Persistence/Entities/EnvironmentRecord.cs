@@ -15,5 +15,7 @@ public sealed class EnvironmentRecord
     public string? GatewayInternalUrl { get; set; }
     public string BasePath { get; set; } = "/";
     public long AccessAddressRevision { get; set; } = 1;
+    public long AuthorizationRevision { get; set; } = 1;
+    public bool RequireEnvironmentCredential { get; set; }
     public long Revision { get; set; } = 1;
 }

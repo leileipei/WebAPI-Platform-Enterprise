@@ -54,6 +54,16 @@ internal static class CoreConstraints
         apis.HasIndex("ProjectId", "Code").IsUnique();
         api_versions.HasIndex("ApiId", "Version").IsUnique();
         upstream_clusters.HasIndex("EnvironmentId", "Name").IsUnique();
+        applications.HasAlternateKey("Id", "OrganizationId");
+        application_credentials.HasAlternateKey("Id", "ApplicationId", "OrganizationId");
+        application_credentials.HasIndex("ApplicationId", "EnvironmentId", "Status");
+        application_credentials.HasIndex("EnvironmentId", "ExpiresAt").HasFilter("status = 'Active'");
+        application_credentials.HasIndex("LastUsedAt");
+        applications.HasOne<UserRecord>().WithMany().HasForeignKey("OwnerUserId").OnDelete(DeleteBehavior.Restrict);
+        application_credentials.HasOne<ApplicationRecord>().WithMany().HasForeignKey("ApplicationId", "OrganizationId").HasPrincipalKey("Id", "OrganizationId").OnDelete(DeleteBehavior.Restrict);
+        application_credentials.HasOne<EnvironmentRecord>().WithMany().HasForeignKey("EnvironmentId", "ProjectId").HasPrincipalKey("Id", "ProjectId").OnDelete(DeleteBehavior.Restrict);
+        application_credentials.HasOne<Project>().WithMany().HasForeignKey("ProjectId", "OrganizationId").HasPrincipalKey("Id", "OrganizationId").OnDelete(DeleteBehavior.Restrict);
+        application_credentials.ToTable(t => { t.HasCheckConstraint("ck_credential_binding", "(binding_mode = 'LegacyGlobal' AND environment_id IS NULL AND project_id IS NULL) OR (binding_mode = 'EnvironmentBound' AND environment_id IS NOT NULL AND project_id IS NOT NULL)"); t.HasCheckConstraint("ck_credential_expiry_revision", "expiry_revision > 0"); });
         applications.HasIndex("OrganizationId", "Code").IsUnique();
         application_credentials.HasIndex("AccessKey").IsUnique();
         application_api_permissions.HasIndex("ApplicationId", "ApiId", "EnvironmentId").IsUnique();

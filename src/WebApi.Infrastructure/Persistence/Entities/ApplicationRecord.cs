@@ -10,5 +10,8 @@ public sealed class ApplicationRecord
     public string Status { get; set; } = "Active";
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public Guid? OwnerUserId { get; set; }
+    public long OwnerRevision { get; set; } = 1;
+    public long AuthorizationRevision { get; set; } = 1;
     public long Revision { get; set; } = 1;
 }
