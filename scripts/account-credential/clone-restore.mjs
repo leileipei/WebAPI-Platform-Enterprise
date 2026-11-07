@@ -5,11 +5,13 @@ import {assertAccountDeploymentCompatibility} from './deployment-guard.mjs';
 import {validateCloneOwnership} from '../contracts/evidence.mjs';
 import {docker,inspectResources} from '../runtime/docker.mjs';
 import {safeFile,writePrivate,RuntimeError} from '../runtime/state.mjs';
+import {assertNoUnresolvedRestoreIntent} from '../runtime/restore-intent.mjs';
 
 const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 export async function assertRestoreComplete(directory) {
   if(await fs.lstat(path.join(directory,'restore-pending.json')).catch(e=>{if(e.code==='ENOENT')return null;throw e;}))
     throw new RuntimeError('Runtime restore is incomplete/pending; retain its material and complete the owned restore before startup.',3);
+  await assertNoUnresolvedRestoreIntent(directory);
 }
 export async function inspectUsageRebindCapability(release) {
   const image=JSON.parse((await docker(['image','inspect',release.imageId])).stdout)[0];

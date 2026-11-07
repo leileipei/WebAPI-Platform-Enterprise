@@ -20,8 +20,8 @@ public sealed class CredentialImpactTests
         public async Task InitializeAsync(bool replacement=false,bool published=false)
         {
             await Api.InitializeAsync(b=>b.Services.AddSingleton<TimeProvider>(Time));await Api.SeedConsumerAsync();using var login=await Api.LoginAsync();login.EnsureSuccessStatusCode();
-            await using var db=Api.Context();var material=ApiKeySecret.Create();Key=new(){ApplicationId=Api.Application.Id,AccessKey=material.AccessKey,SecretHash=material.Hash,SecretLast4=material.Last4,ValidFrom=Time.Now.AddHours(-1),ExpiresAt=Time.Now.AddHours(1)};db.Add(Key);
-            if(replacement){Other=new(){ApplicationId=Api.Application.Id,AccessKey="replacement",SecretHash=new string('b',64),SecretLast4="5678",ValidFrom=Time.Now.AddMinutes(-1),ExpiresAt=Time.Now.AddHours(2)};db.Add(Other);}
+            await using var db=Api.Context();var material=ApiKeySecret.Create();Key=new(){ApplicationId=Api.Application.Id,OrganizationId=Api.Organization.Id,AccessKey=material.AccessKey,SecretHash=material.Hash,SecretLast4=material.Last4,ValidFrom=Time.Now.AddHours(-1),ExpiresAt=Time.Now.AddHours(1)};db.Add(Key);
+            if(replacement){Other=new(){ApplicationId=Api.Application.Id,OrganizationId=Api.Organization.Id,AccessKey="replacement",SecretHash=new string('b',64),SecretLast4="5678",ValidFrom=Time.Now.AddMinutes(-1),ExpiresAt=Time.Now.AddHours(2)};db.Add(Other);}
             if(published)
             {
                 var payload=JsonSerializer.SerializeToUtf8Bytes(new RuntimeSnapshot("2.0",Api.Environment.Id,1,Time.Now,[],[],[],[new RuntimeApplication(Api.Application.Id,"Active",[new RuntimeCredential(Key.Id,Key.AccessKey,Key.SecretHash,"Active",Key.ValidFrom,Key.ExpiresAt)],[])]),CanonicalJson.Options);
@@ -60,7 +60,7 @@ public sealed class CredentialImpactTests
             if(change=="window")await db.Set<ApplicationCredential>().Where(x=>x.Id==f.Other!.Id).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.ValidFrom,f.Time.Now.AddMinutes(30)));
             if(change=="time")f.Time.Now=f.Time.Now.AddMinutes(2);
             if(change=="publish")await db.Set<EnvironmentRecord>().ExecuteUpdateAsync(s=>s.SetProperty(x=>x.DeploymentSequence,2));
-            if(change=="permission")db.Add(new ApplicationApiPermission{ApplicationId=f.Api.Application.Id,ApiId=f.Api.Api.Id,EnvironmentId=f.Api.Environment.Id,ValidFrom=f.Time.Now.AddMinutes(-1),CreatedBy=f.Api.User.Id});
+            if(change=="permission")db.Add(new ApplicationApiPermission{ApplicationId=f.Api.Application.Id,ApiId=f.Api.Api.Id,EnvironmentId=f.Api.Environment.Id,Mode="LegacyApi",ValidFrom=f.Time.Now.AddMinutes(-1),CreatedBy=f.Api.User.Id});
             await db.SaveChangesAsync();
         }
         using var response=await f.UpdateAsync(f.Request(hash:hash,confirm:true));Assert.Equal(HttpStatusCode.Conflict,response.StatusCode);Assert.Contains("credential_impact_changed",await response.Content.ReadAsStringAsync());

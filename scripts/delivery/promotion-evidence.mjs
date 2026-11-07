@@ -1,4 +1,5 @@
 import {createHash} from 'node:crypto';
+import {validRetainedEvidence,validCloneCleanup} from '../runtime/evidence-retention.mjs';
 
 const hash = /^[a-f0-9]{64}$/;
 const types = ['EntryConnectivity','AuthenticationAuthorization','CriticalBusinessCall'];
@@ -17,7 +18,7 @@ export function validatePromotionProof(p, files = {}) {
     }
   };
   scan(p);
-  require(p?.schemaVersion === 1 && p.classification === 'actual-isolated-cross-environment-promotion', 'Unknown proof format');
+  require([1,2].includes(p?.schemaVersion) && p.classification === 'actual-isolated-cross-environment-promotion', 'Unknown proof format');
   require(/^[a-f0-9]{40}$/.test(p?.sourceRevision) && p?.build?.sourceRevision === p.sourceRevision, 'Source revision mismatch');
   require(p?.sourceVerified === true && p?.isolatedAcceptance === true && p?.productionAcceptance === false, 'Acceptance classification missing');
   require(/^sha256:[a-f0-9]{64}$/.test(p?.build?.imageId) && p.build.imageId === p.build.observedImageId, 'Observed image mismatch');
@@ -52,8 +53,13 @@ export function validatePromotionProof(p, files = {}) {
   for (const name of faults) require(p?.faults?.[name]?.passed===true && p.faults[name].actual===true, 'Actual fault proof missing: '+name);
   const b = p?.backupRestore;
   require(b?.passed===true && b.actual===true && b.freshOwner===true && b.metadataPreserved===true && b.reportId && hash.test(b.reportHash) && b.reportHash===b.originalHash && b.reportHash===b.restoredHash && digest(b.restoredReportPath)===b.reportHash, 'Protected report backup/restore missing');
+  const needsEvidence=b?.sourceEvidenceSupported===true;
+  const cloneRetentionVerified=p?.schemaVersion===2&&typeof b?.sourceEvidenceSupported==='boolean'&&
+    (p.cleanup?.retainedForEvidence===true)===needsEvidence&&p.cleanup?.ownerId===b.sourceOwnerId&&validCloneCleanup(b,{requiresEvidence:needsEvidence});
+  if(p?.schemaVersion===2)require(cloneRetentionVerified, 'Restored clone retention is unverified');
   const screenshots = p?.screenshots ?? [];
   for (const width of [1440,1280]) require(screenshots.some(s=>s.width===width && s.visuallyInspected===true && hash.test(s.sha256) && digest(s.path)===s.sha256), 'Inspected screenshot missing: '+width);
-  require(['containersRemaining','volumesRemaining','secretFilesRemaining'].every(k=>p?.cleanup?.[k]===0), 'Owned cleanup incomplete');
-  return {passed:errors.length===0,errors};
+  const retained=validRetainedEvidence(p?.cleanup,p?.projectName)&&Number.isSafeInteger(p.cleanup.secretFilesRemaining)&&p.cleanup.secretFilesRemaining>=0;
+  require(retained||['containersRemaining','volumesRemaining','secretFilesRemaining'].every(k=>p?.cleanup?.[k]===0), 'Owned cleanup incomplete');
+  return {passed:errors.length===0,errors,cloneRetentionVerified};
 }

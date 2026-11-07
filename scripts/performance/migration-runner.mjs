@@ -6,6 +6,18 @@ import {scanPublicEvidence,removePrivateOwner} from './secrets.mjs';
 import {verifyMigrationCompletion} from './migration.mjs';
 import {captureDatabaseFixture,restoreDatabaseFixture,verifyFixtureRestore} from './database-fixture.mjs';
 import {privateJson,evidence,docker,pickSubnet,assembleValidation,build,command} from './runner-support.mjs';
+// These values belong only to the isolated migration diagnostic fixture; they
+// are not defaults for the product migrator or a performance qualification.
+export function isolatedMigrationCommand(operation,file){
+  if(!['migration-install','migration-upgrade','migration-inspect','migration-failure'].includes(operation)||
+     typeof file!=='string'||!file||file.startsWith('/')||file.split('/').includes('..'))throw Error('Invalid isolated migration diagnostic');
+  const budgets=['migration-install','migration-upgrade'].includes(operation)?[
+    'WEBAPI_MIGRATION_TRANSACTION_SECONDS=900','WEBAPI_MIGRATION_SETTINGS_MAX_BYTES=65536',
+    'WEBAPI_MIGRATION_RULE_MAX_BYTES=16384','WEBAPI_MIGRATION_RULE_MAX_COUNT=100000',
+    'WEBAPI_MIGRATION_TOTAL_MAX_BYTES=67108864'].flatMap(value=>['-e',value]):[];
+  return ['run','--rm','--no-deps',...budgets,'controlplane','dotnet','WebApi.PerformanceHost.dll',operation,
+    '--config','/private/host-controlplane.json','--output','/results/'+file];
+}
 export async function runMigration(options,repo){
   const mutable=options.mode==='validate';
   if(!mutable)for(const id of [options.baseline,options.candidate,options.harness])if(!/^[a-f0-9]{40}$/.test(id??'')||(await command('git',['-C',repo,'rev-parse','--verify',id+'^{commit}'])).stdout.trim()!==id)throw Error('Immutable migration source commit missing');
@@ -29,7 +41,7 @@ export async function runMigration(options,repo){
     await compose('up','-d','--wait','postgres','redis');
     const run=async(variant,operation,file)=>{
       environment.PERF_IMAGE=images[variant].imageId;
-      await compose('run','--rm','--no-deps','controlplane','dotnet','WebApi.PerformanceHost.dll',operation,'--config','/private/host-controlplane.json','--output','/results/'+file);
+      await compose(...isolatedMigrationCommand(operation,file));
       return JSON.parse(await fs.readFile(path.join(options.output,file),'utf8'));
     };
     const reset=async()=>{await compose('exec','-T','postgres','dropdb','-U','webapi','--if-exists','webapi_performance');await compose('exec','-T','postgres','createdb','-U','webapi','webapi_performance');};

@@ -9,7 +9,18 @@ import {writePrivate,loadState} from '../runtime/state.mjs';
 import {docker,inspectResources,assertOwnership} from '../runtime/docker.mjs';
 import {LocalClient} from '../local-client.mjs';
 import {deliveryServices,deliveryVolumeNames} from '../runtime/acceptance-backup.mjs';
+import {requireRestoreIntegration} from '../runtime/restore-storage-budget.mjs';
+import {prepareRecordedScenario,writeScenarioProof} from './scenario-evidence.mjs';
+import {recordCloneAttempt,rememberRestoreResult} from './clone-attempt-evidence.mjs';
+import {scenarioFailure,scenarioFailureMessage,scenarioFailureStatus,boundedScenarioResult,attachScenarioFailure,attachScenarioValue,collectScenarioFailure,describeScenarioFailures} from '../runtime/scenario-failure.mjs';
 const exec=promisify(execFile);
+export function promotionCloneDirectory(root,projectName){
+ if(!/^webapi-enterprise-local-test-[a-f0-9-]{36}$/.test(projectName??''))throw Error('Invalid promotion clone project');
+ return path.resolve(root,'.runtime/tests',projectName);
+}
+export function isPromotionCloneContext(state,directory,projectName){
+ return /^webapi-enterprise-local-test-[a-f0-9-]{36}$/.test(projectName??'')&&state?.projectName===projectName&&typeof directory==='string'&&path.basename(path.resolve(directory))===projectName;
+}
 export async function prepareDeliveryContext(directory,state,release){
  const ctx=await prepareContext(directory,state,release);
  const meta=JSON.parse(await fs.readFile(path.join(directory,'delivery-runtime.json'),'utf8'));
@@ -23,15 +34,23 @@ export async function prepareDeliveryContext(directory,state,release){
  for(const [i,name]of deliveryServices.entries()){const base=structuredClone(template.services[i?'gateway-b':'gateway-a']);base.image=release.imageId;base.environment={...base.environment,Gateway__EnvironmentId:meta.targetEnvironmentId,Gateway__NodeName:name,Gateway__SecretFile:'/run/secrets/node-prod-'+(i?'b':'a'),Upstream__AllowedOrigins__0:'http://backend-a:8080',Upstream__AllowedOrigins__1:'http://backend-b:8080'};base.volumes=['delivery-secrets:/run/secrets:ro','delivery-lkg-'+(i?'b':'a')+':/lkg','secrets-cache:/run/cache:ro'];base.ports=['127.0.0.1:'+(i?meta.ports.gatewayB:meta.ports.gatewayA)+':8080'];services[name]=base;}
  const overlay=path.join(directory,'delivery-overlay.json');await writePrivate(overlay,{services,volumes});ctx.files.push('-f',overlay);ctx.delivery={services:deliveryServices,volumes:deliveryVolumeNames};return ctx;
 }
-export async function cleanupPromotionContext(directory,release){
- const state=await loadState(directory),resources=await inspectResources(state);assertOwnership(state,resources);
- const allowed=['pg','lkg-a','lkg-b','dp-keys','prometheus-data','loki-data','tempo-data','verification-reports','bootstrap-password','secrets-cache',...['postgres','control-plane','worker','gateway-a','gateway-b','migrator'].map(n=>'secrets-'+n),...deliveryVolumeNames];
- for(const r of resources)if(r.Kind==='volume')assert(allowed.some(n=>r.Name===state.projectName+'_'+n),'Unexpected owned delivery volume');
- let ctx;try{await fs.access(path.join(directory,'delivery-runtime.json'));ctx=await prepareDeliveryContext(directory,state,release);}catch(e){if(e.code!=='ENOENT')throw e;ctx=await prepareContext(directory,state,release);}
- await ctx.compose('--profile','tools','down','--volumes','--remove-orphans');assert.equal((await inspectResources(state)).length,0);await fs.rm(directory,{recursive:true});return{containersRemaining:0,volumesRemaining:0,secretFilesRemaining:0};
+export async function cleanupPromotionContext(directory,release,options={}){
+ const state=await loadState(directory);
+ const {cleanupPipelineContext}=await import('./pipeline-runtime.mjs');
+ const prepare=options.prepare??(async(d,s,r)=>{
+  try{await fs.access(path.join(d,'delivery-runtime.json'));}catch(e){if(e.code==='ENOENT')return prepareContext(d,s,r);throw e;}
+  return prepareDeliveryContext(d,s,r);
+ });
+ const result=await cleanupPipelineContext(directory,release,{...options,expectedOwner:options.expectedOwner??state.ownerId,prepare});
+ if(result.retainedForFailure||result.retainedForReview)return result;
+ if(result.retainedForEvidence){
+  const secrets=await fs.readdir(path.join(directory,'secrets')).catch(e=>{if(e.code==='ENOENT')return[];throw e;});
+  return {...result,secretFilesRemaining:secrets.length};
+ }
+ return {...result,containersRemaining:0,volumesRemaining:0,secretFilesRemaining:0};
 }
 export async function preparePromotionContext({sourceRevision:revision,directory,ports,root=process.cwd(),fixtureCredentialValidityMinutes=60,fixtureAllowedOrigins,buildDirectory=path.join(root,'.runtime/delivery-build',revision),checkpoint=async phase=>console.log('Promotion: '+phase)}){
- assert.match(revision,/^[a-f0-9]{40}$/);const projectName=path.basename(directory);assert.match(projectName,/^webapi-enterprise-local-test-[a-f0-9-]{36}$/);const proof={schemaVersion:1,classification:'actual-isolated-cross-environment-promotion',sourceRevision:revision,projectName,checks:[],sourceVerified:false,isolatedAcceptance:false,localInstalled:false,productionAcceptance:false};let release,state,tls;const check=(name,detail={})=>proof.checks.push({name,passed:true,actual:true,...detail});
+ assert.match(revision,/^[a-f0-9]{40}$/);const projectName=path.basename(directory);assert.match(projectName,/^webapi-enterprise-local-test-[a-f0-9-]{36}$/);const proof={schemaVersion:2,classification:'actual-isolated-cross-environment-promotion',sourceRevision:revision,projectName,checks:[],sourceVerified:false,isolatedAcceptance:false,localInstalled:false,productionAcceptance:false};let release,state,tls;const check=(name,detail={})=>proof.checks.push({name,passed:true,actual:true,...detail});
  try{
  await checkpoint('build');try{release=JSON.parse(await fs.readFile(path.join(buildDirectory,'release.json'),'utf8'));assert.equal(release.sourceRevision,revision);}catch(e){if(e.code!=='ENOENT')throw e;release=await buildRelease({revision,directory:buildDirectory,root,nugetSeedVolume:'webapi-enterprise-core-test_nuget-test'});}proof.imageId=release.imageId;
  state=await initializeRuntime({directory,projectName,ports:ports??await freePorts(),bootstrapUsername:'delivery-browser-admin',releaseFile:path.join(buildDirectory,'release.json')});const s=await prepareScenario(directory,state,prepareContext,{fixtureCredentialValidityMinutes,fixtureAllowedOrigins});state=s.state;let ctx=await prepareContext(directory,state,release);const resources=await inspectResources(state);assertOwnership(state,resources);const cp=resources.find(r=>r.Kind==='container'&&r.Config?.Labels?.['com.docker.compose.service']==='control-plane');assert.equal(cp.Image,release.imageId);assert.equal(JSON.parse((await docker(['exec',cp.Id,'cat','/app/build-identity.json'])).stdout).sourceRevision,revision);proof.sourceVerified=true;
@@ -48,17 +67,21 @@ export async function preparePromotionContext({sourceRevision:revision,directory
 
  proof.acceptance={status:'Accepted',acceptedBy:acceptor.user.id,id:acceptance.id};
  const context={root,directory,revision,state,s,ctx,release,source,target,artifact,sourceRelease,baseline,first,second,acceptor,verifier,accounts,cluster,app,key,route,acceptance,tls,ca,prodPorts,fetchProduction,createActor:actor,proof,checkpoint,check};
- context.close=async()=>{await new Promise(r=>tls.close(r));proof.cleanup=await cleanupPromotionContext(directory,release);};return context;
- }catch(e){await new Promise(r=>tls?tls.close(r):r());if(state)await cleanupPromotionContext(directory,release);throw e;}
+ context.close=async({retainOnFailure=false,retainForReview=false}={})=>{await new Promise(r=>tls.close(r));proof.cleanup=await cleanupPromotionContext(directory,release,{expectedOwner:state.ownerId,retainOnFailure,retainForReview});return proof.cleanup;};return context;
+ }catch(e){await new Promise(r=>tls?tls.close(r):r());try{e.retainedDirectory=path.resolve(directory);}catch{}throw e;}
 }
 
-export async function runPromotionScenario(options){
- const c=await preparePromotionContext(options),{s,proof,release,source,target,sourceRelease,artifact}=c;
- const output=path.resolve(options.evidenceDirectory??path.join(c.root,'docs/evidence/release-promotion',c.revision,'b11-runtime'));
- await fs.mkdir(output,{recursive:true});const files={};let cloneDirectory;
+export async function runPromotionScenario(options,deps={}){
+ requireRestoreIntegration(options);
+ if(!/^[a-f0-9]{40}$/.test(options.sourceRevision??''))throw Error('Explicit immutable source revision required');
+ const baseDirectory=path.resolve(options.evidenceDirectory??path.join(options.root??process.cwd(),'docs/evidence/release-promotion',options.sourceRevision,'b11-runtime'));
+ const recorded=await(deps.prepareRecordedScenario??prepareRecordedScenario)({baseDirectory,fixtureDirectory:options.directory,sourceRevision:options.sourceRevision,classification:'actual-isolated-cross-environment-promotion',prepare:()=>preparePromotionContext(options)});
+ const c=recorded.context,output=recorded.output,{s,proof,release,source,target,sourceRelease,artifact}=c;proof.evidenceDirectory=output;
+ const files={};let cloneDirectory,primaryError,failed=false;
  const cookie=client=>[...client.cookies].map(([k,v])=>k+'='+v).join('; ');
  const saveFile=async(name,bytes)=>{files[name]=bytes;const file=path.join(output,name);await fs.mkdir(path.dirname(file),{recursive:true});await fs.writeFile(file,bytes);return createHash('sha256').update(bytes).digest('hex');};
  try{
+  if(deps.beforeScenario)await deps.beforeScenario();
   await c.checkpoint('observe_fixed_binaries');const resources=await inspectResources(c.state);assertOwnership(c.state,resources);const cp=resources.find(r=>r.Kind==='container'&&r.Config?.Labels?.['com.docker.compose.service']==='control-plane');
   const applications={};for(const name of ['control-plane/WebApi.ControlPlane.dll','gateway/WebApi.Gateway.dll']){const temp=path.join(c.directory,'observed-'+path.basename(name));await docker(['cp',cp.Id+':/app/'+name,temp]);applications[name]=await saveFile('binaries/'+name,await fs.readFile(temp));assert.equal(applications[name],release.applications[name]);}
   const packageNames=Object.keys(release.applications),observed=(await docker(['exec',cp.Id,'sha256sum',...packageNames.map(n=>'/app/'+n)])).stdout.trim().split('\n');const packageDigests={};for(const line of observed){const [sha,file]=line.trim().split(/\s+/,2);packageDigests[file.slice(5)]=sha;}assert.deepEqual(packageDigests,release.applications);const staticObserved=(await docker(['exec',cp.Id,'sha256sum',...Object.keys(release.staticFiles).map(n=>'/app/console-dist/'+n.slice('console/dist/'.length))])).stdout.trim().split('\n');const staticDigests={};for(const line of staticObserved){const [sha,file]=line.trim().split(/\s+/,2);staticDigests['console/dist/'+file.slice('/app/console-dist/'.length)]=sha;}assert.deepEqual(staticDigests,release.staticFiles);
@@ -79,15 +102,26 @@ export async function runPromotionScenario(options){
   c.completedPromotion=await recordProduction(c,ready,{reportId:report.id});assert.equal(c.completedPromotion.status,'Completed');proof.verifications=await c.verifier.client.request('/release-promotions/'+ready.id+'/verifications');proof.verifications=proof.verifications.map(v=>({id:v.id,type:v.type,result:v.result,actorId:v.createdBy,configVersion:v.configVersion,deploymentSequence:v.deploymentSequence,contextHash:c.lastVerificationContext.hash,reportId:v.reportId,reportHash:v.reportHash}));proof.approvals=deployed.release.approvalSteps.map(a=>({status:a.status,actorId:a.actorId,stepOrder:a.stepOrder}));proof.completedPromotionId=ready.id;proof.completedReleaseId=deployed.release.id;
   proof.faults=await runPromotionFaults(c);
   await c.checkpoint('cold_backup_and_protected_report_restore');const {coldBackup,restoreColdBackup}=await import('../runtime/acceptance-backup.mjs');const backup=path.join(c.directory,'backup');const hashes=await coldBackup(c.ctx,backup,{contextFactory:prepareDeliveryContext});assert(hashes['verification-reports.tar']&&hashes['delivery-secrets.tar']);
-  const cloneProject='webapi-enterprise-local-test-'+randomUUID();cloneDirectory=path.join(c.root,'.runtime/tests',cloneProject);const clonePorts=await freePorts(),cloneTargetPorts=await freePorts();const cloneFactory=async(d,state,release)=>{const metaFile=path.join(d,'delivery-runtime.json'),meta=JSON.parse(await fs.readFile(metaFile,'utf8'));if(d===cloneDirectory)await writePrivate(metaFile,{...meta,ports:cloneTargetPorts});return prepareDeliveryContext(d,state,release);};
-  const restored=await restoreColdBackup({target:backup,projectName:cloneProject,directory:cloneDirectory,ports:clonePorts,contextFactory:cloneFactory});await initializeRuntime({directory:cloneDirectory,projectName:cloneProject,ports:clonePorts,bootstrapUsername:c.state.bootstrapUsername,releaseFile:path.join(cloneDirectory,'release.json')},{prepareContext:cloneFactory});await restored.ctx.compose('up','-d','prod-gateway-a','prod-gateway-b');
+  const cloneProject='webapi-enterprise-local-test-'+randomUUID();cloneDirectory=promotionCloneDirectory(c.root,cloneProject);proof.cloneAttempt={scope:'promotion',cloneProjectName:cloneProject,cloneDirectory,restoreOutcome:'NotStarted'};const clonePorts=await freePorts(),cloneTargetPorts=await freePorts();const cloneFactory=async(d,state,release)=>{const metaFile=path.join(d,'delivery-runtime.json'),meta=JSON.parse(await fs.readFile(metaFile,'utf8'));if(isPromotionCloneContext(state,d,cloneProject))await writePrivate(metaFile,{...meta,ports:cloneTargetPorts});return prepareDeliveryContext(d,state,release);};
+  proof.cloneAttempt.restoreOutcome='InProgress';const restored=await restoreColdBackup({target:backup,projectName:cloneProject,directory:cloneDirectory,ports:clonePorts,contextFactory:cloneFactory,restoreBudget:options.restoreBudget,storageVerifier:options.storageVerifier});rememberRestoreResult(proof.cloneAttempt,restored);if(!restored.restoreComplete)throw Error('Restored migration evidence requires review');await initializeRuntime({directory:cloneDirectory,projectName:cloneProject,ports:clonePorts,bootstrapUsername:c.state.bootstrapUsername,releaseFile:path.join(cloneDirectory,'release.json')},{prepareContext:cloneFactory});await restored.ctx.compose('up','-d','prod-gateway-a','prod-gateway-b');
   const clone=new LocalClient('http://127.0.0.1:'+clonePorts.console);await clone.login(c.state.bootstrapUsername,s.password);
   async function download(client){const response=await fetch(client.base+'/api/v1/verification-reports/'+report.id+'/download',{headers:{Cookie:cookie(client)}});assert.equal(response.status,200);assert.match(response.headers.get('content-disposition'),/^attachment;/);assert.match(response.headers.get('cache-control'),/no-store/);assert.equal(response.headers.get('x-content-type-options'),'nosniff');return Buffer.from(await response.arrayBuffer());}
   const originalBytes=await download(c.verifier.client),restoredBytes=await download(clone);assert.deepEqual(originalBytes,reportBytes);assert.deepEqual(restoredBytes,reportBytes);const copiedFacts=await clone.request('/release-promotions/'+ready.id+'/verifications');assert(copiedFacts.length===3&&copiedFacts.every(v=>v.reportId===report.id&&v.reportHash===report.sha256));assert.equal((await clone.request('/release-artifacts/'+artifact.id)).artifactHash,artifact.artifactHash);assert.equal((await clone.request('/release-promotions/'+ready.id)).status,'Completed');
   for(const [port,key,backend]of [[clonePorts.gatewayA,sourceKey,'A'],[clonePorts.gatewayB,sourceKey,'A'],[cloneTargetPorts.gatewayA,c.key.apiKey,'B'],[cloneTargetPorts.gatewayB,c.key.apiKey,'B']])await until(async()=>{const r=await fetch('http://127.0.0.1:'+port+'/orders',{headers:{'X-API-Key':key},signal:AbortSignal.timeout(5000)});return r.ok?await r.json():null;},b=>b?.backendId===backend,60);
-  const reportPath='synthetic-restored-report.txt';await saveFile(reportPath,restoredBytes);proof.backupRestore={passed:true,actual:true,freshOwner:restored.state.ownerId!==c.state.ownerId,reportId:report.id,reportHash:report.sha256,originalHash:createHash('sha256').update(originalBytes).digest('hex'),restoredHash:createHash('sha256').update(restoredBytes).digest('hex'),restoredReportPath:reportPath,metadataPreserved:true,databaseHash:hashes['postgres.dump'],reportsArchiveHash:hashes['verification-reports.tar'],deliveryVolumesRestored:3,actualRestoredGatewayRequests:4};await cleanupPromotionContext(cloneDirectory,release);cloneDirectory=null;
+  const reportPath='synthetic-restored-report.txt';await saveFile(reportPath,restoredBytes);proof.backupRestore={passed:true,actual:true,freshOwner:restored.state.ownerId!==c.state.ownerId,reportId:report.id,reportHash:report.sha256,originalHash:createHash('sha256').update(originalBytes).digest('hex'),restoredHash:createHash('sha256').update(restoredBytes).digest('hex'),restoredReportPath:reportPath,metadataPreserved:true,databaseHash:hashes['postgres.dump'],reportsArchiveHash:hashes['verification-reports.tar'],deliveryVolumesRestored:3,actualRestoredGatewayRequests:4,ownerId:restored.state.ownerId,sourceOwnerId:c.state.ownerId,sourceEvidenceSupported:Boolean(c.ctx.migrationEvidenceSupported),cloneProjectName:cloneProject,cloneDirectory};proof.backupRestore.cloneCleanup=await cleanupPromotionContext(cloneDirectory,release,{expectedOwner:restored.state.ownerId,retainForReview:true});
   proof.screenshots=[];for(const check of proof.checks.filter(x=>x.path?.endsWith('.png'))){const bytes=await fs.readFile(path.join(c.root,check.path)),name=path.relative(output,path.join(c.root,check.path));files[name]=bytes;proof.screenshots.push({path:name,sha256:createHash('sha256').update(bytes).digest('hex'),width:check.path.includes('1440')?1440:1280,visuallyInspected:false});}
   for(const secret of [s.password,sourceKey,c.key.apiKey])assert(!JSON.stringify(proof).includes(secret));proof.isolatedAcceptance=true;proof.phase='passed-awaiting-visual-inspection';return proof;
- }catch(e){proof.phase='failed';proof.failure={message:e.message,status:e.status??null,diagnostic:e.result?.stderr?.slice(0,1200)??null};throw Object.assign(e,{proof});}
- finally{try{if(cloneDirectory)await cleanupPromotionContext(cloneDirectory,release);}finally{await c.close();await fs.writeFile(path.join(output,'proof.json'),JSON.stringify(proof,null,2)+'\n');}}
+ }catch(e){failed=true;primaryError=scenarioFailure(e,proof);proof.phase='failed';const result=boundedScenarioResult(primaryError);proof.failure={message:scenarioFailureMessage(primaryError),status:scenarioFailureStatus(primaryError),diagnostic:typeof result?.stderr==='string'?result.stderr.slice(0,1200):null};}
+ finally{await finishPromotionScenario({c,proof,failed,primaryError,output,cloneDirectory,release,deps});}
+}
+export async function finishPromotionScenario({c,proof,failed,primaryError,output,cloneDirectory,release,deps={}}){
+  const secondary=[];
+  if(cloneDirectory){proof.cloneAttempt=await recordCloneAttempt(proof.cloneAttempt??{cloneProjectName:path.basename(cloneDirectory),cloneDirectory},{failed,error:primaryError});if(proof.cloneAttempt.directoryExists===true)proof.observedTargetDirectory=cloneDirectory;}
+  if(proof.isolatedAcceptance===true){proof.executionPassed=true;proof.isolatedAcceptance=false;proof.phase='awaiting-retained-fixture-review';}
+  try{const retained=await c.close(failed?{retainOnFailure:true}:{retainForReview:true});if(retained&&typeof retained==='object')proof.cleanup=retained;}catch(e){collectScenarioFailure(secondary,'source-close',e);}
+  if(secondary.length){proof.cleanupError=scenarioFailureMessage(secondary[0].error);proof.secondaryFailures=describeScenarioFailures(secondary);proof.isolatedAcceptance=false;if(proof.cloneAttempt)proof.cloneAttempt.scenarioOutcome='Failed';if(!failed)proof.phase='finalization-incomplete';}
+  try{await(deps.writeScenarioProof??writeScenarioProof)(output,proof);proof.evidencePersistence='verified';}catch(e){proof.isolatedAcceptance=false;proof.evidencePersistence='Unknown';proof.phase='evidence-persistence-unknown';if(proof.cloneAttempt)proof.cloneAttempt.scenarioOutcome='Failed';collectScenarioFailure(secondary,'proof-write',e);}
+  if(secondary.length)proof.secondaryFailures=describeScenarioFailures(secondary);
+  if(failed){const first=secondary.find(item=>item.stage!=='proof-write'),write=secondary.find(item=>item.stage==='proof-write');if(first)primaryError=attachScenarioFailure(primaryError,'cleanupError',first.error);if(write)primaryError=attachScenarioFailure(primaryError,'proofWriteError',write.error);if(secondary.length)primaryError=attachScenarioValue(primaryError,'secondaryFailures',secondary);throw primaryError;}
+  if(secondary.length){let error=scenarioFailure(secondary[0].error,proof);error=attachScenarioValue(error,'secondaryFailures',secondary);throw error;}
 }

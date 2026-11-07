@@ -21,9 +21,14 @@ public sealed class CredentialUsageStorageTests
     [Fact]
     public async Task Migration_adds_only_five_usage_tables_and_preserves_all_existing_bytes()
     {
-        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedConsumerAsync();await using var db=api.Context();
+        await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();
         var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261015010000_AccountPasswordLifecycle");
-        var before=await MigrationProbe.InspectAsync(db);await migrator.MigrateAsync();await RequireTablesAsync(api.Database);var after=await MigrationProbe.InspectAsync(db);
+        // Create the historical baseline directly. Governance migrations are intentionally non-reversible.
+        var organization=Guid.NewGuid();var project=Guid.NewGuid();var environment=Guid.NewGuid();
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO organizations(id,code,name,status,created_at,updated_at,revision) VALUES({organization},'USAGE-ORG','Usage organization','Active',now(),now(),7)");
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO projects(id,organization_id,code,name,status,created_at,updated_at,revision) VALUES({project},{organization},'USAGE-PROJ','Usage project','Active',now(),now(),4)");
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO environments(id,project_id,code,name,is_production,sort_order,status,revision,base_path) VALUES({environment},{project},'TEST','Usage environment',false,0,'Active',3,'/usage')");
+        var before=await MigrationProbe.InspectAsync(db);await migrator.MigrateAsync("20261015020000_CredentialUsageTracking");await RequireTablesAsync(database);var after=await MigrationProbe.InspectAsync(db);
         Assert.Equal(Tables,after.Tables.Where(t=>!before.Tables.Any(b=>b.Name==t.Name)).Select(t=>t.Name).Order(StringComparer.Ordinal));
         Assert.Equal(before.Tables.Select(t=>(t.Name,t.Columns.Count,t.Rows,t.DataHash)),after.Tables.Where(t=>before.Tables.Any(b=>b.Name==t.Name)).Select(t=>(t.Name,t.Columns.Count,t.Rows,t.DataHash)));
         Assert.All(before.Indexes,x=>Assert.Contains(after.Indexes,y=>y.Name==x.Name&&y.Table==x.Table&&y.DefinitionHash==x.DefinitionHash&&y.Valid&&y.Ready));
@@ -45,7 +50,7 @@ public sealed class CredentialUsageStorageTests
     public async Task Cleanup_is_bounded_and_keeps_collector_cursor_and_last_used()
     {
         await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedConsumerAsync();await RequireTablesAsync(api.Database);
-        var now=DateTimeOffset.Parse("2026-10-15T12:00:00Z");var node=new GatewayNode{EnvironmentId=api.Environment.Id,NodeName="usage-cleanup",InstanceId=Guid.NewGuid().ToString(),Enabled=true};var credential=new ApplicationCredential{ApplicationId=api.Application.Id,AccessKey="cleanup",SecretHash="synthetic",SecretLast4="0000",ValidFrom=now.AddDays(-40),ExpiresAt=now.AddDays(10),LastUsedAt=now.AddDays(-35)};var collector=Guid.NewGuid();
+        var now=DateTimeOffset.Parse("2026-10-15T12:00:00Z");var node=new GatewayNode{EnvironmentId=api.Environment.Id,NodeName="usage-cleanup",InstanceId=Guid.NewGuid().ToString(),Enabled=true};var credential=new ApplicationCredential{ApplicationId=api.Application.Id,OrganizationId=api.Organization.Id,AccessKey="cleanup",SecretHash="synthetic",SecretLast4="0000",ValidFrom=now.AddDays(-40),ExpiresAt=now.AddDays(10),LastUsedAt=now.AddDays(-35)};var collector=Guid.NewGuid();
         await using(var db=api.Context()){db.AddRange(node,credential);await db.SaveChangesAsync();
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO credential_usage_collectors(node_id,collector_id,environment_id,protocol,accepted_sequence,created_at) VALUES ({node.Id},{collector},{api.Environment.Id},'1.0',17,{now.AddDays(-40)})");
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO credential_usage_hourly(environment_id,credential_id,hour_start,application_id,count,last_used_at) SELECT {api.Environment.Id},{credential.Id},{now.AddDays(-90)}+g*INTERVAL '1 hour',{api.Application.Id},1,{now.AddDays(-90)}+g*INTERVAL '1 hour'+INTERVAL '30 minutes' FROM generate_series(0,1000) g");

@@ -2,6 +2,9 @@ import fs from 'node:fs/promises';import path from 'node:path';import assert fro
 import {validateFixture} from '../runtime/fixture-guard.mjs';
 import {prepareDeliveryContext} from './promotion-scenario.mjs';
 import {prepareContext} from '../runtime/context.mjs';import {loadState,writePrivate} from '../runtime/state.mjs';import {docker,inspectResources,assertOwnership} from '../runtime/docker.mjs';import {validatePipelineContext,pipelineServices,backupVolumeNames} from '../runtime/acceptance-backup.mjs';
+import {prepareMigrationEvidenceVolume} from '../runtime/migration-evidence-volume.mjs';
+import {withRestoreTargetLock,cleanupDirectoryIdentity,assertCleanupDirectoryIdentity,cleanupParentWritable,assertTrustedRestoreParent} from '../runtime/restore-target-lock.mjs';
+import {assertRestoreComplete} from '../account-credential/clone-restore.mjs';
 export async function preparePipelineContext(directory,state,release){
  const ctx=await prepareDeliveryContext(directory,state,release),meta=JSON.parse(await fs.readFile(path.join(directory,'pipeline-runtime.json'),'utf8'));ctx.pipeline={ownerId:state.ownerId,stageGroups:meta.stageGroups};validatePipelineContext(ctx);
  const base=JSON.parse(await fs.readFile(path.join(directory,'artifacts',release.sourceRevision,'deploy/compose.runtime.gateways.yml'),'utf8')),demo=JSON.parse(await fs.readFile(path.join(directory,'artifacts',release.sourceRevision,'deploy/compose.runtime.demo.yml'),'utf8'));
@@ -15,8 +18,28 @@ export async function preparePipelineContext(directory,state,release){
  }
  services['control-plane']=cp;const overlay=path.join(directory,'pipeline-overlay.json');await writePrivate(overlay,{services,volumes});ctx.files.push('-f',overlay);return ctx;
 }
-export async function cleanupPipelineContext(directory,release,{expectedOwner,inspect=inspectResources,prepare=prepareContext,preparePipeline=preparePipelineContext,remove=fs.rm}={}){
- const state=await loadState(directory);validateFixture(state.projectName,directory);if(!expectedOwner||state.ownerId!==expectedOwner)throw Error('Expected disposable cleanup owner mismatch');const resources=await inspect(state);assertOwnership(state,resources);let ctx;try{await fs.access(path.join(directory,'pipeline-runtime.json'));ctx=await preparePipeline(directory,state,release);}catch(e){if(e.code!=='ENOENT')throw e;ctx=await prepare(directory,state,release);}
- const allowed=new Set([...backupVolumeNames(ctx),'bootstrap-password',...['postgres','control-plane','worker','gateway-a','gateway-b','migrator'].map(n=>'secrets-'+n)]);for(const r of resources)if(r.Kind==='volume')assert([...allowed].some(n=>r.Name===state.projectName+'_'+n),'Unexpected owned pipeline volume');await ctx.compose('--profile','tools','down','--volumes','--remove-orphans');const remaining=(await inspect(state)).length;assert.equal(remaining,0);await remove(directory,{recursive:true,force:true});return {remainingOwnedResources:remaining,ownerVerified:true,originalRuntimeUntouched:true};
+export async function cleanupPipelineContext(directory,release,{expectedOwner,inspect=inspectResources,prepare=prepareContext,preparePipeline=preparePipelineContext,prepareEvidence=prepareMigrationEvidenceVolume,remove=fs.rm,retainOnFailure=false,retainForReview=false,targetLock}={}){
+ const identity=await cleanupDirectoryIdentity(directory),state=await loadState(directory);validateFixture(state.projectName,directory);if(!expectedOwner||state.ownerId!==expectedOwner)throw Error('Expected disposable cleanup owner mismatch');await assertCleanupDirectoryIdentity(directory,identity);
+ const parentWritable=await cleanupParentWritable(directory);
+ const recheck=async()=>{await assertCleanupDirectoryIdentity(directory,identity);const current=await loadState(directory);if(current.ownerId!==state.ownerId||current.projectName!==state.projectName)throw Error('Cleanup owner identity changed');};
+ return withRestoreTargetLock(directory,async()=>{await assertTrustedRestoreParent(await fs.realpath(path.dirname(path.resolve(directory))),{privateParent:false,protectedChild:directory});await recheck();await assertRestoreComplete(directory);const resources=await inspect(state);assertOwnership(state,resources);
+ // Failure resources remain diagnostic evidence, including on old releases.
+ if(retainOnFailure||retainForReview)return {...(retainOnFailure?{retainedForFailure:true}:{retainedForReview:true}),projectName:state.projectName,ownerId:state.ownerId,directory,directoryRetained:true,remainingOwnedResources:resources.length,ownerVerified:true};
+ let ctx;try{await fs.access(path.join(directory,'pipeline-runtime.json'));ctx=await preparePipeline(directory,state,release);}catch(e){if(e.code!=='ENOENT')throw e;ctx=await prepare(directory,state,release);}
+ const allowed=new Set([...backupVolumeNames(ctx),'bootstrap-password',...['postgres','control-plane','worker','gateway-a','gateway-b','migrator'].map(n=>'secrets-'+n)]);
+ const validate=items=>{assertOwnership(state,items);for(const r of items)if(r.Kind==='volume')assert([...allowed].some(n=>r.Name===state.projectName+'_'+n),'Unexpected owned pipeline volume');};validate(resources);
+ const evidence=resources.find(r=>r.Kind==='volume'&&r.Name===state.projectName+'_migration-evidence');
+ if(ctx.migrationEvidenceSupported||evidence){
+  if(!ctx.migrationEvidenceSupported||!evidence)throw Error('Migration evidence volume is missing or its identity is unverified; retain fixture');
+  await prepareEvidence(state,{directory,inspect});
+  await ctx.compose('--profile','tools','down','--remove-orphans');
+  const remaining=await inspect(state);validate(remaining);
+  if(remaining.some(r=>r.Kind!=='volume'))throw Error('Pipeline containers or networks remain; retain fixture');
+  await prepareEvidence(state,{directory,inspect});
+  return {retainedForEvidence:true,projectName:state.projectName,ownerId:state.ownerId,directory,directoryRetained:true,identityVerified:true,containersRemaining:0,volumesRemaining:remaining.length,retainedVolumeNames:remaining.map(r=>r.Name).sort(),remainingOwnedResources:remaining.length,ownerVerified:true,originalRuntimeUntouched:true};
+ }
+ if(!parentWritable)throw Error('Cleanup requires a writable parent to remove the target directory');
+ await ctx.compose('--profile','tools','down','--volumes','--remove-orphans');const remaining=await inspect(state);validate(remaining);assert.equal(remaining.length,0);await recheck();await remove(directory,{recursive:true,force:true});return {projectName:state.projectName,ownerId:state.ownerId,directory,directoryRetained:false,containersRemaining:0,volumesRemaining:0,secretFilesRemaining:0,remainingOwnedResources:0,ownerVerified:true,originalRuntimeUntouched:true};
+ },{token:targetLock,forceParent:parentWritable});
 }
 export const pipelineRuntimeServices=ctx=>[...new Set([...pipelineServices(ctx),...(ctx.pipeline?.stageGroups.filter(g=>g.kind==='Middle').map(g=>`pipeline-stage-${g.order}-backend`)||[])])];
