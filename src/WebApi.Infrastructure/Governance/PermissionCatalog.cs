@@ -16,7 +16,7 @@ public static class PermissionCatalog
     ];
     public static async Task SeedAsync(WebApiDbContext db,CancellationToken ct=default)
     {
-        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
+        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
         var permissions=await db.Set<Permission>().ToDictionaryAsync(x=>x.Code,ct);
         foreach(var code in Codes) if(!permissions.ContainsKey(code)) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code,Description="源文档平台功能权限"};permissions.Add(code,p);db.Add(p);}
         var read=Codes.Where(c=>c.EndsWith(".read",StringComparison.Ordinal)&&!c.StartsWith("pipeline.",StringComparison.Ordinal)).ToArray();

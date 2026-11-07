@@ -31,7 +31,7 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
             }
             catch(ApiException error)when(error.Status==503){logger.LogWarning("Alert observation unavailable: source_unavailable metrics");}
         }
-        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
+        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
         var current=await db.Set<AlertRule>().FromSqlInterpolated($"SELECT * FROM alert_rules WHERE id={lease.RuleId} FOR UPDATE").SingleOrDefaultAsync(ct);
         var state=await db.Set<AlertEvaluationState>().FromSqlInterpolated($"SELECT * FROM alert_evaluation_states WHERE rule_id={lease.RuleId} AND logic_revision={lease.LogicRevision} AND environment_id={lease.EnvironmentId} AND resource_key={lease.ResourceKey} FOR UPDATE").SingleOrDefaultAsync(ct);
         var now=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct);

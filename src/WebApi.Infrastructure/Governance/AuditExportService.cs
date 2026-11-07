@@ -25,7 +25,7 @@ public sealed class AuditExportService(WebApiDbContext db,AuditAccessQuery acces
         }
         await using(var tx=await db.Database.BeginTransactionAsync(ct))
         {
-            await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);var final=await access.AccessAsync(actor,traceId,resourceId,ct);await Enabled(ct);if(final.ScopeFingerprint!=first.ScopeFingerprint)throw new ApiException(403,"audit_export_authority_changed","导出期间权限范围发生变化，请重新读取。");await tx.CommitAsync(ct);
+            await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);var final=await access.AccessAsync(actor,traceId,resourceId,ct);await Enabled(ct);if(final.ScopeFingerprint!=first.ScopeFingerprint)throw new ApiException(403,"audit_export_authority_changed","导出期间权限范围发生变化，请重新读取。");await tx.CommitAsync(ct);
         }
         return new(buffer.ToArray(),rows,truncated);
     }

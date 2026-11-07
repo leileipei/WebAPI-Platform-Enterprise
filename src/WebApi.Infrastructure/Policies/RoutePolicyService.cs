@@ -37,10 +37,14 @@ public sealed class RoutePolicyService(WebApiDbContext db,AuthorizationService a
                     if(p.Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(p.Config).Jwt is {} jwt) await mappings.ValidateAsync(new(p.OrganizationId,p.ProjectId),jwt,actor,inner);
                     policies.Add(new(p.Id,b.Priority,PolicyService.Dto(p)));
                 }
-                PolicyBindingRules.Validate(policies.Select(b=>new PolicyBindingConfiguration(b.PolicyId,b.Policy.Type,b.Policy.Config,b.Policy.Enabled,b.Priority)).ToArray(),true,route.TimeoutMs);
+                var effective=PolicyBindingRules.Validate(policies.Select(b=>new PolicyBindingConfiguration(b.PolicyId,b.Policy.Type,b.Policy.Config,b.Policy.Enabled,b.Priority)).ToArray(),true,route.TimeoutMs);
                 var previous=await db.Set<RoutePolicyBinding>().Where(b=>b.RouteId==routeId).ToArrayAsync(inner);
                 db.RemoveRange(previous.Where(b=>!request.Bindings.Any(n=>n.PolicyId==b.PolicyId)));
                 foreach(var binding in request.Bindings) {var existing=previous.SingleOrDefault(b=>b.PolicyId==binding.PolicyId);if(existing is not null) existing.Priority=binding.Priority;else db.Add(new RoutePolicyBinding {RouteId=routeId,PolicyId=binding.PolicyId,Priority=binding.Priority});}
+                // Keep the protected auth projection in the same route update.
+                // Otherwise the deferred binding guard changes it at commit,
+                // advances Revision again, and invalidates the returned ETag.
+                route.AuthenticationMode=(effective.Authentication?.Mode??AuthenticationMode.ApiKey).ToString();
                 route.Revision++;route.UpdatedAt=DateTimeOffset.UtcNow;
                 return new CommandResult<RoutePoliciesDto>(new(routeId,route.Revision,policies.OrderBy(b=>b.Priority).ThenBy(b=>b.PolicyId).ToArray()),RevisionTag.Format(route.Revision));
             },token);

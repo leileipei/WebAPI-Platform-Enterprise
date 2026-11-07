@@ -73,7 +73,7 @@ public sealed class SsoLoginCoordinator(WebApiDbContext db,SystemSettingsReader 
         if(changed==1||!ownsProcessing)db.Add(new AuditLog{Action="auth.sso.failed",ResourceType="sso_login_attempt",ResourceId=attemptId.ToString(),AfterJson=JsonSerializer.Serialize(new{code},CanonicalJson.Options),CreatedAt=clock.GetUtcNow()});
         await db.SaveChangesAsync(ct);await transaction.CommitAsync(ct);
     }
-    private Task<int> Lock(CancellationToken ct)=>db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
+    private Task<int> Lock(CancellationToken ct)=>db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
     private static string? Profile(string? claim,IReadOnlyDictionary<string,string> claims,string? current,int maximum,bool required)
     {
         if(claim is null||!claims.TryGetValue(claim,out var value))return current;
