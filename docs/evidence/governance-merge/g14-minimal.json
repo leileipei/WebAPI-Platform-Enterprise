@@ -1,0 +1,20 @@
+{
+  "checks": [
+    {
+      "name": "D1_1KilledGatewayAfterAckConvergesViaOtherNode",
+      "result": "passed",
+      "sequence": 17
+    },
+    {
+      "name": "D1_2WorkerKilledMidPublishIdempotentContinuation",
+      "result": "passed",
+      "sequence": 18
+    },
+    {
+      "name": "D1_3CoordinatedRedisRestartRebuildsFromPg",
+      "result": "passed",
+      "sequence": 18
+    }
+  ],
+  "complete": true
+}
