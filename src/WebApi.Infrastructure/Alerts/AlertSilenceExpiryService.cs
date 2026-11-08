@@ -7,7 +7,7 @@ public sealed class AlertSilenceExpiryService(WebApiDbContext db,NotificationPla
 {
     public async Task<int> ExpireAsync(CancellationToken ct)
     {
-        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);var now=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct);
+        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);var now=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct);
         var candidates=await db.Set<AlertEvent>().AsNoTracking().Where(x=>x.Status=="Silenced"&&x.SilencedUntil<=now).OrderBy(x=>x.RuleId).ThenBy(x=>x.Id).Take(100).ToArrayAsync(ct);var count=0;
         foreach(var candidate in candidates)
         {

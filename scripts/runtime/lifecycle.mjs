@@ -2,9 +2,40 @@ import {assertRestoreComplete} from '../account-credential/clone-restore.mjs';
 import {synchronizeConsoleProxyTrust} from '../security/proxy-trust.mjs';
 import {fixtureRequest} from '../notifications/fixture.mjs';
 import {assertNotificationPorts} from '../notifications/runtime-secrets.mjs';
+import {migrationEvidenceMayBeCreated,prepareMigrationEvidenceVolume,markMigrationEvidenceVolumeReady} from './migration-evidence-volume.mjs';
 import fs from'node:fs/promises';import path from'node:path';import net from'node:net';import{randomBytes}from'node:crypto';
+import {constants} from 'node:fs';
+import {RestoreTargetLockHeldError} from './restore-target-lock.mjs';
 import{RuntimeError,initializeState,loadState,saveState,withRuntimeLock,safeFile,writePrivate,ownedDirectory,validateState,deploymentState}from'./state.mjs';import{inspectResources,assertOwnership,docker}from'./docker.mjs';import{prepareContext}from'./context.mjs';
 const secretNames=['postgres-password','node-a','node-b','ip-hmac','cursor-signing'];
+const pendingMigration='migration-attempt-pending.json';
+async function assertNoPendingMigration(directory){
+ try{await fs.lstat(path.join(directory,pendingMigration));}catch(error){if(error.code==='ENOENT')return;throw error;}
+ throw new RuntimeError('A migration attempt is pending review; preserve its evidence before any retry.',3);
+}
+async function startPendingMigration(directory,state,release){
+ const file=path.join(directory,pendingMigration);
+ const handle=await fs.open(file,'wx',0o600);let identity,contents;
+ try{
+  const marker={schemaVersion:1,ownerId:state.ownerId,projectName:state.projectName,sourceRevision:release.sourceRevision,nonce:randomBytes(32).toString('hex')};
+  contents=JSON.stringify(marker)+'\n';await handle.writeFile(contents);await handle.sync();identity=await handle.stat();
+ }finally{await handle.close();}
+ const parent=await fs.open(directory,'r');try{await parent.sync();}finally{await parent.close();}
+ return {identity,contents};
+}
+async function finishPendingMigration(directory,expected){
+ const file=path.join(directory,pendingMigration);await safeFile(file);
+ const handle=await fs.open(file,constants.O_RDONLY|constants.O_NOFOLLOW);
+ try{
+  const current=await handle.stat(),identity=expected.identity,contents=await handle.readFile('utf8'),after=await handle.stat(),named=await fs.lstat(file);
+  if(current.nlink!==1||current.dev!==identity.dev||current.ino!==identity.ino||current.size!==identity.size||
+     current.mtimeMs!==identity.mtimeMs||current.ctimeMs!==identity.ctimeMs||contents!==expected.contents||
+     after.dev!==current.dev||after.ino!==current.ino||after.size!==current.size||after.mtimeMs!==current.mtimeMs||after.ctimeMs!==current.ctimeMs||
+     named.dev!==current.dev||named.ino!==current.ino)
+   throw new RuntimeError('Migration pending identity changed; inspect before retry.',3);
+ }finally{await handle.close();}
+ await fs.unlink(file);const parent=await fs.open(directory,'r');try{await parent.sync();}finally{await parent.close();}
+}
 export const runtimeServices=(input,notification=null)=>{const state=deploymentState(input);return['postgres','redis','collector','prometheus','loki','tempo','control-plane','worker','console',...(state.binding?['gateway-a','gateway-b']:[]),...(state.demoEnabled?['backend-a','backend-b']:[]),...(notification?.fixtureEnabled?['notification-fixture']:[])];};
 export async function assertPorts(state,{inspect=inspectResources}={}){const resources=await inspect(state);assertOwnership(state,resources);const owned=new Set(resources.flatMap(r=>Object.values(r.NetworkSettings?.Ports??{}).flatMap(v=>v??[]).filter(p=>p.HostIp==='127.0.0.1').map(p=>Number(p.HostPort))));for(const port of Object.values(state.ports)){if(owned.has(port))continue;await new Promise((resolve,reject)=>{const socket=net.createServer();socket.once('error',()=>reject(new RuntimeError('Runtime port '+port+' is occupied or unavailable; no owner was stopped.',3)));socket.listen(port,'127.0.0.1',()=>socket.close(resolve));});}}
 export async function loadRelease(file){await safeFile(file);const r=JSON.parse(await fs.readFile(file,'utf8'));if(r.schemaVersion!==1||r.configVersion!==1||!/^sha256:[a-f0-9]{64}$/.test(r.imageId)||!/^[a-f0-9]{40}$/.test(r.sourceRevision))throw new RuntimeError('Invalid release manifest.',6);return r;}
@@ -21,11 +52,35 @@ export async function waitForRuntime(ctx){const end=Date.now()+180000;const paus
  if(ctx.notification?.fixtureEnabled)while(true){try{const fixture=await fixtureRequest(ctx.directory,ctx.state,'/owner/observations');if(fixture.binaryVerified&&fixture.sourceRevision===ctx.release.sourceRevision&&fixture.binaryHash===ctx.release.applications?.['notification-fixture/WebApi.NotificationFixtureHost.dll']&&fixture.ownerId===ctx.state.ownerId&&fixture.projectName===ctx.state.projectName)break;}catch{}if(Date.now()>end)throw new RuntimeError('Owned notification fixture identity startup timed out; no delivery inferred.',4);await pause();}
 }
 export async function initializeRuntime(options,deps={}){
- await assertRestoreComplete(path.resolve(options.directory));
- const directory=path.resolve(options.directory);let state;try{state=await loadState(directory);}catch(e){if(e.code!=='ENOENT')throw e;state=await initializeState(directory,options);}if(state.bootstrapUsername!==options.bootstrapUsername)throw new RuntimeError('Cannot change initialized administrator username.',3);
- return withRuntimeLock(directory,async()=>{await assertRestoreComplete(directory);state=await loadState(directory);const proposed={...state,ports:{...state.ports,...options.ports}};validateState(proposed);if(JSON.stringify(proposed.ports)!==JSON.stringify(state.ports)){const resources=await(deps.inspectResources??inspectResources)(state);assertOwnership(state,resources);if(state.initialized||resources.length)throw new RuntimeError('Cannot change runtime ports after initialization or resource creation.',3);await(deps.assertPorts??assertPorts)(proposed);await saveState(directory,proposed);state=proposed;}else await(deps.assertPorts??assertPorts)(state);const releaseFile=options.releaseFile??(state.initialized?path.join(directory,'release.json'):path.resolve('.runtime/local-build/release.json'));const release=await(deps.loadRelease??loadRelease)(releaseFile);await prepareSecrets(directory,state,options.passwordFile);const ctx=await(deps.prepareContext??prepareContext)(directory,state,release);
- await ctx.compose('run','--rm','--no-deps','init-volumes');await ctx.compose('up','-d','--wait','postgres','redis');const args=['run','--rm','--no-deps'];if(!state.initialized)args.push('-e','WEBAPI_BOOTSTRAP_USERNAME='+state.bootstrapUsername,'-e','WEBAPI_BOOTSTRAP_PASSWORD_FILE=/run/bootstrap/password','--volume',state.projectName+'_bootstrap-password:/run/bootstrap:ro');args.push('migrator');if(!state.initialized)args.push('dotnet','/app/migrator/WebApi.Migrator.dll','--bootstrap');await ctx.compose(...args);
- state={...state,initialized:true,releaseId:release.sourceRevision};await writePrivate(path.join(directory,'release.json'),release);await saveState(directory,state);await(deps.removeBootstrapVolume??removeBootstrapVolume)(state);await ctx.compose('up','-d',...runtimeServices(state,ctx.notification));if(ctx.securitySupported)await(deps.synchronizeProxy??synchronizeConsoleProxyTrust)(ctx);await(deps.wait??waitForRuntime)(ctx);return state;});
+ const directory=path.resolve(options.directory);
+ await assertRestoreComplete(directory);
+ let state;try{state=await loadState(directory);}catch(e){if(e.code!=='ENOENT')throw e;state=await initializeState(directory,options);}
+ return withRuntimeLock(directory,async()=>{await assertRestoreComplete(directory);state=await loadState(directory);if(state.bootstrapUsername!==options.bootstrapUsername)throw new RuntimeError('Cannot change initialized administrator username.',3);await assertNoPendingMigration(directory);const proposed={...state,ports:{...state.ports,...options.ports}};validateState(proposed);if(JSON.stringify(proposed.ports)!==JSON.stringify(state.ports)){const resources=await(deps.inspectResources??inspectResources)(state);assertOwnership(state,resources);if(state.initialized||resources.length)throw new RuntimeError('Cannot change runtime ports after initialization or resource creation.',3);await(deps.assertPorts??assertPorts)(proposed);await saveState(directory,state);state=proposed;}else await(deps.assertPorts??assertPorts)(state);const releaseFile=options.releaseFile??(state.initialized?path.join(directory,'release.json'):path.resolve('.runtime/local-build/release.json'));const release=await(deps.loadRelease??loadRelease)(releaseFile);await prepareSecrets(directory,state,options.passwordFile);const ctx=await(deps.prepareContext??prepareContext)(directory,state,release);
+ let evidenceCreated=false;if(ctx.migrationEvidenceSupported){const allowCreate=await(deps.migrationEvidenceMayBeCreated??migrationEvidenceMayBeCreated)(state);evidenceCreated=await(deps.prepareMigrationEvidenceVolume??prepareMigrationEvidenceVolume)(state,{allowCreate,directory});}
+ const initArgs=['run','--rm','--no-deps'];if(evidenceCreated)initArgs.push('-e','WEBAPI_MIGRATION_EVIDENCE_NEW_VOLUME=1');initArgs.push('init-volumes');await ctx.compose(...initArgs);if(evidenceCreated)await(deps.markMigrationEvidenceVolumeReady??markMigrationEvidenceVolumeReady)(state,{directory});await ctx.compose('up','-d','--wait','postgres','redis');const args=['run','--rm','--no-deps'];if(!state.initialized)args.push('-e','WEBAPI_BOOTSTRAP_USERNAME='+state.bootstrapUsername,'-e','WEBAPI_BOOTSTRAP_PASSWORD_FILE=/run/bootstrap/password','--volume',state.projectName+'_bootstrap-password:/run/bootstrap:ro');args.push('migrator');if(!state.initialized)args.push('dotnet','/app/migrator/WebApi.Migrator.dll','--bootstrap');const pending=ctx.migrationEvidenceSupported?await startPendingMigration(directory,state,release):null;await ctx.compose(...args);
+ state={...state,initialized:true,releaseId:release.sourceRevision};await writePrivate(path.join(directory,'release.json'),release);await saveState(directory,state);if(pending)await finishPendingMigration(directory,pending);await(deps.removeBootstrapVolume??removeBootstrapVolume)(state);await ctx.compose('up','-d',...runtimeServices(state,ctx.notification));if(ctx.securitySupported)await(deps.synchronizeProxy??synchronizeConsoleProxyTrust)(ctx);await(deps.wait??waitForRuntime)(ctx);return state;});
 }
-export async function operateRuntime(operation,state,{directory,...deps}={}){if(!['up','start','stop','restart'].includes(operation))throw new RuntimeError('Unsupported lifecycle operation.');directory=path.resolve(directory);return withRuntimeLock(directory,async()=>{if(operation!=='stop')await assertRestoreComplete(directory);const current=await loadState(directory);if(current.ownerId!==state.ownerId)throw new RuntimeError('Runtime owner changed.',3);if(!current.initialized)throw new RuntimeError('Initialize runtime before operating it.',3);if(operation!=='stop')await(deps.assertPorts??assertPorts)(current);const release=await(deps.loadRelease??loadRelease)(path.join(directory,'release.json'));const ctx=await(deps.prepareContext??prepareContext)(directory,current,release);if(operation==='stop'){await ctx.compose('stop');return{phase:'Stopped'};}if(ctx.cacheSupported){await ctx.compose('run','--rm','--no-deps','init-volumes');await(deps.removeBootstrapVolume??removeBootstrapVolume)(current);}if(ctx.notification?.enabled){await assertNotificationPorts(ctx.notification,current);await ctx.compose('run','--rm','--no-deps','init-notification-volumes');}await ctx.compose('up','-d',...runtimeServices(current,ctx.notification));if(operation==='restart')await ctx.compose('restart',...runtimeServices(current,ctx.notification));if(ctx.securitySupported)await(deps.synchronizeProxy??synchronizeConsoleProxyTrust)(ctx);await(deps.wait??waitForRuntime)(ctx);return await(deps.getStatus??(await import('./status.mjs')).getRuntimeStatus)(current,{directory});});}
+async function containmentStop(directory,state,deps){
+ const current=await loadState(directory);if(current.ownerId!==state.ownerId||current.projectName!==state.projectName)throw new RuntimeError('Runtime owner changed.',3);
+ const inspect=deps.inspectResources??inspectResources,resources=await inspect(current);assertOwnership(current,resources);
+ const containers=resources.filter(item=>item.Kind==='container');
+ if(containers.some(item=>!/^[a-f0-9]{64}$/.test(item.Id??'')||typeof item.State?.Running!=='boolean'))throw new RuntimeError('Cannot establish owned container state.',3);
+ const ids=containers.filter(item=>item.State.Running).map(item=>item.Id);
+ if(new Set(ids).size!==ids.length)throw new RuntimeError('Duplicate owned container identity.',3);
+ if(ids.length)await(deps.stopContainers??(values=>docker(['stop',...values],{maxOutputBytes:1024*1024})))(ids);
+ const after=await inspect(current);assertOwnership(current,after);
+ if(after.some(item=>item.Kind==='container'&&item.State?.Running!==false)||ids.some(id=>!after.some(item=>item.Kind==='container'&&item.Id===id&&item.State?.Running===false)))throw new RuntimeError('Owned container stop cannot be verified.',3);
+ return {phase:'Stopped',containment:true};
+}
+export async function operateRuntime(operation,state,{directory,...deps}={}){
+ if(!['up','start','stop','restart'].includes(operation))throw new RuntimeError('Unsupported lifecycle operation.');directory=path.resolve(directory);await ownedDirectory(directory);
+ try{return await withRuntimeLock(directory,async()=>{
+  if(operation!=='stop'){await assertRestoreComplete(directory);await assertNoPendingMigration(directory);}
+  const current=await loadState(directory);if(current.ownerId!==state.ownerId)throw new RuntimeError('Runtime owner changed.',3);if(!current.initialized)throw new RuntimeError('Initialize runtime before operating it.',3);
+  if(operation!=='stop')await(deps.assertPorts??assertPorts)(current);const release=await(deps.loadRelease??loadRelease)(path.join(directory,'release.json'));const ctx=await(deps.prepareContext??prepareContext)(directory,current,release);
+  if(operation==='stop'){await ctx.compose('stop');return{phase:'Stopped'};}
+  if(ctx.migrationEvidenceSupported)await(deps.prepareMigrationEvidenceVolume??prepareMigrationEvidenceVolume)(current,{allowCreate:false,directory});if(ctx.cacheSupported){await ctx.compose('run','--rm','--no-deps','init-volumes');await(deps.removeBootstrapVolume??removeBootstrapVolume)(current);}if(ctx.notification?.enabled){await assertNotificationPorts(ctx.notification,current);await ctx.compose('run','--rm','--no-deps','init-notification-volumes');}await ctx.compose('up','-d',...runtimeServices(current,ctx.notification));if(operation==='restart')await ctx.compose('restart',...runtimeServices(current,ctx.notification));if(ctx.securitySupported)await(deps.synchronizeProxy??synchronizeConsoleProxyTrust)(ctx);await(deps.wait??waitForRuntime)(ctx);return await(deps.getStatus??(await import('./status.mjs')).getRuntimeStatus)(current,{directory});
+ },{allowPending:operation==='stop',bypassQueue:operation==='stop'});}
+ catch(error){if(operation==='stop'&&error instanceof RestoreTargetLockHeldError)return containmentStop(directory,state,deps);throw error;}
+}
 export async function completeBootstrap(state,{directory,credentialsSaved}={}){if(!credentialsSaved)throw new RuntimeError('Confirm credentials saved before removing bootstrap file.');return withRuntimeLock(directory,async()=>{const current=await loadState(directory);if(!current.initialized||current.ownerId!==state.ownerId)throw new RuntimeError('Runtime must be initialized and owned.',3);const file=path.join(directory,'secrets/bootstrap-password');try{await safeFile(file);await fs.unlink(file);}catch(e){if(e.code!=='ENOENT')throw e;}});}

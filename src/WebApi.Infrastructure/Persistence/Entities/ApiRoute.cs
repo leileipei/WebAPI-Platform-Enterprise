@@ -3,6 +3,9 @@ public sealed class ApiRoute
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid ApiVersionId { get; set; }
+    public Guid ApiId { get; set; }
+    public long AuthorizationRevision { get; set; } = 1;
+    public string AuthenticationMode { get; set; } = "ApiKey";
     public Guid EnvironmentId { get; set; }
     public string RouteName { get; set; } = string.Empty;
     public string Path { get; set; } = string.Empty;

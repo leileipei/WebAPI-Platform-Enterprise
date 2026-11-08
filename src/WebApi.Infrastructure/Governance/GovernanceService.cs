@@ -83,7 +83,11 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         var scope=await scopes.ProjectAsync(projectId,ct);return await commands.ExecuteAsync(actor,scope,"environment.create",async(_,token)=>{
             await Require(actor,"environment.write",scope,projectId,token);Validate(request.Code,request.Name);await ValidateFlowAsync(request.ReleasePolicyId,scope.OrganizationId,token);
             if(request.Code.Length>32||request.Name.Length>64) throw new ApiException(422,"invalid_fields","环境编码或名称过长。");
-            var e=new EnvironmentRecord {ProjectId=projectId,Code=request.Code,Name=request.Name,IsProduction=request.IsProduction,SortOrder=request.SortOrder,ReleasePolicyId=request.ReleasePolicyId};ApplyAccess(e,request.GatewayPublicUrl,request.GatewayInternalUrl,request.BasePath,request.IsProduction,true);db.Add(e);return new CommandResult<EnvironmentDto>(Dto(e),RevisionTag.Format(e.Revision));
+            var e=new EnvironmentRecord {ProjectId=projectId,Code=request.Code,Name=request.Name,IsProduction=request.IsProduction,SortOrder=request.SortOrder,ReleasePolicyId=request.ReleasePolicyId};ApplyAccess(e,request.GatewayPublicUrl,request.GatewayInternalUrl,request.BasePath,request.IsProduction,true);db.Add(e);
+            // This row is created atomically with a new environment. It must never be
+            // used to infer the origin of an environment that already existed.
+            db.Add(new EnvironmentSecurityInitialization {EnvironmentId=e.Id,ProjectId=projectId,OrganizationId=scope.OrganizationId,State="FreshNonStrict",FreshProofId=Guid.NewGuid()});
+            return new CommandResult<EnvironmentDto>(Dto(e),RevisionTag.Format(e.Revision));
         },ct);
     }
     public async Task<CommandResult<EnvironmentDto>> SaveEnvironmentAsync(Guid id,UpdateEnvironmentRequest request,string? tag,ActorContext actor,CancellationToken ct=default)

@@ -11,13 +11,13 @@ export WEBAPI_E2E_DIRECTORY="$PWD/$WEBAPI_E2E_RELATIVE_DIR"
 export WEBAPI_ENVIRONMENT_ID
 WEBAPI_ENVIRONMENT_ID=$("$NODE" -e 'console.log(crypto.randomUUID())')
 mkdir -p "$WEBAPI_E2E_DIRECTORY"; chmod 700 "$WEBAPI_E2E_DIRECTORY"
-"$NODE" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";for(const name of ["password","postgres-password","node-a","node-b"])fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/"+name,crypto.randomBytes(32).toString("base64url"),{mode:0o600});'
+"$NODE" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";for(const name of ["password","postgres-password","node-a","node-b"])fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/"+name,crypto.randomBytes(32).toString("base64url"),{mode:0o600});fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/login-hmac",crypto.randomBytes(32).toString("base64"),{mode:0o400});'
 compose(){ docker compose -f deploy/compose.e2e.yml "$@"; }
-cleanup(){ compose down --volumes --remove-orphans >/dev/null 2>&1; rm -f "$WEBAPI_E2E_DIRECTORY/password" "$WEBAPI_E2E_DIRECTORY/postgres-password" "$WEBAPI_E2E_DIRECTORY/node-a" "$WEBAPI_E2E_DIRECTORY/node-b" "$WEBAPI_E2E_DIRECTORY/credential"; }
+cleanup(){ compose down --volumes --remove-orphans >/dev/null 2>&1; rm -f "$WEBAPI_E2E_DIRECTORY/password" "$WEBAPI_E2E_DIRECTORY/postgres-password" "$WEBAPI_E2E_DIRECTORY/node-a" "$WEBAPI_E2E_DIRECTORY/node-b" "$WEBAPI_E2E_DIRECTORY/credential" "$WEBAPI_E2E_DIRECTORY/login-hmac"; }
 trap cleanup EXIT
 # No persistent test identities survive the process; only this randomly named project's volumes are removed.
 compose up -d --wait postgres redis
-compose run --rm sdk bash -c 'dotnet restore && dotnet restore --locked-mode && dotnet build -c Release --no-restore && dotnet src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.dll --bootstrap --seed-catalog'
+compose run --rm sdk bash -c 'chmod 700 /evidence && dotnet restore && dotnet restore --locked-mode && dotnet build -c Release --no-restore && dotnet src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.dll --bootstrap --seed-catalog'
 compose up -d control-plane
 "$NODE" scripts/wait-http.mjs http://127.0.0.1:5092/health/live
 "$NODE" scripts/prepare-e2e.mjs
@@ -26,6 +26,9 @@ compose up -d --force-recreate control-plane
 compose up -d worker backend-a backend-b gateway-a gateway-b console
 "$NODE" scripts/wait-http.mjs http://127.0.0.1:5092/health/live
 "$NODE" scripts/wait-nodes.mjs
+# EndToEnd rotation tests assert a named owner and a 40-hex source revision; supply them per run.
+export WEBAPI_E2E_OWNER="e2e-owner"
+export WEBAPI_SOURCE_REVISION="$(git rev-parse HEAD)"
 if [ "${1:-}" = '--browser' ]; then
   "$NODE" --input-type=module -e 'import fs from "node:fs";fs.writeFileSync(".runtime/browser-e2e.json",JSON.stringify({project:process.env.WEBAPI_E2E_PROJECT,directory:process.env.WEBAPI_E2E_DIRECTORY,environmentId:process.env.WEBAPI_ENVIRONMENT_ID},null,2));'
   echo 'Disposable browser QA ready at 4182. Remove .runtime/browser-e2e.wait when finished; process then runs E2E and cleans its own data.'

@@ -231,6 +231,18 @@
         "ASPNETCORE_URLS": "http://0.0.0.0:8080",
         "WEBAPI_DB_HOST": "postgres",
         "WEBAPI_DB_PASSWORD_FILE": "/run/secrets/postgres-password",
+        "WEBAPI_MIGRATION_TRANSACTION_SECONDS": "${WEBAPI_MIGRATION_TRANSACTION_SECONDS:-}",
+        "WEBAPI_MIGRATION_SETTINGS_MAX_BYTES": "${WEBAPI_MIGRATION_SETTINGS_MAX_BYTES:-}",
+        "WEBAPI_MIGRATION_RULE_MAX_BYTES": "${WEBAPI_MIGRATION_RULE_MAX_BYTES:-}",
+        "WEBAPI_MIGRATION_RULE_MAX_COUNT": "${WEBAPI_MIGRATION_RULE_MAX_COUNT:-}",
+        "WEBAPI_MIGRATION_TOTAL_MAX_BYTES": "${WEBAPI_MIGRATION_TOTAL_MAX_BYTES:-}",
+        "WEBAPI_MIGRATION_RECEIPT_MAX_ROWS": "${WEBAPI_MIGRATION_RECEIPT_MAX_ROWS:-}",
+        "WEBAPI_MIGRATION_EVIDENCE_DIR": "/var/lib/webapi/migration-evidence",
+        "WEBAPI_MIGRATION_EVIDENCE_RECORD_MAX_BYTES": "${WEBAPI_MIGRATION_EVIDENCE_RECORD_MAX_BYTES:-}",
+        "WEBAPI_MIGRATION_EVIDENCE_QUOTA_BYTES": "${WEBAPI_MIGRATION_EVIDENCE_QUOTA_BYTES:-}",
+        "WEBAPI_MIGRATION_EVIDENCE_MIN_FREE_BYTES": "${WEBAPI_MIGRATION_EVIDENCE_MIN_FREE_BYTES:-}",
+        "WEBAPI_MIGRATION_SQL_FILE": "${WEBAPI_MIGRATION_SQL_FILE:-}",
+        "WEBAPI_MIGRATION_SQL_SHA256": "${WEBAPI_MIGRATION_SQL_SHA256:-}",
         "Redis__Connection": "redis:6379,abortConnect=false",
         "Upstream__RequireExplicitAllowedOrigins": "true",
         "Observability__Enabled": "true",
@@ -242,7 +254,8 @@
         "Observability__TraceSampleRatio": "0.1"
       },
       "volumes": [
-        "secrets-migrator:/run/secrets:ro"
+        "secrets-migrator:/run/secrets:ro",
+        "migration-evidence:/var/lib/webapi/migration-evidence"
       ],
       "profiles": [
         "tools"
@@ -383,6 +396,8 @@
       "volumes": [
         "${WEBAPI_RUNTIME_SECRET_DIRECTORY:?required}:/input:ro",
         "./runtime/init-volumes.sh:/etc/runtime/init-volumes.sh:ro",
+        "./runtime/init-migration-evidence.sh:/etc/runtime/init-migration-evidence.sh:ro",
+        "migration-evidence:/volumes/migration-evidence",
         "pg:/volumes/pg",
         "lkg-a:/volumes/lkg-a",
         "lkg-b:/volumes/lkg-b",
@@ -469,6 +484,11 @@
       }
     },
     "secrets-migrator": {
+      "labels": {
+        "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
+      }
+    },
+    "migration-evidence": {
       "labels": {
         "com.webapi.runtime.owner": "${WEBAPI_RUNTIME_OWNER:?required}"
       }

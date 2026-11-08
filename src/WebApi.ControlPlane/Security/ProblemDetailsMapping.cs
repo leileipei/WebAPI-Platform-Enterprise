@@ -16,6 +16,7 @@ public static class ProblemDetailsMapping
         try {await next();}
         catch(ApiException e) {await WriteAsync(context,e.Status,e.Code,e.Message,e.SourceType,e.Issues);}
         catch(DbUpdateConcurrencyException) {await WriteAsync(context,412,"stale_revision","数据已更新，请刷新。");}
+        catch(DbUpdateException e) when(e.InnerException is PostgresException {SqlState:PostgresErrorCodes.CheckViolation,MessageText:"security_authoritative_fact_in_future"}) {await WriteAsync(context,503,"security_clock_unavailable","安全时间不可用或已回拨。");}
         catch(DbUpdateException e) when(e.InnerException is PostgresException p && p.SqlState==PostgresErrorCodes.UniqueViolation) {await WriteAsync(context,409,"duplicate_resource","数据已存在或发生并发冲突。");}
         catch(DbUpdateException e) when(e.InnerException is PostgresException p && p.SqlState is PostgresErrorCodes.ForeignKeyViolation or PostgresErrorCodes.CheckViolation) {await WriteAsync(context,422,"invalid_reference","资源引用或字段约束不合法。");}
         catch(BadHttpRequestException e) {await WriteAsync(context,e.StatusCode,"invalid_request","请求结构不合法。");}

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 using WebApi.Infrastructure.Governance;
+using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
@@ -15,9 +16,9 @@ public sealed class DeliveryPersistenceTests
     [Fact] public async Task UpgradePreservesOrganizationWideApplicationAndLegacyReleaseBytes()
     {
         await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();await db.GetService<IMigrator>().MigrateAsync("20261009011000_ReleaseAccessContexts");
-        var user=new UserRecord{Username="retained",DisplayName="保留",PasswordHash="synthetic",SecurityStamp="retained"};var org=new Organization{Code="RETAINED",Name="保留组织"};var project=new Project{OrganizationId=org.Id,Code="KEEP",Name="保留项目"};var env=new EnvironmentRecord{ProjectId=project.Id,Code="PROD",Name="保留生产",IsProduction=true};var app=new ApplicationRecord{OrganizationId=org.Id,Code="ORG_APP",Name="组织应用",Owner="保留",ProjectId=null};await db.InsertHistoricalUserAsync(user);db.AddRange(org,project,env);await db.SaveChangesAsync();
+        var user=new UserRecord{Username="retained",DisplayName="保留",PasswordHash="synthetic",SecurityStamp="retained"};var org=new Organization{Code="RETAINED",Name="保留组织"};var project=new Project{OrganizationId=org.Id,Code="KEEP",Name="保留项目"};var env=new EnvironmentRecord{ProjectId=project.Id,Code="PROD",Name="保留生产",IsProduction=true};var app=new ApplicationRecord{OrganizationId=org.Id,Code="ORG_APP",Name="组织应用",Owner="保留",ProjectId=null};await db.InsertHistoricalUserAsync(user);await using var seed=new WebApiDbContext(new DbContextOptionsBuilder<WebApiDbContext>().UseNpgsql(db.Database.GetConnectionString()).ReplaceService<IModelCustomizer,HistoricalPreGovernanceModelCustomizer>().Options);seed.AddRange(org,project,env);await seed.SaveChangesAsync();
         await using var connection=await database.OpenAsync();await using(var oldAppInsert=new NpgsqlCommand($"insert into applications(id,organization_id,project_id,code,name,owner,status,created_at,updated_at) values('{app.Id}','{org.Id}',null,'ORG_APP','保留组织应用','保留','Active',now(),now())",connection))await oldAppInsert.ExecuteNonQueryAsync();await using(var cmd=new NpgsqlCommand($"insert into release_records(id,environment_id,release_no,from_config_version,to_config_version,release_type,status,requested_by,created_at) values(gen_random_uuid(),'{env.Id}','retained',0,1,'publish','Succeeded','{user.Id}',now())",connection))await cmd.ExecuteNonQueryAsync();
-        async Task<string> Read(string table){await using var cmd=new NpgsqlCommand($"select (to_jsonb(t)-'artifact_id'-'promotion_id'-'source_release_id')::text from {table} t",connection);return (string)(await cmd.ExecuteScalarAsync())!;}
+        async Task<string> Read(string table){await using var cmd=new NpgsqlCommand($"select (to_jsonb(t)-'artifact_id'-'promotion_id'-'source_release_id'-'owner_user_id'-'owner_revision'-'authorization_revision')::text from {table} t",connection);return (string)(await cmd.ExecuteScalarAsync())!;}
         var oldRelease=await Read("release_records");var oldApp=await Read("applications");await db.Database.MigrateAsync();Assert.Equal(oldRelease,await Read("release_records"));Assert.Equal(oldApp,await Read("applications"));await db.Database.MigrateAsync();Assert.False(db.Database.HasPendingModelChanges());
         await using var nullable=new NpgsqlCommand("select artifact_id is null and promotion_id is null and source_release_id is null from release_records",connection);Assert.Equal(true,await nullable.ExecuteScalarAsync());
     }

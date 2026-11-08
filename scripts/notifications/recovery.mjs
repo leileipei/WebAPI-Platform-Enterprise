@@ -7,6 +7,7 @@ import {validateFixture} from '../runtime/fixture-guard.mjs';
 import {prepareContext} from '../runtime/context.mjs';
 import {loadRelease,runtimeServices,waitForRuntime} from '../runtime/lifecycle.mjs';
 import {coldBackup,restoreColdBackup,backupVolumeNames} from '../runtime/acceptance-backup.mjs';
+import {requireRestoreIntegration} from '../runtime/restore-storage-budget.mjs';
 import {getRuntimeStatus} from '../runtime/status.mjs';
 import {inspectResources,assertOwnership,docker} from '../runtime/docker.mjs';
 import {validateCloneOwnership,assertReleaseIdentity} from '../contracts/evidence.mjs';
@@ -28,7 +29,8 @@ async function keyHashes(state,release){
  const output=await docker(['run','--rm','--user','10001:10001','--read-only','--cap-drop','ALL','--security-opt','no-new-privileges:true','--label','com.docker.compose.project='+state.projectName,'--label','com.webapi.runtime.owner='+state.ownerId,'--mount','type=volume,src='+name+',dst=/keys,readonly',release.dependencyImages.sdk,'find','/keys','-type','f','-exec','sha256sum','{}','+']);
  const rows=output.stdout.trim().split('\n').filter(Boolean).map(line=>{const match=/^([a-f0-9]{64})\s+\/keys\/(.+)$/.exec(line);assert(match,'Invalid private key hash output');return [match[2],match[1]];}).sort(([a],[b])=>a.localeCompare(b));assert(rows.length,'Persistent DP keys missing');return Object.fromEntries(rows);
 }
-export async function runNotificationColdRecovery({cloneDirectory,backupDirectory,restoreDirectory,restoreProjectName,ports,notificationPorts}){
+export async function runNotificationColdRecovery({cloneDirectory,backupDirectory,restoreDirectory,restoreProjectName,ports,notificationPorts,restoreBudget,storageVerifier}){
+ requireRestoreIntegration({restoreBudget,storageVerifier});
  const state=await loadState(cloneDirectory),release=await loadRelease(path.join(cloneDirectory,'release.json')),resources=await inspectResources(state);validateCloneOwnership(state,resources,cloneDirectory);
  validateNotificationRecoveryTarget(state,{projectName:restoreProjectName,directory:restoreDirectory,ports,notificationPorts});
  const applications=resources.filter(r=>r.Kind==='container'&&['control-plane','worker','console','gateway-a','gateway-b','notification-fixture'].includes(r.Config?.Labels?.['com.docker.compose.service']));assert(applications.length>=6&&applications.every(r=>r.State.Running));
@@ -39,7 +41,7 @@ export async function runNotificationColdRecovery({cloneDirectory,backupDirector
  await coldBackup(ctx,backupDirectory);const manifestBytes=await fs.readFile(path.join(backupDirectory,'backup-manifest.json')),manifest=JSON.parse(manifestBytes);assert.equal(manifest.sourceRevision,release.sourceRevision);
  for(const [file,expected]of Object.entries(manifest.files)){assert(!path.isAbsolute(file)&&!file.split('/').includes('..'));assert.equal(sha(await fs.readFile(path.join(backupDirectory,file))),expected,'Backup archive checksum');}
  const originalStatus=await until(()=>getRuntimeStatus(state,{directory:cloneDirectory}),s=>s.phase==='Ready'&&s.notifications.fixture==='Available',60);
- const restored=await restoreColdBackup({target:backupDirectory,projectName:restoreProjectName,directory:restoreDirectory,ports,notificationPorts,contextFactory:prepareContext});
+ const restored=await restoreColdBackup({target:backupDirectory,projectName:restoreProjectName,directory:restoreDirectory,ports,notificationPorts,contextFactory:prepareContext,restoreBudget,storageVerifier});
  await restored.ctx.compose('up','-d',...runtimeServices(restored.state,restored.ctx.notification));await waitForRuntime(restored.ctx);
  const status=await until(()=>getRuntimeStatus(restored.state,{directory:restoreDirectory}),s=>s.phase==='Ready'&&s.notifications.fixture==='Available',60),fixture=await fixtureRequest(restoreDirectory,restored.state,'/owner/observations'),restoredKeys=await keyHashes(restored.state,release),restoredSecrets=await loadNotificationSecrets(path.join(restoreDirectory,'notification-secrets'),restored.state.ownerId,restored.state.projectName);
  assert.equal(fixture.sourceRevision,release.sourceRevision);assert.equal(fixture.binaryHash,release.applications['notification-fixture/WebApi.NotificationFixtureHost.dll']);assert(fixture.binaryVerified);assert.deepEqual(fixture.protocol,protocol);assert.deepEqual(restoredKeys,keys);assert.deepEqual(restoredSecrets.files,secrets.files);

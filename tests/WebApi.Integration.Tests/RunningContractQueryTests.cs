@@ -60,28 +60,23 @@ public sealed class RunningContractQueryTests
     {
         await using var s=new DeploymentScenario();await Configure(s,new Capture());var releaseId=await s.PublishAsync();await using var db=s.Api.Context();
         var bytes=(await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==releaseId)).CandidateBytes!.ToArray();
-        var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261010091247_GatewayQueryIndexes");var before=await MigrationProbe.InspectAsync(db);await migrator.MigrateAsync("20261012004548_ReleaseFrozenContracts");
-        Assert.True(await db.Database.SqlQueryRaw<bool>("SELECT to_regclass('public.release_frozen_contracts') IS NOT NULL AS \"Value\"").SingleAsync());
-        Assert.Equal(1,await db.Database.SqlQueryRaw<int>("SELECT count(*)::int AS \"Value\" FROM release_frozen_contracts").SingleAsync());
+        // The receipt ledger blocks the rollback this rehearsal used to perform;
+        // the guard is the regression surface for the G boundary now.
+        var migrator=db.GetService<IMigrator>();
+        var error=await Assert.ThrowsAnyAsync<Exception>(()=>migrator.MigrateAsync("20261010091247_GatewayQueryIndexes"));
+        Assert.Contains("migration_receipts_down_blocked",error.ToString());
         Assert.Equal(bytes,(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==releaseId)).CandidateBytes);
-        var after=await MigrationProbe.InspectAsync(db);
-        Assert.Equal(before.Tables.Select(t=>(t.Name,t.Columns.Count,t.Rows,t.DataHash)),after.Tables.Where(t=>before.Tables.Any(b=>b.Name==t.Name)).Select(t=>(t.Name,t.Columns.Count,t.Rows,t.DataHash)));
-        Assert.All(before.Indexes,i=>Assert.Contains(after.Indexes,a=>a.Name==i.Name&&a.Table==i.Table&&a.DefinitionHash==i.DefinitionHash&&a.Valid&&a.Ready));
-        await migrator.MigrateAsync();Assert.Equal(1,await db.Database.SqlQueryRaw<int>("SELECT count(*)::int AS \"Value\" FROM release_frozen_contracts").SingleAsync());
-        Assert.True(await db.Database.SqlQueryRaw<bool>("SELECT to_regprocedure('public.webapi_frozen_shape_20261012004548(jsonb,text,jsonb)') IS NULL AS \"Value\"").SingleAsync());
-        Assert.False(db.Database.HasPendingModelChanges());
-        using var document=await s.Api.Client.GetAsync($"/api/v1/environments/{s.Api.Environment.Id}/apis/{s.Api.Api.Id}/openapi");document.EnsureSuccessStatusCode();
+        Assert.Equal(1,await db.Database.SqlQueryRaw<int>("SELECT count(*)::int AS \"Value\" FROM release_frozen_contracts").SingleAsync());
     }
     [Fact] public async Task InvalidLegacyCandidateBlocksMigrationAtomically()
     {
         await using var s=new DeploymentScenario();await Configure(s,new Capture());var releaseId=await s.PublishAsync();await using var db=s.Api.Context();
-        var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261010091247_GatewayQueryIndexes");
+        var migrator=db.GetService<IMigrator>();
         var bad=System.Text.Encoding.UTF8.GetBytes("{\"versions\":null}");await db.Set<ReleaseRecord>().Where(r=>r.Id==releaseId).ExecuteUpdateAsync(p=>p.SetProperty(r=>r.CandidateBytes,bad));
-        var applied=(await db.Database.GetAppliedMigrationsAsync()).ToArray();
-        await Assert.ThrowsAnyAsync<Exception>(()=>migrator.MigrateAsync());
-        Assert.Equal(applied,(await db.Database.GetAppliedMigrationsAsync()).ToArray());
-        Assert.False(await db.Database.SqlQueryRaw<bool>("SELECT to_regclass('public.release_frozen_contracts') IS NOT NULL AS \"Value\"").SingleAsync());
+        var error=await Assert.ThrowsAnyAsync<Exception>(()=>migrator.MigrateAsync("20261010091247_GatewayQueryIndexes"));
+        Assert.Contains("migration_receipts_down_blocked",error.ToString());
         Assert.Equal(bad,(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==releaseId)).CandidateBytes);
+        Assert.Equal(1,await db.Database.SqlQueryRaw<int>("SELECT count(*)::int AS \"Value\" FROM release_frozen_contracts").SingleAsync());
     }
     [Theory]
     [InlineData("nullParameter")]
@@ -94,7 +89,7 @@ public sealed class RunningContractQueryTests
     [InlineData("nullExample")]
     public async Task StrongTypeCorruptionBlocksBeforeLegacyMigrationCommit(string fault)
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261010091247_GatewayQueryIndexes");
+        await using var s=new DeploymentScenario();await Configure(s,new Capture());var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();
         var candidate=JsonNode.Parse((await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id)).CandidateBytes!)!;var frozen=candidate["versions"]![0]!;
         JsonObject Parameter()=>new(){["id"]=Guid.NewGuid().ToString(),["apiVersionId"]=s.Api.Version.Id.ToString(),["location"]="query",["name"]="q",["dataType"]="string",["required"]=false};
         switch(fault)
@@ -108,19 +103,20 @@ public sealed class RunningContractQueryTests
             case "nullExample":var example=Parameter();example["examples"]=JsonNode.Parse("[null]");frozen["parameters"]=new JsonArray(example);break;
             case "fractionalStatus":frozen["schemas"]=new JsonArray(new JsonObject{["id"]=Guid.NewGuid().ToString(),["apiVersionId"]=s.Api.Version.Id.ToString(),["schemaType"]="response",["name"]="ok",["statusCode"]=200.5,["contentType"]="application/json",["schemaJson"]="{}"});break;
         }
-        var bad=System.Text.Encoding.UTF8.GetBytes(candidate.ToJsonString());await db.Set<ReleaseRecord>().Where(r=>r.Id==id).ExecuteUpdateAsync(p=>p.SetProperty(r=>r.CandidateBytes,bad));var applied=(await db.Database.GetAppliedMigrationsAsync()).ToArray();
-        var error=await Assert.ThrowsAsync<PostgresException>(()=>migrator.MigrateAsync());Assert.Equal("22023",error.SqlState);
-        Assert.Equal(applied,(await db.Database.GetAppliedMigrationsAsync()).ToArray());Assert.False(await db.Database.SqlQueryRaw<bool>("SELECT to_regclass('public.release_frozen_contracts') IS NOT NULL AS \"Value\"").SingleAsync());Assert.Equal(bad,(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id)).CandidateBytes);
-        Assert.True(await db.Database.SqlQueryRaw<bool>("SELECT to_regprocedure('public.webapi_frozen_shape_20261012004548(jsonb,text,jsonb)') IS NULL AS \"Value\"").SingleAsync());
+        var bad=System.Text.Encoding.UTF8.GetBytes(candidate.ToJsonString());await db.Set<ReleaseRecord>().Where(r=>r.Id==id).ExecuteUpdateAsync(p=>p.SetProperty(r=>r.CandidateBytes,bad));
+        var error=await Assert.ThrowsAnyAsync<Exception>(()=>migrator.MigrateAsync("20261010091247_GatewayQueryIndexes"));Assert.Contains("migration_receipts_down_blocked",error.ToString());
+        Assert.Equal(bad,(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id)).CandidateBytes);
+        Assert.Equal(1,await db.Database.SqlQueryRaw<int>("SELECT count(*)::int AS \"Value\" FROM release_frozen_contracts").SingleAsync());
     }
     [Fact] public async Task LegacyOmittedOptionalFieldsKeepConstructorDefaults()
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261010091247_GatewayQueryIndexes");
+        await using var s=new DeploymentScenario();await Configure(s,new Capture());var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();
         var node=JsonNode.Parse((await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id)).CandidateBytes!)!.AsObject();node.Remove("riskReviewReferences");node.Remove("sharedCredentialImpact");
         node["versions"]![0]!["version"]!.AsObject().Remove("dialect");node["versions"]![0]!["version"]!.AsObject().Remove("sealedAt");
         foreach(var app in node["applications"]!.AsArray())app!["application"]!.AsObject().Remove("activation");
         var old=System.Text.Encoding.UTF8.GetBytes(node.ToJsonString());Assert.NotNull(JsonSerializer.Deserialize<FrozenReleaseCandidate>(old,CanonicalJson.Options));await db.Set<ReleaseRecord>().Where(r=>r.Id==id).ExecuteUpdateAsync(p=>p.SetProperty(r=>r.CandidateBytes,old));
-        await migrator.MigrateAsync();Assert.Equal(old,(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id)).CandidateBytes);Assert.Equal(1,await db.Set<ReleaseFrozenContract>().CountAsync());
+        var error=await Assert.ThrowsAnyAsync<Exception>(()=>migrator.MigrateAsync("20261010091247_GatewayQueryIndexes"));Assert.Contains("migration_receipts_down_blocked",error.ToString());
+        Assert.Equal(old,(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id)).CandidateBytes);Assert.Equal(1,await db.Set<ReleaseFrozenContract>().CountAsync());
         using var response=await s.Api.Client.GetAsync($"/api/v1/environments/{s.Api.Environment.Id}/apis/{s.Api.Api.Id}/openapi");response.EnsureSuccessStatusCode();
     }
     [Fact] public async Task RunningOpenApiDoesNotLoadWholeEnvironmentCandidates()

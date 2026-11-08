@@ -12,6 +12,12 @@ public sealed class ApiRouteConfiguration : IEntityTypeConfiguration<ApiRoute>
         b.HasAnnotation("WebApi:ManagedRouteOrderIndexDefinition", "a552f9d4edb81648f93a204b59d85e4e1db041439f35a7d4d9885949e18b89cd");
         b.Property(x => x.Id).HasColumnName("id").HasColumnType("uuid").IsRequired().HasDefaultValueSql("gen_random_uuid()");
         b.Property(x => x.ApiVersionId).HasColumnName("api_version_id").HasColumnType("uuid").IsRequired();
+        b.Property(x => x.ApiId).HasColumnName("api_id").HasDefaultValueSql("'00000000-0000-0000-0000-000000000000'::uuid");
+        b.Property(x => x.AuthorizationRevision).HasColumnName("authorization_revision").HasDefaultValue(1L);
+        b.Property(x => x.AuthenticationMode).HasColumnName("authentication_mode").HasMaxLength(16).HasDefaultValue("ApiKey");
+        b.HasAlternateKey(x => new { x.Id, x.EnvironmentId, x.ApiId });
+        b.HasOne<ApiVersion>().WithMany().HasForeignKey(x => new { x.ApiVersionId, x.ApiId }).HasPrincipalKey(x => new { x.Id, x.ApiId }).OnDelete(DeleteBehavior.Restrict);
+        b.ToTable(t => t.HasCheckConstraint("ck_route_authorization", "authorization_revision>0 AND authentication_mode IN ('ApiKey','Anonymous','JWT')"));
         b.Property(x => x.EnvironmentId).HasColumnName("environment_id").HasColumnType("uuid").IsRequired();
         b.Property(x => x.RouteName).HasColumnName("route_name").HasColumnType("varchar(128)").IsRequired();
         b.Property(x => x.Path).HasColumnName("path").HasColumnType("varchar(512)").IsRequired();

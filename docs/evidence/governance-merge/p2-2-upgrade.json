@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "title": "P2-2 migration dual-path evidence",
+  "date": "2026-11-08",
+  "branch": "feature/credential-governance-merge",
+  "freshPath": {
+    "e2eBinary": "p23b environment boot: fresh PostgreSQL, WebApi.Migrator attempt Committed, --bootstrap + --seed-catalog Completed; Layer-1 4/4, fault matrix 7/7, G14 minimal 3/3 (see ../core-loop/faults.json and ./g14-minimal.json)",
+    "integration": "Governance24MigrationTests and receipt/down-block tests green within IntegrationTests 2115/2115 (disposable PG, empty to all 35 migrations)"
+  },
+  "upgradePath": {
+    "note": "A pg_dump/restore round trip is NOT fingerprint-canonical: pg_dump re-serializes array literals inside CHECK constraints with different cast rendering, so pg_get_constraintdef text changes and GovernanceMigrationPreflight rejects dump-rebuilt schemas by design. The faithful production simulation builds the pre-G schema with the pre-G EF migrator binary, restores business data only, then runs the G migrator.",
+    "environment": "disposable compose project webapi-enterprise-e2e-p22upg (G tree binaries); pre-G business data dumped from a pre-G phase-1 environment (21 migrations, tip 20261015020000_CredentialUsageTracking)",
+    "preGSchemaFingerprint": "b9676942e2e462605b1f00d56dd5e27dcf2910c8b9a78c812383a65079a31560",
+    "preGSchemaFingerprintMatchesBaseline": true,
+    "dataRestore": "76 COPY blocks + 2 setval (no schema DDL), inside DISABLE TRIGGER ALL wrapping; __EFMigrationsHistory preserved",
+    "upgradeAttempt": "Migration attempt 774ebe76-6511-46be-a803-dcc3d63b6479: Committed; reason=None; bootstrap=NotRequested; seed=NotRequested.",
+    "remigrateAttempt": "Migration attempt a30a785e-f6a5-4732-8478-e18d7f866e67: Committed; reason=None (idempotent no-op replay)",
+    "businessChecksumsIdenticalBeforeAfter": true,
+    "businessRows": { "organizations": 1, "projects": 1, "environments": 1, "apis": 1, "applications": 1, "application_credentials": 1, "application_api_permissions": 1, "upstream_clusters": 1, "upstream_destinations": 1, "users": 4, "api_versions": 0, "api_routes": 0 },
+    "spotChecks": { "ledgerTables": 6, "receiptGuardTriggers": 2, "guardTriggers": 21, "checkConstraints": 124, "migrationValidationReceiptRows": 2 },
+    "downBlockRegression": "MigrationReceiptTests / RunningContractQueryTests green within IntegrationTests 2115 (EF IMigrator target stops at 20261104080000_Governance24DatabaseClock; down migration blocked by 23514 migration_receipts_down_blocked)"
+  },
+  "replayScript": "phase2-upgrade-v2.sh (scratch, torn down with the environment; exit trap removes containers and volumes)"
+}

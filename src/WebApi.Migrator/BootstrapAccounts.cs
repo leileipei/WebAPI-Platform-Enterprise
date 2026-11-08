@@ -15,7 +15,7 @@ public static class BootstrapAccounts
         if(password.Length<16 || password.Length>1024) throw new InvalidOperationException("Administrator password must contain 16 to 1024 characters.");
         await WebApi.Infrastructure.Governance.PermissionCatalog.SeedAsync(db,ct);
         await using var tx=await db.Database.BeginTransactionAsync(ct);
-        await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901201)",ct);
+        await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901201)",ct);
         if(await db.Set<UserRecord>().AnyAsync(x=>x.Username==username,ct)) { await tx.CommitAsync(ct); return; }
         var role=await db.Set<Role>().SingleOrDefaultAsync(x=>x.Code=="PlatformAdmin" && x.OrganizationId==null,ct);
         if(role is null) {role=new Role { Code="PlatformAdmin",Name="平台管理员",IsSystem=true };db.Add(role);}

@@ -72,6 +72,16 @@ compose run --rm sdk bash -c '
   dotnet restore WebApi.Enterprise.sln --locked-mode
   dotnet restore src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj --locked-mode
   dotnet build src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj --no-restore --configuration Release --output /runtime-tool
+  dotnet build src/WebApi.Migrator/WebApi.Migrator.csproj --no-restore --configuration Release --output /migrator
   export WEBAPI_RUNTIME_TOOL_DLL=/runtime-tool/WebApi.RuntimeTool.dll
+  export WEBAPI_SOURCE_ROOT=/test-src
+  export WEBAPI_MIGRATOR_DLL=/migrator/WebApi.Migrator.dll
+  export WEBAPI_TEST_SQL_MIGRATION_LIMITS=1
+  export WEBAPI_MIGRATION_TRANSACTION_SECONDS=900
+  export WEBAPI_MIGRATION_SETTINGS_MAX_BYTES=65536
+  export WEBAPI_MIGRATION_RULE_MAX_BYTES=16384
+  export WEBAPI_MIGRATION_RULE_MAX_COUNT=100000
+  export WEBAPI_MIGRATION_TOTAL_MAX_BYTES=67108864
+  export WEBAPI_MIGRATION_RECEIPT_MAX_ROWS=100000
   exec dotnet test "$@" --no-restore
 ' -- "$test_project" --configuration Release "$@"

@@ -12,6 +12,7 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class NotificationMigrationTests
 {
+    private static MigrationBudget TestBudget => new(TimeSpan.FromMinutes(15), 65536, 16384, 100000, 67108864);
     [Fact] public async Task OldSixFieldsAndIntentSurviveMigration()
     {
         await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261008020000_ApprovalInboxIndexes");
@@ -52,7 +53,7 @@ public sealed class NotificationMigrationTests
     [InlineData("{\"smtpHost\":null,\"smtpPort\":null,\"fromEmail\":null,\"smtpSecretRef\":null,\"webhookUrl\":\"HTTPS://hook.example.test/path with space\",\"webhookSecretRef\":\"VAULT://local/path with space\"}")]
     public async Task LegalLegacyEmptyAndEscapedUriValuesRemainExact(string json)
     {
-        Assert.IsType<NotificationSettings>(SettingsValueCodec.Decode("notification",json));await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261008020000_ApprovalInboxIndexes");var actor=new UserRecord{Username=Guid.NewGuid().ToString("N")};await db.InsertHistoricalUserAsync(actor);await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO system_settings(key,scope_type,value,updated_by,updated_at,revision) VALUES('system.notification','system',{json}::jsonb,{actor.Id},now(),1)");await NotificationMigrationPreflight.ValidateAsync(db);await migrator.MigrateAsync();
+        Assert.IsType<NotificationSettings>(SettingsValueCodec.Decode("notification",json));await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261008020000_ApprovalInboxIndexes");var actor=new UserRecord{Username=Guid.NewGuid().ToString("N")};await db.InsertHistoricalUserAsync(actor);await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO system_settings(key,scope_type,value,updated_by,updated_at,revision) VALUES('system.notification','system',{json}::jsonb,{actor.Id},now(),1)");await NotificationMigrationPreflight.ValidateAsync(db,TestBudget);await migrator.MigrateAsync();
         using var before=JsonDocument.Parse(json);using var after=JsonDocument.Parse(await db.Database.SqlQueryRaw<string>("SELECT value::text AS \"Value\" FROM system_settings").SingleAsync());foreach(var field in before.RootElement.EnumerateObject()){Assert.Equal(field.Value.ValueKind,after.RootElement.GetProperty(field.Name).ValueKind);Assert.Equal(field.Value.ToString(),after.RootElement.GetProperty(field.Name).ToString());}Assert.False(after.RootElement.GetProperty("smtpEnabled").GetBoolean());Assert.False(after.RootElement.GetProperty("webhookEnabled").GetBoolean());
     }
     [Fact] public async Task ProfilesAreImmutableAndDeliveryConstraintsAreReal()
@@ -67,6 +68,6 @@ public sealed class NotificationMigrationTests
     [Fact] public async Task MigrationPreflightUsesExactSettingsDecoderWithoutEcho()
     {
         await using var database=new PostgresDatabase();await database.InitializeAsync();await using var db=database.Context();var migrator=db.GetService<IMigrator>();await migrator.MigrateAsync("20261008020000_ApprovalInboxIndexes");var actor=new UserRecord{Username=Guid.NewGuid().ToString("N")};await db.InsertHistoricalUserAsync(actor);const string invalid="{\"smtpHost\":\"mail.example.test\",\"smtpPort\":587,\"fromEmail\":\"bad@bad@bad\",\"smtpSecretRef\":\"vault://local/mail\",\"webhookUrl\":null,\"webhookSecretRef\":null}";await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO system_settings(key,scope_type,value,updated_by,updated_at,revision) VALUES('system.notification','system',{invalid}::jsonb,{actor.Id},now(),1)");
-        var error=await Assert.ThrowsAsync<InvalidOperationException>(()=>NotificationMigrationPreflight.ValidateAsync(db));Assert.Contains("system.notification",error.Message);Assert.DoesNotContain("bad@bad@bad",error.Message);Assert.DoesNotContain("vault://",error.Message);
+        var error=await Assert.ThrowsAsync<InvalidOperationException>(()=>NotificationMigrationPreflight.ValidateAsync(db,TestBudget));Assert.Contains("system.notification",error.Message);Assert.DoesNotContain("bad@bad@bad",error.Message);Assert.DoesNotContain("vault://",error.Message);
     }
 }

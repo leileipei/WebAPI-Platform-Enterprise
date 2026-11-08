@@ -22,16 +22,17 @@ public sealed class CredentialUsageQueryTests
     {
         public readonly ApiFixture Api=new();public readonly DateTimeOffset To=Floor(DateTimeOffset.UtcNow);public DateTimeOffset From=>To.AddHours(-2);
         public readonly RequestSqlProbe Probe=new();public ApplicationCredential Credential=null!;public GatewayNode Node=null!;
-        public async Task InitializeAsync(bool cohort=true,bool complete=true,int credentials=1,int retention=30,int batchHashHours=25)
+        public async Task InitializeAsync(bool cohort=true,bool complete=true,int credentials=1,int retention=30,int batchHashHours=25,DateTimeOffset? registeredAt=null)
         {
             await Api.InitializeAsync(b=>{b.Configuration["CredentialUsage:RetentionDays"]=retention.ToString(CultureInfo.InvariantCulture);b.Configuration["CredentialUsage:BatchHashHours"]=batchHashHours.ToString(CultureInfo.InvariantCulture);b.Services.AddDbContext<WebApiDbContext>(o=>o.AddInterceptors(Probe));});await Api.SeedConsumerAsync();using var login=await Api.LoginAsync();login.EnsureSuccessStatusCode();
             await using var db=Api.Context();
-            for(var i=0;i<credentials;i++){var credential=new ApplicationCredential{ApplicationId=Api.Application.Id,AccessKey="query-key-"+i.ToString("D4"),SecretHash="never-returned",SecretLast4="1234",ValidFrom=From.AddDays(-50),ExpiresAt=To.AddDays(1),LastUsedAt=To.AddMinutes(10)};if(i==0)Credential=credential;db.Add(credential);}
+            for(var i=0;i<credentials;i++){var credential=new ApplicationCredential{ApplicationId=Api.Application.Id,OrganizationId=Api.Organization.Id,AccessKey="query-key-"+i.ToString("D4"),SecretHash="never-returned",SecretLast4="1234",ValidFrom=From.AddDays(-50),ExpiresAt=To.AddDays(1),LastUsedAt=To.AddMinutes(10)};if(i==0)Credential=credential;db.Add(credential);}
             if(cohort)
             {
-                Node=new(){EnvironmentId=Api.Environment.Id,NodeName="historical-query",InstanceId=Guid.NewGuid().ToString(),Enabled=true};db.Add(Node);db.Add(new GatewayNodeEvent{GatewayNodeId=Node.Id,EventType="registered",CreatedAt=From.AddHours(-1)});
+                var anchor=registeredAt??From.AddHours(-1);
+                Node=new(){EnvironmentId=Api.Environment.Id,NodeName="historical-query",InstanceId=Guid.NewGuid().ToString(),Enabled=true};db.Add(Node);db.Add(new GatewayNodeEvent{GatewayNodeId=Node.Id,EventType="registered",CreatedAt=anchor});
                 var collector=Guid.NewGuid();db.Add(new CredentialUsageCollector{NodeId=Node.Id,CollectorId=collector,EnvironmentId=Api.Environment.Id,CreatedAt=From.AddHours(-1),AcceptedSequence=2,AcceptedThrough=To});
-                db.Add(new CredentialUsageCollectorInstance{NodeId=Node.Id,CollectorId=collector,InstanceId=Guid.Parse(Node.InstanceId),RegisteredAt=From.AddHours(-1)});
+                db.Add(new CredentialUsageCollectorInstance{NodeId=Node.Id,CollectorId=collector,InstanceId=Guid.Parse(Node.InstanceId),RegisteredAt=anchor});
                 if(complete)for(var h=From;h<To;h=h.AddHours(1))db.Add(Coverage(h,h,h.AddHours(1)));
             }
             await db.SaveChangesAsync();
@@ -81,10 +82,9 @@ public sealed class CredentialUsageQueryTests
     [Theory][InlineData(false)][InlineData(true)]
     public async Task Pre_window_retirement_anchor_is_preserved_with_optional_reenable_inside_window(bool reenable)
     {
-        await using var f=new Fixture();await f.InitializeAsync();
+        await using var f=new Fixture();await f.InitializeAsync(registeredAt:f.From.AddDays(-10));
         await using(var db=f.Api.Context())
         {
-            await db.Set<GatewayNodeEvent>().Where(x=>x.GatewayNodeId==f.Node.Id&&x.EventType=="registered").ExecuteUpdateAsync(s=>s.SetProperty(x=>x.CreatedAt,f.From.AddDays(-10)));
             db.Add(new GatewayNodeEvent{GatewayNodeId=f.Node.Id,EventType="usage.node.disabled",CreatedAt=f.From.AddDays(-2)});
             if(reenable)db.Add(new GatewayNodeEvent{GatewayNodeId=f.Node.Id,EventType="usage.node.enabled",CreatedAt=f.From.AddHours(1)});
             await db.Set<CredentialUsageCoverage>().Where(x=>!reenable||x.HourStart==f.From).ExecuteDeleteAsync();await db.SaveChangesAsync();
@@ -231,8 +231,7 @@ public sealed class CredentialUsageQueryTests
     [Fact]
     public async Task Collection_started_inside_window_returns_known_lower_bound_and_explicit_initial_gap()
     {
-        await using var f=new Fixture();await f.InitializeAsync();await f.BucketAsync(2,f.From.AddHours(1));var start=f.From.AddMinutes(30);
-        await using(var db=f.Api.Context()){await db.Set<GatewayNodeEvent>().Where(x=>x.EventType=="registered").ExecuteUpdateAsync(s=>s.SetProperty(x=>x.CreatedAt,start));await db.Set<CredentialUsageCollectorInstance>().ExecuteUpdateAsync(s=>s.SetProperty(x=>x.RegisteredAt,start));}
+        await using var f=new Fixture();var start=f.From.AddMinutes(30);await f.InitializeAsync(registeredAt:start);await f.BucketAsync(2,f.From.AddHours(1));
         var row=Row(await f.ReadAsync());Assert.Equal("Partial",row.GetProperty("coverage").GetProperty("state").GetString());Assert.Equal("2",row.GetProperty("count").GetString());Assert.Contains(row.GetProperty("coverage").GetProperty("gaps").EnumerateArray(),x=>x.GetProperty("reason").GetString()=="CoverageStartedLate");
     }
 

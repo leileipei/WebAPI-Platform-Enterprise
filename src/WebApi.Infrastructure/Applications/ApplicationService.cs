@@ -42,7 +42,7 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
     {var scope=await scopes.ApplicationAsync(id,ct);await commands.ExecuteAsync(actor,scope,"app.delete",async(_,token)=>{await auth.RequireAsync(actor,"app.write",new("application",id,scope),token);var a=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==id,token);RevisionTag.Require(tag,a.Revision);await mappings.RequireNotReferencedAsync(id,token);if(await db.Set<ApplicationCredential>().AnyAsync(c=>c.ApplicationId==id,token)||await db.Set<ApplicationApiPermission>().AnyAsync(p=>p.ApplicationId==id,token)) throw new ApiException(409,"application_in_use","应用存在凭证或授权，请先停用。");db.Remove(a);return true;},ct);}
     private static void ValidateWindow(DateTimeOffset from,DateTimeOffset? expires) {if(from==DateTimeOffset.MinValue||expires<=from) throw new ApiException(422,"invalid_validity_window","有效期结束必须晚于开始时间。");}
     public async Task<CredentialCreateResponse> CreateCredentialAsync(Guid applicationId,CredentialCreateRequest request,ActorContext actor,CancellationToken ct=default)
-    {var scope=await scopes.ApplicationAsync(applicationId,ct);return await commands.ExecuteAsync(actor,scope,"credential.create",async(_,token)=>{await auth.RequireAsync(actor,"credential.manage",new("application",applicationId,scope),token);ValidateWindow(request.ValidFrom,request.ExpiresAt);var app=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==applicationId,token);if(app.Status!="Active") throw new ApiException(409,"application_disabled","停用应用不能创建凭证。");var material=ApiKeySecret.Create();var c=new ApplicationCredential {ApplicationId=applicationId,AccessKey=material.AccessKey,SecretHash=material.Hash,SecretLast4=material.Last4,Status="Active",ValidFrom=request.ValidFrom.ToUniversalTime(),ExpiresAt=request.ExpiresAt.ToUniversalTime()};db.Add(c);app.Revision++;app.UpdatedAt=DateTimeOffset.UtcNow;return new CredentialCreateResponse(Dto(c),material.Secret,material.AccessKey+"."+material.Secret);},ct);}
+    {var scope=await scopes.ApplicationAsync(applicationId,ct);return await commands.ExecuteAsync(actor,scope,"credential.create",async(_,token)=>{await auth.RequireAsync(actor,"credential.manage",new("application",applicationId,scope),token);ValidateWindow(request.ValidFrom,request.ExpiresAt);var app=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==applicationId,token);if(app.Status!="Active") throw new ApiException(409,"application_disabled","停用应用不能创建凭证。");var material=ApiKeySecret.Create();var c=new ApplicationCredential {ApplicationId=applicationId,OrganizationId=app.OrganizationId,AccessKey=material.AccessKey,SecretHash=material.Hash,SecretLast4=material.Last4,Status="Active",ValidFrom=request.ValidFrom.ToUniversalTime(),ExpiresAt=request.ExpiresAt.ToUniversalTime()};db.Add(c);app.Revision++;app.UpdatedAt=DateTimeOffset.UtcNow;return new CredentialCreateResponse(Dto(c),material.Secret,material.AccessKey+"."+material.Secret);},ct);}
     public async Task<CredentialDto> CredentialAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {var c=await db.Set<ApplicationCredential>().AsNoTracking().SingleOrDefaultAsync(c=>c.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.ApplicationAsync(c.ApplicationId,ct);if(!await auth.CanAsync(actor,"app.read",new("credential",id,scope),ct)) throw ScopeResolver.Missing();var last=usage is null?null:(await usage.VisibleLastUsedAsync(c.ApplicationId,[c.Id],actor,ct)).GetValueOrDefault(c.Id);return Dto(c,last);}
     public async Task<CommandResult<CredentialDto>> SaveCredentialAsync(Guid id,CredentialUpdateRequest request,string? tag,ActorContext actor,CancellationToken ct=default)
@@ -52,8 +52,34 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
         var appScope=await scopes.ApplicationAsync(applicationId,ct);var envScope=await scopes.EnvironmentAsync(request.EnvironmentId,ct);return await commands.ExecuteAsync(actor,envScope,"app.permission.save",async(_,token)=>{
             await auth.RequireAsync(actor,"app.permission.manage",new("application",applicationId,appScope),token);await auth.RequireAsync(actor,"app.permission.manage",new("environment",request.EnvironmentId,envScope),token);var apiScope=await scopes.ApiAsync(request.ApiId,token);
             if(apiScope.OrganizationId!=appScope.OrganizationId||apiScope.OrganizationId!=envScope.OrganizationId||apiScope.ProjectId!=envScope.ProjectId||appScope.ProjectId is Guid project&&project!=apiScope.ProjectId) throw new ApiException(422,"foreign_authorization","应用、API与环境范围不一致。");ValidateWindow(request.ValidFrom,request.ExpiresAt);
-            var p=id is Guid existing?await db.Set<ApplicationApiPermission>().SingleOrDefaultAsync(p=>p.Id==existing&&p.ApplicationId==applicationId,token)??throw ScopeResolver.Missing():new ApplicationApiPermission {ApplicationId=applicationId,CreatedBy=actor.UserId};if(id is null) db.Add(p);else {RevisionTag.Require(tag,p.Revision);p.Revision++;}
-            p.ApiId=request.ApiId;p.EnvironmentId=request.EnvironmentId;p.ValidFrom=request.ValidFrom.ToUniversalTime();p.ExpiresAt=request.ExpiresAt?.ToUniversalTime();var app=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==applicationId,token);app.Revision++;app.UpdatedAt=DateTimeOffset.UtcNow;return new CommandResult<ApplicationPermissionDto>(Dto(p),RevisionTag.Format(p.Revision));
+            var p=id is Guid existing?await db.Set<ApplicationApiPermission>().SingleOrDefaultAsync(p=>p.Id==existing&&p.ApplicationId==applicationId,token)??throw ScopeResolver.Missing():new ApplicationApiPermission {ApplicationId=applicationId,CreatedBy=actor.UserId,Mode="LegacyApi"};
+            if(id is not null)
+            {
+                if(p.EnvironmentId!=request.EnvironmentId) {var oldScope=await scopes.EnvironmentAsync(p.EnvironmentId,token);await auth.RequireAsync(actor,"app.permission.manage",new("environment",p.EnvironmentId,oldScope),token);}
+                RevisionTag.Require(tag,p.Revision);if(p.Mode!="LegacyApi") throw new ApiException(409,"explicit_permission_mode_required","路由方法授权需要显式提供权限模式和方法集合。");
+            }
+            var affectedEnvironments=(id is null?new[]{request.EnvironmentId}:new[]{p.EnvironmentId,request.EnvironmentId}).Distinct().Order().ToArray();
+            foreach(var affected in affectedEnvironments) await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={affected} FOR UPDATE",token);
+            if(await db.Set<EnvironmentSecurityState>().AnyAsync(s=>affectedEnvironments.Contains(s.EnvironmentId)&&(s.MinimumSnapshotSchema=="2.3"||s.MinimumSnapshotSchema=="2.4"),token)) throw new ApiException(409,"legacy_permission_cutover","环境已切换严格授权，不能创建或修改旧版 API 授权。");
+            var from=request.ValidFrom.ToUniversalTime();var expires=request.ExpiresAt?.ToUniversalTime();
+            if(id is not null&&(p.ApiId!=request.ApiId||p.EnvironmentId!=request.EnvironmentId))
+            {
+                // ApiId/EnvironmentId participate in the governance alternate key.
+                // Execute an optimistic, atomic update; tracked key mutation is forbidden by EF.
+                var before=ApplicationPermissionAuditSnapshot.From(p);
+                var affected=await db.Set<ApplicationApiPermission>().Where(x=>x.Id==before.Id&&x.Revision==before.Revision&&x.ApiId==before.ApiId&&x.EnvironmentId==before.EnvironmentId&&x.Mode=="LegacyApi")
+                    .ExecuteUpdateAsync(update=>update.SetProperty(x=>x.ApiId,request.ApiId).SetProperty(x=>x.EnvironmentId,request.EnvironmentId)
+                        .SetProperty(x=>x.ValidFrom,from).SetProperty(x=>x.ExpiresAt,expires).SetProperty(x=>x.Revision,x=>x.Revision+1),token);
+                if(affected!=1) throw new ApiException(412,"stale_revision","数据已更新，请刷新后重试。");
+                db.Entry(p).State=EntityState.Detached;p=await db.Set<ApplicationApiPermission>().SingleAsync(x=>x.Id==before.Id,token);
+                commands.RecordPermissionMove(actor,envScope,before,ApplicationPermissionAuditSnapshot.From(p));
+            }
+            else
+            {
+                if(id is null) db.Add(p);else p.Revision++;
+                p.ApiId=request.ApiId;p.EnvironmentId=request.EnvironmentId;p.ValidFrom=from;p.ExpiresAt=expires;
+            }
+            var app=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==applicationId,token);app.Revision++;app.UpdatedAt=DateTimeOffset.UtcNow;return new CommandResult<ApplicationPermissionDto>(Dto(p),RevisionTag.Format(p.Revision));
         },ct);
     }
     public async Task DeletePermissionAsync(Guid id,string? tag,ActorContext actor,CancellationToken ct=default)

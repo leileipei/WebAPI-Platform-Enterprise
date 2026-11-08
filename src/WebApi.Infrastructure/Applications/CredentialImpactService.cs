@@ -18,7 +18,7 @@ public sealed class CredentialImpactService(WebApiDbContext db,AuthorizationServ
     public async Task<CredentialImpactDto> PreviewAsync(Guid credentialId,CredentialImpactRequest request,string? ifMatch,ActorContext actor,CancellationToken ct=default)
     {
         await using var transaction=await db.Database.BeginTransactionAsync(ct);
-        await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
+        await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
         var result=await ComputeAsync(credentialId,request,ifMatch,true,actor,ct);await transaction.CommitAsync(ct);return result.Dto;
     }
     public async Task RequireConfirmationAsync(Guid credentialId,CredentialImpactRequest request,CredentialImpactConfirmation? confirmation,ActorContext actor,CancellationToken ct=default)

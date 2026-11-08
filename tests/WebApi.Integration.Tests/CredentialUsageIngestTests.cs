@@ -62,7 +62,7 @@ public sealed class CredentialUsageIngestTests
         public async Task InitializeAsync(int pendingAgeHours=24,int ingestTimeoutSeconds=10)
         {
             await Api.InitializeAsync(b=>{b.Configuration["CredentialUsage:MaxPendingAgeHours"]=pendingAgeHours.ToString(System.Globalization.CultureInfo.InvariantCulture);b.Configuration["CredentialUsage:IngestTimeoutSeconds"]=ingestTimeoutSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);b.Services.AddDbContext<WebApiDbContext>(o=>o.AddInterceptors(Sql));});await Api.SeedConsumerAsync();
-            Credential=new(){ApplicationId=Api.Application.Id,AccessKey="usage-test-key",SecretHash=new string('a',64),SecretLast4="aaaa",ValidFrom=Observed.AddDays(-1),ExpiresAt=Observed.AddDays(1)};
+            Credential=new(){ApplicationId=Api.Application.Id,OrganizationId=Api.Organization.Id,AccessKey="usage-test-key",SecretHash=new string('a',64),SecretLast4="aaaa",ValidFrom=Observed.AddDays(-1),ExpiresAt=Observed.AddDays(1)};
             Node=new(){EnvironmentId=Api.Environment.Id,NodeName="usage-ingest",InstanceId=Instance.ToString(),IdentityHash=NodeIdentityService.Hash(Secret),Enabled=true};
             var snapshot=new RuntimeSnapshot("2.0",Api.Environment.Id,1,Observed.AddMinutes(-2),
                 [new(Guid.NewGuid(),Api.Api.Id,Api.Version.Id,Api.Cluster.Id,"/orders",["GET"],0,30000,true)],
@@ -103,8 +103,9 @@ public sealed class CredentialUsageIngestTests
         await using var s=new Scenario{Observed=hour.AddMinutes(10)};await s.InitializeAsync();await s.BindAsync();
         await using(var db=s.Api.Context())
         {
-            await db.Set<GatewayNodeEvent>().Where(x=>x.GatewayNodeId==s.Node.Id&&x.EventType=="registered").ExecuteUpdateAsync(x=>x.SetProperty(y=>y.CreatedAt,hour.AddMinutes(-1)));
+            db.Add(new GatewayNodeEvent{GatewayNodeId=s.Node.Id,EventType="registered",CreatedAt=hour.AddMinutes(-1)});
             await db.Set<CredentialUsageCollectorInstance>().Where(x=>x.NodeId==s.Node.Id).ExecuteUpdateAsync(x=>x.SetProperty(y=>y.RegisteredAt,hour.AddMinutes(-1)));
+            await db.SaveChangesAsync();
         }
         using var login=await s.Api.LoginAsync();login.EnsureSuccessStatusCode();
         var path=$"/api/v1/applications/{s.Api.Application.Id}/credential-usage?from={Uri.EscapeDataString(hour.ToString("O"))}&to={Uri.EscapeDataString(hour.AddHours(1).ToString("O"))}";

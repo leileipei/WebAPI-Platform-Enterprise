@@ -81,6 +81,9 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
                 updatedBindings.RemoveAll(b=>b.Type=="authentication");updatedBindings.Add(new(privatePolicy.Id,privatePolicy.Type,privatePolicy.Config,true,0));
             }
             var effective=PolicyBindingRules.Validate(updatedBindings,true,timeout);
+            // Persist the effective mode with the route, before the deferred
+            // binding guard runs, so the returned revision is the committed one.
+            r.AuthenticationMode=(effective.Authentication?.Mode??AuthenticationMode.ApiKey).ToString();
             return new CommandResult<RouteDto>(Dto(r,effective.RequireApiKey) with {EffectiveTimeoutMs=effective.TimeoutMs??r.TimeoutMs,EffectiveAuthenticationMode=effective.Authentication?.Mode==AuthenticationMode.JWT?"JWT":null},RevisionTag.Format(r.Revision));
         },ct);
     }

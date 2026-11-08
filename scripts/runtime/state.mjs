@@ -1,6 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
+import {assertNoUnresolvedRestoreIntent} from './restore-intent.mjs';
+import {syncDirectory,withRestoreTargetLock} from './restore-target-lock.mjs';
 export class RuntimeError extends Error {constructor(message,exitCode=2){super(message);this.exitCode=exitCode;}}
 export const persistentProject='webapi-enterprise-local';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -27,14 +29,37 @@ export async function ownedDirectory(directory){const st=await fs.lstat(director
 export async function writePrivate(file,value){const tmp=file+'.'+randomUUID()+'.tmp';const handle=await fs.open(tmp,'wx',0o600);try{await handle.writeFile(typeof value==='string'?value:JSON.stringify(value,null,2)+'\n');await handle.sync();}finally{await handle.close();}try{await fs.rename(tmp,file);const parent=await fs.open(path.dirname(file),'r');try{await parent.sync();}finally{await parent.close();}}catch(e){await fs.rm(tmp,{force:true});throw e;}}
 export async function loadState(directory){directory=await ownedDirectory(directory);await safeFile(path.join(directory,'owner.json'));await safeFile(path.join(directory,'runtime.json'));const owner=JSON.parse(await fs.readFile(path.join(directory,'owner.json'),'utf8'));const state=validateState(JSON.parse(await fs.readFile(path.join(directory,'runtime.json'),'utf8')));if(owner.schemaVersion!==1||owner.projectName!==state.projectName||owner.ownerId!==state.ownerId)throw new RuntimeError('Foreign or inconsistent runtime owner.',3);return state;}
 export async function saveState(directory,state){validateState(state);const previous=await loadState(directory);if(previous.ownerId!==state.ownerId||previous.projectName!==state.projectName||previous.bootstrapUsername!==state.bootstrapUsername)throw new RuntimeError('Cannot replace runtime owner or bootstrap administrator.',3);await writePrivate(path.join(directory,'runtime.json'),state);}
-export async function initializeState(directory,{bootstrapUsername,ports={console:4192,gatewayA:4196,gatewayB:4197},projectName=persistentProject}={}){
- try{await fs.lstat(directory);try{return await loadState(directory);}catch(e){throw new RuntimeError('Foreign or non-owned runtime directory; symlink is not allowed.',3);}}catch(e){if(e.code!=='ENOENT')throw e;}
- const state=validateState({schemaVersion:1,projectName,ownerId:randomUUID(),ports:{console:4192,gatewayA:4196,gatewayB:4197,...ports},bootstrapUsername,binding:null,demoEnabled:false,releaseId:null,initialized:false,bindingPhase:null,pendingConfiguration:null});
- await fs.mkdir(path.dirname(directory),{recursive:true});await fs.mkdir(directory,{mode:0o700});await writePrivate(path.join(directory,'owner.json'),{schemaVersion:1,projectName,ownerId:state.ownerId});await writePrivate(path.join(directory,'runtime.json'),state);return state;
+export async function initializeState(directory,{bootstrapUsername,ports={console:4192,gatewayA:4196,gatewayB:4197},projectName=persistentProject,requireFresh=false,restorePendingSourceOwnerId=null,restoreIntent=null,targetLock,onRestorePending=async()=>{}}={}){
+ if(typeof requireFresh!=='boolean'||typeof onRestorePending!=='function'||restorePendingSourceOwnerId!==null&&(!requireFresh||!validGuid(restorePendingSourceOwnerId))||restoreIntent!==null&&(!requireFresh||restorePendingSourceOwnerId===null||!validGuid(restoreIntent.operationId)||restoreIntent.projectName!==projectName))throw new RuntimeError('Invalid restore initialization requirements.',3);
+ const candidate=()=>validateState({schemaVersion:1,projectName,ownerId:randomUUID(),ports:{console:4192,gatewayA:4196,gatewayB:4197,...ports},bootstrapUsername,binding:null,demoEnabled:false,releaseId:null,initialized:false,bindingPhase:null,pendingConfiguration:null});
+ const exists=await fs.lstat(directory).catch(error=>error.code==='ENOENT'?null:Promise.reject(error));const proposed=exists?null:candidate();
+ return withRestoreTargetLock(directory,async target=>{
+ directory=target;if(restoreIntent&&restoreIntent.directory!==target)throw new RuntimeError('Restore intent target mismatch.',3);
+ await assertNoUnresolvedRestoreIntent(directory,{allowOperationId:restoreIntent?.operationId});
+ try{await fs.lstat(directory);if(requireFresh)throw new RuntimeError('Restore requires a fresh runtime directory.',3);try{return await loadState(directory);}catch(e){throw new RuntimeError('Foreign or non-owned runtime directory; symlink is not allowed.',3);}}catch(e){if(e.code!=='ENOENT')throw e;}
+ const state=proposed??candidate();
+ await fs.mkdir(directory,{mode:0o700});await syncDirectory(path.dirname(directory));
+ if(restorePendingSourceOwnerId!==null){await writePrivate(path.join(directory,'restore-pending.json'),{schemaVersion:1,ownerId:state.ownerId,projectName,sourceOwnerId:restorePendingSourceOwnerId});await onRestorePending(state);}
+ await writePrivate(path.join(directory,'owner.json'),{schemaVersion:1,projectName,ownerId:state.ownerId});await writePrivate(path.join(directory,'runtime.json'),state);return state;
+ },{token:targetLock});
 }
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
-export async function withRuntimeLock(directory,action){
- directory=await ownedDirectory(directory);const file=path.join(directory,'operation.lock');const until=Date.now()+60000;let handle;
+const runtimeQueues=new Map();
+export async function withRuntimeLock(directory,action,{targetLock,allowPending=false,bypassQueue=false}={}){
+ directory=await ownedDirectory(directory);
+ const run=()=>withRestoreTargetLock(directory,async target=>{
+ directory=target;
+ if(!allowPending){if(await fs.lstat(path.join(directory,'restore-pending.json')).catch(error=>error.code==='ENOENT'?null:Promise.reject(error)))throw new RuntimeError('Runtime restore is incomplete/pending; preserve its evidence.',3);await assertNoUnresolvedRestoreIntent(directory);}
+ const file=path.join(directory,'operation.lock');const until=Date.now()+60000;let handle;
  while(!handle){try{handle=await fs.open(file,'wx',0o600);await handle.writeFile(JSON.stringify({pid:process.pid,ownerId:(await loadState(directory)).ownerId}));}catch(e){if(e.code!=='EEXIST')throw e;try{await safeFile(file);}catch(inspectError){if(inspectError.code==='ENOENT')continue;throw inspectError;}let lock;try{lock=JSON.parse(await fs.readFile(file,'utf8'));}catch{if(Date.now()>until)throw new RuntimeError('Runtime lock is incomplete; inspect before retry.',3);await pause(25);continue;}if(!Number.isInteger(lock.pid)||lock.ownerId!==(await loadState(directory)).ownerId)throw new RuntimeError('Foreign runtime lock.',3);let dead=false;try{process.kill(lock.pid,0);}catch(k){dead=k.code==='ESRCH';}if(dead){await fs.unlink(file);continue;}if(Date.now()>until)throw new RuntimeError('Another runtime operation is active.',3);await pause(25);}}
- try{return await action();}finally{await handle.close();await fs.unlink(file);}
+ let result,primary,cleanupFailure,failed=false,cleanupFailed=false;
+ try{result=await action();}catch(error){failed=true;primary=error;}
+ try{await handle.close();await fs.unlink(file);}catch(error){cleanupFailed=true;cleanupFailure=error;}
+ if(failed){if(cleanupFailed){let attached=false;if(primary&&typeof primary==='object')try{primary.cleanupFailure=cleanupFailure;attached=primary.cleanupFailure===cleanupFailure;}catch{}if(!attached)throw new AggregateError([primary,cleanupFailure],'Runtime action and lock cleanup both failed');}throw primary;}
+ if(cleanupFailed)throw cleanupFailure;return result;
+ },{token:targetLock});
+ if(targetLock||bypassQueue)return run();
+ const previous=runtimeQueues.get(directory)??Promise.resolve();let release;
+ const current=new Promise(resolve=>{release=resolve;});runtimeQueues.set(directory,current);
+ try{await previous;return await run();}finally{release();if(runtimeQueues.get(directory)===current)runtimeQueues.delete(directory);}
 }

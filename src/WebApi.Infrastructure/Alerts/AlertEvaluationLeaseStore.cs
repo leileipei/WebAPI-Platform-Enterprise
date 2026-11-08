@@ -21,7 +21,7 @@ public sealed class AlertEvaluationLeaseStore(WebApiDbContext db,AlertRuleScopeR
     public async Task<IReadOnlyList<EvaluationLease>> ClaimAsync(DateTimeOffset slot,string owner,CancellationToken ct)
     {
         if(string.IsNullOrWhiteSpace(owner)||owner.Length>128)throw new ArgumentException("Invalid lease owner.");
-        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);
+        await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
         var now=await DatabaseTimeAsync(db,ct);if(slot!=Floor(now)){await tx.CommitAsync(ct);return [];}
         // Seed missing current-logic keys from persisted rules, not from existing occurrences.
         var rules=await db.Set<AlertRule>().FromSqlRaw("SELECT * FROM alert_rules WHERE enabled ORDER BY id FOR UPDATE").ToArrayAsync(ct);

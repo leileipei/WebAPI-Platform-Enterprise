@@ -11,6 +11,7 @@ export const notificationStateName='notification-runtime.json';
 export const notificationVolumes=['notification-secrets','notification-fixture-secrets','notification-fixture-data'];
 const receiptName='notification-secrets/receipt.json';
 const expectedSecretFiles=['sender/smtp.json','sender/webhook.json','sender/ca.crt','fixture/smtp.json','fixture/webhook.json','fixture/server.crt','fixture/server.key','fixture/owner-token'].sort();
+export const notificationBackupRequiredInputs=Object.freeze([notificationStateName,receiptName,...expectedSecretFiles.map(name=>'notification-secrets/'+name),...notificationVolumes.map(name=>name+'.tar')]);
 function identity(owner,projectName){if(!validGuid(owner)||!(projectName==='webapi-enterprise-local'||/^webapi-enterprise-local-test-[a-f0-9-]{36}$/.test(projectName)))throw new RuntimeError('Invalid notification owner.',3);}
 export function validateNotificationRuntime(state,core){
  validateState(core);identity(state?.ownerId,state?.projectName);

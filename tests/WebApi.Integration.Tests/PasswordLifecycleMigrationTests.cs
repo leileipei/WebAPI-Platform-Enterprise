@@ -13,6 +13,7 @@ namespace WebApi.Integration.Tests;
 public sealed class PasswordLifecycleMigrationTests
 {
     private const string PreviousMigration = "20261012004548_ReleaseFrozenContracts";
+    private const string PasswordLifecycleMigration = "20261015010000_AccountPasswordLifecycle";
     private static async Task<JsonElement> UserJsonAsync(PostgresDatabase database, Guid id)
     {
         await using var connection = await database.OpenAsync();
@@ -96,12 +97,28 @@ public sealed class PasswordLifecycleMigrationTests
     [Fact]
     public async Task Isolated_down_up_preserves_existing_account()
     {
-        await using var api=new ApiFixture(); await api.InitializeAsync();
-        var before=await UserJsonAsync(api.Database,api.User.Id);
-        await using var db=api.Context(); var migrator=db.GetService<IMigrator>(); await migrator.MigrateAsync(PreviousMigration);
-        var old=await UserJsonAsync(api.Database,api.User.Id); Assert.False(old.TryGetProperty("must_change_password",out _));
-        await migrator.MigrateAsync(); var after=await UserJsonAsync(api.Database,api.User.Id);
+        // The governance receipt ledger blocks downgrades across the G boundary,
+        // so the isolated round-trip stays inside the pre-governance range.
+        await using var database=new PostgresDatabase(); await database.InitializeAsync();
+        await using var db=database.Context(); var migrator=db.GetService<IMigrator>();
+        await migrator.MigrateAsync(PreviousMigration);
+        var id=Guid.NewGuid(); var stamp=Guid.NewGuid().ToString("N"); var hash="legacy-private-hash-preserved";
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO users (id,username,display_name,password_hash,status,auth_source,created_at,updated_at,security_stamp) VALUES ({id},'legacy','旧账号',{hash},'Active','local',NOW(),NOW(),{stamp})");
+        var org=new Organization {Code="ISOLATED", Name="隔离组织"}; var role=new Role{Code="isolated",Name="隔离角色"};
+        db.AddRange(org,role); db.Add(new UserRole {UserId=id,RoleId=role.Id});
+        db.Add(new UserProjectScope {UserId=id,OrganizationId=org.Id,AccessMode="read_write"}); await db.SaveChangesAsync();
+        await migrator.MigrateAsync(PasswordLifecycleMigration);
+        var after=await UserJsonAsync(database,id);
         Assert.True(after.TryGetProperty("must_change_password",out var flag)); Assert.False(flag.GetBoolean());
-        Assert.Equal(before.GetProperty("password_hash").GetString(),after.GetProperty("password_hash").GetString());
+        Assert.Equal(JsonValueKind.Null,after.GetProperty("password_changed_at").ValueKind);
+        Assert.Equal(hash,after.GetProperty("password_hash").GetString()); Assert.Equal(stamp,after.GetProperty("security_stamp").GetString());
+        await migrator.MigrateAsync(PreviousMigration);
+        var down=await UserJsonAsync(database,id); Assert.False(down.TryGetProperty("must_change_password",out _));
+        await migrator.MigrateAsync(PasswordLifecycleMigration);
+        var afterRoundTrip=await UserJsonAsync(database,id);
+        Assert.True(afterRoundTrip.TryGetProperty("must_change_password",out var second)); Assert.False(second.GetBoolean());
+        Assert.Equal(hash,afterRoundTrip.GetProperty("password_hash").GetString()); Assert.Equal(stamp,afterRoundTrip.GetProperty("security_stamp").GetString());
+        Assert.True(await db.Set<UserRole>().AnyAsync(x=>x.UserId==id&&x.RoleId==role.Id));
+        Assert.True(await db.Set<UserProjectScope>().AnyAsync(x=>x.UserId==id&&x.OrganizationId==org.Id&&x.AccessMode=="read_write"));
     }
 }

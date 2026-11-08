@@ -12,20 +12,28 @@ public static class SnapshotValidator
     private static ApiException Invalid(string message)=>new(422,"invalid_snapshot",message);
     public static void Validate(RuntimeSnapshot snapshot,Guid expectedEnvironment)
     {
-        if(snapshot.SchemaVersion is not ("2.0" or "2.1" or "2.2" or "2.3")||snapshot.EnvironmentId!=expectedEnvironment||expectedEnvironment==Guid.Empty||snapshot.ConfigVersion<=0||snapshot.GeneratedAt.Offset!=TimeSpan.Zero) throw Invalid("Snapshot协议、环境、版本或UTC时间不合法。");
+        if(snapshot.SchemaVersion is not ("2.0" or "2.1" or "2.2" or "2.3" or "2.4")||snapshot.EnvironmentId!=expectedEnvironment||expectedEnvironment==Guid.Empty||snapshot.ConfigVersion<=0||snapshot.GeneratedAt.Offset!=TimeSpan.Zero) throw Invalid("Snapshot协议、环境、版本或UTC时间不合法。");
+        var governance=snapshot.SchemaVersion=="2.4"||snapshot.RequiredSecurityGeneration is not null||snapshot.RequiredSecurityEpoch is not null||snapshot.RequireEnvironmentCredentials is not null||snapshot.MinimumSnapshotSchema is not null;
+        if(governance)
+        {
+            if(snapshot.SchemaVersion is not ("2.3" or "2.4")) throw Invalid("旧协议不支持治理字段。");
+            SnapshotGovernanceValidator.Validate(snapshot);
+        }
         if(snapshot.Routes is null||snapshot.Clusters is null||snapshot.Policies is null||snapshot.Applications is null) throw Invalid("Snapshot集合缺失。");
+        if(snapshot.Routes.Any(r=>r is null)||snapshot.Clusters.Any(c=>c is null)||snapshot.Policies.Any(p=>p is null)||snapshot.Applications.Any(a=>a is null)) throw Invalid("Snapshot集合包含空项。");
+        if(!governance && ContainsGovernanceFacts(snapshot)) throw Invalid("旧协议不能混入治理字段。");
         if(snapshot.Routes.Count>10000||snapshot.Routes.Select(r=>r.Id).Distinct().Count()!=snapshot.Routes.Count||snapshot.Clusters.Select(c=>c.Id).Distinct().Count()!=snapshot.Clusters.Count) throw Invalid("Snapshot路由为空、重复或超过限制。");
         var clusters=snapshot.Clusters.ToDictionary(c=>c.Id);var keys=new HashSet<string>(StringComparer.Ordinal);
         foreach(var route in snapshot.Routes)
         {
-            if(snapshot.SchemaVersion is not ("2.2" or "2.3")&&route.AuthenticationMode is not null) throw Invalid("旧协议不支持认证模式字段。");
+            if(snapshot.SchemaVersion is not ("2.2" or "2.3" or "2.4")&&route.AuthenticationMode is not null) throw Invalid("旧协议不支持认证模式字段。");
             if(route.AuthenticationMode is {} mode && (!Enum.IsDefined(mode)||(mode==AuthenticationMode.ApiKey)!=route.RequireApiKey)) throw Invalid("认证模式与API Key折叠字段不一致。");
-            if(route.Id==Guid.Empty||route.ApiId==Guid.Empty||route.ApiVersionId==Guid.Empty||!clusters.ContainsKey(route.ClusterId)||route.TimeoutMs is <1 or >300000||route.Methods.Count==0||route.Methods.Any(m=>!methods.Contains(m))) throw Invalid("路由身份、方法、超时或Cluster引用不合法。");var shape=RouteNormalizer.Normalize(route.Path);
+            if(route.Id==Guid.Empty||route.ApiId==Guid.Empty||route.ApiVersionId==Guid.Empty||!clusters.ContainsKey(route.ClusterId)||route.TimeoutMs is <1 or >300000||route.Methods is null||route.Methods.Count==0||route.Methods.Any(m=>!methods.Contains(m))||route.PolicyBindings?.Any(b=>b is null)==true) throw Invalid("路由身份、方法、超时或Cluster引用不合法。");var shape=RouteNormalizer.Normalize(route.Path);
             foreach(var method in route.Methods) if(!keys.Add(method+":"+shape)) throw Invalid("Runtime存在同形方法路径冲突。");
         }
         foreach(var c in snapshot.Clusters)
         {
-            if(c.EnvironmentId!=expectedEnvironment||c.Destinations.Count==0||c.LoadBalancingPolicy is not ("RoundRobin" or "LeastRequests" or "PowerOfTwoChoices" or "Random" or "FirstAlphabetical")||c.HealthCheckIntervalSec is <1 or >3600||!c.HealthCheckPath.StartsWith('/')||c.HealthCheckPath.Length>256) throw Invalid("Cluster范围、后端或健康配置不合法。");
+            if(c.EnvironmentId!=expectedEnvironment||c.Destinations is null||c.Destinations.Count==0||c.Destinations.Any(d=>d is null)||c.LoadBalancingPolicy is not ("RoundRobin" or "LeastRequests" or "PowerOfTwoChoices" or "Random" or "FirstAlphabetical")||c.HealthCheckIntervalSec is <1 or >3600||string.IsNullOrEmpty(c.HealthCheckPath)||!c.HealthCheckPath.StartsWith('/')||c.HealthCheckPath.Length>256) throw Invalid("Cluster范围、后端或健康配置不合法。");
             if(c.Destinations.Select(d=>d.Id).Distinct().Count()!=c.Destinations.Count) throw Invalid("Destination身份重复。");
             foreach(var d in c.Destinations) if(d.Id==Guid.Empty||d.Weight is <1 or >1000||!Uri.TryCreate(d.Address,UriKind.Absolute,out var address)||address.Scheme is not ("http" or "https")||address.UserInfo.Length>0||address.Query.Length>0||address.Fragment.Length>0) throw Invalid("Destination地址或权重不合法。");
         }
@@ -34,13 +42,13 @@ public static class SnapshotValidator
         foreach(var p in snapshot.Policies) {
             if(p.Id==Guid.Empty) throw Invalid("运行策略身份为空。");
             if(snapshot.SchemaVersion=="2.0"&&(p.Type is not ("authentication" or "timeout")||p.SourcePolicyId is not null||p.SourceRevision is not null)) throw Invalid("2.0不支持高级策略或来源字段。");
-            if(snapshot.SchemaVersion!="2.3"&&p.Type is "cors" or "ip_filter" or "transform") throw Invalid("旧协议不支持CORS、IP或Transform策略。 ");
+            if(snapshot.SchemaVersion is not ("2.3" or "2.4")&&p.Type is "cors" or "ip_filter" or "transform") throw Invalid("旧协议不支持CORS、IP或Transform策略。 ");
             var normalized=PolicyConfigurationValidator.Normalize(p.Type,p.Config);
             var jwt=p.Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(normalized).Mode==AuthenticationMode.JWT;
-            if(snapshot.SchemaVersion is not ("2.2" or "2.3")&&(p.Type is "retry" or "cache"||jwt)) throw Invalid("旧协议不支持JWT、重试或缓存。");
+            if(snapshot.SchemaVersion is not ("2.2" or "2.3" or "2.4")&&(p.Type is "retry" or "cache"||jwt)) throw Invalid("旧协议不支持JWT、重试或缓存。");
             if(p.SourcePolicyId is not null||p.SourceRevision is not null) {
                 if(p.SourcePolicyId is not Guid source||p.SourceRevision is not long revision||p.Id!=RuntimePolicyIdentity.Create(source,revision,p.Type,normalized)) throw Invalid("运行策略身份与内容不一致。");
-            }else if(snapshot.SchemaVersion is "2.1" or "2.2" or "2.3"&&(p.Type is not ("authentication" or "timeout")||jwt)) throw Invalid("高级策略缺少来源。");
+            }else if(snapshot.SchemaVersion is "2.1" or "2.2" or "2.3" or "2.4"&&(p.Type is not ("authentication" or "timeout")||jwt)) throw Invalid("高级策略缺少来源。");
         }
         foreach(var r in snapshot.Routes) {
             if(snapshot.SchemaVersion=="2.0"&&r.PolicyBindings is not null) throw Invalid("2.0不支持运行绑定。");
@@ -71,6 +79,9 @@ public static class SnapshotValidator
         try
         {
             using var json=JsonDocument.Parse(payload.ToArray()); var root=json.RootElement;
+            var dialect=SnapshotDialectClassifier.Classify(root);
+            if(dialect==SnapshotDialect.Invalid) throw Invalid("Snapshot协议方言无效。");
+            if(dialect is SnapshotDialect.Governance23 or SnapshotDialect.Governance24) SnapshotGovernanceValidator.ValidateWire(root);
             var schema=root.GetProperty("schemaVersion").GetString();
             if(schema is "2.0" or "2.1") foreach(var route in root.GetProperty("routes").EnumerateArray())
                 if(route.TryGetProperty("authenticationMode",out _)) throw Invalid("旧协议不支持认证模式字段。");
@@ -81,6 +92,20 @@ public static class SnapshotValidator
         }
         catch(Exception error) when(error is JsonException or InvalidOperationException or KeyNotFoundException or FormatException)
         {throw Invalid("Snapshot JSON结构不合法。");}
+    }
+    private static bool ContainsGovernanceFacts(RuntimeSnapshot snapshot)
+    {
+        foreach(var route in snapshot.Routes)
+            if(route is null||route.AuthorizationRevision is not null||route.EnvironmentId is not null) return true;
+        foreach(var app in snapshot.Applications)
+        {
+            if(app is null||app.EnvironmentId is not null||app.Credentials is null||app.Permissions is null) return true;
+            foreach(var credential in app.Credentials)
+                if(credential is null||credential.EnvironmentId is not null||credential.BindingMode is not null) return true;
+            foreach(var permission in app.Permissions)
+                if(permission is null||permission.Mode is not null||permission.RouteMethods is not null||permission.EnvironmentId is not null) return true;
+        }
+        return false;
     }
     public static void ValidateSchema(string? source)
     {

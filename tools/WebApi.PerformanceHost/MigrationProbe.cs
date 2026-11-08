@@ -108,7 +108,7 @@ public static class MigrationProbe
     }
     public static async Task<MigrationApplyEvidence> ApplyAsync(WebApiDbContext db,bool indexOnly,CancellationToken ct=default){
         if(indexOnly)await PendingIndexesAsync(db,ct);var before=await InspectAsync(db,ct);
-        await NotificationMigrationPreflight.ValidateAsync(db,ct);await db.Database.MigrateAsync(ct);await db.Database.ExecuteSqlRawAsync("ANALYZE",ct);
+        await NotificationMigrationPreflight.ValidateAsync(db,MigrationBudget.FromEnvironment(),ct);await db.Database.MigrateAsync(ct);await db.Database.ExecuteSqlRawAsync("ANALYZE",ct);
         var after=await InspectAsync(db,ct);var complete=after.ModelMatched&&!after.PendingModelChanges&&after.PendingMigrations.Count==0&&(!indexOnly||before.BusinessFingerprint==after.BusinessFingerprint);
         return new(before,after,indexOnly,complete);
     }
@@ -128,8 +128,21 @@ public static class MigrationProbe
         foreach(var index in contract.Indexes){Quote(index.Name);if(!names.Contains(index.Table)||!indexes.Add(index.Table+":"+index.Name)||!index.Valid||!index.Ready||!Sha(index.DefinitionHash))throw new InvalidDataException("Invalid baseline indexes.");}
         if(LegacySchemaHash(contract.Tables)!=contract.SchemaHash||Hash(CanonicalJson.Serialize(contract.Tables))!=contract.Fingerprint)throw new InvalidDataException("Baseline contract checksum mismatch.");
     }
+    // The Governance24 index redesign supersedes these legacy lookup indexes
+    // with composite delivery-model indexes sharing the same leading columns.
+    // The compatibility contract accepts the drop only while the replacement
+    // prefix index is present in the inspected schema.
+    private static readonly string[] ApprovedIndexReplacements =
+    {
+        "api_routes:IX_api_routes_api_version_id",
+        "application_api_permissions:IX_application_api_permissions_api_id",
+        "application_api_permissions:IX_application_api_permissions_environment_id",
+        "application_credentials:IX_application_credentials_application_id",
+    };
     private static bool SameIndexes(IReadOnlyList<DatabaseIndexEvidence> expected,IReadOnlyList<DatabaseIndexEvidence> actual,bool additions)=>
-        (additions||expected.Count==actual.Count)&&expected.All(e=>actual.Any(a=>a.Table==e.Table&&a.Name==e.Name&&a.DefinitionHash==e.DefinitionHash&&a.Valid&&a.Ready&&a.Unique==e.Unique&&a.Columns.SequenceEqual(e.Columns)&&a.Descending.SequenceEqual(e.Descending)));
+        (additions||expected.Count==actual.Count)&&expected.All(e=>
+            actual.Any(a=>a.Table==e.Table&&a.Name==e.Name&&a.DefinitionHash==e.DefinitionHash&&a.Valid&&a.Ready&&a.Unique==e.Unique&&a.Columns.SequenceEqual(e.Columns)&&a.Descending.SequenceEqual(e.Descending))
+            ||(Array.IndexOf(ApprovedIndexReplacements,e.Table+":"+e.Name)>=0&&actual.Any(a=>a.Table==e.Table&&a.Valid&&a.Ready&&e.Columns.SequenceEqual(a.Columns.Take(e.Columns.Count)))));
     private static string CanonicalStoreType(string type)
     {
         var value=Regex.Replace(type.Trim().ToLowerInvariant(),@"\s+"," ",RegexOptions.CultureInvariant);
@@ -145,7 +158,7 @@ public static class MigrationProbe
         await using var transaction=await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead,ct);var native=(NpgsqlTransaction)transaction.GetDbTransaction();
         await using(var readOnly=new NpgsqlCommand("SET TRANSACTION READ ONLY",connection,native))await readOnly.ExecuteNonQueryAsync(ct);
         var catalog=new Dictionary<string,(string[] Columns,string[] Types,bool[] NotNull,string[] Primary)>(StringComparer.Ordinal);
-        const string sql="SELECT c.relname, ARRAY(SELECT a.attname::text FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attname), ARRAY(SELECT format_type(a.atttypid,a.atttypmod) FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attname), ARRAY(SELECT a.attnotnull FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attname), ARRAY(SELECT a.attname::text FROM pg_index i CROSS JOIN LATERAL unnest(i.indkey) WITH ORDINALITY k(attnum,ord) JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum=k.attnum WHERE i.indrelid=c.oid AND i.indisprimary ORDER BY k.ord) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p') AND c.relname <> '__EFMigrationsHistory' ORDER BY c.relname";
+        const string sql="SELECT c.relname, ARRAY(SELECT a.attname::text FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attname), ARRAY(SELECT format_type(a.atttypid,a.atttypmod) FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attname), ARRAY(SELECT a.attnotnull FROM pg_attribute a WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attname), ARRAY(SELECT a.attname::text FROM pg_index i CROSS JOIN LATERAL unnest(i.indkey) WITH ORDINALITY k(attnum,ord) JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum=k.attnum WHERE i.indrelid=c.oid AND i.indisprimary ORDER BY k.ord) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p') AND c.relname NOT IN ('__EFMigrationsHistory','migration_validation_receipts') ORDER BY c.relname";
         await using(var command=new NpgsqlCommand(sql,connection,native))await using(var reader=await command.ExecuteReaderAsync(ct))while(await reader.ReadAsync(ct)){
             var name=reader.GetString(0);var columns=reader.GetFieldValue<string[]>(1);var primary=reader.GetFieldValue<string[]>(4);var model=models.SingleOrDefault(m=>m.Name==name);
             if(model is null||columns.Any(c=>!model.Columns.Contains(c,StringComparer.Ordinal))||!primary.SequenceEqual(model.Primary,StringComparer.Ordinal))throw new InvalidDataException("Database schema outside diagnostic model.");

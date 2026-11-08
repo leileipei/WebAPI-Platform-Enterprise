@@ -86,7 +86,7 @@ public sealed class SsoProviderService(WebApiDbContext db,AuthorizationService a
         SsoProvider snapshot;
         await using(var transaction=await db.Database.BeginTransactionAsync(ct))
         {
-            await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);await Require(actor,ct);
+            await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);await Require(actor,ct);
             var replay=await idempotency.TryReplayAsync<CommandResult<SsoTestDto>>(identity,request,ct);if(replay.Found)return replay.Value!;
             snapshot=await db.Set<SsoProvider>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw Missing();
             RevisionTag.Require(tag,snapshot.Revision);await transaction.CommitAsync(ct);

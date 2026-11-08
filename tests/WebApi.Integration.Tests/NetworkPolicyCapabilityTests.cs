@@ -98,6 +98,16 @@ public sealed class NetworkPolicyCapabilityTests
     }
 
     [Fact]
+    public async Task Retired23InstanceCannotRegisterAfterReplacement()
+    {
+        await using var s=new DeploymentScenario();await s.InitializeAsync();await BothAsync(s);
+        var replacement=Guid.NewGuid();await CapableAsync(s,0,replacement);
+        using var retired=await s.NodeAsync(0,"/internal/v1/nodes/register",new RegisterNodeRequest(s.Api.Environment.Id,"node-0",s.Instances[0],"untrusted-version",["2.0","2.1","2.2","2.3"]));
+        Assert.Equal(HttpStatusCode.Conflict,retired.StatusCode);
+        Assert.Contains("retired_node_instance",await retired.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task CurrentInstanceOnly_MayAck23()
     {
         await using var s=new DeploymentScenario();await s.InitializeAsync();await BothAsync(s);await BindAsync(s);var id=await s.PublishAsync(false);var desired=await s.DesiredAsync(id);
@@ -106,8 +116,19 @@ public sealed class NetworkPolicyCapabilityTests
         using var stale=await s.NodeAsync(0,$"/internal/v1/nodes/{s.NodeIds[0]}/ack",new NodeAck(s.Instances[0],id,desired.Envelope.ConfigVersion,desired.Envelope.DeploymentSequence,desired.Envelope.PayloadHash,DateTimeOffset.UtcNow,true,null));Assert.Equal(HttpStatusCode.Conflict,stale.StatusCode);
         using var premature=await s.NodeAsync(0,$"/internal/v1/nodes/{s.NodeIds[0]}/ack",new NodeAck(replacement,id,desired.Envelope.ConfigVersion,desired.Envelope.DeploymentSequence,desired.Envelope.PayloadHash,DateTimeOffset.UtcNow,true,null));Assert.Equal(HttpStatusCode.Conflict,premature.StatusCode);
         await using(var db=s.Api.Context())Assert.False(await db.Set<GatewayAck>().AnyAsync());
-        await CapableAsync(s,0);await s.AckAllAsync(id);
-        await CapableAsync(s,0,replacement);using var runtime=await s.NodeAsync(0,$"/internal/v1/nodes/{s.NodeIds[0]}/ack",new NodeAck(replacement,id,desired.Envelope.ConfigVersion,desired.Envelope.DeploymentSequence,desired.Envelope.PayloadHash,DateTimeOffset.UtcNow,true,null));runtime.EnsureSuccessStatusCode();
+        using var retired=await s.NodeAsync(0,"/internal/v1/nodes/register",new RegisterNodeRequest(s.Api.Environment.Id,"node-0",s.Instances[0],"untrusted-version",["2.0","2.1","2.2","2.3"]));
+        Assert.Equal(HttpStatusCode.Conflict,retired.StatusCode);Assert.Contains("retired_node_instance",await retired.Content.ReadAsStringAsync());
+        await CapableAsync(s,0,replacement); // Re-registering the current instance remains idempotent.
+
+        // Preserve the independent mainline contract: after a release has
+        // succeeded, a newly registered instance may confirm its current 2.3
+        // runtime without impersonating a frozen target.
+        await using var completed=new DeploymentScenario();await completed.InitializeAsync();await BothAsync(completed);await BindAsync(completed);
+        var completedId=await completed.PublishAsync();var current=await completed.DesiredAsync(completedId);var fresh=Guid.NewGuid();await CapableAsync(completed,0,fresh);
+        using var runtime=await completed.NodeAsync(0,$"/internal/v1/nodes/{completed.NodeIds[0]}/ack",new NodeAck(fresh,completedId,current.Envelope.ConfigVersion,current.Envelope.DeploymentSequence,current.Envelope.PayloadHash,DateTimeOffset.UtcNow,true,null));runtime.EnsureSuccessStatusCode();
+        await using var check=completed.Api.Context();var node=await check.Set<GatewayNode>().AsNoTracking().SingleAsync(x=>x.Id==completed.NodeIds[0]);
+        Assert.Equal(fresh.ToString(),node.InstanceId);Assert.Equal(current.Envelope.ConfigVersion,node.CurrentConfigVersion);Assert.Equal(current.Envelope.DeploymentSequence,node.CurrentDeploymentSequence);
+        Assert.Equal(2,await check.Set<GatewayAck>().CountAsync(x=>x.ReleaseId==completedId));
     }
 
     [Fact]

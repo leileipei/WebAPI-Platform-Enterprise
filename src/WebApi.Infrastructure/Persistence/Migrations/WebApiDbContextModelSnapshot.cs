@@ -802,9 +802,29 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<Guid>("ApiId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("api_id")
+                        .HasDefaultValueSql("'00000000-0000-0000-0000-000000000000'::uuid");
+
                     b.Property<Guid>("ApiVersionId")
                         .HasColumnType("uuid")
                         .HasColumnName("api_version_id");
+
+                    b.Property<string>("AuthenticationMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasDefaultValue("ApiKey")
+                        .HasColumnName("authentication_mode");
+
+                    b.Property<long>("AuthorizationRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("authorization_revision");
 
                     b.Property<Guid>("ClusterId")
                         .HasColumnType("uuid")
@@ -865,14 +885,16 @@ namespace WebApi.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApiVersionId");
-
                     b.HasIndex("EnvironmentId");
+
+                    b.HasIndex("ApiVersionId", "ApiId");
 
                     b.HasIndex("ClusterId", "EnvironmentId");
 
                     b.ToTable("api_routes", null, t =>
                         {
+                            t.HasCheckConstraint("ck_route_authorization", "authorization_revision>0 AND authentication_mode IN ('ApiKey','Anonymous','JWT')");
+
                             t.HasCheckConstraint("ck_route_methods_timeout", "cardinality(methods) > 0 AND timeout_ms > 0");
                         });
 
@@ -1250,6 +1272,32 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("expires_at");
 
+                    b.Property<long>("ExpiryRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("expiry_revision");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasDefaultValue("RouteMethod")
+                        .HasColumnName("mode");
+
+                    b.Property<Guid>("OrganizationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id")
+                        .HasDefaultValueSql("'00000000-0000-0000-0000-000000000000'::uuid");
+
+                    b.Property<Guid>("ProjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id")
+                        .HasDefaultValueSql("'00000000-0000-0000-0000-000000000000'::uuid");
+
                     b.Property<long>("Revision")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
@@ -1257,17 +1305,27 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(1L)
                         .HasColumnName("revision");
 
+                    b.Property<long>("RevisionTransactionId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasColumnName("revision_transaction_id")
+                        .HasDefaultValueSql("txid_current()");
+
                     b.Property<DateTimeOffset>("ValidFrom")
                         .HasColumnType("timestamptz")
                         .HasColumnName("valid_from");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApiId");
-
                     b.HasIndex("CreatedBy");
 
-                    b.HasIndex("EnvironmentId");
+                    b.HasIndex("ApplicationId", "OrganizationId");
+
+                    b.HasIndex("EnvironmentId", "ProjectId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("ApiId", "ProjectId", "OrganizationId");
 
                     b.HasIndex("ApplicationId", "ApiId", "EnvironmentId")
                         .IsUnique();
@@ -1275,6 +1333,8 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.ToTable("application_api_permissions", null, t =>
                         {
                             t.HasCheckConstraint("ck_grant_window", "expires_at IS NULL OR expires_at > valid_from");
+
+                            t.HasCheckConstraint("ck_permission_mode", "mode IN ('LegacyApi','RouteMethod')");
                         });
                 });
 
@@ -1295,17 +1355,42 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("application_id");
 
+                    b.Property<string>("BindingMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(24)")
+                        .HasDefaultValue("LegacyGlobal")
+                        .HasColumnName("binding_mode");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
+
+                    b.Property<Guid?>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
 
                     b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("expires_at");
 
+                    b.Property<long>("ExpiryRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("expiry_revision");
+
                     b.Property<DateTimeOffset?>("LastUsedAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("last_used_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
 
                     b.Property<long>("Revision")
                         .IsConcurrencyToken()
@@ -1342,10 +1427,25 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasIndex("AccessKey")
                         .IsUnique();
 
-                    b.HasIndex("ApplicationId");
+                    b.HasIndex("LastUsedAt");
+
+                    b.HasIndex("EnvironmentId", "ExpiresAt")
+                        .HasFilter("status = 'Active'");
+
+                    b.HasIndex("EnvironmentId", "ProjectId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("ApplicationId", "EnvironmentId", "Status");
+
+                    b.HasIndex("ApplicationId", "OrganizationId", "Id");
 
                     b.ToTable("application_credentials", null, t =>
                         {
+                            t.HasCheckConstraint("ck_credential_binding", "(binding_mode = 'LegacyGlobal' AND environment_id IS NULL AND project_id IS NULL) OR (binding_mode = 'EnvironmentBound' AND environment_id IS NOT NULL AND project_id IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_credential_expiry_revision", "expiry_revision > 0");
+
                             t.HasCheckConstraint("ck_credential_window", "expires_at > valid_from");
                         });
                 });
@@ -1357,6 +1457,12 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<long>("AuthorizationRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("authorization_revision");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -1381,6 +1487,16 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("varchar(128)")
                         .HasColumnName("owner");
 
+                    b.Property<long>("OwnerRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("owner_revision");
+
+                    b.Property<Guid?>("OwnerUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_user_id");
+
                     b.Property<Guid?>("ProjectId")
                         .HasColumnType("uuid")
                         .HasColumnName("project_id");
@@ -1403,12 +1519,55 @@ namespace WebApi.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OwnerUserId");
+
                     b.HasIndex("OrganizationId", "Code")
                         .IsUnique();
 
                     b.HasIndex("ProjectId", "OrganizationId");
 
                     b.ToTable("applications", (string)null);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ApplicationRouteMethodGrant", b =>
+                {
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("permission_id");
+
+                    b.Property<Guid>("RouteId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("route_id");
+
+                    b.Property<string>("Method")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("method");
+
+                    b.Property<Guid>("ApiId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("api_id");
+
+                    b.Property<long>("AuthorizationRevision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("authorization_revision");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.HasKey("PermissionId", "RouteId", "Method");
+
+                    b.HasIndex("RouteId");
+
+                    b.HasIndex("PermissionId", "EnvironmentId", "ApiId");
+
+                    b.HasIndex("RouteId", "EnvironmentId", "ApiId");
+
+                    b.ToTable("application_route_method_grants", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_route_method_grant", "authorization_revision>0 AND method IN ('GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS')");
+                        });
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ApprovalFlow", b =>
@@ -1603,6 +1762,59 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasIndex("EnvironmentId", "CreatedAt");
 
                     b.ToTable("audit_logs", (string)null);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialRevocation", b =>
+                {
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid>("CredentialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("credential_id");
+
+                    b.Property<Guid>("ApplicationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("application_id");
+
+                    b.Property<long>("Epoch")
+                        .HasColumnType("bigint")
+                        .HasColumnName("epoch");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<Guid>("SecurityGeneration")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_generation");
+
+                    b.HasKey("EnvironmentId", "CredentialId");
+
+                    b.HasIndex("EnvironmentId", "ProjectId");
+
+                    b.HasIndex("OperationId", "OrganizationId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("CredentialId", "ApplicationId", "OrganizationId");
+
+                    b.HasIndex("EnvironmentId", "SecurityGeneration", "Epoch");
+
+                    b.ToTable("credential_revocations", (string)null);
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageBatch", b =>
@@ -1864,6 +2076,12 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(1L)
                         .HasColumnName("access_address_revision");
 
+                    b.Property<long>("AuthorizationRevision")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("authorization_revision");
+
                     b.Property<string>("BasePath")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1911,6 +2129,10 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("release_policy_id");
 
+                    b.Property<bool>("RequireEnvironmentCredential")
+                        .HasColumnType("boolean")
+                        .HasColumnName("require_environment_credential");
+
                     b.Property<long>("Revision")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
@@ -1935,6 +2157,210 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.ToTable("environments", null, t =>
                         {
                             t.HasCheckConstraint("ck_deployment_sequence", "deployment_sequence >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecurityInitialization", b =>
+                {
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<string>("ConfirmationReason")
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("confirmation_reason");
+
+                    b.Property<DateTimeOffset?>("ConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("confirmed_at");
+
+                    b.Property<Guid?>("ConfirmedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("confirmed_by");
+
+                    b.Property<string>("EvidenceHash")
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("evidence_hash");
+
+                    b.Property<Guid?>("FreshProofId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("fresh_proof_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("revision");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(32)")
+                        .HasDefaultValue("Unknown")
+                        .HasColumnName("state");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("EnvironmentId");
+
+                    b.HasIndex("ConfirmedBy");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.ToTable("environment_security_initializations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_environment_security_initialization", "revision > 0 AND (\n  (state = 'Unknown' AND evidence_hash IS NULL AND fresh_proof_id IS NULL AND confirmed_by IS NULL AND confirmed_at IS NULL AND confirmation_reason IS NULL)\n  OR (state = 'FreshNonStrict' AND fresh_proof_id IS NOT NULL AND evidence_hash IS NULL AND confirmed_by IS NULL AND confirmed_at IS NULL AND confirmation_reason IS NULL)\n  OR (state = 'VerifiedLegacyNetwork' AND evidence_hash IS NOT NULL AND evidence_hash ~ '^[a-f0-9]{64}$' AND fresh_proof_id IS NULL AND confirmed_by IS NOT NULL AND confirmed_at IS NOT NULL AND confirmation_reason IS NOT NULL AND length(trim(confirmation_reason)) BETWEEN 1 AND 1000)\n  OR (state = 'Governed' AND (evidence_hash IS NULL OR evidence_hash ~ '^[a-f0-9]{64}$') AND ((confirmed_by IS NULL AND confirmed_at IS NULL AND confirmation_reason IS NULL) OR (confirmed_by IS NOT NULL AND confirmed_at IS NOT NULL AND confirmation_reason IS NOT NULL AND length(trim(confirmation_reason)) BETWEEN 1 AND 1000)))\n)");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecuritySourceReceipt", b =>
+                {
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<DateTimeOffset>("CapturedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("captured_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<string>("SourceClusterId")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("source_cluster_id");
+
+                    b.Property<string>("SourceDatabase")
+                        .IsRequired()
+                        .HasColumnType("varchar(63)")
+                        .HasColumnName("source_database");
+
+                    b.Property<long>("SourceDatabaseOid")
+                        .HasColumnType("bigint")
+                        .HasColumnName("source_database_oid");
+
+                    b.Property<string>("SourceHistoryHash")
+                        .IsRequired()
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("source_history_hash");
+
+                    b.Property<string>("SourceMigration")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)")
+                        .HasColumnName("source_migration");
+
+                    b.Property<string>("SourceSchemaHash")
+                        .IsRequired()
+                        .HasColumnType("varchar(64)")
+                        .HasColumnName("source_schema_hash");
+
+                    b.HasKey("EnvironmentId");
+
+                    b.HasIndex("EnvironmentId", "ProjectId", "OrganizationId");
+
+                    b.ToTable("environment_security_source_receipts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_environment_security_source_receipt", "source_database_oid > 0 AND length(source_database) > 0 AND source_cluster_id ~ '^[0-9]{1,20}$'\nAND length(source_migration) > 0 AND source_schema_hash ~ '^[a-f0-9]{64}$' AND source_history_hash ~ '^[a-f0-9]{64}$'");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecurityState", b =>
+                {
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<long>("Epoch")
+                        .HasColumnType("bigint")
+                        .HasColumnName("epoch");
+
+                    b.Property<string>("HeadHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("head_hash");
+
+                    b.Property<bool?>("InitialRequireEnvironmentCredentials")
+                        .HasColumnType("boolean")
+                        .HasColumnName("initial_require_environment_credentials");
+
+                    b.Property<int>("LeaseRefreshSeconds")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(5)
+                        .HasColumnName("lease_refresh_seconds");
+
+                    b.Property<int>("LeaseSeconds")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(30)
+                        .HasColumnName("lease_seconds");
+
+                    b.Property<int>("MaximumClockSkewSeconds")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(2)
+                        .HasColumnName("maximum_clock_skew_seconds");
+
+                    b.Property<string>("MinimumSnapshotSchema")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasColumnName("minimum_snapshot_schema");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<bool>("RequireEnvironmentCredentials")
+                        .HasColumnType("boolean")
+                        .HasColumnName("require_environment_credentials");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint")
+                        .HasColumnName("revision");
+
+                    b.Property<Guid>("SecurityGeneration")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_generation");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("EnvironmentId");
+
+                    b.HasIndex("EnvironmentId", "ProjectId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.ToTable("environment_security_states", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_lease_policy", "lease_seconds BETWEEN 5 AND 30 AND lease_refresh_seconds BETWEEN 1 AND 15 AND lease_refresh_seconds<=lease_seconds/2 AND maximum_clock_skew_seconds BETWEEN 0 AND 2 AND minimum_snapshot_schema IN ('2.0','2.1','2.2','2.3','2.4')");
+
+                            t.HasCheckConstraint("ck_security_state", "epoch >= 0 AND revision > 0 AND length(head_hash)=64 AND security_generation <> '00000000-0000-0000-0000-000000000000'::uuid");
                         });
                 });
 
@@ -2182,6 +2608,265 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasIndex("GatewayNodeId");
 
                     b.ToTable("gateway_node_events", (string)null);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityCurrentReceipt", b =>
+                {
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("InstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_id");
+
+                    b.Property<string>("CheckpointHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("checkpoint_hash");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<long>("Epoch")
+                        .HasColumnType("bigint")
+                        .HasColumnName("epoch");
+
+                    b.Property<DateTimeOffset>("FreshUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fresh_until");
+
+                    b.Property<string>("HeadHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("head_hash");
+
+                    b.Property<Guid>("LeaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lease_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<Guid>("SecurityGeneration")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_generation");
+
+                    b.HasKey("NodeId", "InstanceId");
+
+                    b.HasIndex("ReceivedAt");
+
+                    b.HasIndex("LeaseId")
+                        .IsUnique();
+
+                    b.HasIndex("EnvironmentId", "ProjectId");
+
+                    b.HasIndex("EnvironmentId", "SecurityGeneration");
+
+                    b.HasIndex("NodeId", "EnvironmentId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.ToTable("gateway_security_current_receipts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_current_security_receipt", "epoch>=0 AND checkpoint_hash ~ '^[a-f0-9]{64}$' AND head_hash ~ '^[a-f0-9]{64}$' AND fresh_until>received_at AND lease_id<>'00000000-0000-0000-0000-000000000000'::uuid");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLease", b =>
+                {
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("InstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_id");
+
+                    b.Property<string>("CheckpointHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("checkpoint_hash");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<long>("Epoch")
+                        .HasColumnType("bigint")
+                        .HasColumnName("epoch");
+
+                    b.Property<DateTimeOffset>("FreshUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fresh_until");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("issued_at");
+
+                    b.Property<DateTimeOffset>("LastIssuedLeaseUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_issued_lease_until");
+
+                    b.Property<Guid>("LeaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lease_id");
+
+                    b.Property<int>("LeaseSeconds")
+                        .HasColumnType("integer")
+                        .HasColumnName("lease_seconds");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint")
+                        .HasColumnName("revision");
+
+                    b.Property<Guid>("SecurityGeneration")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_generation");
+
+                    b.Property<string>("SigningKeyId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("signing_key_id");
+
+                    b.HasKey("NodeId", "InstanceId");
+
+                    b.HasIndex("LeaseId")
+                        .IsUnique();
+
+                    b.HasIndex("EnvironmentId", "FreshUntil");
+
+                    b.HasIndex("EnvironmentId", "ProjectId");
+
+                    b.HasIndex("EnvironmentId", "SecurityGeneration");
+
+                    b.HasIndex("NodeId", "EnvironmentId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.ToTable("gateway_security_leases", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_gateway_security_lease", "epoch>=0 AND revision>0 AND lease_seconds BETWEEN 5 AND 30 AND last_issued_lease_until>=fresh_until AND fresh_until>issued_at AND fresh_until<=issued_at+make_interval(secs=>lease_seconds) AND instance_id<>'00000000-0000-0000-0000-000000000000'::uuid AND checkpoint_hash ~ '^[a-f0-9]{64}$'");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLeaseExpiryObservation", b =>
+                {
+                    b.Property<Guid>("LeaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lease_id");
+
+                    b.Property<DateTimeOffset>("ObservedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("observed_at");
+
+                    b.HasKey("LeaseId");
+
+                    b.HasIndex("ObservedAt");
+
+                    b.ToTable("gateway_security_lease_expiry_observations", (string)null);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLeaseIssuance", b =>
+                {
+                    b.Property<Guid>("LeaseId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("lease_id");
+
+                    b.Property<string>("CheckpointHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("checkpoint_hash");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<long>("Epoch")
+                        .HasColumnType("bigint")
+                        .HasColumnName("epoch");
+
+                    b.Property<DateTimeOffset>("FreshUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fresh_until");
+
+                    b.Property<Guid>("InstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_id");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("issued_at");
+
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("PayloadHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("payload_hash");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.Property<Guid>("SecurityGeneration")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_generation");
+
+                    b.Property<string>("SigningKeyId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("signing_key_id");
+
+                    b.HasKey("LeaseId");
+
+                    b.HasIndex("IssuedAt");
+
+                    b.HasIndex("EnvironmentId", "ProjectId");
+
+                    b.HasIndex("EnvironmentId", "SecurityGeneration");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.HasIndex("NodeId", "InstanceId", "EnvironmentId", "ProjectId", "OrganizationId", "SecurityGeneration");
+
+                    b.ToTable("gateway_security_lease_issuances", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_lease_issuance", "lease_id<>'00000000-0000-0000-0000-000000000000'::uuid AND instance_id<>'00000000-0000-0000-0000-000000000000'::uuid AND epoch>=0 AND fresh_until>issued_at AND fresh_until<=issued_at+interval '30 seconds' AND checkpoint_hash ~ '^[a-f0-9]{64}$' AND payload_hash ~ '^[a-f0-9]{64}$'");
+                        });
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.IdempotencyRecord", b =>
@@ -4537,6 +5222,608 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.ToTable("route_policy_bindings", (string)null);
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ChallengeNonce")
+                        .HasColumnType("uuid")
+                        .HasColumnName("challenge_nonce");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<string>("ErrorCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("error_code");
+
+                    b.Property<Guid>("InstanceGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_guid");
+
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<long?>("ObservationSequence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("observation_sequence");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<Guid?>("ReportedNonce")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reported_nonce");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_hash");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OperationId", "EnvironmentId", "NodeId", "InstanceGuid", "RequestHash")
+                        .IsUnique();
+
+                    b.ToTable("security_ack_attempts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_ack_attempt", "request_hash ~ '^[a-f0-9]{64}$' AND error_code IN ('security_lkg_write_denied','security_material_invalid','security_generation_recovery_required','security_state_unavailable','security_full_checkpoint_required','security_epoch_conflict','security_tombstone_regression') AND challenge_nonce<>'00000000-0000-0000-0000-000000000000'::uuid");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckFailureLatest", b =>
+                {
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("InstanceGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_guid");
+
+                    b.Property<string>("ErrorCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("error_code");
+
+                    b.Property<DateTimeOffset>("LastAcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_accepted_at");
+
+                    b.Property<long>("LatestSequence")
+                        .HasColumnType("bigint")
+                        .HasColumnName("latest_sequence");
+
+                    b.Property<long>("ObservationCount")
+                        .IsConcurrencyToken()
+                        .HasColumnType("bigint")
+                        .HasColumnName("observation_count");
+
+                    b.Property<Guid>("ReportedNonce")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reported_nonce");
+
+                    b.HasKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid");
+
+                    b.ToTable("security_ack_failure_latest", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_ack_failure_latest", "reported_nonce<>'00000000-0000-0000-0000-000000000000'::uuid AND latest_sequence>0 AND observation_count>0 AND error_code IN ('security_lkg_write_denied','security_material_invalid','security_generation_recovery_required','security_state_unavailable','security_full_checkpoint_required','security_epoch_conflict','security_tombstone_regression')");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckRecord", b =>
+                {
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("InstanceGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_guid");
+
+                    b.Property<bool>("AdmissionEnforced")
+                        .HasColumnType("boolean")
+                        .HasColumnName("admission_enforced");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_at");
+
+                    b.Property<Guid>("ChallengeNonce")
+                        .HasColumnType("uuid")
+                        .HasColumnName("challenge_nonce");
+
+                    b.Property<string>("CheckpointHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("checkpoint_hash");
+
+                    b.Property<bool>("Durable")
+                        .HasColumnType("boolean")
+                        .HasColumnName("durable");
+
+                    b.Property<long>("Epoch")
+                        .HasColumnType("bigint")
+                        .HasColumnName("epoch");
+
+                    b.Property<string>("ErrorCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("error_code");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<Guid>("SecurityGeneration")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_generation");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("boolean")
+                        .HasColumnName("success");
+
+                    b.HasKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid");
+
+                    b.ToTable("security_acks", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_ack", "epoch>0 AND checkpoint_hash ~ '^[a-f0-9]{64}$' AND success AND durable AND admission_enforced AND error_code IS NULL AND challenge_nonce<>'00000000-0000-0000-0000-000000000000'::uuid");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckRevalidationChallenge", b =>
+                {
+                    b.Property<Guid>("Nonce")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("nonce");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("InstanceGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_guid");
+
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.HasKey("Nonce");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("OperationId", "EnvironmentId", "NodeId", "InstanceGuid", "ExpiresAt");
+
+                    b.ToTable("security_ack_revalidation_challenges", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_ack_revalidation_challenge", "nonce<>'00000000-0000-0000-0000-000000000000'::uuid AND instance_guid<>'00000000-0000-0000-0000-000000000000'::uuid AND expires_at>created_at AND expires_at<=created_at+interval '30 seconds'");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckVerification", b =>
+                {
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("InstanceGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_guid");
+
+                    b.Property<DateTimeOffset>("AppliedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("applied_at");
+
+                    b.Property<Guid>("ChallengeNonce")
+                        .HasColumnType("uuid")
+                        .HasColumnName("challenge_nonce");
+
+                    b.Property<string>("CheckpointHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("checkpoint_hash");
+
+                    b.Property<long>("Epoch")
+                        .HasColumnType("bigint")
+                        .HasColumnName("epoch");
+
+                    b.Property<Guid>("LeaseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lease_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at");
+
+                    b.Property<Guid?>("RevalidationNonce")
+                        .HasColumnType("uuid")
+                        .HasColumnName("revalidation_nonce");
+
+                    b.Property<Guid>("SecurityGeneration")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_generation");
+
+                    b.HasKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid");
+
+                    b.HasIndex("ReceivedAt");
+
+                    b.HasIndex("RevalidationNonce");
+
+                    b.HasIndex("OperationId", "EnvironmentId", "NodeId", "InstanceGuid", "ChallengeNonce");
+
+                    b.HasIndex("LeaseId", "NodeId", "InstanceGuid", "EnvironmentId", "SecurityGeneration", "Epoch", "CheckpointHash");
+
+                    b.ToTable("security_ack_verifications", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_ack_verification", "epoch>0 AND checkpoint_hash ~ '^[a-f0-9]{64}$' AND challenge_nonce<>'00000000-0000-0000-0000-000000000000'::uuid AND lease_id<>'00000000-0000-0000-0000-000000000000'::uuid");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityDatabaseClockWatermark", b =>
+                {
+                    b.Property<bool>("Singleton")
+                        .HasColumnType("boolean")
+                        .HasColumnName("singleton");
+
+                    b.Property<DateTimeOffset>("ObservedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("observed_at");
+
+                    b.HasKey("Singleton");
+
+                    b.ToTable("security_database_clock_watermark", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_clock_singleton", "singleton");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityEvent", b =>
+                {
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid>("SecurityGeneration")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_generation");
+
+                    b.Property<long>("Epoch")
+                        .HasColumnType("bigint")
+                        .HasColumnName("epoch");
+
+                    b.Property<Guid?>("CredentialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("credential_id");
+
+                    b.Property<string>("EventHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("event_hash");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("event_type");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("occurred_at");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("PolicyJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("policy_json");
+
+                    b.Property<string>("PreviousHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("previous_hash");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("project_id");
+
+                    b.HasKey("EnvironmentId", "SecurityGeneration", "Epoch");
+
+                    b.HasIndex("CredentialId");
+
+                    b.HasIndex("EnvironmentId", "ProjectId");
+
+                    b.HasIndex("OperationId", "OrganizationId");
+
+                    b.HasIndex("ProjectId", "OrganizationId");
+
+                    b.ToTable("security_events", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_event", "epoch > 0 AND length(previous_hash)=64 AND length(event_hash)=64 AND ((event_type='CredentialRevoked' AND credential_id IS NOT NULL AND policy_json IS NULL) OR (event_type='EnvironmentPolicyChanged' AND credential_id IS NULL AND policy_json IS NOT NULL))");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityOperation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid?>("ApplicationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("application_id");
+
+                    b.Property<DateTimeOffset>("CommittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("committed_at");
+
+                    b.Property<Guid?>("CredentialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("credential_id");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("reason");
+
+                    b.Property<Guid>("RequestedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by");
+
+                    b.Property<long>("Revision")
+                        .HasColumnType("bigint")
+                        .HasColumnName("revision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CredentialId")
+                        .IsUnique()
+                        .HasFilter("kind = 'CredentialRevoke'");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("RequestedBy");
+
+                    b.HasIndex("ApplicationId", "OrganizationId");
+
+                    b.HasIndex("CredentialId", "ApplicationId", "OrganizationId");
+
+                    b.ToTable("security_operations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_operation", "revision > 0 AND ((kind = 'CredentialRevoke' AND application_id IS NOT NULL AND credential_id IS NOT NULL) OR kind = 'EnvironmentPolicyCutover')");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityOperationAlert", b =>
+                {
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<int>("ThresholdSeconds")
+                        .HasColumnType("integer")
+                        .HasColumnName("threshold_seconds");
+
+                    b.Property<DateTimeOffset>("ObservedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("observed_at");
+
+                    b.Property<string>("OperationStatus")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("operation_status");
+
+                    b.Property<int>("PendingTargets")
+                        .HasColumnType("integer")
+                        .HasColumnName("pending_targets");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("severity");
+
+                    b.HasKey("OperationId", "EnvironmentId", "ThresholdSeconds");
+
+                    b.HasIndex("ObservedAt");
+
+                    b.ToTable("security_operation_alerts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_operation_alert", "threshold_seconds BETWEEN 1 AND 86400 AND pending_targets>=0 AND severity IN ('Warning','Escalation') AND operation_status IN ('Unconfirmed','Partial')");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityOperationTarget", b =>
+                {
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<Guid>("NodeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("node_id");
+
+                    b.Property<Guid>("InstanceGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("instance_guid");
+
+                    b.Property<Guid>("ChallengeNonce")
+                        .HasColumnType("uuid")
+                        .HasColumnName("challenge_nonce");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("LastLeaseUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_lease_until");
+
+                    b.Property<bool>("ProtocolSupportedAtFreeze")
+                        .HasColumnType("boolean")
+                        .HasColumnName("protocol_supported_at_freeze");
+
+                    b.Property<Guid?>("SupersededByInstanceGuid")
+                        .HasColumnType("uuid")
+                        .HasColumnName("superseded_by_instance_guid");
+
+                    b.Property<string>("TargetState")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("target_state");
+
+                    b.HasKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid");
+
+                    b.HasIndex("ChallengeNonce")
+                        .IsUnique();
+
+                    b.HasIndex("NodeId", "EnvironmentId");
+
+                    b.HasIndex("OperationId", "EnvironmentId", "NodeId", "SupersededByInstanceGuid");
+
+                    b.ToTable("security_operation_targets", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_target", "target_state IN ('Pending','Applied','SafeSuperseded','AwaitingRegistration') AND ((instance_guid = '00000000-0000-0000-0000-000000000000'::uuid AND target_state IN ('AwaitingRegistration','SafeSuperseded')) OR (instance_guid<>'00000000-0000-0000-0000-000000000000'::uuid AND target_state<>'AwaitingRegistration'))");
+                        });
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityOutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("attempts");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<long>("Epoch")
+                        .HasColumnType("bigint")
+                        .HasColumnName("epoch");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lease_until");
+
+                    b.Property<Guid>("OperationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("operation_id");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.Property<Guid>("SecurityGeneration")
+                        .HasColumnType("uuid")
+                        .HasColumnName("security_generation");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OperationId");
+
+                    b.HasIndex("EnvironmentId", "SecurityGeneration", "Epoch")
+                        .IsUnique();
+
+                    b.HasIndex("ProcessedAt", "LeaseUntil", "CreatedAt")
+                        .HasFilter("processed_at IS NULL");
+
+                    b.ToTable("security_outbox_messages", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_security_outbox", "epoch > 0 AND attempts >= 0");
+                        });
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SsoLoginAttempt", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5418,6 +6705,13 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApiVersion", null)
+                        .WithMany()
+                        .HasForeignKey("ApiVersionId", "ApiId")
+                        .HasPrincipalKey("Id", "ApiId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.UpstreamCluster", null)
                         .WithMany()
                         .HasForeignKey("ClusterId", "EnvironmentId")
@@ -5493,6 +6787,34 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasForeignKey("EnvironmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Api", null)
+                        .WithMany()
+                        .HasForeignKey("ApiId", "ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "ProjectId", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ApplicationCredential", b =>
@@ -5502,6 +6824,25 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ApplicationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ApplicationRecord", b =>
@@ -5512,11 +6853,33 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
                         .WithMany()
                         .HasForeignKey("ProjectId", "OrganizationId")
                         .HasPrincipalKey("Id", "OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ApplicationRouteMethodGrant", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationApiPermission", null)
+                        .WithMany()
+                        .HasForeignKey("PermissionId", "EnvironmentId", "ApiId")
+                        .HasPrincipalKey("Id", "EnvironmentId", "ApiId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApiRoute", null)
+                        .WithMany()
+                        .HasForeignKey("RouteId", "EnvironmentId", "ApiId")
+                        .HasPrincipalKey("Id", "EnvironmentId", "ApiId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.ApprovalFlow", b =>
@@ -5557,6 +6920,43 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialRevocation", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityOperation", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationCredential", null)
+                        .WithMany()
+                        .HasForeignKey("CredentialId", "ApplicationId", "OrganizationId")
+                        .HasPrincipalKey("Id", "ApplicationId", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityEvent", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "SecurityGeneration", "Epoch")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.CredentialUsageBatch", b =>
                 {
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.CredentialUsageCollector", null)
@@ -5589,6 +6989,55 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
                         .WithMany()
                         .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecurityInitialization", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ConfirmedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecuritySourceReceipt", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecurityInitialization", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId", "OrganizationId")
+                        .HasPrincipalKey("EnvironmentId", "ProjectId", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecurityState", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -5652,6 +7101,114 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.GatewayNode", null)
                         .WithMany()
                         .HasForeignKey("GatewayNodeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityCurrentReceipt", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecurityState", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "SecurityGeneration")
+                        .HasPrincipalKey("EnvironmentId", "SecurityGeneration")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.GatewayNode", null)
+                        .WithMany()
+                        .HasForeignKey("NodeId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLease", null)
+                        .WithMany()
+                        .HasForeignKey("NodeId", "InstanceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLease", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecurityState", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "SecurityGeneration")
+                        .HasPrincipalKey("EnvironmentId", "SecurityGeneration")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.GatewayNode", null)
+                        .WithMany()
+                        .HasForeignKey("NodeId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLeaseExpiryObservation", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLeaseIssuance", null)
+                        .WithMany()
+                        .HasForeignKey("LeaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLeaseIssuance", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecurityState", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "SecurityGeneration")
+                        .HasPrincipalKey("EnvironmentId", "SecurityGeneration")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLease", null)
+                        .WithMany()
+                        .HasForeignKey("NodeId", "InstanceId", "EnvironmentId", "ProjectId", "OrganizationId", "SecurityGeneration")
+                        .HasPrincipalKey("NodeId", "InstanceId", "EnvironmentId", "ProjectId", "OrganizationId", "SecurityGeneration")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -6380,6 +7937,180 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                     b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApiRoute", null)
                         .WithMany()
                         .HasForeignKey("RouteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckAttempt", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityOperationTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckFailureLatest", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityOperationTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckRecord", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityOperationTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckRevalidationChallenge", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityOperationTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityAckVerification", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityAckRevalidationChallenge", null)
+                        .WithMany()
+                        .HasForeignKey("RevalidationNonce")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityAckRecord", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityOperationTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid", "ChallengeNonce")
+                        .HasPrincipalKey("OperationId", "EnvironmentId", "NodeId", "InstanceGuid", "ChallengeNonce")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.GatewaySecurityLeaseIssuance", null)
+                        .WithMany()
+                        .HasForeignKey("LeaseId", "NodeId", "InstanceGuid", "EnvironmentId", "SecurityGeneration", "Epoch", "CheckpointHash")
+                        .HasPrincipalKey("LeaseId", "NodeId", "InstanceId", "EnvironmentId", "SecurityGeneration", "Epoch", "CheckpointHash")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityEvent", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationCredential", null)
+                        .WithMany()
+                        .HasForeignKey("CredentialId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "ProjectId")
+                        .HasPrincipalKey("Id", "ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentSecurityState", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "SecurityGeneration")
+                        .HasPrincipalKey("EnvironmentId", "SecurityGeneration")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityOperation", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityOperation", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ApplicationId", "OrganizationId")
+                        .HasPrincipalKey("Id", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationCredential", null)
+                        .WithMany()
+                        .HasForeignKey("CredentialId", "ApplicationId", "OrganizationId")
+                        .HasPrincipalKey("Id", "ApplicationId", "OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityOperationAlert", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityEvent", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "EnvironmentId")
+                        .HasPrincipalKey("OperationId", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityOperationTarget", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.GatewayNode", null)
+                        .WithMany()
+                        .HasForeignKey("NodeId", "EnvironmentId")
+                        .HasPrincipalKey("Id", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityEvent", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "EnvironmentId")
+                        .HasPrincipalKey("OperationId", "EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityOperationTarget", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId", "EnvironmentId", "NodeId", "SupersededByInstanceGuid")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.SecurityOutboxMessage", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityOperation", null)
+                        .WithMany()
+                        .HasForeignKey("OperationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.SecurityEvent", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId", "SecurityGeneration", "Epoch")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

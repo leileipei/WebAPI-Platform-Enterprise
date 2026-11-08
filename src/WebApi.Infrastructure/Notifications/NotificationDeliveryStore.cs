@@ -68,7 +68,7 @@ public sealed class NotificationDeliveryStore(WebApiDbContext db,NotificationDep
         var candidates=await db.Set<NotificationDelivery>().AsNoTracking().Where(x=>(x.Status=="Queued"||x.Status=="RetryScheduled")&&(x.NextAttemptAt==null||x.NextAttemptAt<=observed)||unfinished.Contains(x.Status)&&x.ExpiresAt<=observed||x.Status=="Sending"&&x.LeaseUntil<=observed).OrderBy(x=>x.CreatedAt).ThenBy(x=>x.Id).Select(x=>x.Id).Take(settings.MaxClaimsPerPoll).ToArrayAsync(ct);
         foreach(var id in candidates)
         {
-            db.ChangeTracker.Clear();await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);var row=await LockAsync(id,ct);var now=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct);
+            db.ChangeTracker.Clear();await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);var row=await LockAsync(id,ct);var now=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct);
             if(row is null||!unfinished.Contains(row.Status)){await tx.CommitAsync(ct);continue;}
             if(row.Status=="Sending")
             {
@@ -99,7 +99,7 @@ public sealed class NotificationDeliveryStore(WebApiDbContext db,NotificationDep
     public async Task<bool> CompleteAsync(DeliveryLease lease,TransportResult result,CancellationToken ct=default)
     {
         if(db.Database.CurrentTransaction is not null)throw new InvalidOperationException("Notification completion owns its transaction.");
-        db.ChangeTracker.Clear();await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_advisory_xact_lock(8901202)",ct);var row=await LockAsync(lease.Id,ct);var now=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct);
+        db.ChangeTracker.Clear();await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);var row=await LockAsync(lease.Id,ct);var now=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct);
         if(row is null||row.Status!="Sending"||row.LeaseToken!=lease.Token||row.AttemptCount!=lease.AttemptNo||row.LeaseUntil<=now){await tx.CommitAsync(ct);return false;}
         var attempt=await db.Set<NotificationDeliveryAttempt>().SingleAsync(x=>x.DeliveryId==row.Id&&x.AttemptNo==lease.AttemptNo&&x.LeaseToken==lease.Token,ct);if(attempt.CompletedAt is not null){await tx.CommitAsync(ct);return false;}
         if(!Enum.IsDefined(result.Outcome)||result.Code.Length is <1 or >64||!System.Text.RegularExpressions.Regex.IsMatch(result.Code,"^[A-Za-z][A-Za-z0-9]{0,63}$")||result.ProtocolStatus is not(null or >=100 and <=599))throw new ArgumentException("Invalid notification transport result.");

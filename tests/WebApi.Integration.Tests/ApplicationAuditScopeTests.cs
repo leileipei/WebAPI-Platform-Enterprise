@@ -10,8 +10,8 @@ public sealed class ApplicationAuditScopeTests
     [Fact]
     public async Task Audit_resource_filter_cannot_be_supplied_by_browser()
     {
-        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedConsumerAsync();using var login=await api.LoginAsync();var credential=new ApplicationCredential{ApplicationId=api.Application.Id,AccessKey="audit",SecretHash=new string('a',64),SecretLast4="1234",ValidFrom=DateTimeOffset.UtcNow.AddDays(-1),ExpiresAt=DateTimeOffset.UtcNow.AddDays(1)};
-        var grant=new ApplicationApiPermission{ApplicationId=api.Application.Id,ApiId=api.Api.Id,EnvironmentId=api.Environment.Id,ValidFrom=DateTimeOffset.UtcNow.AddDays(-1),CreatedBy=api.User.Id};var foreign=Guid.NewGuid().ToString();
+        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedConsumerAsync();using var login=await api.LoginAsync();var credential=new ApplicationCredential{ApplicationId=api.Application.Id,OrganizationId=api.Organization.Id,AccessKey="audit",SecretHash=new string('a',64),SecretLast4="1234",ValidFrom=DateTimeOffset.UtcNow.AddDays(-1),ExpiresAt=DateTimeOffset.UtcNow.AddDays(1)};
+        var grant=new ApplicationApiPermission{ApplicationId=api.Application.Id,ApiId=api.Api.Id,EnvironmentId=api.Environment.Id,Mode="LegacyApi",ValidFrom=DateTimeOffset.UtcNow.AddDays(-1),CreatedBy=api.User.Id};var foreign=Guid.NewGuid().ToString();
         await using(var db=api.Context())
         {
             db.AddRange(credential,grant);

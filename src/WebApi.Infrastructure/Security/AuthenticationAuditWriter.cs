@@ -32,7 +32,7 @@ public sealed class AuthenticationAuditWriter(WebApiDbContext db) : IAuthenticat
         if(entry.Lease is not null)
         {
             // Redis lease alone cannot prevent duplicate DB commits after caller crashes before confirmation.
-            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_advisory_xact_lock(hashtextextended({resource},0))",ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended({resource},0))",ct);
             if(await db.Set<AuditLog>().AnyAsync(x=>x.Action=="auth.login.throttled"&&x.ResourceId==resource,ct))
             {if(ownTransaction is not null)await ownTransaction.CommitAsync(ct);return;}
         }

@@ -93,7 +93,11 @@ public sealed class RetryPipelineTests
         var calls = 0;
         await using var f = new GatewayFixture { ConfigureBackendA = a => a.Use(async (ctx, next) => { if (ctx.Request.Path == "/health") { await next(); return; } Interlocked.Increment(ref calls); ctx.Response.StatusCode = 503; if (reason == "retryAfter") ctx.Response.Headers.RetryAfter = "10"; await ctx.Response.WriteAsync("original failure"); }) };
         await f.InitializeAsync(); await Bind(f, Config(delay: reason == "delay" ? 500 : 0, perAttempt: 100), timeout: 200); await f.ApplyBothAsync(await f.PublishAsync());
-        var watch = Stopwatch.StartNew(); using var response = await f.RequestAsync(); Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode); Assert.Equal("original failure", await response.Content.ReadAsStringAsync()); Assert.Equal(1, calls); Assert.True(watch.Elapsed < TimeSpan.FromSeconds(2));
+        var watch = Stopwatch.StartNew(); using var response = await f.RequestAsync();
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.StatusCode == HttpStatusCode.ServiceUnavailable,
+            $"Expected upstream 503, received {(int)response.StatusCode}; backendCalls={calls}; contentType={response.Content.Headers.ContentType}; body={body.Replace(f.Credential, "[REDACTED]", StringComparison.Ordinal)}");
+        Assert.Equal("original failure", body); Assert.Equal(1, calls); Assert.True(watch.Elapsed < TimeSpan.FromSeconds(2));
     }
     [Fact]
     public async Task PerAttemptTimeoutAfterRequestSentDoesNotReplay()

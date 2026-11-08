@@ -8,6 +8,8 @@ import { freePorts, cleanupFixture } from '../runtime/acceptance.mjs';
 import { validateFixture } from '../runtime/fixture-guard.mjs';
 import { docker, inspectResources, assertOwnership } from '../runtime/docker.mjs';
 import { createGatewayPolicyFixture, cleanupGatewayFixture, assertGatewayFixtureOwner } from '../gateway-policies/fixture.mjs';
+import { withRestoreTargetLock } from '../runtime/restore-target-lock.mjs';
+import { assertRestoreComplete } from '../account-credential/clone-restore.mjs';
 const protectedPorts = new Set([4180, 4181, 4192, 4193, 4194, 4196, 4197, 5090]);
 export function assertNetworkPolicyRuntimeInput({ revision, imageId, release, directory, projectName, ports, existing }) {
     assert.match(revision ?? '', /^[a-f0-9]{40}$/);
@@ -70,18 +72,21 @@ export async function assertNetworkOwners({ cloneDirectory, backend }) {
 }
 // Explicit cleanup only; failed scenario materials and owner directories survive by default.
 export async function cleanupNetworkPolicyFixture({ cloneDirectory, backend }) {
+ return withRestoreTargetLock(cloneDirectory,async(_target,targetLock)=>{
+    await assertRestoreComplete(cloneDirectory);
     await assertNetworkOwners({ cloneDirectory, backend });
     if (backend)
-        await cleanupGatewayFixture(backend);
+        await cleanupGatewayFixture({...backend,targetLock});
     try {
         await safeFile(path.join(cloneDirectory, 'delivery-runtime.json'));
     }
     catch (e) {
         if (e.code !== 'ENOENT')
             throw e;
-        return cleanupFixture(cloneDirectory);
+        return cleanupFixture(cloneDirectory,undefined,{targetLock});
     }
-    return (await import('../delivery/promotion-scenario.mjs')).cleanupPromotionContext(cloneDirectory, await loadRelease(path.join(cloneDirectory, 'release.json')));
+    return (await import('../delivery/promotion-scenario.mjs')).cleanupPromotionContext(cloneDirectory, await loadRelease(path.join(cloneDirectory, 'release.json')),{targetLock});
+ },{forceParent:true});
 }
 export function networkFixtureDirectory(parent) { return path.join(parent, 'webapi-enterprise-local-test-' + randomUUID()); }
 export async function verifyNetworkPolicySuites(options) { return (await import('../gateway-policies/verify-suites.mjs')).verifyGatewayPolicySuites({ ...options, extraTestDirectories: ['tests/network-policies'] }); }
