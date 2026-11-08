@@ -38,7 +38,7 @@ services:
       WEBAPI_MIGRATION_RULE_MAX_COUNT: '100000'
       WEBAPI_MIGRATION_TOTAL_MAX_BYTES: '67108864'
       WEBAPI_MIGRATION_RECEIPT_MAX_ROWS: '100000'
-    volumes: [evidence:/evidence]
+    volumes: ['..:/workspace','nuget:/root/.nuget/packages',evidence:/evidence]
   control-plane:
     <<: *app
     command: ['dotnet','src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll']
