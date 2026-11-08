@@ -8,6 +8,7 @@
 - [页面能力覆盖](docs/console-coverage.md)及[40页需求关闭台账](docs/evidence/work-package4/requirements-status.md)：页面覆盖与逐项功能验收分别记录；当前台账仍有部分、缺失和待复验项。
 - 已交付实现包括 SSO、契约导入与兼容性检查、JWT／重试／缓存、外部通知、跨环境审批发布，以及 CORS／IP／Transform（含 JSON 请求／响应正文映射）。具体运行边界见 `docs/deployment/` 各阶段手册。
 - [第4包验收](docs/evidence/work-package4/final-summary.md)：首次改密、显式重置、Credential 使用统计和轮换；[操作手册](docs/deployment/account-credential-operations.md)。历史固定版本验收不自动代表新集成版本或4192已升级。
+- [凭证治理 G01–G13](docs/evidence/governance-merge/p2-4-crypto-review.md)：凭证紧急撤销、双钥轮换（普通/正式硬截止）、使用证据与治理迁移预检已于 2026-11-08 并入 main（`57f2ef2`，tag `governance-g13-57f2ef2`）；[凭证安全操作手册](docs/deployment/credential-security-operations.md)与[数据字典](docs/credential-security-data-dictionary.md)。边界：安全检查点/租约准入路径已合入但未激活（签发为关闭的 503 桩、网关无接线），激活须按操作手册完成维护窗口引导并通过同深度独立评审。
 - [验收与证据](docs/acceptance.md)：区分浏览器操作、数据库回归、真实容器业务响应与目标部署验收。
 - [审查修正状态](docs/evidence/core-loop/final-review.md)与[实施决策](docs/decisions.md)：3项Important修正与最终浏览器复验均已完成；全部实施裁定与延期范围已记录。
 - [配置与运维](docs/operations.md)：初始化、节点身份、快照、备份恢复和敏感日志处理。
