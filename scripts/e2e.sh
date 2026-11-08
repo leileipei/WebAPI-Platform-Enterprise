@@ -17,7 +17,7 @@ cleanup(){ compose down --volumes --remove-orphans >/dev/null 2>&1; rm -f "$WEBA
 trap cleanup EXIT
 # No persistent test identities survive the process; only this randomly named project's volumes are removed.
 compose up -d --wait postgres redis
-compose run --rm sdk bash -c 'dotnet restore && dotnet restore --locked-mode && dotnet build -c Release --no-restore && dotnet src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.dll --bootstrap --seed-catalog'
+compose run --rm sdk bash -c 'chmod 700 /evidence && dotnet restore && dotnet restore --locked-mode && dotnet build -c Release --no-restore && dotnet src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.dll --bootstrap --seed-catalog'
 compose up -d control-plane
 "$NODE" scripts/wait-http.mjs http://127.0.0.1:5092/health/live
 "$NODE" scripts/prepare-e2e.mjs
