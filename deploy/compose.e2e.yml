@@ -52,6 +52,9 @@ services:
       Nodes__Enrollments__1__SecretFile: /run/secrets/node-b
       Upstream__AllowedOrigins__0: http://backend-a:8080
       Upstream__AllowedOrigins__1: http://backend-b:8080
+      Redis__Connection: redis:6379,abortConnect=false
+      Authentication__LoginProtection__RedisPrefix: webapi:e2e-login
+      Authentication__LoginProtection__HmacSecretFile: /workspace/${WEBAPI_E2E_RELATIVE_DIR:?required}/login-hmac
     secrets: [postgres-password,node-a,node-b]
     ports: ['127.0.0.1:5092:8080']
   worker:

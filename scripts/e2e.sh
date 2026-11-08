@@ -11,9 +11,9 @@ export WEBAPI_E2E_DIRECTORY="$PWD/$WEBAPI_E2E_RELATIVE_DIR"
 export WEBAPI_ENVIRONMENT_ID
 WEBAPI_ENVIRONMENT_ID=$("$NODE" -e 'console.log(crypto.randomUUID())')
 mkdir -p "$WEBAPI_E2E_DIRECTORY"; chmod 700 "$WEBAPI_E2E_DIRECTORY"
-"$NODE" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";for(const name of ["password","postgres-password","node-a","node-b"])fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/"+name,crypto.randomBytes(32).toString("base64url"),{mode:0o600});'
+"$NODE" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";for(const name of ["password","postgres-password","node-a","node-b"])fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/"+name,crypto.randomBytes(32).toString("base64url"),{mode:0o600});fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/login-hmac",crypto.randomBytes(32).toString("base64"),{mode:0o400});'
 compose(){ docker compose -f deploy/compose.e2e.yml "$@"; }
-cleanup(){ compose down --volumes --remove-orphans >/dev/null 2>&1; rm -f "$WEBAPI_E2E_DIRECTORY/password" "$WEBAPI_E2E_DIRECTORY/postgres-password" "$WEBAPI_E2E_DIRECTORY/node-a" "$WEBAPI_E2E_DIRECTORY/node-b" "$WEBAPI_E2E_DIRECTORY/credential"; }
+cleanup(){ compose down --volumes --remove-orphans >/dev/null 2>&1; rm -f "$WEBAPI_E2E_DIRECTORY/password" "$WEBAPI_E2E_DIRECTORY/postgres-password" "$WEBAPI_E2E_DIRECTORY/node-a" "$WEBAPI_E2E_DIRECTORY/node-b" "$WEBAPI_E2E_DIRECTORY/credential" "$WEBAPI_E2E_DIRECTORY/login-hmac"; }
 trap cleanup EXIT
 # No persistent test identities survive the process; only this randomly named project's volumes are removed.
 compose up -d --wait postgres redis
