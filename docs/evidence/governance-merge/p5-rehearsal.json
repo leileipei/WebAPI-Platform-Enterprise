@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "title": "Phase 5 maintenance-window rehearsal: full PG backup preserves the credential-governance security ledger hash chain",
+  "date": "2026-11-09",
+  "source": "main e86aafe",
+  "purpose": "Phase 5 window step 1 (docs/deployment/credential-security-operations.md §3) requires a full PG backup that preserves the append-only security ledger hash chain. This rehearsal proves a plain-format pg_dump, restored to a fresh database, keeps the chain cryptographically valid — re-verified with the real SecurityEventHash.Compute against the read-back rows.",
+  "whySeedViaSeeder": "No production code path writes security_events at main HEAD: SecurityLeaseIssuer.IssueAsync is a closed 503 stub with no DI/endpoint wiring (P2-4 finding), and revocation/rotation only move credential status columns. So a scratch seeder builds a valid chain using the real SecurityEventHash.Compute and the real entities, satisfying the guard triggers (environment_security_initializations must be inserted as FreshNonStrict; environment_security_states genesis requires head_hash = Genesis).",
+  "environment": {
+    "composeProject": "webapi-enterprise-e2e-g13p5-1794151839 (disposable; torn down with volumes after the run)",
+    "postgresImage": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24 (pinned)",
+    "migratorAttempt": "Migration attempt cab48714-3eee-4975-a3c6-e175eea323b1: Committed; reason=None (bare WebApi.Migrator, no bootstrap/seed — all 35 migrations applied to an empty DB)"
+  },
+  "seed": {
+    "eventType": "EnvironmentPolicyChanged",
+    "eventCount": 5,
+    "environmentId": "5f1b6a8d-61f8-4c12-b63b-20b3e4617c03",
+    "securityGeneration": "e70d2fa3-169c-4d20-bd5d-e527518fd2cb",
+    "genesisHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "chain": [
+      "1251f52fdcbba18443320076cca546509909a300e6fe1641686fda5341a2c605",
+      "5100730256dee90260c91d5d0a92580740dfaec4461a2737bb8d92af0867b8b1",
+      "c6683cac3cf959b9747032d79144166db020383aafc3c75cb3d7806a570b2598",
+      "ae4922cb1faf019d164620f8b506e34590a6e7ea198d472bd113d5541b38eb4e",
+      "2350d6936582545913874d1eaac9073a5251ddc4d58cf9aac0b744d05457e736"
+    ],
+    "headHash": "2350d6936582545913874d1eaac9073a5251ddc4d58cf9aac0b744d05457e736",
+    "occurredAtPrecision": "whole-second UTC (DateTimeOffset.FromUnixTimeMilliseconds); verify normalizes read-back to UTC before recomputing the hash, so the check is immune to Npgsql timestamptz offset rendering"
+  },
+  "verify": {
+    "live": "VERIFY_OK db=webapi count=5 head=2350d6936582545913874d1eaac9073a5251ddc4d58cf9aac0b744d05457e736",
+    "restored": "VERIFY_OK db=webapi_restore count=5 head=2350d6936582545913874d1eaac9073a5251ddc4d58cf9aac0b744d05457e736",
+    "headIdenticalLiveVsRestored": true
+  },
+  "backup": {
+    "method": "plain pg_dump -U webapi -d webapi (all 98 public tables) restored via psql into a fresh database webapi_restore",
+    "dumpBytes": 378265,
+    "dumpSha256": "f80da5ffc7bb644b28bc2c6b6dd3b8c0496a8eb8cb9cfee843a100da3c95d21c",
+    "publicTables": 98,
+    "rowCountsLiveVsRestored": { "security_events": "5 = 5", "security_operations": "5 = 5", "environment_security_states": "1 = 1" },
+    "chainIdenticalLiveVsRestored": true
+  },
+  "conclusion": "A full plain-format pg_dump of a database holding a valid credential-governance security ledger restores with the hash chain byte-identical and still cryptographically valid (Genesis -> ... -> head). This satisfies the Phase 5 window backup requirement that the append-only ledger hash chain be preserved by the backup.",
+  "relationshipToP2_2": "Orthogonal to P2-2, which showed a dump/restore round-trip is NOT schema-fingerprint-canonical (pg_dump re-serializes CHECK-constraint array literals, so the governance fingerprint preflight rejects dump-REBUILT schemas — hence the production pre-G -> G upgrade must run the G migrator directly, never dump/restore). Here the object under test is the ledger DATA (hash-chained rows) in an already-migrated, EF-created schema: that data path is canonical under plain backup/restore. A disaster-recovery restore of an already-G database re-creates the schema from the dump and re-creates the data; the ledger chain survives, and DR should start the G services against the restored DB rather than re-running the migration."
+}

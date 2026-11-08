@@ -25,7 +25,7 @@
 
 升级顺序与动作必须原子化（旧控制面不能给新网关提供可信租约，不支持先升级网关并继续依赖旧控制面）：
 
-1. 窗口开始：全量 PG 备份（账本追加式，备份必须保住哈希链）；冻结发布（不得有 Building/Publishing 中的发布）。
+1. 窗口开始：全量 PG 备份（账本追加式，备份必须保住哈希链）；冻结发布（不得有 Building/Publishing 中的发布）。备份/灾备恢复后**须用真实 `SecurityEventHash.Compute` 重算并逐条比对 `event_hash` 与 `previous_hash`**（Genesis 起接到 head），确认追加式链完整——已在一次性隔离环境演练通过，见[G13 升级演练](governance-g13-upgrade-rehearsal.md)。
 2. 预检：升级守卫 SQL 在目标库执行（G 迁移器自身的治理预检即此守卫；直接对目标库跑 `WebApi.Migrator`，不得经 dump/restore——pg_dump 往返会改变 CHECK 约束序列化文本导致指纹失配，见 P2-2 证据）。
 3. 部署控制面 + worker：配置 §2 签名密钥；确认 worker 可签发完整检查点。
 4. 逐台升级网关节点：新镜像 → 注册 → 控制面签发**初始完整检查点 + 节点租约** → 网关 ACK（七重验证）→ `SecurityStateStore` 达 Allow → `/health/ready` 变绿。
@@ -48,6 +48,7 @@
 ## 6. 演练验收清单
 
 - [ ] 升级守卫预检在目标库通过（`Committed`，含幂等重放）
+- [ ] 备份恢复后安全账本哈希链重算逐条一致（`SecurityEventHash.Compute`，Genesis→head，已在[G13 升级演练](governance-g13-upgrade-rehearsal.md)通过）
 - [ ] 全节点 ACK 后检查点达 Allow，`/health/ready` 全绿
 - [ ] 紧急撤销：所有节点即时拒绝 + 重启恢复回执幂等
 - [ ] 正式轮换：双钥窗口并存 + 硬截止撤旧
