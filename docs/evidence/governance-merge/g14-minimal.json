@@ -3,17 +3,17 @@
     {
       "name": "D1_1KilledGatewayAfterAckConvergesViaOtherNode",
       "result": "passed",
-      "sequence": 17
+      "sequence": 3
     },
     {
       "name": "D1_2WorkerKilledMidPublishIdempotentContinuation",
       "result": "passed",
-      "sequence": 18
+      "sequence": 4
     },
     {
       "name": "D1_3CoordinatedRedisRestartRebuildsFromPg",
       "result": "passed",
-      "sequence": 18
+      "sequence": 4
     }
   ],
   "complete": true

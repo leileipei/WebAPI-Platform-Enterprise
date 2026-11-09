@@ -1,0 +1,34 @@
+{
+  "checks": [
+    {
+      "name": "D1_4PostgresRestartAtRestAuthorityFactsPersist",
+      "result": "passed",
+      "sequence": 15,
+      "facts": "15|Succeeded|2",
+      "recoveredByServiceRestart": false,
+      "nodesConverged": true
+    },
+    {
+      "name": "D1_5GatewayDownMidPublishConvergesAfterRecovery",
+      "result": "passed",
+      "stateDuringFault": "Failed",
+      "recoveredByRetry": true,
+      "sequence": 17
+    },
+    {
+      "name": "D1_6WorkerAndGatewayDualFaultConvergesAfterRecovery",
+      "result": "passed",
+      "stateDuringFault": "Failed",
+      "recoveredByRetry": true,
+      "sequence": 19
+    },
+    {
+      "name": "D1_7BothGatewaysDownConvergesAfterRecovery",
+      "result": "passed",
+      "stateDuringFault": "Failed",
+      "recoveredByRetry": true,
+      "sequence": 21
+    }
+  ],
+  "complete": true
+}
