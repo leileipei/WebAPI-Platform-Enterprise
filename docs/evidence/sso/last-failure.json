@@ -1,5 +1,5 @@
 {
   "complete": false,
-  "message": "Expected values to be strictly equal:\n\n401 !== 303\n",
-  "time": "2026-10-05T13:50:44.383Z"
+  "message": "Isolated SSO fixture did not converge.",
+  "time": "2026-11-09T05:08:36.169Z"
 }

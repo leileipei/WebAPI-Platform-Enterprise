@@ -34,5 +34,53 @@
     "project": "webapi-enterprise-e2e-policies-359ed029-19a3-48f2-a88e-34ba8de191a0",
     "message": "已保留原失败日志；修正项见执行账本",
     "classification": "disposable-attempt-history"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-68ead181-9458-41a2-bfb0-2b8d4a7e825d",
+    "time": "2026-11-09T01:56:16.599Z",
+    "message": "docker run --rm --workdir failed (see private operations.log)"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-cd738ecc-cb96-473b-ac47-b56a30ef27b4",
+    "time": "2026-11-09T02:02:55.543Z",
+    "message": "docker compose -p webapi-enterprise-e2e-policies-cd738ecc-cb96-473b-ac47-b56a30ef27b4 failed (see private operations.log)"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-275daa8c-c47a-4073-88ae-39208f80f072",
+    "time": "2026-11-09T02:47:53.053Z",
+    "message": "docker compose -p webapi-enterprise-e2e-policies-275daa8c-c47a-4073-88ae-39208f80f072 failed (see private operations.log)"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-5891de41-9300-4db3-85c8-354c4b32d246",
+    "time": "2026-11-09T02:53:36.677Z",
+    "message": "docker compose -p webapi-enterprise-e2e-policies-5891de41-9300-4db3-85c8-354c4b32d246 failed (see private operations.log)"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-b5489e7e-a086-444a-935f-6bc51d3507d5",
+    "time": "2026-11-09T02:57:10.074Z",
+    "message": "docker compose -p webapi-enterprise-e2e-policies-b5489e7e-a086-444a-935f-6bc51d3507d5 failed (see private operations.log)"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-d2c0c911-b323-4725-a972-e9ce401cbaed",
+    "time": "2026-11-09T03:12:53.162Z",
+    "message": "/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node scripts/wait-http.mjs http://127.0.0.1:32768/health/live failed (see private operations.log)"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-ef4964f2-0bf5-4e20-89bb-aa7ad26236f9",
+    "time": "2026-11-09T03:16:39.505Z",
+    "message": "/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node scripts/wait-http.mjs http://127.0.0.1:32773/health/live failed (see private operations.log)"
+  },
+  {
+    "complete": false,
+    "project": "webapi-enterprise-e2e-policies-8a58f003-c8ab-45c3-aac6-31eb3278c4ec",
+    "time": "2026-11-09T03:57:44.235Z",
+    "message": "用户名或密码错误。"
   }
 ]

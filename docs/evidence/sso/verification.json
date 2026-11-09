@@ -2,22 +2,19 @@
   "schemaVersion": 1,
   "classification": "real-isolated-keycloak",
   "complete": true,
-  "project": "webapi-sso-test-e798f596-e2bd-45de-a081-44c82c796628",
+  "project": "webapi-sso-test-6e63d2a8-a186-46ed-84c4-e435030adb99",
   "keycloakImage": "quay.io/keycloak/keycloak@sha256:b0f60d489d51c5d113390bdf5461d4c06e6051be026c05549f2e1e10ec352bcc",
   "image": {
-    "tag": "webapi-sso-fixture:d9f22240c5890740138e",
-    "digest": "sha256:9c1b75a65e325218e3e2d3982f1137b1b74d77410d6ca1130e097c01d5bb1c5c",
-    "baseCommit": "f4e2cc3d81f0467fd48894127b26bc1ec6138389",
-    "sourceManifestHash": "d9f22240c5890740138ed1d2d8895441611b7f34c4d3079f8d5a73a70649afd5",
+    "tag": "webapi-sso-fixture:ab787397467caf96003f",
+    "digest": "sha256:e78ca8c7980501c7084812711d990319b512b8e202a5b3a876a1e21ab1811a4a",
+    "baseCommit": "8e9b71fc8230158306dfc339ee8e8bb617af8dd0",
+    "sourceManifestHash": "ab787397467caf96003ffa2b9deae51f7b09a8620f509d31edabfd58d92add23",
     "classification": "actual-uncommitted-build-source"
   },
   "sameSiteEvidence": {
     "platformHost": "127.0.0.1",
     "idpHost": "localhost",
-    "browserVerified": true,
-    "browserEvidence": "docs/evidence/sso/ui/cookie-evidence.json",
-    "completePageRestoredSession": true,
-    "formInitiatedReauthenticationVerified": true
+    "browserVerified": false
   },
   "checks": [
     {
@@ -118,16 +115,17 @@
       }
     }
   ],
-  "time": "2026-10-05T15:29:36.887Z",
+  "time": "2026-11-09T05:41:45.398Z",
   "endToEndTests": {
     "passed": 1,
     "failed": 0,
     "lockedRestore": true
   },
-  "review": {
-    "retained": true,
-    "project": "webapi-sso-test-e798f596-e2bd-45de-a081-44c82c796628",
-    "url": "http://127.0.0.1:54874"
-  },
-  "toolManifestHash": "8f23ffa6417247bf7f803594d3f24df0cd0b6e1dd7279fa33c66292645c40eae"
+  "cleanup": {
+    "owner": "6e63d2a8-a186-46ed-84c4-e435030adb99",
+    "project": "webapi-sso-test-6e63d2a8-a186-46ed-84c4-e435030adb99",
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretsRemaining": 0
+  }
 }

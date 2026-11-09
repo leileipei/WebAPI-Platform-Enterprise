@@ -2,22 +2,22 @@
   "schemaVersion": 1,
   "complete": true,
   "classification": "real-isolated-system-settings",
-  "project": "webapi-enterprise-e2e-settings-95d25c50-1a45-4b30-aef0-f4aece295f4c",
-  "sourceManifestHash": "62d6b9312739e0b7892d3c320147a05c21806ef880c6aeb134de83ad0fe16653",
+  "project": "webapi-enterprise-e2e-settings-b86b25be-f4d9-4645-a3e0-bfde8c9d7c5d",
+  "sourceManifestHash": "ab787397467caf96003ffa2b9deae51f7b09a8620f509d31edabfd58d92add23",
   "image": {
-    "imageTag": "webapi-settings:62d6b9312739e0b7892d",
-    "imageDigest": "sha256:cbd5e53022996a3f35984955e79e8a8711e8bcaf109bb03b445ed34ca21e0abc",
-    "baseCommit": "79990836dedb5a3d8962ae2f828090b08208aff2",
-    "sourceManifestHash": "62d6b9312739e0b7892d3c320147a05c21806ef880c6aeb134de83ad0fe16653"
+    "imageTag": "webapi-settings:ab787397467caf96003f",
+    "imageDigest": "sha256:0357c7685ba6b05fea75e0304ce47f01a56fc380094a03a952c69a87155fb5aa",
+    "baseCommit": "8e9b71fc8230158306dfc339ee8e8bb617af8dd0",
+    "sourceManifestHash": "ab787397467caf96003ffa2b9deae51f7b09a8620f509d31edabfd58d92add23"
   },
   "scope": {
-    "organizationId": "fe22c95c-7fe9-41e4-8d60-4f1156d19a57",
-    "projectId": "ecfa8f14-b565-4a95-a75e-e27d184d8ba1",
-    "environmentId": "f3022302-850d-4e99-9f38-bf8e05498135"
+    "organizationId": "c518fad0-6b28-4261-b2a2-1855f378c5d8",
+    "projectId": "83a91a44-503d-457a-9234-d4bd068f97e2",
+    "environmentId": "ade6b6dd-4c9a-4c93-acee-40750f86a0fc"
   },
-  "apiId": "84c28f3c-bb2f-4107-8bee-b5242d1a819c",
-  "oldRouteId": "1d807c98-c695-4b43-89d5-2ea49a275b11",
-  "newRouteId": "8d07cca3-82eb-4b94-8eec-3758225c5038",
+  "apiId": "932aad88-9267-4c89-8b81-c6ca9001891d",
+  "oldRouteId": "e9058e33-4300-4a3c-ac50-d0237155ab53",
+  "newRouteId": "b7fb07de-b06f-4108-8d2a-f4f015b33d4a",
   "checks": [
     {
       "name": "settings-persistence",
@@ -32,16 +32,16 @@
       "name": "snapshot-unchanged-before-publish",
       "pass": true,
       "evidence": {
-        "beforeSha256": "fdc8a098dae0aba81832148155a13e1ec5baa7ce5be51399728d2ef1c47e5f5a",
-        "afterSha256": "fdc8a098dae0aba81832148155a13e1ec5baa7ce5be51399728d2ef1c47e5f5a",
+        "beforeSha256": "45ba947505ecc8b99a29f64cbc9529a1ff3c5a0eab89276ee03fe6f2e73314bc",
+        "afterSha256": "45ba947505ecc8b99a29f64cbc9529a1ff3c5a0eab89276ee03fe6f2e73314bc",
         "nodes": [
           {
-            "id": "f7f01602-5bfc-41ff-b848-c2ce98c0e410",
+            "id": "f58cea02-dfba-439e-81cb-3accb86cb032",
             "configVersion": 1,
             "deploymentSequence": 1
           },
           {
-            "id": "a1629056-c6e6-4fb7-be74-4df440099229",
+            "id": "f9ab594c-2f7a-41ad-94b4-f9d3853a0c36",
             "configVersion": 1,
             "deploymentSequence": 1
           }
@@ -113,13 +113,13 @@
     }
   ],
   "finalRelease": {
-    "id": "9510f765-5c2f-4e57-9d79-8e5df5c4dc08",
-    "environmentId": "f3022302-850d-4e99-9f38-bf8e05498135",
-    "releaseNo": "REL-e915cee9634243ffb0aac117ae553fb9",
+    "id": "a566dfbf-3562-418e-b191-ad75854216d7",
+    "environmentId": "ade6b6dd-4c9a-4c93-acee-40750f86a0fc",
+    "releaseNo": "REL-50665b8a2dcb466396434f99e1bb1070",
     "state": "Succeeded",
     "releaseType": "publish",
-    "requestedBy": "35643c04-4932-4f3c-b954-ff915fe764cd",
-    "createdAt": "2026-10-05T05:27:19.238031+00:00",
+    "requestedBy": "02cc8aa8-60cd-4a0b-9e73-32ad707b57c2",
+    "createdAt": "2026-11-09T04:18:13.902436+00:00",
     "baselineConfigVersion": 1,
     "targetConfigVersion": 2,
     "deploymentSequence": 2,
@@ -128,20 +128,20 @@
       "versions": [
         {
           "api": {
-            "id": "84c28f3c-bb2f-4107-8bee-b5242d1a819c",
-            "organizationId": "fe22c95c-7fe9-41e4-8d60-4f1156d19a57",
-            "projectId": "ecfa8f14-b565-4a95-a75e-e27d184d8ba1",
+            "id": "932aad88-9267-4c89-8b81-c6ca9001891d",
+            "organizationId": "c518fad0-6b28-4261-b2a2-1855f378c5d8",
+            "projectId": "83a91a44-503d-457a-9234-d4bd068f97e2",
             "groupId": null,
             "code": "ORDERS",
             "name": "订单验收 API",
             "description": null,
             "lifecycleStatus": "Draft",
-            "ownerUserId": "35643c04-4932-4f3c-b954-ff915fe764cd",
+            "ownerUserId": "02cc8aa8-60cd-4a0b-9e73-32ad707b57c2",
             "workingRevision": 1
           },
           "version": {
-            "id": "1367b707-928e-46a5-ba9c-38f452f3cf63",
-            "apiId": "84c28f3c-bb2f-4107-8bee-b5242d1a819c",
+            "id": "ade2d6f9-f14a-4401-acb6-3d4a74a6998f",
+            "apiId": "932aad88-9267-4c89-8b81-c6ca9001891d",
             "version": "1.0.0",
             "status": "Published",
             "changeType": "compatible",
@@ -149,9 +149,9 @@
             "openapiSource": null,
             "sourceFormat": null,
             "schemaHash": null,
-            "createdBy": "35643c04-4932-4f3c-b954-ff915fe764cd",
-            "createdAt": "2026-10-05T05:27:15.516405+00:00",
-            "sealedAt": "2026-10-05T05:27:16.313136+00:00",
+            "createdBy": "02cc8aa8-60cd-4a0b-9e73-32ad707b57c2",
+            "createdAt": "2026-11-09T04:18:06.957558+00:00",
+            "sealedAt": "2026-11-09T04:18:08.783834+00:00",
             "revision": 1
           },
           "parameters": [],
@@ -160,35 +160,16 @@
       ],
       "routes": [
         {
-          "id": "1d807c98-c695-4b43-89d5-2ea49a275b11",
-          "apiVersionId": "1367b707-928e-46a5-ba9c-38f452f3cf63",
-          "environmentId": "f3022302-850d-4e99-9f38-bf8e05498135",
-          "routeName": "Orders",
-          "path": "/orders/{*rest}",
-          "normalizedPath": "/orders/{*}",
-          "methods": [
-            "GET"
-          ],
-          "clusterId": "4a180628-ca53-4be2-ac7b-f0b2ca7f3f6e",
-          "priority": 100,
-          "matchOrder": 3999900,
-          "enabled": true,
-          "timeoutMs": 30000,
-          "requireApiKey": true,
-          "revision": 1,
-          "effectiveTimeoutMs": null
-        },
-        {
-          "id": "8d07cca3-82eb-4b94-8eec-3758225c5038",
-          "apiVersionId": "1367b707-928e-46a5-ba9c-38f452f3cf63",
-          "environmentId": "f3022302-850d-4e99-9f38-bf8e05498135",
+          "id": "b7fb07de-b06f-4108-8d2a-f4f015b33d4a",
+          "apiVersionId": "ade2d6f9-f14a-4401-acb6-3d4a74a6998f",
+          "environmentId": "ade6b6dd-4c9a-4c93-acee-40750f86a0fc",
           "routeName": "SettingsProbe",
           "path": "/settings-probe/{*rest}",
           "normalizedPath": "/settings-probe/{*}",
           "methods": [
             "GET"
           ],
-          "clusterId": "4a180628-ca53-4be2-ac7b-f0b2ca7f3f6e",
+          "clusterId": "e14b28ed-4380-4b89-a92f-0635b21ebef3",
           "priority": 110,
           "matchOrder": 3999890,
           "enabled": true,
@@ -196,13 +177,32 @@
           "requireApiKey": true,
           "revision": 1,
           "effectiveTimeoutMs": null
+        },
+        {
+          "id": "e9058e33-4300-4a3c-ac50-d0237155ab53",
+          "apiVersionId": "ade2d6f9-f14a-4401-acb6-3d4a74a6998f",
+          "environmentId": "ade6b6dd-4c9a-4c93-acee-40750f86a0fc",
+          "routeName": "Orders",
+          "path": "/orders/{*rest}",
+          "normalizedPath": "/orders/{*}",
+          "methods": [
+            "GET"
+          ],
+          "clusterId": "e14b28ed-4380-4b89-a92f-0635b21ebef3",
+          "priority": 100,
+          "matchOrder": 3999900,
+          "enabled": true,
+          "timeoutMs": 30000,
+          "requireApiKey": true,
+          "revision": 1,
+          "effectiveTimeoutMs": null
         }
       ],
       "clusters": [
         {
-          "id": "4a180628-ca53-4be2-ac7b-f0b2ca7f3f6e",
-          "projectId": "ecfa8f14-b565-4a95-a75e-e27d184d8ba1",
-          "environmentId": "f3022302-850d-4e99-9f38-bf8e05498135",
+          "id": "e14b28ed-4380-4b89-a92f-0635b21ebef3",
+          "projectId": "83a91a44-503d-457a-9234-d4bd068f97e2",
+          "environmentId": "ade6b6dd-4c9a-4c93-acee-40750f86a0fc",
           "name": "OrdersBackend",
           "loadBalancingPolicy": "RoundRobin",
           "healthCheckEnabled": true,
@@ -212,8 +212,8 @@
           "revision": 1,
           "destinations": [
             {
-              "id": "252c4e39-49e5-4e79-977f-0f784d897d35",
-              "clusterId": "4a180628-ca53-4be2-ac7b-f0b2ca7f3f6e",
+              "id": "07ae5f75-6d80-414e-88a1-fe19162e4bde",
+              "clusterId": "e14b28ed-4380-4b89-a92f-0635b21ebef3",
               "name": "test-backend",
               "address": "http://backend-a:8080/",
               "weight": 1,
@@ -227,9 +227,9 @@
       "applications": [
         {
           "application": {
-            "id": "2ff23b12-b45b-440c-9838-ad4de8f00335",
-            "organizationId": "fe22c95c-7fe9-41e4-8d60-4f1156d19a57",
-            "projectId": "ecfa8f14-b565-4a95-a75e-e27d184d8ba1",
+            "id": "dab3dac2-2941-412d-b2f3-fe77c1bfcd5e",
+            "organizationId": "c518fad0-6b28-4261-b2a2-1855f378c5d8",
+            "projectId": "83a91a44-503d-457a-9234-d4bd068f97e2",
             "code": "E2E_CONSUMER",
             "name": "临时消费方",
             "owner": "E2E",
@@ -239,13 +239,13 @@
           },
           "credentials": [
             {
-              "id": "33944d91-cf96-4dc7-9f48-48769c32882a",
-              "applicationId": "2ff23b12-b45b-440c-9838-ad4de8f00335",
-              "accessKey": "ak_lxdPqWmDCsZvWUO7Y9WEUg",
-              "secretLast4": "6BGk",
+              "id": "d505e43d-ff64-4187-ab72-62161edf8c67",
+              "applicationId": "dab3dac2-2941-412d-b2f3-fe77c1bfcd5e",
+              "accessKey": "ak_fSzU9CY--yhKyucGqAI77w",
+              "secretLast4": "Tqho",
               "status": "Active",
-              "validFrom": "2026-10-05T05:26:11.482+00:00",
-              "expiresAt": "2026-10-06T05:27:11.484+00:00",
+              "validFrom": "2026-11-09T04:17:00.278+00:00",
+              "expiresAt": "2026-11-10T04:18:00.279+00:00",
               "lastUsedAt": null,
               "revokedAt": null,
               "revision": 1,
@@ -254,11 +254,11 @@
           ],
           "permissions": [
             {
-              "id": "9f1919ec-0b3d-42c9-85f7-14b11302a189",
-              "applicationId": "2ff23b12-b45b-440c-9838-ad4de8f00335",
-              "apiId": "84c28f3c-bb2f-4107-8bee-b5242d1a819c",
-              "environmentId": "f3022302-850d-4e99-9f38-bf8e05498135",
-              "validFrom": "2026-10-05T05:26:11.512+00:00",
+              "id": "2788ba41-3923-4940-829b-1957c7682f0e",
+              "applicationId": "dab3dac2-2941-412d-b2f3-fe77c1bfcd5e",
+              "apiId": "932aad88-9267-4c89-8b81-c6ca9001891d",
+              "environmentId": "ade6b6dd-4c9a-4c93-acee-40750f86a0fc",
+              "validFrom": "2026-11-09T04:17:00.311+00:00",
               "expiresAt": null,
               "revision": 1,
               "activation": "WorkingConfiguration"
@@ -269,87 +269,89 @@
       "resourceRevisions": [
         {
           "type": "version",
-          "id": "1367b707-928e-46a5-ba9c-38f452f3cf63",
+          "id": "ade2d6f9-f14a-4401-acb6-3d4a74a6998f",
           "revision": 1
         },
         {
           "type": "api",
-          "id": "84c28f3c-bb2f-4107-8bee-b5242d1a819c",
+          "id": "932aad88-9267-4c89-8b81-c6ca9001891d",
           "revision": 1
         },
         {
           "type": "route",
-          "id": "1d807c98-c695-4b43-89d5-2ea49a275b11",
+          "id": "b7fb07de-b06f-4108-8d2a-f4f015b33d4a",
           "revision": 1
         },
         {
           "type": "route",
-          "id": "8d07cca3-82eb-4b94-8eec-3758225c5038",
+          "id": "e9058e33-4300-4a3c-ac50-d0237155ab53",
           "revision": 1
         },
         {
           "type": "cluster",
-          "id": "4a180628-ca53-4be2-ac7b-f0b2ca7f3f6e",
+          "id": "e14b28ed-4380-4b89-a92f-0635b21ebef3",
           "revision": 1
         },
         {
           "type": "destination",
-          "id": "252c4e39-49e5-4e79-977f-0f784d897d35",
+          "id": "07ae5f75-6d80-414e-88a1-fe19162e4bde",
           "revision": 1
         },
         {
           "type": "application",
-          "id": "2ff23b12-b45b-440c-9838-ad4de8f00335",
+          "id": "dab3dac2-2941-412d-b2f3-fe77c1bfcd5e",
           "revision": 3
         },
         {
           "type": "credential",
-          "id": "33944d91-cf96-4dc7-9f48-48769c32882a",
+          "id": "d505e43d-ff64-4187-ab72-62161edf8c67",
           "revision": 1
         },
         {
           "type": "authorization",
-          "id": "9f1919ec-0b3d-42c9-85f7-14b11302a189",
+          "id": "2788ba41-3923-4940-829b-1957c7682f0e",
           "revision": 1
         }
       ],
       "policies": [],
       "bindings": [],
-      "preconditionsCurrent": null
+      "preconditionsCurrent": null,
+      "riskReviews": null,
+      "sharedCredentialImpact": null
     },
-    "candidateHash": "b3d23e2a3b231645c5748cab132c699fa06df9e778ffa313bce4712587e33321",
+    "candidateHash": "570744577007aee04d34f4ff6b95cd3a9acd63cec668c5a3c915fa82da044bea",
     "approvalSteps": [
       {
-        "id": "c71021b0-768e-412f-9497-2fb7e470d98c",
+        "id": "ba66771a-ad1e-4286-9d7f-4b709c5bf9b0",
         "stepOrder": 1,
         "roleCode": "ApiApprover",
         "status": "Approved",
-        "actorId": "a75b33e5-10d7-4e8c-8e17-46e78e573ef3",
+        "actorId": "da853755-dfee-4ba1-b2aa-ef4769a66073",
         "comment": "系统设置路由独立审批",
-        "actedAt": "2026-10-05T05:27:19.325952+00:00"
+        "actedAt": "2026-11-09T04:18:14.106892+00:00"
       },
       {
-        "id": "cf432105-4862-4098-b1ed-a5a8389f4ebe",
+        "id": "ec59c26a-17b3-479b-a5ee-a008a6ec8db8",
         "stepOrder": 2,
         "roleCode": "SecurityReviewer",
         "status": "Approved",
-        "actorId": "68d56b37-e842-41d3-bb89-629724a95a7a",
+        "actorId": "336795e7-66c2-47eb-a17a-8ef671dec526",
         "comment": "系统设置安全独立复核",
-        "actedAt": "2026-10-05T05:27:19.343547+00:00"
+        "actedAt": "2026-11-09T04:18:14.139084+00:00"
       }
     ],
     "targets": [
       {
-        "nodeId": "a1629056-c6e6-4fb7-be74-4df440099229",
-        "instanceId": "7b3b1939-4507-454a-a2b1-783df3aa22e5",
+        "nodeId": "f58cea02-dfba-439e-81cb-3accb86cb032",
+        "instanceId": "862f503b-6a0d-43ca-8222-5910d31da9e1",
         "acknowledged": true,
         "configVersion": 2,
         "deploymentSequence": 2,
         "errorCode": null
       },
       {
-        "nodeId": "f7f01602-5bfc-41ff-b848-c2ce98c0e410",
-        "instanceId": "7e623e58-7a87-4c33-89f1-fda2328d404e",
+        "nodeId": "f9ab594c-2f7a-41ad-94b4-f9d3853a0c36",
+        "instanceId": "fa52438e-5bb0-473c-b4d4-ae2c7858b661",
         "acknowledged": true,
         "configVersion": 2,
         "deploymentSequence": 2,
@@ -357,7 +359,25 @@
       }
     ],
     "errors": [],
-    "recoveryOf": null
+    "recoveryOf": null,
+    "approvalEligibility": {
+      "canAct": false,
+      "currentStepOrder": null,
+      "reasonCode": "invalid_release_state"
+    },
+    "accessContext": {
+      "releaseId": "a566dfbf-3562-418e-b191-ad75854216d7",
+      "environmentId": "ade6b6dd-4c9a-4c93-acee-40750f86a0fc",
+      "accessAddressRevision": 1,
+      "publicOrigin": null,
+      "basePath": "/",
+      "capturedAt": "2026-11-09T04:18:14.210994+00:00",
+      "recoveryOf": null
+    },
+    "currentPublicOrigin": null,
+    "accessAddressChanged": false,
+    "currentBasePath": "/",
+    "delivery": null
   },
   "requests": [
     {
@@ -381,11 +401,11 @@
       "status": 200
     }
   ],
-  "time": "2026-10-05T05:27:21.356Z",
-  "toolManifestHash": "a455eeb07e1c7be63aa115ca23019d936387d44755d52e0afc29688792378ec0",
-  "review": {
-    "project": "webapi-enterprise-e2e-settings-95d25c50-1a45-4b30-aef0-f4aece295f4c",
-    "url": "http://127.0.0.1:34310",
-    "privateContextFile": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.worktrees/system-settings/.runtime/webapi-enterprise-e2e-settings-95d25c50-1a45-4b30-aef0-f4aece295f4c/review-context.json"
+  "time": "2026-11-09T04:18:17.556Z",
+  "toolManifestHash": "b57ec5444bb17feb8f4c72265e66a184e316328eebd91a183383cda64a54e559",
+  "cleanup": {
+    "containersRemaining": 0,
+    "volumesRemaining": 0,
+    "secretsRemaining": 0
   }
 }
