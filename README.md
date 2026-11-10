@@ -26,7 +26,9 @@ GitHub 主干与本地目录可能处于不同提交。阅读“当前”“已�
 
 ## 构建与验证
 
-依赖版本以 [SDK 配置](global.json)、[后端集中版本](Directory.Packages.props)、[前端依赖](console/package.json)及对应锁文件为准。当前 SDK 固定为 `10.0.401`，禁止自动滚动到其他版本；本地 CI 配置使用 Node `24.22.1`、pnpm `11.25.0`。
+依赖版本以 [SDK 配置](global.json)、[后端集中版本](Directory.Packages.props)、[前端依赖](console/package.json)及对应锁文件为准。当前 SDK 固定为 `10.0.401`，禁止自动滚动到其他版本；CI 配置使用 Node `24.22.1`、pnpm `11.25.0`。
+
+主干 `3774ccc` 的四项 GitHub 检查已完成：4255 项通过，0 失败/跳过，类型检查与前端构建通过。主干强制检查尚未启用；运行记录和剩余交付边界见[当前状态](docs/deployment/current-project-status.md)。
 
 前端先执行 `pnpm --dir console install --frozen-lockfile`，再执行 `bash scripts/check-console.sh`。可用 `WEBAPI_NODE`、`WEBAPI_PNPM` 指定已有工具。
 

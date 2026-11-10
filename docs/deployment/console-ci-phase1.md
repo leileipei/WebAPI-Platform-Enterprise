@@ -1,6 +1,6 @@
 # 前端自动检查第一批：配置与本地验证
 
-日期：2026-11-10。输入：主干 `7626115c769ae0926d38109ace46b2f5017bfcc3`。用户选择 A 路径，首批仅前端，三个后端套件为第二批。状态：**工作流已在独立工作目录准备并完成本地验证；尚未发布到 GitHub、实际运行或启用主干保护**。
+日期：2026-11-10。配置阶段输入：主干 `7626115c769ae0926d38109ace46b2f5017bfcc3`。用户选择 A 路径，首批仅前端，三个后端套件为第二批。**后续状态：工作流已通过 PR #5 合入，修正候选和 main 的实际检查均通过；主干保护未启用。**下文保留首批本地验证的原范围与结果，后续结果见文末。
 
 ## 本批配置
 
@@ -45,10 +45,12 @@
 - 两个现有 SSR 用例仅关闭 hmr，未关闭 Vite ws；并行时记录 `WebSocket server error: Port 24678 is already in use`。321 个实际断言全部通过，但该日志仍保留。本批没有修改用例或占用端口的其他进程，也未证明 Ubuntu 无此日志。
 - Vite 输出单个 JS chunk 超过 500 kB 的构建警告（约 798 kB）。构建成功，本批未提高警告阈值或调整应用拆包。
 
-## 待远程验证与后续
+## 首批交付范围与后续实际结果
 
-本批提交仅包含工作流、本设计/计划和本文，不包含主目录前轮尚未提交的八份文档修正。三个后端套件、固定端口 E2E、安全准入与 4192 部署均未执行。
+首批提交仅包含工作流、本设计/计划和本文，不包含主目录前轮尚未提交的八份文档修正。首批当时没有执行三个后端套件、固定端口 E2E、安全准入或 4192 部署；后端后续结果见[第二批记录](contracts-ci-phase2.md)。
 
-推送独立分支并创建 PR 后，必须跟踪 GitHub 实际 `console` 检查到完成，核对源 SHA、工具版本、测试数和构建结果；不能把上述本机结果标成 GitHub 通过。只有真实运行完成后才考虑把 `console` 配成 main 必需检查。主干保护管理仍需有权限的连接或维护者执行并读回核验。
+后续经明确授权发布并合入 [PR #5](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/5)。修正候选 `7694c4a` 的 [PR Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42828796307) 和 main `3774ccc` 的 [push Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42839001626) 均实际完成：各 321 通过、0 失败/跳过，类型检查与构建通过，runner 为 `ubuntu-24.04`。这两次结果与上述本机验证分别记录；不据成功结论抹去既有告警。
+
+`console` 尚未配置为 main 必需检查。主干保护管理仍需有权限的连接或维护者执行并读回核验。完整当前状态见[状态页](current-project-status.md)。
 
 设计：[首批设计](../superpowers/specs/2026-11-10-console-ci-phase1-design.md)。计划：[首批实施计划](../superpowers/plans/2026-11-10-console-ci-phase1.md)。

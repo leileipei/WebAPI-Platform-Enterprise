@@ -2,19 +2,10 @@
   "schemaVersion": 1,
   "reviewDate": "2026-11-10",
   "scope": "Tracked project Markdown/text and the two new navigation pages; vendor documents excluded.",
-  "githubMain": "7626115c769ae0926d38109ace46b2f5017bfcc3",
-  "localCodeInput": "00f45a8617cbf8634e58621594bdbb7e8b0ede16",
-  "localCodeAheadOfGithub": [
-    "536efe1",
-    "8b75524",
-    "b73357e",
-    "00f45a8"
-  ],
-  "sourceDifferenceToGithub": [
-    "src/WebApi.Infrastructure/Governance/AuditAccessQuery.cs",
-    "src/WebApi.Infrastructure/Messaging/OutboxDispatcher.cs",
-    "src/WebApi.Worker/Workers/OutboxWorker.cs"
-  ],
+  "githubMain": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+  "localCodeInput": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+  "localCodeAheadOfGithub": [],
+  "sourceDifferenceToGithub": [],
   "classificationIsNotAcceptance": true,
   "counts": {
     "documents": 314,
@@ -30,7 +21,7 @@
       "immutable-evidence": 153,
       "historical-design-plan": 58
     },
-    "relativeLinksChecked": 850,
+    "relativeLinksChecked": 852,
     "unresolvedHistoricalReferences": 47,
     "preservedDuplicateEvidenceGroups": 7
   },
@@ -416,8 +407,44 @@
   },
   "specialistReconciliationDocumentationInput": "7f1bc8f6fe82c0a4ff0cd11bd2c7a42067ee0b44",
   "maintenanceReconciliationDocumentationInput": "f1a11ab9ff12b41c0508c6b56f88998b4007587b",
+  "preMergeSourceBaseline": {
+    "githubMain": "7626115c769ae0926d38109ace46b2f5017bfcc3",
+    "localCodeInput": "00f45a8617cbf8634e58621594bdbb7e8b0ede16",
+    "localCodeAheadOfGithub": [
+      "536efe1",
+      "8b75524",
+      "b73357e",
+      "00f45a8"
+    ],
+    "sourceDifferenceToGithub": [
+      "src/WebApi.Infrastructure/Governance/AuditAccessQuery.cs",
+      "src/WebApi.Infrastructure/Messaging/OutboxDispatcher.cs",
+      "src/WebApi.Worker/Workers/OutboxWorker.cs"
+    ]
+  },
+  "postMergeReconciliation": {
+    "documentationInput": "f01a73383377568d547803c9fa926a54fb36f89c",
+    "mergeCommit": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "pr": 5,
+    "mainChecks": {
+      "console": 321,
+      "contracts-domain": 1251,
+      "contracts-gateway": 555,
+      "contracts-integration": 2128
+    },
+    "totalPassed": 4255,
+    "failed": 0,
+    "skipped": 0,
+    "mainRuns": [
+      42839001626,
+      42839002248
+    ],
+    "branchProtectionEnabled": false,
+    "documentationPublication": "local only; excluded from PR #5",
+    "productTestsRerunForDocumentation": false
+  },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"3f359cb0292ce7251e1dec375ddab4c868d41fdd438c08dfd24d882e5d6e85e5"},
+    {"path":"README.md","category":"navigation","sha256":"e7936a7e8e8fed6a6406ff84166e732d7ca57bc010ab53c9aeebf375e8efa55b"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"c6a40c3e0ca97729142fce8d541601b78dc6fd121a75bfad5af36e0f663ec890"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -449,14 +476,14 @@
     {"path":"docs/dependencies/gateway-jwt.md","category":"topic-reference","sha256":"1b73f205557681a5c9df877907f6e7f2970b0903b4ef2d76717f4df60d3608fd"},
     {"path":"docs/deployment/README.md","category":"navigation","sha256":"ca7f4ec4f0827208e0681e3716cf672137b00370f747bda2abd62bfc34e44c96"},
     {"path":"docs/deployment/account-credential-operations.md","category":"operations-reference","sha256":"11bf916707831fdc230e0795c8ce7dd1d6bb5130cbbec501dd43bbd095d4deef"},
-    {"path":"docs/deployment/console-ci-phase1.md","category":"ci-configuration-record","sha256":"673d7cfb0cf7f2f789a8120061c15aee0265166daa7cd207dc9630ce93cbcc1b"},
+    {"path":"docs/deployment/console-ci-phase1.md","category":"ci-configuration-record","sha256":"6f6ed48f83ca735266c5475b3fba1d67d81b7b7bf127c39e5cb411d4f3804330"},
     {"path":"docs/deployment/contract-management-completion-runbook.md","category":"operations-reference","sha256":"e5348adadaba5379e8c5674aaed49927dcd047cbbc40569fee372e50f2d8be26"},
     {"path":"docs/deployment/contract-management-completion-upgrade-result.md","category":"historical-deployment-record","sha256":"fc8574067597d3812777129dd07725d7d7e47cb7a536d467d4b420c412b77327"},
-    {"path":"docs/deployment/contracts-ci-phase2.md","category":"ci-configuration-record","sha256":"1d0ffcd2eb1c47b64e0ae23a28af1b8498e61160a386dac3459bc22372a6506d"},
+    {"path":"docs/deployment/contracts-ci-phase2.md","category":"ci-configuration-record","sha256":"247321b79ebd128a98234408deeadde5a8a0711d4a79acb0a25b4574e32d0af1"},
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"e2a79e10119a0860810df78a034f4627379956c3381a27d06bd5aadeca4bed86"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"9bc7fe6bf93507b20d25ad2857e489dced18d824ffecf0a457bb4ced9faef8fe"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -472,7 +499,7 @@
     {"path":"docs/deployment/gateway-restart-readiness-result.md","category":"historical-deployment-record","sha256":"d8c3e878745979984332cfb0d3fdf02ac4ef2368ed70f8e3ef5230c2574a6664"},
     {"path":"docs/deployment/gateway-restart-readiness-runbook.md","category":"operations-reference","sha256":"f225246bf6bcfaed194de25cb21d0093a58fee480dd266037716440d000560c6"},
     {"path":"docs/deployment/gateway-restart-readiness-upgrade-review.md","category":"historical-deployment-record","sha256":"90f55dd60cccdd6cabecaf8a0337652b257c167ac5145e34e9e3a3f4dcdfa6ba"},
-    {"path":"docs/deployment/github-quality-gates-proposal.md","category":"ci-configuration-record","sha256":"b3ebf5e958f4dced065605efa1a077055f96d132217c7853d4a5d473f962467e"},
+    {"path":"docs/deployment/github-quality-gates-proposal.md","category":"ci-configuration-record","sha256":"b35648fc8fd1b2aa75aa72471d8c65ebfe2c4103d1fdcef6e348308b57d1f0b3"},
     {"path":"docs/deployment/governance-g13-upgrade-rehearsal.md","category":"historical-deployment-record","sha256":"21abd981d88960fe582fe1f6b8b9cad6e5e99ffd55f49d242e5553bfb6e450d1"},
     {"path":"docs/deployment/governance-g14-fault-matrix.md","category":"historical-deployment-record","sha256":"586ed6ec77420138640a4708cf7e8ef584d55cf7062ae69741efe4a56962abc7"},
     {"path":"docs/deployment/local-delivery-index.md","category":"historical-deployment-record","sha256":"d40864cca90037ba558efb343d350692b0c0b363d50c6894aa5f57dfa75507a5"},

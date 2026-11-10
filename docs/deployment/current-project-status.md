@@ -6,13 +6,14 @@
 
 | 层次 | 已核实的版本或状态 | 说明 |
 | --- | --- | --- |
-| [GitHub main](https://github.com/leileipei/WebAPI-Platform-Enterprise/tree/7626115c769ae0926d38109ace46b2f5017bfcc3) | `7626115c769ae0926d38109ace46b2f5017bfcc3` | 本次在线读取；远端尚未包含下面四个本地提交 |
-| 本地代码输入及本地主分支 | `00f45a8617cbf8634e58621594bdbb7e8b0ede16` | 相对 GitHub main 多四个提交；本页后续文档提交不改变此产品代码输入 |
+| [GitHub main](https://github.com/leileipei/WebAPI-Platform-Enterprise/tree/3774ccc7fd97a59ff4851d3a9f55179c4635c61f) | `3774ccc7fd97a59ff4851d3a9f55179c4635c61f` | 本次在线读取；[PR #5](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/5) 已合入，四项主干检查全通过 |
+| 本地主分支 | `3774ccc7fd97a59ff4851d3a9f55179c4635c61f` | 已同步远端；原目录 14 份未提交文件及其状态保留 |
+| 本地资料整理工作树 | 产品及 CI 输入与上述 main 一致 | 五个资料整理提交及本次状态更新仅在本地，不包含在 PR #5 中 |
 | 其他本地目录和分支 | 含未提交文档、补验资料及不同阶段的工作目录 | 不自动并入本页结论，不推断分支名对应功能未实现或已交付 |
 | 持久本机安装 | 本轮未现场核对 | 当前源码不能代替镜像、维护工具、数据和健康的实际身份 |
 | 生产验收 | 无本轮新增验收 | 企业 TLS/网络、HA、AMD64、容量/SLA及业务验收仍需目标环境证据 |
 
-### GitHub 与本地之间的四个提交
+### 已通过 PR #5 合入的五个提交
 
 | 提交 | 内容 | 作用范围 |
 | --- | --- | --- |
@@ -20,6 +21,7 @@
 | `8b75524` | 三套后端自动检查配置与说明 | 新增 `contracts-*` 工作流，未改变产品实现 |
 | `b73357e` | 纠正安全能力、安装和验证状态的文档 | 不启用安全准入、不部署 |
 | `00f45a8` | 修复授权迁移审计越界与 Outbox 恢复阻塞 | 三个实现文件、两个回归测试文件 |
+| `7694c4a` | 将 Integration 作业总上限从 45 分钟调为 60 分钟 | 仅工作流一行；Domain/Gateway 仍为 45 分钟，产品及测试限制不变 |
 
 两项修复的直接入口是[审计范围查询](../../src/WebApi.Infrastructure/Governance/AuditAccessQuery.cs)、[Outbox 分发器](../../src/WebApi.Infrastructure/Messaging/OutboxDispatcher.cs)与[后台分发任务](../../src/WebApi.Worker/Workers/OutboxWorker.cs)。历史审计原文保持不变，读取时逐快照校验真实环境及项目权限；单个环境恢复失败与消息分发分别处理。
 
@@ -37,24 +39,39 @@
 
 ## 固定版本验证
 
-以下是既有验证记录的复核汇总，本轮资料整理没有重新执行这些产品测试。
+以下区分实际 GitHub 运行与既有固定版本验证。本轮状态更新核对已完成的运行及完整日志，没有重新执行产品测试。
 
 | 输入与记录 | 实际结果 | 不能外推的结论 |
 | --- | --- | --- |
+| 合并后 main `3774ccc`，push 触发；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42839001626)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42839002248) | Console 321、Domain 1251、Gateway 555、Integration 2128，合计 4255 通过，0 失败/跳过；前端类型检查和构建通过 | 是该提交在托管 runner 上的四套检查，不代表 E2E、AMD64 或生产验收 |
+| PR 修正候选 `7694c4a`；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42828796307)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42828796227) | 同样 4255 通过，0 失败/跳过；之后才合并 | PR 与 main 是两次独立验证，不相加为一个总数 |
 | [前端首批](console-ci-phase1.md)，`536efe1` | 321 通过，0 失败/跳过；类型检查与构建通过 | 本机 macOS 结果，不是 GitHub runner 结果；SSR 端口及大 chunk 告警保留 |
-| [后端第二批](contracts-ci-phase2.md)，产品实现仍为远端基线 | Domain 1251、Gateway 555、Integration 2115，合计 3921 通过，0 失败/跳过 | 固定 SDK 10.0.401、Linux ARM64 容器；Integration 本身耗时 34 分 21 秒 |
+| [后端第二批](contracts-ci-phase2.md)，配置阶段产品基线 `7626115` | Domain 1251、Gateway 555、Integration 2115，合计 3921 通过，0 失败/跳过 | 固定 SDK 10.0.401、Linux ARM64 容器；Integration 本身耗时 34 分 21 秒 |
 | 本地代码 `00f45a8` 的 P2 修复回归 | 50 通过，0 失败/跳过；含 13 个新增回归场景 | 定向验证，不是修改后全量重跑 |
 | 同一 `00f45a8` 的关联路径复核 | 29 份源码检查；通知、凭证、导入和流水线相关 94 项通过，0 失败/跳过 | 有限范围复核，不是全仓库安全审计 |
 | [网络策略固定交付](../evidence/network-policies/2026-11-10-c946bbb/delivery-index.md)，`c946bbb` | 五组 4540 通过；SDK E2E 1 通过；[45 项工件清单](../evidence/network-policies/2026-11-10-c946bbb/delivery-manifest.json) | 属于该固定版本，不改标为本地修复后的完整验收 |
 
-50/94 项的原日志在本地忽略目录保存；本地修复对应的回归入口为[审计测试](../../tests/WebApi.Integration.Tests/AuditPermissionMoveScopeTests.cs)与[分发隔离测试](../../tests/WebApi.Integration.Tests/OutboxFailureIsolationTests.cs)。不将 321、3921、50、94、4540 相加为一个当前版本的通过总数。
+50/94 项的原日志在本地忽略目录保存；修复对应的回归入口为[审计测试](../../tests/WebApi.Integration.Tests/AuditPermissionMoveScopeTests.cs)与[分发隔离测试](../../tests/WebApi.Integration.Tests/OutboxFailureIsolationTests.cs)。当前完整四套结果以 main 的 4255 项为准；不把历史 321、3921、50、94、4540 与其相加。
 
 ## GitHub 实际状态
 
-- 本次读取：公开仓库，开放 PR 为 0，[Actions](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions) 记录总数为 0，`main` 的 `protected` 为 `false`，规则集为空。
-- 本地已有[前端工作流](../../.github/workflows/console-ci.yml)和[后端工作流](../../.github/workflows/contracts-ci.yml)，尚未推送并运行；不能写成“GitHub 全绿”或“必需检查已启用”。
-- [主干保护方案](github-quality-gates-proposal.md)仍需先实际运行检查，再配置并读回规则。Integration 的冷启动与总耗时预算尚未得到 GitHub 验证。
-- 已完成本地快进集成；公开推送仍待明确的发布授权。资料清理不执行推送、远端规则修改或部署。
+- 本次读取：公开仓库，开放 PR 为 0；PR #5 已合并；`main` 的 `protected` 为 `false`，尚未启用主干强制检查。
+- [前端工作流](../../.github/workflows/console-ci.yml)和[后端工作流](../../.github/workflows/contracts-ci.yml)已公开，修正后的 PR 及 main push 检查均完成。Console 使用 `ubuntu-24.04`，后端三套使用 `ubuntu-24.04-arm`。
+- 首次 [Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42820580697) 的 Integration 因超过 45 分钟作业上限被取消，无完整测试汇总；该次不算通过。经明确授权追加 `7694c4a` 后，PR Integration 测试耗时 55 分 9 秒，main 为 52 分 44 秒；两次均在 60 分钟作业上限内完成。测试耗时不等于整个作业耗时。
+- [主干保护方案](github-quality-gates-proposal.md)中的“先真实运行”已完成；规则启用仍是独立待办，需明确设置范围、具备管理权限并读回核验，不能由 CI 成功推断已启用。
+- 原批准范围的五个提交、21 个文件已发布并合入。资料整理提交、本地原始日志及原目录未提交资料未公开；本次更新不推送、修改规则或部署。
+
+## 目前进度与下一步
+
+已完成源码层的两项 P2 修复、两批 CI 接入、PR 全量验证、主干合并及主干四套复跑。当前适合继续核对需求和交付缺口，不能将上述完成项表述为整个项目已交付。
+
+| 未完成项 | 当前依据与处理边界 |
+| --- | --- |
+| 主干强制检查 | 四个检查名均有真实成功记录；保护规则未启用，后续配置须单独确认 |
+| 资料公开同步 | 五个本地资料整理提交及本次更新尚未公开；先审查差异及公开内容范围 |
+| 凭证安全准入 | 签发入口仍关闭、网关准入未接线；既有设计与组件不能代替生产路径验证 |
+| 需求逐项验收 | 454 单元台账属于历史基线；按当前源码及证据复核，尚不能给出可靠的当前完成百分比 |
+| 实际安装与生产验收 | 本轮未升级；目标环境身份、TLS/HA/AMD64、容量及业务验收仍需各自证据 |
 
 ## 历史记录与待处理项
 
