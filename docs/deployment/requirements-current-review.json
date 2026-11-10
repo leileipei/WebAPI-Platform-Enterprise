@@ -56,7 +56,11 @@
     "customValiditySaveVerified": true,
     "customValidityFollowupExecuted": 4,
     "customValidityFollowupPass": 4,
-    "customValidityFollowupFail": 0
+    "customValidityFollowupFail": 0,
+    "credentialBoundaryHttpChecks": 14,
+    "credentialBoundaryPassed": 14,
+    "credentialBoundaryFailed": 0,
+    "credentialBoundaryNewCredentials": 0
   },
   "mainCi": {
     "source": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
@@ -7565,7 +7569,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -7660,7 +7665,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -7755,7 +7761,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -7850,7 +7857,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -7945,7 +7953,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -8040,7 +8049,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -8135,7 +8145,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -8230,7 +8241,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -8351,7 +8363,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -8447,7 +8460,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -8540,7 +8554,8 @@
           "C13"
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
-        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification"
+        "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
       }
     },
     {
@@ -13181,6 +13196,59 @@
         "credentialReadOnlyFollowupPass": 7,
         "credentialReadOnlyFollowupFail": 0
       }
+    },
+    {
+      "commit": "d6c661e9b7dd1088bc07cfdaf1b4cbe4ca233938",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "39bdaee484e354a886d80394f5c41d47e8b42a9f0b6d305316ebc29c251847c6",
+      "scope": "one-hour actual credential creation save and cleanup verified; original C08 failure retained; no broader boundary matrix in that stage",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0
+      }
     }
   ],
   "targetedFollowup": {
@@ -13980,7 +14048,8 @@
         "E02",
         "E03",
         "E04"
-      ]
+      ],
+      "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
     },
     {
       "id": "AC-USER",
@@ -14791,6 +14860,254 @@
       "Original C08 failed attempt retained unchanged; this is a separately identified successful followup",
       "No release, gateway activation, consumer traffic or runtime hard-cutoff acceptance",
       "No full role/Scope matrix or project completion inferred"
+    ]
+  },
+  "credentialWindowBoundaryVerification": {
+    "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "d6c661e9b7dd1088bc07cfdaf1b4cbe4ca233938",
+    "imageId": "sha256:c94a7c8ddf3312af1284158f284fdc44dec9aaff40265e06cc20ca4310c72a55",
+    "executedHttpChecks": 14,
+    "passed": 14,
+    "failed": 0,
+    "invalidCreateRejections": 5,
+    "invalidPreviewRejections": 5,
+    "validReadOnlyPreviews": 4,
+    "results": [
+      {
+        "id": "W01",
+        "kind": "create",
+        "case": "equal",
+        "request": {
+          "validFrom": "2026-11-20T00:00:00Z",
+          "expiresAt": "2026-11-20T00:00:00Z"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W02",
+        "kind": "impact-preview",
+        "case": "equal",
+        "request": {
+          "validFrom": "2026-11-20T00:00:00Z",
+          "expiresAt": "2026-11-20T00:00:00Z",
+          "status": "Revoked"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W03",
+        "kind": "create",
+        "case": "reversed",
+        "request": {
+          "validFrom": "2026-11-20T01:00:00Z",
+          "expiresAt": "2026-11-20T00:00:00Z"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W04",
+        "kind": "impact-preview",
+        "case": "reversed",
+        "request": {
+          "validFrom": "2026-11-20T01:00:00Z",
+          "expiresAt": "2026-11-20T00:00:00Z",
+          "status": "Revoked"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W05",
+        "kind": "create",
+        "case": "equal-instant-different-offset",
+        "request": {
+          "validFrom": "2026-11-20T08:00:00+08:00",
+          "expiresAt": "2026-11-20T00:00:00Z"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W06",
+        "kind": "impact-preview",
+        "case": "equal-instant-different-offset",
+        "request": {
+          "validFrom": "2026-11-20T08:00:00+08:00",
+          "expiresAt": "2026-11-20T00:00:00Z",
+          "status": "Revoked"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W07",
+        "kind": "create",
+        "case": "local-clock-increases-but-instant-reverses",
+        "request": {
+          "validFrom": "2026-11-20T10:00:00+08:00",
+          "expiresAt": "2026-11-20T11:00:00+10:00"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W08",
+        "kind": "impact-preview",
+        "case": "local-clock-increases-but-instant-reverses",
+        "request": {
+          "validFrom": "2026-11-20T10:00:00+08:00",
+          "expiresAt": "2026-11-20T11:00:00+10:00",
+          "status": "Revoked"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W09",
+        "kind": "create",
+        "case": "minimum-start",
+        "request": {
+          "validFrom": "0001-01-01T00:00:00Z",
+          "expiresAt": "2026-11-20T00:00:00Z"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W10",
+        "kind": "impact-preview",
+        "case": "minimum-start",
+        "request": {
+          "validFrom": "0001-01-01T00:00:00Z",
+          "expiresAt": "2026-11-20T00:00:00Z",
+          "status": "Revoked"
+        },
+        "result": "pass",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W11",
+        "kind": "impact-preview",
+        "case": "utc-cross-midnight",
+        "request": {
+          "validFrom": "2026-11-20T23:30:00Z",
+          "expiresAt": "2026-11-21T00:30:00Z",
+          "status": "Revoked"
+        },
+        "result": "pass",
+        "durationSeconds": 3600,
+        "equivalentToFirstPreview": true,
+        "hashRecorded": false,
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W12",
+        "kind": "impact-preview",
+        "case": "same-instants-plus08",
+        "request": {
+          "validFrom": "2026-11-21T07:30:00+08:00",
+          "expiresAt": "2026-11-21T08:30:00+08:00",
+          "status": "Revoked"
+        },
+        "result": "pass",
+        "durationSeconds": 3600,
+        "equivalentToFirstPreview": true,
+        "hashRecorded": false,
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W13",
+        "kind": "impact-preview",
+        "case": "same-instants-mixed-offsets",
+        "request": {
+          "validFrom": "2026-11-21T04:30:00+05:00",
+          "expiresAt": "2026-11-20T20:30:00-04:00",
+          "status": "Revoked"
+        },
+        "result": "pass",
+        "durationSeconds": 3600,
+        "equivalentToFirstPreview": true,
+        "hashRecorded": false,
+        "applicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "W14",
+        "kind": "impact-preview",
+        "case": "same-clock-different-offsets",
+        "request": {
+          "validFrom": "2026-11-01T01:30:00-04:00",
+          "expiresAt": "2026-11-01T01:30:00-05:00",
+          "status": "Revoked"
+        },
+        "result": "pass",
+        "durationSeconds": 3600,
+        "equivalentToFirstPreview": null,
+        "hashRecorded": false,
+        "applicationAndCredentialsUnchanged": true
+      }
+    ],
+    "newCredentialsCreated": 0,
+    "credentialUpdates": 0,
+    "testApplicationAndCredentialsUnchanged": true,
+    "originalApplicationAndFourCredentialsUnchanged": true,
+    "equivalentOffsetRequestsHaveSameImpactHash": true,
+    "impactHashRecorded": false,
+    "crossDayAndOffsetChecksPersisted": false,
+    "ianaTimezoneOrDstConversionTested": false,
+    "browserChecksExecuted": 0,
+    "staticFilesVerified": 3,
+    "servicesStopped": true,
+    "testVolumesRetained": true,
+    "historicalMigrationMarkerRetained": true,
+    "historicalCredentialEvidenceFilesUnchanged": 55,
+    "originalC08Status": "failed",
+    "previousOneHourSaveSuccessPreserved": true,
+    "primaryFilesUnchangedAgainstStageStart": 14,
+    "protectedFilesUnchanged": 4004,
+    "initialResourceCounts": {
+      "containers": 201,
+      "volumes": 508,
+      "networks": 39
+    },
+    "ownedControlPlaneRecreatedWithSameImage": true,
+    "resourcePreservationStatus": "partial: one initial container outside owned start list is missing; cause Unknown",
+    "otherMissingContainerId": "696660d21a8c10950a72b95de11b2a7406da7cd38e9c77a7abafa9e7c04a66e4",
+    "otherMissingContainerAttribution": "Unknown",
+    "otherContainerNotInStageOwnedList": true,
+    "otherContainerRestored": false,
+    "otherResourceEventsFound": 0,
+    "initialVolumeAndNetworkIdsPreserved": true,
+    "priorPostgresUnknownUnchanged": true,
+    "earlierUnattributedPrimaryDifferencesRetained": true,
+    "artifactStorage": "local ignored credential-window-boundaries-20261111; not published",
+    "newAccepted": 0,
+    "limits": [
+      "Positive cross-day and offset checks are preview-only, not saved credential windows",
+      "Explicit numeric offsets are not an IANA timezone or DST conversion test",
+      "No browser operation, publication, gateway activation or traffic test"
     ]
   }
 }
