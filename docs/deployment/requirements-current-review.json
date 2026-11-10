@@ -49,7 +49,10 @@
     "credentialFollowupExecuted": 12,
     "credentialFollowupPass": 11,
     "credentialFollowupFail": 1,
-    "credentialFollowupPreparationOnly": 1
+    "credentialFollowupPreparationOnly": 1,
+    "credentialReadOnlyFollowupExecuted": 7,
+    "credentialReadOnlyFollowupPass": 7,
+    "credentialReadOnlyFollowupFail": 0
   },
   "mainCi": {
     "source": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
@@ -7515,7 +7518,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7556,7 +7559,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -7608,7 +7612,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7649,7 +7653,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -7701,7 +7706,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7742,7 +7747,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -7794,7 +7800,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7835,7 +7841,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -7887,7 +7894,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7928,7 +7935,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -7980,7 +7988,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8021,7 +8029,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -8073,7 +8082,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8114,7 +8123,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -8166,7 +8176,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8207,7 +8217,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -8285,7 +8296,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8326,7 +8337,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -8379,7 +8391,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8420,7 +8432,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -8470,7 +8483,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
+          "一次性弹窗、关闭/刷新/重登录及只读身份已观察；自定义期限保存与全权限矩阵仍待验证，C08一小时读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8511,7 +8524,8 @@
           "C11",
           "C12",
           "C13"
-        ]
+        ],
+        "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification"
       }
     },
     {
@@ -13057,6 +13071,52 @@
         "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
         "browserGroupsPartiallyExercised": 5
       }
+    },
+    {
+      "commit": "435a5e95bc0e66adaae5cad6f8fcf22b85bd3d0e",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "e60ba50e12c3c1e0182a823bd917934d4d429c44441448504c0591bbba713622",
+      "scope": "credential creation, revocation and failed lifetime readback evidence retained; next stage is non-submitting browser verification",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1
+      }
     }
   ],
   "targetedFollowup": {
@@ -13813,7 +13873,7 @@
         "无授权拒绝读取/变更；允许的无 app.read 安全写入不额外泄漏 LastUsed",
         "审批发布和当前证明才推进轮换，不承诺保存即在数据面生效"
       ],
-      "existingProofLimit": "创建一次性展示、关闭/刷新、最后工作凭证撤销风险门禁及缺发布权限轮换门禁已部分实测；一小时期限未通过，完整权限/Scope与发布数据面验收未关闭。",
+      "existingProofLimit": "一次性展示、关闭/刷新/重登录、只读直接链接与表单取消门禁已部分实测；C08一小时保存读回仍未通过，完整多角色/Scope和发布数据面验收未关闭。",
       "status": "partially-executed; full-acceptance-pending",
       "viewportWidth": 1440,
       "evidenceRequired": [
@@ -13841,6 +13901,15 @@
         "C11",
         "C12",
         "C13"
+      ],
+      "observedReadOnlyCheckpointIds": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07"
       ]
     },
     {
@@ -14383,5 +14452,156 @@
       "Re-login replay of one-time Secret not exercised; close and reload observed",
       "Initial read-DTO verifier rejected legitimate secretLast4; corrected exact full-secret/hash checks passed; failure retained"
     ]
+  },
+  "credentialReadOnlyBrowserVerification": {
+    "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "435a5e95bc0e66adaae5cad6f8fcf22b85bd3d0e",
+    "imageId": "sha256:c94a7c8ddf3312af1284158f284fdc44dec9aaff40265e06cc20ca4310c72a55",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "executedCheckpoints": 7,
+    "observedPass": 7,
+    "observedFail": 0,
+    "observations": [
+      {
+        "id": "D01",
+        "result": "pass",
+        "check": "重新登录后不重显一次性Secret，已撤销凭证保持脱敏",
+        "observedAt": "2026-11-10T17:45:36.915Z",
+        "secretDialogCount": 0,
+        "secretInputCount": 0,
+        "revokedVisible": false,
+        "rotationDisabled": true,
+        "screenshot": "ui/writer-relogin-masked.jpg",
+        "artifactSha256": "571bfcd181c11ee536a2e3ef498c6a7ab4fe2b2ac5752a202cd0918d4956f390",
+        "supplementalVisibilityEvidence": "screenshot manually reviewed: 已撤销, revision2, masked AK; live API Revoked. Raw exact-text locator false retained; cause not established."
+      },
+      {
+        "id": "D02",
+        "result": "pass",
+        "check": "真实日期按键后表单一小时显示成立，仅验证未提交表单",
+        "observedAt": "2026-11-10T17:46:11.415Z",
+        "validFromLocal": "2026-11-11T01:45",
+        "expectedEndLocal": "2026-11-11T02:45",
+        "actualEndLocal": "2026-11-11T02:45",
+        "submitted": false,
+        "serverValidityAccepted": false
+      },
+      {
+        "id": "D03",
+        "result": "pass",
+        "check": "创建编辑器键盘Tab与ShiftTab限制在弹窗内",
+        "observedAt": "2026-11-10T17:46:11.415Z",
+        "forwardFromSave": "关闭",
+        "backwardFromClose": "保存",
+        "submitted": false
+      },
+      {
+        "id": "D04",
+        "result": "pass",
+        "check": "未保存日期修改触发放弃确认，继续编辑保留输入，确认放弃不提交",
+        "observedAt": "2026-11-10T17:46:25.221Z",
+        "discardDialogPresent": true,
+        "retainedEnd": "2026-11-11T02:45",
+        "expectedEnd": "2026-11-11T02:45",
+        "createDialogCount": 0,
+        "screenshot": "ui/date-discard-guard.jpg",
+        "artifactSha256": "4d6086e77e44662afab02a380624aecfc3ee0945b95889e972e60b3fca47d6aa"
+      },
+      {
+        "id": "D05",
+        "result": "pass",
+        "check": "未修改表单Escape关闭并恢复入口焦点",
+        "observedAt": "2026-11-10T17:46:25.540Z",
+        "createDialogCount": 0,
+        "focusedText": "＋ 创建凭证"
+      },
+      {
+        "id": "D06",
+        "result": "pass",
+        "check": "只读身份重登录同一应用仅见脱敏撤销凭证，创建编辑和轮换禁用",
+        "observedAt": "2026-11-10T17:46:36.630Z",
+        "createDisabled": true,
+        "editDisabled": true,
+        "rotationDisabled": true,
+        "secretDialogCount": 0,
+        "screenshot": "ui/reader-relogin-denied.jpg",
+        "artifactSha256": "3407c64e6a1d21ddd1e61c4c05223f30a12ec95ba553eafdf4ee8d2a5d9e9583"
+      },
+      {
+        "id": "D07",
+        "result": "pass",
+        "check": "只读身份直接轮换链接不能绕过写入与发布门禁",
+        "observedAt": "2026-11-10T17:47:09.453Z",
+        "disabledActions": {
+          "创建新的重叠凭证": true,
+          "在所选环境打开发布流程": true,
+          "查看影响并撤销旧凭证": true,
+          "打开第二次发布流程": true
+        },
+        "consumerDisabled": true,
+        "observationDisabled": true,
+        "screenshot": "ui/reader-deeplink-gates-full.jpg",
+        "artifactSha256": "fecaa4a6c73ecf5f2bd56041f2b4e3c3aaa775d491ea10f2eb0b89b1e3dfb2e5"
+      }
+    ],
+    "credentialWritesSubmitted": 0,
+    "newCredentialsCreated": 0,
+    "originalCredentialsUnchanged": 4,
+    "previouslyRevokedTestCredentialUnchanged": true,
+    "fixtureApplicationRevision": 3,
+    "fixtureCredentialRevision": 2,
+    "fullSecretFieldsAbsentFromReadDto": true,
+    "oneHourFormCancelOnly": true,
+    "priorFailedSavedValidityCheckRetained": true,
+    "savedCustomValidityAccepted": false,
+    "staticFilesVerified": 3,
+    "unexpectedBrowserConsoleErrors": 0,
+    "servicesStopped": true,
+    "testVolumesRetained": true,
+    "historicalMigrationMarkerRetained": true,
+    "preservation": {
+      "primaryFilesUnchangedAgainstStageStart": 14,
+      "priorFourUnattributedDifferencesRetained": true,
+      "protectedFilesUnchanged": 4004,
+      "initialResourceCounts": {
+        "containers": 197,
+        "volumes": 508,
+        "networks": 38
+      },
+      "ownedControlPlaneRecreatedWithSameImage": true,
+      "unrelatedMissingResourceIds": {
+        "containers": [],
+        "volumes": [],
+        "networks": []
+      }
+    },
+    "artifactStorage": "local ignored credential-readonly-20261111/ui; not published",
+    "newAccepted": 0,
+    "limitations": [
+      "One-hour form and cancel behavior checked; server-saved custom validity not retested",
+      "No new credentials, credential updates, role/Scope writes, release or gateway activation",
+      "Prior C08 lifetime readback failure stays failed; no second credential created",
+      "Seven observations do not complete the multi-role/Scope or credential rollout acceptance matrix"
+    ],
+    "preparationNote": "first login was navigated away while verifying; repeated same sign-in then waited for authenticated page; not a product failure",
+    "statusLocatorObservation": {
+      "checkpoint": "D01",
+      "rawExactTextLocatorRevokedVisible": false,
+      "rawValuePreserved": true,
+      "screenshotReviewed": true,
+      "screenshotSha256": "571bfcd181c11ee536a2e3ef498c6a7ab4fe2b2ac5752a202cd0918d4956f390",
+      "visibleState": "已撤销",
+      "visibleRevision": 2,
+      "maskedKeyOnly": true,
+      "serverCredentialStatus": "Revoked",
+      "statusEvidence": "screenshot and earlier AX tree show revoked; live API readback agrees",
+      "locatorDiscrepancyCause": "not established; do not infer product visibility failure",
+      "initialVerifierAssertion": "required raw revokedVisible=true; failed",
+      "credentialUiCaseAcceptedUsing": "independent visual screenshot plus live API; raw false remains unchanged",
+      "at": "2026-11-10T17:51:49.203151+00:00"
+    }
   }
 }
