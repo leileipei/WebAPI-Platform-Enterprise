@@ -60,7 +60,7 @@ CSV从相同过滤与截止时间的首行重新读取，忽略列表cursor；�
 
 规则创建/编辑/启停复用Cookie、CSRF、If-Match、幂等键和治理事务锁。任何规则操作检查其完整写Scope；几个环境grant不能替代组织/项目宽grant。预览POST `/observability/alert-rules/preview`返回当前Active环境ID和未来Active环境自动纳入政策，不创建持久记录。
 
-同名唯一使用trim、NFKC和Invariant uppercase规范化，宽Scope的SQL NULL同样参与唯一约束。规则OrganizationId在创建后固定；项目/环境范围仍可修改，跨组织需要新建并停用旧规则。原因是历史事件冻结组织归属，不能随规则租户迁移。修改name/notification只增加revision；判断逻辑、目标、Scope、severity、for/window或enabled改变增加logic_revision，并同事务关闭旧活动事件、追加流转及审计。仅站内中心启用，Email/Webhook/EnterpriseIm只保存意向枚举，不允许URL或密钥。
+同名唯一使用trim、NFKC和Invariant uppercase规范化，宽Scope的SQL NULL同样参与唯一约束。规则OrganizationId在创建后固定；项目/环境范围仍可修改，跨组织需要新建并停用旧规则。原因是历史事件冻结组织归属，不能随规则租户迁移。修改name/notification只增加revision；判断逻辑、目标、Scope、severity、for/window或enabled改变增加logic_revision，并同事务关闭旧活动事件、追加流转及审计。站内中心始终保留；当前规则还可通过结构化通知策略显式启用 Email/Webhook，收件目标、恢复通知与重试预算须通过[通知策略校验](../../src/WebApi.Domain/Notifications/NotificationPolicyValidator.cs)。渠道配置及秘密由平台设置与受控部署引用管理，不在告警规则中接受任意 URL 或密钥。EnterpriseIm 仍只保留意向枚举，没有对应发送通道。投递按[通知规划](../../src/WebApi.Infrastructure/Notifications/NotificationPlanner.cs)和[分发实现](../../src/WebApi.Infrastructure/Notifications/NotificationDispatcher.cs)执行；未配置、禁用或未获部署策略允许时不等于已投递。真实企业端点仍需目标环境验收。
 
 `unhealthy_destinations`目前只支持环境或具体Destination目标。健康gauge没有API依赖关系，API目标返回422；API仍支持RPS、5xx比例和P95时延。不能借用整个环境的健康值表示单API健康。
 

@@ -2,6 +2,8 @@
 
 网关使用 YARP 2.3 的真实配置 Provider 和 `MapReverseProxy`。每次部署生成带 deploymentSequence 的 Route / Cluster ID，路由 metadata 引用其不可变运行 generation。请求按 YARP 实际匹配路由取得该 generation 的租约，路由、后端、认证数据一起保留到请求完成，不从另一个“最新认证指针”取凭证。
 
+这里的准入门是普通请求与配置代际切换的并发门，不是 G 系列安全检查点/租约准入；安全关闭边界见[状态页](../deployment/current-project-status.md)。
+
 切换时短暂关闭新请求进入路由选择的准入门；已取得租约的请求继续访问旧后端，不等待旧请求结束才发布。完成 YARP 配置应用、交换完整运行 generation 后重新开放准入。被替换的 generation 在最后一个旧请求完成后回收。集合和方法列表冻结为只读，不能在激活后被修改。
 
 激活顺序为校验协议、环境、版本、精确字节摘要及引用，验证允许的上游地址和 YARP 配置，持久化 LKG，再切换配置。`IConfigChangeListener.ConfigurationApplied` 确认实际配置已被 YARP 接受；ChangeToken 只是通知。失败恢复旧 Provider 与 LKG，不发送成功 ACK。

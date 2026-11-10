@@ -1,4 +1,6 @@
-# 流量策略数据字典
+# 流量策略数据字典 2.1 基线
+
+本页保留限流、熔断及基础策略的 2.1 字段说明，不是当前九类策略的完整字段表。JWT/重试/缓存见[运行手册](deployment/gateway-jwt-retry-cache-runbook.md)，CORS/IP/Transform 见[网络策略手册](deployment/network-policies-runbook.md)，协议扩展及安全关闭边界见[快照契约](contracts/runtime-snapshot.md)。历史日志决策条数和基础认证枚举只按本页阶段解释，完整字段以[策略契约源码](../src/WebApi.Contracts/Policies/)为准。
 
 |对象|字段|定义|
 |---|---|---|

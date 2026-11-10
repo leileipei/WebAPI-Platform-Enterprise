@@ -30,7 +30,7 @@
       "immutable-evidence": 153,
       "historical-design-plan": 58
     },
-    "relativeLinksChecked": 707,
+    "relativeLinksChecked": 773,
     "unresolvedHistoricalReferences": 47,
     "preservedDuplicateEvidenceGroups": 7
   },
@@ -395,6 +395,12 @@
     }
   ],
   "historicalReferenceNote": "Any current repository reference is a navigation aid only; it does not replace the original archived evidence identity.",
+  "topicReconciliationDocumentationInput": "068719f70a717c35a4407ad510f19a6f3cde8f8c",
+  "staticDatabaseModel": {
+    "source": "src/WebApi.Infrastructure/Persistence/Migrations/WebApiDbContextModelSnapshot.cs",
+    "distinctTableMappings": 96,
+    "isLiveDatabaseInspection": false
+  },
   "documents": [
     {"path":"README.md","category":"navigation","sha256":"3f359cb0292ce7251e1dec375ddab4c868d41fdd438c08dfd24d882e5d6e85e5"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
@@ -413,17 +419,17 @@
     {"path":"docs/archive/2026-10-16/main/docs/superpowers/plans/2026-10-09-release-promotion.md","category":"historical-archive","sha256":"d65ed541ddca2aac1a6aa99d205be8385e4298f7c1e225388618eecb3d5079ea"},
     {"path":"docs/archive/2026-10-16/system-settings/docs/superpowers/plans/2026-10-05-sso-oidc-implementation.md","category":"historical-archive","sha256":"3e6eace5204998f99ae1a239817ceb1101cdbd6d9365de57d0fb33922c8bb1a0"},
     {"path":"docs/archive/2026-10-16/traffic-policies/docs/superpowers/plans/2026-10-05-system-settings-implementation.md","category":"historical-archive","sha256":"3790e34f5c0935ade136d9945612d568f5f0a1d829b8e97d3622fd2ef688d9b8"},
-    {"path":"docs/catalog-routing.md","category":"topic-reference","sha256":"28d6e2e6abb5eb8a480bf148e789a27c7643cc634dfbd4809e0c62cbc41ed250"},
+    {"path":"docs/catalog-routing.md","category":"topic-reference","sha256":"68508621578cfa8ec9413063601787b64eed9ef3c0d518b6edfa837f4fd77afc"},
     {"path":"docs/console-coverage.md","category":"topic-reference","sha256":"375cdc507324b723bcb58751a2bab29e57991b98a659de01b87785ff25f50a45"},
-    {"path":"docs/contracts/durable-publish.md","category":"topic-reference","sha256":"601b12cd8957e18e308f9387d01d77cff2c53de62f7970bf8d0208518a8f95c6"},
-    {"path":"docs/contracts/gateway-generation.md","category":"topic-reference","sha256":"31ee29dd5c6d482388e23dcf994081012217fd9e7d39610e8b055de18ac3ac33"},
+    {"path":"docs/contracts/durable-publish.md","category":"topic-reference","sha256":"bf9d23b5ece7833844b8826bd0661bcfed5828223988f2ca904ec87722985617"},
+    {"path":"docs/contracts/gateway-generation.md","category":"topic-reference","sha256":"2f1bab834294fe4c945325d032d0efbf07492ad9a7a7c004a1af40f3b500bc10"},
     {"path":"docs/contracts/node-lifecycle.md","category":"topic-reference","sha256":"dd8ada0df058c3901bb5aed9618d44d3ac9cd2446492ada8f94856e843eeadc3"},
-    {"path":"docs/contracts/observability.md","category":"topic-reference","sha256":"189a4b3e7708ed166dcfd6c69959ab4a46e71745a20945f6cc0cc058b9542b66"},
+    {"path":"docs/contracts/observability.md","category":"topic-reference","sha256":"872d780b418309d3baa9aa629d02d362e8c7150c1d90df855b60c6440c1fb3c7"},
     {"path":"docs/contracts/rollback-recovery.md","category":"topic-reference","sha256":"2342f401c59f68e511708a24570c628f5778bbbb88a95e9a71665425287acaa9"},
-    {"path":"docs/contracts/runtime-snapshot.md","category":"topic-reference","sha256":"5d8f7dc34aafdb855c9fbaf98d0adcce1d87d247170aaaab6d5687f0f743291d"},
+    {"path":"docs/contracts/runtime-snapshot.md","category":"topic-reference","sha256":"4e509598cbcb9e7c9f7d6d784937f4927a01ca928719069032d2d9d7b85e6fed"},
     {"path":"docs/credential-security-data-dictionary.md","category":"topic-reference","sha256":"0e7af1f66552b6ba73cdc37ae28e6ff71eb1e691ea8b15d56596c7d79bf0ec0c"},
-    {"path":"docs/database-core.md","category":"topic-reference","sha256":"e9976e07a728b24c4486c1054ebc33de76c472681988eb28e123e6dbec983b09"},
-    {"path":"docs/decisions.md","category":"topic-reference","sha256":"0a48125289a946aa5f2bf2b8042a012bb4aaf4d15bd1a486af804df08087a87c"},
+    {"path":"docs/database-core.md","category":"topic-reference","sha256":"61e65ea8daf038008fe04ec67460c2021615b695b569101fb93582636d56b3fc"},
+    {"path":"docs/decisions.md","category":"topic-reference","sha256":"763af92ae41b2e92d02cbdfdc0abbab80ade6fc40e326d6b9d0fcfb697cd0b9f"},
     {"path":"docs/dependencies/contract-management.md","category":"topic-reference","sha256":"3bc91dde974b55344f9adcc595f2e919439053d411ad9bb30f3c411fee0d21c1"},
     {"path":"docs/dependencies/gateway-jwt.md","category":"topic-reference","sha256":"c68e9c200486e549b8be3bdba7461dff8236c606c9e51a7a8b99afd1c5159a64"},
     {"path":"docs/deployment/README.md","category":"navigation","sha256":"2b82caa81cbaa5c9e5a78c4360477a64e1c410bea4a021557679fce8c2030f34"},
@@ -644,13 +650,13 @@
     {"path":"docs/evidence/work-package4/final-summary.md","category":"immutable-evidence","sha256":"afdbfc5189fd6d026a0a812da5da36b892d0a97ce1ae87f0c57cdaae92a8e80e"},
     {"path":"docs/evidence/work-package4/requirements-status.md","category":"immutable-evidence","sha256":"8a9fd1be5796e0963bbd24c97c85f0e3930cc4f4a8a0549eca034258e3a2776e"},
     {"path":"docs/evidence/workbench/result.md","category":"immutable-evidence","sha256":"3d48bcce18408966e2be3027734ce57a62f6a36ea93f8744a297b9f04642ccae"},
-    {"path":"docs/governance-security.md","category":"topic-reference","sha256":"5ea33ef5e6fe2e80c9d948ce6ae46ed0ddf103285f05af7cccc9dd044094353c"},
+    {"path":"docs/governance-security.md","category":"topic-reference","sha256":"909edc366dda8a30c9d12befa8649d7f5768bb415536bee6434f11fa3b1f6d61"},
     {"path":"docs/observability-data-dictionary.md","category":"topic-reference","sha256":"0ee5dccd93fff0214cb08ff49ad0add4fca698eeb444ae7834c8ec20adbf1e10"},
-    {"path":"docs/openapi-credentials.md","category":"topic-reference","sha256":"bfc4de3b75d4dc843b79f162ad07829aa73cde0b3c7cbadc2f30db5b49f3614d"},
+    {"path":"docs/openapi-credentials.md","category":"topic-reference","sha256":"f8e888bb2ea7ad34f1bccdc6fe96cacbdb74e1baf44a442dbab29dcdab9c5c07"},
     {"path":"docs/operations.md","category":"topic-reference","sha256":"c708cf4e91acb3506316c52ad9fd6924c134c2794a7a00b3868d6cde241e040e"},
     {"path":"docs/planning/2026-10-05-sso-scope-assessment.md","category":"historical-design-plan","sha256":"47378760cafa271e46face3db02e3e3ebb69af980f77f12045fb0fcd6dfe2bfd"},
-    {"path":"docs/releases-approval.md","category":"topic-reference","sha256":"c10d2b27d65edd075ba1ee07abd1c397205c2242552a9138e06676e1719926d6"},
-    {"path":"docs/session-security.md","category":"topic-reference","sha256":"a7dfe5780dbded468e12ecb1b0a6d3cb69eea7ef4019789427e46578a86e2efc"},
+    {"path":"docs/releases-approval.md","category":"topic-reference","sha256":"2d443168e69fb1cb2c5496aca752caa1c399b2a4445c568f171303b4c03e445c"},
+    {"path":"docs/session-security.md","category":"topic-reference","sha256":"4b9b11978bf7828c19720dea8859786a1d0022578018cdda029c2eaa8c62e896"},
     {"path":"docs/superpowers/plans/2026-10-04-core-loop-implementation.md","category":"historical-design-plan","sha256":"2d4d66871ad57851cd7ab1196d0a5f258b9cf42b6fdbf71917fbab73d8121645"},
     {"path":"docs/superpowers/plans/2026-10-04-local-runtime-implementation.md","category":"historical-design-plan","sha256":"00edee88259fc8d6c418636195e93771e395190682fbcbb60cb858133ac264d0"},
     {"path":"docs/superpowers/plans/2026-10-04-observability-alerting-implementation.md","category":"historical-design-plan","sha256":"ee2c114185371c769ef15f9126237e4f53646da73f6759458591ef194535e313"},
@@ -708,7 +714,7 @@
     {"path":"docs/superpowers/specs/2026-11-05-independent-quota-backend-design.md","category":"historical-design-plan","sha256":"77976d8aa63c210b102c133c957ba1df6b606a8bcaea9dfa113715a254c186f4"},
     {"path":"docs/superpowers/specs/2026-11-10-console-ci-phase1-design.md","category":"historical-design-plan","sha256":"791fe388cf24e087e581425c0a56b756f0dcc11c2ab7c399c310729fe4f82d54"},
     {"path":"docs/superpowers/specs/2026-11-10-contracts-ci-phase2-design.md","category":"historical-design-plan","sha256":"1be4ab24ffbc6b52cc5501064fcb7846c3d3d7a0f153056b16826f86b3896ee1"},
-    {"path":"docs/traffic-policy-data-dictionary.md","category":"topic-reference","sha256":"5c36b5b4703600319f1a02626576382c12e40279c7a24884e9754976a27a0bc7"},
+    {"path":"docs/traffic-policy-data-dictionary.md","category":"topic-reference","sha256":"02611712f6ed8b89033e1abd9d5028a595a5b5f4e1155427e7548ec7dc902022"},
     {"path":"docs/workbench.md","category":"topic-reference","sha256":"4f15104d0c5fbd10b4f0561eee8cf61ae5758cf1115d384723869980b3fc82d4"}
   ]
 }
