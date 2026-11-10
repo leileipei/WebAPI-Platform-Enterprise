@@ -1,6 +1,8 @@
 # 本机演示联调使用说明
 
-用户选择 A 后，已在独立长期项目 `webapi-enterprise-local` 建立本机演示组织、项目、环境、订单查询 API、调用应用、双独立审批模板及站内错误率告警。原业务环境和已有交付包保留。本次使用已有应用镜像，没有修改产品代码、字段、权限规则或发布流程。
+本页记录当次演示联调，入口、账号名、有效期、请求数、版本与服务状态均为历史事实；实际身份与可用性须按[当前项目状态](current-project-status.md)和[运行手册](local-runtime-runbook.md)重新核对。以下保留该次使用说明，不表示当前凭证仍有效。
+
+当次在独立长期项目 `webapi-enterprise-local` 建立本机演示组织、项目、环境、订单查询 API、调用应用、双独立审批模板及站内错误率告警。原业务环境和已有交付包保留。本次使用已有应用镜像，没有修改产品代码、字段、权限规则或发布流程。
 
 ## 入口与账号
 
@@ -20,13 +22,17 @@
 
 两个网关入口分别为`http://127.0.0.1:4196/orders`、`http://127.0.0.1:4197/orders`，需要`X-API-Key`。调用应用的私有Key文件为`.runtime/local/demo/consumer-api-key`，凭据有效期30天，具体失效时间见应用凭据页面或验收证据。两个后端只在Docker内网提供服务，使用等权RoundRobin。
 
-在`enterprise`工程根目录执行以下命令，凭据只从私有文件读取，不显示其内容：
+确认实际端口、凭证有效期和所属运行目录后，才可使用以下示例；将目录替换为已核实的绝对路径。凭据只从私有文件读取，不显示其内容：
 
 ```bash
 export WEBAPI_NODE=/你的/Node22以上版本/bin/node
+export WEBAPI_DEMO_RUNTIME_DIRECTORY="<已确认的绝对运行目录>"
 "$WEBAPI_NODE" --input-type=module <<'JS'
 import fs from 'node:fs/promises';
-const apiKey=(await fs.readFile('.runtime/local/demo/consumer-api-key','utf8')).trim();
+import path from 'node:path';
+const directory=process.env.WEBAPI_DEMO_RUNTIME_DIRECTORY;
+if(!directory||!path.isAbsolute(directory))throw Error('Explicit absolute runtime directory required');
+const apiKey=(await fs.readFile(path.join(directory,'demo/consumer-api-key'),'utf8')).trim();
 for(const port of [4196,4197]) {
   const response=await fetch(`http://127.0.0.1:${port}/orders`,{
     headers:{'X-API-Key':apiKey},signal:AbortSignal.timeout(10000)
@@ -42,7 +48,7 @@ JS
 
 默认根Trace采样率10%、指标导出15秒、Worker评估15秒、评估延后30秒均保持原长期配置。短窗口真实请求已被Prometheus、Loki和Tempo收录；取得覆盖完整的指标和包含`gateway.request`、`gateway.proxy`两个span的Trace。Trace详情可关联日志。
 
-本次最终联调批次执行874次真实请求，包含故障阶段的5xx。仅停止内网示例后端A制造故障，规则`error_5xx_ratio > 0.05`按60秒窗口、持续30秒触发；随后确认告警并恢复后端，系统自动将事件由Open → Ack → Resolved，解决原因Recovered。触发、确认、解除均有审计记录。两个示例后端目前运行，故障已结束。规则继续启用，仅站内通知，无外部通知渠道。
+本次最终联调批次执行874次真实请求，包含故障阶段的5xx。仅停止内网示例后端A制造故障，规则`error_5xx_ratio > 0.05`按60秒窗口、持续30秒触发；随后确认告警并恢复后端，系统自动将事件由Open → Ack → Resolved，解决原因Recovered。触发、确认、解除均有审计记录。该次验收结束时两个示例后端运行、故障已结束；当时规则保持启用且仅站内通知。当前服务与渠道状态需另行核对。
 
 首次探测携带了不存在对应父span的外部Trace父标识，系统正确返回Partial；探测脚本错误地要求Available，已改用真正的根请求再验证。没有修改产品逻辑或隐藏这些原记录。
 
@@ -50,13 +56,9 @@ JS
 
 ## 日常运行与证据
 
-```bash
-./scripts/local-runtime.sh status --json
-./scripts/local-runtime.sh stop
-./scripts/local-runtime.sh start
-```
+已有安装使用其运行目录中已核实身份的固定维护入口，状态读取、启停和目录解析见[运行手册](local-runtime-runbook.md)。不要从另一工作树使用默认 `.runtime/local` 操作原实例；演示指南中的相对秘密路径均相对于当次实际运行目录。
 
-普通启停保留数据和秘密。Docker需保持运行；镜像使用`unless-stopped`。重启网关后可用LKG恢复代理，但旧发布ACK仍冻结于旧实例，状态可能Degraded；新实例需按正常独立审批发布并取得新ACK，详见[独立运行环境手册](local-runtime-runbook.md)。
+普通启停保留数据和秘密。Docker需保持运行；镜像使用`unless-stopped`。重启网关后可用 LKG 恢复代理；当前实现还会为匹配当前成功发布的新实例记录独立运行确认，不需要仅为正常重启重新发布业务。历史发布 ACK 保持冻结，Publishing/Failed 发布不能靠运行确认补成成功；缺少确认、实例/版本/序列不符或其他就绪条件不足时仍可 Degraded。详见[节点确认契约](../contracts/node-lifecycle.md)与[独立运行环境手册](local-runtime-runbook.md)。
 
 本次长期环境证据为[demo-activation.json](../evidence/local-runtime/demo-activation.json)，安装状态为[installation-status.json](../evidence/local-runtime/installation-status.json)。历史随机项目完整冷恢复验收、V1/V1.1交付封存证据仍保留；本次没有重新运行全套产品测试或覆盖源码ZIP。保全核对包括旧容器身份、镜像、卷挂载、4180/4181/5090入口及旧ZIP/manifest哈希。
 
