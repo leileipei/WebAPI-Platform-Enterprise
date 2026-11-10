@@ -44,7 +44,12 @@
     "newBackendTestsRun": 26,
     "newBrowserAcceptanceTestsRun": 17,
     "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
-    "browserGroupsPartiallyExercised": 5
+    "browserGroupsPartiallyExercised": 5,
+    "credentialFollowupCheckpointRecords": 13,
+    "credentialFollowupExecuted": 12,
+    "credentialFollowupPass": 11,
+    "credentialFollowupFail": 1,
+    "credentialFollowupPreparationOnly": 1
   },
   "mainCi": {
     "source": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
@@ -7510,14 +7515,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7536,6 +7541,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -7588,14 +7608,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7614,6 +7634,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -7666,14 +7701,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7692,6 +7727,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -7744,14 +7794,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7770,6 +7820,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -7822,14 +7887,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7848,6 +7913,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -7900,14 +7980,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7926,6 +8006,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -7978,14 +8073,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -8004,6 +8099,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -8056,14 +8166,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -8082,6 +8192,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -8160,14 +8285,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -8186,6 +8311,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -8239,14 +8379,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -8265,6 +8405,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -8315,14 +8470,14 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "一次性弹窗、关闭与刷新已观察；重登录、多身份与自定义有效期仍待验证，一小时提交读回失败保留",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
+        "browserExecution": "partial real-browser checks; credential followup includes one failed lifetime check; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -8341,6 +8496,21 @@
         "browserCheckpointIds": [
           "B04",
           "B11"
+        ],
+        "credentialFollowupCheckpointIds": [
+          "C01",
+          "C02",
+          "C03",
+          "C04",
+          "C05",
+          "C06",
+          "C07",
+          "C08",
+          "C09",
+          "C10",
+          "C11",
+          "C12",
+          "C13"
         ]
       }
     },
@@ -12846,6 +13016,47 @@
         "newBackendTestsRun": 26,
         "newBrowserAcceptanceTestsRun": 0
       }
+    },
+    {
+      "commit": "82e3e57e8ea201f074c3c2d2a227e2bba4b6f107",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "7b59f8225e7e98af83b3ee1c905e68b177830e641cf7ce1195761190aaf4ca5f",
+      "scope": "17 initial real-browser observations and prior preservation snapshot retained; next credential stage records its own failure and primary-directory drift",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5
+      }
     }
   ],
   "targetedFollowup": {
@@ -13602,7 +13813,7 @@
         "无授权拒绝读取/变更；允许的无 app.read 安全写入不额外泄漏 LastUsed",
         "审批发布和当前证明才推进轮换，不承诺保存即在数据面生效"
       ],
-      "existingProofLimit": "本次实证是服务端和数据库；一次性弹窗、焦点/取消及全 UI 权限矩阵尚待验收。",
+      "existingProofLimit": "创建一次性展示、关闭/刷新、最后工作凭证撤销风险门禁及缺发布权限轮换门禁已部分实测；一小时期限未通过，完整权限/Scope与发布数据面验收未关闭。",
       "status": "partially-executed; full-acceptance-pending",
       "viewportWidth": 1440,
       "evidenceRequired": [
@@ -13615,6 +13826,21 @@
       "observedCheckpointIds": [
         "B04",
         "B11"
+      ],
+      "observedCredentialCheckpointIds": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12",
+        "C13"
       ]
     },
     {
@@ -13940,5 +14166,222 @@
     "source": "GitHub branch and repository rulesets read APIs",
     "rulesWrittenByThisTask": false,
     "fullBranchProtectionSettingsVerified": false
+  },
+  "credentialBrowserVerification": {
+    "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "82e3e57e8ea201f074c3c2d2a227e2bba4b6f107",
+    "imageId": "sha256:c94a7c8ddf3312af1284158f284fdc44dec9aaff40265e06cc20ca4310c72a55",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "checkpointRecords": 13,
+    "executedCheckpoints": 12,
+    "observedPass": 11,
+    "observedFail": 1,
+    "preparationRecords": 1,
+    "observations": [
+      {
+        "id": "C01",
+        "result": "pass",
+        "scope": "轮换向导缺发布权限门禁",
+        "oldCredentialId": "d49e4c27-20bb-4664-8e27-67ce2e535006",
+        "newCredentialId": "85e483e6-bdb5-41a1-896e-b6644bea19d9",
+        "observedAt": "2026-11-10T17:31:59.856Z",
+        "screenshot": "ui/rotation-gates.jpg",
+        "assertions": {
+          "publishDisabled": true,
+          "consumerDisabled": true,
+          "observationDisabled": true,
+          "revokeDisabled": true,
+          "secondPublishDisabled": true
+        },
+        "artifactSha256": "3996cc19ce08c8c43c4c85c6385b2f046fa78ace0998cab6c85c6d30e0288f24"
+      },
+      {
+        "id": "C02",
+        "result": "pass",
+        "scope": "收起轮换向导清理导航参数",
+        "observedAt": "2026-11-10T17:32:06.084Z",
+        "url": "http://127.0.0.1:31931/applications/b1c27242-4850-4e2d-bf14-b62b8df00bc7",
+        "rotationRegionPresent": 0
+      },
+      {
+        "id": "C03",
+        "result": "pass",
+        "scope": "创建表单默认30天及取消不落库",
+        "observedAt": "2026-11-10T17:32:18.500Z",
+        "defaultWindow": [
+          "2026-11-11T01:32",
+          "2026-12-11T01:32"
+        ],
+        "emptyTextVisible": true,
+        "createHeadingCount": 0
+      },
+      {
+        "id": "C04",
+        "result": "prepared-not-submitted",
+        "scope": "一小时独立测试凭证创建表单",
+        "observedAt": "2026-11-10T17:32:27.153Z",
+        "applicationCode": "UI_CRED_PROBE",
+        "validFromLocal": "2026-11-11T01:32",
+        "expiresAtLocal": "2026-11-11T02:32",
+        "apiGrants": 0,
+        "saveEnabled": true,
+        "screenshot": "ui/create-ready.jpg",
+        "artifactSha256": "a7692dcc0c15c3af2a4cc603a364d956c86350875a47b2cc0605971144d7ca80"
+      },
+      {
+        "id": "C05",
+        "result": "pass",
+        "scope": "经本次确认创建一枚测试凭证并显示一次性Secret",
+        "observedAt": "2026-11-10T17:34:09.027Z",
+        "confirmation": "user-confirmed-one-test-credential",
+        "metadata": {
+          "closeButtonPresent": true,
+          "dialogPresent": true,
+          "hasDot": true,
+          "hasOnceWarning": true,
+          "inputCount": 1,
+          "readOnly": true,
+          "title": "请保存 API Key",
+          "valueLength": 69,
+          "valuePresent": true
+        },
+        "secretCaptured": false,
+        "screenshotOmitted": "弹窗含认证秘密，不截图"
+      },
+      {
+        "id": "C06",
+        "result": "pass",
+        "scope": "关闭一次性弹窗后仅显示脱敏凭证",
+        "observedAt": "2026-11-10T17:34:09.314Z",
+        "secretDialogCount": 0,
+        "secretInputCount": 0,
+        "screenshot": "ui/created-masked.jpg",
+        "artifactSha256": "3e7b0f06c05b021b02ab160f9dc923145de8369eeef4adf030624eb33b56561e"
+      },
+      {
+        "id": "C07",
+        "result": "pass",
+        "scope": "刷新不重新展示Secret",
+        "observedAt": "2026-11-10T17:35:07.598Z",
+        "secretDialogCount": 0,
+        "secretInputCount": 0,
+        "maskedKey": "••••R6Ug",
+        "screenshot": "ui/refreshed-masked.jpg",
+        "artifactSha256": "43f4d5486c563244e823af5754d0a18f5d43801fa2be6ff43e39ef18c6136bc9"
+      },
+      {
+        "id": "C08",
+        "result": "failed",
+        "scope": "一小时有效期提交后读回",
+        "observedAt": "2026-11-10T17:35:07.620Z",
+        "expectedExpiresAtLocal": "2026-11-11T02:32",
+        "actualExpiresAtLocal": "2026-12-11T01:32",
+        "classification": "待诊断：自动化填写或产品行为，不认定回归通过",
+        "screenshot": "ui/refreshed-masked.jpg",
+        "artifactSha256": "43f4d5486c563244e823af5754d0a18f5d43801fa2be6ff43e39ef18c6136bc9"
+      },
+      {
+        "id": "C09",
+        "result": "pass",
+        "scope": "最后可用凭证撤销被风险确认门禁阻断",
+        "observedAt": "2026-11-10T17:35:27.373Z",
+        "confirmDisabledInitially": true,
+        "screenshot": "ui/impact-unchecked.jpg",
+        "artifactSha256": "c9fef43851589cd2f8346a4ff49aa3d5581eca51d45d03b67017c9b6e9111315"
+      },
+      {
+        "id": "C10",
+        "result": "pass",
+        "scope": "重新查看影响重置风险确认",
+        "observedAt": "2026-11-10T17:35:27.988Z",
+        "enabledAfterCheck": true,
+        "disabledAfterRefresh": true
+      },
+      {
+        "id": "C11",
+        "result": "pass",
+        "scope": "返回编辑保留撤销输入",
+        "observedAt": "2026-11-10T17:35:37.898Z",
+        "selectedStatus": "Revoked",
+        "cancelNotice": true
+      },
+      {
+        "id": "C12",
+        "result": "pass",
+        "scope": "仅撤销本轮无授权测试凭证并呈现修订2",
+        "observedAt": "2026-11-10T17:36:03.513Z",
+        "status": "Revoked",
+        "revision": 2,
+        "rotationDisabled": true,
+        "screenshot": "ui/revoked-test-credential.jpg",
+        "artifactSha256": "d69abc7374e5354108439b5b573b38e5232a188efa1e8823abe4c0806e6dd8bd"
+      },
+      {
+        "id": "C13",
+        "result": "pass",
+        "scope": "日期填写诊断：fill未触发表单修改，真实按键触发修改保护",
+        "observedAt": "2026-11-10T17:36:38.993Z",
+        "fillProbeDiscard": 0,
+        "keyboardProbeDiscard": 1,
+        "keyboardProbeValue": "2027-12-11T01:36",
+        "saved": false,
+        "classification": "自动化填写方式限制；未复现为真实按键产品缺陷",
+        "screenshot": "ui/date-keyboard-discard.jpg",
+        "artifactSha256": "563eb6efb6266786968470e450f7eb8c61ce21d410abfe37c6ae77ece1d7d3e2"
+      }
+    ],
+    "createdCredentials": 1,
+    "remainingActiveNewCredentials": 0,
+    "apiGrants": 0,
+    "originalCredentialsUnchanged": 4,
+    "oneTimeSecretDisplayObserved": true,
+    "secretCaptured": false,
+    "secretDialogScreenshotTaken": false,
+    "oneHourValidityCheck": "failed: automation fill changed displayed DOM value but did not commit React form state; created default30d credential immediately revoked",
+    "inputDiagnosis": {
+      "fillThenCloseDiscardDialogs": 0,
+      "keyboardThenCloseDiscardDialogs": 1,
+      "diagnosticWritesSubmitted": false,
+      "productRegressionEstablished": false,
+      "oneHourValidityAccepted": false
+    },
+    "readDtoFullSecretOrHashAbsent": true,
+    "secretLast4IsExpectedDtoField": true,
+    "staticFilesVerified": 3,
+    "unexpectedBrowserConsoleErrors": 0,
+    "servicesStopped": true,
+    "testVolumesRetained": true,
+    "initialFailedMigrationMarkerPreserved": true,
+    "artifactStorage": "local ignored credential-browser-20261111/ui; not published",
+    "preservation": {
+      "protectedFilesUnchanged": 4004,
+      "primaryFilesCompared": 14,
+      "primaryFilesMatchingEarlierBaseline": 10,
+      "primaryDifferencesFromEarlierBaseline": [
+        "docs/deployment/current-project-status.md",
+        "docs/deployment/github-quality-gates-proposal.md",
+        "docs/evidence/work-package4/requirements-closeout.json",
+        "docs/evidence/work-package4/requirements-status.md"
+      ],
+      "primaryDifferenceAttribution": "Unknown; this stage did not write primary checkout",
+      "primaryStatusUnchanged": true,
+      "unrelatedContainerIdsPreserved": 195,
+      "volumesPreserved": 508,
+      "networksPreserved": 38,
+      "ownedTestControlPlaneContainerRecreatedOnStart": "73783b08a9f3aa8a1562b8d21ff1ea02d30eff7a04e6dadf867fc9757145ab3d",
+      "ownedReplacementImageUnchanged": true,
+      "historicalMissingPostgresAttribution": "Unknown"
+    },
+    "newAccepted": 0,
+    "limitations": [
+      "Full role/Scope and changed revision/window/authorization impact invalidation matrix pending",
+      "No approved publication, gateway proof, consumer cutover or data-plane activation performed",
+      "One-hour lifetime readback failed and not rerun with a second credential",
+      "Re-login replay of one-time Secret not exercised; close and reload observed",
+      "Initial read-DTO verifier rejected legitimate secretLast4; corrected exact full-secret/hash checks passed; failure retained"
+    ]
   }
 }
