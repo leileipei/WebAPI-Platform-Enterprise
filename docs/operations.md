@@ -1,8 +1,10 @@
 # 核心闭环配置与运维
 
+版本以 [global.json](../global.json)、[Directory.Packages.props](../Directory.Packages.props)、[console/package.json](../console/package.json)和锁文件为准。主题手册及历史安装结果从[运维目录](deployment/README.md)选择，本页不声明持久服务已采用这些版本。
+
 ## 环境与固定依赖
 
-.NET SDK 10.0.401，目标 .NET 10，EF Core 10.0.12、Npgsql 10.0.3、YARP 2.3.0、StackExchange.Redis 3.3.1；所有 NuGet 使用集中版本及 packages.lock.json。React 19.2、TypeScript 5.9.3、Vite 6.4.2、Tabler 3.48，前端用 pnpm-lock.yaml 锁定。固定镜像摘要以 deploy/compose.test.yml 和 deploy/compose.e2e.yml 为准，不能把标签最新版本替代锁定摘要而不回归。
+.NET SDK 10.0.401，目标 .NET 10，EF Core 10.0.12、Npgsql 10.0.3、YARP 2.3.0、StackExchange.Redis 3.3.1；所有 NuGet 使用集中版本及 packages.lock.json。React 19.2、TypeScript 5.9.3、Vite 6.4.3、Tabler 3.48，前端用 pnpm-lock.yaml 锁定。固定镜像摘要以 deploy/compose.test.yml 和 deploy/compose.e2e.yml 为准，不能把标签最新版本替代锁定摘要而不回归。
 
 当前 Compose 使用固定 SDK 镜像与源码挂载，服务间仅在专用 Docker 网络通信。本机外露端口绑定 127.0.0.1。它是开发/验收配置，尚未交付企业生产镜像、TLS 终端、密钥管理或监控设施。
 

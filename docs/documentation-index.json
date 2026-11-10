@@ -1,0 +1,714 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-11-10",
+  "scope": "Tracked project Markdown/text and the two new navigation pages; vendor documents excluded.",
+  "githubMain": "7626115c769ae0926d38109ace46b2f5017bfcc3",
+  "localCodeInput": "00f45a8617cbf8634e58621594bdbb7e8b0ede16",
+  "localCodeAheadOfGithub": [
+    "536efe1",
+    "8b75524",
+    "b73357e",
+    "00f45a8"
+  ],
+  "sourceDifferenceToGithub": [
+    "src/WebApi.Infrastructure/Governance/AuditAccessQuery.cs",
+    "src/WebApi.Infrastructure/Messaging/OutboxDispatcher.cs",
+    "src/WebApi.Worker/Workers/OutboxWorker.cs"
+  ],
+  "classificationIsNotAcceptance": true,
+  "counts": {
+    "documents": 314,
+    "byCategory": {
+      "navigation": 3,
+      "historical-review": 1,
+      "topic-reference": 23,
+      "historical-archive": 12,
+      "operations-reference": 19,
+      "ci-configuration-record": 3,
+      "historical-deployment-record": 41,
+      "current-status": 1,
+      "immutable-evidence": 153,
+      "historical-design-plan": 58
+    },
+    "relativeLinksChecked": 707,
+    "unresolvedHistoricalReferences": 47,
+    "preservedDuplicateEvidenceGroups": 7
+  },
+  "canonicalNarrative": {
+    "path": "docs/evidence/contract-management-completion/result.md",
+    "compatibilityEntry": "docs/deployment/contract-management-completion-upgrade-result.md",
+    "originalSha256": "8fba7d5638d51a1c733172450b86fcbbe274efbe32f858e2af55f214862e83f4"
+  },
+  "unavailableHistoricalPackages": [
+    {
+      "source": "docs/deployment/current-local-delivery-index.md",
+      "historicalReference": "../../deliverables/WebAPI_Enterprise_流量策略源码及验收_20261005.zip",
+      "state": "not-present; download link removed; no replacement created"
+    },
+    {
+      "source": "docs/deployment/current-local-delivery-index.md",
+      "historicalReference": "../../deliverables/WebAPI_Enterprise_流量策略本机升级补充_20261005.zip",
+      "state": "not-present; download link removed; no replacement created"
+    },
+    {
+      "source": "docs/deployment/current-local-delivery-index.md",
+      "historicalReference": "../../deliverables/WebAPI_Enterprise_升级后观测复验与交付索引_20261005.zip",
+      "state": "not-present; download link removed; no replacement created"
+    },
+    {
+      "source": "docs/deployment/notification-approval-upgrade-result.md",
+      "historicalReference": "../../deliverables/WebAPI_Enterprise_通知与跨环境审批_已安装交付_20261008.zip",
+      "state": "not-present; download link removed; no replacement created"
+    }
+  ],
+  "unresolvedHistoricalReferences": [
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/evidence/core-loop/final-review.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/core-loop/final-review.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/decisions.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/decisions.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/operations.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/operations.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/superpowers/specs/2026-10-04-core-loop-design.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/superpowers/specs/2026-10-04-core-loop-design.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/superpowers/plans/2026-10-04-core-loop-implementation.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/superpowers/plans/2026-10-04-core-loop-implementation.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/deployment/observability-runbook.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/observability-runbook.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/observability-data-dictionary.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/observability-data-dictionary.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/evidence/observability/verification.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/observability/verification.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/deployment/local-demo-guide.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/local-demo-guide.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/deployment/local-demo-recovery-checklist.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/local-demo-recovery-checklist.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/evidence/local-runtime/demo-activation.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/local-runtime/demo-activation.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/evidence/policies/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/policies/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/deployment/traffic-policies-runbook.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/traffic-policies-runbook.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/traffic-policy-data-dictionary.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/traffic-policy-data-dictionary.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": ".worktrees/gateway-restart-readiness/docs/deployment/gateway-readiness-upgrade-result.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": ".worktrees/gateway-restart-readiness/docs/deployment/gateway-readiness-upgrade-runbook.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/observability/verification.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/observability/verification.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/local-runtime/verification.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/local-runtime/verification.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/local-runtime/demo-activation.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/local-runtime/demo-activation.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "deployment/local-demo-recovery-checklist.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/local-demo-recovery-checklist.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/policies/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/policies/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "../.worktrees/gateway-restart-readiness/docs/deployment/gateway-readiness-upgrade-result.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/acceptance-input.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/acceptance-input.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/acceptance-result.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/acceptance-result.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/public/P3-11.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/public/P3-11.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/public/P3-10.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/public/P3-10.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/sdk-e2e-result.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/sdk-e2e-result.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/public/P3-12.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/public/P3-12.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "evidence/observability/verification.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/observability/verification.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "observability-data-dictionary.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/observability-data-dictionary.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "deployment/observability-runbook.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/observability-runbook.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "evidence/policies/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/policies/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "deployment/current-local-status.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/current-local-status.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "workbench.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/workbench.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "deployment/network-policies-runbook.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/network-policies-runbook.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/deployment/local-runtime-runbook.md",
+      "target": "local-demo-guide.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/local-demo-guide.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/superpowers/plans/2026-10-09-environment-access-address.md",
+      "target": "../specs/2026-10-09-environment-access-address-design.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/superpowers/specs/2026-10-09-environment-access-address-design.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/superpowers/plans/2026-10-09-release-promotion.md",
+      "target": "../specs/2026-10-09-release-promotion-design.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/superpowers/specs/2026-10-09-release-promotion-design.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/system-settings/docs/superpowers/plans/2026-10-05-sso-oidc-implementation.md",
+      "target": "../specs/2026-10-05-sso-oidc-design.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/archive/2026-10-16/traffic-policies/docs/superpowers/plans/2026-10-05-system-settings-implementation.md",
+      "target": "../specs/2026-10-05-system-settings-design.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/superpowers/plans/2026-10-12-current-business-combined-performance-baseline.md",
+      "target": "../../evidence/gateway-query-performance/current-business-combined-baseline-plan/candidate-budget-assertions.json",
+      "kind": "historical-planned-evidence"
+    },
+    {
+      "source": "docs/superpowers/specs/2026-10-12-current-business-combined-performance-baseline-design.md",
+      "target": "../../evidence/gateway-query-performance/template-clone-s100-c760-h417/report.md",
+      "kind": "historical-planned-evidence"
+    },
+    {
+      "source": "docs/superpowers/specs/2026-10-12-current-business-combined-performance-baseline-design.md",
+      "target": "../../evidence/gateway-query-performance/current-business-combined-baseline-design/source-evidence.json",
+      "kind": "historical-planned-evidence"
+    },
+    {
+      "source": "docs/superpowers/specs/2026-11-05-independent-quota-backend-design.md",
+      "target": "../../../.superpowers/sdd/2026-11-05-real-quota-closeout/51b409b3-54c6-479c-9fa8-db0c02d52d2d/backend-assessment-readonly-attempt1.json",
+      "kind": "local-only-reference"
+    },
+    {
+      "source": "docs/superpowers/specs/2026-11-05-independent-quota-backend-design.md",
+      "target": "../../../.superpowers/sdd/2026-11-05-real-quota-closeout/51b409b3-54c6-479c-9fa8-db0c02d52d2d/inode-retry-attempt1-observation.md",
+      "kind": "local-only-reference"
+    }
+  ],
+  "duplicateEvidenceGroups": [
+    {
+      "sha256": "67e7f36728592be815c9ebccb035fb516cde785c4cb973369556c0ba046c50d8",
+      "paths": [
+        "docs/evidence/console-functional-qa-20261006-v1.1/README.md",
+        "docs/evidence/console-functional-qa/README.md"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "6eff9fa5065a1d365f8ae2f79d5c847a9158e65d45adf0fe1602e5007e4577cb",
+      "paths": [
+        "docs/evidence/console-functional-qa-20261006-v1.1/execution-ledger.md",
+        "docs/evidence/console-functional-qa/execution-ledger.md"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "96750dc9392122d4ec0637f3404ee055332e0277fa51090c02e8d5d18d177bbb",
+      "paths": [
+        "docs/evidence/console-functional-qa-20261006-v1.1/merge-upgrade-plan.md",
+        "docs/evidence/console-functional-qa/merge-upgrade-plan.md"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "paths": [
+        "docs/evidence/dialog-focus-upgrade/postmerge-typecheck.txt",
+        "docs/evidence/dialog-focus-upgrade/premerge-typecheck.txt",
+        "docs/evidence/standalone-dialog-qa/typecheck.txt"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "4797da00ff6a29e6014fbf6a3e5089d8cf01d64a914c2ef39b8405d8a34fcf65",
+      "paths": [
+        "docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-report-037eadc9-0505-497b-a13d-ff3ba41aa4fa.txt",
+        "docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-restored-report.txt"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "5798e3813dcca53e28d8149c8f2f8a3b6608eee3dc372e7b76f062913d0fc074",
+      "paths": [
+        "docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-report-c678172b-a774-40c2-a117-219303af47da.txt",
+        "docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-restored-report.txt"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "da80ebc03316bbe795d145678746b91691abfa49696cbca37ef22b636a7dd093",
+      "paths": [
+        "docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-report-80d7b2a6-1522-4095-95b9-a84113f17654.txt",
+        "docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-restored-report.txt"
+      ],
+      "action": "preserve each evidence identity"
+    }
+  ],
+  "historicalReferenceNote": "Any current repository reference is a navigation aid only; it does not replace the original archived evidence identity.",
+  "documents": [
+    {"path":"README.md","category":"navigation","sha256":"3f359cb0292ce7251e1dec375ddab4c868d41fdd438c08dfd24d882e5d6e85e5"},
+    {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
+    {"path":"docs/README.md","category":"navigation","sha256":"c6a40c3e0ca97729142fce8d541601b78dc6fd121a75bfad5af36e0f663ec890"},
+    {"path":"docs/acceptance.md","category":"topic-reference","sha256":"2258e6cce6f4c522d72ec322e43e9cb4e6d67f9fbf06622ab859e97c79544277"},
+    {"path":"docs/acceptance/account-credential-closeout.md","category":"topic-reference","sha256":"c39ff0df89c63317fe135fea6878dbc7a96aaf2208b2400c7434d92347620931"},
+    {"path":"docs/archive/2026-10-16/gateway-query-performance/docs/superpowers/plans/2026-10-09-gateway-query-performance.md","category":"historical-archive","sha256":"59e992a6ff22be8219b13ad31f672687ec1b82ff25c5ccb94b4a3c0811d3973e"},
+    {"path":"docs/archive/2026-10-16/gateway-query-performance/docs/superpowers/specs/2026-10-09-gateway-query-performance-design.md","category":"historical-archive","sha256":"082229e6317a232d4fcbe7c727b58bedc141b0b51fc6f1b2eb6baf857833dc9d"},
+    {"path":"docs/archive/2026-10-16/local-keycloak-demo/docs/deployment/local-keycloak-demo.md","category":"historical-archive","sha256":"4a30bdeac6c6fe86aec2942e97963cda64e3a61da0f7739d1e2c61fc7dc8738c"},
+    {"path":"docs/archive/2026-10-16/main/README.md","category":"historical-archive","sha256":"58e2d73f455f36dbab5d14b0f288057b62fa6210184828101bad2a3618b14659"},
+    {"path":"docs/archive/2026-10-16/main/docs/acceptance.md","category":"historical-archive","sha256":"308181cba6dba7a6aab14f8915fcedae47deb37e680d5121e9f1fd1086bce2be"},
+    {"path":"docs/archive/2026-10-16/main/docs/console-coverage.md","category":"historical-archive","sha256":"5ac3716dbbea12fa43dbd90ae73ee05edd3a76f7aca1e27c0307cb8d7497cee9"},
+    {"path":"docs/archive/2026-10-16/main/docs/deployment/local-runtime-runbook.md","category":"historical-archive","sha256":"31cc9858a9c8689bae0139916efec11a1d90a70b9f1d58c014f4232df9f1f78a"},
+    {"path":"docs/archive/2026-10-16/main/docs/evidence/local-runtime/execution-ledger.md","category":"historical-archive","sha256":"7db3ff07a3a1c3d41ee07f9d6c79e596266c42d5e55fe810858849cf0040acb1"},
+    {"path":"docs/archive/2026-10-16/main/docs/superpowers/plans/2026-10-09-environment-access-address.md","category":"historical-archive","sha256":"ff68b46a1264865d43de3103393e72ae2a8cf5b8a1f27f8f12f0d2e1d08a78bd"},
+    {"path":"docs/archive/2026-10-16/main/docs/superpowers/plans/2026-10-09-release-promotion.md","category":"historical-archive","sha256":"d65ed541ddca2aac1a6aa99d205be8385e4298f7c1e225388618eecb3d5079ea"},
+    {"path":"docs/archive/2026-10-16/system-settings/docs/superpowers/plans/2026-10-05-sso-oidc-implementation.md","category":"historical-archive","sha256":"3e6eace5204998f99ae1a239817ceb1101cdbd6d9365de57d0fb33922c8bb1a0"},
+    {"path":"docs/archive/2026-10-16/traffic-policies/docs/superpowers/plans/2026-10-05-system-settings-implementation.md","category":"historical-archive","sha256":"3790e34f5c0935ade136d9945612d568f5f0a1d829b8e97d3622fd2ef688d9b8"},
+    {"path":"docs/catalog-routing.md","category":"topic-reference","sha256":"28d6e2e6abb5eb8a480bf148e789a27c7643cc634dfbd4809e0c62cbc41ed250"},
+    {"path":"docs/console-coverage.md","category":"topic-reference","sha256":"375cdc507324b723bcb58751a2bab29e57991b98a659de01b87785ff25f50a45"},
+    {"path":"docs/contracts/durable-publish.md","category":"topic-reference","sha256":"601b12cd8957e18e308f9387d01d77cff2c53de62f7970bf8d0208518a8f95c6"},
+    {"path":"docs/contracts/gateway-generation.md","category":"topic-reference","sha256":"31ee29dd5c6d482388e23dcf994081012217fd9e7d39610e8b055de18ac3ac33"},
+    {"path":"docs/contracts/node-lifecycle.md","category":"topic-reference","sha256":"dd8ada0df058c3901bb5aed9618d44d3ac9cd2446492ada8f94856e843eeadc3"},
+    {"path":"docs/contracts/observability.md","category":"topic-reference","sha256":"189a4b3e7708ed166dcfd6c69959ab4a46e71745a20945f6cc0cc058b9542b66"},
+    {"path":"docs/contracts/rollback-recovery.md","category":"topic-reference","sha256":"2342f401c59f68e511708a24570c628f5778bbbb88a95e9a71665425287acaa9"},
+    {"path":"docs/contracts/runtime-snapshot.md","category":"topic-reference","sha256":"5d8f7dc34aafdb855c9fbaf98d0adcce1d87d247170aaaab6d5687f0f743291d"},
+    {"path":"docs/credential-security-data-dictionary.md","category":"topic-reference","sha256":"0e7af1f66552b6ba73cdc37ae28e6ff71eb1e691ea8b15d56596c7d79bf0ec0c"},
+    {"path":"docs/database-core.md","category":"topic-reference","sha256":"e9976e07a728b24c4486c1054ebc33de76c472681988eb28e123e6dbec983b09"},
+    {"path":"docs/decisions.md","category":"topic-reference","sha256":"0a48125289a946aa5f2bf2b8042a012bb4aaf4d15bd1a486af804df08087a87c"},
+    {"path":"docs/dependencies/contract-management.md","category":"topic-reference","sha256":"3bc91dde974b55344f9adcc595f2e919439053d411ad9bb30f3c411fee0d21c1"},
+    {"path":"docs/dependencies/gateway-jwt.md","category":"topic-reference","sha256":"c68e9c200486e549b8be3bdba7461dff8236c606c9e51a7a8b99afd1c5159a64"},
+    {"path":"docs/deployment/README.md","category":"navigation","sha256":"2b82caa81cbaa5c9e5a78c4360477a64e1c410bea4a021557679fce8c2030f34"},
+    {"path":"docs/deployment/account-credential-operations.md","category":"operations-reference","sha256":"2e7aeb617e2e49c02aea25fea439ceb24bd96c00204a3d0b98a5784b7512ac93"},
+    {"path":"docs/deployment/console-ci-phase1.md","category":"ci-configuration-record","sha256":"673d7cfb0cf7f2f789a8120061c15aee0265166daa7cd207dc9630ce93cbcc1b"},
+    {"path":"docs/deployment/contract-management-completion-runbook.md","category":"operations-reference","sha256":"118b3f45cfbf48da4bef4d2301a947dc884c65171fa0df7083540e565661708d"},
+    {"path":"docs/deployment/contract-management-completion-upgrade-result.md","category":"historical-deployment-record","sha256":"fc8574067597d3812777129dd07725d7d7e47cb7a536d467d4b420c412b77327"},
+    {"path":"docs/deployment/contracts-ci-phase2.md","category":"ci-configuration-record","sha256":"1d0ffcd2eb1c47b64e0ae23a28af1b8498e61160a386dac3459bc22372a6506d"},
+    {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
+    {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
+    {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"e2a79e10119a0860810df78a034f4627379956c3381a27d06bd5aadeca4bed86"},
+    {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
+    {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
+    {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"f1f5227f6bdbe85adeca3601714e5902ad0aeabecde561edd5e5d3315189b45b"},
+    {"path":"docs/deployment/external-notifications-local-result.md","category":"historical-deployment-record","sha256":"735f710475eb591106307b0397a700bb774c2f859f4580911900ca0935e499c5"},
+    {"path":"docs/deployment/full-project-integration-20261016.md","category":"historical-deployment-record","sha256":"2952bee161a1ca17694f59e5ea254d2bdf9240d107fc9c53fb6335815e953c03"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-pre-install-result.md","category":"historical-deployment-record","sha256":"cbdb858c5012a4077162a66c3782c76c941c6d56e00cad2bf274cbdc062a8217"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-qa-checklist.md","category":"historical-deployment-record","sha256":"d95ddb67aa6b63080fb0fe1e50eb5426bb26b574aec01a9af07f0c1f8f2f4b14"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-rulings.md","category":"historical-deployment-record","sha256":"d093ab461eae5caa4a0c7ca5dc1ea2b80fdef9eb2abc60655c6a6b54abb39da0"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-runbook.md","category":"operations-reference","sha256":"44d89b17887f01ec88bf2377fae0e171b0ed352300d6970940853710f94e4037"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-upgrade-result.md","category":"historical-deployment-record","sha256":"f9930e3695aa67a50347ac0aa6f471799e3778b09cf6e9d6b211cd2fb0c8c8f6"},
+    {"path":"docs/deployment/gateway-readiness-upgrade-result.md","category":"historical-deployment-record","sha256":"1c8c0fb8c596b9f6a35bc7c24f080d01c30de4ce597a67548fc23214f514d349"},
+    {"path":"docs/deployment/gateway-readiness-upgrade-runbook.md","category":"operations-reference","sha256":"71bde91723488f3dc9edeb7e98e0004631d62c2e8a84fc4debba9be38b6ead71"},
+    {"path":"docs/deployment/gateway-restart-readiness-result.md","category":"historical-deployment-record","sha256":"d8c3e878745979984332cfb0d3fdf02ac4ef2368ed70f8e3ef5230c2574a6664"},
+    {"path":"docs/deployment/gateway-restart-readiness-runbook.md","category":"operations-reference","sha256":"206c51bbef3d0d3ce276b89b16084532be73be8595c04d5a3a2a0c0bafcd2788"},
+    {"path":"docs/deployment/gateway-restart-readiness-upgrade-review.md","category":"historical-deployment-record","sha256":"90f55dd60cccdd6cabecaf8a0337652b257c167ac5145e34e9e3a3f4dcdfa6ba"},
+    {"path":"docs/deployment/github-quality-gates-proposal.md","category":"ci-configuration-record","sha256":"b3ebf5e958f4dced065605efa1a077055f96d132217c7853d4a5d473f962467e"},
+    {"path":"docs/deployment/governance-g13-upgrade-rehearsal.md","category":"historical-deployment-record","sha256":"21abd981d88960fe582fe1f6b8b9cad6e5e99ffd55f49d242e5553bfb6e450d1"},
+    {"path":"docs/deployment/governance-g14-fault-matrix.md","category":"historical-deployment-record","sha256":"586ed6ec77420138640a4708cf7e8ef584d55cf7062ae69741efe4a56962abc7"},
+    {"path":"docs/deployment/local-delivery-index.md","category":"historical-deployment-record","sha256":"d40864cca90037ba558efb343d350692b0c0b363d50c6894aa5f57dfa75507a5"},
+    {"path":"docs/deployment/local-demo-guide.md","category":"operations-reference","sha256":"071d52e1b946f0f79f318f7c4bba0736287522e56cc3ecf805770b90ddeabaf1"},
+    {"path":"docs/deployment/local-demo-recovery-checklist.md","category":"operations-reference","sha256":"32f1a216b9d441211e8e394a19fff5ee369f1cca6b527c9f13b97880beaec8f9"},
+    {"path":"docs/deployment/local-keycloak-demo-proposal.md","category":"historical-deployment-record","sha256":"36dcc1add44e69b615c7541543885c80c2b3af859275f5200a28c72f5370af75"},
+    {"path":"docs/deployment/local-keycloak-demo-result.md","category":"historical-deployment-record","sha256":"3c7884a90d420c251dbde8c7367b62985e55da8f052af1cbd3d345821642afbd"},
+    {"path":"docs/deployment/local-keycloak-demo.md","category":"operations-reference","sha256":"dc940873c5534a7e842e82bd3aac28ca239df4b98d9a4657ae28ee440201b039"},
+    {"path":"docs/deployment/local-runtime-runbook.md","category":"operations-reference","sha256":"3e2b3c3e6ca917d574c2338804b30588639da5009073addb1d086088d86884e5"},
+    {"path":"docs/deployment/network-policies-4192-installed-226dfe4.md","category":"historical-deployment-record","sha256":"6f83ee9d07619557c3033439250f398ce3df98b0d4daa7a468a2a081b341c403"},
+    {"path":"docs/deployment/network-policies-4192-upgrade-rehearsal.md","category":"historical-deployment-record","sha256":"5912d9917c3bc5b5675f4daa9af49fdb9c26d7704ebb98a7428e5e7b941318f2"},
+    {"path":"docs/deployment/network-policies-4192-upgrade-review.md","category":"historical-deployment-record","sha256":"d62a0cd750bc46b70b1384b8adf8478988019161b3b9f0e75bb26182feebc168"},
+    {"path":"docs/deployment/network-policies-runbook.md","category":"operations-reference","sha256":"0433b28cb64e66b3725e3215e2d26080e063fc13fa43380305b4113bcb1b2e9a"},
+    {"path":"docs/deployment/notification-approval-capability-coverage.md","category":"historical-deployment-record","sha256":"2e12ef8af4c3aa45f718f48c4f49ad8a24e123ed50afc033a15ece30a3487c57"},
+    {"path":"docs/deployment/notification-approval-notification-checkpoint.md","category":"historical-deployment-record","sha256":"d07c09a03637a0dd35b11af4f0755bdf1664b5fa2744544787d4142eaee3f0b6"},
+    {"path":"docs/deployment/notification-approval-pre-install-result.md","category":"historical-deployment-record","sha256":"220112bab3a3e1a0ac5d7627c79cd59c2d3ef09b53e3d23171642757155fdbe3"},
+    {"path":"docs/deployment/notification-approval-recovery-runbook.md","category":"operations-reference","sha256":"68b026f40cea39fe0283c2cc76356cad9991d447a85bdb05006f62c8dff0c0bf"},
+    {"path":"docs/deployment/notification-approval-rulings.md","category":"historical-deployment-record","sha256":"63f128e111675b01ef2fe327e02668e756fa40770420d25a25c52f68b4cdf53c"},
+    {"path":"docs/deployment/notification-approval-upgrade-result.md","category":"historical-deployment-record","sha256":"0502469217cc3153910c1a96a96cc003485ed0584152107ad410d5a878f8d626"},
+    {"path":"docs/deployment/notification-approval-whole-branch-review.md","category":"historical-deployment-record","sha256":"303c628836a729afaf539898fcb016eb1b2c03a04a34aa85d537af73496ce9f4"},
+    {"path":"docs/deployment/observability-local.md","category":"operations-reference","sha256":"d56dbbc815d7064eba07a4703263094a343efdd827e36ec5e223183515faf81a"},
+    {"path":"docs/deployment/observability-runbook.md","category":"operations-reference","sha256":"2877bdcaa1043d57da7454f1bef6ba21a4840cbb4b0ae31a0df5de5e49adb080"},
+    {"path":"docs/deployment/post-upgrade-observation-result.md","category":"historical-deployment-record","sha256":"3547988631980de2a1c641f60fb2dc5c5b8deb3ba98d51bb052a5778ead2752f"},
+    {"path":"docs/deployment/release-promotion-runbook.md","category":"operations-reference","sha256":"00b40c462e8a91d75962f049311ecbce35fd926410a1539a7f97bc658b09376e"},
+    {"path":"docs/deployment/security-hardening-4192-upgrade-preparation.md","category":"historical-deployment-record","sha256":"136b7dd5f423183d6bdf064e00dc83bc868ece79c67b130afa5383cdda16cd19"},
+    {"path":"docs/deployment/security-hardening-runbook.md","category":"operations-reference","sha256":"716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"},
+    {"path":"docs/deployment/sso-oidc-capability.md","category":"historical-deployment-record","sha256":"22d3f7f336506024b31409b74b652417538032cbb9bc1a77095b86741ba125c4"},
+    {"path":"docs/deployment/sso-oidc-delivery-index.md","category":"historical-deployment-record","sha256":"d39b276b427200bad454c510d5b54d400597ee4c0b92a7a8fcc89651b5188373"},
+    {"path":"docs/deployment/sso-oidc-runbook.md","category":"operations-reference","sha256":"826c896bca1124a77ee353c0017c1f2556ff081c99aa05b10d6e009a4fe1301b"},
+    {"path":"docs/deployment/sso-oidc-upgrade-proposal.md","category":"historical-deployment-record","sha256":"a6088cc4a908f39dd9619235fcd9b8434842245b09ff1f60eeda96a74e2efae5"},
+    {"path":"docs/deployment/sso-oidc-upgrade-result.md","category":"historical-deployment-record","sha256":"a19fd313bab15254622c3679679711da7c288ed6623d89686ce3f5227b757728"},
+    {"path":"docs/deployment/system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"723b5ff4d1add5b186120bbdad5f125568c48f56c0c0aac739b0b13724999a99"},
+    {"path":"docs/deployment/system-settings-upgrade-result.md","category":"historical-deployment-record","sha256":"da9f134aa69b256eeb95f62ac29cb4dacb8f20f51380bd86c5454cd400eb4ad2"},
+    {"path":"docs/deployment/system-settings-upgrade-review.md","category":"historical-deployment-record","sha256":"0711da8978085d1a4b1c6aa60d57d154fcb2c1349caeb248e7cd5989526b01fe"},
+    {"path":"docs/deployment/system-settings-validation-result.md","category":"historical-deployment-record","sha256":"e76b4b2c9812870b1ec50942072bc8854951af1da4c96d6297c7c135db6954f8"},
+    {"path":"docs/deployment/traffic-policies-runbook.md","category":"operations-reference","sha256":"c07038ebc9ad372b4f48edcd711b5bfd606c2d549f8cda5acb3b2a0547b434f5"},
+    {"path":"docs/deployment/traffic-policies-upgrade-result.md","category":"historical-deployment-record","sha256":"f03d5fc0fd6fdbe44ba1a7190720b92b0725f78b947e5be4dc93fc8e203f0367"},
+    {"path":"docs/deployment/traffic-policies-upgrade-review.md","category":"historical-deployment-record","sha256":"e8eb5b7c9de1065e1cfd01a408b96ba5c612b453da5b6eb266b412680ba84189"},
+    {"path":"docs/deployment/version-comparison-upgrade-review.md","category":"historical-deployment-record","sha256":"120cbc652bcfa4e5b7167cde583e1b0ecc2d2a0289ae55952ba3184df612a86d"},
+    {"path":"docs/evidence/approvals/65a656f/README.md","category":"immutable-evidence","sha256":"ff876715ee1cd9a37025cc77d056b7f0c4c31c3213354a38d358ee12f4a53b2d"},
+    {"path":"docs/evidence/console-delivery-qa/result.md","category":"immutable-evidence","sha256":"2f20509239f7ceb3d2f238c4cfa36d744892fa1dbdd4eb01b19e766a3ec06c1e"},
+    {"path":"docs/evidence/console-display-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"1cd50f2d5275375e647707a39c978da6bd9e8cbd8be2a3532f3c6f00064ed129"},
+    {"path":"docs/evidence/console-functional-qa-20261006-v1.1/README.md","category":"immutable-evidence","sha256":"67e7f36728592be815c9ebccb035fb516cde785c4cb973369556c0ba046c50d8"},
+    {"path":"docs/evidence/console-functional-qa-20261006-v1.1/execution-ledger.md","category":"immutable-evidence","sha256":"6eff9fa5065a1d365f8ae2f79d5c847a9158e65d45adf0fe1602e5007e4577cb"},
+    {"path":"docs/evidence/console-functional-qa-20261006-v1.1/merge-upgrade-plan.md","category":"immutable-evidence","sha256":"96750dc9392122d4ec0637f3404ee055332e0277fa51090c02e8d5d18d177bbb"},
+    {"path":"docs/evidence/console-functional-qa-20261006/README.md","category":"immutable-evidence","sha256":"9e6b3bd3cc86919cf752a895f8f2dd2ba2e75d9cdf45b6ef8f3a78d364a22f32"},
+    {"path":"docs/evidence/console-functional-qa-20261006/execution-ledger.md","category":"immutable-evidence","sha256":"6011fca58cb5c009f0bc2d2ab4348590aaf2c14f3740786309d2dcb5b02941fd"},
+    {"path":"docs/evidence/console-functional-qa-20261006/merge-upgrade-plan.md","category":"immutable-evidence","sha256":"225aa53b2caad78717017aa20f9a71d2134de0e3f44262d07d2968fd318ff342"},
+    {"path":"docs/evidence/console-functional-qa/README.md","category":"immutable-evidence","sha256":"67e7f36728592be815c9ebccb035fb516cde785c4cb973369556c0ba046c50d8"},
+    {"path":"docs/evidence/console-functional-qa/execution-ledger.md","category":"immutable-evidence","sha256":"6eff9fa5065a1d365f8ae2f79d5c847a9158e65d45adf0fe1602e5007e4577cb"},
+    {"path":"docs/evidence/console-functional-qa/merge-upgrade-plan.md","category":"immutable-evidence","sha256":"96750dc9392122d4ec0637f3404ee055332e0277fa51090c02e8d5d18d177bbb"},
+    {"path":"docs/evidence/contract-management-completion/result.md","category":"immutable-evidence","sha256":"8fba7d5638d51a1c733172450b86fcbbe274efbe32f858e2af55f214862e83f4"},
+    {"path":"docs/evidence/core-loop/final-review.md","category":"immutable-evidence","sha256":"68152b4368e817154d009d7a55a013a62c76cf120246b0bb769b45fe08f5f8be"},
+    {"path":"docs/evidence/core-loop/implementation-record.md","category":"immutable-evidence","sha256":"72728c2bcdd3c899d94ada2929fa76aa70d770d67cc8ff065601823ce9a6805d"},
+    {"path":"docs/evidence/core-loop/verification-output.md","category":"immutable-evidence","sha256":"936f8f351e85ccc48d14d8e6993b30f3e7042d4db8c0699a88d5d7354c7fd7a4"},
+    {"path":"docs/evidence/dialog-focus-upgrade/README.txt","category":"immutable-evidence","sha256":"f75274c5f5ab965d3e7a5633cc69faf18d7684dd099c58082641fbf17e8b0b10"},
+    {"path":"docs/evidence/dialog-focus-upgrade/all-unit-tests-authorized.txt","category":"immutable-evidence","sha256":"a534be226420688d8601d64fa1fa1ee615a4a7a5aaf47a30067d285a2bcc89e3"},
+    {"path":"docs/evidence/dialog-focus-upgrade/all-unit-tests.txt","category":"immutable-evidence","sha256":"2b1194d6e86c71d2f2d0195e769b997333b1caf786638eae51391616bda830a6"},
+    {"path":"docs/evidence/dialog-focus-upgrade/backend-domain.txt","category":"immutable-evidence","sha256":"107a02b8bb27bb91341368efc215c7b008233056eb4b584ffbdd868d83ae3498"},
+    {"path":"docs/evidence/dialog-focus-upgrade/backend-gateway-first-attempt.txt","category":"immutable-evidence","sha256":"b603d60ef9fb19c8cd1cdc44cafcf88a8ec5a63244be4988478acdc201817cb4"},
+    {"path":"docs/evidence/dialog-focus-upgrade/backend-gateway.txt","category":"immutable-evidence","sha256":"ed476a340e7589f48c9dc2cfbb5b6f9f3f60fb24cd3b634fc7ffbd6fdec8b7e2"},
+    {"path":"docs/evidence/dialog-focus-upgrade/backend-integration.txt","category":"immutable-evidence","sha256":"49663f1b22815d73ee94de669f1ab1aed1b6f4d348155d5ee3b831edfef03554"},
+    {"path":"docs/evidence/dialog-focus-upgrade/postmerge-tests-authorized.txt","category":"immutable-evidence","sha256":"6b038597b6cacad5fa9778554e8aba3756ccab3593133f07a21af8e5778ef6c8"},
+    {"path":"docs/evidence/dialog-focus-upgrade/postmerge-tests.txt","category":"immutable-evidence","sha256":"a8c25e83a53b56741bba42602fe9dc9b06c403056ed6af48c51a22cf94de53c0"},
+    {"path":"docs/evidence/dialog-focus-upgrade/postmerge-typecheck.txt","category":"immutable-evidence","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"path":"docs/evidence/dialog-focus-upgrade/premerge-tests.txt","category":"immutable-evidence","sha256":"da151bd925b4e83b3cdfee3190de64176db86bef7544e2861567f389811a4b97"},
+    {"path":"docs/evidence/dialog-focus-upgrade/premerge-typecheck.txt","category":"immutable-evidence","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"path":"docs/evidence/dialog-focus-upgrade/result.md","category":"immutable-evidence","sha256":"731ca6ad870ad820ddac505d4fff6f3249f18b3688c2344e68c8bd71b8fe9644"},
+    {"path":"docs/evidence/dialog-focus-upgrade/upgrade-review.md","category":"immutable-evidence","sha256":"39926e155235f4cc83be9aa161b32b519ecead190fa8f3b2010913d8a818ed64"},
+    {"path":"docs/evidence/editor-keyboard-merge/merged-tests.txt","category":"immutable-evidence","sha256":"c9593c982e141836f0ceaa659e742d79287cd1d49d428319fc308ba99d140e5d"},
+    {"path":"docs/evidence/editor-keyboard-merge/precommit-tests.txt","category":"immutable-evidence","sha256":"c287d182f24ffaa032f4f156476c7fb1bc29f9c73b0db57e2b4f453e76a0eb45"},
+    {"path":"docs/evidence/editor-keyboard-merge/result.md","category":"immutable-evidence","sha256":"f9ad1811d06fd0a25477adc4d4de73da4c5cda87767181f4a2d85fd676aa3e3f"},
+    {"path":"docs/evidence/editor-keyboard-qa/baseline-tests.txt","category":"immutable-evidence","sha256":"7522de34ddd37bb6b08a34d65d5da34da235eb7f283442a243762e1383c4a544"},
+    {"path":"docs/evidence/editor-keyboard-qa/build.txt","category":"immutable-evidence","sha256":"4a2bbacc25de7a3cbcf247bb5447cc0893a4eed213bf6ac86899e6feed626bf8"},
+    {"path":"docs/evidence/editor-keyboard-qa/full-tests.txt","category":"immutable-evidence","sha256":"c68b4885e3bcabf18f29461ea8a7cb10e230544edc6c5e4c2d6efb5744fb9ac3"},
+    {"path":"docs/evidence/editor-keyboard-qa/green-tests.txt","category":"immutable-evidence","sha256":"0f2d82235f166197f0047fcd448b098d50a60d2baedd10d0e113c2be8186634a"},
+    {"path":"docs/evidence/editor-keyboard-qa/red-behavior.txt","category":"immutable-evidence","sha256":"60aca96894034cf08302b36ed7e7af9cb16ad68584343162c6495bfec1b9a5ce"},
+    {"path":"docs/evidence/editor-keyboard-qa/red-tests.txt","category":"immutable-evidence","sha256":"c6eeb7c6e3645785c888c254b2b9bc626b08312e98087f5c8277fd0091950369"},
+    {"path":"docs/evidence/editor-keyboard-qa/result.md","category":"immutable-evidence","sha256":"9eaa42a4be590d9634c246b32b23513e05c33081a97615a254080d1f0abac70d"},
+    {"path":"docs/evidence/environment-access/decisions.md","category":"immutable-evidence","sha256":"81514cc245c830644cc2471218305708762529bbd967487da891f00bc5bb48b1"},
+    {"path":"docs/evidence/environment-access/delivery-index.md","category":"immutable-evidence","sha256":"981118123114bcc07ac9066d253512a243021bc1f2498b055b0ae17afbbbfe12"},
+    {"path":"docs/evidence/environment-access/final-review.md","category":"immutable-evidence","sha256":"08e5902fa964926e0cd5b3dfc7a354bb99b3e4880acbcc31102398df413bc934"},
+    {"path":"docs/evidence/full-project-integration-20261016/pkcs-three-source-reviewed-package/README.md","category":"immutable-evidence","sha256":"4b8793aef40a420d2a2a09b6242544bab1b43cc3c7023ce93499d084f57700d2"},
+    {"path":"docs/evidence/gateway-readiness-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"315db27691b26b536ada3b442323ece72e1f4b7f98ac514813788164bfbed729"},
+    {"path":"docs/evidence/gateway-restart-readiness/code-review.md","category":"immutable-evidence","sha256":"138b77c96d618048c9a470235d002134ec751f9128c456dcc8d8a3f7ef12b52a"},
+    {"path":"docs/evidence/gateway-restart-readiness/diagnosis-and-proposal.md","category":"immutable-evidence","sha256":"3080f3d3de5d18b2aa679a888e2a7e6c703ed06c11985b68497f28bea626f489"},
+    {"path":"docs/evidence/gateway-restart-readiness/execution-ledger.md","category":"immutable-evidence","sha256":"325b19fc8a7d1cb7dd573a36704095f8c4d7d7bb723e45827aa188e80fc9619f"},
+    {"path":"docs/evidence/governance-merge/p2-4-crypto-review.md","category":"immutable-evidence","sha256":"77bf0558998cd1e4e30ae4b12653383ba04086e172bd87677e7364d28a2944a3"},
+    {"path":"docs/evidence/local-keycloak-demo/code-review.md","category":"immutable-evidence","sha256":"78e6103fb1507fed7561ba056256eebd4fcf85fff4e9e90f29543cba47043d23"},
+    {"path":"docs/evidence/local-keycloak-demo/execution-ledger.md","category":"immutable-evidence","sha256":"d6c08d84c49bef123cb886e89c846f2baffcc7446bf5bdb6209cde7e6ae46f11"},
+    {"path":"docs/evidence/local-keycloak-demo/ui/report.md","category":"immutable-evidence","sha256":"b09dcb0c17759cc20f6fc98e0503caacb851db403767cef432887eaaa529bd20"},
+    {"path":"docs/evidence/local-runtime/execution-ledger.md","category":"immutable-evidence","sha256":"64271e819879707cfc529e8b267ca1957e3021fb95abf109a695c004170efa46"},
+    {"path":"docs/evidence/local-runtime/final-review.md","category":"immutable-evidence","sha256":"e02a86234740dc8dd08a0fbe9f6e6c9d08105635929482ee2c01141a10f60bb3"},
+    {"path":"docs/evidence/m4-console/catalog-before.md","category":"immutable-evidence","sha256":"5a295c6a4e8eeae16f2a4d7e06f22bd0fad10b8087cb928099d92bd235afae3d"},
+    {"path":"docs/evidence/m4-console/preimplementation.md","category":"immutable-evidence","sha256":"22488350c2dfc9c74b47b57904b4f4fbeda22deed8eb2fd56badb3f7c880c777"},
+    {"path":"docs/evidence/m4-console/releases-before.md","category":"immutable-evidence","sha256":"32fbcd749444e9fefb01e95f919a3002a362aaf73f80f299349aa9af78cc3757"},
+    {"path":"docs/evidence/merge-gateway-restart-readiness/result.md","category":"immutable-evidence","sha256":"b8d9374f37f2c6730fed265c54386fc047a56047d29ec665e78967db7ac1d517"},
+    {"path":"docs/evidence/navigation-upgrade/result.md","category":"immutable-evidence","sha256":"43f498789f6e6e703fdc8aeb27cc3e5ffc6e2b62d468db258a9ec556d37c0a16"},
+    {"path":"docs/evidence/network-policies/2026-10-14-07fb1fa/delivery-index.md","category":"immutable-evidence","sha256":"e2883b8fac33731dbc2e1e3bf839151f4d2a1a8d265f23a10cc6b07d04325147"},
+    {"path":"docs/evidence/network-policies/2026-10-14-226dfe4/delivery-index.md","category":"immutable-evidence","sha256":"5190ddbca097dc7af651984afe45366eae5d0a6ee539c22463aa5cfb118536f4"},
+    {"path":"docs/evidence/network-policies/2026-11-09-macos-gate-blocker.md","category":"immutable-evidence","sha256":"f339c6fdf270810f0cd9267a5cf47859b41e8ef894c2fb9d2d6d69368f29486c"},
+    {"path":"docs/evidence/network-policies/2026-11-10-c946bbb/delivery-index.md","category":"immutable-evidence","sha256":"81bbea34745ce13e1131686b6a2ad30c98604cf6d84eafee4e8d3d2a83e164cd"},
+    {"path":"docs/evidence/notification-approval/2026-10-07-gap-review.md","category":"immutable-evidence","sha256":"cb4217219446f7ef4a322d9d392a687a381d24b830a5d4c75deb1109d3c7d3bb"},
+    {"path":"docs/evidence/notifications/dependencies/metadata/bouncycastle.cryptography/LICENSE.md","category":"immutable-evidence","sha256":"afc1653b666b64a2386b7b9b914406904f45c20b9571765d8c1121b513313179"},
+    {"path":"docs/evidence/observability/design-qa.md","category":"immutable-evidence","sha256":"aef2aced8e5eed8fb4f5e5ed3366f301f728ff060237835fbe2c3cb408ae0364"},
+    {"path":"docs/evidence/observability/execution-ledger.md","category":"immutable-evidence","sha256":"affd543273a9bd8b2095ba8cd2b74a64986e6b1e84b9b249fbe2f90adbddf2ed"},
+    {"path":"docs/evidence/observability/final-review.md","category":"immutable-evidence","sha256":"f0b3617c2a04b32a0389f8059590fe5e4c81c44bfd6a977c592345e0aceb50bc"},
+    {"path":"docs/evidence/observability/implementation-record.md","category":"immutable-evidence","sha256":"2c2544fb80b2fe8a1b4ecd487fa2be4c5bd85493f0d6cd527fd99adad079b4e3"},
+    {"path":"docs/evidence/observability/verification-output.md","category":"immutable-evidence","sha256":"2d3eb471d2e5bc0ca0871ca09459e212270066db752a2e196cf81fa1bb132b02"},
+    {"path":"docs/evidence/permission-matrix-upgrade/README.txt","category":"immutable-evidence","sha256":"0dd0cb38d394d2be2e6c24e1bc5075ea56d5b892ba21c12593bad3a327e772ef"},
+    {"path":"docs/evidence/permission-matrix-upgrade/result.md","category":"immutable-evidence","sha256":"14c5add9fe9770e10c02a073f0187a470b6d8f630c767432b755528fab9fb94a"},
+    {"path":"docs/evidence/policies/delivery-index.md","category":"immutable-evidence","sha256":"da5ea67ddced470ddbd3e0e035dc2ad899db525a696fe9957a3125b7c2e4f5c6"},
+    {"path":"docs/evidence/policies/execution-ledger.md","category":"immutable-evidence","sha256":"278c7bdced7a4794dc13cd2515ebc3962a1431149e140ecfc87aab91e34b35f8"},
+    {"path":"docs/evidence/policies/final-review.md","category":"immutable-evidence","sha256":"ea861403d832c2a4291e7a4a1591d3ee89c0b899a28635ea1f07d1b275d4ecc9"},
+    {"path":"docs/evidence/policy-navigation-upgrade/README.md","category":"immutable-evidence","sha256":"f258bfbbf22015b8aa9a6e31ff0c8205d670e740758e48054ec7c68c3a0002db"},
+    {"path":"docs/evidence/policy-navigation-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"b038a49cfa2d9c7a350a59ff66b1206a3829c6c30b52821ddd1028b191f52d5d"},
+    {"path":"docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-report-037eadc9-0505-497b-a13d-ff3ba41aa4fa.txt","category":"immutable-evidence","sha256":"4797da00ff6a29e6014fbf6a3e5089d8cf01d64a914c2ef39b8405d8a34fcf65"},
+    {"path":"docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-report-c8c7e96a-c191-4272-b7d8-a2828cd70fe6.txt","category":"immutable-evidence","sha256":"0787900d0d575dff6a981f6ba5168f5318e8f21334301d173ed438eda1c82891"},
+    {"path":"docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-restored-report.txt","category":"immutable-evidence","sha256":"4797da00ff6a29e6014fbf6a3e5089d8cf01d64a914c2ef39b8405d8a34fcf65"},
+    {"path":"docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-report-6897e335-d191-42e3-bbdb-c44e2a683812.txt","category":"immutable-evidence","sha256":"f4c6207f64292314bba288ba0dcf5d645f2486125e26de04fa819f10a548783a"},
+    {"path":"docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-report-c678172b-a774-40c2-a117-219303af47da.txt","category":"immutable-evidence","sha256":"5798e3813dcca53e28d8149c8f2f8a3b6608eee3dc372e7b76f062913d0fc074"},
+    {"path":"docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-restored-report.txt","category":"immutable-evidence","sha256":"5798e3813dcca53e28d8149c8f2f8a3b6608eee3dc372e7b76f062913d0fc074"},
+    {"path":"docs/evidence/release-pipeline/coverage.md","category":"immutable-evidence","sha256":"d2e5f4d1a15d5b427b1ce85a32e4258fb7db960cb0398a51f54fb4484894eccb"},
+    {"path":"docs/evidence/release-pipeline/delivery-index.md","category":"immutable-evidence","sha256":"5d99d7d136f09a214f96d61e1a8ef671267742608fcaaa689b9d0052fecf8035"},
+    {"path":"docs/evidence/release-pipeline/diagnostic-history.md","category":"immutable-evidence","sha256":"68745add03d4045e04664fcdff9df7bb90e0f8b8464007496e8e0a2ca560f66b"},
+    {"path":"docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-report-80d7b2a6-1522-4095-95b9-a84113f17654.txt","category":"immutable-evidence","sha256":"da80ebc03316bbe795d145678746b91691abfa49696cbca37ef22b636a7dd093"},
+    {"path":"docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-report-eeb63e8c-b8b0-4cdb-8535-2b48db430068.txt","category":"immutable-evidence","sha256":"70405a8f8225799184289ef9559f0003b151a110135f2ec6e9ed1e29638be0d5"},
+    {"path":"docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-restored-report.txt","category":"immutable-evidence","sha256":"da80ebc03316bbe795d145678746b91691abfa49696cbca37ef22b636a7dd093"},
+    {"path":"docs/evidence/release-pipeline/execution-ledger.md","category":"immutable-evidence","sha256":"7c2edbf47dc6938df2a5de12119902bac0c35b39d49f7b5bc100f6ffb821e7a2"},
+    {"path":"docs/evidence/release-pipeline/final-review.md","category":"immutable-evidence","sha256":"97e31f690c1c54d9d5851c5b4d91c1c7336a0fb38829ab854125c056d3f14e01"},
+    {"path":"docs/evidence/release-pipeline/follow-up.md","category":"immutable-evidence","sha256":"87c095b3b90cdb802893e719faec336d707642ae56ddf2aa3b2dec776ca09555"},
+    {"path":"docs/evidence/release-pipeline/installation-interruption.md","category":"immutable-evidence","sha256":"c3f283107caa1cfbf7d135aa93b27b0b7845433e66121ed44172cdef69d0b6fd"},
+    {"path":"docs/evidence/release-pipeline/installation-protocol.md","category":"immutable-evidence","sha256":"90614451a064cabac7d907a9854feb73a23467dca17b286bbf76b44b2facfbe0"},
+    {"path":"docs/evidence/release-pipeline/installation.md","category":"immutable-evidence","sha256":"b1a696f9a8e1da741dc2f1c4b72c236e5b55bb76a54e86e31add2bb2130c4b26"},
+    {"path":"docs/evidence/release-pipeline/m1-update.md","category":"immutable-evidence","sha256":"826e7af27d47fbd6a005886d37aa8dccc0cf690b2098c797895dde14402ff6c9"},
+    {"path":"docs/evidence/release-pipeline/merge-check.md","category":"immutable-evidence","sha256":"afccb257e73a986ccdf1c478e9bc26f76146fccf9fe1f32ef0c06916e0a978fd"},
+    {"path":"docs/evidence/release-pipeline/rulings.md","category":"immutable-evidence","sha256":"74dc732b51ce555d55ef46706cca4c524d4d2719952d2517d00a918ef98ee0f1"},
+    {"path":"docs/evidence/release-pipeline/verification.md","category":"immutable-evidence","sha256":"3bf30d8b21a1d556238126ae87075cddb6d6f3e880af02ec013e1ce035ba360d"},
+    {"path":"docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/README.md","category":"immutable-evidence","sha256":"1e48e197c8ffaa513b205fa95f7463e74f02d34baaa51591d33a25336bfea22b"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime-attempt1/README.md","category":"immutable-evidence","sha256":"215844d9ac4c4c60a43abaf71dd754bb6ca02405e481e8c44b5fdde21b61e51e"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/README.md","category":"immutable-evidence","sha256":"2efdf082747a130cfb8fb139d3c47e633f2acbd5d7274558b6337ae318e81f4f"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/synthetic-restored-report.txt","category":"immutable-evidence","sha256":"cb838a4e0d4a102ff9d99f9d4c903b3d655c5006ddaf47fcffe5cd839c87323f"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/original-install/README.md","category":"immutable-evidence","sha256":"9335c837193e3749477aa871f503a231f47a71cfd50bafb67aa02315bc19ba86"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/review-fix-evidence.md","category":"immutable-evidence","sha256":"5f93f8817e3c5566a95156a6ed304303682a0af62819028ede1c67d941c1ad9d"},
+    {"path":"docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/README.md","category":"immutable-evidence","sha256":"2f389e08b27e6174e933a0739362ebfb0493633999f8e9b719cfa34392a71eed"},
+    {"path":"docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b11-runtime/README.md","category":"immutable-evidence","sha256":"9a0c8c68dd3897ba67274dce5ecdabec8cecd4f87503a7dc6abca0be3236d136"},
+    {"path":"docs/evidence/release-promotion/decisions.md","category":"immutable-evidence","sha256":"91a3e020b59482b733a0438c4a26e3f0ca2bc8620928d28eb70a038eb738110d"},
+    {"path":"docs/evidence/release-promotion/delivery-index.md","category":"immutable-evidence","sha256":"4f39fd6543dd10483c9026e2f80dbe4fe9049dcc751e41fc15b2c53f83ec6c2c"},
+    {"path":"docs/evidence/release-promotion/execution-ledger.md","category":"immutable-evidence","sha256":"85f8769b4de8f374cbe82fe7ec21f41f7e3d9759f0b6520455732457b84fdf27"},
+    {"path":"docs/evidence/release-promotion/fa0c583d3177b5f86a467db1da166f5ad5a2d077/b11-runtime/README.md","category":"immutable-evidence","sha256":"14f9b258bab95392a3fb549cc0d38d8770c06bdea0f280fc29c41f33cb106290"},
+    {"path":"docs/evidence/release-promotion/fa0c583d3177b5f86a467db1da166f5ad5a2d077/b11-runtime/synthetic-restored-report.txt","category":"immutable-evidence","sha256":"9d50d94f481e3f713d5c93face400f6eb5a35c952f2f7310836d035f11315c9a"},
+    {"path":"docs/evidence/release-promotion/final-review.md","category":"immutable-evidence","sha256":"1a34e59d3be3687386f79c8ce764f37eb136e07e68c63dfa7e02cce450df2845"},
+    {"path":"docs/evidence/scope-editor-upgrade/README.txt","category":"immutable-evidence","sha256":"735296ab792507c1ac6edd7df4c02f5aa748da958e5f4c4eded5e05d2590ebc4"},
+    {"path":"docs/evidence/scope-editor-upgrade/merged-tests.txt","category":"immutable-evidence","sha256":"03db5f07aaf7f555007e2bd8d66e23720c0f6e58358dfa85319a475bd1ebd468"},
+    {"path":"docs/evidence/scope-editor-upgrade/precommit-tests.txt","category":"immutable-evidence","sha256":"b1a8a2caec6a3edc5ee4c05236c966e47aa539b746b211a9307b350f3a7bc5d6"},
+    {"path":"docs/evidence/scope-editor-upgrade/recovery-green.txt","category":"immutable-evidence","sha256":"e41a95443d2c6b72bdb7008a7b68fbb9f9cb2f2f63037383b700f7798fc8d7e7"},
+    {"path":"docs/evidence/scope-editor-upgrade/recovery-red.txt","category":"immutable-evidence","sha256":"f6db94ffd5c7a9f1bf6d81ca82689ba9e64f3deeff81e98db2f69209abc5252b"},
+    {"path":"docs/evidence/scope-editor/build.txt","category":"immutable-evidence","sha256":"a8bba1bce5c38e05c74a158f31ec40e826d062429e4a47007b3b723f6c0a9b85"},
+    {"path":"docs/evidence/scope-editor/dto-regression-red.txt","category":"immutable-evidence","sha256":"29d35991ef836f4c8e7caf0b1cf344ee5eac795a24ab9e2361f1f806cc02eef7"},
+    {"path":"docs/evidence/scope-editor/duplicate-red.txt","category":"immutable-evidence","sha256":"cf16b965ec3534f136b5eb4df9a4ce4abd30d849429e4b8fd61e12f94b7b333a"},
+    {"path":"docs/evidence/scope-editor/test-green.txt","category":"immutable-evidence","sha256":"c927e68f1dcbd8fd10aadf49d5757b03472ff7fbe99c730a656348003ce1f09a"},
+    {"path":"docs/evidence/scope-editor/test-red.txt","category":"immutable-evidence","sha256":"f963019043cb8fdaf1d0ec5d2b67fe5b21e68cbb793e00beb1753346f764e805"},
+    {"path":"docs/evidence/security-hardening/execution-ledger.md","category":"immutable-evidence","sha256":"87baec7b19dd86bf8ffb4e91e707fc99ff0b160f0a32c5094ec82f0d95614a73"},
+    {"path":"docs/evidence/security-hardening/source-review.md","category":"immutable-evidence","sha256":"06fb2e09490bdbe61e12c0fff1f8f6a83c9691c55e2686bfefd57ceea19f26fa"},
+    {"path":"docs/evidence/settings-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"10ee566a724df39f926e848fed1258760ae15ad21b8251e508e58c893039df55"},
+    {"path":"docs/evidence/settings-upgrade/ui/chrome/checkpoint.md","category":"immutable-evidence","sha256":"c2a886fd64c5887ef3231540b02aec2a7239a9c95474b3027602258094d09f2c"},
+    {"path":"docs/evidence/settings-upgrade/ui/chrome/final-report.md","category":"immutable-evidence","sha256":"e9432646710f0b70aa8d420dcf88f3a5c7f597e95a5786d2e8a3d44baa87d494"},
+    {"path":"docs/evidence/settings/final-review.md","category":"immutable-evidence","sha256":"f0c4d1ff649be8637af95de0c21de55521ad6de604485bac9b5b8fa046d3f754"},
+    {"path":"docs/evidence/sso-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"7d5eed3d9c3dea43b60cce0da7bda0346f6fdd5d3103140c8a2281aaf370fd7d"},
+    {"path":"docs/evidence/sso-upgrade/ui/report.md","category":"immutable-evidence","sha256":"29a7a7a807f672a2ac8d51279d40c7e655c9fe83e5923d7ed43c4d79455aaaf9"},
+    {"path":"docs/evidence/sso/execution-decisions.md","category":"immutable-evidence","sha256":"6f6f2deb0b1a5d1374f13720af39e5c02a4827c3f7d69ae92b8f438dbbbcde8f"},
+    {"path":"docs/evidence/sso/independent-review.md","category":"immutable-evidence","sha256":"49f13bf241edae218c530e568b4548b2d94581ca0a757cb790fa73ef9fd97e9d"},
+    {"path":"docs/evidence/sso/ui/final-report.md","category":"immutable-evidence","sha256":"e6f0e7dda81deab762f5cdadb0b0d4f1e84ac0581d7648f1306f7f6b7aed2be5"},
+    {"path":"docs/evidence/sso/ui/initial-review-phase/final-report.md","category":"immutable-evidence","sha256":"0c56fc7ed77bd28dd5de8c2747e396b21c5ea2d4caa3b128dee8d9a920e9428e"},
+    {"path":"docs/evidence/standalone-dialog-qa/baseline-tests.txt","category":"immutable-evidence","sha256":"5c18aa9e473343fcd38a37580bccd0ef11794824c0cdaa089fc86895c689ecf3"},
+    {"path":"docs/evidence/standalone-dialog-qa/build.txt","category":"immutable-evidence","sha256":"9a990953f17cf144e6d097cd79e5a98f54696af7576f814892338f2bbe178198"},
+    {"path":"docs/evidence/standalone-dialog-qa/full-tests.txt","category":"immutable-evidence","sha256":"a4a0d657b717b5874ce21217f6ac48c807964f659aac7555adc0e40ad5f02a9f"},
+    {"path":"docs/evidence/standalone-dialog-qa/red-tests.txt","category":"immutable-evidence","sha256":"308544f3ffff8fabaddf1172fc95ec2beded8ae4242f3c7b84f9c4606aa17313"},
+    {"path":"docs/evidence/standalone-dialog-qa/result.md","category":"immutable-evidence","sha256":"5afc829ade14f8c7c7a399ddc427e954783cf4c2b21b408d40e0b439a4b3bb91"},
+    {"path":"docs/evidence/standalone-dialog-qa/typecheck.txt","category":"immutable-evidence","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"path":"docs/evidence/version-comparison-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"7bf378aec392e7b3c03094395939aba944ccd88210bcae6c5ce20b79e30dec51"},
+    {"path":"docs/evidence/version-comparison-upgrade/result.md","category":"immutable-evidence","sha256":"24ce6420234a39ecf70178512dcb590301379dee0b2961436bb619e415a3fc97"},
+    {"path":"docs/evidence/version-comparison/delivery.md","category":"immutable-evidence","sha256":"ac94ec0d419c638480f7bba8172b3826c42855a8ee1b6ab6242fb08651d9aa8e"},
+    {"path":"docs/evidence/version-comparison/execution-ledger.md","category":"immutable-evidence","sha256":"7cc341c5fcc250456eff3f02db6b662b886d2f3962dcf8de44dc55db44cb8273"},
+    {"path":"docs/evidence/version-comparison/result.md","category":"immutable-evidence","sha256":"652bc52970eb9bceca5ac1a8b95c00f04f1a6e86e425c1bdc4fb4d80bf5c3bb8"},
+    {"path":"docs/evidence/version-comparison/source-review-resolution.md","category":"immutable-evidence","sha256":"99fb4c7c6172e9fe836674e0d019058669432da759fdffa58a2a27a59b4feeca"},
+    {"path":"docs/evidence/version-comparison/ui-audit.md","category":"immutable-evidence","sha256":"aa44cdc845586d41f3eff4ceb8a7fac8fb55afe01bb41ad34877a590a1f4cf2f"},
+    {"path":"docs/evidence/work-package3-policy-readiness/2026-10-13-readiness-and-proposal.md","category":"immutable-evidence","sha256":"9b9b647adae81276c016cb0d4ed95086a268926a21b44d2d951b981919531c8e"},
+    {"path":"docs/evidence/work-package4/2026-10-16-fixed-ba9031c/README.md","category":"immutable-evidence","sha256":"c9e4e39ef373589025d887d726c2a454208e508c874bb890488a1c7638c9c241"},
+    {"path":"docs/evidence/work-package4/final-summary.md","category":"immutable-evidence","sha256":"afdbfc5189fd6d026a0a812da5da36b892d0a97ce1ae87f0c57cdaae92a8e80e"},
+    {"path":"docs/evidence/work-package4/requirements-status.md","category":"immutable-evidence","sha256":"8a9fd1be5796e0963bbd24c97c85f0e3930cc4f4a8a0549eca034258e3a2776e"},
+    {"path":"docs/evidence/workbench/result.md","category":"immutable-evidence","sha256":"3d48bcce18408966e2be3027734ce57a62f6a36ea93f8744a297b9f04642ccae"},
+    {"path":"docs/governance-security.md","category":"topic-reference","sha256":"5ea33ef5e6fe2e80c9d948ce6ae46ed0ddf103285f05af7cccc9dd044094353c"},
+    {"path":"docs/observability-data-dictionary.md","category":"topic-reference","sha256":"0ee5dccd93fff0214cb08ff49ad0add4fca698eeb444ae7834c8ec20adbf1e10"},
+    {"path":"docs/openapi-credentials.md","category":"topic-reference","sha256":"bfc4de3b75d4dc843b79f162ad07829aa73cde0b3c7cbadc2f30db5b49f3614d"},
+    {"path":"docs/operations.md","category":"topic-reference","sha256":"c708cf4e91acb3506316c52ad9fd6924c134c2794a7a00b3868d6cde241e040e"},
+    {"path":"docs/planning/2026-10-05-sso-scope-assessment.md","category":"historical-design-plan","sha256":"47378760cafa271e46face3db02e3e3ebb69af980f77f12045fb0fcd6dfe2bfd"},
+    {"path":"docs/releases-approval.md","category":"topic-reference","sha256":"c10d2b27d65edd075ba1ee07abd1c397205c2242552a9138e06676e1719926d6"},
+    {"path":"docs/session-security.md","category":"topic-reference","sha256":"a7dfe5780dbded468e12ecb1b0a6d3cb69eea7ef4019789427e46578a86e2efc"},
+    {"path":"docs/superpowers/plans/2026-10-04-core-loop-implementation.md","category":"historical-design-plan","sha256":"2d4d66871ad57851cd7ab1196d0a5f258b9cf42b6fdbf71917fbab73d8121645"},
+    {"path":"docs/superpowers/plans/2026-10-04-local-runtime-implementation.md","category":"historical-design-plan","sha256":"00edee88259fc8d6c418636195e93771e395190682fbcbb60cb858133ac264d0"},
+    {"path":"docs/superpowers/plans/2026-10-04-observability-alerting-implementation.md","category":"historical-design-plan","sha256":"ee2c114185371c769ef15f9126237e4f53646da73f6759458591ef194535e313"},
+    {"path":"docs/superpowers/plans/2026-10-05-sso-oidc-implementation.md","category":"historical-design-plan","sha256":"d435619db58d3f7c4da664f607474e9cde8f25b4eb3e4695bc9732ee402d0a21"},
+    {"path":"docs/superpowers/plans/2026-10-05-system-settings-implementation.md","category":"historical-design-plan","sha256":"4f0d0e225ba815ced04dd41f209140c5a138ce8534ef2a9e13516e16a50bb1cc"},
+    {"path":"docs/superpowers/plans/2026-10-05-traffic-policies-implementation.md","category":"historical-design-plan","sha256":"968ddeeea2c0771cdffeae6690b08b0baefab81692c5ebd4aaef0cc94554c3cd"},
+    {"path":"docs/superpowers/plans/2026-10-06-version-comparison-implementation.md","category":"historical-design-plan","sha256":"bb9d4a7ea2ed3f552258ce54849ac0db448320b83b73a96ffd65592455925741"},
+    {"path":"docs/superpowers/plans/2026-10-07-contract-management-completion.md","category":"historical-design-plan","sha256":"977565e0812653b6854089057b9b2f567a7749a38053057a4059d5f0efe47d21"},
+    {"path":"docs/superpowers/plans/2026-10-07-gateway-jwt-retry-cache.md","category":"historical-design-plan","sha256":"c34530c1391cef7936839ca4e298179b7b011e1f8cff10c027b9378d880758a3"},
+    {"path":"docs/superpowers/plans/2026-10-08-cross-environment-approvals.md","category":"historical-design-plan","sha256":"13c16f43887e27eb0a4de3080729d166d9e9583f72341c067db1bb2a95c18980"},
+    {"path":"docs/superpowers/plans/2026-10-08-external-notifications.md","category":"historical-design-plan","sha256":"113012e23b00cc9960ad1529b7829e0cffef2a250a7de5627f3aa99fe5ebe76f"},
+    {"path":"docs/superpowers/plans/2026-10-08-notification-approval-delivery.md","category":"historical-design-plan","sha256":"6860d51fba37e2aedfd524a956f39a570a3918167a22ebc165315fa612e10577"},
+    {"path":"docs/superpowers/plans/2026-10-08-security-hardening.md","category":"historical-design-plan","sha256":"0e5ad71c8a259120285a01ceeb2552518c57a470772e02d49837311b514664b4"},
+    {"path":"docs/superpowers/plans/2026-10-09-environment-access-address.md","category":"historical-design-plan","sha256":"f19e69d76873124174c33079ef528ae6a1905a2eb544760da482f7896ee662ef"},
+    {"path":"docs/superpowers/plans/2026-10-09-gateway-query-performance.md","category":"historical-design-plan","sha256":"7128c3b427dc65f88064bef47d46f2c131534bcf783a609d375b246bf8aa524f"},
+    {"path":"docs/superpowers/plans/2026-10-09-release-pipeline.md","category":"historical-design-plan","sha256":"17cfe58bbe3cbc3fb74699881c51550e1e02644eaa90844a484d3740fedbe0f8"},
+    {"path":"docs/superpowers/plans/2026-10-09-release-promotion.md","category":"historical-design-plan","sha256":"105f45df44f65bedf1bb25e28e52e3257e7e3c9c52cea55374dc1beaf4227ae4"},
+    {"path":"docs/superpowers/plans/2026-10-12-current-business-combined-performance-baseline.md","category":"historical-design-plan","sha256":"055a72f379277dff504e2490c9af8789db99510986ddd5cd7fea90a60d6d51f1"},
+    {"path":"docs/superpowers/plans/2026-10-12-fixed-main-verification.md","category":"historical-design-plan","sha256":"68505da7a9f4203f3c13281373f682418bd42b3ea7ce0ba71183d734828f763d"},
+    {"path":"docs/superpowers/plans/2026-10-13-cors-ip-transform-json-body.md","category":"historical-design-plan","sha256":"acf273a9adfc98a5bada352ce0ca00b2debb1b5fec5c2e85a6cf969cec5e074f"},
+    {"path":"docs/superpowers/plans/2026-10-13-cors-ip-transform.md","category":"historical-design-plan","sha256":"f08365b17fa5ab77c2e196f807d88d403708fddd4a2650d024c616a4b1ac3811"},
+    {"path":"docs/superpowers/plans/2026-10-15-account-credential-closeout-a-accounts.md","category":"historical-design-plan","sha256":"e558cb5b43a3297d2c0f37187940f97bb5c5462c23917910c8acfd37f2d755e5"},
+    {"path":"docs/superpowers/plans/2026-10-15-account-credential-closeout-b-usage.md","category":"historical-design-plan","sha256":"d9f60fa2dc2b57533d651d514c99e6cf19e2f31fbd8481d00aa6f857797b14c7"},
+    {"path":"docs/superpowers/plans/2026-10-15-account-credential-closeout-c-delivery.md","category":"historical-design-plan","sha256":"71d30511436408df1d75091e07ac46656f0a6aae83eded8f7f4e9f0c1cf83f43"},
+    {"path":"docs/superpowers/plans/2026-10-15-account-credential-closeout.md","category":"historical-design-plan","sha256":"8a2e467fc458830cf59fcaad749eb9151cc3f14da95120ae972396049d66a2fc"},
+    {"path":"docs/superpowers/plans/2026-11-04-authoritative-notification-migration.md","category":"historical-design-plan","sha256":"93b2acff33b804468465f56a06d3c6fe5618a138eea0964f21040ea9e119c77c"},
+    {"path":"docs/superpowers/plans/2026-11-04-governance-snapshot-24-integration.md","category":"historical-design-plan","sha256":"549a437807dac7cd2f65d5dc504347fe5d92b0db20cda6861a0a1164041fde30"},
+    {"path":"docs/superpowers/plans/2026-11-04-independent-security-evidence-increment.md","category":"historical-design-plan","sha256":"d2a45f008e81c8e8b797eeb447e5b7ca721626a53a3cdae223d29af8d4dedfb3"},
+    {"path":"docs/superpowers/plans/2026-11-04-migration-budget-trace.md","category":"historical-design-plan","sha256":"905679c28bfa7bcddef365abb62752004f97b922f96109851085fdbab9805873"},
+    {"path":"docs/superpowers/plans/2026-11-05-independent-persistent-storage-verification.md","category":"historical-design-plan","sha256":"aa4b225afe55644023ddb3db23fa06abbf085f34091aa26e987e74f9ed9a6a16"},
+    {"path":"docs/superpowers/plans/2026-11-10-console-ci-phase1.md","category":"historical-design-plan","sha256":"6bac439be30ffbfd5394faf6f0058fde88c882cad05a8c0edb13cf8e8599776e"},
+    {"path":"docs/superpowers/plans/2026-11-10-contracts-ci-phase2.md","category":"historical-design-plan","sha256":"487a7b2c742441b0dfb2c23b1f9a3649475fb42398a3bd08756041bc6a4cb479"},
+    {"path":"docs/superpowers/specs/2026-10-04-core-loop-design.md","category":"historical-design-plan","sha256":"233db0162d086761ce82a70b5ca9c7b9757e23a4f6dab1cd821d4fa79e73696e"},
+    {"path":"docs/superpowers/specs/2026-10-04-local-runtime-design.md","category":"historical-design-plan","sha256":"a2d30dfc472461306886aedf4b8df669fd8a4daadfef61ad17e015b0883166a4"},
+    {"path":"docs/superpowers/specs/2026-10-04-observability-alerting-design.md","category":"historical-design-plan","sha256":"b8e37e2d0f04e3d1a4b7cd384fc51902f021a0b62ebf5734a29325ecbc629d85"},
+    {"path":"docs/superpowers/specs/2026-10-05-sso-oidc-design.md","category":"historical-design-plan","sha256":"7fd1e5cda221ab123cbc69e4102609f7fded8523eb16758d9d7c9cc6c81cb97e"},
+    {"path":"docs/superpowers/specs/2026-10-05-system-settings-design.md","category":"historical-design-plan","sha256":"7693051dc9212b4134538fe208d611fa57ebfd547e7ccb9d73af17327de15d63"},
+    {"path":"docs/superpowers/specs/2026-10-05-traffic-policies-design.md","category":"historical-design-plan","sha256":"4405ea26787fd3fb61546ba370d6414ef7a7edccf0e7facc36d99c89a5d716a7"},
+    {"path":"docs/superpowers/specs/2026-10-06-contract-management-completion-design.md","category":"historical-design-plan","sha256":"db8083a74531a85f014de29ba4ee684bca08789148733a40e538087e79b82e4a"},
+    {"path":"docs/superpowers/specs/2026-10-06-version-comparison-design.md","category":"historical-design-plan","sha256":"70d3f4002bae7ffa46cb35ad0411e3873fa285c7574481b7562568f968494acc"},
+    {"path":"docs/superpowers/specs/2026-10-07-gateway-jwt-retry-cache-design.md","category":"historical-design-plan","sha256":"5fdeb27a18959bad7597b235bb67893a9c0f793ec2b197d61e222a65753c6e68"},
+    {"path":"docs/superpowers/specs/2026-10-08-notification-cross-environment-approvals-design.md","category":"historical-design-plan","sha256":"79f5d7c229c76cbc90e908ca0270e707ca914832eb2dc93fa0b44f722554f9f8"},
+    {"path":"docs/superpowers/specs/2026-10-08-security-hardening-design.md","category":"historical-design-plan","sha256":"aaaa90179cff5c565cd124f788863d159ea3f8e66a2109963c399c5aaa34533c"},
+    {"path":"docs/superpowers/specs/2026-10-09-environment-access-address-design.md","category":"historical-design-plan","sha256":"2c0be771f7cce4373dec7192ceddabbad91f0d9d77fa514d8aca3dfe7325c5b9"},
+    {"path":"docs/superpowers/specs/2026-10-09-gateway-query-performance-design.md","category":"historical-design-plan","sha256":"e047bd7f3657c567a6606823f563b648c56cf2f5466b6731b1d9a96f4b975b3c"},
+    {"path":"docs/superpowers/specs/2026-10-09-release-pipeline-design.md","category":"historical-design-plan","sha256":"4654e72c7c8fc9610774688132775b5c40fd299803929f0a25dd613ce53c09b8"},
+    {"path":"docs/superpowers/specs/2026-10-09-release-promotion-design.md","category":"historical-design-plan","sha256":"a01f8f11a270f5493f19bb3cf2af33176cd86dfdef3c7c187486223395a2076a"},
+    {"path":"docs/superpowers/specs/2026-10-12-current-business-combined-performance-baseline-design.md","category":"historical-design-plan","sha256":"98ff99ab88bf504d0e9f9d32fb288b15e168997867aaa69e1bbf6b91f659bbe0"},
+    {"path":"docs/superpowers/specs/2026-10-13-cors-ip-transform-design.md","category":"historical-design-plan","sha256":"5820962e5c8f9ec1f452e2baf11e8caab76479e830c79fc97ec30f8d34283209"},
+    {"path":"docs/superpowers/specs/2026-10-13-cors-ip-transform-json-body-design.md","category":"historical-design-plan","sha256":"494a14b5bd22c5331a7419ed383ddf516863a7c5f41f64e42be801e9c2d7c554"},
+    {"path":"docs/superpowers/specs/2026-10-15-account-credential-closeout-design.md","category":"historical-design-plan","sha256":"b3b0c33dd71a6fb83b28c6efe99f74a592d580995d34618f612bbc4f43413994"},
+    {"path":"docs/superpowers/specs/2026-11-04-governance-snapshot-24-integration-design.md","category":"historical-design-plan","sha256":"d0f1c8293fb2255a826dc5c31eb353dc25a0ab4dfb2d6196fa1809549a925cad"},
+    {"path":"docs/superpowers/specs/2026-11-04-independent-witness-recovery-boundaries.md","category":"historical-design-plan","sha256":"eb584cecff4fb37b6a07b63457c70345632e393e382b8f2298ba006239e8f473"},
+    {"path":"docs/superpowers/specs/2026-11-04-migration-budget-trace-design.md","category":"historical-design-plan","sha256":"dc275d28975a8c7dd474a6d670a4dac1642b568315a29b55a78c4eb0d99adc75"},
+    {"path":"docs/superpowers/specs/2026-11-05-independent-quota-backend-design.md","category":"historical-design-plan","sha256":"77976d8aa63c210b102c133c957ba1df6b606a8bcaea9dfa113715a254c186f4"},
+    {"path":"docs/superpowers/specs/2026-11-10-console-ci-phase1-design.md","category":"historical-design-plan","sha256":"791fe388cf24e087e581425c0a56b756f0dcc11c2ab7c399c310729fe4f82d54"},
+    {"path":"docs/superpowers/specs/2026-11-10-contracts-ci-phase2-design.md","category":"historical-design-plan","sha256":"1be4ab24ffbc6b52cc5501064fcb7846c3d3d7a0f153056b16826f86b3896ee1"},
+    {"path":"docs/traffic-policy-data-dictionary.md","category":"topic-reference","sha256":"5c36b5b4703600319f1a02626576382c12e40279c7a24884e9754976a27a0bc7"},
+    {"path":"docs/workbench.md","category":"topic-reference","sha256":"4f15104d0c5fbd10b4f0561eee8cf61ae5758cf1115d384723869980b3fc82d4"}
+  ]
+}
