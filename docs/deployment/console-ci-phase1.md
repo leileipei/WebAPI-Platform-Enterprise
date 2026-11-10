@@ -1,6 +1,6 @@
 # 前端自动检查第一批：配置与本地验证
 
-日期：2026-11-10。配置阶段输入：主干 `7626115c769ae0926d38109ace46b2f5017bfcc3`。用户选择 A 路径，首批仅前端，三个后端套件为第二批。**后续状态：工作流已通过 PR #5 合入，修正候选和 main 的实际检查均通过；主干保护未启用。**下文保留首批本地验证的原范围与结果，后续结果见文末。
+日期：2026-11-10。配置阶段输入：主干 `7626115c769ae0926d38109ace46b2f5017bfcc3`。用户选择 A 路径，首批仅前端，三个后端套件为第二批。**后续状态：工作流已通过 PR #5 合入，修正候选和 main 的实际检查均通过；2026-11-11 只读确认四项主干必需检查已启用。**下文保留首批本地验证的原范围与结果，后续结果见文末。
 
 ## 本批配置
 
@@ -51,6 +51,6 @@
 
 后续经明确授权发布并合入 [PR #5](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/5)。修正候选 `7694c4a` 的 [PR Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42828796307) 和 main `3774ccc` 的 [push Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42839001626) 均实际完成：各 321 通过、0 失败/跳过，类型检查与构建通过，runner 为 `ubuntu-24.04`。这两次结果与上述本机验证分别记录；不据成功结论抹去既有告警。
 
-`console` 尚未配置为 main 必需检查。主干保护管理仍需有权限的连接或维护者执行并读回核验。完整当前状态见[状态页](current-project-status.md)。
+2026-11-11 最新只读读取已确认 `console` 列为 main 必需检查，本轮未写入规则；其余完整保护设置仍需相应管理接口核验。完整当前状态见[状态页](current-project-status.md)。
 
 设计：[首批设计](../superpowers/specs/2026-11-10-console-ci-phase1-design.md)。计划：[首批实施计划](../superpowers/plans/2026-11-10-console-ci-phase1.md)。

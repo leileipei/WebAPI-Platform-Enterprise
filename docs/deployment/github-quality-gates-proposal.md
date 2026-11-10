@@ -1,6 +1,6 @@
 # GitHub 自动检查与主干保护提案
 
-日期：2026-11-10。两批配置及 P2 修复、Integration 作业上限修正已通过 [PR #5](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/5) 合入 main `3774ccc7fd97a59ff4851d3a9f55179c4635c61f`。修正后的 PR 及合并后 main 的四项检查均已通过；主干保护尚未启用。实际版本与发布状态统一见[当前状态页](current-project-status.md)。
+方案日期：2026-11-10；状态复核：2026-11-11。两批配置及 P2 修复、Integration 作业上限修正已通过 [PR #5](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/5) 合入 main `3774ccc7fd97a59ff4851d3a9f55179c4635c61f`。修正后的 PR 及合并后 main 的四项检查均已通过；最新只读读取确认四项检查已列为 main 必需检查。本轮未修改保护规则，其余完整设置仍待核对。实际版本与发布状态统一见[当前状态页](current-project-status.md)。
 
 本提案用于把现有验证脚本接到独立 GitHub runner，不改产品行为、测试断言、数据库锁策略或原4192部署。不把 CI 通过视为 SDK/浏览器、目标环境或生产验收。
 
@@ -44,13 +44,15 @@ GitHub [runner 文档](https://docs.github.com/en/actions/reference/runners/gith
 
 首次超时运行、修正后 PR 运行和 main 运行分别保留，不能把取消轮次改标通过。PR Integration 测试耗时 55 分 9 秒，main 为 52 分 44 秒；完整作业另含准备和清理，均在 60 分钟上限内完成。实际 runner、步骤及完整日志已在本地忽略目录核对保存，不自动发布原始资料。
 
-## 主干保护的具体建议（真实运行已完成，尚待配置）
+## 主干保护的建议与已确认范围
+
+2026-11-11 分支摘要接口显示 `protected: true`，四项必需检查的 `enforcement_level` 为 `everyone`；仓库规则集列表为空。这只能确认下面的检查名，PR、严格同步、批准人数、强推/删除及绕过等条目仍是建议，未由本轮完整管理接口核实。
 
 | 设置 | 建议 |
 | --- | --- |
 | 目标 | 仅 `main`，新规则先以实际可见且已跑通的检查名配置 |
 | 合并入口 | 要求 PR，禁止直接推送、强推和删除；常规改动经过已选检查 |
-| 必需检查 | `console`、`contracts-domain`、`contracts-integration`、`contracts-gateway` 均有真实成功记录；当前必需检查仍未配置 |
+| 必需检查 | `console`、`contracts-domain`、`contracts-integration`、`contracts-gateway` 均有真实成功记录，且最新读取已列为必需检查 |
 | 分支新鲜度 | 要求与最新主干同步，并重新验证合并候选 |
 | 讨论 | 要求解决未结审查讨论 |
 | 批准人数 | 核实有可参与的独立维护者后再要求至少 1 人；作者不能批准自己的 PR，不把单人仓库配置成不可合并 |
@@ -63,5 +65,5 @@ GitHub [runner 文档](https://docs.github.com/en/actions/reference/runners/gith
 1. 已完成：选择 A、两批工作流、本地验证、独立审查与限定范围发布。
 2. 已完成：PR #5 首次真实运行及超时记录；取得额外明确授权后，仅将 Integration 作业上限改为 60 分钟。
 3. 已完成：修正后四套 CI 全绿、合入 main、本地主分支同步及 main push 四套 CI 全绿。
-4. 待办：确认主干规则和管理权限后，按四个真实检查名配置，并读回核验；本次资料更新不执行规则写入。
+4. 已只读确认四项必需检查启用；待具备相应管理读取权限时核对其余完整设置。本次资料更新不执行规则写入。
 5. GitHub 运行与规则启用分别记录，资料整理公开范围、业务 E2E 和生产验收保持独立。

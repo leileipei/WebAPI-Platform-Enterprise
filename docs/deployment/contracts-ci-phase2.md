@@ -58,6 +58,6 @@
 
 ## 仍未执行的动作
 
-本批及后续 CI 整合不执行固定端口 E2E、G14 故障、性能实验、安全准入启用或 4192 升级。原目录文档、历史失败与暂停状态保持不变。GitHub/Ubuntu ARM64 已实际运行通过；主干必需检查尚未启用，AMD64 和目标环境验收仍未由此获得证明。
+本批及后续 CI 整合不执行固定端口 E2E、G14 故障、性能实验、安全准入启用或 4192 升级。原目录文档、历史失败与暂停状态保持不变。GitHub/Ubuntu ARM64 已实际运行通过；2026-11-11 只读确认三项后端检查及 `console` 已列为 main 必需检查，本轮未写入规则。AMD64 和目标环境验收仍未由此获得证明。
 
 设计：[第二批设计](../superpowers/specs/2026-11-10-contracts-ci-phase2-design.md)。计划：[第二批实施计划](../superpowers/plans/2026-11-10-contracts-ci-phase2.md)。首批记录：[前端检查](console-ci-phase1.md)。

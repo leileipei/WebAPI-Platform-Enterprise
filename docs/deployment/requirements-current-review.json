@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "reviewDate": "2026-11-11",
-  "reviewType": "source traceability, Node/SSR and isolated HTTP/PostgreSQL targeted regression; not browser or target environment acceptance",
+  "reviewType": "source traceability, offline checks, isolated backend regression and partial real-browser permission verification",
   "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
   "documentationInput": "b3d6167c2f6ceef56ead557b4ea35c9c0e1e3516",
   "originalLedger": {
@@ -42,7 +42,9 @@
     "newVerifierTestsRun": 11,
     "newOfflineTestsRun": 39,
     "newBackendTestsRun": 26,
-    "newBrowserAcceptanceTestsRun": 0
+    "newBrowserAcceptanceTestsRun": 17,
+    "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+    "browserGroupsPartiallyExercised": 5
   },
   "mainCi": {
     "source": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
@@ -77,7 +79,7 @@
     "Historical closed33/partial40/missing18/reverify363 retained without upgrading acceptance",
     "Unchanged references only compare cited files, not entire transitive runtime behavior",
     "Changed references identify possible impact, not126 regressions or16 invalid historical closures",
-    "No deployment, field fault run, branch protection mutation or public push",
+    "No original-runtime upgrade or production deployment; temporary owned UI runtime only; no field fault run, branch protection mutation or public push",
     "G14 historical Unknown and package2 pause remain unchanged",
     "Product CI integration does not prove artifact signing or all migration gates"
   ],
@@ -2307,13 +2309,20 @@
         ],
         "evidenceLimit": "Scope 编辑器测试不覆盖 Shell 登录默认项目选择。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
         ],
         "backendCasesPassed": 1,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B01",
+          "B02",
+          "B08",
+          "B09",
+          "B10"
+        ]
       }
     },
     {
@@ -6623,7 +6632,7 @@
         ],
         "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
@@ -6631,7 +6640,13 @@
           "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
         ],
         "backendCasesPassed": 4,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B03",
+          "B07",
+          "B11",
+          "B12"
+        ]
       }
     },
     {
@@ -6679,7 +6694,7 @@
         ],
         "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
@@ -6687,7 +6702,13 @@
           "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
         ],
         "backendCasesPassed": 4,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B03",
+          "B07",
+          "B11",
+          "B12"
+        ]
       }
     },
     {
@@ -6735,7 +6756,7 @@
         ],
         "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
@@ -6743,7 +6764,13 @@
           "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
         ],
         "backendCasesPassed": 4,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B03",
+          "B07",
+          "B11",
+          "B12"
+        ]
       }
     },
     {
@@ -6791,7 +6818,7 @@
         ],
         "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
@@ -6799,7 +6826,13 @@
           "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
         ],
         "backendCasesPassed": 4,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B03",
+          "B07",
+          "B11",
+          "B12"
+        ]
       }
     },
     {
@@ -6847,7 +6880,7 @@
         ],
         "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
@@ -6855,7 +6888,13 @@
           "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
         ],
         "backendCasesPassed": 4,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B03",
+          "B07",
+          "B11",
+          "B12"
+        ]
       }
     },
     {
@@ -6949,7 +6988,7 @@
         ],
         "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
@@ -6957,7 +6996,13 @@
           "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
         ],
         "backendCasesPassed": 4,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B03",
+          "B07",
+          "B11",
+          "B12"
+        ]
       }
     },
     {
@@ -7030,7 +7075,7 @@
         ],
         "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
@@ -7038,7 +7083,13 @@
           "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
         ],
         "backendCasesPassed": 4,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B03",
+          "B07",
+          "B11",
+          "B12"
+        ]
       }
     },
     {
@@ -7114,7 +7165,7 @@
         ],
         "evidenceLimit": "ObservationMetricsTests 使用 MetricProtocolHandler 协议替身，不能证明真实 Prometheus 采集和页面交互。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
@@ -7123,7 +7174,11 @@
           "WebApi.Integration.Tests.ObservationMetricsTests.SourceFailureReturns503"
         ],
         "backendCasesPassed": 4,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B05",
+          "B13"
+        ]
       }
     },
     {
@@ -7389,7 +7444,7 @@
         ],
         "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
@@ -7397,7 +7452,13 @@
           "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
         ],
         "backendCasesPassed": 4,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B03",
+          "B07",
+          "B11",
+          "B12"
+        ]
       }
     },
     {
@@ -7456,7 +7517,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7471,7 +7532,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -7530,7 +7595,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7545,7 +7610,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -7604,7 +7673,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7619,7 +7688,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -7678,7 +7751,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7693,7 +7766,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -7752,7 +7829,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7767,7 +7844,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -7826,7 +7907,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7841,7 +7922,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -7900,7 +7985,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7915,7 +8000,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -7974,7 +8063,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -7989,7 +8078,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -8074,7 +8167,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -8089,7 +8182,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -8149,7 +8246,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -8164,7 +8261,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -8221,7 +8322,7 @@
         ],
         "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
@@ -8236,7 +8337,11 @@
           "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
         ],
         "backendCasesPassed": 15,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B04",
+          "B11"
+        ]
       }
     },
     {
@@ -9752,11 +9857,12 @@
         ],
         "evidenceLimit": "当前 GatewayNodeDto 不提供完整 LKG 状态；不能只补截图或复跑底层测试就关闭该项。",
         "backendExecution": "not-run-in-this-followup",
-        "browserExecution": "not-run",
+        "browserExecution": "not-run; implementation-gap",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [],
         "backendCasesPassed": 0,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": []
       }
     },
     {
@@ -11443,7 +11549,7 @@
         ],
         "evidenceLimit": "Scope/角色静态组件与密码重置回归不能替代完整用户治理验收。",
         "backendExecution": "related-tests-passed; full-requirement-not-accepted",
-        "browserExecution": "not-run",
+        "browserExecution": "partial real-browser checks observed; full-acceptance-pending",
         "currentAcceptance": "pending",
         "backendMethodsExecuted": [
           "WebApi.Integration.Tests.GovernanceTests.LastActivePlatformAdminProtected",
@@ -11451,7 +11557,14 @@
           "WebApi.Integration.Tests.PasswordResetTests.Resetting_sole_local_admin_preserves_roles_and_scopes"
         ],
         "backendCasesPassed": 3,
-        "countNote": "shared related cases; do not sum per-requirement counts"
+        "countNote": "shared related cases; do not sum per-requirement counts",
+        "browserCheckpointIds": [
+          "B10",
+          "B14",
+          "B15",
+          "B16",
+          "B17"
+        ]
       }
     },
     {
@@ -12694,6 +12807,45 @@
         "newBackendTestsRun": 0,
         "newBrowserAcceptanceTestsRun": 0
       }
+    },
+    {
+      "commit": "848b98ef0f40015bbd0e9dd52403236be73b9649",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "3f4b6e8638aff403edd25b34b048525ec9a04052a083f45c38cda933bff1d285",
+      "scope": "offline and targeted backend verified; no real browser checks in that stage",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 0
+      }
     }
   ],
   "targetedFollowup": {
@@ -13310,7 +13462,7 @@
         "无可访问项目时明确为空，不选入隐藏资源"
       ],
       "existingProofLimit": "后台受限会话测试不覆盖浏览器 localStorage 和默认选择。",
-      "status": "not-executed",
+      "status": "partially-executed; full-acceptance-pending",
       "viewportWidth": 1440,
       "evidenceRequired": [
         "固定源码和运行身份",
@@ -13318,6 +13470,13 @@
         "实际动作与结果",
         "脱敏页面截图及必要服务端响应",
         "无越权写入或信息泄漏的核对"
+      ],
+      "observedCheckpointIds": [
+        "B01",
+        "B02",
+        "B08",
+        "B09",
+        "B10"
       ]
     },
     {
@@ -13353,7 +13512,7 @@
         "app.write 不隐式授予 app.read、metrics.read 或 audit.read；UI 入口与 API 能力分开记录"
       ],
       "existingProofLimit": "当前摘要和分页回归不是 app.write 全组合验收。",
-      "status": "not-executed",
+      "status": "partially-executed; full-acceptance-pending",
       "viewportWidth": 1440,
       "evidenceRequired": [
         "固定源码和运行身份",
@@ -13361,6 +13520,12 @@
         "实际动作与结果",
         "脱敏页面截图及必要服务端响应",
         "无越权写入或信息泄漏的核对"
+      ],
+      "observedCheckpointIds": [
+        "B03",
+        "B07",
+        "B11",
+        "B12"
       ]
     },
     {
@@ -13387,7 +13552,7 @@
         "Partial/Unknown/Unavailable 不伪装正常零值"
       ],
       "existingProofLimit": "本次 Metrics 回归使用 MetricProtocolHandler 替身；真实 Prometheus 与浏览器未验收。",
-      "status": "not-executed",
+      "status": "partially-executed; full-acceptance-pending",
       "viewportWidth": 1440,
       "evidenceRequired": [
         "固定源码和运行身份",
@@ -13395,6 +13560,10 @@
         "实际动作与结果",
         "脱敏页面截图及必要服务端响应",
         "无越权写入或信息泄漏的核对"
+      ],
+      "observedCheckpointIds": [
+        "B05",
+        "B13"
       ]
     },
     {
@@ -13434,7 +13603,7 @@
         "审批发布和当前证明才推进轮换，不承诺保存即在数据面生效"
       ],
       "existingProofLimit": "本次实证是服务端和数据库；一次性弹窗、焦点/取消及全 UI 权限矩阵尚待验收。",
-      "status": "not-executed",
+      "status": "partially-executed; full-acceptance-pending",
       "viewportWidth": 1440,
       "evidenceRequired": [
         "固定源码和运行身份",
@@ -13442,6 +13611,10 @@
         "实际动作与结果",
         "脱敏页面截图及必要服务端响应",
         "无越权写入或信息泄漏的核对"
+      ],
+      "observedCheckpointIds": [
+        "B04",
+        "B11"
       ]
     },
     {
@@ -13470,7 +13643,7 @@
         "页面禁用、错误反馈与真实服务拒绝一致"
       ],
       "existingProofLimit": "重置和最后管理员用例不覆盖全部创建/停用/角色/Scope 页面组合。",
-      "status": "not-executed",
+      "status": "partially-executed; full-acceptance-pending",
       "viewportWidth": 1440,
       "evidenceRequired": [
         "固定源码和运行身份",
@@ -13478,6 +13651,13 @@
         "实际动作与结果",
         "脱敏页面截图及必要服务端响应",
         "无越权写入或信息泄漏的核对"
+      ],
+      "observedCheckpointIds": [
+        "B10",
+        "B14",
+        "B15",
+        "B16",
+        "B17"
       ]
     },
     {
@@ -13501,7 +13681,7 @@
         "普通配置 LKG 与凭证安全检查点/租约状态分开"
       ],
       "existingProofLimit": "实现/呈现仍有缺口；本轮不重跑四个 Gateway 恢复方法，不执行 G14。",
-      "status": "not-executed",
+      "status": "not-executed; implementation-gap",
       "viewportWidth": 1440,
       "evidenceRequired": [
         "固定源码和运行身份",
@@ -13509,7 +13689,8 @@
         "实际动作与结果",
         "脱敏页面截图及必要服务端响应",
         "无越权写入或信息泄漏的核对"
-      ]
+      ],
+      "observedCheckpointIds": []
     }
   ],
   "browserEvidenceRules": [
@@ -13517,5 +13698,247 @@
     "Do not record plaintext Secret, Cookie, session headers or database passwords in screenshots/logs; record one-time visibility as a boolean and redact the visible region",
     "Cases are prepared, not executed; raw backend logs remain local",
     "P18-S01/P01-S03 business model or semantics decisions remain unresolved"
-  ]
+  ],
+  "realBrowserVerification": {
+    "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "848b98ef0f40015bbd0e9dd52403236be73b9649",
+    "imageId": "sha256:c94a7c8ddf3312af1284158f284fdc44dec9aaff40265e06cc20ca4310c72a55",
+    "viewport": {
+      "height": 900,
+      "width": 1440
+    },
+    "observedCheckpoints": 17,
+    "observedPass": 17,
+    "observedFail": 0,
+    "scenarioGroupsPartial": 5,
+    "scenarioGroupsNotExecuted": 1,
+    "observations": [
+      {
+        "id": "B01",
+        "identity": "reader",
+        "check": "fresh login selects accessible project A; hidden organization/project absent; governance writes disabled",
+        "result": "observed_pass",
+        "screenshot": "ui/reader-default.jpg",
+        "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+        "artifactSha256": "ba60064cefb26546d4086166342fa75c78c89b5d0f6b515ad6bcbafdbaed3e83",
+        "artifactBytes": 54213
+      },
+      {
+        "id": "B02",
+        "identity": "reader",
+        "check": "project B selection survives page reload",
+        "result": "observed_pass",
+        "screenshot": "ui/reader-project-preference.jpg",
+        "artifactSha256": "bc56dc8f6d94f33b8fa89c4d72c49dbaf67bad56a17ae67dac70fef22063718d",
+        "artifactBytes": 54342
+      },
+      {
+        "id": "B03",
+        "identity": "reader",
+        "check": "two visible applications, foreign app absent, API count1 and credentials1/4, create disabled",
+        "result": "observed_pass",
+        "screenshot": "ui/reader-applications.jpg",
+        "artifactSha256": "150596c435940104779ae54917486bfc0d152ac68fd4b541b06aa033791f6fea",
+        "artifactBytes": 64400
+      },
+      {
+        "id": "B04",
+        "identity": "reader",
+        "check": "four credential rows, masked AK, unknown usage/LastUsed explicit, create/edit/rotation disabled, no audit permission",
+        "result": "observed_pass",
+        "screenshot": "ui/reader-credentials.jpg",
+        "artifactSha256": "f42a8cc8f983d199c0353212f0606caab5939a0687fbf62ae14de055bb3a1fd1",
+        "artifactBytes": 120939
+      },
+      {
+        "id": "B05",
+        "identity": "reader",
+        "check": "Metrics denies app.read-only identity with explicit metrics.read notice; refresh disabled",
+        "result": "observed_pass",
+        "screenshot": "ui/reader-metrics-denied.jpg",
+        "artifactSha256": "78e4dc8d5feb8043de8ea30ba138406ee21eafdc7f3d0775fcdd9a1fbd0c06d1",
+        "artifactBytes": 68777
+      },
+      {
+        "id": "B06",
+        "identity": "reader",
+        "check": "two environment grants shown as readonly; add/edit disabled",
+        "result": "observed_pass",
+        "screenshot": "ui/reader-permissions.jpg",
+        "artifactSha256": "7edf623abbc2f1231f96e075ad8686a8eabf14a7f1523c909c1e1282196c60f4",
+        "artifactBytes": 72860
+      },
+      {
+        "id": "B07",
+        "identity": "reader",
+        "check": "direct foreign application navigation shows not-found/inaccessible and exposes no app details",
+        "result": "observed_pass",
+        "screenshot": "ui/reader-foreign-denied.jpg",
+        "artifactSha256": "c44037ce812b83225ddec29cbf1af902287febf8994b5b4d549e6e70d0e261c7",
+        "artifactBytes": 62335
+      },
+      {
+        "id": "B08",
+        "identity": "reader",
+        "check": "after project B scope revocation and session refresh, preference falls back to A and application count falls to1",
+        "result": "observed_pass",
+        "screenshot": "ui/reader-revoked-preference.jpg",
+        "artifactSha256": "86580a33492496ffe0baaba92af372a95b27808b61df9baa7b1a4a941b46fcf5",
+        "artifactBytes": 60303
+      },
+      {
+        "id": "B09",
+        "identity": "empty",
+        "check": "organization/project/environment explicitly unavailable; no application rows; create disabled despite prior saved preference",
+        "result": "observed_pass",
+        "screenshot": "ui/empty-scope.jpg",
+        "artifactSha256": "fa49e8651029a67d15824f5145aa2123f77f9f728e92ebcfb2b4ccdbf52b37f3",
+        "artifactBytes": 57396
+      },
+      {
+        "id": "B10",
+        "identity": "restricted",
+        "check": "business URL renders mandatory change-password guard without business navigation; no password change performed",
+        "result": "observed_pass",
+        "screenshot": "ui/restricted-identity.jpg",
+        "artifactSha256": "bdb0bca64cb06c92d7426f0abf789d53dbab1e65cdb4d5894a25dd042b2b619c",
+        "artifactBytes": 45689
+      },
+      {
+        "id": "B11",
+        "identity": "writer",
+        "check": "app edit and credential create/edit enabled; revoked credential rotation disabled; no credential mutation performed",
+        "result": "observed_pass",
+        "screenshot": "ui/writer-credentials-controls.jpg",
+        "artifactSha256": "bb4f7e1f51677b3d8ea1744b56c3a9ad2aefeaf7d9468d3a3979e412d6a1ae3d",
+        "artifactBytes": 122971
+      },
+      {
+        "id": "B12",
+        "identity": "writer",
+        "check": "UI application edit saves owner label, visible list shows new owner and revision9 while data counts retained",
+        "result": "observed_pass",
+        "screenshot": "ui/writer-owner-saved.jpg",
+        "artifactSha256": "42a58f40ecbe8af52b3bd426756c6a1f035e76b684b540fdf12a988e6c14a7ce",
+        "artifactBytes": 65087
+      },
+      {
+        "id": "B13",
+        "identity": "writer",
+        "check": "metrics.read opens real metrics page; no gateway samples shown as dashes with coverage warning, not healthy zero; positive KPI data not validated",
+        "result": "observed_pass",
+        "screenshot": "ui/writer-metrics-empty.jpg",
+        "artifactSha256": "f0072c1f73f4323b9a286c0a22f6d95f1e6af05a665dafe950fc040d41243dcf",
+        "artifactBytes": 76919
+      },
+      {
+        "id": "B14",
+        "identity": "writer",
+        "check": "without user.manage, user list denies data and new/SSO user controls disabled",
+        "result": "observed_pass",
+        "screenshot": "ui/writer-user-management-denied.jpg",
+        "artifactSha256": "dc660ed1c80845be58d1ad052c774571526405760efb7934664e0efde5cc8be6",
+        "artifactBytes": 58277
+      },
+      {
+        "id": "B15",
+        "identity": "nonplatform",
+        "check": "user.manage code alone cannot read platform user list; platform privilege error and disabled create; API403 separately verified",
+        "result": "observed_pass",
+        "screenshot": "ui/nonplatform-user-management-denied.jpg",
+        "artifactSha256": "a379fcde23c4d53cc214780c8a9258c53735b216d76ac514c3b8281fd8a920e6",
+        "artifactBytes": 58766
+      },
+      {
+        "id": "B16",
+        "identity": "admin",
+        "check": "platform admin reads six synthetic users; required-password status shown; create controls enabled; no user mutation through browser",
+        "result": "observed_pass",
+        "screenshot": "ui/admin-user-management.jpg",
+        "artifactSha256": "a594c5c964ef555122794f933cd19c892530fa44ae92264a9c4431bf20e32894",
+        "artifactBytes": 84017
+      },
+      {
+        "id": "B17",
+        "identity": "admin",
+        "check": "live Scope editor shows reader revision5, one project-A read-only rule and zero change counts; closed without saving",
+        "result": "observed_pass",
+        "screenshot": "ui/admin-scope-editor.jpg",
+        "artifactSha256": "39f0e0e33634782a9a1aa284c0fb31ce509a60188ffd32543284113e92d2ac27",
+        "artifactBytes": 75492
+      }
+    ],
+    "artifactStorage": "local ignored browser-acceptance-20261111/ui; not published",
+    "staticFilesVerified": {
+      "console/dist/assets/index-B-bNgDZU.js": "131f6dc5247db3e405093b10acad3b25b5236478215eecc7e2906cff59ba08ee",
+      "console/dist/assets/index-DEw4ls4J.css": "4fcce3ac76567ebb63c6263d3daf1e26245d47ff0b050522bff9f242c7b83002",
+      "console/dist/index.html": "1e0d4ebfd50737c7005f780946cf02c776e8d674fc6400014b60fc587001b79b"
+    },
+    "unexpectedBrowserConsoleErrors": 0,
+    "browserMutationVerified": "application owner text changed and revision increased8to9, read back from live API; no browser credential or permission mutation",
+    "initialPreparationFailure": {
+      "missingExplicitBudgetParameters": 9,
+      "databasePublicTablesBeforeRetry": 0,
+      "firstFailureRecordRetained": true,
+      "pendingMarkerRetained": true,
+      "guardChanged": false,
+      "subsequentAttempt": "fresh distinct owner/project with explicit existing-test budgets; initialized successfully"
+    },
+    "servicesStopped": true,
+    "testVolumesRetained": true,
+    "originalResourceCountsPreserved": {
+      "containers": 186,
+      "volumes": 473,
+      "networks": 36
+    },
+    "originalUncommittedFilesPreserved": 14,
+    "newAccepted": 0,
+    "limitations": [
+      "No browser credential creation, one-time Secret modal, rotation/revocation completion or production activation",
+      "No positive sampled metrics against real traffic; only read-permission and no-sample states verified",
+      "No complete user create/disable/role/Scope-write matrix",
+      "LKG management view still has implementation gap",
+      "Initial migration budget omission was test preparation failure; no product failure inferred",
+      "Migration journal quota is an application setting, not proof of physical hard quota"
+    ]
+  },
+  "repositoryGovernanceObservation": {
+    "main": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "protected": true,
+    "protection": {
+      "enabled": true,
+      "required_status_checks": {
+        "enforcement_level": "everyone",
+        "contexts": [
+          "console",
+          "contracts-domain",
+          "contracts-integration",
+          "contracts-gateway"
+        ],
+        "checks": [
+          {
+            "context": "console",
+            "app_id": 15368
+          },
+          {
+            "context": "contracts-domain",
+            "app_id": 15368
+          },
+          {
+            "context": "contracts-integration",
+            "app_id": 15368
+          },
+          {
+            "context": "contracts-gateway",
+            "app_id": 15368
+          }
+        ]
+      }
+    },
+    "repositoryRulesets": [],
+    "observedAt": "2026-11-10 17:20:55 UTC",
+    "source": "GitHub branch and repository rulesets read APIs",
+    "rulesWrittenByThisTask": false,
+    "fullBranchProtectionSettingsVerified": false
+  }
 }
