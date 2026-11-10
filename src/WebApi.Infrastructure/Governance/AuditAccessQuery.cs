@@ -20,6 +20,28 @@ public sealed class AuditAccessQuery(WebApiDbContext db,AuthorizationService aut
             if(rolePermissions.Length==0)throw new ApiException(403,"permission_denied","缺少审计权限。");
             var allowed=grants.Where(g=>rolePermissions.Contains(null)||rolePermissions.Contains(g.OrganizationId)).Select(g=>new ScopeRef(g.OrganizationId,g.ProjectId,g.EnvironmentId)).Distinct().OrderBy(s=>s.OrganizationId).ThenBy(s=>s.ProjectId).ThenBy(s=>s.EnvironmentId).ToArray();
             fingerprint=System.Text.Json.JsonSerializer.Serialize(allowed,CanonicalJson.Options);
+            // Permission moves can capture two environments in one immutable audit row.
+            // Apply the union of authorized scopes to every captured permission, including
+            // historical rows, before pagination/counting or application-audit filtering.
+            var scopeJson=System.Text.Json.JsonSerializer.Serialize(allowed);
+            query=db.Set<AuditLog>().FromSqlInterpolated($"""
+                SELECT a.* FROM audit_logs a
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM jsonb_path_query(
+                        COALESCE(a.before_json,'[]'::jsonb) || COALESCE(a.after_json,'[]'::jsonb),
+                        '$[*] ? (@.Type == "ApplicationApiPermission").Fields') AS captured(value)
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM environments e
+                        JOIN projects p ON p.id=e.project_id
+                        CROSS JOIN jsonb_to_recordset({scopeJson}::jsonb)
+                            AS s("OrganizationId" uuid,"ProjectId" uuid,"EnvironmentId" uuid)
+                        WHERE e.id::text=captured.value->>'EnvironmentId'
+                            AND s."OrganizationId"=p.organization_id
+                            AND (s."ProjectId" IS NULL OR s."ProjectId"=e.project_id)
+                            AND (s."EnvironmentId" IS NULL OR s."EnvironmentId"=e.id)
+                    )
+                )
+                """).AsNoTracking();
             IQueryable<AuditLog> filtered=query.Where(_=>false);foreach(var scope in allowed)filtered=filtered.Union(query.Where(x=>x.OrganizationId==scope.OrganizationId&&(scope.ProjectId==null||x.ProjectId==scope.ProjectId)&&(scope.EnvironmentId==null||x.EnvironmentId==scope.EnvironmentId)));query=filtered;
         }
         if(!string.IsNullOrEmpty(traceId))query=query.Where(x=>x.TraceId==traceId);if(!string.IsNullOrEmpty(resourceId))query=query.Where(x=>x.ResourceId==resourceId);return new(query,fingerprint);

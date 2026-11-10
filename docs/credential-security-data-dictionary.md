@@ -2,6 +2,8 @@
 
 适用来源：main `57f2ef2`（tag `governance-g13-57f2ef2`）。字段清单提取自最终 EF 模型快照（`20261104090000_Governance24MigrationReceipts.Designer.cs`），与迁移 SQL 逐字一致。关联：[操作手册](deployment/credential-security-operations.md)、[P2-4 独立评审](evidence/governance-merge/p2-4-crypto-review.md)。
 
+> **2026-11-10 运行边界补充（固定主干 `7626115`）**：本页描述表结构及协议语义，不表示对应生产写入、签发、上报路径已接入。`SecurityLeaseIssuer.IssueAsync` 仍为 503 桩，`SecurityAckService`、`CurrentSecurityProofService` 与网关 `SecurityStateStore` 无生产接线；当前普通凭证撤销只修改工作配置，再次审批发布后由新快照生效。安全组件测试与临时 seeder 账本备份演练不能替代实时撤销验收。详见[当前项目状态](deployment/current-project-status.md)。
+
 通用语义：
 
 - **哈希链**：`security_events` 以 `previous_hash`/`event_hash`（SHA-256，char 64）构成链；读取时全链重算校验，主键 + 不可变触发器防分叉/截断。
