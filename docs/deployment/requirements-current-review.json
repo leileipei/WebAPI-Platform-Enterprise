@@ -60,7 +60,10 @@
     "credentialBoundaryHttpChecks": 14,
     "credentialBoundaryPassed": 14,
     "credentialBoundaryFailed": 0,
-    "credentialBoundaryNewCredentials": 0
+    "credentialBoundaryNewCredentials": 0,
+    "crossDaySaveCasesExecuted": 2,
+    "crossDaySaveCasesPassed": 2,
+    "crossDaySaveCasesFailed": 0
   },
   "mainCi": {
     "source": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
@@ -7526,7 +7529,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7570,7 +7573,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -7622,7 +7626,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7666,7 +7670,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -7718,7 +7723,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7762,7 +7767,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -7814,7 +7820,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7858,7 +7864,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -7910,7 +7917,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -7954,7 +7961,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -8006,7 +8014,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8050,7 +8058,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -8102,7 +8111,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8146,7 +8155,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -8198,7 +8208,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8242,7 +8252,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -8320,7 +8331,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8364,7 +8375,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -8417,7 +8429,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8461,7 +8473,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -8511,7 +8524,7 @@
           "console/tests/application-state.test.mjs"
         ],
         "remainingChecks": [
-          "一次性展示与一小时自定义创建窗口保存已定向通过；C08原失败不改，全权限矩阵、更多时间边界及窗口更新仍待验收",
+          "一小时及北京时间/UTC跨日创建保存已定向通过；C08原失败不改，未来时刻生效/到期、IANA/DST、窗口更新和全权限矩阵仍待验收",
           "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
           "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
           "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
@@ -8555,7 +8568,8 @@
         ],
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
-        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+        "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
       }
     },
     {
@@ -13249,6 +13263,63 @@
         "customValidityFollowupPass": 4,
         "customValidityFollowupFail": 0
       }
+    },
+    {
+      "commit": "b2a15f533e935917400deac54688df41cdb2da9d",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "713ef2a0b209a355df8e96c1cc8458a097607c0dce66389af19df9ea3331e576",
+      "scope": "14 rejection/preview boundary checks and prior resource Unknown retained; cross-day actual saves not yet performed in that stage",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0
+      }
     }
   ],
   "targetedFollowup": {
@@ -14005,7 +14076,7 @@
         "无授权拒绝读取/变更；允许的无 app.read 安全写入不额外泄漏 LastUsed",
         "审批发布和当前证明才推进轮换，不承诺保存即在数据面生效"
       ],
-      "existingProofLimit": "一次性展示、关闭/刷新/重登录、部分只读/取消门禁及一小时创建有效期保存已定向实测；C08原失败保留，完整多角色/Scope、时间边界与发布数据面验收未关闭。",
+      "existingProofLimit": "一小时及北京时间/UTC跨日创建窗口的保存、双接口读回和页面刷新已定向实测；C08原失败保留，未来时刻生效/到期、IANA/DST、窗口更新、完整权限矩阵和发布数据面仍未验收。",
       "status": "partially-executed; full-acceptance-pending",
       "viewportWidth": 1440,
       "evidenceRequired": [
@@ -14049,7 +14120,8 @@
         "E03",
         "E04"
       ],
-      "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification"
+      "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
+      "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
     },
     {
       "id": "AC-USER",
@@ -15108,6 +15180,205 @@
       "Positive cross-day and offset checks are preview-only, not saved credential windows",
       "Explicit numeric offsets are not an IANA timezone or DST conversion test",
       "No browser operation, publication, gateway activation or traffic test"
+    ]
+  },
+  "credentialCrossDaySaveVerification": {
+    "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "b2a15f533e935917400deac54688df41cdb2da9d",
+    "imageId": "sha256:c94a7c8ddf3312af1284158f284fdc44dec9aaff40265e06cc20ca4310c72a55",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "casesExecuted": 2,
+    "casesPassed": 2,
+    "casesFailed": 0,
+    "cases": [
+      {
+        "caseId": "K01",
+        "label": "北京时间跨日",
+        "fromLocal": "2026-11-11T23:30",
+        "toLocal": "2026-11-12T00:30",
+        "fromUtc": "2026-11-11T15:30:00.000Z",
+        "toUtc": "2026-11-11T16:30:00.000Z",
+        "durationSeconds": 3600,
+        "result": "pass",
+        "credentialId": "887e692a-da75-47dd-94e5-d2f424d010d6",
+        "applicationRevisionAfterCreate": 6,
+        "applicationRevisionAfterRevoke": 7,
+        "savedStatus": "Active",
+        "savedCredentialRevision": 1,
+        "finalStatus": "Revoked",
+        "finalCredentialRevision": 2,
+        "applicationAndCredentialReadbackMatch": true,
+        "pageReloadMatches": true,
+        "windowUnchangedAfterRevoke": true
+      },
+      {
+        "caseId": "K02",
+        "label": "UTC跨日",
+        "fromLocal": "2026-11-12T07:30",
+        "toLocal": "2026-11-12T08:30",
+        "fromUtc": "2026-11-11T23:30:00.000Z",
+        "toUtc": "2026-11-12T00:30:00.000Z",
+        "durationSeconds": 3600,
+        "result": "pass",
+        "credentialId": "ef707a8b-6fb0-4868-ad56-46d24689bb08",
+        "applicationRevisionAfterCreate": 8,
+        "applicationRevisionAfterRevoke": 9,
+        "savedStatus": "Active",
+        "savedCredentialRevision": 1,
+        "finalStatus": "Revoked",
+        "finalCredentialRevision": 2,
+        "applicationAndCredentialReadbackMatch": true,
+        "pageReloadMatches": true,
+        "windowUnchangedAfterRevoke": true
+      }
+    ],
+    "uiObservations": [
+      {
+        "caseId": "K01",
+        "stage": "created",
+        "result": "pass",
+        "prepared": [
+          {
+            "local": "2026-11-11T23:30",
+            "utc": "2026-11-11T15:30:00.000Z"
+          },
+          {
+            "local": "2026-11-12T00:30",
+            "utc": "2026-11-11T16:30:00.000Z"
+          }
+        ],
+        "secretMetadata": {
+          "dialogPresent": true,
+          "readOnly": true,
+          "valueLength": 69,
+          "valuePresent": true,
+          "warningPresent": true
+        },
+        "secretCaptured": false,
+        "at": "2026-11-10T18:30:36.214Z"
+      },
+      {
+        "caseId": "K01",
+        "stage": "reloaded",
+        "result": "pass",
+        "rowText": "••••y2dw\n修订 1\n\t有效期控制\n工作配置\n\t2026/11/11 23:30:00\n至 2026/11/12 00:30:00\n\t尚无可证明的最近使用\t尚无可用采集（来源未知）\n可见环境合计\n\t创建：无审计读取权限\n撤销：无审计读取权限\n\t有效期 / 撤销轮换",
+        "screenshot": "ui/K01-saved.jpg",
+        "at": "2026-11-10T18:30:57.943Z",
+        "artifactSha256": "16a76a0e147c705cddc02ed4a2ff1b7d9d5fa47845a500d49880614feeb07942"
+      },
+      {
+        "caseId": "K01",
+        "stage": "revoked",
+        "result": "pass",
+        "riskInitiallyDisabled": true,
+        "rowText": "••••y2dw\n修订 2\n\t已撤销\n工作配置\n\t2026/11/11 23:30:00\n至 2026/11/12 00:30:00\n\t尚无可证明的最近使用\t尚无可用采集（来源未知）\n可见环境合计\n\t创建：无审计读取权限\n撤销：无审计读取权限\n\t有效期 / 撤销轮换",
+        "screenshot": "ui/K01-revoked.jpg",
+        "at": "2026-11-10T18:31:16.123Z",
+        "artifactSha256": "1dec236e35a234b6ced7f0906b1c66df18f5d74ecbd5973b708c261349cbf045"
+      },
+      {
+        "caseId": "K02",
+        "stage": "created",
+        "result": "pass",
+        "prepared": [
+          {
+            "local": "2026-11-12T07:30",
+            "utc": "2026-11-11T23:30:00.000Z"
+          },
+          {
+            "local": "2026-11-12T08:30",
+            "utc": "2026-11-12T00:30:00.000Z"
+          }
+        ],
+        "secretMetadata": {
+          "dialogPresent": true,
+          "readOnly": true,
+          "valueLength": 69,
+          "valuePresent": true,
+          "warningPresent": true
+        },
+        "secretCaptured": false,
+        "at": "2026-11-10T18:31:42.987Z"
+      },
+      {
+        "caseId": "K02",
+        "stage": "reloaded",
+        "result": "pass",
+        "rowText": "••••Q83w\n修订 1\n\t有效期控制\n工作配置\n\t2026/11/12 07:30:00\n至 2026/11/12 08:30:00\n\t尚无可证明的最近使用\t尚无可用采集（来源未知）\n可见环境合计\n\t创建：无审计读取权限\n撤销：无审计读取权限\n\t有效期 / 撤销轮换",
+        "screenshot": "ui/K02-saved.jpg",
+        "at": "2026-11-10T18:32:19.310Z",
+        "artifactSha256": "0b6a5448577f6680ab031a00796d4b5052ee796cb4b98aa1870c561ae0f7dfeb"
+      },
+      {
+        "caseId": "K02",
+        "stage": "revoked",
+        "result": "pass",
+        "riskInitiallyDisabled": true,
+        "rowText": "••••Q83w\n修订 2\n\t已撤销\n工作配置\n\t2026/11/12 07:30:00\n至 2026/11/12 08:30:00\n\t尚无可证明的最近使用\t尚无可用采集（来源未知）\n可见环境合计\n\t创建：无审计读取权限\n撤销：无审计读取权限\n\t有效期 / 撤销轮换",
+        "screenshot": "ui/K02-revoked.jpg",
+        "at": "2026-11-10T18:32:20.581Z",
+        "artifactSha256": "3a82662cf253fd20ad15ab83ad4114e0da46ec359883c66512b370b95261f308"
+      }
+    ],
+    "uiObservationCount": 6,
+    "userConfirmedExactPreparedWindows": true,
+    "createdCredentials": 2,
+    "revokedCredentials": 2,
+    "remainingActiveNewCredentials": 0,
+    "credentialsCreatedOutsideApproval": 0,
+    "secretCaptured": false,
+    "secretDialogScreenshotsTaken": false,
+    "testApplicationRevision": 9,
+    "totalTestCredentials": 4,
+    "apiGrants": 0,
+    "previousTwoTestCredentialsUnchanged": true,
+    "originalApplicationAndFourCredentialsUnchanged": true,
+    "staticFilesVerified": 3,
+    "unexpectedPostActionConsoleErrors": 0,
+    "preActionIntentionalOutageLogsRetained": true,
+    "servicesStopped": true,
+    "historicalMigrationMarkerRetained": true,
+    "historicalCredentialEvidenceFilesUnchanged": 66,
+    "originalC08Status": "failed",
+    "priorResourceUnknownRetained": true,
+    "primaryFilesUnchangedAgainstPreparation": 14,
+    "primaryFilesUnchangedAgainstResume": 14,
+    "protectedFilesUnchanged": 4004,
+    "preparationResourceCounts": {
+      "containers": 201,
+      "volumes": 508,
+      "networks": 39
+    },
+    "resumeResourceCounts": {
+      "containers": 202,
+      "volumes": 508,
+      "networks": 39
+    },
+    "missingOutsideOwnedControlPlaneFromPreparation": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "missingOutsideOwnedControlPlaneFromResume": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "ownedControlPlanePreviousIds": [
+      "427583486ffaf27d6e18995a1fdee38596bf17750db9c4558c335c7042b50166",
+      "72ae785f58f7507e91b3097af43754e666cc32de74dfe2b7c7daffad8ac3a35c"
+    ],
+    "ownedControlPlaneFinalId": "cc778df4040b22f7f8bab9226a97e562784e821e1fea05c7a3dfda8331b2c561",
+    "ownedControlPlaneImageUnchanged": true,
+    "artifactStorage": "local ignored credential-crossday-20261111; not published",
+    "newAccepted": 0,
+    "limits": [
+      "Future windows only saved, read back and revoked; did not wait for time-based activation/expiry",
+      "Not an IANA timezone/DST or arbitrary offset save matrix",
+      "No update-window, complete role/Scope, publication, gateway or live consumer traffic acceptance"
     ]
   }
 }
