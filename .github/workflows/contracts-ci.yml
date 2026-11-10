@@ -1,0 +1,50 @@
+name: Contracts CI
+
+'on':
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  contracts:
+    name: contracts-${{ matrix.suite }}
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [domain, integration, gateway]
+    env:
+      WEBAPI_CONTRACT_SUITE: ${{ matrix.suite }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.22.1'
+          package-manager-cache: false
+
+      - name: Check container runtime
+        run: |
+          docker info --format '{{.OSType}}/{{.Architecture}}'
+          docker compose version
+
+      - name: Test contracts
+        run: bash scripts/check-contracts.sh "$WEBAPI_CONTRACT_SUITE"
