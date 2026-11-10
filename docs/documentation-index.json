@@ -22,7 +22,7 @@
       "historical-design-plan": 58,
       "current-requirements-review": 1
     },
-    "relativeLinksChecked": 864,
+    "relativeLinksChecked": 866,
     "unresolvedHistoricalReferences": 47,
     "preservedDuplicateEvidenceGroups": 7
   },
@@ -448,11 +448,22 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "d4925216f619fd0978391c1d5a21ad3480bbc9537e934e5ff22b200d57eba88d",
+    "dataSha256": "f3a4ee5747f31b12ac4eac36879b1a791eaad94b426a1dd7c299b98b43860bc4",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
-    "newAccepted": 0
+    "newAccepted": 0,
+    "targetedFollowup": {
+      "units": 23,
+      "offlinePassed": 39,
+      "failed": 0,
+      "skipped": 0,
+      "sourceGaps": 50,
+      "targetedAcceptanceGaps": 6,
+      "newAccepted": 0,
+      "backendTestsRerun": false,
+      "browserAcceptanceRun": false
+    }
   },
   "documents": [
     {"path":"README.md","category":"navigation","sha256":"e7936a7e8e8fed6a6406ff84166e732d7ca57bc010ab53c9aeebf375e8efa55b"},
@@ -494,7 +505,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"ba4620f02a7ee02ca1f1b5a9a35553bb7e6c48e20dfda24dbc89e1e9fa3a2c0e"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"d456ffafad6b7f3e057f1712de4425fa117d233dda3cd7e65ae1f9bb9c50625d"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -769,6 +780,6 @@
     {"path":"docs/superpowers/specs/2026-11-10-contracts-ci-phase2-design.md","category":"historical-design-plan","sha256":"1be4ab24ffbc6b52cc5501064fcb7846c3d3d7a0f153056b16826f86b3896ee1"},
     {"path":"docs/traffic-policy-data-dictionary.md","category":"topic-reference","sha256":"02611712f6ed8b89033e1abd9d5028a595a5b5f4e1155427e7548ec7dc902022"},
     {"path":"docs/workbench.md","category":"topic-reference","sha256":"4f15104d0c5fbd10b4f0561eee8cf61ae5758cf1115d384723869980b3fc82d4"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"db10affc065bb0c1fc35d5c19aebf2cbbdc95cbdb965a8e1c0f30900e93c38a2"}
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"6fc5f091cc77283baf513f8aa82cd42e8200a73e05963719ac38f7a9a4a7c548"}
   ]
 }

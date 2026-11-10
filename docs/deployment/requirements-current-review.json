@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "reviewDate": "2026-11-11",
-  "reviewType": "static traceability and historical gap review; not runtime or UI acceptance",
+  "reviewType": "source traceability and gap review plus local Node unit and static React SSR verification; not backend or browser acceptance",
   "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
   "documentationInput": "b3d6167c2f6ceef56ead557b4ea35c9c0e1e3516",
   "originalLedger": {
@@ -31,14 +31,18 @@
     "historicalTestDefinitionsFound": 14,
     "historicalGapsReviewed": 58,
     "gapCategories": {
-      "source-gap": 49,
+      "source-gap": 50,
       "semantics-to-confirm": 1,
-      "targeted-acceptance-needed": 7,
+      "targeted-acceptance-needed": 6,
       "requirement-model-conflict": 1
     },
     "newRequirementsAccepted": 0,
-    "newProductTestsRun": 0,
-    "projectCompletionPercentage": null
+    "newProductTestsRun": 28,
+    "projectCompletionPercentage": null,
+    "newVerifierTestsRun": 11,
+    "newOfflineTestsRun": 39,
+    "newBackendTestsRun": 0,
+    "newBrowserAcceptanceTestsRun": 0
   },
   "mainCi": {
     "source": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
@@ -2241,6 +2245,24 @@
       "gapReview": {
         "category": "targeted-acceptance-needed",
         "finding": "Shell 从可访问树选择已保存或首个组织/项目/环境；多组织、多项目、失效偏好及首次登录优先级仍需界面验收。"
+      },
+      "reverificationReadiness": {
+        "group": "default-scope",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/scope-state.test.mjs",
+          "console/tests/scope-view.test.mjs"
+        ],
+        "remainingChecks": [
+          "多组织/项目首次登录与已保存偏好的选择顺序",
+          "原项目失去权限、无可访问项目及切换后的页面事实"
+        ],
+        "evidenceLimit": "Scope 编辑器测试不覆盖 Shell 登录默认项目选择。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
       }
     },
     {
@@ -6532,7 +6554,27 @@
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "application-permissions",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+          "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "app.read/write 与组织/项目/环境 Scope 组合下的列表、详情、新建和编辑",
+          "只读用户无写入口、伪造请求被拒绝、授权撤回后旧页面拒绝写入",
+          "Owner、状态、授权数、凭证数与服务端可见范围一致"
+        ],
+        "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P18-C02",
@@ -6561,7 +6603,27 @@
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "application-permissions",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+          "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "app.read/write 与组织/项目/环境 Scope 组合下的列表、详情、新建和编辑",
+          "只读用户无写入口、伪造请求被拒绝、授权撤回后旧页面拒绝写入",
+          "Owner、状态、授权数、凭证数与服务端可见范围一致"
+        ],
+        "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P18-C03",
@@ -6590,7 +6652,27 @@
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "application-permissions",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+          "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "app.read/write 与组织/项目/环境 Scope 组合下的列表、详情、新建和编辑",
+          "只读用户无写入口、伪造请求被拒绝、授权撤回后旧页面拒绝写入",
+          "Owner、状态、授权数、凭证数与服务端可见范围一致"
+        ],
+        "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P18-C04",
@@ -6619,7 +6701,27 @@
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "application-permissions",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+          "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "app.read/write 与组织/项目/环境 Scope 组合下的列表、详情、新建和编辑",
+          "只读用户无写入口、伪造请求被拒绝、授权撤回后旧页面拒绝写入",
+          "Owner、状态、授权数、凭证数与服务端可见范围一致"
+        ],
+        "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P18-C05",
@@ -6648,7 +6750,27 @@
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "application-permissions",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+          "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "app.read/write 与组织/项目/环境 Scope 组合下的列表、详情、新建和编辑",
+          "只读用户无写入口、伪造请求被拒绝、授权撤回后旧页面拒绝写入",
+          "Owner、状态、授权数、凭证数与服务端可见范围一致"
+        ],
+        "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P18-A01",
@@ -6723,7 +6845,27 @@
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
         "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "application-permissions",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+          "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "app.read/write 与组织/项目/环境 Scope 组合下的列表、详情、新建和编辑",
+          "只读用户无写入口、伪造请求被拒绝、授权撤回后旧页面拒绝写入",
+          "Owner、状态、授权数、凭证数与服务端可见范围一致"
+        ],
+        "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P18-S01",
@@ -6777,6 +6919,26 @@
       "gapReview": {
         "category": "targeted-acceptance-needed",
         "finding": "应用入口有 app.read/write 与 Scope 约束，但仍缺按原需求逐角色、多 Scope、写入拒绝及只读场景的当前版本界面验收。"
+      },
+      "reverificationReadiness": {
+        "group": "application-permissions",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+          "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "app.read/write 与组织/项目/环境 Scope 组合下的列表、详情、新建和编辑",
+          "只读用户无写入口、伪造请求被拒绝、授权撤回后旧页面拒绝写入",
+          "Owner、状态、授权数、凭证数与服务端可见范围一致"
+        ],
+        "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
       }
     },
     {
@@ -6835,6 +6997,25 @@
       "gapReview": {
         "category": "targeted-acceptance-needed",
         "finding": "ApplicationMetrics 已呈现请求数、RPS、P95 和 5xx 比例并约束 metrics.read；能力存在，完整调用 KPI 原项仍缺当前具名界面验收，不能列为功能完全缺失。"
+      },
+      "reverificationReadiness": {
+        "group": "application-metrics",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ObservationMetricsTests.EnvironmentOnlyGrantCannotReadSiblingMetrics",
+          "WebApi.Integration.Tests.ObservationMetricsTests.MissingNodeMakesPartialNotZero",
+          "WebApi.Integration.Tests.ObservationMetricsTests.SourceFailureReturns503"
+        ],
+        "freshOfflineTestFiles": [],
+        "remainingChecks": [
+          "实际采集源与真实页面的请求数、RPS、P95、5xx 占比一致",
+          "环境/应用筛选及撤权后页面数据失效",
+          "Partial/Unknown/Unavailable 不被呈现为正常零值"
+        ],
+        "evidenceLimit": "ObservationMetricsTests 使用 MetricProtocolHandler 协议替身，不能证明真实 Prometheus 采集和页面交互。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
       }
     },
     {
@@ -7082,6 +7263,26 @@
       "gapReview": {
         "category": "targeted-acceptance-needed",
         "finding": "应用入口有 app.read/write 与 Scope 约束，但仍缺按原需求逐角色、多 Scope、写入拒绝及只读场景的当前版本界面验收。"
+      },
+      "reverificationReadiness": {
+        "group": "application-permissions",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+          "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "app.read/write 与组织/项目/环境 Scope 组合下的列表、详情、新建和编辑",
+          "只读用户无写入口、伪造请求被拒绝、授权撤回后旧页面拒绝写入",
+          "Owner、状态、授权数、凭证数与服务端可见范围一致"
+        ],
+        "evidenceLimit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
       }
     },
     {
@@ -7114,7 +7315,35 @@
         "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
         "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-C02",
@@ -7146,7 +7375,35 @@
         "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
         "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-C03",
@@ -7178,7 +7435,35 @@
         "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
         "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-C04",
@@ -7210,7 +7495,35 @@
         "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
         "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-C05",
@@ -7242,7 +7555,35 @@
         "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
         "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-A01",
@@ -7274,7 +7615,35 @@
         "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
         "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-A02",
@@ -7306,7 +7675,35 @@
         "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
         "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-A03",
@@ -7338,7 +7735,35 @@
         "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
         "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-A04",
@@ -7396,7 +7821,35 @@
         "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
         "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-S02",
@@ -7429,7 +7882,35 @@
         "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
         "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility"
       ],
-      "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
+      "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
+      }
     },
     {
       "id": "P20-P01",
@@ -7459,6 +7940,34 @@
       "gapReview": {
         "category": "targeted-acceptance-needed",
         "finding": "凭证创建/窗口/风险确认/轮换代码及 credential.manage 门禁存在；全组合、多角色、多 Scope 的当前逐项界面权限矩阵仍需验收。"
+      },
+      "reverificationReadiness": {
+        "group": "credential-governance",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+          "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+          "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+          "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "remainingChecks": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "evidenceLimit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
       }
     },
     {
@@ -8955,8 +9464,27 @@
       "historicalTestNames": [],
       "currentVersionAcceptance": "not-reaccepted-by-this-static-review",
       "gapReview": {
-        "category": "targeted-acceptance-needed",
-        "finding": "服务端和节点列表有当前/目标配置事实；管理视图尚不足以证明 LKG 文件及恢复路径，需独立运行证据。"
+        "category": "source-gap",
+        "finding": "普通配置 LKG 的重启/损坏回退已有 GatewayRuntime 具名测试；GatewayNodeDto 和控制台详情未完整提供 LKG 状态，仍缺管理视图呈现及对应页面验收。底层恢复测试不等于页面功能或安全租约准入已交付。"
+      },
+      "reverificationReadiness": {
+        "group": "node-lkg",
+        "relatedBackendTestNames": [
+          "WebApi.Gateway.Tests.GatewayRuntimeTests.ControlPlaneAndRedisDownStillProxyFromLkg",
+          "WebApi.Gateway.Tests.GatewayRuntimeTests.CorruptLatestFileRestoresPreviousLkg",
+          "WebApi.Gateway.Tests.GatewayRuntimeTests.NoLkgNoRemoteNotReady",
+          "WebApi.Gateway.Tests.GatewayRuntimeTests.RealDoubleGatewayRestartConfirmsLkgWithoutRepublishing"
+        ],
+        "freshOfflineTestFiles": [],
+        "remainingChecks": [
+          "管理接口及详情页完整呈现 LKG 事实且区分当前/目标",
+          "确认未来呈现内容对应普通配置 LKG，不混同安全检查点/租约",
+          "界面实现后再绑定节点实际运行状态验收"
+        ],
+        "evidenceLimit": "当前 GatewayNodeDto 不提供完整 LKG 状态；不能只补截图或复跑底层测试就关闭该项。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
       }
     },
     {
@@ -10623,6 +11151,28 @@
       "gapReview": {
         "category": "targeted-acceptance-needed",
         "finding": "用户治理及密码重置门禁存在；创建、停用、角色、Scope 全部组合仍缺当前版本逐项界面权限验收。"
+      },
+      "reverificationReadiness": {
+        "group": "user-permissions",
+        "relatedBackendTestNames": [
+          "WebApi.Integration.Tests.GovernanceTests.LastActivePlatformAdminProtected",
+          "WebApi.Integration.Tests.PasswordResetTests.Nonplatform_and_restricted_actors_cannot_reset",
+          "WebApi.Integration.Tests.PasswordResetTests.Resetting_sole_local_admin_preserves_roles_and_scopes"
+        ],
+        "freshOfflineTestFiles": [
+          "console/tests/scope-state.test.mjs",
+          "console/tests/scope-view.test.mjs",
+          "console/tests/permission-display.test.mjs",
+          "console/tests/permission-matrix-view.test.mjs"
+        ],
+        "remainingChecks": [
+          "user.manage 平台/非平台身份的创建、停用、角色和 Scope 全矩阵",
+          "只读、失效会话、最后管理员及修订冲突下的页面保护与服务端拒绝"
+        ],
+        "evidenceLimit": "Scope/角色静态组件与密码重置回归不能替代完整用户治理验收。",
+        "backendExecution": "not-run-in-this-followup",
+        "browserExecution": "not-run",
+        "currentAcceptance": "pending"
       }
     },
     {
@@ -11790,5 +12340,451 @@
       "historicalTestNames": [],
       "currentVersionAcceptance": "not-reaccepted-by-this-static-review"
     }
-  ]
+  ],
+  "reviewHistory": [
+    {
+      "commit": "f89db5cf005ab440d788cd116c5be3414e9a03d3",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "d4925216f619fd0978391c1d5a21ad3480bbc9537e934e5ff22b200d57eba88d",
+      "scope": "initial static review; no offline tests run in that stage",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 49,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 7,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 0,
+        "projectCompletionPercentage": null
+      }
+    }
+  ],
+  "targetedFollowup": {
+    "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "f89db5cf005ab440d788cd116c5be3414e9a03d3",
+    "targetUnits": 23,
+    "groups": {
+      "default-scope": {
+        "ids": [
+          "P01-P02"
+        ],
+        "backend": [
+          "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes"
+        ],
+        "remaining": [
+          "多组织/项目首次登录与已保存偏好的选择顺序",
+          "原项目失去权限、无可访问项目及切换后的页面事实"
+        ],
+        "offline": [
+          "console/tests/scope-state.test.mjs",
+          "console/tests/scope-view.test.mjs"
+        ],
+        "limit": "Scope 编辑器测试不覆盖 Shell 登录默认项目选择。"
+      },
+      "application-permissions": {
+        "ids": [
+          "P18-C01",
+          "P18-C02",
+          "P18-C03",
+          "P18-C04",
+          "P18-C05",
+          "P18-A03",
+          "P18-P01",
+          "P19-P01"
+        ],
+        "backend": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+          "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging"
+        ],
+        "remaining": [
+          "app.read/write 与组织/项目/环境 Scope 组合下的列表、详情、新建和编辑",
+          "只读用户无写入口、伪造请求被拒绝、授权撤回后旧页面拒绝写入",
+          "Owner、状态、授权数、凭证数与服务端可见范围一致"
+        ],
+        "offline": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "limit": "列表/摘要后端用例不等于 app.write 全矩阵；离线状态函数不覆盖真实应用页面。"
+      },
+      "application-metrics": {
+        "ids": [
+          "P19-C02"
+        ],
+        "backend": [
+          "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+          "WebApi.Integration.Tests.ObservationMetricsTests.EnvironmentOnlyGrantCannotReadSiblingMetrics",
+          "WebApi.Integration.Tests.ObservationMetricsTests.MissingNodeMakesPartialNotZero",
+          "WebApi.Integration.Tests.ObservationMetricsTests.SourceFailureReturns503"
+        ],
+        "remaining": [
+          "实际采集源与真实页面的请求数、RPS、P95、5xx 占比一致",
+          "环境/应用筛选及撤权后页面数据失效",
+          "Partial/Unknown/Unavailable 不被呈现为正常零值"
+        ],
+        "offline": [],
+        "limit": "ObservationMetricsTests 使用 MetricProtocolHandler 协议替身，不能证明真实 Prometheus 采集和页面交互。"
+      },
+      "credential-governance": {
+        "ids": [
+          "P20-C01",
+          "P20-C02",
+          "P20-C03",
+          "P20-C04",
+          "P20-C05",
+          "P20-A01",
+          "P20-A02",
+          "P20-A03",
+          "P20-S01",
+          "P20-S02",
+          "P20-P01"
+        ],
+        "backend": [
+          "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+          "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+          "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read"
+        ],
+        "remaining": [
+          "真实页面 AK 脱敏、Secret 仅一次、关闭/刷新后不再显示",
+          "跨环境 LastUsed 及统计不泄漏、未知与部分状态正确显示",
+          "创建/轮换/撤销及风险确认在全权限/Scope 组合下的允许与拒绝",
+          "旧新凭证按审批发布和当前节点证明推进，过期证明不能继续轮换"
+        ],
+        "offline": [
+          "console/tests/application-state.test.mjs"
+        ],
+        "limit": "既有服务测试可作为定向回归入口；仍需实际页面、权限身份和同版本运行证据。"
+      },
+      "node-lkg": {
+        "ids": [
+          "P27-C02"
+        ],
+        "backend": [
+          "WebApi.Gateway.Tests.GatewayRuntimeTests.RealDoubleGatewayRestartConfirmsLkgWithoutRepublishing",
+          "WebApi.Gateway.Tests.GatewayRuntimeTests.ControlPlaneAndRedisDownStillProxyFromLkg",
+          "WebApi.Gateway.Tests.GatewayRuntimeTests.NoLkgNoRemoteNotReady",
+          "WebApi.Gateway.Tests.GatewayRuntimeTests.CorruptLatestFileRestoresPreviousLkg"
+        ],
+        "remaining": [
+          "管理接口及详情页完整呈现 LKG 事实且区分当前/目标",
+          "确认未来呈现内容对应普通配置 LKG，不混同安全检查点/租约",
+          "界面实现后再绑定节点实际运行状态验收"
+        ],
+        "offline": [],
+        "limit": "当前 GatewayNodeDto 不提供完整 LKG 状态；不能只补截图或复跑底层测试就关闭该项。"
+      },
+      "user-permissions": {
+        "ids": [
+          "P34-P01"
+        ],
+        "backend": [
+          "WebApi.Integration.Tests.PasswordResetTests.Nonplatform_and_restricted_actors_cannot_reset",
+          "WebApi.Integration.Tests.PasswordResetTests.Resetting_sole_local_admin_preserves_roles_and_scopes",
+          "WebApi.Integration.Tests.GovernanceTests.LastActivePlatformAdminProtected"
+        ],
+        "remaining": [
+          "user.manage 平台/非平台身份的创建、停用、角色和 Scope 全矩阵",
+          "只读、失效会话、最后管理员及修订冲突下的页面保护与服务端拒绝"
+        ],
+        "offline": [
+          "console/tests/scope-state.test.mjs",
+          "console/tests/scope-view.test.mjs",
+          "console/tests/permission-display.test.mjs",
+          "console/tests/permission-matrix-view.test.mjs"
+        ],
+        "limit": "Scope/角色静态组件与密码重置回归不能替代完整用户治理验收。"
+      }
+    },
+    "relatedBackendTestBindings": {
+      "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes": {
+        "name": "WebApi.Integration.Tests.PasswordRequiredSessionTests.Restricted_identity_has_no_permissions_or_scopes",
+        "path": "tests/WebApi.Integration.Tests/PasswordRequiredSessionTests.cs",
+        "line": 20,
+        "sha256": "ad5ce8fae4624f9583da2117236ea704f2f2fad981a59a0920c9b7ee19c116df",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging": {
+        "name": "WebApi.Integration.Tests.ScopedListQueryTests.ApplicationVisibleTotalIsFilteredBeforePaging",
+        "path": "tests/WebApi.Integration.Tests/ScopedListQueryTests.cs",
+        "line": 62,
+        "sha256": "3671fee408e5a202ab29ac701b2992e216162ed8b796c2a02d722f1fa095fbf6",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows": {
+        "name": "WebApi.Integration.Tests.ApplicationOverviewTests.App_summary_uses_visible_distinct_active_api_windows",
+        "path": "tests/WebApi.Integration.Tests/ApplicationOverviewTests.cs",
+        "line": 12,
+        "sha256": "1c9afa2f52b1d2ecfda80aca80688114eafb58120fba0d2b71a1c61a39ff870d",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces": {
+        "name": "WebApi.Integration.Tests.ApplicationOverviewTests.App_read_does_not_grant_metrics_audit_logs_or_traces",
+        "path": "tests/WebApi.Integration.Tests/ApplicationOverviewTests.cs",
+        "line": 31,
+        "sha256": "1c9afa2f52b1d2ecfda80aca80688114eafb58120fba0d2b71a1c61a39ff870d",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.ObservationMetricsTests.MissingNodeMakesPartialNotZero": {
+        "name": "WebApi.Integration.Tests.ObservationMetricsTests.MissingNodeMakesPartialNotZero",
+        "path": "tests/WebApi.Integration.Tests/ObservationMetricsTests.cs",
+        "line": 63,
+        "sha256": "91fa00aba55166fb9ae1361c5bd19bb35c20c626c1d8d8af18a51b1c550888f3",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.ObservationMetricsTests.SourceFailureReturns503": {
+        "name": "WebApi.Integration.Tests.ObservationMetricsTests.SourceFailureReturns503",
+        "path": "tests/WebApi.Integration.Tests/ObservationMetricsTests.cs",
+        "line": 112,
+        "sha256": "91fa00aba55166fb9ae1361c5bd19bb35c20c626c1d8d8af18a51b1c550888f3",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.ObservationMetricsTests.EnvironmentOnlyGrantCannotReadSiblingMetrics": {
+        "name": "WebApi.Integration.Tests.ObservationMetricsTests.EnvironmentOnlyGrantCannotReadSiblingMetrics",
+        "path": "tests/WebApi.Integration.Tests/ObservationMetricsTests.cs",
+        "line": 29,
+        "sha256": "91fa00aba55166fb9ae1361c5bd19bb35c20c626c1d8d8af18a51b1c550888f3",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used": {
+        "name": "WebApi.Integration.Tests.CredentialUsageQueryTests.Credential_manager_without_app_read_keeps_safe_write_but_receives_no_last_used",
+        "path": "tests/WebApi.Integration.Tests/CredentialUsageQueryTests.cs",
+        "line": 224,
+        "sha256": "ec819c40d9180c6a47df1004c5e9657ad16bbcbcab34cd6812c62d46f2777b39",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange": {
+        "name": "WebApi.Integration.Tests.ImportAndCredentialTests.CredentialWindowRejectsInvalidRange",
+        "path": "tests/WebApi.Integration.Tests/ImportAndCredentialTests.cs",
+        "line": 71,
+        "sha256": "ba2fe5dd8b43391350aa2867f7b8eecf0f31d2054f7dadc9e6c48d31992a032a",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts": {
+        "name": "WebApi.Integration.Tests.CredentialUsageQueryTests.Visible_last_use_outside_selected_window_is_still_proven_by_retained_facts",
+        "path": "tests/WebApi.Integration.Tests/CredentialUsageQueryTests.cs",
+        "line": 206,
+        "sha256": "ec819c40d9180c6a47df1004c5e9657ad16bbcbcab34cd6812c62d46f2777b39",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids": {
+        "name": "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+        "path": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+        "line": 81,
+        "sha256": "3405bc93b86410bcf8d5522c402dec73aac0b8a8db88486579b7c30b9852d925",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility": {
+        "name": "WebApi.Integration.Tests.CredentialRolloutTests.New_credential_must_be_published_and_second_stage_must_remove_old_eligibility",
+        "path": "tests/WebApi.Integration.Tests/CredentialRolloutTests.cs",
+        "line": 52,
+        "sha256": "4fa68675ba4337132fd1e3e2c43497d4297b853ca38b61039d9c3b9675599110",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce": {
+        "name": "WebApi.Integration.Tests.ImportAndCredentialTests.SecretOnlyReturnedOnce",
+        "path": "tests/WebApi.Integration.Tests/ImportAndCredentialTests.cs",
+        "line": 63,
+        "sha256": "ba2fe5dd8b43391350aa2867f7b8eecf0f31d2054f7dadc9e6c48d31992a032a",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read": {
+        "name": "WebApi.Integration.Tests.CredentialRolloutTests.App_read_does_not_replace_environment_release_read",
+        "path": "tests/WebApi.Integration.Tests/CredentialRolloutTests.cs",
+        "line": 57,
+        "sha256": "4fa68675ba4337132fd1e3e2c43497d4297b853ca38b61039d9c3b9675599110",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation": {
+        "name": "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation",
+        "path": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+        "line": 45,
+        "sha256": "3405bc93b86410bcf8d5522c402dec73aac0b8a8db88486579b7c30b9852d925",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash": {
+        "name": "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash",
+        "path": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+        "line": 53,
+        "sha256": "3405bc93b86410bcf8d5522c402dec73aac0b8a8db88486579b7c30b9852d925",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response": {
+        "name": "WebApi.Integration.Tests.CredentialUsageQueryTests.Unseen_environment_last_used_is_never_leaked_in_any_existing_response",
+        "path": "tests/WebApi.Integration.Tests/CredentialUsageQueryTests.cs",
+        "line": 152,
+        "sha256": "ec819c40d9180c6a47df1004c5e9657ad16bbcbcab34cd6812c62d46f2777b39",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.CorruptLatestFileRestoresPreviousLkg": {
+        "name": "WebApi.Gateway.Tests.GatewayRuntimeTests.CorruptLatestFileRestoresPreviousLkg",
+        "path": "tests/WebApi.Gateway.Tests/GatewayRuntimeTests.cs",
+        "line": 174,
+        "sha256": "7b2b23d89e02ac34c3d678219834c4849029f1c6c345592001e805e61e461f9a",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.ControlPlaneAndRedisDownStillProxyFromLkg": {
+        "name": "WebApi.Gateway.Tests.GatewayRuntimeTests.ControlPlaneAndRedisDownStillProxyFromLkg",
+        "path": "tests/WebApi.Gateway.Tests/GatewayRuntimeTests.cs",
+        "line": 162,
+        "sha256": "7b2b23d89e02ac34c3d678219834c4849029f1c6c345592001e805e61e461f9a",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.RealDoubleGatewayRestartConfirmsLkgWithoutRepublishing": {
+        "name": "WebApi.Gateway.Tests.GatewayRuntimeTests.RealDoubleGatewayRestartConfirmsLkgWithoutRepublishing",
+        "path": "tests/WebApi.Gateway.Tests/GatewayRuntimeTests.cs",
+        "line": 137,
+        "sha256": "7b2b23d89e02ac34c3d678219834c4849029f1c6c345592001e805e61e461f9a",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.NoLkgNoRemoteNotReady": {
+        "name": "WebApi.Gateway.Tests.GatewayRuntimeTests.NoLkgNoRemoteNotReady",
+        "path": "tests/WebApi.Gateway.Tests/GatewayRuntimeTests.cs",
+        "line": 164,
+        "sha256": "7b2b23d89e02ac34c3d678219834c4849029f1c6c345592001e805e61e461f9a",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.GovernanceTests.LastActivePlatformAdminProtected": {
+        "name": "WebApi.Integration.Tests.GovernanceTests.LastActivePlatformAdminProtected",
+        "path": "tests/WebApi.Integration.Tests/GovernanceTests.cs",
+        "line": 51,
+        "sha256": "d4f6057a6a9b27bf9edf648238086a84642b4a90db512e80532fcd8444462b42",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.PasswordResetTests.Nonplatform_and_restricted_actors_cannot_reset": {
+        "name": "WebApi.Integration.Tests.PasswordResetTests.Nonplatform_and_restricted_actors_cannot_reset",
+        "path": "tests/WebApi.Integration.Tests/PasswordResetTests.cs",
+        "line": 75,
+        "sha256": "b5014ccb6012f57304549a8ccda7ef2329bdb5f883b39307b41700a26e9e22b0",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      },
+      "WebApi.Integration.Tests.PasswordResetTests.Resetting_sole_local_admin_preserves_roles_and_scopes": {
+        "name": "WebApi.Integration.Tests.PasswordResetTests.Resetting_sole_local_admin_preserves_roles_and_scopes",
+        "path": "tests/WebApi.Integration.Tests/PasswordResetTests.cs",
+        "line": 84,
+        "sha256": "b5014ccb6012f57304549a8ccda7ef2329bdb5f883b39307b41700a26e9e22b0",
+        "currentExecution": "not-rerun-in-this-followup; source binding only",
+        "coverage": "related behavior only, not sufficient to close the requirement"
+      }
+    },
+    "freshOfflineVerification": {
+      "runtime": "Node 24.22.1",
+      "passed": 39,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "frontEndStateAndSsrTests": 28,
+      "requirementsAndVerifierGuardTests": 11,
+      "testFiles": [
+        "console/tests/application-state.test.mjs",
+        "console/tests/scope-state.test.mjs",
+        "console/tests/permission-display.test.mjs",
+        "console/tests/scope-view.test.mjs",
+        "console/tests/permission-matrix-view.test.mjs",
+        "tests/account-credential/requirements.test.mjs",
+        "tests/account-credential/verify.test.mjs"
+      ],
+      "testFileSha256": {
+        "console/tests/application-state.test.mjs": "ce8b94385b6166bd8ba27ca86ab17be55ce4794a645ed599b924ec5b7117a668",
+        "console/tests/scope-state.test.mjs": "8c22e80bc2f96aafc055f866d216dbfd38d92cf7cb5a8b344734d7f6598b51ae",
+        "console/tests/permission-display.test.mjs": "6885459e81e5e65e6e99cb86e3faee7506163dcd47a0117f3de2f789352951f7",
+        "console/tests/scope-view.test.mjs": "81e295b0eb882928212a7060fcd53432ed8e46d49b5c80586bfbf12e338872d4",
+        "console/tests/permission-matrix-view.test.mjs": "df2f2c1cfa840d02a4498bdceebb0a9619aef9bd8c38fa924234290a498e5037",
+        "tests/account-credential/requirements.test.mjs": "ff7214e9c6d03b77ccd287e137e232941831f216efc96088260be52abf58a6df",
+        "tests/account-credential/verify.test.mjs": "33e71f8b3e8dc5f90fd55ccda9e1e836dbc61c35fb1a32173354ce4373fe7c48"
+      },
+      "testNames": [
+        "credential count stays a decimal string beyond JavaScript and Int64 limits",
+        "partial count is a lower bound including an observed zero",
+        "only proven NoData zero is presented as zero",
+        "unknown unavailable and unrecognized source states never expose a fake zero",
+        "missing partial or available counts retain uncertainty",
+        "count presentation never coerces numbers floats signs or leading zeros",
+        "visible scoped LastUsed never falls back to a global credential field",
+        "credential authorship uses matching trusted audit fields and never owner inference",
+        "missing malformed or anonymous audit actor remains unknown",
+        "known permissions get Chinese labels without replacing authoritative codes or custom names",
+        "extension permissions retain server metadata and use an explicit other column",
+        "matrix groups every code exactly once and searches labels, codes, modules and descriptions",
+        "permission configuration requires a complete usable dictionary and an editable role",
+        "all seeded codes have explicit Chinese labels and supported matrix columns",
+        "read-only matrix exposes exact assignments and accessible disabled checkboxes",
+        "the common editor can render matrix fields inside its disabled and unsaved guard boundary",
+        "existing grants round-trip losslessly, including overlapping access modes and invisible scopes",
+        "new scopes start with a single environment and read access; incomplete selection cannot become organization-wide",
+        "changing a parent clears descendants but retains the intended level until the user selects replacements",
+        "only an explicit level change creates organization or project-wide grants",
+        "known hierarchy mismatches and arbitrary invisible replacements are rejected while inherited IDs survive other edits",
+        "summary counts mode changes separately and represents empty scopes as revocation, without collapsing overlaps",
+        "stable reads reject revision drift instead of pairing stale scopes with a newer writable revision",
+        "exact duplicate grants cannot overstate saved counts; overlapping scopes with different access modes remain valid",
+        "structured scope selects render accessible labels and only descendants of the selected parent",
+        "invisible original scope remains selectable, exposes its literal ID and preservation explanation",
+        "locked editing disables the rule group and new rules display only read by default",
+        "empty review states explicitly revoke business scope and change summaries show all four counts",
+        "all_original_units_are_preserved_once",
+        "missing duplicate changed text and foreign page are rejected",
+        "closed_requires_matching_source_test_and_runtime_evidence",
+        "closed without evidence or with stale owner revision skipped test is rejected",
+        "missing files altered content stale screenshots and missing runtime scenario are rejected",
+        "prototype-only evidence cannot close an item",
+        "deferred_requires_recorded_user_decision",
+        "unknown status source document mismatch and empty disposition are rejected",
+        "CLI checks real files and rejects traversal symlink and corrupt bytes",
+        "account fixed verifier pins both extra test directories and two-thread backend budget",
+        "backend parallelism validation rejects invalid values before creating a verification directory"
+      ],
+      "logSha256": "278ac4ddff40abce9f1833d565a05d9ed95afb5339b79ebf24e577937ead3faf",
+      "completedAt": "2026-11-10T16:30:55.156381+00:00",
+      "scope": "local Node unit tests and static React SSR, synthetic fixtures; no backend or browser acceptance"
+    },
+    "classificationChange": {
+      "id": "P27-C02",
+      "previousCategory": "targeted-acceptance-needed",
+      "currentCategory": "source-gap",
+      "reason": "ordinary LKG recovery has dedicated tests; management DTO and page lack full LKG state"
+    },
+    "newAccepted": 0
+  }
 }
