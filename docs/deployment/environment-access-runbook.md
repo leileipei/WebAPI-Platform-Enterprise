@@ -16,11 +16,13 @@ API 详情和路由页明确区分工作配置与运行配置。运行入口只�
 
 设置 `WEBAPI_NODE`、`WEBAPI_PNPM` 为现有工具路径；可选 `WEBAPI_NUGET_SEED_VOLUME` 只读复用锁定依赖缓存；浏览器可用 `WEBAPI_PLAYWRIGHT_PACKAGE` 和 `WEBAPI_BROWSER_EXECUTABLE` 指定已安装运行时。不修改依赖锁文件。
 
-分别运行 `scripts/check-environment-access.sh domain`、`integration`、`gateway`、`console`。运行 `e2e 固定40位SHA` 会按固定提交归档构建，创建 UUID 容器项目、随机端口、随机秘密及独立数据；执行真实浏览器、真实双节点审批发布、TLS 代理前缀剥离和实际回滚。测试证书仅用于专用回环代理，客户端严格固定该证书信任，不关闭 TLS 校验。秘密不进入公开证据，清理仅允许项目与 owner 均匹配的资源。
+分别运行 `scripts/check-environment-access.sh domain`、`integration`、`gateway`、`console`。`e2e 固定40位SHA` 的脚本路径按固定提交归档构建，创建 UUID 容器项目、随机端口、随机秘密及独立数据；执行真实浏览器、真实双节点审批发布、TLS 代理前缀剥离和实际回滚。测试证书仅用于专用回环代理，客户端严格固定该证书信任，不关闭 TLS 校验。秘密不进入公开证据，清理仅允许项目与 owner 均匹配的资源；脚本在 finally 中尝试清理并写入 verification.json，是否成功须核对该次结果和实际资源，不能只看命令退出。本轮资料核对未执行这些场景，历史通过不保证当前环境可直接重现。
 
 `browser 固定SHA` 同样执行完整独立验收，避免复用其他实例的截图身份。截图输出在 `docs/evidence/environment-access/SHA/ui/`。逐张查看并确认实际视觉质量后记录 `visualReviewComplete=true`，运行 `verify 证据目录`；未检查截图、错误身份、伪 PNG、缺少迁移、模拟检查或未清理资源都不能通过。自动页面断言通过不等于人工视觉确认。证据检查器验证字节和身份一致性，并不替代源码审查或证明业务截图内容。
 
 ## 原4192升级与恢复
+
+以下保留该次固定环境的升级顺序，不是可直接套用的当前恢复命令。当前运行工具的目录解析、备份 finally 恢复服务、restoreBudget 四项预算与真实硬配额 storageVerifier 前置条件见[运行与恢复手册](local-runtime-runbook.md)；没有真实配额集成时恢复会被阻断，不能以旧场景通过代替。执行前须核验实际安装与目标版本，并取得维护授权。
 
 1. 只读核对原 `.runtime/local` 的 owner、固定镜像和源码身份、4192/4196/4197端口、环境绑定、用户和业务数据、SSO配置与IdP、观测源和实际卷；记录当前状态，不沿用旧报告的状态。
 2. 保持原目录已有修改和原账号秘密。使用独立候选 SHA 镜像；不自动合并或提交原目录。两项迁移只增环境字段和独立发布入口表，旧环境地址为空，旧发布无入口记录。

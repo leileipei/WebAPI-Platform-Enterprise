@@ -15,4 +15,4 @@
 
 库负责签名、issuer、audience和type；固定调用时间负责NumericDate、最大生命周期及clockSkew检查。exp/iat/sub和单一字符串应用声明必需；NumericDate不得超出.NET合法日期范围。成功结果只公开Success/FailureCode；issuer/sub/应用声明及已验证Bearer没有公共getter或record ToString，限制为网关请求内存。未启用discovery、resolver、内省或远程刷新，错误统一invalid_jwt，不输出令牌或声明。
 
-阶段状态：本文件描述验签组件。真实JWT路由授权、重试、缓存、固定版本验收及4192部署需后续任务完成，不能据此视作运行环境已启用JWT。
+阶段状态：本文件记录最初验签组件的依赖与验证约束；当时将真实 JWT 路由、重试、缓存及安装列为后续任务。当前源码已有这些运行组件，相关约束见[JWT/重试/缓存手册](../deployment/gateway-jwt-retry-cache-runbook.md)；代码与安装身份以[当前项目状态](../deployment/current-project-status.md)分别核对，不能仅凭依赖或旧阶段记录判断运行环境是否启用 JWT。

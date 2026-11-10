@@ -30,9 +30,9 @@ Collector 下划线转换后，环境、API、应用、目标的查询标签分�
 
 ## 指标与连续采集覆盖
 
-监控提供 RPS、成功率、4xx / 5xx 比例、P50 / P95 / P99 七种同源趋势；API / 应用 / 后端 / HTTP 状态分组支持请求量、P95、P99、5xx 比例排序。分位数合并桶后计算，不能平均节点分位数。
+监控提供 RPS、成功率、4xx / 5xx 比例、P50 / P95 / P99 七种同源趋势；API / 应用 / 后端 / HTTP 状态分组支持请求量、P95、P99、5xx 比例排序。分位数合并桶后计算，不能平均节点分位数。另有 circuit_rejected_count、rate_limit_store_unavailable_count 两项策略 KPI 与计数趋势；适用范围、空值及决策含义见[数据字典](../observability-data-dictionary.md)。
 
-一次指标查询最多 10 个供应商请求（8 个瞬时查询、2 个范围查询），共享 10 秒预算，响应 8MiB 与结果行 / 趋势点预算保持既有上限。日志和链路覆盖各使用 5 个 Prometheus 瞬时查询，不需 metrics.read。覆盖期待所有当前授权环境中 Enabled 的已登记节点，Ready / NotReady / Degraded 不改变采集期待；只有明确禁用才移除期待。
+一次指标查询最多 14 个供应商请求（11 个瞬时查询、3 个范围查询，包含策略观测与 Collector 诊断），共享 10 秒预算，响应 8MiB 与结果行 / 趋势点预算保持既有上限。日志和链路覆盖各使用 7 个 Prometheus 瞬时查询（6 个节点/信号检查加 1 个 Collector 检查），不需 metrics.read。覆盖期待所有当前授权环境中 Enabled 的已登记节点，Ready / NotReady / Degraded 不改变采集期待；只有明确禁用才移除期待。
 
 首个采集时点须覆盖窗口起始（45秒容差），最新采集距窗口末尾最多45秒；另以服务器构建的固定15秒步长 max_over_time(time() - node observation timestamp) 检查窗口内部最大观察年龄。中间观察年龄超过45秒、缺节点、丢弃或导出失败均保持 Partial，无法证明完整的 KPI / 趋势为空值。固定步长可发现超过容差的采集中断，不声称逐毫秒无损历史或生产容量 / SLA 证明。
 
