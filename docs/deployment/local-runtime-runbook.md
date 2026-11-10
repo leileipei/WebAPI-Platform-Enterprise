@@ -1,122 +1,77 @@
-# 独立本机运行环境操作手册
+# 本机运行工具与固定安装维护
 
-本阶段独立项目为 `webapi-enterprise-local`，使用新库；旧 core-test 数据与原 4180/4181/5090 入口保留。需要 Docker Compose、Node 22+ 和现有锁文件对应的前端依赖。实际验收结果以 `docs/evidence/local-runtime/verification.json` 为准。
+按[当前状态页](current-project-status.md)列出的源码解释本仓库工具。早期 `webapi-enterprise-local` 安装结果仍保留在[历史资料](current-local-status.md)；本页不据此声明今天的安装版本、账号、入口或健康。
 
-```bash
-export WEBAPI_NODE=/你的/Node22以上版本/bin/node
-./scripts/local-runtime.sh build --revision <明确提交>
-./scripts/local-runtime.sh init --admin <显式管理员名>
-./scripts/local-runtime.sh status --json
-```
+## 先区分工具和运行目录
 
-首次 init 生成独立随机密钥与一次性密码，密码位于工程 `.runtime/local/secrets/bootstrap-password`（0600）。自行读取并妥善保存，勿复制到共享日志或截图。也可用 `init --admin <名称> --password-file <0600密码文件>` 提供16–1024字符密码。再次 init 不重置密码、不自动创建其他管理员，缺失长期秘密必须恢复而非重新生成。已保存凭据后使用 `complete-bootstrap --credentials-saved` 删除一次性宿主引导文件；运行服务不挂载它。
+已有安装应使用其运行目录中固定的维护入口，同时核对 `release.json`、维护工具身份、owner/project 和实际资源。历史安装曾使用 `manage.sh`、`manage-pipeline.sh`、`manage-idp.sh` 等不同入口；不能仅凭文件名选工具，也不能从新工作树无参数 `init` 或覆盖旧脚本。
 
-控制台默认 `http://127.0.0.1:4192`；未配置环境时网关明确为未配置。初始化不会自动创建业务组织、环境、API、规则或审核账号。后续通过正常页面建立环境，再显式绑定两网关与上游白名单。默认端口若冲突，首次 init 可用 `--console-port`、`--gateway-a-port`、`--gateway-b-port` 指定三个不同端口；不会终止端口占用者。
+本仓库[local-runtime.sh](../../scripts/local-runtime.sh)调用[CLI](../../scripts/runtime/cli.mjs)，要求 Node 22+。包装脚本会先切换到其所在仓库根目录；默认 `.runtime/local` 和相对 `--directory` 均按这个仓库根目录解析，不是调用者原先所在目录。已有安装应使用明确的绝对 `--directory`，工具不会自动找到另一工作树中的既有安装。
 
-若首次端口检查失败且尚未创建任何本项目资源，可带新端口重试 init。已初始化或已创建资源后禁止改变端口；省略端口参数会沿用已保存设置。所有权检查同时发现项目标签资源与精确同名资源；即使同名卷、网络或容器没有标签，也拒绝接管。
+已确认工具与安装匹配后，状态读取的形式为：
 
 ```bash
-./scripts/local-runtime.sh stop
-./scripts/local-runtime.sh start
-./scripts/local-runtime.sh restart
+./scripts/local-runtime.sh status --directory "<已确认的绝对运行目录>" --json
 ```
 
-正常启停保留数据库、两份 LKG、会话密钥和三源数据，不执行 down -v。容器采用 unless-stopped；Docker 未运行时服务不可用，手动 stop 后要显式 start/up。新 build 不自动替换正在运行的版本；版本与部署文件按不可变提交保存。升级前须显式备份；init 使用指定新 release-file 时先迁移成功再保存新版本，迁移失败不把镜像切回冒充数据库回滚。
+日常状态需要同时区分节点当前实例、实际版本/序列、期望目标、发布 ACK 和重启后的运行确认，不能用 HTTP 200 或心跳单独代替。
 
-本机入口使用 HTTP/Development cookie 策略；保留 CSRF/Origin 检查，内部服务仅 Docker 网络可达。三源故障和采集缺口仍会显示 Unknown/Partial，Collector 重启不会补造丢失遥测。7 天保留配置不等于已经完成 7 天实际运行验收。生产 TLS/HA、企业上游、容量与外部通知不在本阶段证明范围。
+## 构建、初始化与普通操作
 
-## 绑定业务环境与状态
+| CLI 命令 | 源码行为 | 适用限制 |
+| --- | --- | --- |
+| `build --revision <固定提交>` | 从明确提交构建，输出到 `.runtime/local-build` | 不自动替换已运行版本；CLI 的 `--directory` 不改变这个构建输出位置 |
+| `init --admin <名称>` | 显式初始化或按已保存身份处理；可提供受限密码文件 | 新环境与已有安装分别核对，不用它重建账号或回填丢失秘密；迁移预算和待核对状态见数据库说明 |
+| `configure --environment ... --origins-file ...` | 重新验证实际环境与 origin 列表，维护配置提案和已应用绑定 | 需要显式身份；不能据配置存在推断已注册或 Ready |
+| `start`、`up`、`stop`、`restart` | 按保存的项目与资源操作 | 会影响实际服务，须使用对应安装的固定维护入口；不是资料整理命令 |
+| `complete-bootstrap --credentials-saved` | 确认凭据已保存后移除一次性引导文件 | 不重新生成管理员密码，不删除其他长期秘密 |
 
-登录4192，在组织/项目/环境页面创建 Active 环境，按既有治理规则配置权限。将上游允许列表保存为JSON数组，例如 `["https://你的企业上游.example"]`，无路径、查询或凭据。
+初始化不会替真实业务自动填组织、环境、API、审批人员或身份源。秘密只在受限文件中保存，不复制到共享日志、截图或交付包。新 build、保存工作配置和实际发布是不同动作。
 
-```bash
-./scripts/local-runtime.sh configure --environment <环境GUID> --origins-file <上游origin数组.json> --username <管理员名> --password-file <0600登录密码文件>
-./scripts/local-runtime.sh status --json
-```
+配置失败可以留下待核对提案和部分实际应用状态，不能宣称自动回滚。恢复/迁移标记及 owner 不一致时保留现场；不要通过删除标记、改写状态或更换目录接管资源。
 
-需要示例后端时显式添加 `--demo`，允许列表必须显式包含 `http://backend-a:8080`、`http://backend-b:8080`；不会自动创建API或规则。两个示例后端仅内网可达，无控制接口。已有绑定不能直接换成另一环境；相同绑定重试不轮换密钥。
+## 冷备份的实际范围和服务状态
 
-状态区分未配置、已注册、Ready、Degraded及Stopped。只有当前实例、期望版本/序列与真实ACK一致才是Ready；源异常、缺节点、停用环境或过期心跳不会显示完整正常。Gateway可从LKG恢复实际代理，但历史发布ACK冻结于先前实例；新实例不会改写旧ACK。恢复后的新发布仍走正常独立审批，再取得当前实例ACK。`acknowledged` 与节点运行版本应分别查看。
+当前[备份实现](../../scripts/runtime/acceptance-backup.mjs)依据实际 context 计算范围，不是永远只有七个卷。基础业务库、两份 LKG、会话密钥和观测存储之外，通知、交付、流水线、报告、缓存秘密及迁移证据等可能带来额外卷、回执和配置。
 
-配置提案先保存在 `pendingConfiguration`，已应用的 `binding` 与 `demoEnabled` 保留。重建失败时 `bindingPhase=Validated`，状态为Degraded；用相同环境ID和所需配置重试 configure，成功注册后才推广为Applied并清空提案。容器可能已部分应用提案，工具不宣称自动回滚。up/start/restart返回实际服务、源与节点状态，不因配置中存在绑定就推断Registered。
+`createBackup` 要求已初始化、身份一致、没有待应用配置，并检查所需自有卷。它会暂停对应服务进行备份，结束路径会尝试恢复声明的服务并等待状态；不能再写成“备份后保持停止、必须另行 start”，也不能仅因存在恢复步骤就断言所有服务已成功恢复。
 
-新控制面使用独立Session/CSRF cookie名称，避免相同127.0.0.1主机不同端口间覆盖旧控制台登录。
+备份需使用新的私有目标目录，包含清单中的归档、逻辑 dump、运行/发布身份及必要秘密。物理 PostgreSQL 归档与逻辑 dump 是两种替代恢复方式，不应叠加导入。版本、镜像、实际卷名和摘要须与该次清单对应，源码 ZIP 不是业务备份。
 
-## 离线完整备份与恢复演练
+[SSO 备份辅助实现](../../scripts/runtime/sso-deployment.mjs)会在存在时复制三份已知演示凭据：`local-demo-api-approver.password`、`local-demo-security-reviewer.password`、`consumer-api-key`。这不等于任意 `demo/` 内容都会自动备份；逐项以清单为准，不能沿用“demo 完全不会复制”的旧结论。
 
-备份包含真实业务数据、会话密钥和运行秘密。保存在本机私有目录或加密介质；源码交付包不包含这些文件。使用与备份相同的架构、PostgreSQL大版本、应用提交与依赖镜像。先保留原项目，恢复到全新的随机项目中核验，工具拒绝覆盖长期项目或已有目录。
+## 恢复目前的阻断条件
 
-在工程根目录执行以下完整冷备份。它持有运行目录锁，重新读取已保存状态，校验owner/project和七个数据卷；存在待应用配置时要求先完成configure重试。只停止本部署实际声明的应用、网关、采集器、三源及示例后端，适用于未绑定、绑定未启用demo和启用demo三种状态。若环境已停止，会临时启动PG生成逻辑dump，再停PG/Redis并归档七个持久卷。成功后环境保持停止状态，可显式start。备份目标必须不存在，权限0700；归档/配置0600，清单逐文件SHA256。
+`restoreColdBackup` 是模块 API，不是 `local-runtime.sh` 子命令。当前入口要求显式 `restoreBudget` 和可信 `storageVerifier`，其四个预算字段为：
 
-```bash
-"$WEBAPI_NODE" --input-type=module <<'JS'
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import {loadState} from './scripts/runtime/state.mjs';
-import {loadRelease} from './scripts/runtime/lifecycle.mjs';
-import {prepareContext} from './scripts/runtime/context.mjs';
-import {createBackup} from './scripts/runtime/acceptance-backup.mjs';
-const directory=path.resolve('.runtime/local');
-const state=await loadState(directory);
-const release=await loadRelease(path.join(directory,'release.json'));
-const parent=path.resolve('.runtime/backups');
-await fs.mkdir(parent,{recursive:true,mode:0o700});
-const target=path.join(parent,new Date().toISOString().replaceAll(':','-'));
-await createBackup(await prepareContext(directory,state,release),target);
-console.log('备份目录：'+target);
-JS
-./scripts/local-runtime.sh start
-```
+| 字段 | 范围含义 |
+| --- | --- |
+| `maxSnapshotBytes` | 恢复输入快照的字节上限 |
+| `minHostFreeBytes` | 宿主机需保留的可用空间 |
+| `maxTargetBytes` | 目标写入范围的字节上限 |
+| `minTargetFreeBytes` | 目标存储需保留的可用空间 |
 
-备份内容：`postgres.dump`（逻辑恢复备用）、`pg.tar`（已停止PG的完整物理数据）、`lkg-a.tar`、`lkg-b.tar`、`dp-keys.tar`、三源数据tar、`runtime.json`、`release.json`、`secrets/`及`backup-manifest.json`。物理PG与逻辑dump是两种替代恢复方式，不能叠加导入。当前演练实际使用同版本物理卷恢复；逻辑跨版本迁移未验收。Redis缓存不备份，不影响持久业务真值。
+字段须为有效的正安全整数；没有生产默认值。除数值外，还需核验目标身份、全部写入卷与实际硬配额，按预检、初始化前、解包前保留关联证明。仅检查剩余磁盘、构造普通 JSON 或使用测试中的合成 provider，不能证明真实硬配额。
 
-将下面`RUNTIME_BACKUP`设置为刚才的目录。需保留release中记录的Git提交和本机镜像；恢复过程先核验所有文件哈希，再创建新owner、目录、卷，将七份归档恢复到空卷。所有秘密继承备份；控制台cookie命名空间使用新owner，恢复后重新登录。演练端口自动选择空闲loopback端口，并输出实际入口。
+当前源码尚未接入可证明实际硬配额的默认实现，旧版不带预算和验证器的恢复示例不能直接执行，也不能补造证明绕过。依据：[恢复预算](../../scripts/runtime/restore-storage-budget.mjs)、[数据库与恢复约束](../database-core.md)。
 
-```bash
-export RUNTIME_BACKUP=/完整路径/备份目录
-"$WEBAPI_NODE" --input-type=module <<'JS'
-import path from 'node:path';
-import {randomUUID} from 'node:crypto';
-import {restoreColdBackup} from './scripts/runtime/acceptance-backup.mjs';
-import {freePorts} from './scripts/runtime/acceptance.mjs';
-import {prepareContext} from './scripts/runtime/context.mjs';
-import {operateRuntime} from './scripts/runtime/lifecycle.mjs';
-const projectName='webapi-enterprise-local-test-'+randomUUID();
-const directory=path.resolve('.runtime/tests/'+projectName);
-const restored=await restoreColdBackup({target:path.resolve(process.env.RUNTIME_BACKUP),
- projectName,directory,ports:await freePorts(),contextFactory:prepareContext});
-await operateRuntime('start',restored.state,{directory});
-console.log(JSON.stringify({directory,projectName,consoleUrl:
- 'http://127.0.0.1:'+restored.state.ports.console,ports:restored.state.ports},null,2));
-JS
-```
+恢复必须保留原项目，目标为全新、带独立 owner 的受控测试项目及不存在的目录；原始字节、来源覆盖、卷范围、证据与数据库回执均需核对。未决迁移、身份不明、证明不连续时保持待核对，不把一次成功业务响应或回执缺失解释成完整恢复或已回滚。
 
-在新入口用备份中原管理员账号登录，核对组织/环境/API、告警规则与事件、原时间范围内日志/Trace，并用两网关检查原LKG代理。确认完整后再制定正式切换步骤；当前工具提供隔离恢复验证，不自动替换原运行卷。演练项目的删除使用`cleanupFixture(明确演练目录)`，它再次核验owner/project与已知卷名单，只删除该随机项目；普通启停不删除卷。
+## 验收入口的区别
 
-## 验收命令与证据
+| 入口 | 范围 | 当前说明 |
+| --- | --- | --- |
+| `check-console.sh` | 前端测试及构建 | 无持久环境验收结论 |
+| `check-contracts.sh domain/integration/gateway` | 随机独立后端测试项目 | 退出时按归属清理自己的测试资源 |
+| `check-local-runtime.sh unit` | 运行工具及控制台脚本测试 | 不替代真实恢复、浏览器或安装验收 |
+| `check-local-runtime.sh integration` | 串行的运行工具容器测试 | 属于有实际资源的隔离验证，不用于原环境 |
+| `check-local-runtime.sh e2e/browser` | 包含恢复与浏览器步骤的运行验收入口 | 目前包装入口未传恢复预算/验证器，按保护条件阻断；不能当作已可直接完成的验收命令 |
+| `check.sh e2e`、`e2e.sh --browser` | 另一套核心闭环 E2E | 使用固定端口及随机项目，与上述运行验收不是同一套流程；不并发占用共享端口 |
 
-`check-local-runtime.sh unit`运行脚本和控制台测试；`integration`串行运行真实容器测试；`e2e`（`browser`同义）运行真实发布、独立审批、两网关请求、三源收录、告警、源/Worker故障、重启、控制面重建和冷恢复。最后停在页面QA等待点，需要实际浏览器操作并写入UI证据，随后才清理随机项目和出具complete证据；无人值守运行不能冒充UI已通过。
+当前[运行验收实现](../../scripts/runtime/acceptance.mjs)在结束时保留夹具供调查或复核，不自动清理后宣告完整验收。需独立核对现场、身份和后续清理，不能仅用业务执行成功、浏览器等待文件或进程退出码填成 `complete: true`。旧版本已经封存的验收结果保留原身份，不改标为今天的运行结果。
 
-临时覆盖配置只属于验收项目；长期环境保留原采样、导出与告警间隔。内存证据为每5秒Docker stats采样的观察峰值，不能作为压力测试容量或内核精确最高值。旧环境保全证据比较容器ID、镜像、卷挂载、旧入口状态和旧ZIP哈希，不宣称逐行检查了全部旧业务数据。
+## 清理与历史资料
 
-## 源码包重建与当前启用状态
+临时项目清理必须核对本次精确项目、owner、目录及卷清单。当前 `cleanupFixture` 可为迁移证据保留目录和卷，不代表所有资源都应归零；保留状态须另行核对。失败、Unknown、待复核标记或证据卷不能当作垃圾删除，不执行全局 prune 或长期项目 `down -v`。
 
-源码ZIP包含不可变提交对应的源文件、同一源码重新构建的静态文件、真实验收与页面截图、整体审查记录。它不包含Docker镜像、Git对象库、运行数据、备份或用户秘密。`SOURCE_REVISION`记录原工程提交；manifest逐文件记录哈希。验证脚本在原Git工程中比较原提交与ZIP每一字节，并重新构建静态文件。
-
-独立解压后，安装锁文件对应的前端依赖（例如`cd console && pnpm install --frozen-lockfile`），回到enterprise目录建立本机Git提交：
-
-```bash
-git init
-git add .
-git -c user.name=LocalRuntime -c user.email=local-runtime@localhost commit -m 'Import verified runtime source'
-./scripts/local-runtime.sh build --revision HEAD
-./scripts/local-runtime.sh init --admin <你指定的管理员用户名>
-```
-
-重建版本使用本机新提交ID；原交付提交以SOURCE_REVISION保留。在原工程中可直接build明确的交付提交。不得将生成的`.runtime`、秘密或备份加入Git。构建需Docker访问依赖镜像与NuGet包；离线恢复需事先保留相同镜像和原Git提交/部署快照，源码ZIP不是含所有运行依赖的离线镜像包。
-
-本轮实际验收镜像及提交见`tested-release.json`；交付提交可包含后续脚本、文档和审查修复。打包门禁要求应用/前端/部署/依赖输入与该已验镜像的提交一致，静态哈希也必须一致。长期环境的实际安装状态另行记录，不能由合成验收complete=true推断用户业务环境已绑定。
-
-长期项目已使用用户指定的`admin`完成初始化，4192控制台、管理端、Worker及三源运行，管理员登录已核验。当前尚未建立业务环境或绑定双网关；登录4192建立业务环境后，显式提供环境GUID及上游origin列表以绑定4196/4197。密码保存在`.runtime/local/secrets/bootstrap-password`，未打印或加入源码包。
-
-原默认4190属于浏览器Fetch禁用端口，见[Fetch Standard](https://fetch.spec.whatwg.org/#port-blocking)。V1.1默认改为4192，并在写入状态前拒绝禁用端口；当前项目仅重建控制台完成迁移，账号、密钥与持久卷保留。原独立交付ZIP和manifest不覆盖，修正版单独使用`_V1.1.zip`和`manifest-local-runtime-v1.1.json`。运行应用镜像仍为已构建的3c038e7，实际部署环境变量显式使用4192；版本与交付提交分别记录。
+早期的 4190→4192 端口迁移、`3c038e7` 镜像、尚未绑定业务等说明属于当次历史安装，今天的实际入口和维护工具须现场核对。对应记录从[运维目录](README.md)查找。真实企业 TLS/HA、容量、跨架构及灾备验收保持独立。

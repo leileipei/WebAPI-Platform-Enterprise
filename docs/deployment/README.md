@@ -7,6 +7,7 @@
 - 版本与运行边界：[项目总目录](../README.md)、[基础运维](../operations.md)、[持久环境运行手册](local-runtime-runbook.md)。
 - 凭证普通轮换、紧急安全链路是否启用：[账号与凭证操作](account-credential-operations.md)、[凭证安全操作](credential-security-operations.md)。
 - 对既有服务执行维护前，核对实际安装记录中的源码、镜像、维护工具和私有恢复资料。不能直接把新工作目录里的脚本覆盖到旧安装。
+- 当前仓库的恢复入口需要显式预算和真实硬配额验证，默认集成仍缺失；不能直接执行旧恢复示例，详见[阻断条件](local-runtime-runbook.md#恢复目前的阻断条件)。
 - 下列旧 ZIP 的下载文件不在仓库中；原包名及摘要是历史身份，不代表文件已经取回。
 
 ## 全部部署资料
@@ -32,9 +33,9 @@
 - [4192 升级后维护入口](gateway-readiness-upgrade-runbook.md)
 - [网关重启运行确认说明](gateway-restart-readiness-runbook.md)
 - [本机演示联调使用说明](local-demo-guide.md)
-- [本机演示环境恢复清单](local-demo-recovery-checklist.md)
+- [本机演示恢复资料核对清单](local-demo-recovery-checklist.md)
 - [本机 Keycloak 持久演示运维](local-keycloak-demo.md)
-- [独立本机运行环境操作手册](local-runtime-runbook.md)
+- [本机运行工具与固定安装维护](local-runtime-runbook.md)
 - [CORS、IP 与 JSON Transform 独立验收操作说明](network-policies-runbook.md)
 - [通知与审批的数据保留恢复桥接](notification-approval-recovery-runbook.md)
 - [本机隔离观测栈](observability-local.md)
