@@ -6,7 +6,7 @@
 
 | 主题 | 资料与源码入口 |
 | --- | --- |
-| 页面与需求 | [40 页能力映射](console-coverage.md)、[需求台账](evidence/work-package4/requirements-status.md)、[控制台源码](../console/src/) |
+| 页面与需求 | [当前需求追溯与交付缺口](deployment/requirements-current-review.md)、[40 页能力映射](console-coverage.md)、[历史需求台账](evidence/work-package4/requirements-status.md)、[控制台源码](../console/src/) |
 | 组织、权限与会话 | [会话安全](session-security.md)、[治理安全](governance-security.md)、[授权实现](../src/WebApi.Infrastructure/Security/AuthorizationService.cs) |
 | API、路由与契约 | [目录与路由](catalog-routing.md)、[OpenAPI 与凭证](openapi-credentials.md)、[契约管理手册](deployment/contract-management-completion-runbook.md) |
 | 应用与凭证 | [账号与凭证操作](deployment/account-credential-operations.md)、[安全操作及关闭边界](deployment/credential-security-operations.md)、[应用服务](../src/WebApi.Infrastructure/Applications/ApplicationService.cs) |
