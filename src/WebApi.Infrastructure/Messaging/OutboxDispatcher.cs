@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Runtime;
@@ -8,7 +9,7 @@ using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Runtime;
 namespace WebApi.Infrastructure.Messaging;
 public sealed record DeploymentEvent(Guid EventId,Guid EnvironmentId,long DeploymentSequence,Guid ReleaseId,long TargetVersion);
-public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store,Func<Task>? afterWrite=null)
+public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store,Func<Task>? afterWrite=null,ILogger<OutboxDispatcher>? log=null)
 {
     public async Task<bool> DispatchNextAsync(CancellationToken ct=default)
     {
@@ -39,6 +40,21 @@ public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store
     {
         var environments=await db.Set<EnvironmentRecord>().AsNoTracking().Where(e=>e.DesiredConfigVersion!=null&&e.DeploymentSequence>0).ToArrayAsync(ct);
         foreach(var env in environments)
-        {var release=await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.EnvironmentId==env.Id&&r.DeploymentSequence==env.DeploymentSequence&&r.ToConfigVersion==env.DesiredConfigVersion,ct);var e=new DeploymentEvent(Guid.Empty,env.Id,env.DeploymentSequence,release.Id,release.ToConfigVersion);var desired=await ReadCommittedAsync(e,ct);await store.PutAsync(env.Id,desired.Envelope,desired.Payload,ct);}
+        {
+            ct.ThrowIfCancellationRequested();
+            try
+            {
+                var release=await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.EnvironmentId==env.Id&&r.DeploymentSequence==env.DeploymentSequence&&r.ToConfigVersion==env.DesiredConfigVersion,ct);
+                var e=new DeploymentEvent(Guid.Empty,env.Id,env.DeploymentSequence,release.Id,release.ToConfigVersion);
+                var desired=await ReadCommittedAsync(e,ct);
+                await store.PutAsync(env.Id,desired.Envelope,desired.Payload,ct);
+            }
+            catch(OperationCanceledException) when(ct.IsCancellationRequested) {throw;}
+            catch(Exception error)
+            {
+                // Keep invalid snapshots rejected without starving unrelated environments.
+                log?.LogError("Desired reconciliation failed for {EnvironmentId}: {ErrorType}",env.Id,error.GetType().Name);
+            }
+        }
     }
 }
