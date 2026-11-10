@@ -1,5 +1,7 @@
 # WebAPI Platform Enterprise 架构评审报告
 
+> **2026-11-10 复核说明**：下文保留 2026-11-07 的评审基线及后续局部补记，不作为当前交付状态的唯一依据。固定主干 `7626115` 已包含 G01–G13 合并，G14 台账两项补验分别记录 7/7 与 4/4 通过；旧文“未合并”“G14 未闭环”已被这些后续证据更新。安全检查点/租约准入仍未接线，当前凭证撤销依赖再次审批发布，合并不能代表即时撤销已上线。本地CI两批配置已提交为 `536efe1`、`8b75524` 并完成对应本机验证，远程主干仍无这些工作流、Actions记录仍为0。另纠正 §6：“.NET 10 非 LTS”不准确，.NET 10 为 LTS；SDK 与补丁更新仍需固定版本复验。[Microsoft 支持政策](https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core)。本次状态与证据入口见[当前项目状态](docs/deployment/current-project-status.md)。
+
 | 项 | 值 |
 |---|---|
 | 评审对象 | `leileipei/WebAPI-Platform-Enterprise`(main @ `369139d`,273 commits)+ 凭证治理 G01–G13 工作树变更(未合并) |
