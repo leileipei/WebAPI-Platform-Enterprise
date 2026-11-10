@@ -6,7 +6,7 @@
 
 | 层次 | 已核实的版本或状态 | 说明 |
 | --- | --- | --- |
-| [GitHub main](https://github.com/leileipei/WebAPI-Platform-Enterprise/tree/51924152199f4b4ca0323df776d10772e8fd3905) | `51924152199f4b4ca0323df776d10772e8fd3905` | [PR #6](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/6)仅合并9份资料；七棵实现/测试/工具/部署/工作流树与`3774ccc`一致；未核实该新提交CI |
+| [GitHub main](https://github.com/leileipei/WebAPI-Platform-Enterprise/tree/51924152199f4b4ca0323df776d10772e8fd3905) | `51924152199f4b4ca0323df776d10772e8fd3905` | [PR #6](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/6)仅合并9份资料；七棵实现/测试/工具/部署/工作流树与`3774ccc`一致；该提交四项CI已实际运行通过4255项，0失败/跳过 |
 | 本地主分支 | `3774ccc7fd97a59ff4851d3a9f55179c4635c61f` | 本轮未跟随PR #6更新原目录；14份未提交内容及状态保留，早前差异不覆盖或倒填归因 |
 | 本地资料整理工作树 | 实现、测试代码、工具、部署和工作流七棵树与最新main一致；实际运行固定`3774ccc` | 后续资料链仍在本地，不等于已合入PR #5或PR #6 |
 | 其他本地目录和分支 | 含未提交文档、补验资料及不同阶段的工作目录 | 不自动并入本页结论，不推断分支名对应功能未实现或已交付 |
@@ -39,10 +39,11 @@
 
 ## 固定版本验证
 
-以下区分实际 GitHub 运行与既有固定版本验证。本轮状态更新核对已完成的运行及完整日志，没有重新执行产品测试。
+以下区分实际 GitHub 运行与既有固定版本验证。本轮只读核对新旧主干的实际运行及完整日志，并另执行7项本地隔离Integration用例；各次结果分别记录。
 
 | 输入与记录 | 实际结果 | 不能外推的结论 |
 | --- | --- | --- |
+| 最新 main `5192415`，push 触发；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359801)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762) | Console 321、Domain 1251、Gateway 555、Integration 2128，合计4255通过，0失败/跳过；类型检查及前端构建通过 | 新提交四项均实际执行，非路径跳过；与旧主干结果分别记录，不代表完整需求或生产验收 |
 | 合并后 main `3774ccc`，push 触发；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42839001626)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42839002248) | Console 321、Domain 1251、Gateway 555、Integration 2128，合计 4255 通过，0 失败/跳过；前端类型检查和构建通过 | 是该提交在托管 runner 上的四套检查，不代表 E2E、AMD64 或生产验收 |
 | PR 修正候选 `7694c4a`；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42828796307)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42828796227) | 同样 4255 通过，0 失败/跳过；之后才合并 | PR 与 main 是两次独立验证，不相加为一个总数 |
 | [前端首批](console-ci-phase1.md)，`536efe1` | 321 通过，0 失败/跳过；类型检查与构建通过 | 本机 macOS 结果，不是 GitHub runner 结果；SSR 端口及大 chunk 告警保留 |
@@ -51,7 +52,7 @@
 | 同一 `00f45a8` 的关联路径复核 | 29 份源码检查；通知、凭证、导入和流水线相关 94 项通过，0 失败/跳过 | 有限范围复核，不是全仓库安全审计 |
 | [网络策略固定交付](../evidence/network-policies/2026-11-10-c946bbb/delivery-index.md)，`c946bbb` | 五组 4540 通过；SDK E2E 1 通过；[45 项工件清单](../evidence/network-policies/2026-11-10-c946bbb/delivery-manifest.json) | 属于该固定版本，不改标为本地修复后的完整验收 |
 
-50/94 项的原日志在本地忽略目录保存；修复对应的回归入口为[审计测试](../../tests/WebApi.Integration.Tests/AuditPermissionMoveScopeTests.cs)与[分发隔离测试](../../tests/WebApi.Integration.Tests/OutboxFailureIsolationTests.cs)。已核实完整四套结果以固定`3774ccc`的4255项为准，不改标为`5192415`运行；不把历史 321、3921、50、94、4540 与其相加。
+50/94 项的原日志在本地忽略目录保存；修复对应的回归入口为[审计测试](../../tests/WebApi.Integration.Tests/AuditPermissionMoveScopeTests.cs)与[分发隔离测试](../../tests/WebApi.Integration.Tests/OutboxFailureIsolationTests.cs)。最新`5192415`与历史`3774ccc`的四套检查各自实际通过4255项，分别有完整日志；不改写旧记录，也不把两次CI、本地7项或历史321、3921、50、94、4540相加。
 
 ## GitHub 实际状态
 
@@ -78,6 +79,8 @@
 随后按明确确认完成北京时间跨日和UTC跨日两项实际保存验证，各3600秒，创建后两个接口及刷新页面一致，逐枚立即撤销且最终均为修订2。66份历史证据、C08失败与既有资源Unknown保持不变；本轮未新增非自有资源缺失，自有测试服务已停止。该结果只覆盖未来窗口的保存与读回，尚未等待未来生效/到期或验证完整时区、窗口更新及权限矩阵。
 
 随后完成已有六类身份的48项凭证接口权限检查，48项通过；允许11次读取/预览、31次授权拒绝、2次过期修订拒绝、4次授权后无效窗口拒绝。未新增账号或凭证，4个应用/8枚凭证及身份权限Scope均未变，98份历史证据与Unknown保留，临时服务停止。它不替代有效写入、完整角色/Scope或数据面验收。
+
+随后在临时隔离fixture上完成另6个Integration方法/7个具名用例，7通过、0失败/跳过，覆盖通用Scope与窗口更新风险门禁。三个窗口更新用例主要断言HTTP成功，未新增持久化读回断言；凭证专门的manage加只读Scope身份、完整页面及数据面验收仍待补齐。自有资源清理为0，起始207容器/508卷/39网络均保留，111份历史证据与原失败/Unknown不变。另核对PR #6公开的5个c946bbb工件及3张截图，没有新增登录/SSO执行或需求关闭。
 
 | 未完成项 | 当前依据与处理边界 |
 | --- | --- |

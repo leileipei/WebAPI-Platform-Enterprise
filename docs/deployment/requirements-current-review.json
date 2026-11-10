@@ -13401,6 +13401,76 @@
         "crossDaySaveCasesPassed": 2,
         "crossDaySaveCasesFailed": 0
       }
+    },
+    {
+      "commit": "3267e4df310f644c735948c6e2cdcd5c786e104f",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "132c52262d770b3aa3fa1bb3511d4d7f5d5e984402d71efba2b05206254d3f3a",
+      "scope": "prior permission matrix, public ledger observation and all prior qualification retained; append isolated write gates and new-main CI observations",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -16265,5 +16335,290 @@
       }
     ],
     "qualification": "latest published ledger statuses, not new acceptance granted by this local matrix; original review snapshot remains unchanged"
+  },
+  "credentialWriteGateFollowup": {
+    "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "3267e4df310f644c735948c6e2cdcd5c786e104f",
+    "scope": "existing methods, temporary isolated HTTP/PostgreSQL/Redis fixtures only; no preserved 31931 or4192 mutation",
+    "methods": [
+      "WebApi.Integration.Tests.GovernanceTests.ReadonlyScopeCannotWrite",
+      "WebApi.Integration.Tests.GovernanceTests.RevokedScopeBlocksExistingSession",
+      "WebApi.Integration.Tests.GovernanceTests.StaleETagReturns412",
+      "WebApi.Integration.Tests.GovernanceTests.ScopeUnionAllowsEnvironmentWriteWithoutBroadeningOrganizationWrite",
+      "WebApi.Integration.Tests.CredentialImpactTests.Stale_etag_precedes_impact_check_and_safe_extension_stays_compatible",
+      "WebApi.Integration.Tests.CredentialImpactTests.Uncovered_future_windows_require_explicit_risk_confirmation"
+    ],
+    "uniqueMethods": 6,
+    "cases": [
+      "WebApi.Integration.Tests.GovernanceTests.ReadonlyScopeCannotWrite",
+      "WebApi.Integration.Tests.CredentialImpactTests.Stale_etag_precedes_impact_check_and_safe_extension_stays_compatible",
+      "WebApi.Integration.Tests.GovernanceTests.StaleETagReturns412",
+      "WebApi.Integration.Tests.CredentialImpactTests.Uncovered_future_windows_require_explicit_risk_confirmation(change: \"shorten\")",
+      "WebApi.Integration.Tests.GovernanceTests.ScopeUnionAllowsEnvironmentWriteWithoutBroadeningOrganizationWrite",
+      "WebApi.Integration.Tests.CredentialImpactTests.Uncovered_future_windows_require_explicit_risk_confirmation(change: \"future\")",
+      "WebApi.Integration.Tests.GovernanceTests.RevokedScopeBlocksExistingSession"
+    ],
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "startedAt": "2026-11-10T19:20:29.858052+00:00",
+    "endedAt": "2026-11-10T19:21:20.294162+00:00",
+    "elapsedSeconds": 50.436,
+    "logSha256": "0ea985f878db255da4a3dc8c34986791e9914f0725e9533de2eff2e1fc70966d",
+    "automaticRetry": false,
+    "evidenceDirectory": ".superpowers/ci-and-write-gates-20261111",
+    "rawSummaryMatchesPreserved": [],
+    "normalVerbosityNamedResultsVerified": true,
+    "preservation": {
+      "initialResourceCounts": {
+        "containers": 207,
+        "volumes": 508,
+        "networks": 39
+      },
+      "missingInitialIds": {
+        "containers": [],
+        "volumes": [],
+        "networks": []
+      },
+      "missingCounts": {
+        "containers": 0,
+        "volumes": 0,
+        "networks": 0
+      },
+      "ownResourcesRemaining": {
+        "volumes": [],
+        "networks": [],
+        "containers": []
+      },
+      "ownProject": "webapi-contracts-test-a4ad1996-2ee4-4fce-8e62-037695b5e8bb",
+      "priorUnknownRetained": true,
+      "at": "2026-11-10T19:23:18.503176+00:00"
+    },
+    "filePreservation": {
+      "historicalEvidenceUnchanged": 111,
+      "protectedFilesUnchanged": 4004,
+      "primaryFilesUnchanged": 14,
+      "primaryStatusUnchanged": true,
+      "priorFailureAndUnknownRetained": true
+    },
+    "preservedEnvironmentMutations": 0,
+    "temporaryFixtureDataCreatedAndRemoved": true,
+    "priorNoAppReadManageTestRerun": false,
+    "limitations": [
+      "Three successful window-update cases primarily assert HTTP success; no new persisted-window GET/database assertion added.",
+      "Generic governance Scope tests do not replace a direct credential.manage plus readonly Scope credential HTTP persona.",
+      "No new UI, data-plane, future activation/expiration or complete actor/Scope matrix acceptance."
+    ],
+    "nextTargetedAcceptance": [
+      "Assert updated window values through GET/database after successful extension, shortening and future-start update.",
+      "Add direct credential HTTP cases for credential.manage with readonly Scope and relevant actor/Scope combinations.",
+      "Complete UI and publish/data-plane acceptance separately."
+    ],
+    "newRequirementsAccepted": 0,
+    "priorC08FailureRetained": true,
+    "priorUnknownRetained": true
+  },
+  "publishedEvidenceIntegrityReview": {
+    "commit": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "files": [
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/runtime.json",
+        "gitBlob": "99ad3d63782ed1fb956412f4c9baff7025354a0d",
+        "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c",
+        "bytes": 1885,
+        "keys": [
+          "sourceRevision",
+          "runtimeOwner",
+          "imageId",
+          "projectName",
+          "verifiedAt",
+          "kind",
+          "result",
+          "scenario",
+          "requirementIds",
+          "checksByRequirement",
+          "observations",
+          "sourceRecords"
+        ],
+        "metadata": {
+          "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "runtimeOwner": "09afea0f-b49b-4dff-9f8f-914c03ec5fc2",
+          "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+        },
+        "publishedBlob": "99ad3d63782ed1fb956412f4c9baff7025354a0d",
+        "publishedBlobMatches": true
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+        "gitBlob": "7099646706328049f54d60f0411ffe467328a92c",
+        "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c",
+        "bytes": 1512,
+        "keys": [
+          "sourceRevision",
+          "runtimeOwner",
+          "imageId",
+          "projectName",
+          "verifiedAt",
+          "kind",
+          "viewport",
+          "requirementIds",
+          "screenshots",
+          "boundary"
+        ],
+        "metadata": {
+          "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "runtimeOwner": "09afea0f-b49b-4dff-9f8f-914c03ec5fc2",
+          "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+          "viewport": "{\"width\":1440,\"height\":1100}"
+        },
+        "publishedBlob": "7099646706328049f54d60f0411ffe467328a92c",
+        "publishedBlobMatches": true
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-c04-rate-limit.png",
+        "gitBlob": "dc425a8ab95c2ba53875deae3c85bf23b0ae51b1",
+        "sha256": "9c5c87d86e592b0ac1bb8c0ddfe4acdf0ac00084e5c7b6e208fc48fdfd04296a",
+        "bytes": 355246,
+        "dimensions": [
+          1440,
+          1100
+        ],
+        "publishedBlob": "dc425a8ab95c2ba53875deae3c85bf23b0ae51b1",
+        "publishedBlobMatches": true
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-s02-wrong-password.png",
+        "gitBlob": "7f1190a7a486edcb20e107205bf66649d11e433c",
+        "sha256": "0f10ca217c3977676a31b517a7a1d51bc800ade5ca50a5dd2db563fdfe2c0791",
+        "bytes": 352310,
+        "dimensions": [
+          1440,
+          1100
+        ],
+        "publishedBlob": "7f1190a7a486edcb20e107205bf66649d11e433c",
+        "publishedBlobMatches": true
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-s04-sso-unavailable.png",
+        "gitBlob": "9405b78ec5dfc0aaeeee79e867cc1099ccd86784",
+        "sha256": "dba260c2f75d360c23e042988a07473b8c4a08d6867218182682d3c36a3ff606",
+        "bytes": 353188,
+        "dimensions": [
+          1440,
+          1100
+        ],
+        "publishedBlob": "9405b78ec5dfc0aaeeee79e867cc1099ccd86784",
+        "publishedBlobMatches": true
+      }
+    ],
+    "visualReview": {
+      "completed": true,
+      "images": 3,
+      "observations": {
+        "P01-C04": "1440px image shows account-rate-limit alert with 297 seconds retry",
+        "P01-S02": "1440px image shows invalid username/password alert",
+        "P01-S04": "1440px image shows identity-source-unavailable alert; callback error state only"
+      },
+      "newBrowserExecution": false,
+      "identityProviderFaultInjection": false,
+      "newAcceptanceGranted": false
+    },
+    "fixedSource": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+    "allFivePublishedBlobsMatch": true,
+    "at": "2026-11-10T19:25:33.782Z",
+    "newRequirementsAccepted": 0,
+    "qualification": "Read-only blob/hash and visual verification of existing c946bbb artifacts; no new browser or IdP execution and no promotion to current-main acceptance."
+  },
+  "mainCi519Verification": {
+    "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "suites": [
+      {
+        "suite": "console",
+        "job": 130044123079,
+        "run": 42877359801,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359801",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:14Z",
+        "completedAt": "2026-11-10T18:39:50Z",
+        "total": 321,
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "logSha256": "3441627b524647989902d00feb3a15c3fd5a68e3db1c01dfde579a5d3ca0418f"
+      },
+      {
+        "suite": "domain",
+        "job": 130044122159,
+        "run": 42877359762,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:16Z",
+        "completedAt": "2026-11-10T18:41:30Z",
+        "failed": 0,
+        "passed": 1251,
+        "skipped": 0,
+        "total": 1251,
+        "logSha256": "e2573f36099a698125b8892b0488465b236b7697fcdcc5496de0fcac750ce53f"
+      },
+      {
+        "suite": "gateway",
+        "job": 130044122240,
+        "run": 42877359762,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:17Z",
+        "completedAt": "2026-11-10T18:49:57Z",
+        "failed": 0,
+        "passed": 555,
+        "skipped": 0,
+        "total": 555,
+        "logSha256": "9d3f0ac3f9a5aea4f6e27b5c63f90c2b6cd98ece0c597ee9d1793b2324056934"
+      },
+      {
+        "suite": "integration",
+        "job": 130044122126,
+        "run": 42877359762,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:16Z",
+        "completedAt": "2026-11-10T19:35:02Z",
+        "failed": 0,
+        "passed": 2128,
+        "skipped": 0,
+        "total": 2128,
+        "logSha256": "5b1b1e68650822dc39c50126323724ecdcd0c7a72cc368fb7df68fe106de84ca"
+      }
+    ],
+    "passed": 4255,
+    "failed": 0,
+    "skipped": 0,
+    "allFourVerified": true,
+    "actualRunsNotPathSkipped": true,
+    "consoleTypecheckAndBuildPassed": true,
+    "integrationTestDuration": "53m27s",
+    "integrationJobDurationSeconds": 3346,
+    "requiredContexts": [
+      "console",
+      "contracts-domain",
+      "contracts-integration",
+      "contracts-gateway"
+    ],
+    "protected": true,
+    "rulesWritten": false,
+    "rerunTriggered": false,
+    "initialPartialObservationRetained": true,
+    "prior377CiRetainedSeparately": true,
+    "localSevenCasesNotAdded": true,
+    "newRequirementsAccepted": 0,
+    "observedAt": "2026-11-10T19:36:24.058607+00:00"
   }
 }

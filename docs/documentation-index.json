@@ -448,7 +448,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "132c52262d770b3aa3fa1bb3511d4d7f5d5e984402d71efba2b05206254d3f3a",
+    "dataSha256": "234f362d7882c21f7a57ed96ec2d0c7da4e649429a53efd6baddcaea66a8464f",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -557,6 +557,17 @@
       "缺失": 18,
       "待复验": 360,
       "经确认延期": 0
+    },
+    "credentialWriteGateFollowup": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "uniqueMethods": 6,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "newRequirementsAccepted": 0,
+      "priorC08FailureRetained": true,
+      "priorUnknownRetained": true,
+      "persistedUpdatedWindowReadBackAdded": false
     }
   },
   "repositoryGovernanceObservation": {
@@ -775,8 +786,107 @@
     ],
     "qualification": "latest published ledger statuses, not new acceptance granted by this local matrix; original review snapshot remains unchanged"
   },
+  "mainCi519Verification": {
+    "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "suites": [
+      {
+        "suite": "console",
+        "job": 130044123079,
+        "run": 42877359801,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359801",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:14Z",
+        "completedAt": "2026-11-10T18:39:50Z",
+        "total": 321,
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "logSha256": "3441627b524647989902d00feb3a15c3fd5a68e3db1c01dfde579a5d3ca0418f"
+      },
+      {
+        "suite": "domain",
+        "job": 130044122159,
+        "run": 42877359762,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:16Z",
+        "completedAt": "2026-11-10T18:41:30Z",
+        "failed": 0,
+        "passed": 1251,
+        "skipped": 0,
+        "total": 1251,
+        "logSha256": "e2573f36099a698125b8892b0488465b236b7697fcdcc5496de0fcac750ce53f"
+      },
+      {
+        "suite": "gateway",
+        "job": 130044122240,
+        "run": 42877359762,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:17Z",
+        "completedAt": "2026-11-10T18:49:57Z",
+        "failed": 0,
+        "passed": 555,
+        "skipped": 0,
+        "total": 555,
+        "logSha256": "9d3f0ac3f9a5aea4f6e27b5c63f90c2b6cd98ece0c597ee9d1793b2324056934"
+      },
+      {
+        "suite": "integration",
+        "job": 130044122126,
+        "run": 42877359762,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:16Z",
+        "completedAt": "2026-11-10T19:35:02Z",
+        "failed": 0,
+        "passed": 2128,
+        "skipped": 0,
+        "total": 2128,
+        "logSha256": "5b1b1e68650822dc39c50126323724ecdcd0c7a72cc368fb7df68fe106de84ca"
+      }
+    ],
+    "passed": 4255,
+    "failed": 0,
+    "skipped": 0,
+    "allFourVerified": true,
+    "actualRunsNotPathSkipped": true,
+    "consoleTypecheckAndBuildPassed": true,
+    "integrationTestDuration": "53m27s",
+    "integrationJobDurationSeconds": 3346,
+    "requiredContexts": [
+      "console",
+      "contracts-domain",
+      "contracts-integration",
+      "contracts-gateway"
+    ],
+    "protected": true,
+    "rulesWritten": false,
+    "rerunTriggered": false,
+    "initialPartialObservationRetained": true,
+    "prior377CiRetainedSeparately": true,
+    "localSevenCasesNotAdded": true,
+    "newRequirementsAccepted": 0,
+    "observedAt": "2026-11-10T19:36:24.058607+00:00"
+  },
+  "publishedEvidenceIntegrityReview": {
+    "commit": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "fixedSource": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+    "publishedBlobsMatched": 5,
+    "screenshotsReviewed": 3,
+    "newBrowserExecution": false,
+    "newAcceptanceGranted": false
+  },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"611d683de838f1f887d3d8bcff50783c890017f561659fa111ab4a72a363c965"},
+    {"path":"README.md","category":"navigation","sha256":"9c2b0e2b38d5190565fc052ef2fb0862d35d3cd9cda653378b48f7363c3bd9b0"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -815,7 +925,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"9db783bc2be20715262df2b89cabd4398708d5da28c9c5faebd97204a4a3b772"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"dedba74aa386d0ef608904a798cf01ce3cbdd6e25cb8fbb31c28903bd3442123"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -1090,6 +1200,6 @@
     {"path":"docs/superpowers/specs/2026-11-10-contracts-ci-phase2-design.md","category":"historical-design-plan","sha256":"1be4ab24ffbc6b52cc5501064fcb7846c3d3d7a0f153056b16826f86b3896ee1"},
     {"path":"docs/traffic-policy-data-dictionary.md","category":"topic-reference","sha256":"02611712f6ed8b89033e1abd9d5028a595a5b5f4e1155427e7548ec7dc902022"},
     {"path":"docs/workbench.md","category":"topic-reference","sha256":"4f15104d0c5fbd10b4f0561eee8cf61ae5758cf1115d384723869980b3fc82d4"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"634b62eb25cf63b3581f153b6ec79fc71735ba6c3969b99cec6e5231303ff3f4"}
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"a4258adabbfbdba6363302bdf2434e7dd661345208620e7922c3f23927947d03"}
   ]
 }
