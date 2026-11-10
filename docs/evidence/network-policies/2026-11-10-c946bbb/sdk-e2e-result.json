@@ -1,0 +1,14 @@
+{
+  "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+  "runtimeOwnerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+  "sdk": "dotnet SDK 10.0.401 (local ~/.dotnet-10.0.401); dotnet test WebApi.EndToEnd.Tests -c Release --filter Scenario=NetworkPolicies",
+  "actual": true,
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "proofSha256": "8658dac8fcc5700418add11c038a055fba99665f9ddfde62874a04d634e91dc6",
+  "logSha256": "9822f250b866df2c3ff3052dcf754eb5c916470ddf77df75c913e11568ba9727",
+  "evidenceContainsPrivateValues": false,
+  "executedAt": "2026-11-10T01:11:49.889Z"
+}

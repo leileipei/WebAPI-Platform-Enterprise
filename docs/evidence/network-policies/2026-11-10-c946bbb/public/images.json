@@ -1,0 +1,637 @@
+{
+  "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+  "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+  "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+  "resources": [
+    {
+      "Kind": "container",
+      "Id": "dfc74a8c5db4b28227e39b68c1d229726daa92e81bdaed877e7f82e3163ac43c",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-control-plane-1",
+      "Image": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "490bf80fa89cbf69e7d5da80414861f4ae076951d89feeb299d7e64ae3b71a9f",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:729ed6bc84371ae94c16a3783d3903a658d2946be66fc8d569970ddbcaeb61ce",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/delivery-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.replace": "control-plane-1",
+          "com.docker.compose.service": "control-plane",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "ab33baa5aa9d4bf2661ea0c28970d80f6357fca43149aa7ad006fabe1a9e5e1d",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-prod-gateway-a-1",
+      "Image": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "49107c9bc4463f030cc55a18db53ad55b528d5ddf018f413ff5cccea48e5f423",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:729ed6bc84371ae94c16a3783d3903a658d2946be66fc8d569970ddbcaeb61ce",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/delivery-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "prod-gateway-a",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "9f432cfc8215892133b3ededa2db9472549dc4c9b8a40bec058883aa1ffdea54",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-prod-gateway-b-1",
+      "Image": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "ec3e13fcce4df0097e0201c9ecd78b5a0d176e89e9f698b951765ae2204c51d9",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:729ed6bc84371ae94c16a3783d3903a658d2946be66fc8d569970ddbcaeb61ce",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/delivery-overlay.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "prod-gateway-b",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "26ebce2b45f6cb19cb68d4a3a02ee9edbe1eb7a0987bca6955e58ce69738d702",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-gateway-b-1",
+      "Image": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "4440861c55a5f5fd4d4f75892ed061657af9314e868b5cd95f09ebd72a14ce55",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:729ed6bc84371ae94c16a3783d3903a658d2946be66fc8d569970ddbcaeb61ce",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.replace": "gateway-b-1",
+          "com.docker.compose.service": "gateway-b",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "8c595e7d7a0e48076c3305c8691d3ebe7d0c3335894d2e0895c353c2aaba6582",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-gateway-a-1",
+      "Image": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "b8beb562aea8e567ddf6345d0641575879e88a45fc70dd11061adfdb88f0d470",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:729ed6bc84371ae94c16a3783d3903a658d2946be66fc8d569970ddbcaeb61ce",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.replace": "gateway-a-1",
+          "com.docker.compose.service": "gateway-a",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "7ac80c1f38823958bb443f718e1c29d5ab90735e3f14a2afb2176507953821d4",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-worker-1",
+      "Image": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "e6dd676532de93d570b668768d6bf64b9c0707ede47a50e0fb8c9b5d6d049806",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:729ed6bc84371ae94c16a3783d3903a658d2946be66fc8d569970ddbcaeb61ce",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.replace": "worker-1",
+          "com.docker.compose.service": "worker",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "32926e7b7cad18b62bdae8a7ed0aa0b07aa7960bb9af44e42fd824caa020c8db",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-backend-b-1",
+      "Image": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "94adaa0ec2ebededc776967eb6acbd27d5450e719734660ef06edf9425c1a0f7",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:729ed6bc84371ae94c16a3783d3903a658d2946be66fc8d569970ddbcaeb61ce",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "backend-b",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "9d329055c8970b6f09c37f3b48c1a68e0786a95a4d3673632e75bb65e55cf39a",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-backend-a-1",
+      "Image": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "76ce5ca2bcf729276a83d2bb7c4679eab4ca8c8bec396bd8a5bbcefbd1798230",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:729ed6bc84371ae94c16a3783d3903a658d2946be66fc8d569970ddbcaeb61ce",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.gateways.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.demo.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "backend-a",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "eb7dd0d5e7a9697a81baa4601fba6a39ba61e276b111a67be79940c8de5ed3f1",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-tempo-1",
+      "Image": "sha256:3076b8dcdfb32fd6bc5ccef85e7b7313e6199b9cb84366257fc17ecb696db5fd",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "903ca391efeebb1025a2c4cef1901e14729b95af269680d734b370ab351e707e",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:56df098fdfe4dabc012615e970c8500b2be8f51933fb59351c8849a2cb807fb7",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "tempo",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "d5acc3409bf63c6e621fc0821af4dd51d06df473ea6709db5030f81d8e8c1bcc",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-loki-1",
+      "Image": "sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "9a7e2ef1431d60a7f8eb871f79af32acf792909eb7b4707b268f4701ac1c55fc",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:a2753977b07471e0bb271f421677036fb1c84a2fd409e14fa19dfc7cc3b789b5",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "loki",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "cfd0b2e7e01b4306ea59340ff0b25204b6046d6e17c3a09040c708524c6aaf35",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-console-1",
+      "Image": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "f7d9069a6311ad99af866d5fe9c1626a3d0fd72e21ac67564f1c3a7759f718cb",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:729ed6bc84371ae94c16a3783d3903a658d2946be66fc8d569970ddbcaeb61ce",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "console",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "44e88cb6b10c774f0c9a1ecc37384a4e6c886f3b9881e0216c04a3e54125101d",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-prometheus-1",
+      "Image": "sha256:efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "8e4232867ef12c45d41e1065241ea55a0a2ec8b9b77b051ca827fc595b2f5d5e",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:6b41f7a45cfbd1d259a78701ee5e14fc2ad9383c9aa5d0427345a18539bc3c91",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "prometheus",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "io.prometheus.image.variant": "busybox",
+          "maintainer": "The Prometheus Authors <prometheus-developers@googlegroups.com>",
+          "org.opencontainers.image.authors": "The Prometheus Authors",
+          "org.opencontainers.image.description": "The Prometheus monitoring system and time series database",
+          "org.opencontainers.image.documentation": "https://prometheus.io/docs",
+          "org.opencontainers.image.licenses": "Apache License 2.0",
+          "org.opencontainers.image.source": "https://github.com/prometheus/prometheus",
+          "org.opencontainers.image.title": "Prometheus",
+          "org.opencontainers.image.url": "https://github.com/prometheus/prometheus",
+          "org.opencontainers.image.vendor": "Prometheus"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "9b489f045a3f3afccca0c52454597c0fdb5893a1de2899083246e466db968f9c",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-collector-1",
+      "Image": "sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "737dd58bf61649e6f4dbe122fb84cfe3aad43e745d3e92aed5c8117f7ddc674c",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:254638b0878b0ef56088f3d580bac163aa7131213c5f7eb6e0cc9d169805503f",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "collector",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc",
+          "org.opencontainers.image.created": "2026-09-29T12:43:15Z",
+          "org.opencontainers.image.licenses": "Apache-2.0",
+          "org.opencontainers.image.name": "opentelemetry-collector-releases",
+          "org.opencontainers.image.revision": "f6159a775dad1e21433c49bd8450673dd13ed4d3",
+          "org.opencontainers.image.source": "https://github.com/open-telemetry/opentelemetry-collector-releases",
+          "org.opencontainers.image.version": "0.162.0"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "419845a7db5af9418d471d77d1f4810005b19562bb3e092ba8b0123a1d721b7d",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-postgres-1",
+      "Image": "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "46d918127e956adf9609c5151d052cba999d5700d55bb3f9077182335ec34954",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:0b2882c46a2b8d8e148431b333394348cf4d7f15aec6df7f17d51dc641e56cfa",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "postgres",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+        }
+      }
+    },
+    {
+      "Kind": "container",
+      "Id": "acedb68115c21429f9e023f5424d45c6eae32c788bbadad8fa76280da4a71938",
+      "Name": "/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304-redis-1",
+      "Image": "sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "State": {
+        "Running": true
+      },
+      "Config": {
+        "Labels": {
+          "com.docker.compose.config-hash": "cf447da55b16b953e276e1159d1c8d5ca49093d7241c809f55564169e992fba7",
+          "com.docker.compose.container-number": "1",
+          "com.docker.compose.depends_on": "",
+          "com.docker.compose.image": "sha256:1f09a89a207d794a8c61d9edfc26e7c58427de10ccef7c5d18d638df79a63b85",
+          "com.docker.compose.oneoff": "False",
+          "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+          "com.docker.compose.project.config_files": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy/compose.runtime.yml,/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/runtime-config.json",
+          "com.docker.compose.project.working_dir": "/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/.runtime/network-campaign/webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304/artifacts/c946bbb708bc9de8438cd96561ba085c08a103ae/deploy",
+          "com.docker.compose.service": "redis",
+          "com.docker.compose.version": "5.5.0",
+          "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+        }
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_delivery-lkg-a",
+      "Labels": {
+        "com.docker.compose.config-hash": "f79e5c50df779c7a77123aeffc2b98861df66c4c74d0086562385e38eebe85cd",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "delivery-lkg-a",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_delivery-lkg-b",
+      "Labels": {
+        "com.docker.compose.config-hash": "f73e0fb231e8e84556982164d7fc9b071c84abac496dda5c3dda1a97ef2b1f22",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "delivery-lkg-b",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_delivery-secrets",
+      "Labels": {
+        "com.docker.compose.config-hash": "d4b510ece8b2b24dfd37ae688a7b4e3e9362da77c464bd21ec1f55afe94d2624",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "delivery-secrets",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_dp-keys",
+      "Labels": {
+        "com.docker.compose.config-hash": "db1c20dac9a74d631b7d9e2b0801fd6234e51c80d25508a833b97c383848e789",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "dp-keys",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_lkg-a",
+      "Labels": {
+        "com.docker.compose.config-hash": "2ef3824a71343bff410a1707cfdb8ef910a1a7ce591d754a1bb5c744393f7d92",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "lkg-a",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_lkg-b",
+      "Labels": {
+        "com.docker.compose.config-hash": "9a57d5bc2b291cde358bbc9b5166766f05eace9178817d93c368a2e672485ada",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "lkg-b",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_loki-data",
+      "Labels": {
+        "com.docker.compose.config-hash": "c2e36853ae2ab656ec478721fd587195f03126a3c486a91ccae571f1f16832df",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "loki-data",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_migration-evidence",
+      "Labels": {
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.volume": "migration-evidence",
+        "com.webapi.migration.evidence-nonce": "c80438831d056188e3e5f488763aed0ebef748a5b79c029ce7156ab799b101f9",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_pg",
+      "Labels": {
+        "com.docker.compose.config-hash": "c163ae182ee371141f3370f71c81c049a9a0b768f879b06ae9b65d015fbe2d55",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "pg",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_prometheus-data",
+      "Labels": {
+        "com.docker.compose.config-hash": "0eb94738d2766ddede99956af6729d7f5e844940636fed1ee1c5a015a63b5cdb",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "prometheus-data",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_secrets-cache",
+      "Labels": {
+        "com.docker.compose.config-hash": "ef57bb3f38a9d3f4b7eee97f526d122528ae2dc60463bcc1ff25f1de6ec96d86",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "secrets-cache",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_secrets-control-plane",
+      "Labels": {
+        "com.docker.compose.config-hash": "919a118fd5a4c1809fcda1aecfc67345ce4d5dee74ca9376dbafd2cfedad9638",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "secrets-control-plane",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_secrets-gateway-a",
+      "Labels": {
+        "com.docker.compose.config-hash": "ccbbb791921b4548ee1e3affa0b3a49d427e7557b1a723ed7235919463c15692",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "secrets-gateway-a",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_secrets-gateway-b",
+      "Labels": {
+        "com.docker.compose.config-hash": "4773d1464e7bdeab93f4cf07e5d78b934ca8fe029f77c55fd1385f3d51a25647",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "secrets-gateway-b",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_secrets-migrator",
+      "Labels": {
+        "com.docker.compose.config-hash": "3a1786e8a23687f3b768126ada9ae7f0fdbc404332b8ed35d1b3ff4d57a5fd4d",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "secrets-migrator",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_secrets-postgres",
+      "Labels": {
+        "com.docker.compose.config-hash": "228159155a080722f2c2046e6993c3e598911bb30607746dbb1b9c11ecb477d7",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "secrets-postgres",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_secrets-worker",
+      "Labels": {
+        "com.docker.compose.config-hash": "2b63202e2936309290a8128ce59639273585b972625ba65aed978df03534ed6d",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "secrets-worker",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_tempo-data",
+      "Labels": {
+        "com.docker.compose.config-hash": "8c1bbbdf5720c9ceb9bc03be09859c9275178b8f32e9739443ced8de2e995c37",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "tempo-data",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "volume",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_verification-reports",
+      "Labels": {
+        "com.docker.compose.config-hash": "88b0f16ddf3f4be0478d78ae6fae5976b3ee263f90ea3c9f8c931f8b7f4c9e66",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.docker.compose.volume": "verification-reports",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    },
+    {
+      "Kind": "network",
+      "Id": "180f435c238f7ce8ac889a8e40f67e9e86a28da61c698ba4e0f39aea50fbcd1a",
+      "Name": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304_default",
+      "Labels": {
+        "com.docker.compose.config-hash": "8bd4a10bfed866483c1181810b4d0e9e8877b4771004210c478983f5a177822b",
+        "com.docker.compose.network": "default",
+        "com.docker.compose.project": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+        "com.docker.compose.version": "5.5.0",
+        "com.webapi.runtime.owner": "c8935ba7-683c-48d3-8796-c95911222bdc"
+      }
+    }
+  ],
+  "images": [
+    {
+      "Id": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "Config": {
+        "Labels": {
+          "org.opencontainers.image.revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+          "org.opencontainers.image.version": "24.04"
+        }
+      }
+    }
+  ]
+}

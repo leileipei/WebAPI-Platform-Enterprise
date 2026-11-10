@@ -1,0 +1,44 @@
+{
+  "reviewedBaseRevision": "293b37f2dbd59427cd2d40f6783dc441345528ef",
+  "reviewedHeadRevision": "07fb1fa82390f35a98e029d00b795dee2944271d",
+  "deliveryRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "reviewApproach": "The network-policies production capability was independently reviewed whole-branch for the 226dfe4 delivery (core modules reviewed, tests sampled by risk); the 3 Important findings were closed by real red-green at 226dfe4. c946bbb is a test-only gate-unblock on the credential-governance-merged main: its own diff touches only tests/runtime/lock-race.test.mjs (9+/7-), and the network-policies product code (src/WebApi.Gateway/Policies, Configuration, console/src/policies) is byte-unchanged from 226dfe4, so that review carries. No fresh independent production review was performed this window.",
+  "independentReviewer": "carried from the 226dfe4 delivery: docs/evidence/network-policies/2026-10-14-226dfe4/final-review.json",
+  "independentReviewCritical": 0,
+  "independentReviewImportant": 3,
+  "independentReviewMinor": 0,
+  "fixCommit": "226dfe450865cd322d81eb5747bec791a71f7519",
+  "deliveryCommitOnlyChange": "tests/runtime/lock-race.test.mjs (9+/7-): rewrite the deterministically-deadlocking lock-race test to assert the fail-closed withRuntimeLock contract (same-target concurrent call rejected with RESTORE_TARGET_LOCK_HELD; fresh call succeeds after release with no operation.lock left). No production code.",
+  "importantFindings": [
+    {
+      "id": "P3-FR-1",
+      "severity": "Important",
+      "file": "src/WebApi.Gateway/Policies/PolicyRequestTransformProvider.cs",
+      "issue": "Allowed Content-Language and Content-Disposition Set removes the old value but HttpRequestHeaders refuses its replacement; Applied is misleading.",
+      "fix": "Use the public YARP RequestHeaderValueTransform, preserving stream HttpContent and native EmptyHttpContent behavior.",
+      "status": "closed-by-real-red-green-and-full-fixed-gates"
+    },
+    {
+      "id": "P3-FR-2",
+      "severity": "Important",
+      "file": "src/WebApi.Gateway/Configuration/EnterpriseProxyConfigProvider.cs",
+      "issue": "Comma-separated or repeated raw preflight methods match multiple same-path derived routes and cause routing ambiguity HTTP500 before CORS validation.",
+      "fix": "After YARP header matching, resolve only all-derived, highest-priority malformed preflight candidates so original generation IP/CORS rejects them.",
+      "status": "closed-by-real-red-green-and-full-fixed-gates"
+    },
+    {
+      "id": "P3-FR-3",
+      "severity": "Important",
+      "file": "console/src/policies/network-policy-state.mjs",
+      "issue": "Frontend blocks an explicitly empty DenyList accepted by the specification and server.",
+      "fix": "Require nonempty ranges only in AllowList and clarify empty DenyList semantics in the editor.",
+      "status": "closed-by-real-red-green-and-full-fixed-gates"
+    }
+  ],
+  "unresolvedCritical": 0,
+  "unresolvedImportant": 0,
+  "deferredMinors": [],
+  "secondIndependentReview": false,
+  "verificationMethod": "c946bbb full fixed gate: 5 suites 4540/0/0 (runtime298 console321 domain1251 integration2115 gateway555); scenario P3-01..10; CUA 15 @1440px; protection P3-12; node acceptance passed (7 real containers, 3 console statics, proofSha256 8658dac8fcc5); SDK E2E 1/0/0; secret scan clean (0 private-value matches, 0 private-key blocks).",
+  "integrationAuthorization": false
+}

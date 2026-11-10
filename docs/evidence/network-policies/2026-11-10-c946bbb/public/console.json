@@ -1,0 +1,11 @@
+{
+  "name": "console",
+  "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "passed": 321,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "8a3d3f3a30a52df39377c8e35bac5ecda6ea6946b428729195ef89f73062f992",
+  "log": "console.log",
+  "artifact": "console.json"
+}

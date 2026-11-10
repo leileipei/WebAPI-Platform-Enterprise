@@ -1,0 +1,11 @@
+{
+  "name": "gateway",
+  "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "passed": 555,
+  "failed": 0,
+  "skipped": 0,
+  "exitCode": 0,
+  "originalLogSha256": "e91ae8d53d8be77b46a7aa3d2c0338a6e9e70fd66578e49be06182f6d55ed448",
+  "log": "gateway.log",
+  "artifact": "gateway.json"
+}

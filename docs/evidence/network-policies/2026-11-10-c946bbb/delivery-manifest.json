@@ -1,0 +1,225 @@
+{
+  "sourceIdentity": {
+    "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+    "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+    "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc"
+  },
+  "stage": "isolated-pre-install",
+  "strictAcceptance": true,
+  "sdkE2E": {
+    "actual": true,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "fixedSuites": {
+    "passed": 4540,
+    "failed": 0,
+    "skipped": 0
+  },
+  "cuaRequiredActions": 15,
+  "width": 1440,
+  "originalInstallation": "not-upgraded",
+  "package2Paused": true,
+  "finalReview": {
+    "independentFindings": 3,
+    "importantClosedByTdd": 3,
+    "unresolvedCritical": 0,
+    "unresolvedImportant": 0,
+    "deferredMinors": [],
+    "secondIndependentReview": false
+  },
+  "documentationCommitAuthorized": false,
+  "secretScan": {
+    "actualPrivateValues": 17,
+    "matches": 0,
+    "privateKeyBlocks": 0
+  },
+  "artifacts": [
+    {
+      "path": "acceptance-input.json",
+      "sha256": "8658dac8fcc5700418add11c038a055fba99665f9ddfde62874a04d634e91dc6"
+    },
+    {
+      "path": "acceptance-result.json",
+      "sha256": "45784ecd5a679ce7c8f6281aa8c4074c9da771cf48bfdf6f68d2899121876b76"
+    },
+    {
+      "path": "coverage-ledger.json",
+      "sha256": "d17c4f8f60ec9b96642e983823706ddb48f89186e9567925baa8331ed2ac0923"
+    },
+    {
+      "path": "delivery-index.md",
+      "sha256": "81bbea34745ce13e1131686b6a2ad30c98604cf6d84eafee4e8d3d2a83e164cd"
+    },
+    {
+      "path": "final-review.json",
+      "sha256": "fb7d5642f56de97c943b57203bdbf3310a033c0ecc2e1c4b638035852d321543"
+    },
+    {
+      "path": "public/console.json",
+      "sha256": "99e556b70f996407f02fcec4a297b652fb697bb76cedf8dccb7a4090367f5523"
+    },
+    {
+      "path": "public/console.log",
+      "sha256": "8a3d3f3a30a52df39377c8e35bac5ecda6ea6946b428729195ef89f73062f992"
+    },
+    {
+      "path": "public/copy.png",
+      "sha256": "37088e546e3e55fe70b2490783adcf2751075aba692af7e2b050edeeb729e54a"
+    },
+    {
+      "path": "public/create.png",
+      "sha256": "f53b53837400faf5a956f3cd8f160e6f3c7ecc70f0adef9fa0246865e4c6bf30"
+    },
+    {
+      "path": "public/dirty-navigation.png",
+      "sha256": "455a812c4a91a7686aaa36c7c77c8c4dcc073b8b0b9f8b4715d8a29822ea82f1"
+    },
+    {
+      "path": "public/domain.json",
+      "sha256": "7f208c6294959dc4664b761e3fe01af2cab5460f8d8c3af35c87c0a7ec1bcebd"
+    },
+    {
+      "path": "public/domain.log",
+      "sha256": "e4d71243f680a68748a32ee6e93e504588d3c7c5de78e2d1e8e6375701844b53"
+    },
+    {
+      "path": "public/edit.png",
+      "sha256": "a7e7f9545e5e3527b38909e52056ac8e81280bbd621ec0e9a0870d335add6665"
+    },
+    {
+      "path": "public/exact-null-number.png",
+      "sha256": "6a2f6026df89654ba8bf64b0dc6b818bd14aeed85b6d9db286e30d268d16690a"
+    },
+    {
+      "path": "public/gateway.json",
+      "sha256": "eb1b44e6b6c0d7ca9daafcc3b64b8d54c9f79bb89b791c917926145a6ef0fa2b"
+    },
+    {
+      "path": "public/gateway.log",
+      "sha256": "e91ae8d53d8be77b46a7aa3d2c0338a6e9e70fd66578e49be06182f6d55ed448"
+    },
+    {
+      "path": "public/images.json",
+      "sha256": "9ede95c8dbb4439abb9e1810fe6ff3062849e71fce10448d44ead0a1617232b2"
+    },
+    {
+      "path": "public/integration.json",
+      "sha256": "68b2c74b9bde9193f9c9c8625279841f233c38b27a4217ca011c79d9ade3127b"
+    },
+    {
+      "path": "public/integration.log",
+      "sha256": "69bd0559ee1edbfc3107389ccb54a7acc44ccbe7a44597469a172bfe0c5cce42"
+    },
+    {
+      "path": "public/json-request-preview.png",
+      "sha256": "6a2f6026df89654ba8bf64b0dc6b818bd14aeed85b6d9db286e30d268d16690a"
+    },
+    {
+      "path": "public/json-response-preview.png",
+      "sha256": "62c17bde7771452e98cf45c2aa7b43671877b3aa3b95e6057539e0883702984d"
+    },
+    {
+      "path": "public/logs-trace.png",
+      "sha256": "d740044c9785943e6a3ef887082eb54853d700af83491fd1d9f9d2aa3a03d40b"
+    },
+    {
+      "path": "public/nine-bindings.png",
+      "sha256": "8c92baf68baba5c521cb99f65e67248b5e98a00c6c800c1f804bbf414bf6c56c"
+    },
+    {
+      "path": "public/P3-01.json",
+      "sha256": "b543c452b67cc3880ba59f281630bf3c06061730ac2d2eb9fdf322de81695f83"
+    },
+    {
+      "path": "public/P3-02.json",
+      "sha256": "2d23b3f787a2ab4953d049f9e069edaee3d06d93962d833da911bb01fd94a6c7"
+    },
+    {
+      "path": "public/P3-03.json",
+      "sha256": "4084b3e048adb545989d787fd22f9bb63709a3aebe7702b2d0688e202fe7ec75"
+    },
+    {
+      "path": "public/P3-04.json",
+      "sha256": "c48986563b3cab36b700af914c5296b9288b15f5cac016e512afe4aca5618641"
+    },
+    {
+      "path": "public/P3-05.json",
+      "sha256": "1740f8125179c5bba7f4fe6bee199fdfbf6edc55d6044cf2f1ef42bd158ba612"
+    },
+    {
+      "path": "public/P3-06.json",
+      "sha256": "44da015b6d2839b9f7befb23bce5aad57b5436a9fb432fc6c226a94b7050f792"
+    },
+    {
+      "path": "public/P3-07.json",
+      "sha256": "e4d54c90ac9e08263f7acebcc89970cc9239d3ae2d92a33bbe4e9ed40dac0bea"
+    },
+    {
+      "path": "public/P3-08.json",
+      "sha256": "43561068c815fd2accea4ed46ee547cdbd84c04f18bb0913a3bf0d9c3bef88a0"
+    },
+    {
+      "path": "public/P3-09.json",
+      "sha256": "875e7ff52598857da60247f0e4f044d7eb8f8b57b5c89f29c467960fbc37790f"
+    },
+    {
+      "path": "public/P3-10.json",
+      "sha256": "7c5a7ad10bb33f4cf4dd1e5ac9f6137b87145d5c670fa79cf537d87ec78a125d"
+    },
+    {
+      "path": "public/P3-11.json",
+      "sha256": "7defadd826ba93736a2a06802ed9afc14c7cdcf915714930371d2bb682e93a55"
+    },
+    {
+      "path": "public/P3-12.json",
+      "sha256": "c91749e4b03d2670163761f105c555acf5d72781b9cabb3089d35af530d6e9b9"
+    },
+    {
+      "path": "public/promotion-mapping.png",
+      "sha256": "90b4fe8284255c4f29bc06d1ff2b74a7bc9c2a550c471672cec52bdfc0758635"
+    },
+    {
+      "path": "public/readonly.png",
+      "sha256": "17469f520c66a00c318fc75633f2be1006816ac247960713fc73495efe7de35d"
+    },
+    {
+      "path": "public/release-review.png",
+      "sha256": "7a2323ecc1ef0e9ed0e9904bf3876b0337809cb4e48904df851aeae33147ed6a"
+    },
+    {
+      "path": "public/revision-412.png",
+      "sha256": "86de6f14428066ea31751167464e1cddc4c2bc01ead45c2bbe4f2561f1b331a9"
+    },
+    {
+      "path": "public/runtime.json",
+      "sha256": "a3a977f674d0591ade8bcd2b91a324d8c7a65d8bb58e3b469f7b165bdc94d505"
+    },
+    {
+      "path": "public/runtime.log",
+      "sha256": "9eb07ee06fc8c7760c688086d168b0a55ccaf389b16785e839a7f4ca04324c17"
+    },
+    {
+      "path": "public/scope-late.png",
+      "sha256": "53e563aa606f7c80932b554aec9e1cce1e7ea7143ea03bfc2ccc8c31f27f4dfc"
+    },
+    {
+      "path": "public/validate.png",
+      "sha256": "a1a90c86e1ec97d9f87560059c9d40868c613170d018459b0990bb312626151c"
+    },
+    {
+      "path": "sdk-e2e-result.json",
+      "sha256": "6b3852901691be0b575176fc2139f0be9e1e5f4b007fcbfe3101967958c44350"
+    },
+    {
+      "path": "sdk-e2e.log",
+      "sha256": "9822f250b866df2c3ff3052dcf754eb5c916470ddf77df75c913e11568ba9727"
+    }
+  ],
+  "documentationAuthorization": {
+    "date": "2026-11-10",
+    "request": "第4包 network-policies 本机 Docker-in-Docker 全量推进至全绿并留存证据（c946bbb 门禁解锁轮）",
+    "scope": "Acceptance + evidence capture complete at c946bbb on macOS/OrbStack. Network-policies production code byte-unchanged from 226dfe4 (credential-governance merge is a separate package); 226dfe4 independent review carried, no second independent review this window. 4192 out of scope; package2 paused. Commit/push to main pending explicit authorization (main is not the direct-push-authorized merge branch)."
+  }
+}

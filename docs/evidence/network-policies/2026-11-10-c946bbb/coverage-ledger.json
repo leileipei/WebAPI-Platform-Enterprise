@@ -1,0 +1,209 @@
+[
+  {
+    "requirementId": "P3-01",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/domain.log"
+    ],
+    "evidencePaths": [
+      "public/P3-01.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-02",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/integration.log",
+      "public/console.log"
+    ],
+    "evidencePaths": [
+      "public/P3-02.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-03",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-03.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-04",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-04.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-05",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-05.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-06",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-06.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-07",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-07.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-08",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-08.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-09",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-09.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-10",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-10.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-11",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-11.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "P3-12",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "public/gateway.log",
+      "public/integration.log"
+    ],
+    "evidencePaths": [
+      "public/P3-12.json"
+    ],
+    "status": "passed_isolated_fixed_acceptance",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  },
+  {
+    "requirementId": "SDK-E2E",
+    "sourceIdentity": {
+      "revision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290"
+    },
+    "testLog": [
+      "sdk-e2e.log"
+    ],
+    "evidencePaths": [
+      "sdk-e2e-result.json",
+      "acceptance-result.json"
+    ],
+    "status": "passed_actual_fixed_sdk_e2e",
+    "remainingGate": "Fixed code/local acceptance complete at c946bbb (macOS/OrbStack, Docker-in-Docker). Network-policies production code is byte-unchanged from the 226dfe4 delivery (the intervening credential-governance merge is a separate package); the 226dfe4 independent review carries. 4192 installation out of scope; package2 remains paused. Commit/push to main pending explicit authorization."
+  }
+]

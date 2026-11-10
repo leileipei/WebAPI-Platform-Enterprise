@@ -1,0 +1,35 @@
+WEBAPI_FIXED_SOURCE c946bbb708bc9de8438cd96561ba085c08a103ae
+=== 2026-11-10T00:55:16Z ===
+
+欢迎使用 .NET 10.0!
+---------------------
+SDK 版本: 10.0.401
+
+遥测
+---------
+.NET 工具会收集用法数据，帮助我们改善你的体验。它由 Microsoft 收集并与社区共享。你可通过使用喜欢的 shell 将 DOTNET_CLI_TELEMETRY_OPTOUT 环境变量设置为 "1" 或 "true" 来选择退出遥测。
+
+阅读有关 .NET CLI 工具遥测的更多信息: https://aka.ms/dotnet-cli-telemetry
+
+----------------
+已安装 ASP.NET Core HTTPS 开发证书。
+若要信任该证书，请运行 "dotnet dev-certs https --trust"
+了解 HTTPS: https://aka.ms/dotnet-https
+
+----------------
+编写第一个应用: https://aka.ms/dotnet-hello-world
+了解新增功能: https://aka.ms/dotnet-whats-new
+浏览文档: https://aka.ms/dotnet-docs
+报告问题并在 GitHub 上查找来源: https://github.com/dotnet/core
+使用 "dotnet --help" 查看可用命令或访问: https://aka.ms/dotnet-cli
+--------------------------------------------------------------------------------------
+  正在确定要还原的项目…
+  已还原 /Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/src/WebApi.Contracts/WebApi.Contracts.csproj (用时 60 毫秒)。
+  已还原 /Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj (用时 3.71 秒)。
+  WebApi.Contracts -> /Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/src/WebApi.Contracts/bin/Release/net10.0/WebApi.Contracts.dll
+  WebApi.EndToEnd.Tests -> /Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/tests/WebApi.EndToEnd.Tests/bin/Release/net10.0/WebApi.EndToEnd.Tests.dll
+/Users/leo.cui/Documents/WebAPI Platform Enterprise/enterprise/tests/WebApi.EndToEnd.Tests/bin/Release/net10.0/WebApi.EndToEnd.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:     1，已跳过:     0，总计:     1，持续时间: 19 ms - WebApi.EndToEnd.Tests.dll (net10.0)
+RC=0

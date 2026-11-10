@@ -1,0 +1,126 @@
+{
+  "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+  "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+  "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+  "id": "P3-08",
+  "actual": true,
+  "histories": [
+    {
+      "schemaVersion": "2.0",
+      "originalHash": "9665521fe742bc12bfe2f85c53fcac41f6d61cb8265f8800dc458b22dfd7c0d7",
+      "rollbackHash": "9665521fe742bc12bfe2f85c53fcac41f6d61cb8265f8800dc458b22dfd7c0d7",
+      "originalConfigVersion": 1,
+      "rollbackConfigVersion": 1,
+      "originalDeploymentSequence": 1,
+      "rollbackDeploymentSequence": 15,
+      "targets": [
+        {
+          "nodeId": "12bb1a94-36c8-4b7c-829a-9ca1b7fc2cf2",
+          "instanceId": "be23d780-6ec7-4094-ad9c-49d755f8579b",
+          "acknowledged": true,
+          "configVersion": 1,
+          "deploymentSequence": 15,
+          "errorCode": null
+        },
+        {
+          "nodeId": "476cfa2c-5f71-49fe-bed3-42ea21a15ab8",
+          "instanceId": "6b33d89a-e57e-432e-aac6-a89e517c6e49",
+          "acknowledged": true,
+          "configVersion": 1,
+          "deploymentSequence": 15,
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "schemaVersion": "2.1",
+      "originalHash": "7fc1c93e2d89770dae6fc6743d08f8ad2d8bdb7231a5f8623b4e01b09ce5bddf",
+      "rollbackHash": "7fc1c93e2d89770dae6fc6743d08f8ad2d8bdb7231a5f8623b4e01b09ce5bddf",
+      "originalConfigVersion": 2,
+      "rollbackConfigVersion": 2,
+      "originalDeploymentSequence": 2,
+      "rollbackDeploymentSequence": 16,
+      "targets": [
+        {
+          "nodeId": "12bb1a94-36c8-4b7c-829a-9ca1b7fc2cf2",
+          "instanceId": "be23d780-6ec7-4094-ad9c-49d755f8579b",
+          "acknowledged": true,
+          "configVersion": 2,
+          "deploymentSequence": 16,
+          "errorCode": null
+        },
+        {
+          "nodeId": "476cfa2c-5f71-49fe-bed3-42ea21a15ab8",
+          "instanceId": "6b33d89a-e57e-432e-aac6-a89e517c6e49",
+          "acknowledged": true,
+          "configVersion": 2,
+          "deploymentSequence": 16,
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "schemaVersion": "2.2",
+      "originalHash": "f29b99715c26df32ac7c1d1e82feb76c5fcb1f34954c775e5a8c6f7e63c9ab3d",
+      "rollbackHash": "f29b99715c26df32ac7c1d1e82feb76c5fcb1f34954c775e5a8c6f7e63c9ab3d",
+      "originalConfigVersion": 3,
+      "rollbackConfigVersion": 3,
+      "originalDeploymentSequence": 3,
+      "rollbackDeploymentSequence": 17,
+      "targets": [
+        {
+          "nodeId": "12bb1a94-36c8-4b7c-829a-9ca1b7fc2cf2",
+          "instanceId": "be23d780-6ec7-4094-ad9c-49d755f8579b",
+          "acknowledged": true,
+          "configVersion": 3,
+          "deploymentSequence": 17,
+          "errorCode": null
+        },
+        {
+          "nodeId": "476cfa2c-5f71-49fe-bed3-42ea21a15ab8",
+          "instanceId": "6b33d89a-e57e-432e-aac6-a89e517c6e49",
+          "acknowledged": true,
+          "configVersion": 3,
+          "deploymentSequence": 17,
+          "errorCode": null
+        }
+      ]
+    },
+    {
+      "schemaVersion": "2.3",
+      "originalHash": "2c118aefef875f5c770325ac92df2e67b79a055200878a0994b54f1a92a64771",
+      "rollbackHash": "2c118aefef875f5c770325ac92df2e67b79a055200878a0994b54f1a92a64771",
+      "originalConfigVersion": 4,
+      "rollbackConfigVersion": 4,
+      "originalDeploymentSequence": 4,
+      "rollbackDeploymentSequence": 18,
+      "targets": [
+        {
+          "nodeId": "12bb1a94-36c8-4b7c-829a-9ca1b7fc2cf2",
+          "instanceId": "be23d780-6ec7-4094-ad9c-49d755f8579b",
+          "acknowledged": true,
+          "configVersion": 4,
+          "deploymentSequence": 18,
+          "errorCode": null
+        },
+        {
+          "nodeId": "476cfa2c-5f71-49fe-bed3-42ea21a15ab8",
+          "instanceId": "6b33d89a-e57e-432e-aac6-a89e517c6e49",
+          "acknowledged": true,
+          "configVersion": 4,
+          "deploymentSequence": 18,
+          "errorCode": null
+        }
+      ]
+    }
+  ],
+  "inFlight": {
+    "status": 200,
+    "oldMarker": "qa",
+    "receivedMarker": "qa"
+  },
+  "quota": {
+    "status": 503
+  }
+}

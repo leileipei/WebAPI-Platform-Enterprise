@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+  "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+  "stage": "isolated-pre-install",
+  "sections": [
+    "P3-01",
+    "P3-02",
+    "P3-03",
+    "P3-04",
+    "P3-05",
+    "P3-06",
+    "P3-07",
+    "P3-08",
+    "P3-09",
+    "P3-10",
+    "P3-11",
+    "P3-12"
+  ],
+  "originalInstallation": "not-upgraded",
+  "actualContainers": [
+    "dfc74a8c5db4b28227e39b68c1d229726daa92e81bdaed877e7f82e3163ac43c",
+    "ab33baa5aa9d4bf2661ea0c28970d80f6357fca43149aa7ad006fabe1a9e5e1d",
+    "9f432cfc8215892133b3ededa2db9472549dc4c9b8a40bec058883aa1ffdea54",
+    "26ebce2b45f6cb19cb68d4a3a02ee9edbe1eb7a0987bca6955e58ce69738d702",
+    "8c595e7d7a0e48076c3305c8691d3ebe7d0c3335894d2e0895c353c2aaba6582",
+    "7ac80c1f38823958bb443f718e1c29d5ab90735e3f14a2afb2176507953821d4",
+    "cfd0b2e7e01b4306ea59340ff0b25204b6046d6e17c3a09040c708524c6aaf35"
+  ],
+  "staticHashes": {
+    "console/dist/assets/index-B-bNgDZU.js": "131f6dc5247db3e405093b10acad3b25b5236478215eecc7e2906cff59ba08ee",
+    "console/dist/assets/index-DEw4ls4J.css": "4fcce3ac76567ebb63c6263d3daf1e26245d47ff0b050522bff9f242c7b83002",
+    "console/dist/index.html": "1e0d4ebfd50737c7005f780946cf02c776e8d674fc6400014b60fc587001b79b"
+  },
+  "proofSha256": "8658dac8fcc5700418add11c038a055fba99665f9ddfde62874a04d634e91dc6",
+  "validatedAt": "2026-11-10T00:52:20.649Z"
+}

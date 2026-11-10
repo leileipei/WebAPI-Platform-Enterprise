@@ -1,0 +1,147 @@
+{
+  "id": "P3-11",
+  "actual": true,
+  "kind": "cua",
+  "width": 1440,
+  "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+  "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+  "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+  "actions": [
+    {
+      "id": "create",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "create.png"
+    },
+    {
+      "id": "edit",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "edit.png"
+    },
+    {
+      "id": "validate",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "validate.png"
+    },
+    {
+      "id": "copy",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "copy.png"
+    },
+    {
+      "id": "nine-bindings",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "nine-bindings.png"
+    },
+    {
+      "id": "json-request-preview",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "json-request-preview.png"
+    },
+    {
+      "id": "json-response-preview",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "json-response-preview.png"
+    },
+    {
+      "id": "exact-null-number",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "exact-null-number.png"
+    },
+    {
+      "id": "readonly",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "readonly.png"
+    },
+    {
+      "id": "revision-412",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "revision-412.png"
+    },
+    {
+      "id": "dirty-navigation",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "dirty-navigation.png"
+    },
+    {
+      "id": "scope-late",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "scope-late.png"
+    },
+    {
+      "id": "release-review",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "release-review.png"
+    },
+    {
+      "id": "promotion-mapping",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "promotion-mapping.png"
+    },
+    {
+      "id": "logs-trace",
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+      "ownerId": "c8935ba7-683c-48d3-8796-c95911222bdc",
+      "projectName": "webapi-enterprise-local-test-f8cb6a22-7865-4b9c-ba8f-105662f13304",
+      "passed": true,
+      "screenshot": "logs-trace.png"
+    }
+  ]
+}
