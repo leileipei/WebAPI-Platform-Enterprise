@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "reviewDate": "2026-11-11",
   "scope": "Tracked project Markdown/text, current navigation and requirements reviews; vendor documents excluded.",
-  "githubMain": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+  "githubMain": "51924152199f4b4ca0323df776d10772e8fd3905",
   "localCodeInput": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
   "localCodeAheadOfGithub": [],
   "sourceDifferenceToGithub": [],
@@ -448,7 +448,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "90642ea0c323202b367ddb60d67d2861245c8b9dc1bedfc42f875c3a88eacb71",
+    "dataSha256": "132c52262d770b3aa3fa1bb3511d4d7f5d5e984402d71efba2b05206254d3f3a",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -537,6 +537,26 @@
       "priorResourceUnknownRetained": true,
       "servicesStopped": true,
       "newAccepted": 0
+    },
+    "credentialPermissionMatrixVerification": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "checksExecuted": 48,
+      "passed": 48,
+      "failed": 0,
+      "newAccounts": 0,
+      "newCredentials": 0,
+      "credentialUpdates": 0,
+      "roleOrScopeChanges": 0,
+      "historicalCredentialEvidenceFilesUnchanged": 98,
+      "servicesStopped": true,
+      "newAccepted": 0
+    },
+    "latestPublishedLedgerStatusCounts": {
+      "已关闭": 36,
+      "部分": 40,
+      "缺失": 18,
+      "待复验": 360,
+      "经确认延期": 0
     }
   },
   "repositoryGovernanceObservation": {
@@ -578,8 +598,185 @@
     "rulesWrittenByThisTask": false,
     "fullBranchProtectionSettingsVerified": false
   },
+  "sourceDifferenceScope": "product implementation, test code, tooling, deployment and workflow tree roots; documentation evidence excluded",
+  "repositoryAdvanceObservation": {
+    "main": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "previousMain": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "pr": 6,
+    "prUrl": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/6",
+    "firstParent": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "files": [
+      {
+        "path": "docs/deployment/current-project-status.md",
+        "blobSha": "93fea56dab8fca5dfc9a786dd5d478422b852aeb",
+        "status": "modified"
+      },
+      {
+        "path": "docs/deployment/github-quality-gates-proposal.md",
+        "blobSha": "7df2e871838b2ca2e1a7769af7f88895319db27b",
+        "status": "modified"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/runtime.json",
+        "blobSha": "99ad3d63782ed1fb956412f4c9baff7025354a0d",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+        "blobSha": "7099646706328049f54d60f0411ffe467328a92c",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-c04-rate-limit.png",
+        "blobSha": "dc425a8ab95c2ba53875deae3c85bf23b0ae51b1",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-s02-wrong-password.png",
+        "blobSha": "7f1190a7a486edcb20e107205bf66649d11e433c",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-s04-sso-unavailable.png",
+        "blobSha": "9405b78ec5dfc0aaeeee79e867cc1099ccd86784",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/requirements-closeout.json",
+        "blobSha": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+        "status": "modified"
+      },
+      {
+        "path": "docs/evidence/work-package4/requirements-status.md",
+        "blobSha": "dc57e7e9a22ee5666f578720bf5ad0fd464dcde7",
+        "status": "modified"
+      }
+    ],
+    "productTreeComparison": {
+      ".github": {
+        "local": "65d28475d1a946976daf94be3cfb8de661641c6b",
+        "remote": "65d28475d1a946976daf94be3cfb8de661641c6b",
+        "same": true
+      },
+      "deploy": {
+        "local": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "remote": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "same": true
+      },
+      "scripts": {
+        "local": "f8c99c7e249e9a91fc216a04c028fcdd7b07e54c",
+        "remote": "f8c99c7e249e9a91fc216a04c028fcdd7b07e54c",
+        "same": true
+      },
+      "src": {
+        "local": "b6806df08a5a559afe3ca696e0a2e2f501326f53",
+        "remote": "b6806df08a5a559afe3ca696e0a2e2f501326f53",
+        "same": true
+      },
+      "tests": {
+        "local": "8c8c9c99eacf8f34c4baa17fa34975706a50424d",
+        "remote": "8c8c9c99eacf8f34c4baa17fa34975706a50424d",
+        "same": true
+      },
+      "third_party": {
+        "local": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "remote": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "same": true
+      },
+      "tools": {
+        "local": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "remote": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "same": true
+      }
+    },
+    "documentationTreeChanged": true,
+    "publicLedgerStatusCounts": {
+      "已关闭": 36,
+      "部分": 40,
+      "缺失": 18,
+      "待复验": 360,
+      "经确认延期": 0
+    },
+    "publicLedgerBlob": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+    "remoteLedgerSnapshotBlob": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+    "primaryContentMatchesPublishedFiles": {
+      "docs/deployment/current-project-status.md": true,
+      "docs/deployment/github-quality-gates-proposal.md": true,
+      "docs/evidence/work-package4/requirements-closeout.json": false,
+      "docs/evidence/work-package4/requirements-status.md": false
+    },
+    "protected": true,
+    "newMainCiVerified": false,
+    "branchRulesWritten": false,
+    "localOriginalCheckoutUpdated": false,
+    "pushedByThisTask": false,
+    "observedAt": "2026-11-10T18:53:08.302Z",
+    "statusChanges": [
+      {
+        "id": "P01-C04",
+        "oldStatus": "待复验",
+        "status": "已关闭",
+        "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+        "evidenceRefs": [
+          {
+            "path": "page-source-review.json",
+            "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+            "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+            "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
+          }
+        ]
+      },
+      {
+        "id": "P01-S02",
+        "oldStatus": "待复验",
+        "status": "已关闭",
+        "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+        "evidenceRefs": [
+          {
+            "path": "page-source-review.json",
+            "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+            "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+            "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
+          }
+        ]
+      },
+      {
+        "id": "P01-S04",
+        "oldStatus": "待复验",
+        "status": "已关闭",
+        "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+        "evidenceRefs": [
+          {
+            "path": "page-source-review.json",
+            "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+            "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+            "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
+          }
+        ]
+      }
+    ],
+    "qualification": "latest published ledger statuses, not new acceptance granted by this local matrix; original review snapshot remains unchanged"
+  },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"4b17ae0e77770548a33434ee03a745f54c5d5f03d729b9b2a55e685486f528c0"},
+    {"path":"README.md","category":"navigation","sha256":"611d683de838f1f887d3d8bcff50783c890017f561659fa111ab4a72a363c965"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -618,7 +815,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"11970bde1af6f4634203067928c2905258ee121c11dfd4657c921e2f77966527"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"9db783bc2be20715262df2b89cabd4398708d5da28c9c5faebd97204a4a3b772"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -893,6 +1090,6 @@
     {"path":"docs/superpowers/specs/2026-11-10-contracts-ci-phase2-design.md","category":"historical-design-plan","sha256":"1be4ab24ffbc6b52cc5501064fcb7846c3d3d7a0f153056b16826f86b3896ee1"},
     {"path":"docs/traffic-policy-data-dictionary.md","category":"topic-reference","sha256":"02611712f6ed8b89033e1abd9d5028a595a5b5f4e1155427e7548ec7dc902022"},
     {"path":"docs/workbench.md","category":"topic-reference","sha256":"4f15104d0c5fbd10b4f0561eee8cf61ae5758cf1115d384723869980b3fc82d4"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"f01f4aa11338e24142b4e99d5079f48f95545f258124b617cf8a34a5e7f0dcd9"}
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"634b62eb25cf63b3581f153b6ec79fc71735ba6c3969b99cec6e5231303ff3f4"}
   ]
 }

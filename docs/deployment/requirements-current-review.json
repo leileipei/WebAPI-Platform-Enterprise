@@ -63,7 +63,17 @@
     "credentialBoundaryNewCredentials": 0,
     "crossDaySaveCasesExecuted": 2,
     "crossDaySaveCasesPassed": 2,
-    "crossDaySaveCasesFailed": 0
+    "crossDaySaveCasesFailed": 0,
+    "credentialPermissionChecks": 48,
+    "credentialPermissionPassed": 48,
+    "credentialPermissionFailed": 0,
+    "latestPublishedLedgerStatusCounts": {
+      "已关闭": 36,
+      "部分": 40,
+      "缺失": 18,
+      "待复验": 360,
+      "经确认延期": 0
+    }
   },
   "mainCi": {
     "source": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
@@ -7574,7 +7584,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -7671,7 +7682,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -7768,7 +7780,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -7865,7 +7878,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -7962,7 +7976,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -8059,7 +8074,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -8156,7 +8172,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -8253,7 +8270,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -8376,7 +8394,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -8474,7 +8493,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -8569,7 +8589,8 @@
         "credentialReadOnlyEvidenceRef": "credentialReadOnlyBrowserVerification",
         "customValiditySaveEvidenceRef": "credentialValiditySaveVerification",
         "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+        "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+        "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
       }
     },
     {
@@ -13320,6 +13341,66 @@
         "credentialBoundaryFailed": 0,
         "credentialBoundaryNewCredentials": 0
       }
+    },
+    {
+      "commit": "ee20b8f1b897981228378adba59ca00259c7295c",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "90642ea0c323202b367ddb60d67d2861245c8b9dc1bedfc42f875c3a88eacb71",
+      "scope": "cross-day save evidence and prior33/40/18/363 review snapshot retained; next stage adds permission rejection matrix and separately observes PR6 ledger update",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0
+      }
     }
   ],
   "targetedFollowup": {
@@ -14121,7 +14202,8 @@
         "E04"
       ],
       "backendWindowBoundaryEvidenceRef": "credentialWindowBoundaryVerification",
-      "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification"
+      "crossDaySaveEvidenceRef": "credentialCrossDaySaveVerification",
+      "existingIdentityPermissionMatrixEvidenceRef": "credentialPermissionMatrixVerification"
     },
     {
       "id": "AC-USER",
@@ -15380,5 +15462,808 @@
       "Not an IANA timezone/DST or arbitrary offset save matrix",
       "No update-window, complete role/Scope, publication, gateway or live consumer traffic acceptance"
     ]
+  },
+  "credentialPermissionMatrixVerification": {
+    "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "ee20b8f1b897981228378adba59ca00259c7295c",
+    "imageId": "sha256:c94a7c8ddf3312af1284158f284fdc44dec9aaff40265e06cc20ca4310c72a55",
+    "planSha256": "bc18706430866067e73b1c82e4bcadd4ce91da4182abf6cba4f77ffb150405a3",
+    "actors": [
+      "admin",
+      "writer",
+      "reader",
+      "empty",
+      "restricted",
+      "anonymous"
+    ],
+    "operationCount": 8,
+    "checksExecuted": 48,
+    "passed": 48,
+    "failed": 0,
+    "successfulReadOrPreviewResponses": 11,
+    "expectedRejections": 37,
+    "authorizationRejections": 31,
+    "staleRevisionRejections": 2,
+    "invalidWindowRejectionsAfterAuthorization": 4,
+    "results": [
+      {
+        "id": "P01",
+        "actor": "admin",
+        "operation": "list_a",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P02",
+        "actor": "admin",
+        "operation": "detail_a",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P03",
+        "actor": "admin",
+        "operation": "impact_a",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P04",
+        "actor": "admin",
+        "operation": "stale_impact_a",
+        "status": 412,
+        "code": "stale_revision",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P05",
+        "actor": "admin",
+        "operation": "invalid_create_a",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P06",
+        "actor": "admin",
+        "operation": "invalid_update_a",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P07",
+        "actor": "admin",
+        "operation": "list_b",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P08",
+        "actor": "admin",
+        "operation": "list_foreign",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P09",
+        "actor": "writer",
+        "operation": "list_a",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P10",
+        "actor": "writer",
+        "operation": "detail_a",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P11",
+        "actor": "writer",
+        "operation": "impact_a",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P12",
+        "actor": "writer",
+        "operation": "stale_impact_a",
+        "status": 412,
+        "code": "stale_revision",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P13",
+        "actor": "writer",
+        "operation": "invalid_create_a",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P14",
+        "actor": "writer",
+        "operation": "invalid_update_a",
+        "status": 422,
+        "code": "invalid_validity_window",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P15",
+        "actor": "writer",
+        "operation": "list_b",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P16",
+        "actor": "writer",
+        "operation": "list_foreign",
+        "status": 404,
+        "code": "resource_not_found",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P17",
+        "actor": "reader",
+        "operation": "list_a",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P18",
+        "actor": "reader",
+        "operation": "detail_a",
+        "status": 200,
+        "code": null,
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": null,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P19",
+        "actor": "reader",
+        "operation": "impact_a",
+        "status": 403,
+        "code": "permission_denied",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P20",
+        "actor": "reader",
+        "operation": "stale_impact_a",
+        "status": 403,
+        "code": "permission_denied",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P21",
+        "actor": "reader",
+        "operation": "invalid_create_a",
+        "status": 403,
+        "code": "permission_denied",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P22",
+        "actor": "reader",
+        "operation": "invalid_update_a",
+        "status": 403,
+        "code": "permission_denied",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P23",
+        "actor": "reader",
+        "operation": "list_b",
+        "status": 404,
+        "code": "resource_not_found",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P24",
+        "actor": "reader",
+        "operation": "list_foreign",
+        "status": 404,
+        "code": "resource_not_found",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P25",
+        "actor": "empty",
+        "operation": "list_a",
+        "status": 404,
+        "code": "resource_not_found",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P26",
+        "actor": "empty",
+        "operation": "detail_a",
+        "status": 404,
+        "code": "resource_not_found",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P27",
+        "actor": "empty",
+        "operation": "impact_a",
+        "status": 403,
+        "code": "permission_denied",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P28",
+        "actor": "empty",
+        "operation": "stale_impact_a",
+        "status": 403,
+        "code": "permission_denied",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P29",
+        "actor": "empty",
+        "operation": "invalid_create_a",
+        "status": 403,
+        "code": "permission_denied",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P30",
+        "actor": "empty",
+        "operation": "invalid_update_a",
+        "status": 403,
+        "code": "permission_denied",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P31",
+        "actor": "empty",
+        "operation": "list_b",
+        "status": 404,
+        "code": "resource_not_found",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P32",
+        "actor": "empty",
+        "operation": "list_foreign",
+        "status": 404,
+        "code": "resource_not_found",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P33",
+        "actor": "restricted",
+        "operation": "list_a",
+        "status": 403,
+        "code": "password_change_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P34",
+        "actor": "restricted",
+        "operation": "detail_a",
+        "status": 403,
+        "code": "password_change_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P35",
+        "actor": "restricted",
+        "operation": "impact_a",
+        "status": 403,
+        "code": "password_change_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P36",
+        "actor": "restricted",
+        "operation": "stale_impact_a",
+        "status": 403,
+        "code": "password_change_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P37",
+        "actor": "restricted",
+        "operation": "invalid_create_a",
+        "status": 403,
+        "code": "password_change_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P38",
+        "actor": "restricted",
+        "operation": "invalid_update_a",
+        "status": 403,
+        "code": "password_change_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P39",
+        "actor": "restricted",
+        "operation": "list_b",
+        "status": 403,
+        "code": "password_change_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P40",
+        "actor": "restricted",
+        "operation": "list_foreign",
+        "status": 403,
+        "code": "password_change_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P41",
+        "actor": "anonymous",
+        "operation": "list_a",
+        "status": 401,
+        "code": "authentication_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P42",
+        "actor": "anonymous",
+        "operation": "detail_a",
+        "status": 401,
+        "code": "authentication_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P43",
+        "actor": "anonymous",
+        "operation": "impact_a",
+        "status": 401,
+        "code": "authentication_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P44",
+        "actor": "anonymous",
+        "operation": "stale_impact_a",
+        "status": 401,
+        "code": "authentication_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P45",
+        "actor": "anonymous",
+        "operation": "invalid_create_a",
+        "status": 401,
+        "code": "authentication_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P46",
+        "actor": "anonymous",
+        "operation": "invalid_update_a",
+        "status": 401,
+        "code": "authentication_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P47",
+        "actor": "anonymous",
+        "operation": "list_b",
+        "status": 401,
+        "code": "authentication_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      },
+      {
+        "id": "P48",
+        "actor": "anonymous",
+        "operation": "list_foreign",
+        "status": 401,
+        "code": "authentication_required",
+        "result": "pass",
+        "fullSecretFieldsAbsent": true,
+        "rejectionPayloadContainsNoCredentialOrImpactData": true,
+        "targetApplicationAndCredentialsUnchanged": true
+      }
+    ],
+    "identitySummaries": [
+      {
+        "actor": "admin",
+        "scopeCount": 2,
+        "appRead": true,
+        "credentialManage": true,
+        "mustChangePassword": false,
+        "afterMatchesBefore": true
+      },
+      {
+        "actor": "writer",
+        "scopeCount": 2,
+        "appRead": true,
+        "credentialManage": true,
+        "mustChangePassword": false,
+        "afterMatchesBefore": true
+      },
+      {
+        "actor": "reader",
+        "scopeCount": 1,
+        "appRead": true,
+        "credentialManage": false,
+        "mustChangePassword": false,
+        "afterMatchesBefore": true
+      },
+      {
+        "actor": "empty",
+        "scopeCount": 0,
+        "appRead": true,
+        "credentialManage": false,
+        "mustChangePassword": false,
+        "afterMatchesBefore": true
+      },
+      {
+        "actor": "restricted",
+        "scopeCount": 0,
+        "appRead": false,
+        "credentialManage": false,
+        "mustChangePassword": true,
+        "afterMatchesBefore": true
+      }
+    ],
+    "applicationsUnchanged": 4,
+    "credentialsUnchanged": 8,
+    "newAccounts": 0,
+    "newCredentials": 0,
+    "credentialUpdates": 0,
+    "roleOrScopeChanges": 0,
+    "staticFilesVerified": 3,
+    "servicesStopped": true,
+    "historicalMigrationMarkerRetained": true,
+    "historicalCredentialEvidenceFilesUnchanged": 98,
+    "originalC08Status": "failed",
+    "priorResourceUnknownRetained": true,
+    "primaryFilesUnchangedAgainstStageStart": 14,
+    "protectedFilesUnchanged": 4004,
+    "initialResourceCounts": {
+      "containers": 203,
+      "volumes": 508,
+      "networks": 39
+    },
+    "missingOutsideOwnedControlPlaneIds": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "ownedControlPlaneRecreatedWithSameImage": true,
+    "newAccepted": 0,
+    "artifactStorage": "local ignored credential-permissions-20261111; not published",
+    "limits": [
+      "Read and preview plus rejected writes only; no successful write matrix",
+      "No credential.manage-with-readonly-Scope or credential.manage-without-app.read live persona added",
+      "No role/Scope changes, browser, publication, gateway or customer environment acceptance"
+    ]
+  },
+  "repositoryAdvanceObservation": {
+    "main": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "previousMain": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "pr": 6,
+    "prUrl": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/6",
+    "firstParent": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "files": [
+      {
+        "path": "docs/deployment/current-project-status.md",
+        "blobSha": "93fea56dab8fca5dfc9a786dd5d478422b852aeb",
+        "status": "modified"
+      },
+      {
+        "path": "docs/deployment/github-quality-gates-proposal.md",
+        "blobSha": "7df2e871838b2ca2e1a7769af7f88895319db27b",
+        "status": "modified"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/runtime.json",
+        "blobSha": "99ad3d63782ed1fb956412f4c9baff7025354a0d",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+        "blobSha": "7099646706328049f54d60f0411ffe467328a92c",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-c04-rate-limit.png",
+        "blobSha": "dc425a8ab95c2ba53875deae3c85bf23b0ae51b1",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-s02-wrong-password.png",
+        "blobSha": "7f1190a7a486edcb20e107205bf66649d11e433c",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-s04-sso-unavailable.png",
+        "blobSha": "9405b78ec5dfc0aaeeee79e867cc1099ccd86784",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/requirements-closeout.json",
+        "blobSha": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+        "status": "modified"
+      },
+      {
+        "path": "docs/evidence/work-package4/requirements-status.md",
+        "blobSha": "dc57e7e9a22ee5666f578720bf5ad0fd464dcde7",
+        "status": "modified"
+      }
+    ],
+    "productTreeComparison": {
+      ".github": {
+        "local": "65d28475d1a946976daf94be3cfb8de661641c6b",
+        "remote": "65d28475d1a946976daf94be3cfb8de661641c6b",
+        "same": true
+      },
+      "deploy": {
+        "local": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "remote": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "same": true
+      },
+      "scripts": {
+        "local": "f8c99c7e249e9a91fc216a04c028fcdd7b07e54c",
+        "remote": "f8c99c7e249e9a91fc216a04c028fcdd7b07e54c",
+        "same": true
+      },
+      "src": {
+        "local": "b6806df08a5a559afe3ca696e0a2e2f501326f53",
+        "remote": "b6806df08a5a559afe3ca696e0a2e2f501326f53",
+        "same": true
+      },
+      "tests": {
+        "local": "8c8c9c99eacf8f34c4baa17fa34975706a50424d",
+        "remote": "8c8c9c99eacf8f34c4baa17fa34975706a50424d",
+        "same": true
+      },
+      "third_party": {
+        "local": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "remote": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "same": true
+      },
+      "tools": {
+        "local": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "remote": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "same": true
+      }
+    },
+    "documentationTreeChanged": true,
+    "publicLedgerStatusCounts": {
+      "已关闭": 36,
+      "部分": 40,
+      "缺失": 18,
+      "待复验": 360,
+      "经确认延期": 0
+    },
+    "publicLedgerBlob": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+    "remoteLedgerSnapshotBlob": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+    "primaryContentMatchesPublishedFiles": {
+      "docs/deployment/current-project-status.md": true,
+      "docs/deployment/github-quality-gates-proposal.md": true,
+      "docs/evidence/work-package4/requirements-closeout.json": false,
+      "docs/evidence/work-package4/requirements-status.md": false
+    },
+    "protected": true,
+    "newMainCiVerified": false,
+    "branchRulesWritten": false,
+    "localOriginalCheckoutUpdated": false,
+    "pushedByThisTask": false,
+    "observedAt": "2026-11-10T18:53:08.302Z",
+    "statusChanges": [
+      {
+        "id": "P01-C04",
+        "oldStatus": "待复验",
+        "status": "已关闭",
+        "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+        "evidenceRefs": [
+          {
+            "path": "page-source-review.json",
+            "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+            "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+            "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
+          }
+        ]
+      },
+      {
+        "id": "P01-S02",
+        "oldStatus": "待复验",
+        "status": "已关闭",
+        "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+        "evidenceRefs": [
+          {
+            "path": "page-source-review.json",
+            "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+            "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+            "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
+          }
+        ]
+      },
+      {
+        "id": "P01-S04",
+        "oldStatus": "待复验",
+        "status": "已关闭",
+        "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+        "evidenceRefs": [
+          {
+            "path": "page-source-review.json",
+            "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+            "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+            "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
+          }
+        ]
+      }
+    ],
+    "qualification": "latest published ledger statuses, not new acceptance granted by this local matrix; original review snapshot remains unchanged"
   }
 }
