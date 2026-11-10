@@ -1,0 +1,29 @@
+{
+  "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "runtimeOwner": "09afea0f-b49b-4dff-9f8f-914c03ec5fc2",
+  "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+  "projectName": "webapi-enterprise-local-test-aab6343d-6dfa-4d66-ae00-c10151bffa54",
+  "verifiedAt": "2026-11-10T09:55:52.0000000Z",
+  "kind": "ui",
+  "viewport": "{\"width\":1440,\"height\":1100}",
+  "requirementIds": [
+    "P01-S02",
+    "P01-C04",
+    "P01-S04"
+  ],
+  "screenshots": [
+    {
+      "path": "2026-11-10-reverify-c946bbb/requirements/ui/page1-s02-wrong-password.png",
+      "sha256": "0f10ca217c3977676a31b517a7a1d51bc800ade5ca50a5dd2db563fdfe2c0791"
+    },
+    {
+      "path": "2026-11-10-reverify-c946bbb/requirements/ui/page1-c04-rate-limit.png",
+      "sha256": "9c5c87d86e592b0ac1bb8c0ddfe4acdf0ac00084e5c7b6e208fc48fdfd04296a"
+    },
+    {
+      "path": "2026-11-10-reverify-c946bbb/requirements/ui/page1-s04-sso-unavailable.png",
+      "sha256": "dba260c2f75d360c23e042988a07473b8c4a08d6867218182682d3c36a3ff606"
+    }
+  ],
+  "boundary": "Actual CUA captures at 1440px on the c946bbb clean re-verification instance (fresh empty DB, 36 migrations / 98 public tables). Each PNG independently gated to 1440px IHDR width. Password field is masked; no secret, token or private value is present. P01-S02 local wrong-credential 401; P01-C04 account rate-limit (10/300s) triggered on the 11th failed attempt; P01-S04 SSO callback error state (ssoError=configuration_unavailable)."
+}
