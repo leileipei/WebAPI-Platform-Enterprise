@@ -1,0 +1,36 @@
+{
+  "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+  "runtimeOwner": "09afea0f-b49b-4dff-9f8f-914c03ec5fc2",
+  "imageId": "sha256:13eb95c36c071e7bdb29f84691b04407b9ab334dd47b521f18f685e836851290",
+  "projectName": "webapi-enterprise-local-test-aab6343d-6dfa-4d66-ae00-c10151bffa54",
+  "verifiedAt": "2026-11-10T09:55:52.0000000Z",
+  "kind": "runtime",
+  "result": "passed",
+  "scenario": "Page-1 (登录页) re-verification on the c946bbb clean instance: anonymous login page exercised at 1440px for wrong-credential, login-protection rate-limit, and SSO-unavailable states.",
+  "requirementIds": [
+    "P01-S02",
+    "P01-C04",
+    "P01-S04"
+  ],
+  "checksByRequirement": {
+    "P01-S02": [
+      "admin 用户名 + 错误密码提交 → 401",
+      "页面 alert(role=alert) 文案=用户名或密码错误。"
+    ],
+    "P01-C04": [
+      "同一账号连续错误密码至第 11 次(账号限 10/300s)→ 429 login_rate_limited",
+      "页面 alert 文案=登录尝试过于频繁，请在 N 秒后重试。",
+      "观测到 297 秒后重试(Retry-After 映射)"
+    ],
+    "P01-S04": [
+      "登录页 URL ssoError=configuration_unavailable(SSO 回调错误态)",
+      "页面 alert 文案=企业身份源暂不可用，请重试或联系管理员。"
+    ]
+  },
+  "observations": {
+    "rateLimit": "server-side Redis 滑动窗口: 账号 10/300s、IP 60/60s(SettingsValues 默认);console 将 login_rate_limited + Retry-After 映射为\"请在 N 秒后重试\"(login-protection.mjs)。",
+    "ssoUnavailable": "ssoErrorMessage 对 ssoError=configuration_unavailable 渲染\"企业身份源暂不可用,请重试或联系管理员。\"(console/src/sso/login.mjs)。",
+    "wrongCredential": "login() 失败时 setError(loginProtectionMessage(code,retryAfter) || e.message);错误密码走 e.message=用户名或密码错误。"
+  },
+  "sourceRecords": []
+}

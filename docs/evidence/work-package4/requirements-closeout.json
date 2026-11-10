@@ -152,8 +152,8 @@
       "kind": "核心组件",
       "originalRequirement": "锁定/错误次数提示",
       "originalParagraphIndexZeroBased": 121,
-      "status": "待复验",
-      "reason": "已逐项定位第1页相关页面/服务源码；本项“锁定/错误次数提示”尚无本轮固定版本 ba9031c的对应运行及1440px证据，保留待复验，不能由入口存在推定完成。",
+      "status": "已关闭",
+      "reason": "c946bbb 实际运行登录页(1440px):同一账号连续错误密码至第 11 次触发登录保护(账号限 10/300s),页面 alert 显示\"登录尝试过于频繁，请在 297 秒后重试。\"(Retry-After 映射);绑定 LoginProtectionPipelineTests(429+RetryAfter)与 LoginRateStoreTests,UI 截图+运行记录在案。原文\"账号锁定\"与临时限速关系仍见 P01-S03(部分)。",
       "implementationPaths": [
         {
           "path": "console/src/pages/Login.tsx",
@@ -172,16 +172,27 @@
           "sha256": "9a2ed49351d762d5036c2545071443f49c331ba45bcda67318f07c0fa99533f0"
         }
       ],
-      "testNames": [],
+      "testNames": [
+        "WebApi.Integration.Tests.LoginProtectionPipelineTests.TwoHostsShareAccountBudgetSuccessDoesNotResetAndDenialDoesNotHash",
+        "WebApi.Integration.Tests.LoginRateStoreTests.RejectDoesNotExtendWindowAndWindowExpires"
+      ],
       "evidenceRefs": [
         {
           "path": "page-source-review.json",
           "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+        },
+        {
+          "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+          "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+        },
+        {
+          "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+          "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
         }
       ],
-      "sourceRevision": null,
-      "runtimeOwner": null,
-      "verifiedAt": null
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "runtimeOwner": "09afea0f-b49b-4dff-9f8f-914c03ec5fc2",
+      "verifiedAt": "2026-11-10T09:55:52.162Z"
     },
     {
       "id": "P01-C05",
@@ -419,8 +430,8 @@
       "kind": "状态/异常",
       "originalRequirement": "密码错误",
       "originalParagraphIndexZeroBased": 125,
-      "status": "待复验",
-      "reason": "已逐项定位第1页相关页面/服务源码；本项“密码错误”尚无本轮固定版本 ba9031c的对应运行及1440px证据，保留待复验，不能由入口存在推定完成。",
+      "status": "已关闭",
+      "reason": "c946bbb 实际运行登录页(干净实例,1440px):正确用户名+错误密码提交→401,页面 alert 显示\"用户名或密码错误。\";绑定 LoginProtectionPipelineTests(401/429)与 LoginRateStoreTests,UI 截图+运行记录在案。",
       "implementationPaths": [
         {
           "path": "console/src/pages/Login.tsx",
@@ -439,16 +450,27 @@
           "sha256": "9a2ed49351d762d5036c2545071443f49c331ba45bcda67318f07c0fa99533f0"
         }
       ],
-      "testNames": [],
+      "testNames": [
+        "WebApi.Integration.Tests.LoginProtectionPipelineTests.TwoHostsShareAccountBudgetSuccessDoesNotResetAndDenialDoesNotHash",
+        "WebApi.Integration.Tests.LoginRateStoreTests.TwoStoresAtomicallyShareBudgetsAndRejectionsDoNotConsumeOtherDimension"
+      ],
       "evidenceRefs": [
         {
           "path": "page-source-review.json",
           "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+        },
+        {
+          "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+          "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+        },
+        {
+          "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+          "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
         }
       ],
-      "sourceRevision": null,
-      "runtimeOwner": null,
-      "verifiedAt": null
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "runtimeOwner": "09afea0f-b49b-4dff-9f8f-914c03ec5fc2",
+      "verifiedAt": "2026-11-10T09:55:52.162Z"
     },
     {
       "id": "P01-S03",
@@ -493,8 +515,8 @@
       "kind": "状态/异常",
       "originalRequirement": "SSO 不可用",
       "originalParagraphIndexZeroBased": 125,
-      "status": "待复验",
-      "reason": "已逐项定位第1页相关页面/服务源码；本项“SSO 不可用”尚无本轮固定版本 ba9031c的对应运行及1440px证据，保留待复验，不能由入口存在推定完成。",
+      "status": "已关闭",
+      "reason": "c946bbb 实际运行登录页(1440px):SSO 回调错误态(ssoError=configuration_unavailable)页面 alert 显示\"企业身份源暂不可用，请重试或联系管理员。\";直接证据为 UI 截图与运行记录。所列 SsoProviderCommandTests 仅为身份源管理权限及配置约束的背景回归，不直接断言该提示；不表示企业 IdP 故障注入或完整 SSO 链路验收。",
       "implementationPaths": [
         {
           "path": "console/src/pages/Login.tsx",
@@ -513,16 +535,27 @@
           "sha256": "9a2ed49351d762d5036c2545071443f49c331ba45bcda67318f07c0fa99533f0"
         }
       ],
-      "testNames": [],
+      "testNames": [
+        "WebApi.Integration.Tests.SsoProviderCommandTests.GovernanceRequiresRealPlatformAuthority",
+        "WebApi.Integration.Tests.SsoProviderCommandTests.BoundIssuerAndClientScopeCannotChange"
+      ],
       "evidenceRefs": [
         {
           "path": "page-source-review.json",
           "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+        },
+        {
+          "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+          "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+        },
+        {
+          "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+          "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
         }
       ],
-      "sourceRevision": null,
-      "runtimeOwner": null,
-      "verifiedAt": null
+      "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+      "runtimeOwner": "09afea0f-b49b-4dff-9f8f-914c03ec5fc2",
+      "verifiedAt": "2026-11-10T09:55:52.162Z"
     },
     {
       "id": "P01-S05",
@@ -14356,10 +14389,10 @@
     "sha256": "1248657f05badd7e6f5ec51e3c54fb949ddc4cdec125e8a4b59e6a49a986fad0"
   },
   "statusCounts": {
-    "已关闭": 33,
+    "已关闭": 36,
     "部分": 40,
     "缺失": 18,
-    "待复验": 363,
+    "待复验": 360,
     "经确认延期": 0
   }
 }
