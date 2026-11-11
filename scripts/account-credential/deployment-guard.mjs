@@ -43,7 +43,7 @@ export async function guardAccountDeployment(ctx,{inspect=inspectResources,owner
   ownership(ctx.state,await inspect(ctx.state));
   // Only PostgreSQL may start before the guard. No management process or migration
   // runs until a read-only query and, when needed, immutable capability checks pass.
-  await ctx.raw(['up','-d','--wait','postgres']);
+  await ctx.raw(['up','-d','--wait','--no-recreate','postgres']);
   const sql="BEGIN READ ONLY; SET LOCAL statement_timeout='5s'; SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='users' AND column_name='must_change_password'); COMMIT;";
   const response=await ctx.raw(['exec','-T','postgres','psql','--no-psqlrc','-U','webapi','-d','webapi','-v','ON_ERROR_STOP=1','-qAt','--command',sql]);
   assert.equal(response.exitCode,0,'Cannot inspect live account schema');
