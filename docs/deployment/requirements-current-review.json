@@ -13611,6 +13611,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "c26bc82eb163623a0b0f22598535f3a7358d91d4",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "1203410d17cf4c0ced68b286776b2e1604cac7154ffb8eb27b1495fc664b6716",
+      "scope": "Preserve all prior evidence and qualification; append valid credential operations for five functional and Scope personas.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -16865,5 +16935,80 @@
       "realTimeExistingCase": "Existing admission-time expiry test uses an actual approximately five-second wait; independent of manual-clock cases."
     },
     "qualification": "Local isolated HTTP/PostgreSQL/two in-process gateway regression. New boundaries use a controlled clock; real-time long-horizon activation/expiry, browser, deployed-node SDK E2E, production readiness and security admission are not accepted. Prior GitHub CI does not include these local test-only changes."
+  },
+  "credentialWriteMatrixVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "c26bc82eb163623a0b0f22598535f3a7358d91d4",
+    "localTestFile": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "testFileSha256": "5a79159fdd81a85ff07b186b53e4a0c47dbe7285b423e4eb4d7731d56dd64f48",
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "newMatrixCases": 15,
+    "existingRegressionCases": 14,
+    "successfulWrites": 4,
+    "allowedPreviews": 2,
+    "authorizationRejections": 9,
+    "personas": [
+      "manager-without-app-read",
+      "project-writer",
+      "environment-only",
+      "no-scope",
+      "reader-without-management"
+    ],
+    "operations": [
+      "create",
+      "preview",
+      "update"
+    ],
+    "cases": [
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"project-writer\", operation: \"create\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"manager-without-app-read\", operation: \"preview\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"environment-only\", operation: \"create\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"environment-only\", operation: \"update\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"project-writer\", operation: \"update\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"reader-without-management\", operation: \"create\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"no-scope\", operation: \"create\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"environment-only\", operation: \"preview\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"no-scope\", operation: \"update\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"manager-without-app-read\", operation: \"create\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"project-writer\", operation: \"preview\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"no-scope\", operation: \"preview\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"manager-without-app-read\", operation: \"update\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"reader-without-management\", operation: \"update\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Valid_credential_operations_respect_function_permissions_and_scope(persona: \"reader-without-management\", operation: \"preview\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Stale_etag_precedes_impact_check_and_safe_extension_stays_compatible",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"revision\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"time\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"publish\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"permission\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"window\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Credential_manager_with_readonly_scope_can_read_but_cannot_write(operation: \"create\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Credential_manager_with_readonly_scope_can_read_but_cannot_write(operation: \"preview\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Credential_manager_with_readonly_scope_can_read_but_cannot_write(operation: \"update\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Uncovered_future_windows_require_explicit_risk_confirmation(change: \"shorten\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Uncovered_future_windows_require_explicit_risk_confirmation(change: \"future\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+      "WebApi.Integration.Tests.CredentialImpactTests.Unpublished_replacement_does_not_remove_running_risk",
+      "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation"
+    ],
+    "logSha256": "59bf02dfc6fc971cb75707d08ad55259264c0fd4f76fcbce0ecf7d7d305a9bc6",
+    "elapsedSeconds": 78.377,
+    "startedAt": "2026-11-11T04:45:21.387884+00:00",
+    "endedAt": "2026-11-11T04:46:39.765865+00:00",
+    "sharedResourcesAtStart": {
+      "containers": 216,
+      "volumes": 510,
+      "networks": 40
+    },
+    "newSharedResourceMissing": 0,
+    "ownResourcesRemaining": 0,
+    "historicalEvidenceFilesUnchanged": 152,
+    "otherProtectedFilesUnchanged": 4004,
+    "primaryFilesUnchanged": 14,
+    "priorC08FailureRetained": true,
+    "priorUnknownRetained": true,
+    "newRequirementsAccepted": 0,
+    "qualification": "Named5-persona by3-valid-operation HTTP/PostgreSQL matrix, not exhaustive roles/Scope coverage. Identity and GET checked live after fixture-only grants change, with an actual retained usage fact visible beforehand. Successful writes persist and audit once; previews/rejections preserve state and emit no successful credential write audit. A manager without app.read gets404 GET and null lastUsedAt in update despite retained facts. No UI, deployed-node, production or new GitHub CI validation."
   }
 }

@@ -138,6 +138,127 @@ public sealed class CredentialImpactTests
             Assert.False(problem.TryGetProperty(field,out _));
         await f.AssertWindowAsync(before.ValidFrom,before.ExpiresAt,before.Revision,f.Api.Application.Revision);
     }
+    [Theory]
+    [InlineData("manager-without-app-read","create")]
+    [InlineData("manager-without-app-read","preview")]
+    [InlineData("manager-without-app-read","update")]
+    [InlineData("project-writer","create")]
+    [InlineData("project-writer","preview")]
+    [InlineData("project-writer","update")]
+    [InlineData("environment-only","create")]
+    [InlineData("environment-only","preview")]
+    [InlineData("environment-only","update")]
+    [InlineData("no-scope","create")]
+    [InlineData("no-scope","preview")]
+    [InlineData("no-scope","update")]
+    [InlineData("reader-without-management","create")]
+    [InlineData("reader-without-management","preview")]
+    [InlineData("reader-without-management","update")]
+    public async Task Valid_credential_operations_respect_function_permissions_and_scope(string persona,string operation)
+    {
+        await using var f=new Fixture();await f.InitializeAsync();
+        var hour=new DateTimeOffset(f.Time.Now.Year,f.Time.Now.Month,f.Time.Now.Day,f.Time.Now.Hour,0,0,TimeSpan.Zero).AddHours(-1);
+        var observed=hour.AddMinutes(10);
+        await using(var db=f.Api.Context())
+        {
+            db.Add(new CredentialUsageHourly{ApplicationId=f.Api.Application.Id,CredentialId=f.Key.Id,
+                EnvironmentId=f.Api.Environment.Id,HourStart=hour,Count=2,LastUsedAt=observed});
+            await db.SaveChangesAsync();
+        }
+        Assert.Equal(observed,(await f.ReadAsync(f.Key.Revision)).LastUsedAt);
+        var allowed=persona is "manager-without-app-read" or "project-writer";
+        var canRead=persona is "project-writer" or "reader-without-management";
+        await using(var db=f.Api.Context())
+        {
+            if(persona is "manager-without-app-read" or "reader-without-management")
+            {
+                var code=persona=="manager-without-app-read"?"app.read":"credential.manage";
+                var permission=await db.Set<Permission>().Where(x=>x.Code==code).Select(x=>x.Id).SingleAsync();
+                Assert.Equal(1,await db.Set<RolePermission>().Where(x=>x.PermissionId==permission).ExecuteDeleteAsync());
+            }
+            if(persona=="no-scope")
+                Assert.Equal(1,await db.Set<UserProjectScope>().Where(x=>x.UserId==f.Api.User.Id).ExecuteDeleteAsync());
+            else if(persona is "project-writer" or "environment-only")
+            {
+                var scope=await db.Set<UserProjectScope>().SingleAsync(x=>x.UserId==f.Api.User.Id);
+                scope.ProjectId=f.Api.Project.Id;
+                if(persona=="environment-only")scope.EnvironmentId=f.Api.Environment.Id;
+                await db.SaveChangesAsync();
+            }
+        }
+        using var identityResponse=await f.Api.Client.GetAsync("/api/v1/auth/me");identityResponse.EnsureSuccessStatusCode();
+        var identity=(await identityResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
+        Assert.Equal(f.Api.User.Id,identity.Id);
+        Assert.Equal(persona!="reader-without-management",identity.Permissions.Contains("credential.manage"));
+        Assert.Equal(persona!="manager-without-app-read",identity.Permissions.Contains("app.read"));
+        if(persona=="no-scope")Assert.Empty(identity.Scopes);
+        else
+        {
+            var expectedScope=new ScopeRef(f.Api.Organization.Id,
+                persona is "project-writer" or "environment-only"?f.Api.Project.Id:null,
+                persona=="environment-only"?f.Api.Environment.Id:null);
+            Assert.Equal(new ScopeGrantDto(expectedScope,"read_write"),Assert.Single(identity.Scopes));
+        }
+        using(var visibility=await f.Api.Client.GetAsync($"/api/v1/credentials/{f.Key.Id}"))
+            Assert.Equal(canRead?HttpStatusCode.OK:HttpStatusCode.NotFound,visibility.StatusCode);
+        var end=f.Key.ExpiresAt.AddHours(1);var path=$"/api/v1/credentials/{f.Key.Id}";var tag=RevisionTag.Format(f.Key.Revision);
+        using var response=await (operation switch
+        {
+            "create"=>f.Api.WriteAsync(HttpMethod.Post,$"/api/v1/applications/{f.Api.Application.Id}/credentials",new CredentialCreateRequest(f.Key.ValidFrom,end)),
+            "preview"=>f.Api.WriteAsync(HttpMethod.Post,path+"/impact",new CredentialImpactRequest(f.Key.ValidFrom,end,"Active"),tag),
+            "update"=>f.UpdateAsync(new CredentialUpdateRequest(f.Key.ValidFrom,end,"Active"),tag),
+            _=>throw new ArgumentOutOfRangeException(nameof(operation))
+        });
+        Assert.Equal(allowed?HttpStatusCode.OK:HttpStatusCode.Forbidden,response.StatusCode);
+        CredentialCreateResponse? created=null;
+        if(!allowed)
+        {
+            var error=await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(persona=="reader-without-management"?"permission_denied":"scope_denied",error.GetProperty("code").GetString());
+            foreach(var field in new[]{"credential","accessKey","secret","secretHash","apiKey","impactHash","atRiskVisibleEnvironmentIds","lastUsedAt"})
+                Assert.False(error.TryGetProperty(field,out _));
+        }
+        else if(operation=="create")
+        {
+            created=(await response.Content.ReadFromJsonAsync<CredentialCreateResponse>())!;
+            Assert.Equal(created.Credential.AccessKey+"."+created.Secret,created.ApiKey);
+        }
+        else if(operation=="preview")
+        {
+            var preview=(await response.Content.ReadFromJsonAsync<CredentialImpactDto>())!;
+            Assert.False(string.IsNullOrWhiteSpace(preview.ImpactHash));
+            if(!canRead)Assert.Empty(preview.AtRiskVisibleEnvironmentIds);
+        }
+        else
+        {
+            var updated=(await response.Content.ReadFromJsonAsync<CredentialDto>())!;
+            Assert.Equal((f.Key.Id,f.Key.ValidFrom,end,f.Key.Revision+1),(updated.Id,updated.ValidFrom,updated.ExpiresAt,updated.Revision));
+            Assert.Equal(canRead?(DateTimeOffset?)observed:null,updated.LastUsedAt);
+            Assert.Equal("WorkingConfiguration",updated.Activation);
+            Assert.Equal(RevisionTag.Format(updated.Revision),response.Headers.ETag?.ToString());
+        }
+        await using var check=f.Api.Context();
+        var write=allowed&&operation!="preview";
+        Assert.Equal(f.Api.Application.Revision+(write?1:0),await check.Set<ApplicationRecord>().Select(x=>x.Revision).SingleAsync());
+        Assert.Equal(created is null?1:2,await check.Set<ApplicationCredential>().CountAsync());
+        var existing=await check.Set<ApplicationCredential>().AsNoTracking().SingleAsync(x=>x.Id==f.Key.Id);
+        var changed=allowed&&operation=="update";
+        Assert.Equal((f.Key.ValidFrom,changed?end:f.Key.ExpiresAt,"Active",f.Key.Revision+(changed?1:0)),
+            (existing.ValidFrom,existing.ExpiresAt,existing.Status,existing.Revision));
+        if(created is not null)
+        {
+            Assert.NotEqual(f.Key.Id,created.Credential.Id);
+            var saved=await check.Set<ApplicationCredential>().AsNoTracking().SingleAsync(x=>x.Id==created.Credential.Id);
+            Assert.Equal((f.Api.Application.Id,f.Key.ValidFrom,end,"Active",1L),
+                (saved.ApplicationId,saved.ValidFrom,saved.ExpiresAt,saved.Status,saved.Revision));
+            Assert.True(ApiKeySecret.Verify(saved.SecretHash,created.Secret));
+            Assert.NotEqual(created.Secret,saved.SecretHash);
+        }
+        Assert.Equal(write?1:0,await check.Set<AuditLog>().CountAsync(x=>x.Action=="credential.create"||x.Action=="credential.update"));
+        if(write)Assert.Equal("credential."+operation,(await check.Set<AuditLog>().SingleAsync(x=>x.Action=="credential.create"||x.Action=="credential.update")).Action);
+        var retained=await check.Set<CredentialUsageHourly>().SingleAsync();
+        Assert.Equal((2L,observed),(retained.Count,retained.LastUsedAt));
+    }
     [Fact]
     public async Task Unauthorized_previewer_cannot_receive_hash_or_environment_ids()
     {
