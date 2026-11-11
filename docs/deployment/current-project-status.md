@@ -1,14 +1,14 @@
 # 当前源码与验证状态
 
-核对日期：2026-11-11。本页以 GitHub 实际主干和本轮资料整理的代码输入为依据，统一替代各历史“当前索引”的现状说明。资料整理只修改文档，不改变产品实现或原安装环境。
+核对日期：2026-11-12。本页以 GitHub 实际主干和本轮资料整理的代码输入为依据，统一替代各历史“当前索引”的现状说明。本轮只读核对远端并更新资料，不改变产品实现或原安装环境；下文各轮运行记录仍绑定各自固定版本。
 
 ## 版本与事实来源
 
 | 层次 | 已核实的版本或状态 | 说明 |
 | --- | --- | --- |
-| [GitHub main](https://github.com/leileipei/WebAPI-Platform-Enterprise/tree/51924152199f4b4ca0323df776d10772e8fd3905) | `51924152199f4b4ca0323df776d10772e8fd3905` | [PR #6](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/6)仅合并9份资料；七棵实现/测试/工具/部署/工作流树与`3774ccc`一致；该提交四项CI已实际运行通过4255项，0失败/跳过 |
-| 本地主分支 | `3774ccc7fd97a59ff4851d3a9f55179c4635c61f` | 本轮未跟随PR #6更新原目录；14份未提交内容及状态保留，早前差异不覆盖或倒填归因 |
-| 本地资料整理工作树 | 产品代码、工具、部署和工作流仍以`3774ccc`为基线；本地四份测试类及两份测试支持文件补强回归 | 后续资料链仍在本地，不等于已合入PR #5或PR #6 |
+| [GitHub main](https://github.com/leileipei/WebAPI-Platform-Enterprise/tree/50d6fb9c71dc45f965461c04191cc2107308037c) | `50d6fb9c71dc45f965461c04191cc2107308037c` | PR #7/#8/#9在旧`5192415`后合入14份文件，涉及产品、测试、脚本、工作流及资料；新提交四项CI实际通过4265项，0失败/跳过 |
+| 本地主分支 | `3774ccc7fd97a59ff4851d3a9f55179c4635c61f` | 本轮未同步新主干；原目录14份未提交文件及状态相对本轮起始记录保留，早前差异不覆盖或倒填归因 |
+| 本地资料整理工作树 | 本轮输入`3230bc5`；产品、工具、部署和工作流仍以`3774ccc`为基线，另有四份测试类及两份支持文件 | 与新main有11份远端代码/测试/脚本/工作流进展及6份本地测试差异，资料差异另记；本地后续链未公开 |
 | 其他本地目录和分支 | 含未提交文档、补验资料及不同阶段的工作目录 | 不自动并入本页结论，不推断分支名对应功能未实现或已交付 |
 | 持久本机安装 | 本轮未现场核对 | 当前源码不能代替镜像、维护工具、数据和健康的实际身份 |
 | 生产验收 | 无本轮新增验收 | 企业 TLS/网络、HA、AMD64、容量/SLA及业务验收仍需目标环境证据 |
@@ -39,11 +39,12 @@
 
 ## 固定版本验证
 
-以下区分实际 GitHub 运行与既有固定版本验证。本轮只读核对新旧主干的实际运行及完整日志，并另执行7项本地隔离Integration用例；各次结果分别记录。
+以下区分实际 GitHub 运行与既有固定版本验证。2026-11-12只读核对新主干的实际运行及完整日志，本轮没有启动本地产品测试或现场环境；此前7项隔离Integration及后续各轮仍分别记录。
 
 | 输入与记录 | 实际结果 | 不能外推的结论 |
 | --- | --- | --- |
-| 最新 main `5192415`，push 触发；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359801)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762) | Console 321、Domain 1251、Gateway 555、Integration 2128，合计4255通过，0失败/跳过；类型检查及前端构建通过 | 新提交四项均实际执行，非路径跳过；与旧主干结果分别记录，不代表完整需求或生产验收 |
+| 最新 main `50d6fb9`，push触发；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995380808)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080) | Console321、Domain1251、Gateway555、Integration2138，合计4265通过，0失败/跳过；类型检查与构建通过，保留大chunk提示 | 四项均实际执行且日志head一致；新增10项项目计数回归，不包含本地六份测试改动，不能代替固定401清理修复复验 |
+| 历史 main `5192415`，push 触发；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359801)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762) | Console 321、Domain 1251、Gateway 555、Integration 2128，合计4255通过，0失败/跳过；类型检查及前端构建通过 | 该提交四项均实际执行，非路径跳过；与新旧主干结果分别记录，不代表完整需求或生产验收 |
 | 合并后 main `3774ccc`，push 触发；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42839001626)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42839002248) | Console 321、Domain 1251、Gateway 555、Integration 2128，合计 4255 通过，0 失败/跳过；前端类型检查和构建通过 | 是该提交在托管 runner 上的四套检查，不代表 E2E、AMD64 或生产验收 |
 | PR 修正候选 `7694c4a`；[Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42828796307)、[Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42828796227) | 同样 4255 通过，0 失败/跳过；之后才合并 | PR 与 main 是两次独立验证，不相加为一个总数 |
 | [前端首批](console-ci-phase1.md)，`536efe1` | 321 通过，0 失败/跳过；类型检查与构建通过 | 本机 macOS 结果，不是 GitHub runner 结果；SSR 端口及大 chunk 告警保留 |
@@ -52,21 +53,27 @@
 | 同一 `00f45a8` 的关联路径复核 | 29 份源码检查；通知、凭证、导入和流水线相关 94 项通过，0 失败/跳过 | 有限范围复核，不是全仓库安全审计 |
 | [网络策略固定交付](../evidence/network-policies/2026-11-10-c946bbb/delivery-index.md)，`c946bbb` | 五组 4540 通过；SDK E2E 1 通过；[45 项工件清单](../evidence/network-policies/2026-11-10-c946bbb/delivery-manifest.json) | 属于该固定版本，不改标为本地修复后的完整验收 |
 
-50/94 项的原日志在本地忽略目录保存；修复对应的回归入口为[审计测试](../../tests/WebApi.Integration.Tests/AuditPermissionMoveScopeTests.cs)与[分发隔离测试](../../tests/WebApi.Integration.Tests/OutboxFailureIsolationTests.cs)。最新`5192415`与历史`3774ccc`的四套检查各自实际通过4255项，分别有完整日志；不改写旧记录，也不把两次CI、本地7项或历史321、3921、50、94、4540相加。
+50/94 项的原日志在本地忽略目录保存；修复对应的回归入口为[审计测试](../../tests/WebApi.Integration.Tests/AuditPermissionMoveScopeTests.cs)与[分发隔离测试](../../tests/WebApi.Integration.Tests/OutboxFailureIsolationTests.cs)。最新`50d6fb9`的4265项、历史`5192415`与`3774ccc`各自4255项均有独立日志；不改写旧记录，也不与本地定向或离线结果相加。
 
 ## GitHub 实际状态
 
-- 最新main为`5192415`，PR #6仅修改9份资料；最新公开需求台账36已关闭/40部分/18缺失/360待复验。新增公开的3项资格来自已有`c946bbb`固定版本证据，不是本轮48项检查产生的新关闭。原复核快照33/40/18/363保留。
+- 最新main为`50d6fb9`，开放PR为0。[PR #7](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/7)加入项目资源计数与10项集成用例；[PR #8](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/8)保留冷备份中的只读代理并禁止因配置差异自动重建已有容器；[PR #9](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/9)将Integration作业上限设为90分钟、输出超限测试的调用期限从2秒改为已有5秒上限。其余后端作业仍45分钟，未改变产品输出预算。
+- 新main公开需求台账仍为36已关闭/40部分/18缺失/360待复验，blob与此前`5192415`相同。三项公开新增资格来自已有`c946bbb`证据；原复核33/40/18/363保持原样。本轮不新增关闭，项目计数的代码进展另列，不能把旧静态缺口全部视为当前缺失。
 
-- PR #5 已合并。2026-11-11 最新只读读取确认 `main` 的 `protected` 为 `true`，`console`、`contracts-domain`、`contracts-integration`、`contracts-gateway` 四项状态检查均列为必需，接口报告 `enforcement_level: everyone`；仓库规则集列表为空，保护来自分支设置。本轮没有写入远端规则，也未重新统计开放 PR 数。
+- PR #5 已合并。2026-11-12只读读取确认 `main` 的 `protected` 为 `true`，`console`、`contracts-domain`、`contracts-integration`、`contracts-gateway` 四项状态检查均列为必需，接口报告 `enforcement_level: everyone`。规则集为空属于前次观察，本轮未重读规则集及完整管理配置，没有写入远端规则。
 - [前端工作流](../../.github/workflows/console-ci.yml)和[后端工作流](../../.github/workflows/contracts-ci.yml)已公开，修正后的 PR 及 main push 检查均完成。Console 使用 `ubuntu-24.04`，后端三套使用 `ubuntu-24.04-arm`。
 - 首次 [Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42820580697) 的 Integration 因超过 45 分钟作业上限被取消，无完整测试汇总；该次不算通过。经明确授权追加 `7694c4a` 后，PR Integration 测试耗时 55 分 9 秒，main 为 52 分 44 秒；两次均在 60 分钟作业上限内完成。测试耗时不等于整个作业耗时。
+- 新main的Integration测试耗时53分59秒，使用远端90分钟作业上限；本地工作流仍60分钟，本轮未修改。`437b7d8`的Contracts运行记录为cancelled，未读取其失败/取消原因，不计为通过，也不推断原因。
 - [主干保护方案](github-quality-gates-proposal.md)中的真实运行及四项必需检查均已有实际记录；PR 入口、分支新鲜度、审批、强推/删除和管理绕过等完整设置仍未由本轮分支摘要接口核实，不能推断整份提案已经实施。
-- 原批准范围的五个提交、21 个文件已发布并合入。本聊天后续资料链及原始本地日志未推送；PR #6另公开9份资料，不能由原目录未提交状态推断内容尚未公开。本次只读核对，不推送、修改规则或部署。
+- 原批准范围的五个提交、21 个文件已发布并合入。本聊天后续资料链及原始本地日志未推送；PR #6及后续三项PR是另行公开的进展，不归因于本聊天发布。本次只读核对，不推送、修改规则或部署。
 
 ## 目前进度与下一步
 
-已完成源码层的两项 P2 修复、两批 CI 接入、PR 全量验证、主干合并及主干四套复跑。2026-11-11 又完成[454 项需求追溯与 58 项历史缺口的静态复核](requirements-current-review.md)：50 项仍有实现或呈现差距、6 项缺针对性验收、1 项需澄清语义、1 项与发布模型冲突。随后核对 23 个重点单元，完成 39 项本地离线测试及 20 方法/26 用例的隔离 HTTP/PostgreSQL 定向回归，均零失败/跳过；随后从固定源码构建临时镜像，完成17个1440px真实页面检查点，五组场景部分实测通过，完整验收仍待补齐；首次测试启动遗漏参数的失败及待核验标记保留，测试服务已停止。
+当前处于核心实现、CI和局部回归已具备，需求对齐与完整验收未完成的阶段，不能给出可靠完成百分比。新main项目列表已实现按权限展示环境数、API数及项目应用数，对应P04-C03/C04/C05；包含停用资源，组织共享应用不计入项目应用数，无读取范围返回null，只有环境范围时不暴露项目级业务计数。10项HTTP集成用例已进入主干CI，本轮未做新界面验收，不调整台账资格。冷备份修复也不构成此前共享容器缺失的因果解释，Unknown仍保留。
+
+下一步先在隔离候选中对齐固定新main及六份本地测试、协调资料差异；再明确独立资源保全范围，完成固定SDK401与真实xUnit的清理修复及凭证回归；随后补浏览器、实际部署节点发布与逐项需求验收。本轮只完成版本/证据对账，没有执行这些现场步骤。
+
+此前已完成源码层的两项 P2 修复、两批 CI 接入、PR 全量验证、主干合并及主干四套复跑。2026-11-11 对固定`3774ccc`完成[454 项需求追溯与 58 项历史缺口的静态复核](requirements-current-review.md)：当时50项有实现或呈现差距、6项缺针对性验收、1项需澄清语义、1项与发布模型冲突；该统计未对新main全部重算。随后核对23个重点单元，完成39项本地离线测试及20方法/26用例的隔离HTTP/PostgreSQL定向回归，均零失败/跳过；从固定源码构建临时镜像，完成17个1440px真实页面检查点，五组场景部分实测通过，完整验收仍待补齐；首次测试启动遗漏参数的失败及待核验标记保留，测试服务已停止。
 
 随后继续凭证页面补验：12个执行检查点中11个通过、1个一小时期限读回失败，另保留1条提交前表单记录。一次性展示与风险门禁部分实测成立；日期自动化填写未提交到表单状态的失败保留，唯一新测试凭证已撤销、无API授权。临时服务再次停止，原4枚凭证未变。
 
@@ -102,15 +109,16 @@
 
 | 未完成项 | 当前依据与处理边界 |
 | --- | --- |
+| 本地与新main对齐 | 远端三项PR含14份文件，其中11份属于代码/测试/脚本/工作流；另有六份本地测试尚未公开。旧实现树一致结论只适用于`3774ccc`与`5192415`，不适用于`50d6fb9` |
 | 清理修复的固定环境复验 | 清理支持现14项为独立SDK10.0.403离线验证；真实xUnit及原固定10.0.401的48项跨进程回归未重跑 |
 | 共享资源差异 | b4ef092阶段新增1个起始共享容器缺失，准确时间窗事件记录为空、原因Unknown；原两个资源Unknown保留，自有资源已清理，不自动恢复或归因，后续现场验证须保留该限制 |
 | 主干完整规则核对 | 四项必需检查已只读确认启用；其余 PR/审批/严格同步/强推等配置仍需完整管理接口核实 |
 | 资料公开同步 | 本聊天资料链未推送；PR #6已另公开9份资料，两份原目录台账仍有本地变体，公开前审查实际差异与范围 |
 | 凭证安全准入 | 签发入口仍关闭、网关准入未接线；既有设计与组件不能代替生产路径验证 |
-| 需求逐项验收 | 454 项已建立当前源码追溯；328 项引用文件未变、126 项有变化，涉及 16 个历史已关闭项。历史 33/40/18/363 状态保留，未重新授予当前验收，尚不能给出可靠的完成百分比 |
+| 需求逐项验收 | 454项追溯及328/126引用差异属于固定`3774ccc`复核。新main三个项目计数ID已有实现和CI，完整界面验收及其余差距仍需复核；历史资格保留，不换算完成百分比 |
 | 实际安装与生产验收 | 本轮未升级；目标环境身份、TLS/HA/AMD64、容量及业务验收仍需各自证据 |
 
-本轮资源保全另作独立核对：恢复独立测试环境时仅自身control-plane因代理信任同步替换为同镜像容器；其余195个起始容器、508个卷和38个网络均保留。原目录14份文件相对早前摘要有4份资料差异，来源与时间未确认；本轮未写原目录、未覆盖差异，不能将早前“14份未变”外推到现在。原4192未升级，旧资源Unknown及迁移失败标记保留。
+此前恢复阶段的资源保全曾单独核对：当时仅自身control-plane因代理信任同步替换为同镜像容器，其余195个起始容器、508个卷和38个网络均保留。原目录14份文件相对更早摘要已有4份资料差异，来源与时间未确认；本次相对新起始记录未变，不覆盖这些差异。该阶段结果不能解除随后b4ef092新增的共享容器缺失；本轮未重新检查现场资源。原4192未升级，旧资源Unknown及迁移失败标记保留。
 
 ## 历史记录与待处理项
 

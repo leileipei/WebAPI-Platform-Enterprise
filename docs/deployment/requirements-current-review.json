@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewDate": "2026-11-11",
+  "reviewDate": "2026-11-12",
   "reviewType": "source traceability, offline checks, isolated backend regression and partial real-browser permission verification",
   "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
   "documentationInput": "b3d6167c2f6ceef56ead557b4ea35c9c0e1e3516",
@@ -14101,6 +14101,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "3230bc5024b8d5fa5ff099195a3e9449400c97aa",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "1065cbcbcaaf8be4a3e36d978f331c62a44a3c3a2f44e8566a91c283c4cddad9",
+      "scope": "Preserve all prior fixed-version records, 454 requirement entries, native offline14 and incomplete resource qualification; append main50d read-only code/CI/progress refresh.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -18014,5 +18084,350 @@
     "newRequirementsAccepted": 0,
     "qualification": "Actual System.Diagnostics.Process and private nonempty-directory checks on the local POSIX host; three cases start ready/read-stdin shell children, one does not start a Process and one injects setup failure before process start. Directory-retry first deletion exception is injected. Rare OS stop-race errors remain covered by prior callback scenarios, not claimed to have occurred under real scheduling. This is not a control-plane runtime or fixed-SDK xUnit run.",
     "checkedAt": "2026-11-11T15:45:01.105978+00:00"
+  },
+  "repositoryRefresh20261112": {
+    "observedAt": "2026-11-11T17:22:15.641024+00:00",
+    "githubMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "previousObservedMain": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "localInputCommit": "3230bc5024b8d5fa5ff099195a3e9449400c97aa",
+    "localProductBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "mergedPullRequests": [
+      {
+        "number": 7,
+        "title": "feat: add permission-aware project resource counts",
+        "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/7",
+        "merge_commit_sha": "5ca458a4ba4e3eea7ee24b7a6df048d36b653de2",
+        "merged_at": "2026-11-11T05:18:56Z"
+      },
+      {
+        "number": 8,
+        "title": "fix: avoid recreating existing containers during cold backups",
+        "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/8",
+        "merge_commit_sha": "437b7d82a57d27bb9d6962830eb8c58d8f66947f",
+        "merged_at": "2026-11-11T07:18:50Z"
+      },
+      {
+        "number": 9,
+        "title": "ci: stabilize hosted check deadlines",
+        "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/9",
+        "merge_commit_sha": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "merged_at": "2026-11-11T09:27:49Z"
+      }
+    ],
+    "remoteAdvanceFiles": [
+      {
+        "path": "console/src/pages/Governance.tsx",
+        "githubBlob": "e1362cc2924c6bfa9798c9f440f7980637ee5a3f",
+        "localBlob": "f463d34cef960bcaa2fcc8a34384c9139fa5b77c"
+      },
+      {
+        "path": "docs/superpowers/plans/2026-11-11-project-resource-counts.md",
+        "githubBlob": "20645026c803a15163e839dcfea4b919045bb333",
+        "localBlob": null
+      },
+      {
+        "path": "docs/superpowers/specs/2026-11-11-project-resource-counts-design.md",
+        "githubBlob": "33c7073cb752435f5d3df40396f8c07ab090e25f",
+        "localBlob": null
+      },
+      {
+        "path": "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+        "githubBlob": "74a01e89f230a0f7fcade65afa7d9c12fd77dba5",
+        "localBlob": "02a1a929c8204f3ddb7d00c0b001f06ff288c8f7"
+      },
+      {
+        "path": "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+        "githubBlob": "b0e2b3110856af175bfc7f58a30737a57aa2df5f",
+        "localBlob": "f30c5996f105e0cc116bc55f0f24a00384e6317e"
+      },
+      {
+        "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+        "githubBlob": "cd6a6b66e70bec7ed1fd74407a2dd3b06872fc38",
+        "localBlob": "223253c04720461be58a36f732bcb641b3e9e371"
+      },
+      {
+        "path": "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+        "githubBlob": "36ac6c786abf698dd0d00b9a508d4d839a18df0b",
+        "localBlob": null
+      },
+      {
+        "path": "docs/deployment/local-runtime-runbook.md",
+        "githubBlob": "2b8e3d9a24fb7818741df0638e7dfeeb366063c7",
+        "localBlob": "6ed92d880f10a9a32395bd97a43b5c00fce8d4c3"
+      },
+      {
+        "path": "scripts/account-credential/deployment-guard.mjs",
+        "githubBlob": "8cd67a773b5c298cb0858460ada09a8535908cc1",
+        "localBlob": "32ec6f25132cc20f25ca471c8b3e667fa131e5bc"
+      },
+      {
+        "path": "scripts/runtime/acceptance-backup.mjs",
+        "githubBlob": "c445a055fdee2337ff544daf22a857d0b49e5a52",
+        "localBlob": "616b6d9e93934f0fe7b300b5c343bfdf671c720f"
+      },
+      {
+        "path": "tests/account-credential/deployment-guard.test.mjs",
+        "githubBlob": "31aceb8e4897027827a39d865c668df4942cd475",
+        "localBlob": "0a2fa8624c050d75c464a5a939d0a4dfb2ae70d1"
+      },
+      {
+        "path": "tests/runtime/backup.test.mjs",
+        "githubBlob": "2d1ce8a28aaf179d0942bff6ac70360ceb4829ef",
+        "localBlob": "3cba48508f46b943ea1f7937cbf043dac1a4a776"
+      },
+      {
+        "path": ".github/workflows/contracts-ci.yml",
+        "githubBlob": "82063232ccc3bf7b1f17238b2ac12696af89f091",
+        "localBlob": "f7b5b146067eda99a25956795cfebe6df004db4f"
+      },
+      {
+        "path": "tests/WebApi.Domain.Tests/SchemaProcessTests.cs",
+        "githubBlob": "6722d8d22ff8a4084373c2421b28edc5fde7f705",
+        "localBlob": "d2bd0e31d73ca876280fcd167f34ebe0cf957385"
+      }
+    ],
+    "remoteAdvanceNonDocumentationFiles": [
+      "console/src/pages/Governance.tsx",
+      "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+      "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+      "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+      "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+      "scripts/account-credential/deployment-guard.mjs",
+      "scripts/runtime/acceptance-backup.mjs",
+      "tests/account-credential/deployment-guard.test.mjs",
+      "tests/runtime/backup.test.mjs",
+      ".github/workflows/contracts-ci.yml",
+      "tests/WebApi.Domain.Tests/SchemaProcessTests.cs"
+    ],
+    "localOnlyTestChanges": [
+      "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+      "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs"
+    ],
+    "sourceDifferenceToGithub": [
+      ".github/workflows/contracts-ci.yml",
+      "console/src/pages/Governance.tsx",
+      "scripts/account-credential/deployment-guard.mjs",
+      "scripts/runtime/acceptance-backup.mjs",
+      "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+      "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+      "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+      "tests/WebApi.Domain.Tests/SchemaProcessTests.cs",
+      "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+      "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+      "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs",
+      "tests/account-credential/deployment-guard.test.mjs",
+      "tests/runtime/backup.test.mjs"
+    ],
+    "treeComparison": {
+      ".github": {
+        "local": "65d28475d1a946976daf94be3cfb8de661641c6b",
+        "github": "3a7421ce9ca0a933e8f6dffd82b5912f7e0be992",
+        "same": false
+      },
+      "console": {
+        "local": "ce8f6db038dfd94bff63b2e0296f964f5c68eecd",
+        "github": "818f0b0116ef5b0efe2620b69157f24bf94e4cff",
+        "same": false
+      },
+      "deploy": {
+        "local": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "github": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "same": true
+      },
+      "scripts": {
+        "local": "f8c99c7e249e9a91fc216a04c028fcdd7b07e54c",
+        "github": "69c7750f37a1641a43ce8249913d96a70c1b85e3",
+        "same": false
+      },
+      "src": {
+        "local": "b6806df08a5a559afe3ca696e0a2e2f501326f53",
+        "github": "f44d7aa87f65986177b2f462f318b4f920f49bbf",
+        "same": false
+      },
+      "tests": {
+        "local": "4c6e17970cf2cd32baec8fce60a434909551274a",
+        "github": "889d9488b963d6edab0925a4766f96f133efa551",
+        "same": false
+      },
+      "third_party": {
+        "local": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "github": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "same": true
+      },
+      "tools": {
+        "local": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "github": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "same": true
+      },
+      ".config": {
+        "local": "f60b6727724d2f612838401aa9e8af9cdabf4b6e",
+        "github": "f60b6727724d2f612838401aa9e8af9cdabf4b6e",
+        "same": true
+      },
+      "global.json": {
+        "local": "af07787e724ca1b56f29adafa8a91a6d4b1fe433",
+        "github": "af07787e724ca1b56f29adafa8a91a6d4b1fe433",
+        "same": true
+      },
+      "Directory.Build.props": {
+        "local": "e5db0cbe4ab306bfc545c64203028cc99bfe496a",
+        "github": "e5db0cbe4ab306bfc545c64203028cc99bfe496a",
+        "same": true
+      },
+      "Directory.Packages.props": {
+        "local": "2ea54660c82fddcf9b0c386a2293e79285fbd325",
+        "github": "2ea54660c82fddcf9b0c386a2293e79285fbd325",
+        "same": true
+      }
+    },
+    "publicLedger": {
+      "requirements": 454,
+      "statusCounts": {
+        "已关闭": 36,
+        "待复验": 360,
+        "缺失": 18,
+        "部分": 40
+      },
+      "blob": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+      "sha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
+      "sameBlobAsPrior519Observation": true,
+      "newRequirementsAccepted": 0
+    },
+    "requirementOverlay": [
+      {
+        "id": "P04-C03",
+        "historicalStatus": "缺失",
+        "latestCodeStatus": "implemented-in-main-with-ci-regression",
+        "currentAcceptance": "not-reaccepted-by-this-read-only-review",
+        "scope": "permission-aware project environment/API/project-owned application counts; organization-shared applications excluded",
+        "remaining": "browser acceptance and full requirement semantics at fixed new main"
+      },
+      {
+        "id": "P04-C04",
+        "historicalStatus": "缺失",
+        "latestCodeStatus": "implemented-in-main-with-ci-regression",
+        "currentAcceptance": "not-reaccepted-by-this-read-only-review",
+        "scope": "permission-aware project environment/API/project-owned application counts; organization-shared applications excluded",
+        "remaining": "browser acceptance and full requirement semantics at fixed new main"
+      },
+      {
+        "id": "P04-C05",
+        "historicalStatus": "缺失",
+        "latestCodeStatus": "implemented-in-main-with-ci-regression",
+        "currentAcceptance": "not-reaccepted-by-this-read-only-review",
+        "scope": "permission-aware project environment/API/project-owned application counts; organization-shared applications excluded",
+        "remaining": "browser acceptance and full requirement semantics at fixed new main"
+      }
+    ],
+    "newProjectResourceCountCases": 10,
+    "openPullRequests": 0,
+    "protected": true,
+    "requiredContexts": [
+      "console",
+      "contracts-domain",
+      "contracts-integration",
+      "contracts-gateway"
+    ],
+    "fullBranchProtectionRevalidated": false,
+    "rulesetsRevalidated": false,
+    "resourcePreservationQualification": "inherited incomplete; shared-container absence remains Unknown",
+    "backupFixExplainsHistoricalContainerLoss": "Unknown; no causal evidence",
+    "sharedResourcesReinspected": false,
+    "newRuntimeOrNetworkTestStarted": false,
+    "newProductTestsExecutedLocally": 0,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "rulesWritten": false,
+    "deployed": false,
+    "nextSteps": [
+      "Reconcile an isolated candidate with fixed main50d and six local test files while preserving documentation and historical evidence.",
+      "Freeze a separate resource-preserving scope before a real SDK10.0.401/xUnit cleanup and credential regression; keep all resource Unknown.",
+      "Complete browser, deployed-node publication and requirement-by-requirement acceptance; safety admission and production acceptance remain outstanding."
+    ]
+  },
+  "mainCi50dVerification": {
+    "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "observedAt": "2026-11-11T17:22:15.641024+00:00",
+    "suites": [
+      {
+        "suite": "console",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438060385,
+        "run": 42995380808,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995380808",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": null,
+        "archivedLogSha256": "2768cdbf6a2b4f14ea9a6cf89f2f5a8add91db969b060280ae865e5d01dc0eb1"
+      },
+      {
+        "suite": "domain",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438061699,
+        "run": 42995381080,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 1251,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": "14 s",
+        "archivedLogSha256": "c68c6d54bfdcaf8107fd5b30b63fed7f2a1b46350eeec6af96836b2da71e82c3"
+      },
+      {
+        "suite": "gateway",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438061706,
+        "run": 42995381080,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 555,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": "8 m 8 s",
+        "archivedLogSha256": "fabb00032b4a9ee9bd53a26d0b7f855f5c913e862d9dd934571efceaedc4c5fc"
+      },
+      {
+        "suite": "integration",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438061509,
+        "run": 42995381080,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 2138,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": "53 m 59 s",
+        "archivedLogSha256": "621c6d8ffaeaf9118ad01b9af8b788d784d0ff3312f22393c9a172790be08bc4"
+      }
+    ],
+    "passed": 4265,
+    "failed": 0,
+    "skipped": 0,
+    "actualRunsNotPathSkipped": true,
+    "consoleTypecheckAndBuildPassed": true,
+    "consoleLargeChunkWarningRetained": true,
+    "integrationTestDuration": "53m59s",
+    "remoteIntegrationJobTimeoutMinutes": 90,
+    "localIntegrationJobTimeoutMinutes": 60,
+    "domainGatewayJobTimeoutMinutes": 45,
+    "allFourVerified": true,
+    "localSixTestFilesIncluded": false,
+    "localFixed401CleanupRerun": false,
+    "prior4255RunsRetainedSeparately": true,
+    "newRequirementsAccepted": 0
   }
 }

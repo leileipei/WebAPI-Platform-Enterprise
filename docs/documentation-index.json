@@ -1,11 +1,29 @@
 {
   "schemaVersion": 1,
-  "reviewDate": "2026-11-11",
+  "reviewDate": "2026-11-12",
   "scope": "Tracked project Markdown/text, current navigation and requirements reviews; vendor documents excluded.",
-  "githubMain": "51924152199f4b4ca0323df776d10772e8fd3905",
+  "githubMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
   "localCodeInput": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
   "localCodeAheadOfGithub": [],
-  "sourceDifferenceToGithub": ["tests/WebApi.Integration.Tests/CredentialImpactTests.cs", "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs", "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs", "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs", "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs", "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs"],
+  "sourceDifferenceToGithub": [
+    ".github/workflows/contracts-ci.yml",
+    "console/src/pages/Governance.tsx",
+    "scripts/account-credential/deployment-guard.mjs",
+    "scripts/runtime/acceptance-backup.mjs",
+    "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+    "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+    "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+    "tests/WebApi.Domain.Tests/SchemaProcessTests.cs",
+    "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+    "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+    "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+    "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+    "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+    "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs",
+    "tests/account-credential/deployment-guard.test.mjs",
+    "tests/runtime/backup.test.mjs"
+  ],
   "classificationIsNotAcceptance": true,
   "counts": {
     "documents": 315,
@@ -448,7 +466,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "1065cbcbcaaf8be4a3e36d978f331c62a44a3c3a2f44e8566a91c283c4cddad9",
+    "dataSha256": "32b010faeaaf4b67a6ec396fd8b921de71459bce3b6357935264c675fae91481",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -568,6 +586,13 @@
       "priorC08FailureRetained": true,
       "priorUnknownRetained": true,
       "persistedUpdatedWindowReadBackAdded": false
+    },
+    "latestReadOnlyRefresh": {
+      "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "date": "2026-11-12",
+      "newAccepted": 0,
+      "old454EntryQualificationsRetained": true,
+      "resourceUnknownRetained": true
     }
   },
   "repositoryGovernanceObservation": {
@@ -609,7 +634,7 @@
     "rulesWrittenByThisTask": false,
     "fullBranchProtectionSettingsVerified": false
   },
-  "sourceDifferenceScope": "product implementation, test code, tooling, deployment and workflow tree roots; documentation evidence excluded",
+  "sourceDifferenceScope": "Fixed main50d versus local3230bc5: 11 remotely advanced implementation/test/script/workflow files and six local-only test files; documentation divergence recorded separately; localCodeAheadOfGithub is not a commit-graph claim.",
   "repositoryAdvanceObservation": {
     "main": "51924152199f4b4ca0323df776d10772e8fd3905",
     "previousMain": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
@@ -994,7 +1019,7 @@
     "newRequirementsAccepted": 0
   },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"38fe0b98c7d088a6818349c8c0a1011d28ed32429c523f8a1756f45c439d23a8"},
+    {"path":"README.md","category":"navigation","sha256":"14926a64373b7cb2d68c686551f55c8c0d6e549d9d2b9919e30d89e239b7f64c"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -1033,7 +1058,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"bd4074941f3d5e83daa02d421458d52dbd595f903a6091829464afcf28ae22b6"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"bc087f789d2278d8c25d6307d8afc427c059e3d0f140d0eb8a665248d94368c1"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -1308,6 +1333,351 @@
     {"path":"docs/superpowers/specs/2026-11-10-contracts-ci-phase2-design.md","category":"historical-design-plan","sha256":"1be4ab24ffbc6b52cc5501064fcb7846c3d3d7a0f153056b16826f86b3896ee1"},
     {"path":"docs/traffic-policy-data-dictionary.md","category":"topic-reference","sha256":"02611712f6ed8b89033e1abd9d5028a595a5b5f4e1155427e7548ec7dc902022"},
     {"path":"docs/workbench.md","category":"topic-reference","sha256":"4f15104d0c5fbd10b4f0561eee8cf61ae5758cf1115d384723869980b3fc82d4"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"504a29dc80cca1af8b1f202ba397b41b30c7f786dfb9f90f1d1efae6657decca"}
-  ]
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"1ebb5170e20fc80f4a89a0a69ebe21e73adbee6841f41bf1ac095941b486b497"}
+  ],
+  "repositoryRefresh20261112": {
+    "observedAt": "2026-11-11T17:22:15.641024+00:00",
+    "githubMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "previousObservedMain": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "localInputCommit": "3230bc5024b8d5fa5ff099195a3e9449400c97aa",
+    "localProductBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "mergedPullRequests": [
+      {
+        "number": 7,
+        "title": "feat: add permission-aware project resource counts",
+        "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/7",
+        "merge_commit_sha": "5ca458a4ba4e3eea7ee24b7a6df048d36b653de2",
+        "merged_at": "2026-11-11T05:18:56Z"
+      },
+      {
+        "number": 8,
+        "title": "fix: avoid recreating existing containers during cold backups",
+        "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/8",
+        "merge_commit_sha": "437b7d82a57d27bb9d6962830eb8c58d8f66947f",
+        "merged_at": "2026-11-11T07:18:50Z"
+      },
+      {
+        "number": 9,
+        "title": "ci: stabilize hosted check deadlines",
+        "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/9",
+        "merge_commit_sha": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "merged_at": "2026-11-11T09:27:49Z"
+      }
+    ],
+    "remoteAdvanceFiles": [
+      {
+        "path": "console/src/pages/Governance.tsx",
+        "githubBlob": "e1362cc2924c6bfa9798c9f440f7980637ee5a3f",
+        "localBlob": "f463d34cef960bcaa2fcc8a34384c9139fa5b77c"
+      },
+      {
+        "path": "docs/superpowers/plans/2026-11-11-project-resource-counts.md",
+        "githubBlob": "20645026c803a15163e839dcfea4b919045bb333",
+        "localBlob": null
+      },
+      {
+        "path": "docs/superpowers/specs/2026-11-11-project-resource-counts-design.md",
+        "githubBlob": "33c7073cb752435f5d3df40396f8c07ab090e25f",
+        "localBlob": null
+      },
+      {
+        "path": "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+        "githubBlob": "74a01e89f230a0f7fcade65afa7d9c12fd77dba5",
+        "localBlob": "02a1a929c8204f3ddb7d00c0b001f06ff288c8f7"
+      },
+      {
+        "path": "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+        "githubBlob": "b0e2b3110856af175bfc7f58a30737a57aa2df5f",
+        "localBlob": "f30c5996f105e0cc116bc55f0f24a00384e6317e"
+      },
+      {
+        "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+        "githubBlob": "cd6a6b66e70bec7ed1fd74407a2dd3b06872fc38",
+        "localBlob": "223253c04720461be58a36f732bcb641b3e9e371"
+      },
+      {
+        "path": "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+        "githubBlob": "36ac6c786abf698dd0d00b9a508d4d839a18df0b",
+        "localBlob": null
+      },
+      {
+        "path": "docs/deployment/local-runtime-runbook.md",
+        "githubBlob": "2b8e3d9a24fb7818741df0638e7dfeeb366063c7",
+        "localBlob": "6ed92d880f10a9a32395bd97a43b5c00fce8d4c3"
+      },
+      {
+        "path": "scripts/account-credential/deployment-guard.mjs",
+        "githubBlob": "8cd67a773b5c298cb0858460ada09a8535908cc1",
+        "localBlob": "32ec6f25132cc20f25ca471c8b3e667fa131e5bc"
+      },
+      {
+        "path": "scripts/runtime/acceptance-backup.mjs",
+        "githubBlob": "c445a055fdee2337ff544daf22a857d0b49e5a52",
+        "localBlob": "616b6d9e93934f0fe7b300b5c343bfdf671c720f"
+      },
+      {
+        "path": "tests/account-credential/deployment-guard.test.mjs",
+        "githubBlob": "31aceb8e4897027827a39d865c668df4942cd475",
+        "localBlob": "0a2fa8624c050d75c464a5a939d0a4dfb2ae70d1"
+      },
+      {
+        "path": "tests/runtime/backup.test.mjs",
+        "githubBlob": "2d1ce8a28aaf179d0942bff6ac70360ceb4829ef",
+        "localBlob": "3cba48508f46b943ea1f7937cbf043dac1a4a776"
+      },
+      {
+        "path": ".github/workflows/contracts-ci.yml",
+        "githubBlob": "82063232ccc3bf7b1f17238b2ac12696af89f091",
+        "localBlob": "f7b5b146067eda99a25956795cfebe6df004db4f"
+      },
+      {
+        "path": "tests/WebApi.Domain.Tests/SchemaProcessTests.cs",
+        "githubBlob": "6722d8d22ff8a4084373c2421b28edc5fde7f705",
+        "localBlob": "d2bd0e31d73ca876280fcd167f34ebe0cf957385"
+      }
+    ],
+    "remoteAdvanceNonDocumentationFiles": [
+      "console/src/pages/Governance.tsx",
+      "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+      "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+      "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+      "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+      "scripts/account-credential/deployment-guard.mjs",
+      "scripts/runtime/acceptance-backup.mjs",
+      "tests/account-credential/deployment-guard.test.mjs",
+      "tests/runtime/backup.test.mjs",
+      ".github/workflows/contracts-ci.yml",
+      "tests/WebApi.Domain.Tests/SchemaProcessTests.cs"
+    ],
+    "localOnlyTestChanges": [
+      "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+      "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs"
+    ],
+    "sourceDifferenceToGithub": [
+      ".github/workflows/contracts-ci.yml",
+      "console/src/pages/Governance.tsx",
+      "scripts/account-credential/deployment-guard.mjs",
+      "scripts/runtime/acceptance-backup.mjs",
+      "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+      "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+      "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+      "tests/WebApi.Domain.Tests/SchemaProcessTests.cs",
+      "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+      "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+      "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs",
+      "tests/account-credential/deployment-guard.test.mjs",
+      "tests/runtime/backup.test.mjs"
+    ],
+    "treeComparison": {
+      ".github": {
+        "local": "65d28475d1a946976daf94be3cfb8de661641c6b",
+        "github": "3a7421ce9ca0a933e8f6dffd82b5912f7e0be992",
+        "same": false
+      },
+      "console": {
+        "local": "ce8f6db038dfd94bff63b2e0296f964f5c68eecd",
+        "github": "818f0b0116ef5b0efe2620b69157f24bf94e4cff",
+        "same": false
+      },
+      "deploy": {
+        "local": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "github": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "same": true
+      },
+      "scripts": {
+        "local": "f8c99c7e249e9a91fc216a04c028fcdd7b07e54c",
+        "github": "69c7750f37a1641a43ce8249913d96a70c1b85e3",
+        "same": false
+      },
+      "src": {
+        "local": "b6806df08a5a559afe3ca696e0a2e2f501326f53",
+        "github": "f44d7aa87f65986177b2f462f318b4f920f49bbf",
+        "same": false
+      },
+      "tests": {
+        "local": "4c6e17970cf2cd32baec8fce60a434909551274a",
+        "github": "889d9488b963d6edab0925a4766f96f133efa551",
+        "same": false
+      },
+      "third_party": {
+        "local": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "github": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "same": true
+      },
+      "tools": {
+        "local": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "github": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "same": true
+      },
+      ".config": {
+        "local": "f60b6727724d2f612838401aa9e8af9cdabf4b6e",
+        "github": "f60b6727724d2f612838401aa9e8af9cdabf4b6e",
+        "same": true
+      },
+      "global.json": {
+        "local": "af07787e724ca1b56f29adafa8a91a6d4b1fe433",
+        "github": "af07787e724ca1b56f29adafa8a91a6d4b1fe433",
+        "same": true
+      },
+      "Directory.Build.props": {
+        "local": "e5db0cbe4ab306bfc545c64203028cc99bfe496a",
+        "github": "e5db0cbe4ab306bfc545c64203028cc99bfe496a",
+        "same": true
+      },
+      "Directory.Packages.props": {
+        "local": "2ea54660c82fddcf9b0c386a2293e79285fbd325",
+        "github": "2ea54660c82fddcf9b0c386a2293e79285fbd325",
+        "same": true
+      }
+    },
+    "publicLedger": {
+      "requirements": 454,
+      "statusCounts": {
+        "已关闭": 36,
+        "待复验": 360,
+        "缺失": 18,
+        "部分": 40
+      },
+      "blob": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+      "sha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
+      "sameBlobAsPrior519Observation": true,
+      "newRequirementsAccepted": 0
+    },
+    "requirementOverlay": [
+      {
+        "id": "P04-C03",
+        "historicalStatus": "缺失",
+        "latestCodeStatus": "implemented-in-main-with-ci-regression",
+        "currentAcceptance": "not-reaccepted-by-this-read-only-review",
+        "scope": "permission-aware project environment/API/project-owned application counts; organization-shared applications excluded",
+        "remaining": "browser acceptance and full requirement semantics at fixed new main"
+      },
+      {
+        "id": "P04-C04",
+        "historicalStatus": "缺失",
+        "latestCodeStatus": "implemented-in-main-with-ci-regression",
+        "currentAcceptance": "not-reaccepted-by-this-read-only-review",
+        "scope": "permission-aware project environment/API/project-owned application counts; organization-shared applications excluded",
+        "remaining": "browser acceptance and full requirement semantics at fixed new main"
+      },
+      {
+        "id": "P04-C05",
+        "historicalStatus": "缺失",
+        "latestCodeStatus": "implemented-in-main-with-ci-regression",
+        "currentAcceptance": "not-reaccepted-by-this-read-only-review",
+        "scope": "permission-aware project environment/API/project-owned application counts; organization-shared applications excluded",
+        "remaining": "browser acceptance and full requirement semantics at fixed new main"
+      }
+    ],
+    "newProjectResourceCountCases": 10,
+    "openPullRequests": 0,
+    "protected": true,
+    "requiredContexts": [
+      "console",
+      "contracts-domain",
+      "contracts-integration",
+      "contracts-gateway"
+    ],
+    "fullBranchProtectionRevalidated": false,
+    "rulesetsRevalidated": false,
+    "resourcePreservationQualification": "inherited incomplete; shared-container absence remains Unknown",
+    "backupFixExplainsHistoricalContainerLoss": "Unknown; no causal evidence",
+    "sharedResourcesReinspected": false,
+    "newRuntimeOrNetworkTestStarted": false,
+    "newProductTestsExecutedLocally": 0,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "rulesWritten": false,
+    "deployed": false,
+    "nextSteps": [
+      "Reconcile an isolated candidate with fixed main50d and six local test files while preserving documentation and historical evidence.",
+      "Freeze a separate resource-preserving scope before a real SDK10.0.401/xUnit cleanup and credential regression; keep all resource Unknown.",
+      "Complete browser, deployed-node publication and requirement-by-requirement acceptance; safety admission and production acceptance remain outstanding."
+    ]
+  },
+  "mainCi50dVerification": {
+    "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "observedAt": "2026-11-11T17:22:15.641024+00:00",
+    "suites": [
+      {
+        "suite": "console",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438060385,
+        "run": 42995380808,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995380808",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": null,
+        "archivedLogSha256": "2768cdbf6a2b4f14ea9a6cf89f2f5a8add91db969b060280ae865e5d01dc0eb1"
+      },
+      {
+        "suite": "domain",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438061699,
+        "run": 42995381080,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 1251,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": "14 s",
+        "archivedLogSha256": "c68c6d54bfdcaf8107fd5b30b63fed7f2a1b46350eeec6af96836b2da71e82c3"
+      },
+      {
+        "suite": "gateway",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438061706,
+        "run": 42995381080,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 555,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": "8 m 8 s",
+        "archivedLogSha256": "fabb00032b4a9ee9bd53a26d0b7f855f5c913e862d9dd934571efceaedc4c5fc"
+      },
+      {
+        "suite": "integration",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438061509,
+        "run": 42995381080,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 2138,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": "53 m 59 s",
+        "archivedLogSha256": "621c6d8ffaeaf9118ad01b9af8b788d784d0ff3312f22393c9a172790be08bc4"
+      }
+    ],
+    "passed": 4265,
+    "failed": 0,
+    "skipped": 0,
+    "actualRunsNotPathSkipped": true,
+    "consoleTypecheckAndBuildPassed": true,
+    "consoleLargeChunkWarningRetained": true,
+    "integrationTestDuration": "53m59s",
+    "remoteIntegrationJobTimeoutMinutes": 90,
+    "localIntegrationJobTimeoutMinutes": 60,
+    "domainGatewayJobTimeoutMinutes": 45,
+    "allFourVerified": true,
+    "localSixTestFilesIncluded": false,
+    "localFixed401CleanupRerun": false,
+    "prior4255RunsRetainedSeparately": true,
+    "newRequirementsAccepted": 0
+  }
 }
