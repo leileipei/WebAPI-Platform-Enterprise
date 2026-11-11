@@ -390,27 +390,75 @@ public sealed class CredentialImpactTests
     [InlineData("scope",true)]
     [InlineData("scope",false)]
     public async Task Concurrent_authority_revocation_and_credential_write_serialize_on_real_governance_lock(string loss,bool revokeFirst)
+        =>await RunConcurrentRevocationAsync(loss,revokeFirst,false);
+
+    [Theory]
+    [InlineData("permission",true)]
+    [InlineData("permission",false)]
+    [InlineData("scope",true)]
+    [InlineData("scope",false)]
+    public async Task Independent_operator_revocation_and_credential_write_serialize_on_real_governance_lock(string loss,bool revokeFirst)
+        =>await RunConcurrentRevocationAsync(loss,revokeFirst,true);
+
+    private static async Task RunConcurrentRevocationAsync(string loss,bool revokeFirst,bool separateOperator)
     {
         await using var f=new Fixture();await f.InitializeAsync(published:true);
+        var revokerId=f.Api.User.Id;var revokerClient=f.Api.Client;
+        if(separateOperator)
+        {
+            var revoker=await f.Api.NewReviewerAsync("CredentialRevocationAdmin");
+            revokerId=revoker.User.Id;revokerClient=revoker.Client;
+            Assert.NotEqual(f.Api.User.Id,revokerId);Assert.NotSame(f.Api.Client,revokerClient);
+        }
         Guid roleId;long roleRevision;string[] remainingPermissions;byte[] published;
         await using(var db=f.Api.Context())
         {
-            var role=await db.Set<Role>().SingleAsync();roleId=role.Id;roleRevision=role.Revision;
+            var role=await (from ur in db.Set<UserRole>() join r in db.Set<Role>() on ur.RoleId equals r.Id
+                where ur.UserId==f.Api.User.Id select r).SingleAsync();roleId=role.Id;roleRevision=role.Revision;
             remainingPermissions=await (from rp in db.Set<RolePermission>() join p in db.Set<Permission>() on rp.PermissionId equals p.Id
                 where rp.RoleId==roleId&&p.Code!="credential.manage" select p.Code).ToArrayAsync();
+            if(separateOperator)
+            {
+                var revokerRole=await db.Set<UserRole>().Where(x=>x.UserId==revokerId).Select(x=>x.RoleId).SingleAsync();
+                var permissions=await db.Set<Permission>().Where(x=>remainingPermissions.Contains(x.Code)).Select(x=>x.Id).ToArrayAsync();
+                foreach(var id in permissions)db.Add(new RolePermission{RoleId=revokerRole,PermissionId=id});
+            }
             var administrator=new Role{Code="PlatformAdmin",Name="Fixture Scope administrator",IsSystem=true};
-            db.Add(administrator);db.Add(new UserRole{UserId=f.Api.User.Id,RoleId=administrator.Id});
+            db.Add(administrator);db.Add(new UserRole{UserId=revokerId,RoleId=administrator.Id});
             var scopePermission=await db.Set<Permission>().Where(x=>x.Code=="scope.manage").Select(x=>x.Id).SingleAsync();
             db.Add(new RolePermission{RoleId=administrator.Id,PermissionId=scopePermission});
             await db.SaveChangesAsync();
             published=(await db.Set<GatewayConfigSnapshot>().SingleAsync()).PayloadBytes.ToArray();
         }
+        using var revokerIdentityResponse=await revokerClient.GetAsync("/api/v1/auth/me");revokerIdentityResponse.EnsureSuccessStatusCode();
+        var revokerIdentity=(await revokerIdentityResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
+        Assert.Equal(revokerId,revokerIdentity.Id);
+        if(separateOperator)
+        {
+            Assert.DoesNotContain("credential.manage",revokerIdentity.Permissions);
+            Assert.Contains("role.manage",revokerIdentity.Permissions);Assert.Contains("scope.manage",revokerIdentity.Permissions);
+            using var subjectIdentityResponse=await f.Api.Client.GetAsync("/api/v1/auth/me");subjectIdentityResponse.EnsureSuccessStatusCode();
+            var subjectIdentity=(await subjectIdentityResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
+            Assert.Equal(f.Api.User.Id,subjectIdentity.Id);Assert.Contains("credential.manage",subjectIdentity.Permissions);
+            await using var db=f.Api.Context();
+            Assert.False(await (from ur in db.Set<UserRole>() join r in db.Set<Role>() on ur.RoleId equals r.Id
+                where ur.UserId==f.Api.User.Id&&r.Code=="PlatformAdmin"&&r.IsSystem select r.Id).AnyAsync());
+        }
         var end=f.Time.Now.AddMinutes(30);
         var preview=await f.PreviewAsync(f.Request(status:"Active",expires:end));
         var hash=preview.GetProperty("impactHash").GetString()!;
-        Task<HttpResponseMessage> RevokeAsync()=>loss=="permission"
-            ?f.Api.WriteAsync(HttpMethod.Put,$"/api/v1/roles/{roleId}/permissions",new{permissions=remainingPermissions},RevisionTag.Format(roleRevision))
-            :f.Api.WriteAsync(HttpMethod.Put,$"/api/v1/users/{f.Api.User.Id}/scopes",new{scopes=Array.Empty<ScopeGrantDto>()},RevisionTag.Format(f.Api.User.Revision));
+        async Task<HttpResponseMessage> RevokeAsync()
+        {
+            var path=loss=="permission"?$"/api/v1/roles/{roleId}/permissions":$"/api/v1/users/{f.Api.User.Id}/scopes";
+            object body=loss=="permission"?new{permissions=remainingPermissions}:new{scopes=Array.Empty<ScopeGrantDto>()};
+            var tag=RevisionTag.Format(loss=="permission"?roleRevision:f.Api.User.Revision);
+            if(!separateOperator)return await f.Api.WriteAsync(HttpMethod.Put,path,body,tag);
+            var csrf=await revokerClient.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
+            using var request=new HttpRequestMessage(HttpMethod.Put,path){Content=JsonContent.Create(body)};
+            request.Headers.Add("X-CSRF-Token",csrf.GetProperty("token").GetString());
+            request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("N"));request.Headers.Add("If-Match",tag);
+            return await revokerClient.SendAsync(request);
+        }
         Task<HttpResponseMessage> UpdateAsync()=>f.UpdateAsync(f.Request(status:"Active",expires:end,hash:hash,confirm:true));
         Task<HttpResponseMessage> update;Task<HttpResponseMessage> revoke;
         await using(var hold=f.Api.Context())
@@ -442,12 +490,22 @@ public sealed class CredentialImpactTests
         else Assert.Equal(new ScopeGrantDto(new(f.Api.Organization.Id),"read_write"),Assert.Single(identity.Scopes));
         using var visible=await f.Api.Client.GetAsync($"/api/v1/credentials/{f.Key.Id}");
         Assert.Equal(loss=="permission"?HttpStatusCode.OK:HttpStatusCode.NotFound,visible.StatusCode);
+        if(separateOperator)
+        {
+            using var operatorAfterResponse=await revokerClient.GetAsync("/api/v1/auth/me");operatorAfterResponse.EnsureSuccessStatusCode();
+            var operatorAfter=(await operatorAfterResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
+            Assert.Equal(revokerId,operatorAfter.Id);
+            Assert.Equal(revokerIdentity.Permissions.Order(),operatorAfter.Permissions.Order());
+            Assert.Equal(revokerIdentity.Scopes.ToArray(),operatorAfter.Scopes.ToArray());
+        }
         await using var check=f.Api.Context();
         var key=await check.Set<ApplicationCredential>().AsNoTracking().SingleAsync();
         Assert.Equal((f.Key.ValidFrom,revokeFirst?f.Key.ExpiresAt:end,"Active",revision),(key.ValidFrom,key.ExpiresAt,key.Status,key.Revision));
         Assert.Equal(f.Api.Application.Revision+(revokeFirst?0:1),await check.Set<ApplicationRecord>().Select(x=>x.Revision).SingleAsync());
         Assert.Equal(revokeFirst?0:1,await check.Set<AuditLog>().CountAsync(x=>x.Action=="credential.update"));
         Assert.Equal(1,await check.Set<AuditLog>().CountAsync(x=>x.Action==(loss=="permission"?"role.permissions":"user.scopes")));
+        Assert.Equal(revokerId,(await check.Set<AuditLog>().SingleAsync(x=>x.Action==(loss=="permission"?"role.permissions":"user.scopes"))).UserId);
+        if(!revokeFirst)Assert.Equal(f.Api.User.Id,(await check.Set<AuditLog>().SingleAsync(x=>x.Action=="credential.update")).UserId);
         Assert.Equal(roleRevision+(loss=="permission"?1:0),await check.Set<Role>().Where(x=>x.Id==roleId).Select(x=>x.Revision).SingleAsync());
         Assert.Equal(f.Api.User.Revision+(loss=="scope"?1:0),await check.Set<UserRecord>().Where(x=>x.Id==f.Api.User.Id).Select(x=>x.Revision).SingleAsync());
         Assert.Equal(published,(await check.Set<GatewayConfigSnapshot>().SingleAsync()).PayloadBytes);
