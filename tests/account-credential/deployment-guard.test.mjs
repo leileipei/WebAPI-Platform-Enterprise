@@ -1,6 +1,20 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import os from 'node:os';import path from 'node:path';
 const api=await import('../../scripts/account-credential/deployment-guard.mjs').catch(e=>{if(e.code!=='ERR_MODULE_NOT_FOUND')throw e;return {};});
 const release={sourceRevision:'a'.repeat(40),imageId:'sha256:'+'b'.repeat(64),applications:{'control-plane/WebApi.ControlPlane.dll':'c'.repeat(64)}},image={Id:release.imageId,Config:{Labels:{'org.opencontainers.image.revision':release.sourceRevision}}};
+
+test('read-only account compatibility guard preserves the existing PostgreSQL container on configuration drift', async () => {
+  let postgresId = 'existing-postgres';
+  const context = {
+    state: {ownerId: 'unit-owner'},
+    release,
+    raw: async args => {
+      if (args[0] === 'up' && !args.includes('--no-recreate')) postgresId = 'replacement-postgres';
+      return {stdout: args.includes('psql') ? 'f\n' : '', exitCode: 0};
+    }
+  };
+  await api.guardAccountDeployment(context, {inspect: async () => [], ownership: () => {}});
+  assert.equal(postgresId, 'existing-postgres');
+});
 test('new lifecycle schema blocks an old binary declaration even with zero pending users',()=>{assert.equal(typeof api.assertAccountDeploymentCompatibility,'function');const args={hasLifecycleSchema:true,release,image,buildIdentity:{sourceRevision:release.sourceRevision,applications:release.applications}};assert.throws(()=>api.assertAccountDeploymentCompatibility(args),/lifecycle|compatible/i);args.buildIdentity.features=['account-password-lifecycle-v1'];assert.equal(api.assertAccountDeploymentCompatibility(args),true);args.buildIdentity.sourceRevision='d'.repeat(40);assert.throws(()=>api.assertAccountDeploymentCompatibility(args));});
 test('schema without new lifecycle columns stays compatible with old immutable builds',()=>{assert.equal(typeof api.assertAccountDeploymentCompatibility,'function');assert.equal(api.assertAccountDeploymentCompatibility({hasLifecycleSchema:false,release}),true);});
 test('guard checks the live owned database before reading target capability and fails closed',async()=>{assert.equal(typeof api.guardAccountDeployment,'function');const calls=[],ctx={state:{ownerId:'unit-owner'},release,raw:async(args)=>{calls.push(args);return{stdout:args.includes('psql')?'t\n':'',exitCode:0};}},deps={inspect:async()=>[],ownership:()=>{},run:async args=>{calls.push(args);if(args[0]==='image')return{stdout:JSON.stringify([image])};return{stdout:JSON.stringify({sourceRevision:release.sourceRevision,applications:release.applications})};}};await assert.rejects(api.guardAccountDeployment(ctx,deps),/lifecycle|compatible/i);assert(calls[0].includes('postgres'));const query=calls.find(c=>c.includes('psql'));assert(query.includes('--no-psqlrc'));assert(query.some(s=>s.includes('READ ONLY')&&s.includes('information_schema.columns')));assert(!calls.some(c=>c.includes('migrator')||c.includes('worker')));const queryFailure={...ctx,raw:async args=>{if(args.includes('psql'))throw Error('database unavailable');return{stdout:'',exitCode:0};}};await assert.rejects(api.guardAccountDeployment(queryFailure,deps),/database unavailable/);});
