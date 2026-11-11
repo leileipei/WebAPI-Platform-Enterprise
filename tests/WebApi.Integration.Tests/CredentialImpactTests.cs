@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using WebApi.Contracts.Applications;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Runtime;
@@ -361,6 +362,97 @@ public sealed class CredentialImpactTests
         var environment=await check.Set<EnvironmentRecord>().SingleAsync();
         Assert.Equal(1L,environment.DesiredConfigVersion);Assert.Equal(1L,environment.DeploymentSequence);
         Assert.False(await check.Set<AuditLog>().AnyAsync(x=>x.Action=="credential.update"));
+    }
+    private static async Task<HashSet<int>> WaitForCredentialLockWaitersAsync(ApiFixture api,int count)
+    {
+        await using var connection=await api.Database.OpenAsync();
+        var timer=System.Diagnostics.Stopwatch.StartNew();
+        while(timer.Elapsed<TimeSpan.FromSeconds(5))
+        {
+            await using var query=new NpgsqlCommand("""
+                SELECT l.pid FROM pg_locks l JOIN pg_stat_activity a ON a.pid=l.pid
+                WHERE l.locktype='advisory' AND l.classid=0 AND l.objid=8901202 AND l.objsubid=1
+                  AND NOT l.granted AND a.datname=current_database()
+                """,connection);
+            var pids=new HashSet<int>();
+            await using(var rows=await query.ExecuteReaderAsync())
+                while(await rows.ReadAsync())pids.Add(rows.GetInt32(0));
+            if(pids.Count==count)return pids;
+            await Task.Delay(10);
+        }
+        Assert.Fail($"Expected {count} HTTP commands waiting on the fixture database governance lock.");
+        return [];
+    }
+
+    [Theory]
+    [InlineData("permission",true)]
+    [InlineData("permission",false)]
+    [InlineData("scope",true)]
+    [InlineData("scope",false)]
+    public async Task Concurrent_authority_revocation_and_credential_write_serialize_on_real_governance_lock(string loss,bool revokeFirst)
+    {
+        await using var f=new Fixture();await f.InitializeAsync(published:true);
+        Guid roleId;long roleRevision;string[] remainingPermissions;byte[] published;
+        await using(var db=f.Api.Context())
+        {
+            var role=await db.Set<Role>().SingleAsync();roleId=role.Id;roleRevision=role.Revision;
+            remainingPermissions=await (from rp in db.Set<RolePermission>() join p in db.Set<Permission>() on rp.PermissionId equals p.Id
+                where rp.RoleId==roleId&&p.Code!="credential.manage" select p.Code).ToArrayAsync();
+            var administrator=new Role{Code="PlatformAdmin",Name="Fixture Scope administrator",IsSystem=true};
+            db.Add(administrator);db.Add(new UserRole{UserId=f.Api.User.Id,RoleId=administrator.Id});
+            var scopePermission=await db.Set<Permission>().Where(x=>x.Code=="scope.manage").Select(x=>x.Id).SingleAsync();
+            db.Add(new RolePermission{RoleId=administrator.Id,PermissionId=scopePermission});
+            await db.SaveChangesAsync();
+            published=(await db.Set<GatewayConfigSnapshot>().SingleAsync()).PayloadBytes.ToArray();
+        }
+        var end=f.Time.Now.AddMinutes(30);
+        var preview=await f.PreviewAsync(f.Request(status:"Active",expires:end));
+        var hash=preview.GetProperty("impactHash").GetString()!;
+        Task<HttpResponseMessage> RevokeAsync()=>loss=="permission"
+            ?f.Api.WriteAsync(HttpMethod.Put,$"/api/v1/roles/{roleId}/permissions",new{permissions=remainingPermissions},RevisionTag.Format(roleRevision))
+            :f.Api.WriteAsync(HttpMethod.Put,$"/api/v1/users/{f.Api.User.Id}/scopes",new{scopes=Array.Empty<ScopeGrantDto>()},RevisionTag.Format(f.Api.User.Revision));
+        Task<HttpResponseMessage> UpdateAsync()=>f.UpdateAsync(f.Request(status:"Active",expires:end,hash:hash,confirm:true));
+        Task<HttpResponseMessage> update;Task<HttpResponseMessage> revoke;
+        await using(var hold=f.Api.Context())
+        await using(var transaction=await hold.Database.BeginTransactionAsync())
+        {
+            await hold.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)");
+            var first=revokeFirst?RevokeAsync():UpdateAsync();
+            var firstPid=Assert.Single(await WaitForCredentialLockWaitersAsync(f.Api,1));
+            Assert.False(first.IsCompleted);
+            var second=revokeFirst?UpdateAsync():RevokeAsync();
+            var both=await WaitForCredentialLockWaitersAsync(f.Api,2);
+            Assert.Contains(firstPid,both);Assert.False(first.IsCompleted);Assert.False(second.IsCompleted);
+            revoke=revokeFirst?first:second;update=revokeFirst?second:first;
+            await transaction.CommitAsync();
+        }
+        using var revoked=await revoke.WaitAsync(TimeSpan.FromSeconds(10));revoked.EnsureSuccessStatusCode();
+        using var updated=await update.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal(revokeFirst?HttpStatusCode.Forbidden:HttpStatusCode.OK,updated.StatusCode);
+        var code=loss=="permission"?"permission_denied":"scope_denied";
+        if(revokeFirst)Assert.Equal(code,(await updated.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        var revision=f.Key.Revision+(revokeFirst?0:1);
+        using var after=await f.UpdateAsync(f.Request(status:"Active",expires:f.Key.ExpiresAt.AddHours(1)),RevisionTag.Format(revision));
+        Assert.Equal(HttpStatusCode.Forbidden,after.StatusCode);
+        Assert.Equal(code,(await after.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        using var identityResponse=await f.Api.Client.GetAsync("/api/v1/auth/me");identityResponse.EnsureSuccessStatusCode();
+        var identity=(await identityResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
+        Assert.Equal(loss!="permission",identity.Permissions.Contains("credential.manage"));
+        if(loss=="scope")Assert.Empty(identity.Scopes);
+        else Assert.Equal(new ScopeGrantDto(new(f.Api.Organization.Id),"read_write"),Assert.Single(identity.Scopes));
+        using var visible=await f.Api.Client.GetAsync($"/api/v1/credentials/{f.Key.Id}");
+        Assert.Equal(loss=="permission"?HttpStatusCode.OK:HttpStatusCode.NotFound,visible.StatusCode);
+        await using var check=f.Api.Context();
+        var key=await check.Set<ApplicationCredential>().AsNoTracking().SingleAsync();
+        Assert.Equal((f.Key.ValidFrom,revokeFirst?f.Key.ExpiresAt:end,"Active",revision),(key.ValidFrom,key.ExpiresAt,key.Status,key.Revision));
+        Assert.Equal(f.Api.Application.Revision+(revokeFirst?0:1),await check.Set<ApplicationRecord>().Select(x=>x.Revision).SingleAsync());
+        Assert.Equal(revokeFirst?0:1,await check.Set<AuditLog>().CountAsync(x=>x.Action=="credential.update"));
+        Assert.Equal(1,await check.Set<AuditLog>().CountAsync(x=>x.Action==(loss=="permission"?"role.permissions":"user.scopes")));
+        Assert.Equal(roleRevision+(loss=="permission"?1:0),await check.Set<Role>().Where(x=>x.Id==roleId).Select(x=>x.Revision).SingleAsync());
+        Assert.Equal(f.Api.User.Revision+(loss=="scope"?1:0),await check.Set<UserRecord>().Where(x=>x.Id==f.Api.User.Id).Select(x=>x.Revision).SingleAsync());
+        Assert.Equal(published,(await check.Set<GatewayConfigSnapshot>().SingleAsync()).PayloadBytes);
+        var environment=await check.Set<EnvironmentRecord>().SingleAsync();
+        Assert.Equal(1L,environment.DesiredConfigVersion);Assert.Equal(1L,environment.DeploymentSequence);
     }
     [Fact]
     public async Task Unauthorized_previewer_cannot_receive_hash_or_environment_ids()
