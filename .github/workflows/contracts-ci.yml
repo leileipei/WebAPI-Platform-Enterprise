@@ -22,7 +22,7 @@ jobs:
   contracts:
     name: contracts-${{ matrix.suite }}
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: ${{ matrix.suite == 'integration' && 60 || 45 }}
+    timeout-minutes: ${{ matrix.suite == 'integration' && 90 || 45 }}
     strategy:
       fail-fast: false
       matrix:

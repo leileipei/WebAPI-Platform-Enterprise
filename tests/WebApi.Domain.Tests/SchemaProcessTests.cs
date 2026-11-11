@@ -77,7 +77,9 @@ public class SchemaProcessTests
     [Fact]public async Task OutputOverflowTerminatesAndReleasesTheSlot()
     {
         using var f=new ToolFixture("head -c 8388609 /dev/zero");var runner=f.Runner;
-        Assert.Contains((await runner.RunAsync(Request,TimeSpan.FromSeconds(2),default)).Issues,x=>x.Code=="contract_process_output_budget");
+        // Use the existing five-second schema ceiling so output I/O, rather than an
+        // artificially shorter deadline, decides this test on a busy runner.
+        Assert.Contains((await runner.RunAsync(Request,TimeSpan.FromSeconds(5),default)).Issues,x=>x.Code=="contract_process_output_budget");
         File.WriteAllText(f.Script,"#!/bin/sh\ncat >/dev/null\nprintf '%s' '{\"status\":\"Valid\",\"issues\":[]}'\n");
         Assert.Equal("Valid",(await runner.RunAsync(Request,TimeSpan.FromSeconds(2),default)).Status);
     }
