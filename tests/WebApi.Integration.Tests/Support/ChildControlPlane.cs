@@ -11,15 +11,22 @@ namespace WebApi.Integration.Tests.Support;
 internal sealed class ChildControlPlane : IAsyncDisposable
 {
     private readonly Process process;
-    private readonly string directory;
+    private readonly ChildProcessCleanup cleanup;
     private bool started;
-    private bool disposed;
     public HttpClient Client {get;private set;}=null!;
     public string ApplicationName {get;}
     public int ProcessId=>process.Id;
 
     private ChildControlPlane(Process process,string directory,string applicationName)
-    {this.process=process;this.directory=directory;ApplicationName=applicationName;}
+    {
+        this.process=process;ApplicationName=applicationName;
+        cleanup=new(()=>!started||process.HasExited,()=>process.Kill(entireProcessTree:true),
+            ()=>process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10)),process.Dispose,()=>
+            {
+                if(Directory.Exists(directory))Directory.Delete(directory,true);
+                if(Directory.Exists(directory))throw new InvalidOperationException("Isolated control-plane temporary directory was retained.");
+            });
+    }
 
     public static async Task<ChildControlPlane> StartAsync(ApiFixture api)
     {
@@ -103,16 +110,7 @@ internal sealed class ChildControlPlane : IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if(disposed)return;disposed=true;
         Client?.Dispose();
-        if(started&&!process.HasExited)
-        {
-            process.Kill(entireProcessTree:true);
-            await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));
-        }
-        if(started&&!process.HasExited)throw new InvalidOperationException("Isolated control-plane process did not exit.");
-        process.Dispose();
-        Directory.Delete(directory,true);
-        if(Directory.Exists(directory))throw new InvalidOperationException("Isolated control-plane temporary directory was retained.");
+        await cleanup.DisposeAsync();
     }
 }

@@ -13961,6 +13961,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "b4ef092fae364aa0db6d92ab8da7e3eb14e7fe5f",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "9d47df55d13f7e716fcbad2c421c9dec1646cced0c88484b10fd79fc8777b29e",
+      "scope": "Prior48 fixed-source result and incomplete resource qualification unchanged; append offline cleanup race red/green verification with explicit different standalone SDK.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -17666,5 +17736,94 @@
         "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs": "310404554e1be838717a7a9168460d513294aae32e896f632087d1601ff4c050"
       }
     }
+  },
+  "credentialChildCleanupFixVerification": {
+    "inputHead": "b4ef092fae364aa0db6d92ab8da7e3eb14e7fe5f",
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "files": {
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs": "c1761370c251897c5757e72c0b45a222729690fe5a6bda3ef7cd40c09fe372d2",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs": "d371d16ac1fc641bbe5e5f443cb98f8aa708be41447d293513ae488be1a864ef",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs": "7e52920ab69a0ea7ccacff9f8a1c5248bb8e3ac504d1da9dc97797fa3cc008ba"
+    },
+    "phases": {
+      "red": {
+        "passed": 2,
+        "failed": 7,
+        "skipped": 0,
+        "total": 9,
+        "exitCode": 1,
+        "cases": [
+          "Already_exited_process_releases_and_cleans_only_once",
+          "Directory_failure_can_retry_without_touching_released_process",
+          "Live_permission_error_preserves_directory_and_allows_retry",
+          "Live_process_is_stopped_and_confirmed_before_directory_cleanup",
+          "Natural_exit_during_kill_invalid_operation_still_cleans",
+          "Natural_exit_during_kill_os_error_still_cleans",
+          "Unexpected_kill_error_is_not_hidden_even_after_natural_exit",
+          "Unproven_exit_does_not_release_or_delete_the_directory",
+          "Wait_timeout_preserves_directory_and_allows_retry_after_exit"
+        ],
+        "logSha256": "a3f0ac1e1e44016a15ea1421814e4a03cfe71439bf0ddc386fb07985098c980b",
+        "manifest": ".superpowers/credential-child-cleanup-20261111/red-manifest.json"
+      },
+      "green": {
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "total": 9,
+        "exitCode": 0,
+        "cases": [
+          "Already_exited_process_releases_and_cleans_only_once",
+          "Directory_failure_can_retry_without_touching_released_process",
+          "Live_permission_error_preserves_directory_and_allows_retry",
+          "Live_process_is_stopped_and_confirmed_before_directory_cleanup",
+          "Natural_exit_during_kill_invalid_operation_still_cleans",
+          "Natural_exit_during_kill_os_error_still_cleans",
+          "Unexpected_kill_error_is_not_hidden_even_after_natural_exit",
+          "Unproven_exit_does_not_release_or_delete_the_directory",
+          "Wait_timeout_preserves_directory_and_allows_retry_after_exit"
+        ],
+        "logSha256": "b4f4492dd23755310fe3cf2344dd6c70858af0c04e13d7be070e4ae8cf030227",
+        "manifest": ".superpowers/credential-child-cleanup-20261111/green-manifest.json"
+      }
+    },
+    "offlinePassed": 9,
+    "offlineFailed": 0,
+    "offlineSkipped": 0,
+    "sdk": "10.0.403",
+    "harnessFramework": "net10.0",
+    "projectSdkUnchanged": "10.0.401",
+    "realXunitRunner": false,
+    "lifecycleCallbacksInjected": true,
+    "actualControlPlaneStarted": false,
+    "dockerCommandsRun": 0,
+    "databaseOrHttpChecksRun": 0,
+    "packageFeeds": [],
+    "projectBuildRun": false,
+    "fixedSdk48CasesRerun": false,
+    "prior48CasesBoundTo": "b4ef092fae364aa0db6d92ab8da7e3eb14e7fe5f",
+    "independentReview": {
+      "reviewer": "review_cross_process_credentials",
+      "readOnly": true,
+      "critical": 0,
+      "important": 0,
+      "newMinor": 0,
+      "priorMinorResolvedInCurrentSource": true,
+      "qualification": "Offline9-case cleanup-controller verification with existing SDK10.0.403/minimal assertion adapter; not fixed401 real xUnit or48 cross-process replay. Resource preservation remains incomplete/Unknown.",
+      "reviewedSourceHashes": {
+        "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs": "c1761370c251897c5757e72c0b45a222729690fe5a6bda3ef7cd40c09fe372d2",
+        "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs": "d371d16ac1fc641bbe5e5f443cb98f8aa708be41447d293513ae488be1a864ef",
+        "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs": "7e52920ab69a0ea7ccacff9f8a1c5248bb8e3ac504d1da9dc97797fa3cc008ba"
+      }
+    },
+    "historicalEvidenceFilesUnchanged": 220,
+    "otherProtectedFilesUnchanged": 4005,
+    "primaryFilesUnchanged": 14,
+    "priorC08FailureRetained": true,
+    "priorResourceUnknownRetained": true,
+    "sharedResourceStateRevalidated": false,
+    "resourcePreservationQualification": "inherited incomplete; previously missing shared container remains Unknown; no new live query or recovery",
+    "newRequirementsAccepted": 0,
+    "checkedAt": "2026-11-11T14:50:11.499482+00:00"
   }
 }
