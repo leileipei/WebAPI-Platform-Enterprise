@@ -259,6 +259,109 @@ public sealed class CredentialImpactTests
         var retained=await check.Set<CredentialUsageHourly>().SingleAsync();
         Assert.Equal((2L,observed),(retained.Count,retained.LastUsedAt));
     }
+    [Theory]
+    [InlineData("organization-read-project-write",true)]
+    [InlineData("organization-read-environment-write",false)]
+    [InlineData("project-read-other-project-write",false)]
+    [InlineData("overlapping-project-and-environment-write",true)]
+    public async Task Credential_scope_union_does_not_promote_child_write_to_parent(string kind,bool allowed)
+    {
+        await using var f=new Fixture();await f.InitializeAsync();
+        var grants=new List<ScopeGrantDto>();
+        await using(var db=f.Api.Context())
+        {
+            Assert.Equal(1,await db.Set<UserProjectScope>().Where(x=>x.UserId==f.Api.User.Id).ExecuteDeleteAsync());
+            void Add(Guid? project,Guid? environment,string mode)
+            {
+                db.Add(new UserProjectScope{UserId=f.Api.User.Id,OrganizationId=f.Api.Organization.Id,
+                    ProjectId=project,EnvironmentId=environment,AccessMode=mode});
+                grants.Add(new(new(f.Api.Organization.Id,project,environment),mode));
+            }
+            if(kind=="project-read-other-project-write")
+            {
+                var other=new Project{OrganizationId=f.Api.Organization.Id,Code="OTHER",Name="Other project"};db.Add(other);
+                Add(f.Api.Project.Id,null,"read");Add(other.Id,null,"read_write");
+            }
+            else
+            {
+                Add(null,null,"read");
+                if(kind!="organization-read-environment-write")Add(f.Api.Project.Id,null,"read_write");
+                if(kind is "organization-read-environment-write" or "overlapping-project-and-environment-write")
+                    Add(f.Api.Project.Id,f.Api.Environment.Id,"read_write");
+            }
+            await db.SaveChangesAsync();
+        }
+        using var identityResponse=await f.Api.Client.GetAsync("/api/v1/auth/me");identityResponse.EnsureSuccessStatusCode();
+        var identity=(await identityResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
+        Assert.Contains("credential.manage",identity.Permissions);Assert.Equal(grants.Count,identity.Scopes.Count);
+        foreach(var grant in grants)Assert.Contains(grant,identity.Scopes);
+        await f.ReadAsync(f.Key.Revision);
+        var end=f.Key.ExpiresAt.AddHours(1);
+        using var response=await f.UpdateAsync(f.Request(status:"Active",expires:end));
+        Assert.Equal(allowed?HttpStatusCode.OK:HttpStatusCode.Forbidden,response.StatusCode);
+        if(!allowed)Assert.Equal("scope_denied",(await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        await f.AssertWindowAsync(f.Key.ValidFrom,allowed?end:f.Key.ExpiresAt,f.Key.Revision+(allowed?1:0),f.Api.Application.Revision+(allowed?1:0));
+        using var organizationWrite=await f.Api.WriteAsync(HttpMethod.Put,$"/api/v1/organizations/{f.Api.Organization.Id}",
+            new{code="ORG",name="Must remain unchanged",status="Active"},RevisionTag.Format(f.Api.Organization.Revision));
+        Assert.Equal(HttpStatusCode.Forbidden,organizationWrite.StatusCode);
+        Assert.Equal("scope_denied",(await organizationWrite.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
+        await using var check=f.Api.Context();
+        Assert.Equal(allowed?1:0,await check.Set<AuditLog>().CountAsync(x=>x.Action=="credential.update"));
+        Assert.False(await check.Set<AuditLog>().AnyAsync(x=>x.Action=="organization.update"));
+        var organization=await check.Set<Organization>().SingleAsync();
+        Assert.Equal((f.Api.Organization.Name,f.Api.Organization.Revision),(organization.Name,organization.Revision));
+    }
+
+    [Theory]
+    [InlineData("permission")]
+    [InlineData("scope-removed")]
+    [InlineData("scope-narrowed")]
+    public async Task Old_impact_confirmation_cannot_bypass_authority_lost_after_preview(string loss)
+    {
+        await using var f=new Fixture();await f.InitializeAsync(published:true);
+        var end=f.Time.Now.AddMinutes(30);
+        var preview=await f.PreviewAsync(f.Request(status:"Active",expires:end));
+        var hash=preview.GetProperty("impactHash").GetString()!;Assert.False(string.IsNullOrWhiteSpace(hash));
+        Assert.Contains(preview.GetProperty("atRiskVisibleEnvironmentIds").EnumerateArray(),x=>x.GetGuid()==f.Api.Environment.Id);
+        byte[] published;
+        await using(var db=f.Api.Context())
+        {
+            published=(await db.Set<GatewayConfigSnapshot>().SingleAsync()).PayloadBytes.ToArray();
+            if(loss=="permission")
+            {
+                var permission=await db.Set<Permission>().Where(x=>x.Code=="credential.manage").Select(x=>x.Id).SingleAsync();
+                Assert.Equal(1,await db.Set<RolePermission>().Where(x=>x.PermissionId==permission).ExecuteDeleteAsync());
+            }
+            else if(loss=="scope-removed")
+                Assert.Equal(1,await db.Set<UserProjectScope>().Where(x=>x.UserId==f.Api.User.Id).ExecuteDeleteAsync());
+            else
+            {
+                var scope=await db.Set<UserProjectScope>().SingleAsync(x=>x.UserId==f.Api.User.Id);
+                scope.ProjectId=f.Api.Project.Id;scope.EnvironmentId=f.Api.Environment.Id;await db.SaveChangesAsync();
+            }
+        }
+        using var identityResponse=await f.Api.Client.GetAsync("/api/v1/auth/me");identityResponse.EnsureSuccessStatusCode();
+        var identity=(await identityResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
+        Assert.Equal(loss!="permission",identity.Permissions.Contains("credential.manage"));
+        if(loss=="scope-removed")Assert.Empty(identity.Scopes);
+        else Assert.Equal(new ScopeGrantDto(loss=="scope-narrowed"?new(f.Api.Organization.Id,f.Api.Project.Id,f.Api.Environment.Id):new(f.Api.Organization.Id),"read_write"),Assert.Single(identity.Scopes));
+        using var response=await f.UpdateAsync(f.Request(status:"Active",expires:end,hash:hash,confirm:true));
+        Assert.Equal(HttpStatusCode.Forbidden,response.StatusCode);
+        var error=await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(loss=="permission"?"permission_denied":"scope_denied",error.GetProperty("code").GetString());
+        foreach(var field in new[]{"credential","accessKey","secret","secretHash","apiKey","impactHash","atRiskVisibleEnvironmentIds"})
+            Assert.False(error.TryGetProperty(field,out _));
+        using var current=await f.Api.Client.GetAsync($"/api/v1/credentials/{f.Key.Id}");
+        Assert.Equal(loss=="permission"?HttpStatusCode.OK:HttpStatusCode.NotFound,current.StatusCode);
+        await using var check=f.Api.Context();
+        var key=await check.Set<ApplicationCredential>().AsNoTracking().SingleAsync();
+        Assert.Equal((f.Key.ValidFrom,f.Key.ExpiresAt,f.Key.Status,f.Key.Revision),(key.ValidFrom,key.ExpiresAt,key.Status,key.Revision));
+        Assert.Equal(f.Api.Application.Revision,await check.Set<ApplicationRecord>().Select(x=>x.Revision).SingleAsync());
+        Assert.Equal(published,(await check.Set<GatewayConfigSnapshot>().SingleAsync()).PayloadBytes);
+        var environment=await check.Set<EnvironmentRecord>().SingleAsync();
+        Assert.Equal(1L,environment.DesiredConfigVersion);Assert.Equal(1L,environment.DeploymentSequence);
+        Assert.False(await check.Set<AuditLog>().AnyAsync(x=>x.Action=="credential.update"));
+    }
     [Fact]
     public async Task Unauthorized_previewer_cannot_receive_hash_or_environment_ids()
     {
