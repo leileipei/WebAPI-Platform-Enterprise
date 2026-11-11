@@ -13541,6 +13541,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "4e676b65685a1a6b3e6c38a6d1cb627024670f0d",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "3c230c278a179fdc452841478fc9e3523c20465301c6a47d8e167f36ec7e4023",
+      "scope": "Keep previous fixed-source evidence, prior readback results and qualifications; append local two-gateway credential boundary and republish regression.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -16736,5 +16806,64 @@
     "priorUnknownRetained": true,
     "newRequirementsAccepted": 0,
     "qualification": "Fresh HTTP GET and PostgreSQL reads after extension, confirmed shortening or confirmed postponed start. For a credential.manage actor with only read Scope, GET allowed, valid create/preview/update denied with scope_denied and state unchanged. Control-plane working configuration only; no browser, timed activation, publish, data-plane or production acceptance. GitHub CI precedes this test-only change."
+  },
+  "credentialGatewayBoundaryVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "inputHead": "4e676b65685a1a6b3e6c38a6d1cb627024670f0d",
+    "newTestFile": "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+    "testFileSha256": "a032aee22865768bc3fcd62415ccd4c0d991e7f7a5fb95bd71f510169758bdfd",
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "newCases": 5,
+    "existingRegressionCases": 15,
+    "cases": [
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"revoked\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"future\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"future\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"revoke\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"empty\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"extend\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"future-grant\", status: 403)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"shorten\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"case\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Published_window_includes_exact_start_and_excludes_exact_expiry_on_both_nodes",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"missing\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"any-valid-window\", status: 200)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"expired-grant\", status: 403)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"unknown\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"multi-segment\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"valid\", status: 200)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"wrong-secret\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"expired\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"disabled\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.CredentialExpiresAtAdmission"
+    ],
+    "logSha256": "411aaa673d35d3e273f0e833d2ae1b3cd60d98f6f8f722186200e7fd6570eee3",
+    "elapsedSeconds": 76.409,
+    "startedAt": "2026-11-11T04:13:13.320147+00:00",
+    "endedAt": "2026-11-11T04:14:29.729523+00:00",
+    "sharedResourcesAtStart": {
+      "containers": 212,
+      "volumes": 508,
+      "networks": 39
+    },
+    "newSharedResourceMissing": 0,
+    "ownResourcesRemaining": 0,
+    "historicalEvidenceFilesUnchanged": 142,
+    "protectedFilesUnchanged": 4004,
+    "primaryFilesUnchanged": 14,
+    "productFilesChanged": 0,
+    "priorC08FailureRetained": true,
+    "priorUnknownRetained": true,
+    "newRequirementsAccepted": 0,
+    "automaticRetry": false,
+    "checks": {
+      "exactWindow": "Both gateway hosts reject at ValidFrom minus one tick, allow at ValidFrom and ExpiresAt minus one tick, and reject at/after ExpiresAt; backend hit assertions verify denials are not forwarded.",
+      "workingVsPublished": "Extend, shorten, future-start and revoke use real control-plane HTTP, GET and DB readback. Saving does not change stored snapshot bytes, desired version/sequence or gateway generations; distinguishing-time requests retain original decisions.",
+      "republish": "Fixture release submission and two distinct reviewer approvals, coordinator build and application to both gateway hosts. New payload/version/sequence and published credential fields verified; authorization changes on both nodes.",
+      "realTimeExistingCase": "Existing admission-time expiry test uses an actual approximately five-second wait; independent of manual-clock cases."
+    },
+    "qualification": "Local isolated HTTP/PostgreSQL/two in-process gateway regression. New boundaries use a controlled clock; real-time long-horizon activation/expiry, browser, deployed-node SDK E2E, production readiness and security admission are not accepted. Prior GitHub CI does not include these local test-only changes."
   }
 }

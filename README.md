@@ -28,7 +28,7 @@ GitHub 主干与本地目录可能处于不同提交。阅读“当前”“已�
 
 依赖版本以 [SDK 配置](global.json)、[后端集中版本](Directory.Packages.props)、[前端依赖](console/package.json)及对应锁文件为准。当前 SDK 固定为 `10.0.401`，禁止自动滚动到其他版本；CI 配置使用 Node `24.22.1`、pnpm `11.25.0`。
 
-已核实的 main `5192415` 的四项 GitHub 检查已实际运行通过：4255 项通过，0 失败/跳过，类型检查与前端构建通过。固定版本 `3774ccc` 的历史 CI 结果单独保留。本地新增凭证窗口持久化读回与只读Scope回归，凭证影响测试类14项全部通过；完整页面、发布及网关生效验收待补。2026-11-11只读核对已确认四项检查列为主干必需检查；完整规则与剩余交付边界见[当前状态](docs/deployment/current-project-status.md)。
+已核实的 main `5192415` 的四项 GitHub 检查已实际运行通过：4255 项通过，0 失败/跳过，类型检查与前端构建通过。固定版本 `3774ccc` 的历史 CI 结果单独保留。本地凭证影响类14项通过；另有网关定向20项通过，覆盖精确时间边界及工作配置须再发布才改变双节点行为。各轮分开计数，完整页面、部署节点及生产验收待补。2026-11-11只读核对已确认四项检查列为主干必需检查；完整规则与剩余交付边界见[当前状态](docs/deployment/current-project-status.md)。
 
 前端先执行 `pnpm --dir console install --frozen-lockfile`，再执行 `bash scripts/check-console.sh`。可用 `WEBAPI_NODE`、`WEBAPI_PNPM` 指定已有工具。
 
