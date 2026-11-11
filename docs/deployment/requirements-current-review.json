@@ -13471,6 +13471,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "03da6a32bff32807f421c2dd983882125facb103",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "234f362d7882c21f7a57ed96ec2d0c7da4e649429a53efd6baddcaea66a8464f",
+      "scope": "Preserve all previous evidence and qualification. Append test-only credential update readback and read-only Scope verification.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -16620,5 +16690,51 @@
     "localSevenCasesNotAdded": true,
     "newRequirementsAccepted": 0,
     "observedAt": "2026-11-10T19:36:24.058607+00:00"
+  },
+  "credentialUpdateReadbackVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "documentationInput": "03da6a32bff32807f421c2dd983882125facb103",
+    "localTestFile": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "testFileSha256": "5b3ffe9f48be04a739ddf068136dee93237508bdb3622308b5cd9422d72e4528",
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "targetedWindowCases": 3,
+    "targetedReadonlyCases": 3,
+    "otherClassRegressionCases": 8,
+    "cases": [
+      "WebApi.Integration.Tests.CredentialImpactTests.Stale_etag_precedes_impact_check_and_safe_extension_stays_compatible",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"revision\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"time\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"publish\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"permission\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Changed_revision_or_window_invalidates_impact_hash(change: \"window\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Credential_manager_with_readonly_scope_can_read_but_cannot_write(operation: \"create\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Credential_manager_with_readonly_scope_can_read_but_cannot_write(operation: \"preview\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Credential_manager_with_readonly_scope_can_read_but_cannot_write(operation: \"update\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Uncovered_future_windows_require_explicit_risk_confirmation(change: \"shorten\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Uncovered_future_windows_require_explicit_risk_confirmation(change: \"future\")",
+      "WebApi.Integration.Tests.CredentialImpactTests.Unauthorized_previewer_cannot_receive_hash_or_environment_ids",
+      "WebApi.Integration.Tests.CredentialImpactTests.Unpublished_replacement_does_not_remove_running_risk",
+      "WebApi.Integration.Tests.CredentialImpactTests.Explicit_close_all_requires_authorized_confirmation"
+    ],
+    "logSha256": "e30fbee420e5062427e97f77b6373d0be7bbf2296706b8e4498f95d0d39896b9",
+    "elapsedSeconds": 61.293,
+    "startedAt": "2026-11-11T00:47:59.732261+00:00",
+    "endedAt": "2026-11-11T00:49:01.025951+00:00",
+    "sharedResourcesAtStart": {
+      "containers": 208,
+      "volumes": 508,
+      "networks": 39
+    },
+    "newSharedResourceMissing": 0,
+    "ownResourcesRemaining": 0,
+    "historicalEvidenceFilesUnchanged": 132,
+    "otherProtectedFilesUnchanged": 4003,
+    "primaryFilesUnchanged": 14,
+    "priorC08FailureRetained": true,
+    "priorUnknownRetained": true,
+    "newRequirementsAccepted": 0,
+    "qualification": "Fresh HTTP GET and PostgreSQL reads after extension, confirmed shortening or confirmed postponed start. For a credential.manage actor with only read Scope, GET allowed, valid create/preview/update denied with scope_denied and state unchanged. Control-plane working configuration only; no browser, timed activation, publish, data-plane or production acceptance. GitHub CI precedes this test-only change."
   }
 }
