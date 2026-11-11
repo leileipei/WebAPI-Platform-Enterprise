@@ -14171,6 +14171,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "32b010faeaaf4b67a6ec396fd8b921de71459bce3b6357935264c675fae91481",
+      "scope": "Preserve fixed3774 requirement review and every historical CI/runtime/Unknown object; append local alignment to main50d, mocked offline24 and existing-dependency frontend typecheck/build.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -18429,5 +18499,119 @@
     "localFixed401CleanupRerun": false,
     "prior4255RunsRetainedSeparately": true,
     "newRequirementsAccepted": 0
+  },
+  "candidateAlignment20261112": {
+    "observedAt": "2026-11-11T17:51:22.291387+00:00",
+    "inputLocalCommit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+    "mergedMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "mergeBase": "00f45a8617cbf8634e58621594bdbb7e8b0ede16",
+    "candidateType": "local merge of fixed main and existing local testing/documentation chain; no publication or deployment",
+    "implementationAndWorkflowBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "sourceDifferenceToMain": [
+      "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+      "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs"
+    ],
+    "localSixTestFilesUnchanged": true,
+    "conflictResolutions": {
+      ".github/workflows/contracts-ci.yml": "exact fixed-main blob; integration90/domain45/gateway45",
+      "docs/deployment/current-project-status.md": "retain latest local qualifications; describe aligned candidate separately from prior fixed versions",
+      "docs/deployment/github-quality-gates-proposal.md": "retain selected A and historical failures; preserve public PR6 full-protection declaration as sourced historical record; current full read403",
+      "docs/deployment/local-runtime-runbook.md": "retain local owner/runtime/budget limitations; incorporate main no-recreate and read-only proxy behavior and trust-sync exception"
+    },
+    "offlineNodeTests": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "node": "24.22.1",
+      "files": [
+        "tests/runtime/backup.test.mjs",
+        "tests/account-credential/deployment-guard.test.mjs"
+      ],
+      "logSha256": "fc2bb52ee29ab560d7c43afe7cfc25083a0bbf55946ae37597c0ebc0f8275ac1",
+      "qualification": "mocked runtime commands and owned private temporary files; no actual Docker/database/HTTP/backup restore"
+    },
+    "consoleTypecheck": {
+      "passed": true,
+      "command": [
+        "/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "consoleBuild": {
+      "passed": true,
+      "command": [
+        "/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_modules/vite/bin/vite.js",
+        "build"
+      ],
+      "logSha256": "85da8bc932dbcbe70a54053981e8479bc33f23e92df291049a2ae43372995578",
+      "largeChunkWarningRetained": true
+    },
+    "fullConsole321Rerun": false,
+    "fullConsoleRerunReason": "includes local HTTP fixtures; omitted under current offline-only scope",
+    "fixedSdk401XunitRerun": false,
+    "credential48Rerun": false,
+    "nativeOffline14Rerun": false,
+    "github4265IsThisCandidateVerification": false,
+    "dependenciesDownloaded": false,
+    "publicLedger": {
+      "path": "docs/evidence/work-package4/requirements-closeout.json",
+      "adoptedFromMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "sha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
+      "counts": {
+        "已关闭": 36,
+        "部分": 40,
+        "缺失": 18,
+        "待复验": 360
+      }
+    },
+    "historicalLedgerSnapshot": {
+      "commit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+      "path": "docs/evidence/work-package4/requirements-closeout.json",
+      "sha256": "1bc074b29e51870cabc521c8e925654c537cc6980377584fcd831256b5161cc0",
+      "counts": {
+        "已关闭": 33,
+        "部分": 40,
+        "缺失": 18,
+        "待复验": 363
+      }
+    },
+    "historicalStatusSnapshot": {
+      "commit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+      "path": "docs/evidence/work-package4/requirements-status.md",
+      "sha256": "8a9fd1be5796e0963bbd24c97c85f0e3930cc4f4a8a0549eca034258e3a2776e"
+    },
+    "all454ReviewEntriesAndPriorRunObjectsRetained": true,
+    "publicProtectionDeclaration": {
+      "sourceCommit": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "path": "docs/deployment/github-quality-gates-proposal.md",
+      "declaredObservationDate": "2026-11-11",
+      "declaresPrStrictConversationAdminAndNoForceDelete": true,
+      "declaredApprovals": 0,
+      "currentFullReadVerified": false
+    },
+    "currentFullProtectionRead": {
+      "status": 403,
+      "message": "Resource not accessible by integration",
+      "retried": false,
+      "rulesWritten": false
+    },
+    "historicalEvidenceFilesUnchanged": 353,
+    "primaryFilesUnchanged": 14,
+    "priorC08FailureRetained": true,
+    "priorResourceUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical shared-container absence Unknown",
+    "runtimeResourcesQueried": false,
+    "newRuntimeStarted": false,
+    "resourcesRecovered": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false
   }
 }

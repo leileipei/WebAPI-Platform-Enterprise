@@ -1,4 +1,24 @@
 import test from'node:test';import assert from'node:assert/strict';import{backupStopServices}from'../../scripts/runtime/acceptance-backup.mjs';
+
+test('backup keeps the read-only console proxy online while stopping database writers', () => {
+  const stopped = backupStopServices({binding: {}, demoEnabled: true});
+  assert.ok(!stopped.includes('console'));
+  for (const writer of ['control-plane', 'worker', 'gateway-a', 'gateway-b']) assert.ok(stopped.includes(writer));
+});
+
+test('backup resume preserves existing containers when Compose configuration has drifted', async () => {
+  const {withBackupServicesPaused} = await import('../../scripts/runtime/acceptance-backup.mjs');
+  let containerId = 'existing-container';
+  const context = {
+    state: {binding: null, demoEnabled: false},
+    compose: async (...args) => {
+      // Compose up replaces an existing container on configuration drift unless explicitly prevented.
+      if (args[0] === 'up' && !args.includes('--no-recreate')) containerId = 'replacement-container';
+    }
+  };
+  await withBackupServicesPaused(context, async () => {}, {wait: async () => {}});
+  assert.equal(containerId, 'existing-container');
+});
 test('backupStopsOnlyDeclaredServicesForUnboundAndNonDemoDeployments',()=>{const unbound=backupStopServices({binding:null,demoEnabled:false});assert.ok(!unbound.includes('gateway-a')&&!unbound.includes('backend-a'));assert.ok(unbound.includes('worker')&&unbound.includes('tempo'));const bound=backupStopServices({binding:{},demoEnabled:false});assert.ok(bound.includes('gateway-a')&&!bound.includes('backend-a'));assert.ok(backupStopServices({binding:{},demoEnabled:true}).includes('backend-a'));});
 test('cacheBackupVolumeSelectionRetainsOldDeploymentCompatibility',async()=>{const{backupVolumeNames}=await import('../../scripts/runtime/acceptance-backup.mjs');assert.ok(backupVolumeNames({cacheSupported:true}).includes('secrets-cache'));assert.ok(!backupVolumeNames({cacheSupported:false}).includes('secrets-cache'));});
 test('backupFailureRestartsAllOriginalServicesEvenAfterPartialStop',async()=>{const{withBackupServicesPaused}=await import('../../scripts/runtime/acceptance-backup.mjs');for(const stopFails of [false,true]){const calls=[],ctx={state:{binding:{},demoEnabled:true},compose:async(...args)=>{calls.push(args);if(stopFails&&args[0]==='stop')throw Error('partial-stop');}};await assert.rejects(withBackupServicesPaused(ctx,async()=>{throw Error('backup-copy');},{wait:async()=>{}}),/partial-stop|backup-copy/);assert.ok(calls.some(args=>args[0]==='up'&&args.includes('gateway-a')&&args.includes('postgres')&&args.includes('backend-b')));}});

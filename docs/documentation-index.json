@@ -3,30 +3,19 @@
   "reviewDate": "2026-11-12",
   "scope": "Tracked project Markdown/text, current navigation and requirements reviews; vendor documents excluded.",
   "githubMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
-  "localCodeInput": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+  "localCodeInput": "50d6fb9c71dc45f965461c04191cc2107308037c",
   "localCodeAheadOfGithub": [],
   "sourceDifferenceToGithub": [
-    ".github/workflows/contracts-ci.yml",
-    "console/src/pages/Governance.tsx",
-    "scripts/account-credential/deployment-guard.mjs",
-    "scripts/runtime/acceptance-backup.mjs",
-    "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
-    "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
-    "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
-    "tests/WebApi.Domain.Tests/SchemaProcessTests.cs",
     "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
     "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
     "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
     "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
-    "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
     "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
-    "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs",
-    "tests/account-credential/deployment-guard.test.mjs",
-    "tests/runtime/backup.test.mjs"
+    "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs"
   ],
   "classificationIsNotAcceptance": true,
   "counts": {
-    "documents": 315,
+    "documents": 317,
     "byCategory": {
       "navigation": 3,
       "historical-review": 1,
@@ -36,11 +25,11 @@
       "ci-configuration-record": 3,
       "historical-deployment-record": 41,
       "current-status": 1,
+      "current-requirements-review": 1,
       "immutable-evidence": 153,
-      "historical-design-plan": 58,
-      "current-requirements-review": 1
+      "historical-design-plan": 60
     },
-    "relativeLinksChecked": 866,
+    "relativeLinksChecked": 867,
     "unresolvedHistoricalReferences": 47,
     "preservedDuplicateEvidenceGroups": 7
   },
@@ -466,7 +455,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "32b010faeaaf4b67a6ec396fd8b921de71459bce3b6357935264c675fae91481",
+    "dataSha256": "2970f38d681f6c8755c87681207cae320496f84c071d99151aacfd9f50a04fc8",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -593,6 +582,13 @@
       "newAccepted": 0,
       "old454EntryQualificationsRetained": true,
       "resourceUnknownRetained": true
+    },
+    "latestLocalAlignment": {
+      "inputLocalCommit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+      "mergedMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "newAccepted": 0,
+      "fixed401XunitRerun": false,
+      "original454ReviewInputRemains": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f"
     }
   },
   "repositoryGovernanceObservation": {
@@ -634,7 +630,7 @@
     "rulesWrittenByThisTask": false,
     "fullBranchProtectionSettingsVerified": false
   },
-  "sourceDifferenceScope": "Fixed main50d versus local3230bc5: 11 remotely advanced implementation/test/script/workflow files and six local-only test files; documentation divergence recorded separately; localCodeAheadOfGithub is not a commit-graph claim.",
+  "sourceDifferenceScope": "Aligned local candidate: fixed main50d implementation/scripts/tooling/deployment/dependencies/workflows plus six byte-preserved local test files. Documentation divergence is reconciled separately; prior17-file observation remains historical.",
   "repositoryAdvanceObservation": {
     "main": "51924152199f4b4ca0323df776d10772e8fd3905",
     "previousMain": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
@@ -1019,7 +1015,7 @@
     "newRequirementsAccepted": 0
   },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"14926a64373b7cb2d68c686551f55c8c0d6e549d9d2b9919e30d89e239b7f64c"},
+    {"path":"README.md","category":"navigation","sha256":"b81ff98efbfa4abb258043798e44eb6cd42496656fcbdd0a716213e7049abf40"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -1058,7 +1054,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"bc087f789d2278d8c25d6307d8afc427c059e3d0f140d0eb8a665248d94368c1"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"7f61a1f863da1043eed5fd25221003dd7398cad36a08414e546d307b44ef68ea"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -1074,7 +1070,7 @@
     {"path":"docs/deployment/gateway-restart-readiness-result.md","category":"historical-deployment-record","sha256":"d8c3e878745979984332cfb0d3fdf02ac4ef2368ed70f8e3ef5230c2574a6664"},
     {"path":"docs/deployment/gateway-restart-readiness-runbook.md","category":"operations-reference","sha256":"f225246bf6bcfaed194de25cb21d0093a58fee480dd266037716440d000560c6"},
     {"path":"docs/deployment/gateway-restart-readiness-upgrade-review.md","category":"historical-deployment-record","sha256":"90f55dd60cccdd6cabecaf8a0337652b257c167ac5145e34e9e3a3f4dcdfa6ba"},
-    {"path":"docs/deployment/github-quality-gates-proposal.md","category":"ci-configuration-record","sha256":"cd80bc5685e3bb1f2f48bdf1d6379dcb7e8b4415e2739ac2ef3e30f7000ca1b6"},
+    {"path":"docs/deployment/github-quality-gates-proposal.md","category":"ci-configuration-record","sha256":"b4c1558a7071c1dbf1b76478c457019b441d468b9f3957f5d94277f838bc8d8a"},
     {"path":"docs/deployment/governance-g13-upgrade-rehearsal.md","category":"historical-deployment-record","sha256":"21abd981d88960fe582fe1f6b8b9cad6e5e99ffd55f49d242e5553bfb6e450d1"},
     {"path":"docs/deployment/governance-g14-fault-matrix.md","category":"historical-deployment-record","sha256":"586ed6ec77420138640a4708cf7e8ef584d55cf7062ae69741efe4a56962abc7"},
     {"path":"docs/deployment/local-delivery-index.md","category":"historical-deployment-record","sha256":"d40864cca90037ba558efb343d350692b0c0b363d50c6894aa5f57dfa75507a5"},
@@ -1083,7 +1079,7 @@
     {"path":"docs/deployment/local-keycloak-demo-proposal.md","category":"historical-deployment-record","sha256":"36dcc1add44e69b615c7541543885c80c2b3af859275f5200a28c72f5370af75"},
     {"path":"docs/deployment/local-keycloak-demo-result.md","category":"historical-deployment-record","sha256":"3c7884a90d420c251dbde8c7367b62985e55da8f052af1cbd3d345821642afbd"},
     {"path":"docs/deployment/local-keycloak-demo.md","category":"operations-reference","sha256":"607b9886c0f508fb6b52fcf93b6ca05fd8e9793f36fdc4c09f90ce6053c9f040"},
-    {"path":"docs/deployment/local-runtime-runbook.md","category":"operations-reference","sha256":"dd60c819ebc88f1a8af3f5d28b93e73ebcfaa69d73c9d7b4782f3b8b6820b9fb"},
+    {"path":"docs/deployment/local-runtime-runbook.md","category":"operations-reference","sha256":"24c48d4917ae89db5c6a813550ae667db85fcb53a45c3969c9dd73eac4f22507"},
     {"path":"docs/deployment/network-policies-4192-installed-226dfe4.md","category":"historical-deployment-record","sha256":"6f83ee9d07619557c3033439250f398ce3df98b0d4daa7a468a2a081b341c403"},
     {"path":"docs/deployment/network-policies-4192-upgrade-rehearsal.md","category":"historical-deployment-record","sha256":"5912d9917c3bc5b5675f4daa9af49fdb9c26d7704ebb98a7428e5e7b941318f2"},
     {"path":"docs/deployment/network-policies-4192-upgrade-review.md","category":"historical-deployment-record","sha256":"d62a0cd750bc46b70b1384b8adf8478988019161b3b9f0e75bb26182feebc168"},
@@ -1099,6 +1095,7 @@
     {"path":"docs/deployment/observability-runbook.md","category":"operations-reference","sha256":"4fcbf584bebb56f0ef61605fb542080a5be3594939f7e27076eeaa0966b88aa0"},
     {"path":"docs/deployment/post-upgrade-observation-result.md","category":"historical-deployment-record","sha256":"3547988631980de2a1c641f60fb2dc5c5b8deb3ba98d51bb052a5778ead2752f"},
     {"path":"docs/deployment/release-promotion-runbook.md","category":"operations-reference","sha256":"4c85a39ad2e129c0ac56d19de31e7c52d1f6284d780f5c78e4bd6f1f0026b9b8"},
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"327c09c92426727a89bfa5705638f7bffe3f023c6ad9bb570809c20139a5a291"},
     {"path":"docs/deployment/security-hardening-4192-upgrade-preparation.md","category":"historical-deployment-record","sha256":"136b7dd5f423183d6bdf064e00dc83bc868ece79c67b130afa5383cdda16cd19"},
     {"path":"docs/deployment/security-hardening-runbook.md","category":"operations-reference","sha256":"716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"},
     {"path":"docs/deployment/sso-oidc-capability.md","category":"historical-deployment-record","sha256":"6360783bd9abc94dcfb0ff830c7c01d254ed84f4b74dd0aad231473631848750"},
@@ -1265,7 +1262,7 @@
     {"path":"docs/evidence/work-package3-policy-readiness/2026-10-13-readiness-and-proposal.md","category":"immutable-evidence","sha256":"9b9b647adae81276c016cb0d4ed95086a268926a21b44d2d951b981919531c8e"},
     {"path":"docs/evidence/work-package4/2026-10-16-fixed-ba9031c/README.md","category":"immutable-evidence","sha256":"c9e4e39ef373589025d887d726c2a454208e508c874bb890488a1c7638c9c241"},
     {"path":"docs/evidence/work-package4/final-summary.md","category":"immutable-evidence","sha256":"afdbfc5189fd6d026a0a812da5da36b892d0a97ce1ae87f0c57cdaae92a8e80e"},
-    {"path":"docs/evidence/work-package4/requirements-status.md","category":"immutable-evidence","sha256":"8a9fd1be5796e0963bbd24c97c85f0e3930cc4f4a8a0549eca034258e3a2776e"},
+    {"path":"docs/evidence/work-package4/requirements-status.md","category":"immutable-evidence","sha256":"42c1808f0fee6ab7feb6abf4ac1a51b4fa03cbf501949efc986ae6e38bf19c2c"},
     {"path":"docs/evidence/workbench/result.md","category":"immutable-evidence","sha256":"3d48bcce18408966e2be3027734ce57a62f6a36ea93f8744a297b9f04642ccae"},
     {"path":"docs/governance-security.md","category":"topic-reference","sha256":"909edc366dda8a30c9d12befa8649d7f5768bb415536bee6434f11fa3b1f6d61"},
     {"path":"docs/observability-data-dictionary.md","category":"topic-reference","sha256":"39a16bdf9a523ba59b784f25747dce6cef6f8ed50ba9542c6f04ae4c36e99a5b"},
@@ -1306,6 +1303,7 @@
     {"path":"docs/superpowers/plans/2026-11-05-independent-persistent-storage-verification.md","category":"historical-design-plan","sha256":"aa4b225afe55644023ddb3db23fa06abbf085f34091aa26e987e74f9ed9a6a16"},
     {"path":"docs/superpowers/plans/2026-11-10-console-ci-phase1.md","category":"historical-design-plan","sha256":"6bac439be30ffbfd5394faf6f0058fde88c882cad05a8c0edb13cf8e8599776e"},
     {"path":"docs/superpowers/plans/2026-11-10-contracts-ci-phase2.md","category":"historical-design-plan","sha256":"487a7b2c742441b0dfb2c23b1f9a3649475fb42398a3bd08756041bc6a4cb479"},
+    {"path":"docs/superpowers/plans/2026-11-11-project-resource-counts.md","category":"historical-design-plan","sha256":"82a84fd5375d62a398cf7f51faba362f84982aea184c98da6c8f30bb4f98f8de"},
     {"path":"docs/superpowers/specs/2026-10-04-core-loop-design.md","category":"historical-design-plan","sha256":"233db0162d086761ce82a70b5ca9c7b9757e23a4f6dab1cd821d4fa79e73696e"},
     {"path":"docs/superpowers/specs/2026-10-04-local-runtime-design.md","category":"historical-design-plan","sha256":"a2d30dfc472461306886aedf4b8df669fd8a4daadfef61ad17e015b0883166a4"},
     {"path":"docs/superpowers/specs/2026-10-04-observability-alerting-design.md","category":"historical-design-plan","sha256":"b8e37e2d0f04e3d1a4b7cd384fc51902f021a0b62ebf5734a29325ecbc629d85"},
@@ -1331,9 +1329,9 @@
     {"path":"docs/superpowers/specs/2026-11-05-independent-quota-backend-design.md","category":"historical-design-plan","sha256":"77976d8aa63c210b102c133c957ba1df6b606a8bcaea9dfa113715a254c186f4"},
     {"path":"docs/superpowers/specs/2026-11-10-console-ci-phase1-design.md","category":"historical-design-plan","sha256":"791fe388cf24e087e581425c0a56b756f0dcc11c2ab7c399c310729fe4f82d54"},
     {"path":"docs/superpowers/specs/2026-11-10-contracts-ci-phase2-design.md","category":"historical-design-plan","sha256":"1be4ab24ffbc6b52cc5501064fcb7846c3d3d7a0f153056b16826f86b3896ee1"},
+    {"path":"docs/superpowers/specs/2026-11-11-project-resource-counts-design.md","category":"historical-design-plan","sha256":"1c356cd4513ab5cc6418b725bb400e96b4b3d06ff7505e58d9a1ce569708fab5"},
     {"path":"docs/traffic-policy-data-dictionary.md","category":"topic-reference","sha256":"02611712f6ed8b89033e1abd9d5028a595a5b5f4e1155427e7548ec7dc902022"},
-    {"path":"docs/workbench.md","category":"topic-reference","sha256":"4f15104d0c5fbd10b4f0561eee8cf61ae5758cf1115d384723869980b3fc82d4"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"1ebb5170e20fc80f4a89a0a69ebe21e73adbee6841f41bf1ac095941b486b497"}
+    {"path":"docs/workbench.md","category":"topic-reference","sha256":"4f15104d0c5fbd10b4f0561eee8cf61ae5758cf1115d384723869980b3fc82d4"}
   ],
   "repositoryRefresh20261112": {
     "observedAt": "2026-11-11T17:22:15.641024+00:00",
@@ -1679,5 +1677,119 @@
     "localFixed401CleanupRerun": false,
     "prior4255RunsRetainedSeparately": true,
     "newRequirementsAccepted": 0
+  },
+  "candidateAlignment20261112": {
+    "observedAt": "2026-11-11T17:51:22.291387+00:00",
+    "inputLocalCommit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+    "mergedMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "mergeBase": "00f45a8617cbf8634e58621594bdbb7e8b0ede16",
+    "candidateType": "local merge of fixed main and existing local testing/documentation chain; no publication or deployment",
+    "implementationAndWorkflowBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "sourceDifferenceToMain": [
+      "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+      "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs"
+    ],
+    "localSixTestFilesUnchanged": true,
+    "conflictResolutions": {
+      ".github/workflows/contracts-ci.yml": "exact fixed-main blob; integration90/domain45/gateway45",
+      "docs/deployment/current-project-status.md": "retain latest local qualifications; describe aligned candidate separately from prior fixed versions",
+      "docs/deployment/github-quality-gates-proposal.md": "retain selected A and historical failures; preserve public PR6 full-protection declaration as sourced historical record; current full read403",
+      "docs/deployment/local-runtime-runbook.md": "retain local owner/runtime/budget limitations; incorporate main no-recreate and read-only proxy behavior and trust-sync exception"
+    },
+    "offlineNodeTests": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "node": "24.22.1",
+      "files": [
+        "tests/runtime/backup.test.mjs",
+        "tests/account-credential/deployment-guard.test.mjs"
+      ],
+      "logSha256": "fc2bb52ee29ab560d7c43afe7cfc25083a0bbf55946ae37597c0ebc0f8275ac1",
+      "qualification": "mocked runtime commands and owned private temporary files; no actual Docker/database/HTTP/backup restore"
+    },
+    "consoleTypecheck": {
+      "passed": true,
+      "command": [
+        "/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "consoleBuild": {
+      "passed": true,
+      "command": [
+        "/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_modules/vite/bin/vite.js",
+        "build"
+      ],
+      "logSha256": "85da8bc932dbcbe70a54053981e8479bc33f23e92df291049a2ae43372995578",
+      "largeChunkWarningRetained": true
+    },
+    "fullConsole321Rerun": false,
+    "fullConsoleRerunReason": "includes local HTTP fixtures; omitted under current offline-only scope",
+    "fixedSdk401XunitRerun": false,
+    "credential48Rerun": false,
+    "nativeOffline14Rerun": false,
+    "github4265IsThisCandidateVerification": false,
+    "dependenciesDownloaded": false,
+    "publicLedger": {
+      "path": "docs/evidence/work-package4/requirements-closeout.json",
+      "adoptedFromMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "sha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
+      "counts": {
+        "已关闭": 36,
+        "部分": 40,
+        "缺失": 18,
+        "待复验": 360
+      }
+    },
+    "historicalLedgerSnapshot": {
+      "commit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+      "path": "docs/evidence/work-package4/requirements-closeout.json",
+      "sha256": "1bc074b29e51870cabc521c8e925654c537cc6980377584fcd831256b5161cc0",
+      "counts": {
+        "已关闭": 33,
+        "部分": 40,
+        "缺失": 18,
+        "待复验": 363
+      }
+    },
+    "historicalStatusSnapshot": {
+      "commit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+      "path": "docs/evidence/work-package4/requirements-status.md",
+      "sha256": "8a9fd1be5796e0963bbd24c97c85f0e3930cc4f4a8a0549eca034258e3a2776e"
+    },
+    "all454ReviewEntriesAndPriorRunObjectsRetained": true,
+    "publicProtectionDeclaration": {
+      "sourceCommit": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "path": "docs/deployment/github-quality-gates-proposal.md",
+      "declaredObservationDate": "2026-11-11",
+      "declaresPrStrictConversationAdminAndNoForceDelete": true,
+      "declaredApprovals": 0,
+      "currentFullReadVerified": false
+    },
+    "currentFullProtectionRead": {
+      "status": 403,
+      "message": "Resource not accessible by integration",
+      "retried": false,
+      "rulesWritten": false
+    },
+    "historicalEvidenceFilesUnchanged": 353,
+    "primaryFilesUnchanged": 14,
+    "priorC08FailureRetained": true,
+    "priorResourceUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical shared-container absence Unknown",
+    "runtimeResourcesQueried": false,
+    "newRuntimeStarted": false,
+    "resourcesRecovered": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false
   }
 }

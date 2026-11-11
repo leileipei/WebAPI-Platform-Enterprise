@@ -1,6 +1,6 @@
 # GitHub 自动检查与主干保护提案
 
-方案日期：2026-11-10；状态复核：2026-11-11。两批配置及 P2 修复、Integration 作业上限修正已通过 [PR #5](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/5) 合入 main `3774ccc7fd97a59ff4851d3a9f55179c4635c61f`。修正后的 PR 及合并后 main 的四项检查均已通过；最新只读读取确认四项检查已列为 main 必需检查。本轮未修改保护规则，其余完整设置仍待核对。实际版本与发布状态统一见[当前状态页](current-project-status.md)。
+方案日期：2026-11-10；状态复核：2026-11-12。两批配置及P2修复已通过[PR #5](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/5)合入历史main`3774ccc`；最新main`50d6fb9`四项CI实际通过4265项，0失败/跳过，四项检查已列为main必需。当前本地候选已整合该主干与六份未公开测试，不能将主干CI视为候选完整验证。本轮未修改远端保护规则，完整设置的当前读取仍受权限限制。实际版本与发布状态见[当前状态页](current-project-status.md)。
 
 本提案用于把现有验证脚本接到独立 GitHub runner，不改产品行为、测试断言、数据库锁策略或原4192部署。不把 CI 通过视为 SDK/浏览器、目标环境或生产验收。
 
@@ -8,7 +8,7 @@
 
 | 路径 | 首批交付 | 取舍 |
 | --- | --- | --- |
-| A：分两批落地（已选择） | 第一批前端测试与构建；第二批三个后端套件。两批已发布并完成 GitHub 验证 | 四套实际运行已通过，配置必需检查仍是独立待办 |
+| A：分两批落地（已选择） | 第一批前端测试与构建；第二批三个后端套件。两批已发布并完成 GitHub 验证 | 四套实际运行通过，四项必需检查已确认启用，其余完整规则的当前读取仍待核实 |
 | B：首批四类全部接入（未选择） | 前端 + Domain/Integration/Gateway 一起适配并验收 | 起步覆盖更广；固定 SDK 镜像、锁定恢复、磁盘及 Linux runner 差异集中在同一轮处理 |
 
 保持先实际验证、后启用强制规则的顺序；安全准入、固定端口E2E、性能实验、4192升级不纳入本方案。已实施设计与本地结果分别见[前端首批记录](console-ci-phase1.md)和[后端第二批记录](contracts-ci-phase2.md)。
@@ -31,7 +31,7 @@ GitHub [runner 文档](https://docs.github.com/en/actions/reference/runners/gith
 - 在针对 `main` 的 `pull_request`、`push` 到 `main` 及手动触发执行；不使用具有额外权限的 `pull_request_target` 执行外来代码。
 - 默认 `contents: read`，checkout 不持久化凭据；不需要产品密码、节点秘密、部署密钥或本机目录。
 - 四类检查以稳定名字独立报告。后端每个 job 使用新 runner，矩阵设置 `fail-fast: false`；同一 PR 新版本可以取消旧轮次。
-- 前端作业上限 15 分钟，Domain/Gateway 为 45 分钟，Integration 为 60 分钟。首次 Integration 超过原 45 分钟上限而取消，保留该失败；经明确授权仅追加工作流一行修正，不改变断言、产品超时或迁移隔离。
+- 当前前端作业上限15分钟，Domain/Gateway为45分钟，Integration为90分钟。首次Integration超45分钟取消、PR #5明确授权调至60分钟的记录保留；后续PR #9将主干设为90分钟，本地整合采用该配置。作业预算不同于产品期限和迁移限制；PR #9另将输出超限测试的调用期限从2秒调为已有5秒上限，产品输出预算未改。
 - 不以路径过滤跳过已配置的必需检查；工作流被跳过、取消或依赖不可用不应成为虚假的成功。
 - 后端复用 `check-contracts.sh` 的随机 owner、独立密码与精确归属清理；不调用旧固定项目的 `check.sh`，不扫描删除其他 Docker 资源。
 - runner 取消、强杀或超时不保证 shell EXIT 清理完成；依靠一次性托管 runner 生命周期隔离，不宣称取消后的业务恢复已被验证。
@@ -46,7 +46,9 @@ GitHub [runner 文档](https://docs.github.com/en/actions/reference/runners/gith
 
 ## 主干保护的建议与已确认范围
 
-2026-11-11 分支摘要接口显示 `protected: true`，四项必需检查的 `enforcement_level` 为 `everyone`；仓库规则集列表为空。这只能确认下面的检查名，PR、严格同步、批准人数、强推/删除及绕过等条目仍是建议，未由本轮完整管理接口核实。
+2026-11-12分支摘要接口仍显示`protected: true`，四项必需检查的`enforcement_level`为`everyone`。规则集为空是前次观察，本轮未重读规则集；完整保护接口本轮返回403 `Resource not accessible by integration`，未重试或写入。
+
+公开主干中的[PR #6治理记录](https://github.com/leileipei/WebAPI-Platform-Enterprise/blob/50d6fb9c71dc45f965461c04191cc2107308037c/docs/deployment/github-quality-gates-proposal.md)记载：2026-11-11通过管理员CLI写入并读回PR入口、四项检查、严格同步、讨论解决、管理员约束及禁止强推/删除，独立批准人数0；另记录当时没有正式Release。这是合并引入的具名历史资料，保留其声明及来源，不把它改写成本轮由当前连接完整核实的配置或Release状态，也不因当前连接403否定其历史记录。
 
 | 设置 | 建议 |
 | --- | --- |
