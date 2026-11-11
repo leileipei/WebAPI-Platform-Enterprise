@@ -5,6 +5,17 @@ public sealed record CreateEnvironmentRequest(string Code,string Name,bool IsPro
 public sealed record UpdateEnvironmentRequest(string Code,string Name,string Status,bool IsProduction,int SortOrder,Guid? ReleasePolicyId,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] OptionalJsonProperty<string> GatewayPublicUrl=default,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] OptionalJsonProperty<string> GatewayInternalUrl=default,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] OptionalJsonProperty<string> BasePath=default);
 public sealed record OrganizationDto(Guid Id,string Code,string Name,string Status,long Revision);
 public sealed record ProjectDto(Guid Id,Guid OrganizationId,string Code,string Name,string Status,long Revision,Guid? OwnerUserId);
+public sealed record ProjectListItemDto(
+    Guid Id,
+    Guid OrganizationId,
+    string Code,
+    string Name,
+    string Status,
+    long Revision,
+    Guid? OwnerUserId,
+    int? EnvironmentCount,
+    int? ApiCount,
+    int? ApplicationCount);
 public sealed record EnvironmentDto(Guid Id,Guid ProjectId,string Code,string Name,string Status,bool IsProduction,int SortOrder,Guid? ReleasePolicyId,long? DesiredConfigVersion,long DeploymentSequence,long Revision,string? GatewayPublicUrl=null,string BasePath="/",long AccessAddressRevision=1);
 public sealed record EnvironmentDetailDto(Guid Id,Guid ProjectId,string Code,string Name,string Status,bool IsProduction,int SortOrder,Guid? ReleasePolicyId,long? DesiredConfigVersion,long DeploymentSequence,long Revision,string? GatewayPublicUrl,string BasePath,long AccessAddressRevision,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? GatewayInternalUrl);
 public sealed record ScopeTreeDto(IReadOnlyList<OrganizationDto> Organizations,IReadOnlyList<ProjectDto> Projects,IReadOnlyList<EnvironmentDto> Environments);

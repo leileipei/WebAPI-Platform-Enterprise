@@ -37,6 +37,46 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
             if(visibleProjects.Any(p=>p.OrganizationId==org.Id)||await auth.CanAsync(actor,"organization.read",new("organization",org.Id,new(org.Id)),ct)) visibleOrgs.Add(Dto(org));
         return new(visibleOrgs,visibleProjects,visibleEnvs);
     }
+    public async Task<PageResult<ProjectListItemDto>> ProjectsAsync(Guid organizationId, ActorContext actor, int? page, int? pageSize, CancellationToken ct = default)
+    {
+        var visibility = new CollectionAuthorizationQuery(db);
+        await visibility.RequireActiveActorAsync(actor, ct);
+        var tree = await GetScopeTreeAsync(actor, ct);
+        var projects = Pagination.Slice(tree.Projects.Where(project => project.OrganizationId == organizationId).ToArray(), page, pageSize);
+        if (projects.Items.Count == 0)
+            return new([], projects.Total, projects.Page, projects.PageSize);
+
+        var projectIds = projects.Items.Select(project => project.Id).ToArray();
+        // Project scope rows preserve readable zeroes when a project has no environments.
+        var environmentCounts = await visibility.Scopes(actor, "environment.read")
+            .Where(scope => scope.OrganizationId == organizationId && scope.ProjectId != null && projectIds.Contains(scope.ProjectId.Value))
+            .GroupBy(scope => scope.ProjectId!.Value)
+            .Select(group => new { ProjectId = group.Key, Count = group.Count(scope => scope.EnvironmentId != null) })
+            .ToDictionaryAsync(row => row.ProjectId, row => (int?)row.Count, ct);
+
+        var apiCounts = await visibility.Scopes(actor, "api.read")
+            .Where(scope => scope.OrganizationId == organizationId && scope.ProjectId != null && scope.EnvironmentId == null && projectIds.Contains(scope.ProjectId.Value))
+            .Select(scope => new
+            {
+                ProjectId = scope.ProjectId!.Value,
+                Count = db.Set<Api>().Count(api => api.OrganizationId == scope.OrganizationId && api.ProjectId == scope.ProjectId)
+            })
+            .ToDictionaryAsync(row => row.ProjectId, row => (int?)row.Count, ct);
+
+        var applicationCounts = await visibility.Scopes(actor, "app.read")
+            .Where(scope => scope.OrganizationId == organizationId && scope.ProjectId != null && scope.EnvironmentId == null && projectIds.Contains(scope.ProjectId.Value))
+            .Select(scope => new
+            {
+                ProjectId = scope.ProjectId!.Value,
+                Count = db.Set<ApplicationRecord>().Count(application => application.OrganizationId == scope.OrganizationId && application.ProjectId == scope.ProjectId)
+            })
+            .ToDictionaryAsync(row => row.ProjectId, row => (int?)row.Count, ct);
+
+        var items = projects.Items.Select(project => new ProjectListItemDto(
+            project.Id, project.OrganizationId, project.Code, project.Name, project.Status, project.Revision, project.OwnerUserId,
+            environmentCounts.GetValueOrDefault(project.Id), apiCounts.GetValueOrDefault(project.Id), applicationCounts.GetValueOrDefault(project.Id))).ToArray();
+        return new(items, projects.Total, projects.Page, projects.PageSize);
+    }
     public async Task<EnvironmentDetailDto> EnvironmentAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
         var scope=await scopes.EnvironmentAsync(id,ct);
