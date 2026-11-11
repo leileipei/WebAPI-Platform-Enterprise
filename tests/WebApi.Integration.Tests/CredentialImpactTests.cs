@@ -400,7 +400,25 @@ public sealed class CredentialImpactTests
     public async Task Independent_operator_revocation_and_credential_write_serialize_on_real_governance_lock(string loss,bool revokeFirst)
         =>await RunConcurrentRevocationAsync(loss,revokeFirst,true);
 
-    private static async Task RunConcurrentRevocationAsync(string loss,bool revokeFirst,bool separateOperator)
+    [Theory]
+    [InlineData("permission",true)]
+    [InlineData("permission",false)]
+    [InlineData("scope",true)]
+    [InlineData("scope",false)]
+    public async Task Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(string loss,bool revokeFirst)
+        =>await RunConcurrentRevocationAsync(loss,revokeFirst,true,true);
+
+    private static async Task<HttpResponseMessage> SendAsAsync(HttpClient client,HttpMethod method,string path,object body,string? tag=null)
+    {
+        var csrf=await client.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
+        using var request=new HttpRequestMessage(method,path){Content=JsonContent.Create(body)};
+        request.Headers.Add("X-CSRF-Token",csrf.GetProperty("token").GetString());
+        request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("N"));
+        if(tag is not null)request.Headers.Add("If-Match",tag);
+        return await client.SendAsync(request);
+    }
+
+    private static async Task RunConcurrentRevocationAsync(string loss,bool revokeFirst,bool separateOperator,bool crossProcess=false)
     {
         await using var f=new Fixture();await f.InitializeAsync(published:true);
         var revokerId=f.Api.User.Id;var revokerClient=f.Api.Client;
@@ -430,6 +448,15 @@ public sealed class CredentialImpactTests
             await db.SaveChangesAsync();
             published=(await db.Set<GatewayConfigSnapshot>().SingleAsync()).PayloadBytes.ToArray();
         }
+        await using var child=crossProcess?await ChildControlPlane.StartAsync(f.Api):null;
+        var writerClient=child?.Client??f.Api.Client;
+        if(child is not null)
+        {
+            Assert.True(separateOperator);
+            Assert.NotEqual(System.Environment.ProcessId,child.ProcessId);
+            Assert.NotEqual(f.Api.Client.BaseAddress,writerClient.BaseAddress);
+            Assert.NotSame(writerClient,revokerClient);
+        }
         using var revokerIdentityResponse=await revokerClient.GetAsync("/api/v1/auth/me");revokerIdentityResponse.EnsureSuccessStatusCode();
         var revokerIdentity=(await revokerIdentityResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
         Assert.Equal(revokerId,revokerIdentity.Id);
@@ -437,7 +464,7 @@ public sealed class CredentialImpactTests
         {
             Assert.DoesNotContain("credential.manage",revokerIdentity.Permissions);
             Assert.Contains("role.manage",revokerIdentity.Permissions);Assert.Contains("scope.manage",revokerIdentity.Permissions);
-            using var subjectIdentityResponse=await f.Api.Client.GetAsync("/api/v1/auth/me");subjectIdentityResponse.EnsureSuccessStatusCode();
+            using var subjectIdentityResponse=await writerClient.GetAsync("/api/v1/auth/me");subjectIdentityResponse.EnsureSuccessStatusCode();
             var subjectIdentity=(await subjectIdentityResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
             Assert.Equal(f.Api.User.Id,subjectIdentity.Id);Assert.Contains("credential.manage",subjectIdentity.Permissions);
             await using var db=f.Api.Context();
@@ -445,7 +472,14 @@ public sealed class CredentialImpactTests
                 where ur.UserId==f.Api.User.Id&&r.Code=="PlatformAdmin"&&r.IsSystem select r.Id).AnyAsync());
         }
         var end=f.Time.Now.AddMinutes(30);
-        var preview=await f.PreviewAsync(f.Request(status:"Active",expires:end));
+        JsonElement preview;
+        if(child is null)preview=await f.PreviewAsync(f.Request(status:"Active",expires:end));
+        else
+        {
+            using var response=await SendAsAsync(writerClient,HttpMethod.Post,$"/api/v1/credentials/{f.Key.Id}/impact",
+                new CredentialImpactRequest(f.Key.ValidFrom,end,"Active"),RevisionTag.Format(f.Key.Revision));
+            response.EnsureSuccessStatusCode();preview=await response.Content.ReadFromJsonAsync<JsonElement>();
+        }
         var hash=preview.GetProperty("impactHash").GetString()!;
         async Task<HttpResponseMessage> RevokeAsync()
         {
@@ -453,13 +487,11 @@ public sealed class CredentialImpactTests
             object body=loss=="permission"?new{permissions=remainingPermissions}:new{scopes=Array.Empty<ScopeGrantDto>()};
             var tag=RevisionTag.Format(loss=="permission"?roleRevision:f.Api.User.Revision);
             if(!separateOperator)return await f.Api.WriteAsync(HttpMethod.Put,path,body,tag);
-            var csrf=await revokerClient.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
-            using var request=new HttpRequestMessage(HttpMethod.Put,path){Content=JsonContent.Create(body)};
-            request.Headers.Add("X-CSRF-Token",csrf.GetProperty("token").GetString());
-            request.Headers.Add("Idempotency-Key",Guid.NewGuid().ToString("N"));request.Headers.Add("If-Match",tag);
-            return await revokerClient.SendAsync(request);
+            return await SendAsAsync(revokerClient,HttpMethod.Put,path,body,tag);
         }
-        Task<HttpResponseMessage> UpdateAsync()=>f.UpdateAsync(f.Request(status:"Active",expires:end,hash:hash,confirm:true));
+        Task<HttpResponseMessage> WriteCredentialAsync(object body,string? tag=null)=>child is null?f.UpdateAsync(body,tag)
+            :SendAsAsync(writerClient,HttpMethod.Put,$"/api/v1/credentials/{f.Key.Id}",body,tag??RevisionTag.Format(f.Key.Revision));
+        Task<HttpResponseMessage> UpdateAsync()=>WriteCredentialAsync(f.Request(status:"Active",expires:end,hash:hash,confirm:true));
         Task<HttpResponseMessage> update;Task<HttpResponseMessage> revoke;
         await using(var hold=f.Api.Context())
         await using(var transaction=await hold.Database.BeginTransactionAsync())
@@ -470,6 +502,7 @@ public sealed class CredentialImpactTests
             Assert.False(first.IsCompleted);
             var second=revokeFirst?UpdateAsync():RevokeAsync();
             var both=await WaitForCredentialLockWaitersAsync(f.Api,2);
+            if(child is not null)await child.AssertWaitingAsync(f.Api);
             Assert.Contains(firstPid,both);Assert.False(first.IsCompleted);Assert.False(second.IsCompleted);
             revoke=revokeFirst?first:second;update=revokeFirst?second:first;
             await transaction.CommitAsync();
@@ -480,15 +513,16 @@ public sealed class CredentialImpactTests
         var code=loss=="permission"?"permission_denied":"scope_denied";
         if(revokeFirst)Assert.Equal(code,(await updated.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
         var revision=f.Key.Revision+(revokeFirst?0:1);
-        using var after=await f.UpdateAsync(f.Request(status:"Active",expires:f.Key.ExpiresAt.AddHours(1)),RevisionTag.Format(revision));
+        using var after=await WriteCredentialAsync(f.Request(status:"Active",expires:f.Key.ExpiresAt.AddHours(1)),RevisionTag.Format(revision));
         Assert.Equal(HttpStatusCode.Forbidden,after.StatusCode);
         Assert.Equal(code,(await after.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("code").GetString());
-        using var identityResponse=await f.Api.Client.GetAsync("/api/v1/auth/me");identityResponse.EnsureSuccessStatusCode();
+        using var identityResponse=await writerClient.GetAsync("/api/v1/auth/me");identityResponse.EnsureSuccessStatusCode();
         var identity=(await identityResponse.Content.ReadFromJsonAsync<IdentityDto>())!;
+        Assert.Equal(f.Api.User.Id,identity.Id);
         Assert.Equal(loss!="permission",identity.Permissions.Contains("credential.manage"));
         if(loss=="scope")Assert.Empty(identity.Scopes);
         else Assert.Equal(new ScopeGrantDto(new(f.Api.Organization.Id),"read_write"),Assert.Single(identity.Scopes));
-        using var visible=await f.Api.Client.GetAsync($"/api/v1/credentials/{f.Key.Id}");
+        using var visible=await writerClient.GetAsync($"/api/v1/credentials/{f.Key.Id}");
         Assert.Equal(loss=="permission"?HttpStatusCode.OK:HttpStatusCode.NotFound,visible.StatusCode);
         if(separateOperator)
         {
