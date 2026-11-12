@@ -14451,6 +14451,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "b605cf1d3618436a40c873852e18a5fa5788e4fd",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "075827ad87cf691ff191ec037689eaa525aa17894be18ac205443468a47daeca",
+      "scope": "Preserve prior Integration62, restore failure and every old object; append fixed401 original Gateway build/targeted20, and an explicitly unexecuted full-CI projection.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -19198,5 +19268,130 @@
     "pushed": false,
     "deployed": false,
     "qualification": "Fresh fixed401 original Integration project build and selected62 tests only. Earlier restore failure remains failed. The81 archive checks are input qualification, not81 application tests. No full-suite, browser, deployed-node, production, signer-trust or historical Unknown clearance."
+  },
+  "gateway401ReplayVerification": {
+    "sourceRevision": "b605cf1d3618436a40c873852e18a5fa5788e4fd",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "sdk": "10.0.401",
+    "os": "linux",
+    "architecture": "arm64",
+    "realXunitRunner": true,
+    "originalGatewayProject": "tests/WebApi.Gateway.Tests/WebApi.Gateway.Tests.csproj",
+    "originalGatewayBuildPassed": true,
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "windowCasesPassed": 5,
+    "existingRuntimeCasesPassed": 15,
+    "cases": [
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"shorten\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"multi-segment\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"valid\", status: 200)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"revoked\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"disabled\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"any-valid-window\", status: 200)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"extend\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"future\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"case\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Published_window_includes_exact_start_and_excludes_exact_expiry_on_both_nodes",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"future-grant\", status: 403)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"unknown\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"future\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.CredentialExpiresAtAdmission",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"wrong-secret\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"expired-grant\", status: 403)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"missing\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"empty\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"expired\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"revoke\")"
+    ],
+    "filter": "FullyQualifiedName~WebApi.Gateway.Tests.CredentialWindowActivationTests|FullyQualifiedName~WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries|FullyQualifiedName~WebApi.Gateway.Tests.GatewayRuntimeTests.CredentialExpiresAtAdmission",
+    "scenarioQualification": "same-process two gateway nodes and backends over real local HTTP/PostgreSQL; controllable clock boundaries plus one real wait; not installed-node or SDK E2E acceptance",
+    "buildArtifactHashes": {
+      "tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll": "f1aa231eff8976cdddfaedbce542478f1a796d476b74f4b8852d008662696093",
+      "src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll": "1a0afec39fa7c7cfe136c7859b27a49ea913093bf722d52ffb8f3c6de80882f4"
+    },
+    "logSha256": "b1f072a43e1b05c8b6f2dc84c3419137bb72738e3934bda5f065a840b84b3243",
+    "trxSha256": "c37b3ab4848c583193c545d3ac02291b4d0946dad0b576e4a25d3d4d78651060",
+    "buildBindingsSha256": "6a82f0ecfb73d4c5bb9d7faca5ce8c392ddee10aee8d83e2ed6c158b926aa61d",
+    "startedAt": "2026-11-12T12:26:19.144596+00:00",
+    "endedAt": "2026-11-12T12:28:02.046643+00:00",
+    "elapsedSeconds": 102.901,
+    "sourceSnapshotFiles": 1802,
+    "privateOfflinePackageVersions": 81,
+    "feedArchiveHashesUnchanged": true,
+    "oldCachesMounted": false,
+    "newDownloads": false,
+    "hostPortsPublished": 0,
+    "networkInternal": true,
+    "createdResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "sharedResourcesAtStart": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "sharedResourcesAfter": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "startingResourceIdsRetained": true,
+    "resourceBeforeSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "resourceAfterSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "randomPasswordFileRemoved": true,
+    "historicalEvidenceFilesUnchanged": 2281,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "priorRestoreFailureRetained": true,
+    "priorC08FailureRetained": true,
+    "priorUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical Unknown not cleared",
+    "priorIntegration62RetainedSeparately": true,
+    "fullGatewaySuiteRerun": false,
+    "fullFourSuiteCandidateCiPassed": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false
+  },
+  "candidateFullCiScope": {
+    "inputCommit": "b605cf1d3618436a40c873852e18a5fa5788e4fd",
+    "status": "planned-not-run",
+    "allFourPassed": false,
+    "remoteRunTriggered": false,
+    "projectedCounts": {
+      "console": 321,
+      "domain": 1251,
+      "integration": 2189,
+      "gateway": 560
+    },
+    "projectedTotal": 4321,
+    "projectionIsNotDiscoveryOrPass": true,
+    "sourceDeltaExplanation": {
+      "credentialMain": 11,
+      "credentialLocal": 48,
+      "credentialAdded": 37,
+      "cleanupAdded": 14,
+      "gatewayAdded": 5
+    },
+    "jobTimeoutMinutes": {
+      "console": 15,
+      "domain": 45,
+      "integration": 90,
+      "gateway": 45
+    },
+    "fullPlanSha256": "16c818836be18c867ee7242b07879b9c987e402ad4cb42f2a9c55eeaf2db6ad2",
+    "requiresUnfilteredRunsAgainstSameFrozenSource": true,
+    "publicationAuthorizedByThisPlan": false
   }
 }

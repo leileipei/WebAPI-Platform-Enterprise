@@ -455,7 +455,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "075827ad87cf691ff191ec037689eaa525aa17894be18ac205443468a47daeca",
+    "dataSha256": "1f684571b94aeb7f62abcc9874d04d372a6b4ea7e1e9d9f115f316ad646dcb7f",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -621,6 +621,15 @@
       "priorRestoreFailureRetained": true,
       "newAccepted": 0,
       "gateway20Rerun": false,
+      "fullCandidateCiPassed": false
+    },
+    "latestGateway401Replay": {
+      "sourceRevision": "b605cf1d3618436a40c873852e18a5fa5788e4fd",
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "originalGatewayBuildPassed": true,
+      "newAccepted": 0,
       "fullCandidateCiPassed": false
     }
   },
@@ -1048,7 +1057,7 @@
     "newRequirementsAccepted": 0
   },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"598fb006c4a475ce4a72e3842b706085ad704b4c56c16465a2285cd4f764b669"},
+    {"path":"README.md","category":"navigation","sha256":"fc9327af6b49ca13cad92abaaaf7fde5fff3c55634a1769e3041e01ce879ab0a"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -1087,7 +1096,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"d413cc8f6a026b55e8da04c9e69d95a6d005e16db7f27a0c1e2c824df5399822"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"ea54df7a4bbe4c1d5713f71b5583aece741a7f41deca8b59ac63efa18267e8b6"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -1128,7 +1137,7 @@
     {"path":"docs/deployment/observability-runbook.md","category":"operations-reference","sha256":"4fcbf584bebb56f0ef61605fb542080a5be3594939f7e27076eeaa0966b88aa0"},
     {"path":"docs/deployment/post-upgrade-observation-result.md","category":"historical-deployment-record","sha256":"3547988631980de2a1c641f60fb2dc5c5b8deb3ba98d51bb052a5778ead2752f"},
     {"path":"docs/deployment/release-promotion-runbook.md","category":"operations-reference","sha256":"4c85a39ad2e129c0ac56d19de31e7c52d1f6284d780f5c78e4bd6f1f0026b9b8"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"76f165d9f6a2787756c4e0f1e602affcdca08ce1e9c488b57c495cac0fc0664a"},
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"8693a743e3ae9ff8514a03ed0554cad1ac704e5feb569269e7106d04a09635ff"},
     {"path":"docs/deployment/security-hardening-4192-upgrade-preparation.md","category":"historical-deployment-record","sha256":"136b7dd5f423183d6bdf064e00dc83bc868ece79c67b130afa5383cdda16cd19"},
     {"path":"docs/deployment/security-hardening-runbook.md","category":"operations-reference","sha256":"716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"},
     {"path":"docs/deployment/sso-oidc-capability.md","category":"historical-deployment-record","sha256":"6360783bd9abc94dcfb0ff830c7c01d254ed84f4b74dd0aad231473631848750"},
@@ -2199,5 +2208,130 @@
     "pushed": false,
     "deployed": false,
     "qualification": "Fresh fixed401 original Integration project build and selected62 tests only. Earlier restore failure remains failed. The81 archive checks are input qualification, not81 application tests. No full-suite, browser, deployed-node, production, signer-trust or historical Unknown clearance."
+  },
+  "gateway401ReplayVerification": {
+    "sourceRevision": "b605cf1d3618436a40c873852e18a5fa5788e4fd",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "sdk": "10.0.401",
+    "os": "linux",
+    "architecture": "arm64",
+    "realXunitRunner": true,
+    "originalGatewayProject": "tests/WebApi.Gateway.Tests/WebApi.Gateway.Tests.csproj",
+    "originalGatewayBuildPassed": true,
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "windowCasesPassed": 5,
+    "existingRuntimeCasesPassed": 15,
+    "cases": [
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"shorten\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"multi-segment\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"valid\", status: 200)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"revoked\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"disabled\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"any-valid-window\", status: 200)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"extend\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"future\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"case\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Published_window_includes_exact_start_and_excludes_exact_expiry_on_both_nodes",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"future-grant\", status: 403)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"unknown\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"future\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.CredentialExpiresAtAdmission",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"wrong-secret\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"expired-grant\", status: 403)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"missing\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"empty\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"expired\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"revoke\")"
+    ],
+    "filter": "FullyQualifiedName~WebApi.Gateway.Tests.CredentialWindowActivationTests|FullyQualifiedName~WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries|FullyQualifiedName~WebApi.Gateway.Tests.GatewayRuntimeTests.CredentialExpiresAtAdmission",
+    "scenarioQualification": "same-process two gateway nodes and backends over real local HTTP/PostgreSQL; controllable clock boundaries plus one real wait; not installed-node or SDK E2E acceptance",
+    "buildArtifactHashes": {
+      "tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll": "f1aa231eff8976cdddfaedbce542478f1a796d476b74f4b8852d008662696093",
+      "src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll": "1a0afec39fa7c7cfe136c7859b27a49ea913093bf722d52ffb8f3c6de80882f4"
+    },
+    "logSha256": "b1f072a43e1b05c8b6f2dc84c3419137bb72738e3934bda5f065a840b84b3243",
+    "trxSha256": "c37b3ab4848c583193c545d3ac02291b4d0946dad0b576e4a25d3d4d78651060",
+    "buildBindingsSha256": "6a82f0ecfb73d4c5bb9d7faca5ce8c392ddee10aee8d83e2ed6c158b926aa61d",
+    "startedAt": "2026-11-12T12:26:19.144596+00:00",
+    "endedAt": "2026-11-12T12:28:02.046643+00:00",
+    "elapsedSeconds": 102.901,
+    "sourceSnapshotFiles": 1802,
+    "privateOfflinePackageVersions": 81,
+    "feedArchiveHashesUnchanged": true,
+    "oldCachesMounted": false,
+    "newDownloads": false,
+    "hostPortsPublished": 0,
+    "networkInternal": true,
+    "createdResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "sharedResourcesAtStart": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "sharedResourcesAfter": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "startingResourceIdsRetained": true,
+    "resourceBeforeSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "resourceAfterSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "randomPasswordFileRemoved": true,
+    "historicalEvidenceFilesUnchanged": 2281,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "priorRestoreFailureRetained": true,
+    "priorC08FailureRetained": true,
+    "priorUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical Unknown not cleared",
+    "priorIntegration62RetainedSeparately": true,
+    "fullGatewaySuiteRerun": false,
+    "fullFourSuiteCandidateCiPassed": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false
+  },
+  "candidateFullCiScope": {
+    "inputCommit": "b605cf1d3618436a40c873852e18a5fa5788e4fd",
+    "status": "planned-not-run",
+    "allFourPassed": false,
+    "remoteRunTriggered": false,
+    "projectedCounts": {
+      "console": 321,
+      "domain": 1251,
+      "integration": 2189,
+      "gateway": 560
+    },
+    "projectedTotal": 4321,
+    "projectionIsNotDiscoveryOrPass": true,
+    "sourceDeltaExplanation": {
+      "credentialMain": 11,
+      "credentialLocal": 48,
+      "credentialAdded": 37,
+      "cleanupAdded": 14,
+      "gatewayAdded": 5
+    },
+    "jobTimeoutMinutes": {
+      "console": 15,
+      "domain": 45,
+      "integration": 90,
+      "gateway": 45
+    },
+    "fullPlanSha256": "16c818836be18c867ee7242b07879b9c987e402ad4cb42f2a9c55eeaf2db6ad2",
+    "requiresUnfilteredRunsAgainstSameFrozenSource": true,
+    "publicationAuthorizedByThisPlan": false
   }
 }
