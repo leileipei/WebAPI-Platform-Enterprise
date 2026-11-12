@@ -34,6 +34,8 @@ GitHub 主干与本地目录可能处于不同提交。阅读“当前”“已�
 
 整合后本地离线备份/兼容性测试24项通过，前端类型检查与构建通过；没有下载依赖、启动现场环境或新增需求关闭。原始台账随合并采用公开版本，原33/40/18/363复核数组和历史文件版本继续保留。
 
+随后对`555cd4e`准备原Integration构建与48项凭证、14项清理回归，共计划62项；本次在离线依赖恢复阶段因锁定包缺口停止，构建和测试均未开始，不记为62项失败或跳过。原失败日志保留，未下载或自动重跑；本次自有资源已清理，起始250容器、549卷、43网络标识全部保留。此前独立SDK401/xUnit清理14项通过的资格不变。
+
 前端先执行 `pnpm --dir console install --frozen-lockfile`，再执行 `bash scripts/check-console.sh`。可用 `WEBAPI_NODE`、`WEBAPI_PNPM` 指定已有工具。
 
 后端优先执行 `bash scripts/check-contracts.sh domain`、`integration`、`gateway`。各次使用独立 owner、密码、数据库、依赖缓存和固定 SDK 镜像，退出时按归属清理自己的测试资源。旧 `scripts/check.sh` 使用固定测试项目，不应在共享环境并发运行。

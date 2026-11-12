@@ -14311,6 +14311,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "555cd4e193838e8041f4aead47ecf7af73d698a6",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "7cde276a406544e070daf157269a576a5c930728e16767cf97dda989852d850c",
+      "scope": "Retain all historical objects and454 review entries; append a single frozen Integration preparation failure at offline restore, before compiler or tests. Planned62 is not a test result; preserve prior fixed401 dedicated14 and resource Unknown.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -18782,5 +18852,167 @@
     "pushed": false,
     "deployed": false,
     "qualification": "Fixed401/real xUnit validation of the exact three cleanup sources only. Not an original Integration project build, credential48 regression, SDK E2E, installed-node or production acceptance."
+  },
+  "integration401RestoreAttempt": {
+    "sourceRevision": "555cd4e193838e8041f4aead47ecf7af73d698a6",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "scope": "original Integration project build and selected credential48 plus cleanup14 were planned; restore failed before any compiler or test execution",
+    "status": "restore-failed-before-build-and-tests",
+    "restoreStatus": "failed",
+    "buildStatus": "not-started",
+    "testStatus": "not-started",
+    "plannedCredentialCases": 48,
+    "plannedCleanupCases": 14,
+    "plannedTotal": 62,
+    "executedTests": 0,
+    "passed": null,
+    "failed": null,
+    "skipped": null,
+    "trxCreated": false,
+    "sdkActualVersion": "10.0.401",
+    "os": "linux",
+    "architecture": "arm64",
+    "images": {
+      "postgresImage": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "redisImage": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "sdkImage": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317"
+    },
+    "sourceSnapshotFiles": 1802,
+    "sourceManifestSha256": "8a2529b317ec3b04c4ea120f22a5d82b92909c44580a85e4fce93d9fa896316b",
+    "runnerHashes": {
+      "run-inside.sh": "290c109bcf88e5b2b8549105077cdf6a236c21deb233f7214df4a0bef296ea34",
+      "NuGet.Config": "ccc5fc72dcfc37afc486abce931c28e7788aeba2aa01d03e549d495ea5437bb0"
+    },
+    "logSha256": "2c1fcca67581fdc83a0a5e58ce8a7c3f09ed9c943c576987c67810217f4f8d43",
+    "rawRestoreErrorsSha256": "324abcc12aa6cfaf91fc9799537e0662c63744fa9989d6f76b6668fc2e94a22d",
+    "startedAt": "2026-11-12T02:34:29.466646+00:00",
+    "endedAt": "2026-11-12T02:34:37.481155+00:00",
+    "elapsedSeconds": 8.014,
+    "exitCode": 1,
+    "restoreErrorCodes": [
+      "NU1101",
+      "NU1102"
+    ],
+    "restorePackageGaps": [
+      {
+        "id": "Humanizer.Core",
+        "version": "3.0.10",
+        "lockContentHash": "yZIhtw8sYuvsONzQbZxWpR60tMWYHXoo0DL6nyOqSFiU5POjBTSEyWFpTQtJEZuy+oqiYTXKXY/Mjx7KnqIQFw==",
+        "hostCache": "exact package file missing on host"
+      },
+      {
+        "id": "MailKit",
+        "version": "4.17.0",
+        "lockContentHash": "1nUAVLxM9fhT/78we6/AGsCesnpn5dRNLLeRqOfr52Wnk87pzVwo5YMTMyqnmoXrYc7piGhmayiMA/OgDluIjg==",
+        "hostCache": "exact package file missing on host"
+      },
+      {
+        "id": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
+        "version": "10.0.12",
+        "lockContentHash": "UfkKr9EP+LBgnFfxwkfnZzta7XkalCroZWoxg2yW9dt8iPXO7bJYpcmyFIeM+FLcAlOKZeduP93XhuCcfWaYIQ==",
+        "hostCache": "exact package file missing on host"
+      },
+      {
+        "id": "Microsoft.IdentityModel.JsonWebTokens",
+        "version": "8.19.2",
+        "lockContentHash": "ui3fuBT4fs8kdKfBthI4NzLYIBIneEVS8UrL1JVBzAn80UiKmngBBi0BEByE7n/9c+EElcfFlCMFFTqpkBSLNA==",
+        "hostCache": "archive/sidecar plus recorded metadata matches lock; no NuGet recomputation"
+      },
+      {
+        "id": "Microsoft.IdentityModel.Protocols.OpenIdConnect",
+        "version": "8.19.2",
+        "lockContentHash": "1XOcyY36cVymzE3qKdzKaUEZ4Pzt7ZpSa14JZoPPK1NLFUkQDs85TCqpV6XDo0YjFXj6nVK00AfOHppjghjhtw==",
+        "hostCache": "archive/sidecar plus recorded metadata matches lock; no NuGet recomputation"
+      },
+      {
+        "id": "Microsoft.IdentityModel.Tokens",
+        "version": "8.19.2",
+        "lockContentHash": "GtPC1S02uH1gOO4fQ+zRysIicKmEXaYFP8PIkdJYXqMyruYhopre4ozVHp0XiDSA0+GJvOZH9prxCPvgBMg4Ww==",
+        "hostCache": "archive/sidecar plus recorded metadata matches lock; no NuGet recomputation"
+      },
+      {
+        "id": "System.Security.Cryptography.Pkcs",
+        "version": "10.0.13",
+        "lockContentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw==",
+        "hostCache": "exact package file missing on host"
+      },
+      {
+        "id": "YamlDotNet",
+        "version": "18.1.0",
+        "lockContentHash": "5K+9KFg2TdTl7VXv88Qzi/0lqK6JFoNP3lRuImPYGRV7K/QYklDyTrj4+A+KAki1JsQi6qKY+hDyY7d6WRqjrw==",
+        "hostCache": "exact package file missing on host"
+      }
+    ],
+    "hostCacheAudit": {
+      "lockFiles": 21,
+      "lockedPackageVersions": 81,
+      "archiveAndCacheSidecarMatches": 38,
+      "cachedMetadataContentHashMatchesLock": 38,
+      "packageFilesMissing": 43,
+      "metadataHashMismatchEvidence": 0,
+      "nugetContentHashIndependentlyRecomputed": false,
+      "fullSeedInventoryAvailable": false,
+      "hostMissing43DoesNotDescribeSeedVolumeMissingCount": true,
+      "qualification": "cached metadata comparison and raw archive/sidecar validation only; not NuGet restore or independent normalized content-hash verification"
+    },
+    "rawArchiveVsLockHashComparisonPreservedButNotQualified": true,
+    "hashReference": "https://github.com/NuGet/Home/wiki/Nupkg-Metadata-File",
+    "dependencyGapManifestSha256": "dc3918921b3faf11e6f97793b60c7e2f53ad74dccd7967a4db2b818c2c695c33",
+    "hostCacheQualificationSha256": "a1c65824b898b4d9a04e3ace07c9c2ca7ac399f40767013322f0a7d7b302c287",
+    "sharedSeedReadOnly": true,
+    "sourceReadOnly": true,
+    "networkInternal": true,
+    "hostPortsPublished": 0,
+    "externalNuGetSourcesConfigured": false,
+    "dependenciesDownloaded": false,
+    "packageVersionsOrLocksChanged": false,
+    "automaticRetry": false,
+    "newAttemptStartedAfterFailure": false,
+    "postgresRedisStarted": true,
+    "controlPlaneOrChildStarted": false,
+    "httpAcceptanceStarted": false,
+    "createdResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "sharedResourcesAtStart": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "sharedResourcesAfter": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "startingResourceIdsRetained": true,
+    "resourceBeforeSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "resourceAfterSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "createdResourceBindingsSha256": "c28158acc0131493fa4d6bc199567cde16b52ab124169ba76096cd79c94bbce6",
+    "randomPasswordFileRemoved": true,
+    "priorC08FailureRetained": true,
+    "priorResourceUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical Unknown not cleared",
+    "historicalEvidenceFilesUnchanged": 404,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "priorIndependentFixed401Cleanup14Retained": true,
+    "prior48StillBoundToHistoricalCommit": true,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false,
+    "nextSteps": [
+      "Inventory the existing seed under a separately frozen read-only scope before claiming complete union coverage.",
+      "Prepare a separate offline feed using exact locked versions and NuGet content-hash validation; do not overwrite the original shared seed or edit lock files.",
+      "If any locked packages remain unavailable, disclose the exact acquisition list/source and obtain the necessary network scope before downloading.",
+      "Create a fresh bounded attempt only after dependency readiness is proven; retain this restore failure and all historical resource Unknown."
+    ],
+    "qualification": "Dependency-readiness failure, not a compiler/test/product failure. No62-case pass/fail/skip result exists. Prior fixed401 dedicated cleanup14 and old48 results retain original versions and scope."
   }
 }
