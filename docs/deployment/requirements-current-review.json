@@ -14591,6 +14591,75 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "62f90b436c1c4b372263172b0a8b344ba54e2f33",
+      "sha256": "88a6fade778f6afa14f19ebf74b9372d142e2cb5cda3b4a8b7a5d3be1b2ac72d",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      },
+      "description": "Preserved before read-only shared-container diagnosis and separately frozen full Integration result; previous full attempt remains stopped and inherited Unknown/incomplete retained."
     }
   ],
   "targetedFollowup": {
@@ -19605,5 +19674,218 @@
     "pushed": false,
     "deployed": false,
     "qualification": "Three successful unfiltered local suites only, after frontend environment corrections. Gateway test process succeeded but its preservation check failed. Integration was not started.2132 is not a four-suite or GitHub CI pass and cannot be combined with prior targeted62/20."
+  },
+  "sharedContainerReadOnlyDiagnosis": {
+    "missingContainerId": "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88",
+    "status": "Unknown",
+    "observations": {
+      "firstSeenInDomainAfterInventory": true,
+      "absentFromDomainStartingInventory": true,
+      "absentFromGatewayAfterInventory": true,
+      "notInSixOwnedContainerIds": true,
+      "historicalNameOwnerLabelsNotCaptured": true,
+      "expandedEventWindow": [
+        "2026-11-12T14:17:00Z",
+        "2026-11-12T14:28:01Z"
+      ],
+      "expandedEventCount": 0,
+      "allTypesWindowEventCount": 0,
+      "currentInspectExitCode": 1,
+      "currentContainerCount": 256,
+      "gatewayAfterIdsStillPresentNow": true,
+      "foreignContainersAddedSinceGateway": 2,
+      "containersWithRetainedOwnershipLabels": 167,
+      "containersWithoutRetainedOwnershipLabels": 89
+    },
+    "limits": [
+      "Inventory samples bound observation, not an exact deletion timestamp.",
+      "No returned events does not establish that no deletion occurred or explain event retention.",
+      "Historical snapshots did not bind daemon ID/endpoint; current OrbStack identity cannot retroactively prove historical context.",
+      "No current foreign container is assumed to be the missing container or its replacement.",
+      "Unlabelled or newly appearing containers are not deemed disposable or excluded from protection.",
+      "Label counts refer only to retained com.docker.compose/com.webapi ownership labels, not proof of all original labels."
+    ],
+    "searches": [
+      {
+        "scope": "this worktree .superpowers JSON/JSONL/log",
+        "result": "exact ID found only in recorded full-candidate evidence, no historical name/owner"
+      },
+      {
+        "scope": "status-ledger-sync and primary enterprise .superpowers JSON/JSONL/log",
+        "result": "no exact ID match"
+      },
+      {
+        "scope": "current-day Codex session exact-ID matches",
+        "result": "same-worktree review/approval echoes only; no independent creation or deletion record"
+      },
+      {
+        "scope": "existing ~/.orbstack/log files, exact full ID/prefix",
+        "result": "no match; no daemon internal files or VM filesystem accessed"
+      }
+    ],
+    "cause": "Unknown",
+    "name": "Unknown",
+    "owner": "Unknown",
+    "restored": false,
+    "runtimeMutations": 0,
+    "oldUnknownOrFailuresCleared": false,
+    "nextScopeBoundary": {
+      "oldAttempt": "remain stopped; Integration not started",
+      "historicalMissingIds": "remain Unknown/incomplete; no restoration, cause attribution or acceptance",
+      "newAttempt": "separate one-shot full Integration only after fresh immutable scope/preflight; not an automatic rerun",
+      "protectedResources": "ALL starting current containers by full ID, ALL starting networks by full ID and volume names/metadata; no exception for unlabelled/temporary/foreign resources",
+      "maxOwnResources": {
+        "containers": 3,
+        "volumes": 2,
+        "networks": 1
+      },
+      "cleanupAuthority": "only exact newly bound IDs/names additionally matching random owner+project+service and absent from protected baseline; fail closed on ambiguity",
+      "runtimeIdentity": "explicit current OrbStack context, endpoint and daemon ID pinned; drift stops before further mutation",
+      "dataAccess": "source/feed read-only copies; no existing volumes, no Docker socket or host ports; no foreign exec/log/file reads",
+      "images": "already installed pinned ARM64 SDK401/Postgres/Redis; never pull",
+      "test": "original Integration project, unfiltered, 90 minute budget, full log/TRX; expected2189 remains projection until execution",
+      "observation": "capture metadata for all starting resources and read-only live events before mutation; retained observer limitations do not clear history",
+      "stop": "test failure/timeout, resource ID loss, cleanup or daemon identity ambiguity => stop; no automatic retry",
+      "qualification": "fresh-run test and preservation results separate; inherited preservation incomplete remains even on success",
+      "pushDeployOrOriginalInstallChanges": false
+    },
+    "recordedAt": "2026-11-12T15:38:49.859362+00:00"
+  },
+  "integrationFullPreservationVerification": {
+    "sourceRevision": "62f90b436c1c4b372263172b0a8b344ba54e2f33",
+    "backendSourceEquivalentTo": "155de03130dbab2d884882dc804f4d83ad5f8b94",
+    "onlyFiveDocumentationFilesChangedBetweenInputs": true,
+    "status": "passed-with-inherited-resource-incomplete",
+    "unfiltered": true,
+    "sdk": "10.0.401",
+    "expectedCountBeforeRunNotResult": 2189,
+    "actualTrxCounters": {
+      "total": 2189,
+      "executed": 2189,
+      "passed": 2189,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    },
+    "originalProjectBuildPassed": true,
+    "passed": 2189,
+    "failed": 0,
+    "skipped": 0,
+    "testProcessExitCode": 0,
+    "error": null,
+    "newAttemptTestAndPreservationQualified": true,
+    "beforeCounts": {
+      "containers": 256,
+      "volumes": 549,
+      "networks": 43
+    },
+    "afterCounts": {
+      "containers": 258,
+      "volumes": 549,
+      "networks": 43
+    },
+    "allStartingResourceIdsRetained": true,
+    "allStartingVolumeMetadataRetained": true,
+    "missingStartingResources": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "changedStartingVolumes": [],
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "cleanupErrors": [],
+    "temporaryPasswordRemoved": true,
+    "activeGuardTriggered": false,
+    "liveResourceObservations": 337,
+    "liveEventsRecorded": 48263,
+    "eventObserverHealthy": true,
+    "runtimeIdentityPinned": true,
+    "cleanupExactCreatedBindingsOnly": true,
+    "maximumOwnResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "hostPortsPublished": 0,
+    "networkInternal": true,
+    "noDockerSocketOrExistingVolumesMounted": true,
+    "sourceAndPrivate81FeedReadOnly": true,
+    "newDownloads": false,
+    "originalInstallationModified": false,
+    "automaticRetry": false,
+    "originalStoppedAttemptRemainsUnchanged": true,
+    "originalStoppedAttemptIntegration": "not-started",
+    "originalStoppedAttemptAllFourPassed": false,
+    "earlierConsoleEnvironmentFailuresRetained": true,
+    "priorRestoreAndC08FailuresRetained": true,
+    "missingSharedContainerId": "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88",
+    "missingSharedName": "Unknown",
+    "missingSharedOwner": "Unknown",
+    "missingSharedCause": "Unknown",
+    "historicalResourcePreservationQualification": "incomplete; all inherited Unknown retained",
+    "historicalMissingResourcesRestored": false,
+    "readOnlyDiagnosisSha256": "c35aaf9fa045909dee406757114027f57ae461443d7360f35608340b0d07d6d9",
+    "runLogSha256": "ecc92bfc1e966a7061d0bc6ffadc634440c7e7c1940765bed14c5a43ff9241b9",
+    "trxSha256": "235c50c231e456a4e6bcaccc128b3f34960bdf8a94668956a230c5c77c566129",
+    "runResultSha256": "989e0a5a2c6a9bdc910e5dd464de6f292363af71d2f52fb826fe82e46e570e05",
+    "eventLogSha256": "b5d87826b29d7fb04924343a53b357d9a2aad30258f5f7a736b90bb2277c1c0b",
+    "beforeMetadataSha256": "d4ace822cf64732aae1f51248dffa305588d8384482bd922b71ecc0f9393fc4d",
+    "afterMetadataSha256": "10131826a35a7d8717178cdd7efb42b5f99a47cb1b10e416e5e729d8c1c260c7",
+    "createdBindingsSha256": "64985abe6cb2ab4df8a7fc36850795fdb964f56a9464614a07e388d534a653ee",
+    "preRunReviewSha256": "ec17eca40dacd48fece87294c70b5073260293657d59b4adc108bd593fe6afdd",
+    "guardChecksOffline": 12,
+    "guardChecksAreProductTests": false,
+    "trackedFilesPreservedDuringRun": 4375,
+    "otherTrackedFilesAfterDocumentationUpdate": 4370,
+    "historicalEvidenceFilesUnchanged": 2374,
+    "readOnlyEvidenceFilesUnchanged": 8,
+    "sourceFilesAndModesVerified": 1802,
+    "privateFeedVersions": 81,
+    "primaryFilesAndStatusUnchanged": 14,
+    "newRequirementsAccepted": 0,
+    "githubHostedCiRun": false,
+    "pushed": false,
+    "deployed": false,
+    "startedAt": "2026-11-12T15:51:13.509966+00:00",
+    "endedAt": "2026-11-12T16:30:15.925748+00:00",
+    "resourceObservationIntervalSeconds": {
+      "pollingTarget": 5,
+      "includesCliQueryAndWaitTime": true,
+      "actualMedian": 6.967,
+      "actualMaximum": 7.32
+    },
+    "preservationBoundaryLimits": [
+      "Protect all starting container/network full IDs and volume names with creation metadata; no owner-based exclusion.",
+      "No inspection or proof of pre-existing volume content consistency, business process state, availability or service health.",
+      "Shared-daemon external actions are outside this runner control; this attempt does not explain, restore or accept prior loss."
+    ],
+    "sameSourceLocalSuiteCoverage": {
+      "console": 321,
+      "domain": 1251,
+      "gateway": 560,
+      "integration": 2189,
+      "allFourTestSuitesCovered": true,
+      "totalPassed": 4321,
+      "singleGitHubRun": false,
+      "singleOriginalFourSuiteAttemptPassed": false,
+      "qualifier": "Results from two separately frozen attempts with only documentation differences; previous resource guard failure and cumulative resource incomplete remain."
+    },
+    "newNonOwnedContainersObservedAfterStart": 2,
+    "newNonOwnedContainersUntouched": true,
+    "newForeignResourceObservationsSha256": "bd6fc00e81fa90077d0a645fee45cf5df6901504abd7f862fb2831ab3d380c32"
   }
 }

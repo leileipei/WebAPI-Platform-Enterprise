@@ -455,7 +455,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "88a6fade778f6afa14f19ebf74b9372d142e2cb5cda3b4a8b7a5d3be1b2ac72d",
+    "dataSha256": "bd0d3b06b801c245612bde5d0ce4708f5cc2e51c15897665b7008b3e95bf7ab3",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -641,6 +641,20 @@
       "integration": "not-started",
       "allFourPassed": false,
       "newResourceUnknown": true,
+      "newAccepted": 0
+    },
+    "latestIntegrationFullPreservationVerification": {
+      "sourceRevision": "62f90b436c1c4b372263172b0a8b344ba54e2f33",
+      "passed": 2189,
+      "failed": 0,
+      "skipped": 0,
+      "newAttemptStartingResourcesRetained": true,
+      "oldAttemptStillStopped": true,
+      "oldUnknownCleared": false,
+      "sameSourceFourSuiteTestsCovered": true,
+      "sameSourceTotalPassed": 4321,
+      "githubHostedCiRun": false,
+      "cumulativeResourcePreservation": "incomplete",
       "newAccepted": 0
     }
   },
@@ -1068,7 +1082,7 @@
     "newRequirementsAccepted": 0
   },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"620aa9991bceb3c666917a0556d74770059b7f5550ce847ea4a36dd22a993caa"},
+    {"path":"README.md","category":"navigation","sha256":"36dc3e82caca4192d577944ccf911c211e2d557d5ed884e870cb82befda9771b"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -1107,7 +1121,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"15168ead3c665f21d63d9ec00a2ac3fb164dbe566e123c375eaf9607b0fb5e21"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"c8b7677a02b3650591b2997c78087b3b2c05c734da33b6350d7688f2de5c1864"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -1148,7 +1162,7 @@
     {"path":"docs/deployment/observability-runbook.md","category":"operations-reference","sha256":"4fcbf584bebb56f0ef61605fb542080a5be3594939f7e27076eeaa0966b88aa0"},
     {"path":"docs/deployment/post-upgrade-observation-result.md","category":"historical-deployment-record","sha256":"3547988631980de2a1c641f60fb2dc5c5b8deb3ba98d51bb052a5778ead2752f"},
     {"path":"docs/deployment/release-promotion-runbook.md","category":"operations-reference","sha256":"4c85a39ad2e129c0ac56d19de31e7c52d1f6284d780f5c78e4bd6f1f0026b9b8"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"102105e35170cba92f3fb8617c5b9d9321da99658c7232ab76200514ccf1b9c2"},
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"91334487b002e212eab9c05a50df2403f2297f8f617b64517991a459d48bac3c"},
     {"path":"docs/deployment/security-hardening-4192-upgrade-preparation.md","category":"historical-deployment-record","sha256":"136b7dd5f423183d6bdf064e00dc83bc868ece79c67b130afa5383cdda16cd19"},
     {"path":"docs/deployment/security-hardening-runbook.md","category":"operations-reference","sha256":"716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"},
     {"path":"docs/deployment/sso-oidc-capability.md","category":"historical-deployment-record","sha256":"6360783bd9abc94dcfb0ff830c7c01d254ed84f4b74dd0aad231473631848750"},
@@ -2486,5 +2500,218 @@
     "pushed": false,
     "deployed": false,
     "qualification": "Three successful unfiltered local suites only, after frontend environment corrections. Gateway test process succeeded but its preservation check failed. Integration was not started.2132 is not a four-suite or GitHub CI pass and cannot be combined with prior targeted62/20."
+  },
+  "sharedContainerReadOnlyDiagnosis": {
+    "missingContainerId": "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88",
+    "status": "Unknown",
+    "observations": {
+      "firstSeenInDomainAfterInventory": true,
+      "absentFromDomainStartingInventory": true,
+      "absentFromGatewayAfterInventory": true,
+      "notInSixOwnedContainerIds": true,
+      "historicalNameOwnerLabelsNotCaptured": true,
+      "expandedEventWindow": [
+        "2026-11-12T14:17:00Z",
+        "2026-11-12T14:28:01Z"
+      ],
+      "expandedEventCount": 0,
+      "allTypesWindowEventCount": 0,
+      "currentInspectExitCode": 1,
+      "currentContainerCount": 256,
+      "gatewayAfterIdsStillPresentNow": true,
+      "foreignContainersAddedSinceGateway": 2,
+      "containersWithRetainedOwnershipLabels": 167,
+      "containersWithoutRetainedOwnershipLabels": 89
+    },
+    "limits": [
+      "Inventory samples bound observation, not an exact deletion timestamp.",
+      "No returned events does not establish that no deletion occurred or explain event retention.",
+      "Historical snapshots did not bind daemon ID/endpoint; current OrbStack identity cannot retroactively prove historical context.",
+      "No current foreign container is assumed to be the missing container or its replacement.",
+      "Unlabelled or newly appearing containers are not deemed disposable or excluded from protection.",
+      "Label counts refer only to retained com.docker.compose/com.webapi ownership labels, not proof of all original labels."
+    ],
+    "searches": [
+      {
+        "scope": "this worktree .superpowers JSON/JSONL/log",
+        "result": "exact ID found only in recorded full-candidate evidence, no historical name/owner"
+      },
+      {
+        "scope": "status-ledger-sync and primary enterprise .superpowers JSON/JSONL/log",
+        "result": "no exact ID match"
+      },
+      {
+        "scope": "current-day Codex session exact-ID matches",
+        "result": "same-worktree review/approval echoes only; no independent creation or deletion record"
+      },
+      {
+        "scope": "existing ~/.orbstack/log files, exact full ID/prefix",
+        "result": "no match; no daemon internal files or VM filesystem accessed"
+      }
+    ],
+    "cause": "Unknown",
+    "name": "Unknown",
+    "owner": "Unknown",
+    "restored": false,
+    "runtimeMutations": 0,
+    "oldUnknownOrFailuresCleared": false,
+    "nextScopeBoundary": {
+      "oldAttempt": "remain stopped; Integration not started",
+      "historicalMissingIds": "remain Unknown/incomplete; no restoration, cause attribution or acceptance",
+      "newAttempt": "separate one-shot full Integration only after fresh immutable scope/preflight; not an automatic rerun",
+      "protectedResources": "ALL starting current containers by full ID, ALL starting networks by full ID and volume names/metadata; no exception for unlabelled/temporary/foreign resources",
+      "maxOwnResources": {
+        "containers": 3,
+        "volumes": 2,
+        "networks": 1
+      },
+      "cleanupAuthority": "only exact newly bound IDs/names additionally matching random owner+project+service and absent from protected baseline; fail closed on ambiguity",
+      "runtimeIdentity": "explicit current OrbStack context, endpoint and daemon ID pinned; drift stops before further mutation",
+      "dataAccess": "source/feed read-only copies; no existing volumes, no Docker socket or host ports; no foreign exec/log/file reads",
+      "images": "already installed pinned ARM64 SDK401/Postgres/Redis; never pull",
+      "test": "original Integration project, unfiltered, 90 minute budget, full log/TRX; expected2189 remains projection until execution",
+      "observation": "capture metadata for all starting resources and read-only live events before mutation; retained observer limitations do not clear history",
+      "stop": "test failure/timeout, resource ID loss, cleanup or daemon identity ambiguity => stop; no automatic retry",
+      "qualification": "fresh-run test and preservation results separate; inherited preservation incomplete remains even on success",
+      "pushDeployOrOriginalInstallChanges": false
+    },
+    "recordedAt": "2026-11-12T15:38:49.859362+00:00"
+  },
+  "integrationFullPreservationVerification": {
+    "sourceRevision": "62f90b436c1c4b372263172b0a8b344ba54e2f33",
+    "backendSourceEquivalentTo": "155de03130dbab2d884882dc804f4d83ad5f8b94",
+    "onlyFiveDocumentationFilesChangedBetweenInputs": true,
+    "status": "passed-with-inherited-resource-incomplete",
+    "unfiltered": true,
+    "sdk": "10.0.401",
+    "expectedCountBeforeRunNotResult": 2189,
+    "actualTrxCounters": {
+      "total": 2189,
+      "executed": 2189,
+      "passed": 2189,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    },
+    "originalProjectBuildPassed": true,
+    "passed": 2189,
+    "failed": 0,
+    "skipped": 0,
+    "testProcessExitCode": 0,
+    "error": null,
+    "newAttemptTestAndPreservationQualified": true,
+    "beforeCounts": {
+      "containers": 256,
+      "volumes": 549,
+      "networks": 43
+    },
+    "afterCounts": {
+      "containers": 258,
+      "volumes": 549,
+      "networks": 43
+    },
+    "allStartingResourceIdsRetained": true,
+    "allStartingVolumeMetadataRetained": true,
+    "missingStartingResources": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "changedStartingVolumes": [],
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "cleanupErrors": [],
+    "temporaryPasswordRemoved": true,
+    "activeGuardTriggered": false,
+    "liveResourceObservations": 337,
+    "liveEventsRecorded": 48263,
+    "eventObserverHealthy": true,
+    "runtimeIdentityPinned": true,
+    "cleanupExactCreatedBindingsOnly": true,
+    "maximumOwnResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "hostPortsPublished": 0,
+    "networkInternal": true,
+    "noDockerSocketOrExistingVolumesMounted": true,
+    "sourceAndPrivate81FeedReadOnly": true,
+    "newDownloads": false,
+    "originalInstallationModified": false,
+    "automaticRetry": false,
+    "originalStoppedAttemptRemainsUnchanged": true,
+    "originalStoppedAttemptIntegration": "not-started",
+    "originalStoppedAttemptAllFourPassed": false,
+    "earlierConsoleEnvironmentFailuresRetained": true,
+    "priorRestoreAndC08FailuresRetained": true,
+    "missingSharedContainerId": "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88",
+    "missingSharedName": "Unknown",
+    "missingSharedOwner": "Unknown",
+    "missingSharedCause": "Unknown",
+    "historicalResourcePreservationQualification": "incomplete; all inherited Unknown retained",
+    "historicalMissingResourcesRestored": false,
+    "readOnlyDiagnosisSha256": "c35aaf9fa045909dee406757114027f57ae461443d7360f35608340b0d07d6d9",
+    "runLogSha256": "ecc92bfc1e966a7061d0bc6ffadc634440c7e7c1940765bed14c5a43ff9241b9",
+    "trxSha256": "235c50c231e456a4e6bcaccc128b3f34960bdf8a94668956a230c5c77c566129",
+    "runResultSha256": "989e0a5a2c6a9bdc910e5dd464de6f292363af71d2f52fb826fe82e46e570e05",
+    "eventLogSha256": "b5d87826b29d7fb04924343a53b357d9a2aad30258f5f7a736b90bb2277c1c0b",
+    "beforeMetadataSha256": "d4ace822cf64732aae1f51248dffa305588d8384482bd922b71ecc0f9393fc4d",
+    "afterMetadataSha256": "10131826a35a7d8717178cdd7efb42b5f99a47cb1b10e416e5e729d8c1c260c7",
+    "createdBindingsSha256": "64985abe6cb2ab4df8a7fc36850795fdb964f56a9464614a07e388d534a653ee",
+    "preRunReviewSha256": "ec17eca40dacd48fece87294c70b5073260293657d59b4adc108bd593fe6afdd",
+    "guardChecksOffline": 12,
+    "guardChecksAreProductTests": false,
+    "trackedFilesPreservedDuringRun": 4375,
+    "otherTrackedFilesAfterDocumentationUpdate": 4370,
+    "historicalEvidenceFilesUnchanged": 2374,
+    "readOnlyEvidenceFilesUnchanged": 8,
+    "sourceFilesAndModesVerified": 1802,
+    "privateFeedVersions": 81,
+    "primaryFilesAndStatusUnchanged": 14,
+    "newRequirementsAccepted": 0,
+    "githubHostedCiRun": false,
+    "pushed": false,
+    "deployed": false,
+    "startedAt": "2026-11-12T15:51:13.509966+00:00",
+    "endedAt": "2026-11-12T16:30:15.925748+00:00",
+    "resourceObservationIntervalSeconds": {
+      "pollingTarget": 5,
+      "includesCliQueryAndWaitTime": true,
+      "actualMedian": 6.967,
+      "actualMaximum": 7.32
+    },
+    "preservationBoundaryLimits": [
+      "Protect all starting container/network full IDs and volume names with creation metadata; no owner-based exclusion.",
+      "No inspection or proof of pre-existing volume content consistency, business process state, availability or service health.",
+      "Shared-daemon external actions are outside this runner control; this attempt does not explain, restore or accept prior loss."
+    ],
+    "sameSourceLocalSuiteCoverage": {
+      "console": 321,
+      "domain": 1251,
+      "gateway": 560,
+      "integration": 2189,
+      "allFourTestSuitesCovered": true,
+      "totalPassed": 4321,
+      "singleGitHubRun": false,
+      "singleOriginalFourSuiteAttemptPassed": false,
+      "qualifier": "Results from two separately frozen attempts with only documentation differences; previous resource guard failure and cumulative resource incomplete remain."
+    },
+    "newNonOwnedContainersObservedAfterStart": 2,
+    "newNonOwnedContainersUntouched": true,
+    "newForeignResourceObservationsSha256": "bd6fc00e81fa90077d0a645fee45cf5df6901504abd7f862fb2831ab3d380c32"
   }
 }
