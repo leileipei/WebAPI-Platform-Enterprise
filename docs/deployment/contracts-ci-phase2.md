@@ -4,7 +4,7 @@
 
 ## 配置范围
 
-[后端工作流](../../.github/workflows/contracts-ci.yml)以固定矩阵生成 `contracts-domain`、`contracts-integration`、`contracts-gateway` 三个独立检查，使用 `ubuntu-24.04-arm`，`fail-fast: false`。起初每套 45 分钟；经首次远程超时分析和明确追加授权后，当前 Integration 为 60 分钟，Domain/Gateway 仍为 45 分钟。某套失败不会取消其他套的 GitHub runner。
+[后端工作流](../../.github/workflows/contracts-ci.yml)以固定矩阵生成 `contracts-domain`、`contracts-integration`、`contracts-gateway` 三个独立检查，使用 `ubuntu-24.04-arm`，`fail-fast: false`。起初每套 45 分钟；经首次远程超时分析和明确追加授权后，PR #5 阶段 Integration 调为 60 分钟。后续 PR #9 已在固定主干 `50d6fb9` 调为 90 分钟，Domain/Gateway 仍为 45 分钟；现行上限以固定版本工作流为准。某套失败不会取消其他套的 GitHub runner。
 
 使用与首批相同的固定 checkout/setup-node 提交及 Node 24.22.1；默认 `contents: read`，不持久化 checkout 凭据。main PR、main push、手动触发，无路径过滤；并发组包含工作流与 PR/ref，不与首批相互取消。不设置失败忽略、自动重试、工件上传或部署。
 

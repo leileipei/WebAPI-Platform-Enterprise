@@ -16,7 +16,7 @@
 
 [AuditedCommandExecutor](../src/WebApi.Infrastructure/Persistence/AuditedCommandExecutor.cs)捕获字段白名单；业务提交与其审计写入在同一事务，审计失败不能独立留下成功业务。密码、秘密和会话材料不属于业务审计白名单。
 
-本地 `00f45a8` 的[审计范围查询](../src/WebApi.Infrastructure/Governance/AuditAccessQuery.cs)还会对授权迁移前后每个快照解析真实环境及项目，再匹配读取者范围；历史记录原文不改写。对应修复尚未进入当前 GitHub 主干，版本差异见状态页。
+源自 `00f45a8` 的[审计范围查询](../src/WebApi.Infrastructure/Governance/AuditAccessQuery.cs)还会对授权迁移前后每个快照解析真实环境及项目，再匹配读取者范围；历史记录原文不改写。该修复已随 PR #5 合入 main `3774ccc`；本次核实的固定主干 `50d6fb9` 继续包含该约束，版本及运行资格见状态页。
 
 ## 初始化与已扩展模块
 
