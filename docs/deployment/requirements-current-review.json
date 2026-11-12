@@ -14381,6 +14381,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "3d23c138f4e7df13b856f37c69ca41a99b630ccb",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "48954c9f83052db60e848dccaed85834358851a950cecf2cb52bb1b9d94631a8",
+      "scope": "Keep prior restore failure, dedicated14 and every historical object; append private81 offline feed qualification and a fresh fixed401 original Integration build plus selected62 pass. No new requirement acceptance.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -19014,5 +19084,119 @@
       "Create a fresh bounded attempt only after dependency readiness is proven; retain this restore failure and all historical resource Unknown."
     ],
     "qualification": "Dependency-readiness failure, not a compiler/test/product failure. No62-case pass/fail/skip result exists. Prior fixed401 dedicated cleanup14 and old48 results retain original versions and scope."
+  },
+  "integration401ReplayVerification": {
+    "sourceRevision": "3d23c138f4e7df13b856f37c69ca41a99b630ccb",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "status": "targeted-original-integration-build-and-tests-passed",
+    "sdk": "10.0.401",
+    "os": "linux",
+    "architecture": "arm64",
+    "realXunitRunner": true,
+    "visualStudioAdapter": "3.1.5",
+    "originalIntegrationProject": "tests/WebApi.Integration.Tests/WebApi.Integration.Tests.csproj",
+    "originalIntegrationBuildPassed": true,
+    "warnings": 0,
+    "errors": 0,
+    "solutionLockedRestorePassed": true,
+    "runtimeToolLockedRestorePassed": true,
+    "runtimeToolAndMigratorBuildPassed": true,
+    "passed": 62,
+    "failed": 0,
+    "skipped": 0,
+    "credentialCasesPassed": 48,
+    "cleanupCasesPassed": 14,
+    "crossProcessCasesPassed": 4,
+    "crossProcessCases": [
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"scope\", revokeFirst: True)",
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"permission\", revokeFirst: False)",
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"permission\", revokeFirst: True)",
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"scope\", revokeFirst: False)"
+    ],
+    "testFilter": "FullyQualifiedName~WebApi.Integration.Tests.CredentialImpactTests|FullyQualifiedName~WebApi.Integration.Tests.ChildProcessCleanupTests|FullyQualifiedName~WebApi.Integration.Tests.ChildProcessCleanupNativeTests",
+    "buildArtifactHashes": {
+      "tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.dll": "1f2d78347b61efe553b72964168768c1d7422c929069a7cf517318e898b9b063",
+      "src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll": "1a0afec39fa7c7cfe136c7859b27a49ea913093bf722d52ffb8f3c6de80882f4"
+    },
+    "logSha256": "000c5d1eaa7e053c7a33121cff8ade966b5ffa622b273d09ba7141c24e955c60",
+    "trxSha256": "a5bc666df012f532549d3beb98b745dbc2570fb239ae9c4d9325606b623df5d2",
+    "buildBindingsSha256": "8181b7869c7076bd3ea3eb48a14ab345ea01bc3418dd25dd5ba1a7fa339a265a",
+    "sourceSnapshotFiles": 1802,
+    "sourceManifestSha256": "8a2529b317ec3b04c4ea120f22a5d82b92909c44580a85e4fce93d9fa896316b",
+    "offlineFeed": {
+      "packageVersions": 81,
+      "lockFiles": 21,
+      "nugetPackageIdentityAndContentHashesMatched": 81,
+      "oldSeedAndHostUnion": 74,
+      "copiedFrom": {
+        "project-counts-cache": 7,
+        "host-cache": 8,
+        "old-seed": 66
+      },
+      "readinessSha256": "8fadb4663ea8995155d747a1093ca0b777c604bd89930c575976747b0f0d24ec",
+      "hashReportSha256": "08a06d2df20dd43b312dfffb9e29acb2c5a3ddf102aca5ec8037ee967680f45c",
+      "hashToolSdk": "10.0.403",
+      "hashToolPurpose": "NuGet identity/content-hash input verification only; actual application restore/build/tests use SDK401",
+      "signatureTrustOrCurrentRevocationQualificationGranted": false,
+      "sourceCacheArchiveAndMetadataBytesPreserved": true,
+      "signedArchivePayloadIntegrityVerified": 81,
+      "payloadIntegrityReportSha256": "1d33f3ccb4eee9636e3a077e63dfcc2714ac750ca157d883b29ba86d4c591547",
+      "payloadIntegrityToolSourceSha256": "899dbd190d06aaec8af02c2f44f8aa047cf2f4492c68d1406429fc3fda274d3c",
+      "payloadIntegrityToolAssemblySha256": "1a146031ad3b8973bd8ad4ebf4acd4be460ebb05a30bde3d3b2fbb9bda86f991",
+      "payloadIntegrityLogSha256": "375f4437c18dff36389ac30c2f907a9cb3a1b5b0fa156dd645d1daeac8426e4a",
+      "macCryptoModuleNoticePreserved": true
+    },
+    "sharedCacheMountedDuringReplay": false,
+    "sourceRunnerAndPrivateFeedReadOnly": true,
+    "externalNuGetSourceConfigured": false,
+    "newDownloads": false,
+    "originalCachesModified": false,
+    "networkInternal": true,
+    "hostPortsPublished": 0,
+    "createdResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "startingResourceIdsRetained": true,
+    "sharedResourcesAtStart": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "sharedResourcesAfter": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "resourceBeforeSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "resourceAfterSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "childDirectoriesRemaining": 0,
+    "randomPasswordFileRemoved": true,
+    "startedAt": "2026-11-12T04:00:41.918470+00:00",
+    "endedAt": "2026-11-12T04:03:02.071768+00:00",
+    "elapsedSeconds": 140.149,
+    "priorRestoreFailureRetained": true,
+    "priorRestoreFailureLogSha256": "2c1fcca67581fdc83a0a5e58ce8a7c3f09ed9c943c576987c67810217f4f8d43",
+    "priorIndependentFixed401Cleanup14RetainedSeparately": true,
+    "priorResourceUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical Unknown not cleared",
+    "priorC08FailureRetained": true,
+    "historicalEvidenceFilesUnchanged": 2249,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "gatewayTargeted20Rerun": false,
+    "allIntegrationTestsRerun": false,
+    "fullFourSuiteCandidateCiPassed": false,
+    "browserOrInstalledNodeAcceptance": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false,
+    "qualification": "Fresh fixed401 original Integration project build and selected62 tests only. Earlier restore failure remains failed. The81 archive checks are input qualification, not81 application tests. No full-suite, browser, deployed-node, production, signer-trust or historical Unknown clearance."
   }
 }

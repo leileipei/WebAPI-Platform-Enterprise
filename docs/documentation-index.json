@@ -455,7 +455,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "48954c9f83052db60e848dccaed85834358851a950cecf2cb52bb1b9d94631a8",
+    "dataSha256": "075827ad87cf691ff191ec037689eaa525aa17894be18ac205443468a47daeca",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -609,6 +609,19 @@
       "hostMissingPackageVersions": 43,
       "newAccepted": 0,
       "automaticRetry": false
+    },
+    "latestIntegration401Replay": {
+      "sourceRevision": "3d23c138f4e7df13b856f37c69ca41a99b630ccb",
+      "originalIntegrationBuildPassed": true,
+      "passed": 62,
+      "credentialPassed": 48,
+      "cleanupPassed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "priorRestoreFailureRetained": true,
+      "newAccepted": 0,
+      "gateway20Rerun": false,
+      "fullCandidateCiPassed": false
     }
   },
   "repositoryGovernanceObservation": {
@@ -1035,7 +1048,7 @@
     "newRequirementsAccepted": 0
   },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"7210f04454d68d28102eaf77dcdb564b9f647d0d36c632b52e9ff994d6ca1800"},
+    {"path":"README.md","category":"navigation","sha256":"598fb006c4a475ce4a72e3842b706085ad704b4c56c16465a2285cd4f764b669"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -1074,7 +1087,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"769fcfe70e5e8885082822b82e0c0cafec000bd3ee3e97040fd757268288939d"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"d413cc8f6a026b55e8da04c9e69d95a6d005e16db7f27a0c1e2c824df5399822"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -1115,7 +1128,7 @@
     {"path":"docs/deployment/observability-runbook.md","category":"operations-reference","sha256":"4fcbf584bebb56f0ef61605fb542080a5be3594939f7e27076eeaa0966b88aa0"},
     {"path":"docs/deployment/post-upgrade-observation-result.md","category":"historical-deployment-record","sha256":"3547988631980de2a1c641f60fb2dc5c5b8deb3ba98d51bb052a5778ead2752f"},
     {"path":"docs/deployment/release-promotion-runbook.md","category":"operations-reference","sha256":"4c85a39ad2e129c0ac56d19de31e7c52d1f6284d780f5c78e4bd6f1f0026b9b8"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"1e14a06eba78002741c53f48443888c43ca335aa70a039d4260092b4e674e8d4"},
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"76f165d9f6a2787756c4e0f1e602affcdca08ce1e9c488b57c495cac0fc0664a"},
     {"path":"docs/deployment/security-hardening-4192-upgrade-preparation.md","category":"historical-deployment-record","sha256":"136b7dd5f423183d6bdf064e00dc83bc868ece79c67b130afa5383cdda16cd19"},
     {"path":"docs/deployment/security-hardening-runbook.md","category":"operations-reference","sha256":"716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"},
     {"path":"docs/deployment/sso-oidc-capability.md","category":"historical-deployment-record","sha256":"6360783bd9abc94dcfb0ff830c7c01d254ed84f4b74dd0aad231473631848750"},
@@ -2072,5 +2085,119 @@
       "Create a fresh bounded attempt only after dependency readiness is proven; retain this restore failure and all historical resource Unknown."
     ],
     "qualification": "Dependency-readiness failure, not a compiler/test/product failure. No62-case pass/fail/skip result exists. Prior fixed401 dedicated cleanup14 and old48 results retain original versions and scope."
+  },
+  "integration401ReplayVerification": {
+    "sourceRevision": "3d23c138f4e7df13b856f37c69ca41a99b630ccb",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "status": "targeted-original-integration-build-and-tests-passed",
+    "sdk": "10.0.401",
+    "os": "linux",
+    "architecture": "arm64",
+    "realXunitRunner": true,
+    "visualStudioAdapter": "3.1.5",
+    "originalIntegrationProject": "tests/WebApi.Integration.Tests/WebApi.Integration.Tests.csproj",
+    "originalIntegrationBuildPassed": true,
+    "warnings": 0,
+    "errors": 0,
+    "solutionLockedRestorePassed": true,
+    "runtimeToolLockedRestorePassed": true,
+    "runtimeToolAndMigratorBuildPassed": true,
+    "passed": 62,
+    "failed": 0,
+    "skipped": 0,
+    "credentialCasesPassed": 48,
+    "cleanupCasesPassed": 14,
+    "crossProcessCasesPassed": 4,
+    "crossProcessCases": [
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"scope\", revokeFirst: True)",
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"permission\", revokeFirst: False)",
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"permission\", revokeFirst: True)",
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"scope\", revokeFirst: False)"
+    ],
+    "testFilter": "FullyQualifiedName~WebApi.Integration.Tests.CredentialImpactTests|FullyQualifiedName~WebApi.Integration.Tests.ChildProcessCleanupTests|FullyQualifiedName~WebApi.Integration.Tests.ChildProcessCleanupNativeTests",
+    "buildArtifactHashes": {
+      "tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.dll": "1f2d78347b61efe553b72964168768c1d7422c929069a7cf517318e898b9b063",
+      "src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll": "1a0afec39fa7c7cfe136c7859b27a49ea913093bf722d52ffb8f3c6de80882f4"
+    },
+    "logSha256": "000c5d1eaa7e053c7a33121cff8ade966b5ffa622b273d09ba7141c24e955c60",
+    "trxSha256": "a5bc666df012f532549d3beb98b745dbc2570fb239ae9c4d9325606b623df5d2",
+    "buildBindingsSha256": "8181b7869c7076bd3ea3eb48a14ab345ea01bc3418dd25dd5ba1a7fa339a265a",
+    "sourceSnapshotFiles": 1802,
+    "sourceManifestSha256": "8a2529b317ec3b04c4ea120f22a5d82b92909c44580a85e4fce93d9fa896316b",
+    "offlineFeed": {
+      "packageVersions": 81,
+      "lockFiles": 21,
+      "nugetPackageIdentityAndContentHashesMatched": 81,
+      "oldSeedAndHostUnion": 74,
+      "copiedFrom": {
+        "project-counts-cache": 7,
+        "host-cache": 8,
+        "old-seed": 66
+      },
+      "readinessSha256": "8fadb4663ea8995155d747a1093ca0b777c604bd89930c575976747b0f0d24ec",
+      "hashReportSha256": "08a06d2df20dd43b312dfffb9e29acb2c5a3ddf102aca5ec8037ee967680f45c",
+      "hashToolSdk": "10.0.403",
+      "hashToolPurpose": "NuGet identity/content-hash input verification only; actual application restore/build/tests use SDK401",
+      "signatureTrustOrCurrentRevocationQualificationGranted": false,
+      "sourceCacheArchiveAndMetadataBytesPreserved": true,
+      "signedArchivePayloadIntegrityVerified": 81,
+      "payloadIntegrityReportSha256": "1d33f3ccb4eee9636e3a077e63dfcc2714ac750ca157d883b29ba86d4c591547",
+      "payloadIntegrityToolSourceSha256": "899dbd190d06aaec8af02c2f44f8aa047cf2f4492c68d1406429fc3fda274d3c",
+      "payloadIntegrityToolAssemblySha256": "1a146031ad3b8973bd8ad4ebf4acd4be460ebb05a30bde3d3b2fbb9bda86f991",
+      "payloadIntegrityLogSha256": "375f4437c18dff36389ac30c2f907a9cb3a1b5b0fa156dd645d1daeac8426e4a",
+      "macCryptoModuleNoticePreserved": true
+    },
+    "sharedCacheMountedDuringReplay": false,
+    "sourceRunnerAndPrivateFeedReadOnly": true,
+    "externalNuGetSourceConfigured": false,
+    "newDownloads": false,
+    "originalCachesModified": false,
+    "networkInternal": true,
+    "hostPortsPublished": 0,
+    "createdResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "startingResourceIdsRetained": true,
+    "sharedResourcesAtStart": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "sharedResourcesAfter": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "resourceBeforeSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "resourceAfterSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "childDirectoriesRemaining": 0,
+    "randomPasswordFileRemoved": true,
+    "startedAt": "2026-11-12T04:00:41.918470+00:00",
+    "endedAt": "2026-11-12T04:03:02.071768+00:00",
+    "elapsedSeconds": 140.149,
+    "priorRestoreFailureRetained": true,
+    "priorRestoreFailureLogSha256": "2c1fcca67581fdc83a0a5e58ce8a7c3f09ed9c943c576987c67810217f4f8d43",
+    "priorIndependentFixed401Cleanup14RetainedSeparately": true,
+    "priorResourceUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical Unknown not cleared",
+    "priorC08FailureRetained": true,
+    "historicalEvidenceFilesUnchanged": 2249,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "gatewayTargeted20Rerun": false,
+    "allIntegrationTestsRerun": false,
+    "fullFourSuiteCandidateCiPassed": false,
+    "browserOrInstalledNodeAcceptance": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false,
+    "qualification": "Fresh fixed401 original Integration project build and selected62 tests only. Earlier restore failure remains failed. The81 archive checks are input qualification, not81 application tests. No full-suite, browser, deployed-node, production, signer-trust or historical Unknown clearance."
   }
 }
