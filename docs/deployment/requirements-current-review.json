@@ -14521,6 +14521,76 @@
           "经确认延期": 0
         }
       }
+    },
+    {
+      "commit": "155de03130dbab2d884882dc804f4d83ad5f8b94",
+      "path": "docs/deployment/requirements-current-review.json",
+      "sha256": "1f684571b94aeb7f62abcc9874d04d372a6b4ea7e1e9d9f115f316ad646dcb7f",
+      "scope": "Preserve every prior object and454 entries; append three successful local unfiltered suites, both frontend environment failures, and new shared-resource absence that stopped unstarted Integration. No four-suite pass.",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      }
     }
   ],
   "targetedFollowup": {
@@ -19393,5 +19463,147 @@
     "fullPlanSha256": "16c818836be18c867ee7242b07879b9c987e402ad4cb42f2a9c55eeaf2db6ad2",
     "requiresUnfilteredRunsAgainstSameFrozenSource": true,
     "publicationAuthorizedByThisPlan": false
+  },
+  "fullCandidateLocalVerification": {
+    "sourceRevision": "155de03130dbab2d884882dc804f4d83ad5f8b94",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "status": "incomplete-stopped-for-shared-resource-discrepancy",
+    "allFourPassed": false,
+    "githubHostedCiRun": false,
+    "console": {
+      "passed": 321,
+      "failed": 0,
+      "skipped": 0,
+      "unfiltered": true,
+      "typecheckAndBuildPassed": true,
+      "node": "24.22.1",
+      "pnpm": "11.25.0",
+      "finalLogSha256": "d70b821af2a11c76319803b799c5e9846a2a9759ebf2f2f7ca2f3bc9bffd8d38",
+      "finalResultSha256": "8f18c115ae99984e04bcec02126af785ae7cf00367c0c2333caadc83480f487e",
+      "restrictedAttempt": {
+        "tests": 321,
+        "passed": 320,
+        "failed": 1,
+        "skipped": 0,
+        "reason": "listen EPERM on required loopback fixture",
+        "logSha256": "2b6862a6a9d9c94a5066a07c67dd8b205bf217736ea2f6a8b907dd554aee60db",
+        "resultSha256": "3762d81aed284a163df41fcdbac3430365ae7eb54f45b44b95c1071060c34518"
+      },
+      "permissionCorrectedAttempt": {
+        "tests": 321,
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "buildStarted": false,
+        "reason": "pnpm relocated dependency metadata caused an install/removal confirmation error",
+        "logSha256": "a33e23408adb9e8bf15769e3fffd272a7b6845c1b0df2b2fefd01b4ca82c52c5",
+        "resultSha256": "5f7ec09ca7e5ba8af8489e053708ffe00ccc597b9164c6c358a65e3fcaa3b2d3"
+      },
+      "layoutCorrection": "copied existing pnpm store; offline frozen install with ignore-scripts in private dependency copy; dependency checks retained; source and locks unchanged",
+      "layoutLogSha256": "7088295ceedf0a9c02a0302e6b1e22171c11ff263394555960ed03bc4ac83ebb",
+      "originalDependencyDirectoryModified": false,
+      "priorAttemptsRetained": true
+    },
+    "completedBackendSuites": [
+      {
+        "suite": "domain",
+        "passed": 1251,
+        "failed": 0,
+        "skipped": 0,
+        "unfiltered": true,
+        "originalProjectBuildPassed": true,
+        "testProcessExitCode": 0,
+        "orchestrationExitCode": 0,
+        "logSha256": "4fe8a6963804871723bc247ad31b787184b21a4ed4e8f96136755ff155c815a9",
+        "trxSha256": "4e6e9610a5b2655a66fa9bee84fd1bc76e484b55e3525cebb489a66ba1710e21",
+        "resourceBeforeSha256": "144f6139f02276092898051fe78d4d9e69646964353f4959d3abd3a559308d1f",
+        "resourceAfterSha256": "27bcee0412e8cca8eee06b73d3254527357d0183df47ceddd93b4ca1710a20d9",
+        "startingResourcesRetained": true,
+        "missingStartingResources": {
+          "containers": [],
+          "volumes": [],
+          "networks": []
+        },
+        "ownResourcesRemaining": {
+          "containers": 0,
+          "volumes": 0,
+          "networks": 0
+        },
+        "startedAt": "2026-11-12T14:18:09.016339+00:00",
+        "endedAt": "2026-11-12T14:19:22.396842+00:00"
+      },
+      {
+        "suite": "gateway",
+        "passed": 560,
+        "failed": 0,
+        "skipped": 0,
+        "unfiltered": true,
+        "originalProjectBuildPassed": true,
+        "testProcessExitCode": 0,
+        "orchestrationExitCode": 1,
+        "logSha256": "21c4fbfa783974f25b1ed5919d99bef6d9c364157055cf2ffd77e31584b3b7c8",
+        "trxSha256": "610bfed69c3f26f91774720bbe9211f3a2b055d6c815cb042f1a6d0916305d06",
+        "resourceBeforeSha256": "27bcee0412e8cca8eee06b73d3254527357d0183df47ceddd93b4ca1710a20d9",
+        "resourceAfterSha256": "84742dc0f700de7f400a3d802f71e110b879da13c0160e41a6da0eac8454a604",
+        "startingResourcesRetained": false,
+        "missingStartingResources": {
+          "containers": [
+            "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88"
+          ],
+          "volumes": [],
+          "networks": []
+        },
+        "ownResourcesRemaining": {
+          "containers": 0,
+          "volumes": 0,
+          "networks": 0
+        },
+        "startedAt": "2026-11-12T14:19:23.112046+00:00",
+        "endedAt": "2026-11-12T14:26:15.856008+00:00"
+      }
+    ],
+    "completedLatestSuiteTests": 2132,
+    "integration": {
+      "status": "not-started",
+      "projectedCountNotPass": 2189,
+      "runManifestExists": false,
+      "trxExists": false,
+      "stagingPasswordRemoved": true
+    },
+    "originalProjectedTotalNotPass": 4321,
+    "resourceGuardTriggered": true,
+    "newMissingStartingContainerIds": [
+      "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88"
+    ],
+    "missingContainerWindow": {
+      "start": "2026-11-12T14:19:23.112046+00:00",
+      "end": "2026-11-12T14:26:15.856008+00:00"
+    },
+    "missingContainerNotOwnedByThisRun": true,
+    "missingContainerNameOrOwner": "Unknown",
+    "missingContainerCause": "Unknown",
+    "eventQueryExitCode": 0,
+    "eventsReturned": 0,
+    "currentMissingInspectExitCode": 1,
+    "resourceDiscrepancySha256": "641db592919930edce9e6049e2eb0e4bbdfc895f310331e4759919040d8ecc86",
+    "resourcePreservationQualification": "inherited incomplete plus one newly missing starting shared container; name/owner/cause Unknown",
+    "ownedResourcesCleanedAfterEachExecutedBackend": true,
+    "integrationResourcesCreated": false,
+    "sourceSnapshotFiles": 1802,
+    "privateFeedVersions": 81,
+    "historicalEvidenceFilesUnchanged": 2307,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "priorRestoreFailureRetained": true,
+    "priorTargeted62And20RetainedSeparately": true,
+    "priorC08FailureAndUnknownRetained": true,
+    "productTestsOrLocksModified": false,
+    "newDownloads": false,
+    "automaticRetryLoop": false,
+    "runtimeStoppedAfterResourceGuard": true,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false,
+    "qualification": "Three successful unfiltered local suites only, after frontend environment corrections. Gateway test process succeeded but its preservation check failed. Integration was not started.2132 is not a four-suite or GitHub CI pass and cannot be combined with prior targeted62/20."
   }
 }

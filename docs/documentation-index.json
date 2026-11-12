@@ -455,7 +455,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "1f684571b94aeb7f62abcc9874d04d372a6b4ea7e1e9d9f115f316ad646dcb7f",
+    "dataSha256": "88a6fade778f6afa14f19ebf74b9372d142e2cb5cda3b4a8b7a5d3be1b2ac72d",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -631,6 +631,17 @@
       "originalGatewayBuildPassed": true,
       "newAccepted": 0,
       "fullCandidateCiPassed": false
+    },
+    "latestFullCandidateLocalVerification": {
+      "sourceRevision": "155de03130dbab2d884882dc804f4d83ad5f8b94",
+      "status": "incomplete-stopped-for-shared-resource-discrepancy",
+      "consolePassed": 321,
+      "domainPassed": 1251,
+      "gatewayPassed": 560,
+      "integration": "not-started",
+      "allFourPassed": false,
+      "newResourceUnknown": true,
+      "newAccepted": 0
     }
   },
   "repositoryGovernanceObservation": {
@@ -1057,7 +1068,7 @@
     "newRequirementsAccepted": 0
   },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"fc9327af6b49ca13cad92abaaaf7fde5fff3c55634a1769e3041e01ce879ab0a"},
+    {"path":"README.md","category":"navigation","sha256":"620aa9991bceb3c666917a0556d74770059b7f5550ce847ea4a36dd22a993caa"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -1096,7 +1107,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"ea54df7a4bbe4c1d5713f71b5583aece741a7f41deca8b59ac63efa18267e8b6"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"15168ead3c665f21d63d9ec00a2ac3fb164dbe566e123c375eaf9607b0fb5e21"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -1137,7 +1148,7 @@
     {"path":"docs/deployment/observability-runbook.md","category":"operations-reference","sha256":"4fcbf584bebb56f0ef61605fb542080a5be3594939f7e27076eeaa0966b88aa0"},
     {"path":"docs/deployment/post-upgrade-observation-result.md","category":"historical-deployment-record","sha256":"3547988631980de2a1c641f60fb2dc5c5b8deb3ba98d51bb052a5778ead2752f"},
     {"path":"docs/deployment/release-promotion-runbook.md","category":"operations-reference","sha256":"4c85a39ad2e129c0ac56d19de31e7c52d1f6284d780f5c78e4bd6f1f0026b9b8"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"8693a743e3ae9ff8514a03ed0554cad1ac704e5feb569269e7106d04a09635ff"},
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"102105e35170cba92f3fb8617c5b9d9321da99658c7232ab76200514ccf1b9c2"},
     {"path":"docs/deployment/security-hardening-4192-upgrade-preparation.md","category":"historical-deployment-record","sha256":"136b7dd5f423183d6bdf064e00dc83bc868ece79c67b130afa5383cdda16cd19"},
     {"path":"docs/deployment/security-hardening-runbook.md","category":"operations-reference","sha256":"716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"},
     {"path":"docs/deployment/sso-oidc-capability.md","category":"historical-deployment-record","sha256":"6360783bd9abc94dcfb0ff830c7c01d254ed84f4b74dd0aad231473631848750"},
@@ -2333,5 +2344,147 @@
     "fullPlanSha256": "16c818836be18c867ee7242b07879b9c987e402ad4cb42f2a9c55eeaf2db6ad2",
     "requiresUnfilteredRunsAgainstSameFrozenSource": true,
     "publicationAuthorizedByThisPlan": false
+  },
+  "fullCandidateLocalVerification": {
+    "sourceRevision": "155de03130dbab2d884882dc804f4d83ad5f8b94",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "status": "incomplete-stopped-for-shared-resource-discrepancy",
+    "allFourPassed": false,
+    "githubHostedCiRun": false,
+    "console": {
+      "passed": 321,
+      "failed": 0,
+      "skipped": 0,
+      "unfiltered": true,
+      "typecheckAndBuildPassed": true,
+      "node": "24.22.1",
+      "pnpm": "11.25.0",
+      "finalLogSha256": "d70b821af2a11c76319803b799c5e9846a2a9759ebf2f2f7ca2f3bc9bffd8d38",
+      "finalResultSha256": "8f18c115ae99984e04bcec02126af785ae7cf00367c0c2333caadc83480f487e",
+      "restrictedAttempt": {
+        "tests": 321,
+        "passed": 320,
+        "failed": 1,
+        "skipped": 0,
+        "reason": "listen EPERM on required loopback fixture",
+        "logSha256": "2b6862a6a9d9c94a5066a07c67dd8b205bf217736ea2f6a8b907dd554aee60db",
+        "resultSha256": "3762d81aed284a163df41fcdbac3430365ae7eb54f45b44b95c1071060c34518"
+      },
+      "permissionCorrectedAttempt": {
+        "tests": 321,
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "buildStarted": false,
+        "reason": "pnpm relocated dependency metadata caused an install/removal confirmation error",
+        "logSha256": "a33e23408adb9e8bf15769e3fffd272a7b6845c1b0df2b2fefd01b4ca82c52c5",
+        "resultSha256": "5f7ec09ca7e5ba8af8489e053708ffe00ccc597b9164c6c358a65e3fcaa3b2d3"
+      },
+      "layoutCorrection": "copied existing pnpm store; offline frozen install with ignore-scripts in private dependency copy; dependency checks retained; source and locks unchanged",
+      "layoutLogSha256": "7088295ceedf0a9c02a0302e6b1e22171c11ff263394555960ed03bc4ac83ebb",
+      "originalDependencyDirectoryModified": false,
+      "priorAttemptsRetained": true
+    },
+    "completedBackendSuites": [
+      {
+        "suite": "domain",
+        "passed": 1251,
+        "failed": 0,
+        "skipped": 0,
+        "unfiltered": true,
+        "originalProjectBuildPassed": true,
+        "testProcessExitCode": 0,
+        "orchestrationExitCode": 0,
+        "logSha256": "4fe8a6963804871723bc247ad31b787184b21a4ed4e8f96136755ff155c815a9",
+        "trxSha256": "4e6e9610a5b2655a66fa9bee84fd1bc76e484b55e3525cebb489a66ba1710e21",
+        "resourceBeforeSha256": "144f6139f02276092898051fe78d4d9e69646964353f4959d3abd3a559308d1f",
+        "resourceAfterSha256": "27bcee0412e8cca8eee06b73d3254527357d0183df47ceddd93b4ca1710a20d9",
+        "startingResourcesRetained": true,
+        "missingStartingResources": {
+          "containers": [],
+          "volumes": [],
+          "networks": []
+        },
+        "ownResourcesRemaining": {
+          "containers": 0,
+          "volumes": 0,
+          "networks": 0
+        },
+        "startedAt": "2026-11-12T14:18:09.016339+00:00",
+        "endedAt": "2026-11-12T14:19:22.396842+00:00"
+      },
+      {
+        "suite": "gateway",
+        "passed": 560,
+        "failed": 0,
+        "skipped": 0,
+        "unfiltered": true,
+        "originalProjectBuildPassed": true,
+        "testProcessExitCode": 0,
+        "orchestrationExitCode": 1,
+        "logSha256": "21c4fbfa783974f25b1ed5919d99bef6d9c364157055cf2ffd77e31584b3b7c8",
+        "trxSha256": "610bfed69c3f26f91774720bbe9211f3a2b055d6c815cb042f1a6d0916305d06",
+        "resourceBeforeSha256": "27bcee0412e8cca8eee06b73d3254527357d0183df47ceddd93b4ca1710a20d9",
+        "resourceAfterSha256": "84742dc0f700de7f400a3d802f71e110b879da13c0160e41a6da0eac8454a604",
+        "startingResourcesRetained": false,
+        "missingStartingResources": {
+          "containers": [
+            "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88"
+          ],
+          "volumes": [],
+          "networks": []
+        },
+        "ownResourcesRemaining": {
+          "containers": 0,
+          "volumes": 0,
+          "networks": 0
+        },
+        "startedAt": "2026-11-12T14:19:23.112046+00:00",
+        "endedAt": "2026-11-12T14:26:15.856008+00:00"
+      }
+    ],
+    "completedLatestSuiteTests": 2132,
+    "integration": {
+      "status": "not-started",
+      "projectedCountNotPass": 2189,
+      "runManifestExists": false,
+      "trxExists": false,
+      "stagingPasswordRemoved": true
+    },
+    "originalProjectedTotalNotPass": 4321,
+    "resourceGuardTriggered": true,
+    "newMissingStartingContainerIds": [
+      "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88"
+    ],
+    "missingContainerWindow": {
+      "start": "2026-11-12T14:19:23.112046+00:00",
+      "end": "2026-11-12T14:26:15.856008+00:00"
+    },
+    "missingContainerNotOwnedByThisRun": true,
+    "missingContainerNameOrOwner": "Unknown",
+    "missingContainerCause": "Unknown",
+    "eventQueryExitCode": 0,
+    "eventsReturned": 0,
+    "currentMissingInspectExitCode": 1,
+    "resourceDiscrepancySha256": "641db592919930edce9e6049e2eb0e4bbdfc895f310331e4759919040d8ecc86",
+    "resourcePreservationQualification": "inherited incomplete plus one newly missing starting shared container; name/owner/cause Unknown",
+    "ownedResourcesCleanedAfterEachExecutedBackend": true,
+    "integrationResourcesCreated": false,
+    "sourceSnapshotFiles": 1802,
+    "privateFeedVersions": 81,
+    "historicalEvidenceFilesUnchanged": 2307,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "priorRestoreFailureRetained": true,
+    "priorTargeted62And20RetainedSeparately": true,
+    "priorC08FailureAndUnknownRetained": true,
+    "productTestsOrLocksModified": false,
+    "newDownloads": false,
+    "automaticRetryLoop": false,
+    "runtimeStoppedAfterResourceGuard": true,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false,
+    "qualification": "Three successful unfiltered local suites only, after frontend environment corrections. Gateway test process succeeded but its preservation check failed. Integration was not started.2132 is not a four-suite or GitHub CI pass and cannot be combined with prior targeted62/20."
   }
 }
