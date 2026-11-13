@@ -1,4 +1,5 @@
 using Xunit;
+using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
 using StackExchange.Redis;
@@ -52,8 +53,16 @@ public sealed class LoginRateStoreTests
     {
         using var store=new RedisLoginRateStore("127.0.0.1:1,abortConnect=false,connectTimeout=200",Guid.NewGuid().ToString("N"));
         var request=new LoginRateRequest(Identity("192.0.2.5","unavailable"),new(1,1,1,1));
-        var started=DateTime.UtcNow;Assert.Equal(LoginRateDecisionKind.Unavailable,(await store.TryAcquireAsync(request,default)).Kind);
-        Assert.True(DateTime.UtcNow-started<TimeSpan.FromSeconds(2));
+        var started=Stopwatch.GetTimestamp();
+        var pending=store.TryAcquireAsync(request,default);
+        var returned=Stopwatch.GetTimestamp();
+        var decision=await pending;
+        var completed=Stopwatch.GetTimestamp();
+        Assert.Equal(LoginRateDecisionKind.Unavailable,decision.Kind);
+        var measured=Stopwatch.GetTimestamp();
+        var elapsed=Stopwatch.GetElapsedTime(started,measured);
         using var canceled=new CancellationTokenSource();canceled.Cancel();await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>store.TryAcquireAsync(request,canceled.Token).AsTask());
+        Assert.True(elapsed<TimeSpan.FromSeconds(2),FormattableString.Invariant(
+            $"Unavailable timing exceeded 2 s: total_ms={elapsed.TotalMilliseconds:F3}, before_valuetask_ms={Stopwatch.GetElapsedTime(started,returned).TotalMilliseconds:F3}, await_ms={Stopwatch.GetElapsedTime(returned,completed).TotalMilliseconds:F3}, decision_assert_ms={Stopwatch.GetElapsedTime(completed,measured).TotalMilliseconds:F3}. Timing was captured before the cancellation assertion."));
     }
 }

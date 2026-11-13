@@ -14729,6 +14729,75 @@
         }
       },
       "description": "Preserved before correcting historical PR5/PR9 references and binding publication-related statements to fixed-input verification snapshots."
+    },
+    {
+      "commit": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
+      "sha256": "5383015439ed89db24c575ff59ac5279fd798a841e60ae5527c51dc918ab1d32",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      },
+      "description": "Preserved before recording first public PR10 CI failure and a local, unexecuted monotonic timing diagnostic proposal; no failure is relabelled."
     }
   ],
   "targetedFollowup": {
@@ -19971,5 +20040,120 @@
     "publicationIsProductionAcceptance": false,
     "newRequirementsAccepted": 0,
     "recordedAt": "2026-11-12T16:49:34.734437+00:00"
+  },
+  "githubPublicationFirstAttempt": {
+    "sourceRevision": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
+    "pullRequest": 10,
+    "pullRequestUrl": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/10",
+    "branch": "codex/credential-verification-docs-20261113",
+    "mainAtFailure": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "merged": false,
+    "allFourRequiredChecksPassed": false,
+    "mergeAllowed": false,
+    "runAttempt": 1,
+    "consoleRun": 43341776718,
+    "contractsRun": 43341776589,
+    "checks": {
+      "console": {
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "status": "success"
+      },
+      "contracts-domain": {
+        "passed": 1251,
+        "failed": 0,
+        "skipped": 0,
+        "status": "success"
+      },
+      "contracts-gateway": {
+        "passed": 560,
+        "failed": 0,
+        "skipped": 0,
+        "status": "success"
+      },
+      "contracts-integration": {
+        "passed": 2188,
+        "failed": 1,
+        "skipped": 0,
+        "total": 2189,
+        "status": "failure",
+        "jobId": 131611553329
+      }
+    },
+    "totalPassed": 4320,
+    "totalFailed": 1,
+    "totalSkipped": 0,
+    "totalTests": 4321,
+    "failedTest": "WebApi.Integration.Tests.LoginRateStoreTests.UnavailableFailsClosedAndCancellationPropagates",
+    "failureSourceLine": 56,
+    "failedAssertion": "DateTime.UtcNow-started < TimeSpan.FromSeconds(2)",
+    "unavailableResultAssertionPassed": true,
+    "cancellationAssertionReachedInThisMethod": false,
+    "preciseElapsedMilliseconds": "Unknown",
+    "failureCause": "Unknown; no measured stage durations, scheduler or wall-clock data",
+    "existingTestAndProductUnchangedRelativeToMain50d": true,
+    "productRedisOperationBudgetMilliseconds": 1000,
+    "existingRegressionThresholdMilliseconds": 2000,
+    "integrationDuration": "55m2s",
+    "failedLogSha256": "3bd6a5f28a72ac43924401ca81c43a79a471b5e11e16a4e08dbedd853ab37541",
+    "automaticRerunExecuted": false,
+    "additionalPublicCommitPushed": false,
+    "oldFailuresAndResourceUnknownRetained": true,
+    "cumulativeResourcePreservation": "incomplete",
+    "newRequirementsAccepted": 0,
+    "deployedOrRestored": false,
+    "recordedAt": "2026-11-13T02:34:53.126175+00:00"
+  },
+  "loginRateTimingDiagnosticProposal": {
+    "basePublicHead": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
+    "status": "local-diagnostic-only-not-executed",
+    "testFile": "tests/WebApi.Integration.Tests/LoginRateStoreTests.cs",
+    "testFileSha256": "306f547279cef0c4f83876aa3ed03bc1952fc993d6c82fc5329a3a1ad8b8ef72",
+    "goal": "Collect accurate monotonic total and phase timings without masking caller cancellation; do not claim a latency fix",
+    "monotonicStopwatch": true,
+    "stages": [
+      "before ValueTask return",
+      "await and continuation",
+      "decision assertion"
+    ],
+    "measuredBeforeCancellationAssertion": true,
+    "cancellationAssertionBeforeTimingGuard": true,
+    "thresholdMilliseconds": 2000,
+    "productBudgetMilliseconds": 1000,
+    "productSourceModified": false,
+    "warmupIsolationOrThresholdIncreaseAdded": false,
+    "newTestCaseAdded": false,
+    "expectedCountsAreProjectionOnly": {
+      "console": 321,
+      "domain": 1251,
+      "gateway": 560,
+      "integration": 2189,
+      "total": 4321
+    },
+    "originalSdk401RuntimeExecuted": false,
+    "newTestsExecuted": 0,
+    "localCompile": {
+      "compilerSdk": "10.0.403",
+      "realXunitRedisReferences": true,
+      "compileOnlyPassed": true,
+      "sdkDefaultNoWarn1701And1702Preserved": true,
+      "notOriginalProjectSdk401Verification": true,
+      "earlierPrivateRestoreAndUnificationPreparationFailuresRetained": true
+    },
+    "hostCompilerFirstUseState": {
+      "developmentCertificateMessageReported": true,
+      "publicCertificateQueryExitCode": 206,
+      "priorCertificateBaselineAvailable": false,
+      "certificateAndWorkloadState": "Unknown",
+      "trustUpdateOrCleanupExecuted": false,
+      "capturedTrackedFilesPreserved": true,
+      "doesNotEstablishWholeHostEnvironmentUnchanged": true
+    },
+    "newRedisDockerOrNetworkResourcesCreated": 0,
+    "publicAppendAndOneNewCiRunRequireConfirmation": true,
+    "mergeOnlyAfterFourNewHostedChecksPass": true,
+    "oldFailedAttemptMustRemainFailed": true,
+    "recordedAt": "2026-11-13T02:34:53.126297+00:00"
   }
 }

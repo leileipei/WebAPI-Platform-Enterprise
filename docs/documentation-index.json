@@ -455,7 +455,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "5383015439ed89db24c575ff59ac5279fd798a841e60ae5527c51dc918ab1d32",
+    "dataSha256": "78447915eba1dd2010c364ca9ba82732ac5168dd52cd0851c7cc3205b84f1168",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -655,6 +655,18 @@
       "sameSourceTotalPassed": 4321,
       "githubHostedCiRun": false,
       "cumulativeResourcePreservation": "incomplete",
+      "newAccepted": 0
+    },
+    "latestHostedPublicationAttempt": {
+      "sourceRevision": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
+      "pullRequest": 10,
+      "allFourPassed": false,
+      "integrationPassed": 2188,
+      "integrationFailed": 1,
+      "totalPassed": 4320,
+      "totalFailed": 1,
+      "merged": false,
+      "diagnosticPatch": "local-only-not-executed",
       "newAccepted": 0
     }
   },
@@ -1082,7 +1094,7 @@
     "newRequirementsAccepted": 0
   },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"1f446406ccd4ef914a32cbd7449eccd403f89d2ee1018b9d62867f48e3dc04df"},
+    {"path":"README.md","category":"navigation","sha256":"07cdb100ed1bb47f25a45e6368d00c68cd805669ae426d8ed21c0435a893a29d"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -1121,7 +1133,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"9336f8c96139d28b1f914ccd42702421f162f69d386ee9141a8ce2a25be0276b"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"1e2ce29fe03a21e525c76bac8c8fea426f778abd520ea585891542b9f83bad7c"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -1162,7 +1174,7 @@
     {"path":"docs/deployment/observability-runbook.md","category":"operations-reference","sha256":"4fcbf584bebb56f0ef61605fb542080a5be3594939f7e27076eeaa0966b88aa0"},
     {"path":"docs/deployment/post-upgrade-observation-result.md","category":"historical-deployment-record","sha256":"3547988631980de2a1c641f60fb2dc5c5b8deb3ba98d51bb052a5778ead2752f"},
     {"path":"docs/deployment/release-promotion-runbook.md","category":"operations-reference","sha256":"4c85a39ad2e129c0ac56d19de31e7c52d1f6284d780f5c78e4bd6f1f0026b9b8"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"b52bb8de9e9443bed80dfc487d61211ef1050243542b96a6a4940fd16b100463"},
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"4346f9b90ec103d4f61668f4343a96dadac3e9c6d80530eb9bb2af965c07f3f1"},
     {"path":"docs/deployment/security-hardening-4192-upgrade-preparation.md","category":"historical-deployment-record","sha256":"136b7dd5f423183d6bdf064e00dc83bc868ece79c67b130afa5383cdda16cd19"},
     {"path":"docs/deployment/security-hardening-runbook.md","category":"operations-reference","sha256":"716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"},
     {"path":"docs/deployment/sso-oidc-capability.md","category":"historical-deployment-record","sha256":"6360783bd9abc94dcfb0ff830c7c01d254ed84f4b74dd0aad231473631848750"},
@@ -2728,5 +2740,120 @@
     "publicationIsProductionAcceptance": false,
     "newRequirementsAccepted": 0,
     "recordedAt": "2026-11-12T16:49:34.734437+00:00"
+  },
+  "githubPublicationFirstAttempt": {
+    "sourceRevision": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
+    "pullRequest": 10,
+    "pullRequestUrl": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/10",
+    "branch": "codex/credential-verification-docs-20261113",
+    "mainAtFailure": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "merged": false,
+    "allFourRequiredChecksPassed": false,
+    "mergeAllowed": false,
+    "runAttempt": 1,
+    "consoleRun": 43341776718,
+    "contractsRun": 43341776589,
+    "checks": {
+      "console": {
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "status": "success"
+      },
+      "contracts-domain": {
+        "passed": 1251,
+        "failed": 0,
+        "skipped": 0,
+        "status": "success"
+      },
+      "contracts-gateway": {
+        "passed": 560,
+        "failed": 0,
+        "skipped": 0,
+        "status": "success"
+      },
+      "contracts-integration": {
+        "passed": 2188,
+        "failed": 1,
+        "skipped": 0,
+        "total": 2189,
+        "status": "failure",
+        "jobId": 131611553329
+      }
+    },
+    "totalPassed": 4320,
+    "totalFailed": 1,
+    "totalSkipped": 0,
+    "totalTests": 4321,
+    "failedTest": "WebApi.Integration.Tests.LoginRateStoreTests.UnavailableFailsClosedAndCancellationPropagates",
+    "failureSourceLine": 56,
+    "failedAssertion": "DateTime.UtcNow-started < TimeSpan.FromSeconds(2)",
+    "unavailableResultAssertionPassed": true,
+    "cancellationAssertionReachedInThisMethod": false,
+    "preciseElapsedMilliseconds": "Unknown",
+    "failureCause": "Unknown; no measured stage durations, scheduler or wall-clock data",
+    "existingTestAndProductUnchangedRelativeToMain50d": true,
+    "productRedisOperationBudgetMilliseconds": 1000,
+    "existingRegressionThresholdMilliseconds": 2000,
+    "integrationDuration": "55m2s",
+    "failedLogSha256": "3bd6a5f28a72ac43924401ca81c43a79a471b5e11e16a4e08dbedd853ab37541",
+    "automaticRerunExecuted": false,
+    "additionalPublicCommitPushed": false,
+    "oldFailuresAndResourceUnknownRetained": true,
+    "cumulativeResourcePreservation": "incomplete",
+    "newRequirementsAccepted": 0,
+    "deployedOrRestored": false,
+    "recordedAt": "2026-11-13T02:34:53.126175+00:00"
+  },
+  "loginRateTimingDiagnosticProposal": {
+    "basePublicHead": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
+    "status": "local-diagnostic-only-not-executed",
+    "testFile": "tests/WebApi.Integration.Tests/LoginRateStoreTests.cs",
+    "testFileSha256": "306f547279cef0c4f83876aa3ed03bc1952fc993d6c82fc5329a3a1ad8b8ef72",
+    "goal": "Collect accurate monotonic total and phase timings without masking caller cancellation; do not claim a latency fix",
+    "monotonicStopwatch": true,
+    "stages": [
+      "before ValueTask return",
+      "await and continuation",
+      "decision assertion"
+    ],
+    "measuredBeforeCancellationAssertion": true,
+    "cancellationAssertionBeforeTimingGuard": true,
+    "thresholdMilliseconds": 2000,
+    "productBudgetMilliseconds": 1000,
+    "productSourceModified": false,
+    "warmupIsolationOrThresholdIncreaseAdded": false,
+    "newTestCaseAdded": false,
+    "expectedCountsAreProjectionOnly": {
+      "console": 321,
+      "domain": 1251,
+      "gateway": 560,
+      "integration": 2189,
+      "total": 4321
+    },
+    "originalSdk401RuntimeExecuted": false,
+    "newTestsExecuted": 0,
+    "localCompile": {
+      "compilerSdk": "10.0.403",
+      "realXunitRedisReferences": true,
+      "compileOnlyPassed": true,
+      "sdkDefaultNoWarn1701And1702Preserved": true,
+      "notOriginalProjectSdk401Verification": true,
+      "earlierPrivateRestoreAndUnificationPreparationFailuresRetained": true
+    },
+    "hostCompilerFirstUseState": {
+      "developmentCertificateMessageReported": true,
+      "publicCertificateQueryExitCode": 206,
+      "priorCertificateBaselineAvailable": false,
+      "certificateAndWorkloadState": "Unknown",
+      "trustUpdateOrCleanupExecuted": false,
+      "capturedTrackedFilesPreserved": true,
+      "doesNotEstablishWholeHostEnvironmentUnchanged": true
+    },
+    "newRedisDockerOrNetworkResourcesCreated": 0,
+    "publicAppendAndOneNewCiRunRequireConfirmation": true,
+    "mergeOnlyAfterFourNewHostedChecksPass": true,
+    "oldFailedAttemptMustRemainFailed": true,
+    "recordedAt": "2026-11-13T02:34:53.126297+00:00"
   }
 }
