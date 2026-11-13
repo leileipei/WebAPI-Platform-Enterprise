@@ -13,11 +13,11 @@
 |sampling|部署比例及模式；只影响Trace，远端未采样父节点仍受尊重|
 |KPI value/unit/sampleCount/state|可空数值、单位、样本与独立状态|
 
-12项KPI：request_count/request_rps/success_ratio/error_4xx_count/error_4xx_ratio/error_5xx_count/error_5xx_ratio/latency_p50_ms/latency_p95_ms/latency_p99_ms/unhealthy_destinations/cancelled_count。请求数是Prometheus采样增量的近似量；分位数先合并histogram再估算，以ms显示。成功仅正常完成的2xx/3xx，正文中途断开不计成功，即便已发200头。无流量时比例/时延为null。
+14项KPI：request_count/request_rps/success_ratio/error_4xx_count/error_4xx_ratio/error_5xx_count/error_5xx_ratio/latency_p50_ms/latency_p95_ms/latency_p99_ms/unhealthy_destinations/cancelled_count/circuit_rejected_count/rate_limit_store_unavailable_count。请求数是Prometheus采样增量的近似量；分位数先合并histogram再估算，以ms显示。成功仅正常完成的2xx/3xx，正文中途断开不计成功，即便已发200头。无流量时比例/时延为null。
 
-7类趋势：RPS、成功率、4xx比例、5xx比例、P50/P95/P99；至多600点。分组None/Api/Application/Destination/Status，状态分组没有时延histogram则不伪造分位数。节点健康含EnvironmentId及真实Destination归属；API/Application过滤时后端健康为NotApplicable/null，节点不带环境级后端列表。采集完整且新鲜时RPS=0是有效数值，可触发低流量或恢复高流量规则；分母为0的比例、无样本时延仍为Unknown。
+7类请求趋势：RPS、成功率、4xx比例、5xx比例、P50/P95/P99，另有 circuit_rejected_count、rate_limit_store_unavailable_count 两类策略计数趋势；每类至多600点。策略指标仅在未按 API/Application/Destination 过滤的环境范围适用，分组中的策略指标为 NotApplicable；没有策略序列时计数为 null/NoData。rate_limit_store_unavailable_count 包含 StoreRejected 和 Bypass 决策，不能等同于全部拒绝数。来源见[指标实现](../src/WebApi.Infrastructure/Observability/PrometheusMetricSource.cs)。分组None/Api/Application/Destination/Status，状态分组没有时延histogram则不伪造分位数。节点健康含EnvironmentId及真实Destination归属；API/Application过滤时后端健康为NotApplicable/null，节点不带环境级后端列表。采集完整且新鲜时RPS=0是有效数值，可触发低流量或恢复高流量规则；分母为0的比例、无样本时延仍为Unknown。
 
-窗口首尾与固定15秒步长内的最大观测年龄共同检查45秒容差；中间缺口必须Partial。指标最多12个源请求，日志/Trace覆盖检查7个。网关三信号的丢弃/失败计数有零基线，last_loss_timestamp捕捉首次丢失，避免increase初始为0掩盖缺口。Collector内部8888诊断job检查对应信号的发送/入队失败、接收拒绝与采集连续性；首次出现非零计数也使Partial。共享Collector没有可信环境标签时对该信号保守覆盖所有查询环境，不返回原始诊断标签。该离散检查不证明毫秒连续性或生产SLA。源请求默认10秒、响应8MiB，超限/超时503。
+窗口首尾与固定15秒步长内的最大观测年龄共同检查45秒容差；中间缺口必须Partial。指标最多14个源请求（11个瞬时、3个范围），日志/Trace覆盖检查各7个瞬时请求；无可访问环境等提前返回路径可少于该上限。网关三信号的丢弃/失败计数有零基线，last_loss_timestamp捕捉首次丢失，避免increase初始为0掩盖缺口。Collector内部8888诊断job检查对应信号的发送/入队失败、接收拒绝与采集连续性；首次出现非零计数也使Partial。共享Collector没有可信环境标签时对该信号保守覆盖所有查询环境，不返回原始诊断标签。该离散检查不证明毫秒连续性或生产SLA。源请求默认10秒、响应8MiB，超限/超时503。
 
 ## 日志与Trace
 
@@ -55,4 +55,4 @@
 
 默认评估槽15秒/查询延后30秒/租约30秒/并行4；PG clock_timestamp决定slot、expiry与提交有效性。源查询在事务外，实际写入重新验证治理、规则revision/启停、Scope、lease token、有效期和slot；旧token不能写新事实。规则/事件超过2个间隔未评估显示Unknown；历史有效时间保留，当前数值/条件在过期时为null。
 
-六项独立权限：metrics.read/log.read/trace.read/alert.read/alert.operate/alert.rule.manage；页面导航不带出未授权数据。普通源查询失败503；规则只读测试按设计返回200 Unknown/null，HTTP200本身不是条件成立证明。外部Email/Webhook/EnterpriseIm仅保存意向，当前无投递或回执。
+六项独立权限：metrics.read/log.read/trace.read/alert.read/alert.operate/alert.rule.manage；页面导航不带出未授权数据。普通源查询失败503；规则只读测试按设计返回200 Unknown/null，HTTP200本身不是条件成立证明。Email/Webhook 已有持久投递、尝试记录与重试；EnterpriseIm 仍仅保留意向，没有对应发送通道。渠道启用、受控端点与秘密配置、部署允许策略均需满足；规则不接受任意 URL 或密钥。投递状态为 Queued/Sending/RetryScheduled/Paused/Accepted/Failed/Suppressed/Expired，尝试结果含 OutcomeUnknown；Accepted 仅表示传输端接受，不证明最终到达或已读。来源见[通知契约](../src/WebApi.Contracts/Notifications/NotificationContracts.cs)与[分发实现](../src/WebApi.Infrastructure/Notifications/NotificationDispatcher.cs)，目标环境验收见[通知恢复手册](deployment/notification-approval-recovery-runbook.md)。

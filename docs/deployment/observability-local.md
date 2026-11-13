@@ -1,6 +1,6 @@
 # 本机隔离观测栈
 
-此配置用于已批准的真实监控与告警阶段。本步骤证明 OTLP 协议与三种真实数据源可互通；网关请求采集、权限查询、六页管理界面和告警闭环分别在后续任务验收。
+本页记录最初隔离协议检查阶段的配置与结果，范围是合成 OTLP 和三种数据源互通。当时列为后续的请求采集、权限查询、六页管理界面及告警闭环已有后续实现和独立证据，见[观测运行手册](observability-runbook.md)与[数据字典](../observability-data-dictionary.md)。当前代码与安装范围以[项目状态](current-project-status.md)为准；本页不代表当前现场验证。
 
 ## 固定版本
 
@@ -38,11 +38,11 @@ Loki/Tempo 的临时卷在 Docker 虚拟机重启后丢失；用于可销毁协�
 
 Loki 只把 `service.name` 和可信 `webapi.environment.id` 设为索引标签。Collector 只把 service、实例与环境三个指定资源属性转换为指标标签，版本、发布序号、Trace ID、IP 不进入指标资源标签。
 
-## 后续配置契约
+## 应用配置与后续接入记录
 
 应用配置键：`Observability:Enabled`、`CollectorEndpoint`、`PrometheusUrl`、`LokiUrl`、`TempoUrl`、`CredentialSecretFile`、`IpHmacSecretFile`、`TraceSampleRatio`。查询地址只由服务端配置提供，客户端不能指定数据源 URL。秘密以文件提供，不进 URL、日志或截图。
 
-OTel 1.19.1 自观测通过 `otel.sdk.experimental` meter 可记录处理器队列满丢弃，但不覆盖导出失败。后续接入必须提供平台稳定的队列满与导出失败计数，并通过队列饱和、Collector 不可用测试证明请求转发不受阻。
+OTel 1.19.1 自观测通过 `otel.sdk.experimental` meter 可记录处理器队列满丢弃，但不覆盖导出失败。这是当时提出的后续要求；当前网关已有平台丢弃、导出失败和最近丢失时间诊断，来源见[遥测记录器](../../src/WebApi.Gateway/Observability/GatewayTelemetryRecorder.cs)。队列饱和与 Collector 故障的历史验证仍须按[对应验收材料](../evidence/observability/verification.json)的版本和范围解释，本次仅作资料核对。
 
 ## 官方核验依据
 

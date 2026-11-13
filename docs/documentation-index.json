@@ -1,0 +1,3064 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-11-12",
+  "scope": "Tracked project Markdown/text, current navigation and requirements reviews; vendor documents excluded.",
+  "githubMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+  "localCodeInput": "50d6fb9c71dc45f965461c04191cc2107308037c",
+  "localCodeAheadOfGithub": [],
+  "sourceDifferenceToGithub": [
+    "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+    "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+    "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+    "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+    "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs"
+  ],
+  "classificationIsNotAcceptance": true,
+  "counts": {
+    "documents": 317,
+    "byCategory": {
+      "navigation": 3,
+      "historical-review": 1,
+      "topic-reference": 23,
+      "historical-archive": 12,
+      "operations-reference": 19,
+      "ci-configuration-record": 3,
+      "historical-deployment-record": 41,
+      "current-status": 1,
+      "current-requirements-review": 1,
+      "immutable-evidence": 153,
+      "historical-design-plan": 60
+    },
+    "relativeLinksChecked": 868,
+    "unresolvedHistoricalReferences": 47,
+    "preservedDuplicateEvidenceGroups": 7
+  },
+  "canonicalNarrative": {
+    "path": "docs/evidence/contract-management-completion/result.md",
+    "compatibilityEntry": "docs/deployment/contract-management-completion-upgrade-result.md",
+    "originalSha256": "8fba7d5638d51a1c733172450b86fcbbe274efbe32f858e2af55f214862e83f4"
+  },
+  "unavailableHistoricalPackages": [
+    {
+      "source": "docs/deployment/current-local-delivery-index.md",
+      "historicalReference": "../../deliverables/WebAPI_Enterprise_流量策略源码及验收_20261005.zip",
+      "state": "not-present; download link removed; no replacement created"
+    },
+    {
+      "source": "docs/deployment/current-local-delivery-index.md",
+      "historicalReference": "../../deliverables/WebAPI_Enterprise_流量策略本机升级补充_20261005.zip",
+      "state": "not-present; download link removed; no replacement created"
+    },
+    {
+      "source": "docs/deployment/current-local-delivery-index.md",
+      "historicalReference": "../../deliverables/WebAPI_Enterprise_升级后观测复验与交付索引_20261005.zip",
+      "state": "not-present; download link removed; no replacement created"
+    },
+    {
+      "source": "docs/deployment/notification-approval-upgrade-result.md",
+      "historicalReference": "../../deliverables/WebAPI_Enterprise_通知与跨环境审批_已安装交付_20261008.zip",
+      "state": "not-present; download link removed; no replacement created"
+    }
+  ],
+  "unresolvedHistoricalReferences": [
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/evidence/core-loop/final-review.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/core-loop/final-review.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/decisions.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/decisions.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/operations.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/operations.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/superpowers/specs/2026-10-04-core-loop-design.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/superpowers/specs/2026-10-04-core-loop-design.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/superpowers/plans/2026-10-04-core-loop-implementation.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/superpowers/plans/2026-10-04-core-loop-implementation.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/deployment/observability-runbook.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/observability-runbook.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/observability-data-dictionary.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/observability-data-dictionary.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/evidence/observability/verification.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/observability/verification.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/deployment/local-demo-guide.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/local-demo-guide.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/deployment/local-demo-recovery-checklist.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/local-demo-recovery-checklist.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/evidence/local-runtime/demo-activation.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/local-runtime/demo-activation.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/evidence/policies/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/policies/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/deployment/traffic-policies-runbook.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/traffic-policies-runbook.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": "docs/traffic-policy-data-dictionary.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/traffic-policy-data-dictionary.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": ".worktrees/gateway-restart-readiness/docs/deployment/gateway-readiness-upgrade-result.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/README.md",
+      "target": ".worktrees/gateway-restart-readiness/docs/deployment/gateway-readiness-upgrade-runbook.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/observability/verification.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/observability/verification.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/local-runtime/verification.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/local-runtime/verification.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/local-runtime/demo-activation.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/local-runtime/demo-activation.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "deployment/local-demo-recovery-checklist.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/local-demo-recovery-checklist.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/policies/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/policies/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "../.worktrees/gateway-restart-readiness/docs/deployment/gateway-readiness-upgrade-result.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/acceptance-input.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/acceptance-input.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/acceptance-result.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/acceptance-result.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/public/P3-11.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/public/P3-11.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/public/P3-10.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/public/P3-10.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/sdk-e2e-result.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/sdk-e2e-result.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/public/P3-12.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/public/P3-12.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/acceptance.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "evidence/observability/verification.json",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/observability/verification.json"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "observability-data-dictionary.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/observability-data-dictionary.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "deployment/observability-runbook.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/observability-runbook.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "evidence/policies/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/policies/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "deployment/current-local-status.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/current-local-status.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "workbench.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/workbench.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "deployment/network-policies-runbook.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/network-policies-runbook.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/console-coverage.md",
+      "target": "evidence/network-policies/2026-10-14-226dfe4/delivery-index.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/evidence/network-policies/2026-10-14-226dfe4/delivery-index.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/deployment/local-runtime-runbook.md",
+      "target": "local-demo-guide.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/deployment/local-demo-guide.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/superpowers/plans/2026-10-09-environment-access-address.md",
+      "target": "../specs/2026-10-09-environment-access-address-design.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/superpowers/specs/2026-10-09-environment-access-address-design.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/main/docs/superpowers/plans/2026-10-09-release-promotion.md",
+      "target": "../specs/2026-10-09-release-promotion-design.md",
+      "kind": "archived-relative-reference",
+      "currentRepositoryReference": "docs/superpowers/specs/2026-10-09-release-promotion-design.md"
+    },
+    {
+      "source": "docs/archive/2026-10-16/system-settings/docs/superpowers/plans/2026-10-05-sso-oidc-implementation.md",
+      "target": "../specs/2026-10-05-sso-oidc-design.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/archive/2026-10-16/traffic-policies/docs/superpowers/plans/2026-10-05-system-settings-implementation.md",
+      "target": "../specs/2026-10-05-system-settings-design.md",
+      "kind": "archived-relative-reference"
+    },
+    {
+      "source": "docs/superpowers/plans/2026-10-12-current-business-combined-performance-baseline.md",
+      "target": "../../evidence/gateway-query-performance/current-business-combined-baseline-plan/candidate-budget-assertions.json",
+      "kind": "historical-planned-evidence"
+    },
+    {
+      "source": "docs/superpowers/specs/2026-10-12-current-business-combined-performance-baseline-design.md",
+      "target": "../../evidence/gateway-query-performance/template-clone-s100-c760-h417/report.md",
+      "kind": "historical-planned-evidence"
+    },
+    {
+      "source": "docs/superpowers/specs/2026-10-12-current-business-combined-performance-baseline-design.md",
+      "target": "../../evidence/gateway-query-performance/current-business-combined-baseline-design/source-evidence.json",
+      "kind": "historical-planned-evidence"
+    },
+    {
+      "source": "docs/superpowers/specs/2026-11-05-independent-quota-backend-design.md",
+      "target": "../../../.superpowers/sdd/2026-11-05-real-quota-closeout/51b409b3-54c6-479c-9fa8-db0c02d52d2d/backend-assessment-readonly-attempt1.json",
+      "kind": "local-only-reference"
+    },
+    {
+      "source": "docs/superpowers/specs/2026-11-05-independent-quota-backend-design.md",
+      "target": "../../../.superpowers/sdd/2026-11-05-real-quota-closeout/51b409b3-54c6-479c-9fa8-db0c02d52d2d/inode-retry-attempt1-observation.md",
+      "kind": "local-only-reference"
+    }
+  ],
+  "duplicateEvidenceGroups": [
+    {
+      "sha256": "67e7f36728592be815c9ebccb035fb516cde785c4cb973369556c0ba046c50d8",
+      "paths": [
+        "docs/evidence/console-functional-qa-20261006-v1.1/README.md",
+        "docs/evidence/console-functional-qa/README.md"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "6eff9fa5065a1d365f8ae2f79d5c847a9158e65d45adf0fe1602e5007e4577cb",
+      "paths": [
+        "docs/evidence/console-functional-qa-20261006-v1.1/execution-ledger.md",
+        "docs/evidence/console-functional-qa/execution-ledger.md"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "96750dc9392122d4ec0637f3404ee055332e0277fa51090c02e8d5d18d177bbb",
+      "paths": [
+        "docs/evidence/console-functional-qa-20261006-v1.1/merge-upgrade-plan.md",
+        "docs/evidence/console-functional-qa/merge-upgrade-plan.md"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "paths": [
+        "docs/evidence/dialog-focus-upgrade/postmerge-typecheck.txt",
+        "docs/evidence/dialog-focus-upgrade/premerge-typecheck.txt",
+        "docs/evidence/standalone-dialog-qa/typecheck.txt"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "4797da00ff6a29e6014fbf6a3e5089d8cf01d64a914c2ef39b8405d8a34fcf65",
+      "paths": [
+        "docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-report-037eadc9-0505-497b-a13d-ff3ba41aa4fa.txt",
+        "docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-restored-report.txt"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "5798e3813dcca53e28d8149c8f2f8a3b6608eee3dc372e7b76f062913d0fc074",
+      "paths": [
+        "docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-report-c678172b-a774-40c2-a117-219303af47da.txt",
+        "docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-restored-report.txt"
+      ],
+      "action": "preserve each evidence identity"
+    },
+    {
+      "sha256": "da80ebc03316bbe795d145678746b91691abfa49696cbca37ef22b636a7dd093",
+      "paths": [
+        "docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-report-80d7b2a6-1522-4095-95b9-a84113f17654.txt",
+        "docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-restored-report.txt"
+      ],
+      "action": "preserve each evidence identity"
+    }
+  ],
+  "historicalReferenceNote": "Any current repository reference is a navigation aid only; it does not replace the original archived evidence identity.",
+  "topicReconciliationDocumentationInput": "068719f70a717c35a4407ad510f19a6f3cde8f8c",
+  "staticDatabaseModel": {
+    "source": "src/WebApi.Infrastructure/Persistence/Migrations/WebApiDbContextModelSnapshot.cs",
+    "distinctTableMappings": 96,
+    "isLiveDatabaseInspection": false
+  },
+  "operationsReconciliationDocumentationInput": "8fd8c899c96a56a75dc66a0aa23fa2698d7e19c7",
+  "restoreEntryContract": {
+    "source": "scripts/runtime/restore-storage-budget.mjs",
+    "requiredBudgetFields": [
+      "maxSnapshotBytes",
+      "minHostFreeBytes",
+      "maxTargetBytes",
+      "minTargetFreeBytes"
+    ],
+    "requiresRealHardQuotaVerification": true,
+    "defaultVerifierAvailable": false,
+    "normalRuntimeAcceptanceWrapperSuppliesRequiredRestoreIntegration": false
+  },
+  "specialistReconciliationDocumentationInput": "7f1bc8f6fe82c0a4ff0cd11bd2c7a42067ee0b44",
+  "maintenanceReconciliationDocumentationInput": "f1a11ab9ff12b41c0508c6b56f88998b4007587b",
+  "preMergeSourceBaseline": {
+    "githubMain": "7626115c769ae0926d38109ace46b2f5017bfcc3",
+    "localCodeInput": "00f45a8617cbf8634e58621594bdbb7e8b0ede16",
+    "localCodeAheadOfGithub": [
+      "536efe1",
+      "8b75524",
+      "b73357e",
+      "00f45a8"
+    ],
+    "sourceDifferenceToGithub": [
+      "src/WebApi.Infrastructure/Governance/AuditAccessQuery.cs",
+      "src/WebApi.Infrastructure/Messaging/OutboxDispatcher.cs",
+      "src/WebApi.Worker/Workers/OutboxWorker.cs"
+    ]
+  },
+  "postMergeReconciliation": {
+    "documentationInput": "f01a73383377568d547803c9fa926a54fb36f89c",
+    "mergeCommit": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "pr": 5,
+    "mainChecks": {
+      "console": 321,
+      "contracts-domain": 1251,
+      "contracts-gateway": 555,
+      "contracts-integration": 2128
+    },
+    "totalPassed": 4255,
+    "failed": 0,
+    "skipped": 0,
+    "mainRuns": [
+      42839001626,
+      42839002248
+    ],
+    "branchProtectionEnabled": false,
+    "documentationPublication": "local only; excluded from PR #5",
+    "productTestsRerunForDocumentation": false
+  },
+  "currentRequirementsReview": {
+    "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "path": "docs/deployment/requirements-current-review.md",
+    "dataPath": "docs/deployment/requirements-current-review.json",
+    "dataSha256": "c6adf9f38e71976ff25187c66d4d835412e48cfa649e8822da8c77d746197bf3",
+    "reviewType": "static traceability and gap review, no new acceptance",
+    "requirements": 454,
+    "historicalGapsReviewed": 58,
+    "newAccepted": 0,
+    "targetedFollowup": {
+      "units": 23,
+      "offlinePassed": 39,
+      "failed": 0,
+      "skipped": 0,
+      "sourceGaps": 50,
+      "targetedAcceptanceGaps": 6,
+      "newAccepted": 0,
+      "backendTestsRerun": true,
+      "browserAcceptanceRun": true,
+      "backendMethodsExecuted": 20,
+      "backendPassed": 26,
+      "browserCheckpoints": 17,
+      "browserResult": "partial; no requirement accepted"
+    },
+    "realBrowserVerification": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "observedCheckpoints": 17,
+      "observedPass": 17,
+      "partialGroups": 5,
+      "notExecutedLkgGroups": 1,
+      "newAccepted": 0,
+      "testServicesStopped": true,
+      "initialPreparationFailureRetained": true
+    },
+    "credentialBrowserVerification": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "checkpointRecords": 13,
+      "executedCheckpoints": 12,
+      "observedPass": 11,
+      "observedFail": 1,
+      "preparationRecords": 1,
+      "remainingActiveNewCredentials": 0,
+      "servicesStopped": true,
+      "newAccepted": 0
+    },
+    "credentialReadOnlyBrowserVerification": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "executedCheckpoints": 7,
+      "observedPass": 7,
+      "observedFail": 0,
+      "credentialWritesSubmitted": 0,
+      "newCredentialsCreated": 0,
+      "priorFailedSavedValidityCheckRetained": true,
+      "servicesStopped": true,
+      "newAccepted": 0
+    },
+    "credentialValiditySaveVerification": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "executedCheckpoints": 4,
+      "observedPass": 4,
+      "observedFail": 0,
+      "customValiditySavedAndReadBack": true,
+      "durationSeconds": 3600,
+      "newCredentialFinalStatus": "Revoked",
+      "originalC08Result": "failed",
+      "originalC08Overwritten": false,
+      "servicesStopped": true,
+      "newRequirementsAccepted": 0
+    },
+    "credentialWindowBoundaryVerification": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "executedHttpChecks": 14,
+      "passed": 14,
+      "failed": 0,
+      "newCredentialsCreated": 0,
+      "credentialUpdates": 0,
+      "crossDayAndOffsetChecksPersisted": false,
+      "servicesStopped": true,
+      "resourcePreservationStatus": "partial: one initial container outside owned start list is missing; cause Unknown",
+      "newAccepted": 0
+    },
+    "credentialCrossDaySaveVerification": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "casesExecuted": 2,
+      "casesPassed": 2,
+      "casesFailed": 0,
+      "createdCredentials": 2,
+      "revokedCredentials": 2,
+      "remainingActiveNewCredentials": 0,
+      "historicalCredentialEvidenceFilesUnchanged": 66,
+      "priorResourceUnknownRetained": true,
+      "servicesStopped": true,
+      "newAccepted": 0
+    },
+    "credentialPermissionMatrixVerification": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "checksExecuted": 48,
+      "passed": 48,
+      "failed": 0,
+      "newAccounts": 0,
+      "newCredentials": 0,
+      "credentialUpdates": 0,
+      "roleOrScopeChanges": 0,
+      "historicalCredentialEvidenceFilesUnchanged": 98,
+      "servicesStopped": true,
+      "newAccepted": 0
+    },
+    "latestPublishedLedgerStatusCounts": {
+      "已关闭": 36,
+      "部分": 40,
+      "缺失": 18,
+      "待复验": 360,
+      "经确认延期": 0
+    },
+    "credentialWriteGateFollowup": {
+      "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+      "uniqueMethods": 6,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "newRequirementsAccepted": 0,
+      "priorC08FailureRetained": true,
+      "priorUnknownRetained": true,
+      "persistedUpdatedWindowReadBackAdded": false
+    },
+    "latestReadOnlyRefresh": {
+      "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "date": "2026-11-12",
+      "newAccepted": 0,
+      "old454EntryQualificationsRetained": true,
+      "resourceUnknownRetained": true
+    },
+    "latestLocalAlignment": {
+      "inputLocalCommit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+      "mergedMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "newAccepted": 0,
+      "fixed401XunitRerun": false,
+      "original454ReviewInputRemains": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f"
+    },
+    "latestFixed401CleanupSourceVerification": {
+      "sourceRevision": "e1e880c09e4e835c00b79d21c0e396efc9df24a0",
+      "passed": 14,
+      "realXunit": true,
+      "dedicatedProjectOnly": true,
+      "wholeIntegrationBuildVerified": false,
+      "original48Rerun": false,
+      "newAccepted": 0
+    },
+    "latestIntegration401RestoreAttempt": {
+      "sourceRevision": "555cd4e193838e8041f4aead47ecf7af73d698a6",
+      "restore": "failed",
+      "build": "not-started",
+      "tests": "not-started",
+      "executed": 0,
+      "planned": 62,
+      "hostMissingPackageVersions": 43,
+      "newAccepted": 0,
+      "automaticRetry": false
+    },
+    "latestIntegration401Replay": {
+      "sourceRevision": "3d23c138f4e7df13b856f37c69ca41a99b630ccb",
+      "originalIntegrationBuildPassed": true,
+      "passed": 62,
+      "credentialPassed": 48,
+      "cleanupPassed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "priorRestoreFailureRetained": true,
+      "newAccepted": 0,
+      "gateway20Rerun": false,
+      "fullCandidateCiPassed": false
+    },
+    "latestGateway401Replay": {
+      "sourceRevision": "b605cf1d3618436a40c873852e18a5fa5788e4fd",
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "originalGatewayBuildPassed": true,
+      "newAccepted": 0,
+      "fullCandidateCiPassed": false
+    },
+    "latestFullCandidateLocalVerification": {
+      "sourceRevision": "155de03130dbab2d884882dc804f4d83ad5f8b94",
+      "status": "incomplete-stopped-for-shared-resource-discrepancy",
+      "consolePassed": 321,
+      "domainPassed": 1251,
+      "gatewayPassed": 560,
+      "integration": "not-started",
+      "allFourPassed": false,
+      "newResourceUnknown": true,
+      "newAccepted": 0
+    },
+    "latestIntegrationFullPreservationVerification": {
+      "sourceRevision": "62f90b436c1c4b372263172b0a8b344ba54e2f33",
+      "passed": 2189,
+      "failed": 0,
+      "skipped": 0,
+      "newAttemptStartingResourcesRetained": true,
+      "oldAttemptStillStopped": true,
+      "oldUnknownCleared": false,
+      "sameSourceFourSuiteTestsCovered": true,
+      "sameSourceTotalPassed": 4321,
+      "githubHostedCiRun": false,
+      "cumulativeResourcePreservation": "incomplete",
+      "newAccepted": 0
+    },
+    "latestHostedPublicationAttempt": {
+      "sourceRevision": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+      "pullRequest": 10,
+      "allFourPassed": false,
+      "consolePassed": 321,
+      "domainPassed": 1250,
+      "domainFailed": 1,
+      "integration": "cancelled-not-qualified",
+      "gateway": "cancelled-not-qualified",
+      "merged": false,
+      "newAccepted": 0
+    },
+    "priorHostedPublicationAttemptSnapshot": {
+      "sourceRevision": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
+      "pullRequest": 10,
+      "allFourPassed": false,
+      "integrationPassed": 2188,
+      "integrationFailed": 1,
+      "totalPassed": 4320,
+      "totalFailed": 1,
+      "merged": false,
+      "diagnosticPatch": "local-only-not-executed",
+      "newAccepted": 0
+    },
+    "latestLocalTargetedTimingDiagnostic": {
+      "sourceRevision": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+      "privateOverrides": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "fullSuiteQualified": false,
+      "cause": "Unknown",
+      "newAccepted": 0
+    }
+  },
+  "repositoryGovernanceObservation": {
+    "main": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "protected": true,
+    "protection": {
+      "enabled": true,
+      "required_status_checks": {
+        "enforcement_level": "everyone",
+        "contexts": [
+          "console",
+          "contracts-domain",
+          "contracts-integration",
+          "contracts-gateway"
+        ],
+        "checks": [
+          {
+            "context": "console",
+            "app_id": 15368
+          },
+          {
+            "context": "contracts-domain",
+            "app_id": 15368
+          },
+          {
+            "context": "contracts-integration",
+            "app_id": 15368
+          },
+          {
+            "context": "contracts-gateway",
+            "app_id": 15368
+          }
+        ]
+      }
+    },
+    "repositoryRulesets": [],
+    "observedAt": "2026-11-10 17:20:55 UTC",
+    "source": "GitHub branch and repository rulesets read APIs",
+    "rulesWrittenByThisTask": false,
+    "fullBranchProtectionSettingsVerified": false
+  },
+  "sourceDifferenceScope": "Aligned local candidate: fixed main50d implementation/scripts/tooling/deployment/dependencies/workflows plus six byte-preserved local test files. Documentation divergence is reconciled separately; prior17-file observation remains historical.",
+  "repositoryAdvanceObservation": {
+    "main": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "previousMain": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "pr": 6,
+    "prUrl": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/6",
+    "firstParent": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "files": [
+      {
+        "path": "docs/deployment/current-project-status.md",
+        "blobSha": "93fea56dab8fca5dfc9a786dd5d478422b852aeb",
+        "status": "modified"
+      },
+      {
+        "path": "docs/deployment/github-quality-gates-proposal.md",
+        "blobSha": "7df2e871838b2ca2e1a7769af7f88895319db27b",
+        "status": "modified"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/runtime.json",
+        "blobSha": "99ad3d63782ed1fb956412f4c9baff7025354a0d",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+        "blobSha": "7099646706328049f54d60f0411ffe467328a92c",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-c04-rate-limit.png",
+        "blobSha": "dc425a8ab95c2ba53875deae3c85bf23b0ae51b1",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-s02-wrong-password.png",
+        "blobSha": "7f1190a7a486edcb20e107205bf66649d11e433c",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/2026-11-10-reverify-c946bbb/requirements/ui/page1-s04-sso-unavailable.png",
+        "blobSha": "9405b78ec5dfc0aaeeee79e867cc1099ccd86784",
+        "status": "added"
+      },
+      {
+        "path": "docs/evidence/work-package4/requirements-closeout.json",
+        "blobSha": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+        "status": "modified"
+      },
+      {
+        "path": "docs/evidence/work-package4/requirements-status.md",
+        "blobSha": "dc57e7e9a22ee5666f578720bf5ad0fd464dcde7",
+        "status": "modified"
+      }
+    ],
+    "productTreeComparison": {
+      ".github": {
+        "local": "65d28475d1a946976daf94be3cfb8de661641c6b",
+        "remote": "65d28475d1a946976daf94be3cfb8de661641c6b",
+        "same": true
+      },
+      "deploy": {
+        "local": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "remote": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "same": true
+      },
+      "scripts": {
+        "local": "f8c99c7e249e9a91fc216a04c028fcdd7b07e54c",
+        "remote": "f8c99c7e249e9a91fc216a04c028fcdd7b07e54c",
+        "same": true
+      },
+      "src": {
+        "local": "b6806df08a5a559afe3ca696e0a2e2f501326f53",
+        "remote": "b6806df08a5a559afe3ca696e0a2e2f501326f53",
+        "same": true
+      },
+      "tests": {
+        "local": "8c8c9c99eacf8f34c4baa17fa34975706a50424d",
+        "remote": "8c8c9c99eacf8f34c4baa17fa34975706a50424d",
+        "same": true
+      },
+      "third_party": {
+        "local": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "remote": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "same": true
+      },
+      "tools": {
+        "local": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "remote": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "same": true
+      }
+    },
+    "documentationTreeChanged": true,
+    "publicLedgerStatusCounts": {
+      "已关闭": 36,
+      "部分": 40,
+      "缺失": 18,
+      "待复验": 360,
+      "经确认延期": 0
+    },
+    "publicLedgerBlob": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+    "remoteLedgerSnapshotBlob": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+    "primaryContentMatchesPublishedFiles": {
+      "docs/deployment/current-project-status.md": true,
+      "docs/deployment/github-quality-gates-proposal.md": true,
+      "docs/evidence/work-package4/requirements-closeout.json": false,
+      "docs/evidence/work-package4/requirements-status.md": false
+    },
+    "protected": true,
+    "newMainCiVerified": false,
+    "branchRulesWritten": false,
+    "localOriginalCheckoutUpdated": false,
+    "pushedByThisTask": false,
+    "observedAt": "2026-11-10T18:53:08.302Z",
+    "statusChanges": [
+      {
+        "id": "P01-C04",
+        "oldStatus": "待复验",
+        "status": "已关闭",
+        "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+        "evidenceRefs": [
+          {
+            "path": "page-source-review.json",
+            "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+            "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+            "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
+          }
+        ]
+      },
+      {
+        "id": "P01-S02",
+        "oldStatus": "待复验",
+        "status": "已关闭",
+        "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+        "evidenceRefs": [
+          {
+            "path": "page-source-review.json",
+            "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+            "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+            "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
+          }
+        ]
+      },
+      {
+        "id": "P01-S04",
+        "oldStatus": "待复验",
+        "status": "已关闭",
+        "sourceRevision": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+        "evidenceRefs": [
+          {
+            "path": "page-source-review.json",
+            "sha256": "2b5737068dfa3811a35d8c8990abcfbc8fbe1260dd7c886e84a87a4a5b5fd2fc"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/runtime.json",
+            "sha256": "b3b48da70e721b294f9e1c39cafe0c3ec339f5ec2540b1f56e4252eb0e2dad9c"
+          },
+          {
+            "path": "2026-11-10-reverify-c946bbb/requirements/ui-page-01.json",
+            "sha256": "cbfae6c0e241360da5884f32bd9406119fa43408da19386c60d52d50e5b0337c"
+          }
+        ]
+      }
+    ],
+    "qualification": "latest published ledger statuses, not new acceptance granted by this local matrix; original review snapshot remains unchanged"
+  },
+  "mainCi519Verification": {
+    "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "suites": [
+      {
+        "suite": "console",
+        "job": 130044123079,
+        "run": 42877359801,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359801",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:14Z",
+        "completedAt": "2026-11-10T18:39:50Z",
+        "total": 321,
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "logSha256": "3441627b524647989902d00feb3a15c3fd5a68e3db1c01dfde579a5d3ca0418f"
+      },
+      {
+        "suite": "domain",
+        "job": 130044122159,
+        "run": 42877359762,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:16Z",
+        "completedAt": "2026-11-10T18:41:30Z",
+        "failed": 0,
+        "passed": 1251,
+        "skipped": 0,
+        "total": 1251,
+        "logSha256": "e2573f36099a698125b8892b0488465b236b7697fcdcc5496de0fcac750ce53f"
+      },
+      {
+        "suite": "gateway",
+        "job": 130044122240,
+        "run": 42877359762,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:17Z",
+        "completedAt": "2026-11-10T18:49:57Z",
+        "failed": 0,
+        "passed": 555,
+        "skipped": 0,
+        "total": 555,
+        "logSha256": "9d3f0ac3f9a5aea4f6e27b5c63f90c2b6cd98ece0c597ee9d1793b2324056934"
+      },
+      {
+        "suite": "integration",
+        "job": 130044122126,
+        "run": 42877359762,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42877359762",
+        "head": "51924152199f4b4ca0323df776d10772e8fd3905",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-11-10T18:39:16Z",
+        "completedAt": "2026-11-10T19:35:02Z",
+        "failed": 0,
+        "passed": 2128,
+        "skipped": 0,
+        "total": 2128,
+        "logSha256": "5b1b1e68650822dc39c50126323724ecdcd0c7a72cc368fb7df68fe106de84ca"
+      }
+    ],
+    "passed": 4255,
+    "failed": 0,
+    "skipped": 0,
+    "allFourVerified": true,
+    "actualRunsNotPathSkipped": true,
+    "consoleTypecheckAndBuildPassed": true,
+    "integrationTestDuration": "53m27s",
+    "integrationJobDurationSeconds": 3346,
+    "requiredContexts": [
+      "console",
+      "contracts-domain",
+      "contracts-integration",
+      "contracts-gateway"
+    ],
+    "protected": true,
+    "rulesWritten": false,
+    "rerunTriggered": false,
+    "initialPartialObservationRetained": true,
+    "prior377CiRetainedSeparately": true,
+    "localSevenCasesNotAdded": true,
+    "newRequirementsAccepted": 0,
+    "observedAt": "2026-11-10T19:36:24.058607+00:00"
+  },
+  "publishedEvidenceIntegrityReview": {
+    "commit": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "fixedSource": "c946bbb708bc9de8438cd96561ba085c08a103ae",
+    "publishedBlobsMatched": 5,
+    "screenshotsReviewed": 3,
+    "newBrowserExecution": false,
+    "newAcceptanceGranted": false
+  },
+  "credentialUpdateReadbackVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "localTestFile": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "testFileSha256": "5b3ffe9f48be04a739ddf068136dee93237508bdb3622308b5cd9422d72e4528",
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "targetedWindowCases": 3,
+    "targetedReadonlyCases": 3,
+    "newRequirementsAccepted": 0
+  },
+  "credentialGatewayBoundaryVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "inputHead": "4e676b65685a1a6b3e6c38a6d1cb627024670f0d",
+    "newTestFile": "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+    "testFileSha256": "a032aee22865768bc3fcd62415ccd4c0d991e7f7a5fb95bd71f510169758bdfd",
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "newCases": 5,
+    "existingRegressionCases": 15,
+    "newRequirementsAccepted": 0
+  },
+  "credentialWriteMatrixVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "localTestFile": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "testFileSha256": "5a79159fdd81a85ff07b186b53e4a0c47dbe7285b423e4eb4d7731d56dd64f48",
+    "passed": 29,
+    "failed": 0,
+    "skipped": 0,
+    "newMatrixCases": 15,
+    "existingRegressionCases": 14,
+    "newRequirementsAccepted": 0
+  },
+  "credentialScopeRevocationVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "localTestFile": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "testFileSha256": "4d862584ea92c5a1cc2c87556070ba25d8a8163aaa7e993613ff54fb411aabb1",
+    "passed": 36,
+    "failed": 0,
+    "skipped": 0,
+    "newScopeUnionCases": 4,
+    "newPostPreviewRevocationCases": 3,
+    "existingRegressionCases": 29,
+    "newRequirementsAccepted": 0
+  },
+  "credentialConcurrentRevocationVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "localTestFile": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "testFileSha256": "72c6cb3d3305aa2b0a77c977389c72cf84f3194972a8441386e4624b1e3b3458",
+    "passed": 40,
+    "failed": 0,
+    "skipped": 0,
+    "newConcurrentCases": 4,
+    "existingRegressionCases": 36,
+    "newRequirementsAccepted": 0
+  },
+  "credentialMultiActorConcurrencyVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "localTestFile": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "testFileSha256": "3aa0ec8ceac9c01d058a7ed06d191d2789a385327924b00c3c7d023847144fef",
+    "passed": 44,
+    "failed": 0,
+    "skipped": 0,
+    "newIndependentOperatorCases": 4,
+    "existingRegressionCases": 40,
+    "newRequirementsAccepted": 0
+  },
+  "credentialCrossProcessVerification": {
+    "productBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "localTestFile": "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+    "testFileSha256": "9bb289b5edcd122fceeacfef81f37c028c1d6328240f1ca4962fbb46aa2516e0",
+    "passed": 48,
+    "failed": 0,
+    "skipped": 0,
+    "newCrossProcessCases": 4,
+    "existingRegressionCases": 44,
+    "newSharedResourceMissing": 1,
+    "resourcePreservationQualification": "incomplete; one starting shared container absent, cause Unknown",
+    "newRequirementsAccepted": 0
+  },
+  "credentialChildCleanupFixVerification": {
+    "inputHead": "b4ef092fae364aa0db6d92ab8da7e3eb14e7fe5f",
+    "offlinePassed": 9,
+    "offlineFailed": 0,
+    "offlineSkipped": 0,
+    "sdk": "10.0.403",
+    "projectSdkUnchanged": "10.0.401",
+    "realXunitRunner": false,
+    "projectBuildRun": false,
+    "fixedSdk48CasesRerun": false,
+    "resourcePreservationQualification": "inherited incomplete; previously missing shared container remains Unknown; no new live query or recovery",
+    "newRequirementsAccepted": 0
+  },
+  "credentialNativeCleanupVerification": {
+    "inputHead": "819a43743287ba0d1b2517244c4efed4aef07ed5",
+    "offlinePassed": 14,
+    "offlineFailed": 0,
+    "offlineSkipped": 0,
+    "nativeLifecycleCases": 4,
+    "setupFailureRegressionCases": 1,
+    "sdk": "10.0.403",
+    "realXunitRunner": false,
+    "projectBuildRun": false,
+    "fixedSdk48CasesRerun": false,
+    "resourcePreservationQualification": "inherited incomplete; prior shared-container absence Unknown not queried, recovered or cleared",
+    "newRequirementsAccepted": 0
+  },
+  "documents": [
+    {"path":"README.md","category":"navigation","sha256":"b895f055e4546084e500f300be5e8d305c686690169693aefcd0832aedafdc80"},
+    {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
+    {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
+    {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
+    {"path":"docs/acceptance/account-credential-closeout.md","category":"topic-reference","sha256":"9aef2cce0b386ba5fa5cd82ad2ebd472292c9bd12578e474e9624abda1de969b"},
+    {"path":"docs/archive/2026-10-16/gateway-query-performance/docs/superpowers/plans/2026-10-09-gateway-query-performance.md","category":"historical-archive","sha256":"59e992a6ff22be8219b13ad31f672687ec1b82ff25c5ccb94b4a3c0811d3973e"},
+    {"path":"docs/archive/2026-10-16/gateway-query-performance/docs/superpowers/specs/2026-10-09-gateway-query-performance-design.md","category":"historical-archive","sha256":"082229e6317a232d4fcbe7c727b58bedc141b0b51fc6f1b2eb6baf857833dc9d"},
+    {"path":"docs/archive/2026-10-16/local-keycloak-demo/docs/deployment/local-keycloak-demo.md","category":"historical-archive","sha256":"4a30bdeac6c6fe86aec2942e97963cda64e3a61da0f7739d1e2c61fc7dc8738c"},
+    {"path":"docs/archive/2026-10-16/main/README.md","category":"historical-archive","sha256":"58e2d73f455f36dbab5d14b0f288057b62fa6210184828101bad2a3618b14659"},
+    {"path":"docs/archive/2026-10-16/main/docs/acceptance.md","category":"historical-archive","sha256":"308181cba6dba7a6aab14f8915fcedae47deb37e680d5121e9f1fd1086bce2be"},
+    {"path":"docs/archive/2026-10-16/main/docs/console-coverage.md","category":"historical-archive","sha256":"5ac3716dbbea12fa43dbd90ae73ee05edd3a76f7aca1e27c0307cb8d7497cee9"},
+    {"path":"docs/archive/2026-10-16/main/docs/deployment/local-runtime-runbook.md","category":"historical-archive","sha256":"31cc9858a9c8689bae0139916efec11a1d90a70b9f1d58c014f4232df9f1f78a"},
+    {"path":"docs/archive/2026-10-16/main/docs/evidence/local-runtime/execution-ledger.md","category":"historical-archive","sha256":"7db3ff07a3a1c3d41ee07f9d6c79e596266c42d5e55fe810858849cf0040acb1"},
+    {"path":"docs/archive/2026-10-16/main/docs/superpowers/plans/2026-10-09-environment-access-address.md","category":"historical-archive","sha256":"ff68b46a1264865d43de3103393e72ae2a8cf5b8a1f27f8f12f0d2e1d08a78bd"},
+    {"path":"docs/archive/2026-10-16/main/docs/superpowers/plans/2026-10-09-release-promotion.md","category":"historical-archive","sha256":"d65ed541ddca2aac1a6aa99d205be8385e4298f7c1e225388618eecb3d5079ea"},
+    {"path":"docs/archive/2026-10-16/system-settings/docs/superpowers/plans/2026-10-05-sso-oidc-implementation.md","category":"historical-archive","sha256":"3e6eace5204998f99ae1a239817ceb1101cdbd6d9365de57d0fb33922c8bb1a0"},
+    {"path":"docs/archive/2026-10-16/traffic-policies/docs/superpowers/plans/2026-10-05-system-settings-implementation.md","category":"historical-archive","sha256":"3790e34f5c0935ade136d9945612d568f5f0a1d829b8e97d3622fd2ef688d9b8"},
+    {"path":"docs/catalog-routing.md","category":"topic-reference","sha256":"68508621578cfa8ec9413063601787b64eed9ef3c0d518b6edfa837f4fd77afc"},
+    {"path":"docs/console-coverage.md","category":"topic-reference","sha256":"375cdc507324b723bcb58751a2bab29e57991b98a659de01b87785ff25f50a45"},
+    {"path":"docs/contracts/durable-publish.md","category":"topic-reference","sha256":"bf9d23b5ece7833844b8826bd0661bcfed5828223988f2ca904ec87722985617"},
+    {"path":"docs/contracts/gateway-generation.md","category":"topic-reference","sha256":"2f1bab834294fe4c945325d032d0efbf07492ad9a7a7c004a1af40f3b500bc10"},
+    {"path":"docs/contracts/node-lifecycle.md","category":"topic-reference","sha256":"0a82a495a44b86c8a87bf3afb5ddbc314bc735c0adf0b91578b8c47d1e44c724"},
+    {"path":"docs/contracts/observability.md","category":"topic-reference","sha256":"772ba664aec98549d8b816001283da7586a19080f9fcb1ab8790ab7e721dad9b"},
+    {"path":"docs/contracts/rollback-recovery.md","category":"topic-reference","sha256":"2342f401c59f68e511708a24570c628f5778bbbb88a95e9a71665425287acaa9"},
+    {"path":"docs/contracts/runtime-snapshot.md","category":"topic-reference","sha256":"4e509598cbcb9e7c9f7d6d784937f4927a01ca928719069032d2d9d7b85e6fed"},
+    {"path":"docs/credential-security-data-dictionary.md","category":"topic-reference","sha256":"15d0371a1f034388ac2302c2cf64b5a45797d02fc3a6e24ed0965eca0174a1af"},
+    {"path":"docs/database-core.md","category":"topic-reference","sha256":"61e65ea8daf038008fe04ec67460c2021615b695b569101fb93582636d56b3fc"},
+    {"path":"docs/decisions.md","category":"topic-reference","sha256":"763af92ae41b2e92d02cbdfdc0abbab80ade6fc40e326d6b9d0fcfb697cd0b9f"},
+    {"path":"docs/dependencies/contract-management.md","category":"topic-reference","sha256":"898733f4808e6cdbf95fbd3b0f588d70933840acf15486a4dd294eb3dc90fc0c"},
+    {"path":"docs/dependencies/gateway-jwt.md","category":"topic-reference","sha256":"1b73f205557681a5c9df877907f6e7f2970b0903b4ef2d76717f4df60d3608fd"},
+    {"path":"docs/deployment/README.md","category":"navigation","sha256":"70fbb198c677b111fc3c73b34a2acb5c74de0acb393ebc99b23caf2929bd4206"},
+    {"path":"docs/deployment/account-credential-operations.md","category":"operations-reference","sha256":"11bf916707831fdc230e0795c8ce7dd1d6bb5130cbbec501dd43bbd095d4deef"},
+    {"path":"docs/deployment/console-ci-phase1.md","category":"ci-configuration-record","sha256":"1a6c7b894a4dc958948439f09ffc92e43e60ecd93042c1ec4a35e8167e49d326"},
+    {"path":"docs/deployment/contract-management-completion-runbook.md","category":"operations-reference","sha256":"e5348adadaba5379e8c5674aaed49927dcd047cbbc40569fee372e50f2d8be26"},
+    {"path":"docs/deployment/contract-management-completion-upgrade-result.md","category":"historical-deployment-record","sha256":"fc8574067597d3812777129dd07725d7d7e47cb7a536d467d4b420c412b77327"},
+    {"path":"docs/deployment/contracts-ci-phase2.md","category":"ci-configuration-record","sha256":"6c81559b64d42689f26de9c6d12c1f3cc7caeea8322dfe9f55ff9fdc610787b5"},
+    {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
+    {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
+    {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"8e5151301b626d9df8026456dcd0bb4fe67156f7a4bfa1c501aed851eec1110c"},
+    {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
+    {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
+    {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
+    {"path":"docs/deployment/external-notifications-local-result.md","category":"historical-deployment-record","sha256":"735f710475eb591106307b0397a700bb774c2f859f4580911900ca0935e499c5"},
+    {"path":"docs/deployment/full-project-integration-20261016.md","category":"historical-deployment-record","sha256":"2952bee161a1ca17694f59e5ea254d2bdf9240d107fc9c53fb6335815e953c03"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-pre-install-result.md","category":"historical-deployment-record","sha256":"cbdb858c5012a4077162a66c3782c76c941c6d56e00cad2bf274cbdc062a8217"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-qa-checklist.md","category":"historical-deployment-record","sha256":"d95ddb67aa6b63080fb0fe1e50eb5426bb26b574aec01a9af07f0c1f8f2f4b14"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-rulings.md","category":"historical-deployment-record","sha256":"d093ab461eae5caa4a0c7ca5dc1ea2b80fdef9eb2abc60655c6a6b54abb39da0"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-runbook.md","category":"operations-reference","sha256":"7d77b07f6ab69d50f4535d2e6512a7c3e9c30947cd6218b698fa9b529b64634d"},
+    {"path":"docs/deployment/gateway-jwt-retry-cache-upgrade-result.md","category":"historical-deployment-record","sha256":"f9930e3695aa67a50347ac0aa6f471799e3778b09cf6e9d6b211cd2fb0c8c8f6"},
+    {"path":"docs/deployment/gateway-readiness-upgrade-result.md","category":"historical-deployment-record","sha256":"1c8c0fb8c596b9f6a35bc7c24f080d01c30de4ce597a67548fc23214f514d349"},
+    {"path":"docs/deployment/gateway-readiness-upgrade-runbook.md","category":"operations-reference","sha256":"d835d335f6d26d585be89e290e83b72ba331b64b37281b17d5ce3f9edd78909d"},
+    {"path":"docs/deployment/gateway-restart-readiness-result.md","category":"historical-deployment-record","sha256":"d8c3e878745979984332cfb0d3fdf02ac4ef2368ed70f8e3ef5230c2574a6664"},
+    {"path":"docs/deployment/gateway-restart-readiness-runbook.md","category":"operations-reference","sha256":"f225246bf6bcfaed194de25cb21d0093a58fee480dd266037716440d000560c6"},
+    {"path":"docs/deployment/gateway-restart-readiness-upgrade-review.md","category":"historical-deployment-record","sha256":"90f55dd60cccdd6cabecaf8a0337652b257c167ac5145e34e9e3a3f4dcdfa6ba"},
+    {"path":"docs/deployment/github-quality-gates-proposal.md","category":"ci-configuration-record","sha256":"b4c1558a7071c1dbf1b76478c457019b441d468b9f3957f5d94277f838bc8d8a"},
+    {"path":"docs/deployment/governance-g13-upgrade-rehearsal.md","category":"historical-deployment-record","sha256":"21abd981d88960fe582fe1f6b8b9cad6e5e99ffd55f49d242e5553bfb6e450d1"},
+    {"path":"docs/deployment/governance-g14-fault-matrix.md","category":"historical-deployment-record","sha256":"586ed6ec77420138640a4708cf7e8ef584d55cf7062ae69741efe4a56962abc7"},
+    {"path":"docs/deployment/local-delivery-index.md","category":"historical-deployment-record","sha256":"d40864cca90037ba558efb343d350692b0c0b363d50c6894aa5f57dfa75507a5"},
+    {"path":"docs/deployment/local-demo-guide.md","category":"operations-reference","sha256":"2a379e90f6d6d6c1ff0ee731fcede3fb40eb2fb3ee6f5e8c607c8e43600ec8eb"},
+    {"path":"docs/deployment/local-demo-recovery-checklist.md","category":"operations-reference","sha256":"2c302bcb0bf873e997df9f9e0894f721a0124623bf76da69b0fba73c9c5078d7"},
+    {"path":"docs/deployment/local-keycloak-demo-proposal.md","category":"historical-deployment-record","sha256":"36dcc1add44e69b615c7541543885c80c2b3af859275f5200a28c72f5370af75"},
+    {"path":"docs/deployment/local-keycloak-demo-result.md","category":"historical-deployment-record","sha256":"3c7884a90d420c251dbde8c7367b62985e55da8f052af1cbd3d345821642afbd"},
+    {"path":"docs/deployment/local-keycloak-demo.md","category":"operations-reference","sha256":"607b9886c0f508fb6b52fcf93b6ca05fd8e9793f36fdc4c09f90ce6053c9f040"},
+    {"path":"docs/deployment/local-runtime-runbook.md","category":"operations-reference","sha256":"24c48d4917ae89db5c6a813550ae667db85fcb53a45c3969c9dd73eac4f22507"},
+    {"path":"docs/deployment/network-policies-4192-installed-226dfe4.md","category":"historical-deployment-record","sha256":"6f83ee9d07619557c3033439250f398ce3df98b0d4daa7a468a2a081b341c403"},
+    {"path":"docs/deployment/network-policies-4192-upgrade-rehearsal.md","category":"historical-deployment-record","sha256":"5912d9917c3bc5b5675f4daa9af49fdb9c26d7704ebb98a7428e5e7b941318f2"},
+    {"path":"docs/deployment/network-policies-4192-upgrade-review.md","category":"historical-deployment-record","sha256":"d62a0cd750bc46b70b1384b8adf8478988019161b3b9f0e75bb26182feebc168"},
+    {"path":"docs/deployment/network-policies-runbook.md","category":"operations-reference","sha256":"0433b28cb64e66b3725e3215e2d26080e063fc13fa43380305b4113bcb1b2e9a"},
+    {"path":"docs/deployment/notification-approval-capability-coverage.md","category":"historical-deployment-record","sha256":"2e12ef8af4c3aa45f718f48c4f49ad8a24e123ed50afc033a15ece30a3487c57"},
+    {"path":"docs/deployment/notification-approval-notification-checkpoint.md","category":"historical-deployment-record","sha256":"d07c09a03637a0dd35b11af4f0755bdf1664b5fa2744544787d4142eaee3f0b6"},
+    {"path":"docs/deployment/notification-approval-pre-install-result.md","category":"historical-deployment-record","sha256":"220112bab3a3e1a0ac5d7627c79cd59c2d3ef09b53e3d23171642757155fdbe3"},
+    {"path":"docs/deployment/notification-approval-recovery-runbook.md","category":"operations-reference","sha256":"68b026f40cea39fe0283c2cc76356cad9991d447a85bdb05006f62c8dff0c0bf"},
+    {"path":"docs/deployment/notification-approval-rulings.md","category":"historical-deployment-record","sha256":"63f128e111675b01ef2fe327e02668e756fa40770420d25a25c52f68b4cdf53c"},
+    {"path":"docs/deployment/notification-approval-upgrade-result.md","category":"historical-deployment-record","sha256":"0502469217cc3153910c1a96a96cc003485ed0584152107ad410d5a878f8d626"},
+    {"path":"docs/deployment/notification-approval-whole-branch-review.md","category":"historical-deployment-record","sha256":"303c628836a729afaf539898fcb016eb1b2c03a04a34aa85d537af73496ce9f4"},
+    {"path":"docs/deployment/observability-local.md","category":"operations-reference","sha256":"18ed19deb8d3bcc4b887769933670e33e23cff6e6127706586ff8bff259462ec"},
+    {"path":"docs/deployment/observability-runbook.md","category":"operations-reference","sha256":"4fcbf584bebb56f0ef61605fb542080a5be3594939f7e27076eeaa0966b88aa0"},
+    {"path":"docs/deployment/post-upgrade-observation-result.md","category":"historical-deployment-record","sha256":"3547988631980de2a1c641f60fb2dc5c5b8deb3ba98d51bb052a5778ead2752f"},
+    {"path":"docs/deployment/release-promotion-runbook.md","category":"operations-reference","sha256":"4c85a39ad2e129c0ac56d19de31e7c52d1f6284d780f5c78e4bd6f1f0026b9b8"},
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"a9ece00c2200dbb42614d67e0433bdff36e135238e0e74c5fb3c1abc8127cb32"},
+    {"path":"docs/deployment/security-hardening-4192-upgrade-preparation.md","category":"historical-deployment-record","sha256":"136b7dd5f423183d6bdf064e00dc83bc868ece79c67b130afa5383cdda16cd19"},
+    {"path":"docs/deployment/security-hardening-runbook.md","category":"operations-reference","sha256":"716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"},
+    {"path":"docs/deployment/sso-oidc-capability.md","category":"historical-deployment-record","sha256":"6360783bd9abc94dcfb0ff830c7c01d254ed84f4b74dd0aad231473631848750"},
+    {"path":"docs/deployment/sso-oidc-delivery-index.md","category":"historical-deployment-record","sha256":"d39b276b427200bad454c510d5b54d400597ee4c0b92a7a8fcc89651b5188373"},
+    {"path":"docs/deployment/sso-oidc-runbook.md","category":"operations-reference","sha256":"c4f6c5088b0811ed1b68f3cc882020d8fca518669a99cd4aca9a47f53aad7ef0"},
+    {"path":"docs/deployment/sso-oidc-upgrade-proposal.md","category":"historical-deployment-record","sha256":"a6088cc4a908f39dd9619235fcd9b8434842245b09ff1f60eeda96a74e2efae5"},
+    {"path":"docs/deployment/sso-oidc-upgrade-result.md","category":"historical-deployment-record","sha256":"a19fd313bab15254622c3679679711da7c288ed6623d89686ce3f5227b757728"},
+    {"path":"docs/deployment/system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"723b5ff4d1add5b186120bbdad5f125568c48f56c0c0aac739b0b13724999a99"},
+    {"path":"docs/deployment/system-settings-upgrade-result.md","category":"historical-deployment-record","sha256":"da9f134aa69b256eeb95f62ac29cb4dacb8f20f51380bd86c5454cd400eb4ad2"},
+    {"path":"docs/deployment/system-settings-upgrade-review.md","category":"historical-deployment-record","sha256":"0711da8978085d1a4b1c6aa60d57d154fcb2c1349caeb248e7cd5989526b01fe"},
+    {"path":"docs/deployment/system-settings-validation-result.md","category":"historical-deployment-record","sha256":"e76b4b2c9812870b1ec50942072bc8854951af1da4c96d6297c7c135db6954f8"},
+    {"path":"docs/deployment/traffic-policies-runbook.md","category":"operations-reference","sha256":"5e9098b536fafbf857778423d6ab722d029498d341e526b2eb5cc814310a443c"},
+    {"path":"docs/deployment/traffic-policies-upgrade-result.md","category":"historical-deployment-record","sha256":"f03d5fc0fd6fdbe44ba1a7190720b92b0725f78b947e5be4dc93fc8e203f0367"},
+    {"path":"docs/deployment/traffic-policies-upgrade-review.md","category":"historical-deployment-record","sha256":"e8eb5b7c9de1065e1cfd01a408b96ba5c612b453da5b6eb266b412680ba84189"},
+    {"path":"docs/deployment/version-comparison-upgrade-review.md","category":"historical-deployment-record","sha256":"120cbc652bcfa4e5b7167cde583e1b0ecc2d2a0289ae55952ba3184df612a86d"},
+    {"path":"docs/evidence/approvals/65a656f/README.md","category":"immutable-evidence","sha256":"ff876715ee1cd9a37025cc77d056b7f0c4c31c3213354a38d358ee12f4a53b2d"},
+    {"path":"docs/evidence/console-delivery-qa/result.md","category":"immutable-evidence","sha256":"2f20509239f7ceb3d2f238c4cfa36d744892fa1dbdd4eb01b19e766a3ec06c1e"},
+    {"path":"docs/evidence/console-display-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"1cd50f2d5275375e647707a39c978da6bd9e8cbd8be2a3532f3c6f00064ed129"},
+    {"path":"docs/evidence/console-functional-qa-20261006-v1.1/README.md","category":"immutable-evidence","sha256":"67e7f36728592be815c9ebccb035fb516cde785c4cb973369556c0ba046c50d8"},
+    {"path":"docs/evidence/console-functional-qa-20261006-v1.1/execution-ledger.md","category":"immutable-evidence","sha256":"6eff9fa5065a1d365f8ae2f79d5c847a9158e65d45adf0fe1602e5007e4577cb"},
+    {"path":"docs/evidence/console-functional-qa-20261006-v1.1/merge-upgrade-plan.md","category":"immutable-evidence","sha256":"96750dc9392122d4ec0637f3404ee055332e0277fa51090c02e8d5d18d177bbb"},
+    {"path":"docs/evidence/console-functional-qa-20261006/README.md","category":"immutable-evidence","sha256":"9e6b3bd3cc86919cf752a895f8f2dd2ba2e75d9cdf45b6ef8f3a78d364a22f32"},
+    {"path":"docs/evidence/console-functional-qa-20261006/execution-ledger.md","category":"immutable-evidence","sha256":"6011fca58cb5c009f0bc2d2ab4348590aaf2c14f3740786309d2dcb5b02941fd"},
+    {"path":"docs/evidence/console-functional-qa-20261006/merge-upgrade-plan.md","category":"immutable-evidence","sha256":"225aa53b2caad78717017aa20f9a71d2134de0e3f44262d07d2968fd318ff342"},
+    {"path":"docs/evidence/console-functional-qa/README.md","category":"immutable-evidence","sha256":"67e7f36728592be815c9ebccb035fb516cde785c4cb973369556c0ba046c50d8"},
+    {"path":"docs/evidence/console-functional-qa/execution-ledger.md","category":"immutable-evidence","sha256":"6eff9fa5065a1d365f8ae2f79d5c847a9158e65d45adf0fe1602e5007e4577cb"},
+    {"path":"docs/evidence/console-functional-qa/merge-upgrade-plan.md","category":"immutable-evidence","sha256":"96750dc9392122d4ec0637f3404ee055332e0277fa51090c02e8d5d18d177bbb"},
+    {"path":"docs/evidence/contract-management-completion/result.md","category":"immutable-evidence","sha256":"8fba7d5638d51a1c733172450b86fcbbe274efbe32f858e2af55f214862e83f4"},
+    {"path":"docs/evidence/core-loop/final-review.md","category":"immutable-evidence","sha256":"68152b4368e817154d009d7a55a013a62c76cf120246b0bb769b45fe08f5f8be"},
+    {"path":"docs/evidence/core-loop/implementation-record.md","category":"immutable-evidence","sha256":"72728c2bcdd3c899d94ada2929fa76aa70d770d67cc8ff065601823ce9a6805d"},
+    {"path":"docs/evidence/core-loop/verification-output.md","category":"immutable-evidence","sha256":"936f8f351e85ccc48d14d8e6993b30f3e7042d4db8c0699a88d5d7354c7fd7a4"},
+    {"path":"docs/evidence/dialog-focus-upgrade/README.txt","category":"immutable-evidence","sha256":"f75274c5f5ab965d3e7a5633cc69faf18d7684dd099c58082641fbf17e8b0b10"},
+    {"path":"docs/evidence/dialog-focus-upgrade/all-unit-tests-authorized.txt","category":"immutable-evidence","sha256":"a534be226420688d8601d64fa1fa1ee615a4a7a5aaf47a30067d285a2bcc89e3"},
+    {"path":"docs/evidence/dialog-focus-upgrade/all-unit-tests.txt","category":"immutable-evidence","sha256":"2b1194d6e86c71d2f2d0195e769b997333b1caf786638eae51391616bda830a6"},
+    {"path":"docs/evidence/dialog-focus-upgrade/backend-domain.txt","category":"immutable-evidence","sha256":"107a02b8bb27bb91341368efc215c7b008233056eb4b584ffbdd868d83ae3498"},
+    {"path":"docs/evidence/dialog-focus-upgrade/backend-gateway-first-attempt.txt","category":"immutable-evidence","sha256":"b603d60ef9fb19c8cd1cdc44cafcf88a8ec5a63244be4988478acdc201817cb4"},
+    {"path":"docs/evidence/dialog-focus-upgrade/backend-gateway.txt","category":"immutable-evidence","sha256":"ed476a340e7589f48c9dc2cfbb5b6f9f3f60fb24cd3b634fc7ffbd6fdec8b7e2"},
+    {"path":"docs/evidence/dialog-focus-upgrade/backend-integration.txt","category":"immutable-evidence","sha256":"49663f1b22815d73ee94de669f1ab1aed1b6f4d348155d5ee3b831edfef03554"},
+    {"path":"docs/evidence/dialog-focus-upgrade/postmerge-tests-authorized.txt","category":"immutable-evidence","sha256":"6b038597b6cacad5fa9778554e8aba3756ccab3593133f07a21af8e5778ef6c8"},
+    {"path":"docs/evidence/dialog-focus-upgrade/postmerge-tests.txt","category":"immutable-evidence","sha256":"a8c25e83a53b56741bba42602fe9dc9b06c403056ed6af48c51a22cf94de53c0"},
+    {"path":"docs/evidence/dialog-focus-upgrade/postmerge-typecheck.txt","category":"immutable-evidence","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"path":"docs/evidence/dialog-focus-upgrade/premerge-tests.txt","category":"immutable-evidence","sha256":"da151bd925b4e83b3cdfee3190de64176db86bef7544e2861567f389811a4b97"},
+    {"path":"docs/evidence/dialog-focus-upgrade/premerge-typecheck.txt","category":"immutable-evidence","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"path":"docs/evidence/dialog-focus-upgrade/result.md","category":"immutable-evidence","sha256":"731ca6ad870ad820ddac505d4fff6f3249f18b3688c2344e68c8bd71b8fe9644"},
+    {"path":"docs/evidence/dialog-focus-upgrade/upgrade-review.md","category":"immutable-evidence","sha256":"39926e155235f4cc83be9aa161b32b519ecead190fa8f3b2010913d8a818ed64"},
+    {"path":"docs/evidence/editor-keyboard-merge/merged-tests.txt","category":"immutable-evidence","sha256":"c9593c982e141836f0ceaa659e742d79287cd1d49d428319fc308ba99d140e5d"},
+    {"path":"docs/evidence/editor-keyboard-merge/precommit-tests.txt","category":"immutable-evidence","sha256":"c287d182f24ffaa032f4f156476c7fb1bc29f9c73b0db57e2b4f453e76a0eb45"},
+    {"path":"docs/evidence/editor-keyboard-merge/result.md","category":"immutable-evidence","sha256":"f9ad1811d06fd0a25477adc4d4de73da4c5cda87767181f4a2d85fd676aa3e3f"},
+    {"path":"docs/evidence/editor-keyboard-qa/baseline-tests.txt","category":"immutable-evidence","sha256":"7522de34ddd37bb6b08a34d65d5da34da235eb7f283442a243762e1383c4a544"},
+    {"path":"docs/evidence/editor-keyboard-qa/build.txt","category":"immutable-evidence","sha256":"4a2bbacc25de7a3cbcf247bb5447cc0893a4eed213bf6ac86899e6feed626bf8"},
+    {"path":"docs/evidence/editor-keyboard-qa/full-tests.txt","category":"immutable-evidence","sha256":"c68b4885e3bcabf18f29461ea8a7cb10e230544edc6c5e4c2d6efb5744fb9ac3"},
+    {"path":"docs/evidence/editor-keyboard-qa/green-tests.txt","category":"immutable-evidence","sha256":"0f2d82235f166197f0047fcd448b098d50a60d2baedd10d0e113c2be8186634a"},
+    {"path":"docs/evidence/editor-keyboard-qa/red-behavior.txt","category":"immutable-evidence","sha256":"60aca96894034cf08302b36ed7e7af9cb16ad68584343162c6495bfec1b9a5ce"},
+    {"path":"docs/evidence/editor-keyboard-qa/red-tests.txt","category":"immutable-evidence","sha256":"c6eeb7c6e3645785c888c254b2b9bc626b08312e98087f5c8277fd0091950369"},
+    {"path":"docs/evidence/editor-keyboard-qa/result.md","category":"immutable-evidence","sha256":"9eaa42a4be590d9634c246b32b23513e05c33081a97615a254080d1f0abac70d"},
+    {"path":"docs/evidence/environment-access/decisions.md","category":"immutable-evidence","sha256":"81514cc245c830644cc2471218305708762529bbd967487da891f00bc5bb48b1"},
+    {"path":"docs/evidence/environment-access/delivery-index.md","category":"immutable-evidence","sha256":"981118123114bcc07ac9066d253512a243021bc1f2498b055b0ae17afbbbfe12"},
+    {"path":"docs/evidence/environment-access/final-review.md","category":"immutable-evidence","sha256":"08e5902fa964926e0cd5b3dfc7a354bb99b3e4880acbcc31102398df413bc934"},
+    {"path":"docs/evidence/full-project-integration-20261016/pkcs-three-source-reviewed-package/README.md","category":"immutable-evidence","sha256":"4b8793aef40a420d2a2a09b6242544bab1b43cc3c7023ce93499d084f57700d2"},
+    {"path":"docs/evidence/gateway-readiness-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"315db27691b26b536ada3b442323ece72e1f4b7f98ac514813788164bfbed729"},
+    {"path":"docs/evidence/gateway-restart-readiness/code-review.md","category":"immutable-evidence","sha256":"138b77c96d618048c9a470235d002134ec751f9128c456dcc8d8a3f7ef12b52a"},
+    {"path":"docs/evidence/gateway-restart-readiness/diagnosis-and-proposal.md","category":"immutable-evidence","sha256":"3080f3d3de5d18b2aa679a888e2a7e6c703ed06c11985b68497f28bea626f489"},
+    {"path":"docs/evidence/gateway-restart-readiness/execution-ledger.md","category":"immutable-evidence","sha256":"325b19fc8a7d1cb7dd573a36704095f8c4d7d7bb723e45827aa188e80fc9619f"},
+    {"path":"docs/evidence/governance-merge/p2-4-crypto-review.md","category":"immutable-evidence","sha256":"77bf0558998cd1e4e30ae4b12653383ba04086e172bd87677e7364d28a2944a3"},
+    {"path":"docs/evidence/local-keycloak-demo/code-review.md","category":"immutable-evidence","sha256":"78e6103fb1507fed7561ba056256eebd4fcf85fff4e9e90f29543cba47043d23"},
+    {"path":"docs/evidence/local-keycloak-demo/execution-ledger.md","category":"immutable-evidence","sha256":"d6c08d84c49bef123cb886e89c846f2baffcc7446bf5bdb6209cde7e6ae46f11"},
+    {"path":"docs/evidence/local-keycloak-demo/ui/report.md","category":"immutable-evidence","sha256":"b09dcb0c17759cc20f6fc98e0503caacb851db403767cef432887eaaa529bd20"},
+    {"path":"docs/evidence/local-runtime/execution-ledger.md","category":"immutable-evidence","sha256":"64271e819879707cfc529e8b267ca1957e3021fb95abf109a695c004170efa46"},
+    {"path":"docs/evidence/local-runtime/final-review.md","category":"immutable-evidence","sha256":"e02a86234740dc8dd08a0fbe9f6e6c9d08105635929482ee2c01141a10f60bb3"},
+    {"path":"docs/evidence/m4-console/catalog-before.md","category":"immutable-evidence","sha256":"5a295c6a4e8eeae16f2a4d7e06f22bd0fad10b8087cb928099d92bd235afae3d"},
+    {"path":"docs/evidence/m4-console/preimplementation.md","category":"immutable-evidence","sha256":"22488350c2dfc9c74b47b57904b4f4fbeda22deed8eb2fd56badb3f7c880c777"},
+    {"path":"docs/evidence/m4-console/releases-before.md","category":"immutable-evidence","sha256":"32fbcd749444e9fefb01e95f919a3002a362aaf73f80f299349aa9af78cc3757"},
+    {"path":"docs/evidence/merge-gateway-restart-readiness/result.md","category":"immutable-evidence","sha256":"b8d9374f37f2c6730fed265c54386fc047a56047d29ec665e78967db7ac1d517"},
+    {"path":"docs/evidence/navigation-upgrade/result.md","category":"immutable-evidence","sha256":"43f498789f6e6e703fdc8aeb27cc3e5ffc6e2b62d468db258a9ec556d37c0a16"},
+    {"path":"docs/evidence/network-policies/2026-10-14-07fb1fa/delivery-index.md","category":"immutable-evidence","sha256":"e2883b8fac33731dbc2e1e3bf839151f4d2a1a8d265f23a10cc6b07d04325147"},
+    {"path":"docs/evidence/network-policies/2026-10-14-226dfe4/delivery-index.md","category":"immutable-evidence","sha256":"5190ddbca097dc7af651984afe45366eae5d0a6ee539c22463aa5cfb118536f4"},
+    {"path":"docs/evidence/network-policies/2026-11-09-macos-gate-blocker.md","category":"immutable-evidence","sha256":"f339c6fdf270810f0cd9267a5cf47859b41e8ef894c2fb9d2d6d69368f29486c"},
+    {"path":"docs/evidence/network-policies/2026-11-10-c946bbb/delivery-index.md","category":"immutable-evidence","sha256":"81bbea34745ce13e1131686b6a2ad30c98604cf6d84eafee4e8d3d2a83e164cd"},
+    {"path":"docs/evidence/notification-approval/2026-10-07-gap-review.md","category":"immutable-evidence","sha256":"cb4217219446f7ef4a322d9d392a687a381d24b830a5d4c75deb1109d3c7d3bb"},
+    {"path":"docs/evidence/notifications/dependencies/metadata/bouncycastle.cryptography/LICENSE.md","category":"immutable-evidence","sha256":"afc1653b666b64a2386b7b9b914406904f45c20b9571765d8c1121b513313179"},
+    {"path":"docs/evidence/observability/design-qa.md","category":"immutable-evidence","sha256":"aef2aced8e5eed8fb4f5e5ed3366f301f728ff060237835fbe2c3cb408ae0364"},
+    {"path":"docs/evidence/observability/execution-ledger.md","category":"immutable-evidence","sha256":"affd543273a9bd8b2095ba8cd2b74a64986e6b1e84b9b249fbe2f90adbddf2ed"},
+    {"path":"docs/evidence/observability/final-review.md","category":"immutable-evidence","sha256":"f0b3617c2a04b32a0389f8059590fe5e4c81c44bfd6a977c592345e0aceb50bc"},
+    {"path":"docs/evidence/observability/implementation-record.md","category":"immutable-evidence","sha256":"2c2544fb80b2fe8a1b4ecd487fa2be4c5bd85493f0d6cd527fd99adad079b4e3"},
+    {"path":"docs/evidence/observability/verification-output.md","category":"immutable-evidence","sha256":"2d3eb471d2e5bc0ca0871ca09459e212270066db752a2e196cf81fa1bb132b02"},
+    {"path":"docs/evidence/permission-matrix-upgrade/README.txt","category":"immutable-evidence","sha256":"0dd0cb38d394d2be2e6c24e1bc5075ea56d5b892ba21c12593bad3a327e772ef"},
+    {"path":"docs/evidence/permission-matrix-upgrade/result.md","category":"immutable-evidence","sha256":"14c5add9fe9770e10c02a073f0187a470b6d8f630c767432b755528fab9fb94a"},
+    {"path":"docs/evidence/policies/delivery-index.md","category":"immutable-evidence","sha256":"da5ea67ddced470ddbd3e0e035dc2ad899db525a696fe9957a3125b7c2e4f5c6"},
+    {"path":"docs/evidence/policies/execution-ledger.md","category":"immutable-evidence","sha256":"278c7bdced7a4794dc13cd2515ebc3962a1431149e140ecfc87aab91e34b35f8"},
+    {"path":"docs/evidence/policies/final-review.md","category":"immutable-evidence","sha256":"ea861403d832c2a4291e7a4a1591d3ee89c0b899a28635ea1f07d1b275d4ecc9"},
+    {"path":"docs/evidence/policy-navigation-upgrade/README.md","category":"immutable-evidence","sha256":"f258bfbbf22015b8aa9a6e31ff0c8205d670e740758e48054ec7c68c3a0002db"},
+    {"path":"docs/evidence/policy-navigation-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"b038a49cfa2d9c7a350a59ff66b1206a3829c6c30b52821ddd1028b191f52d5d"},
+    {"path":"docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-report-037eadc9-0505-497b-a13d-ff3ba41aa4fa.txt","category":"immutable-evidence","sha256":"4797da00ff6a29e6014fbf6a3e5089d8cf01d64a914c2ef39b8405d8a34fcf65"},
+    {"path":"docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-report-c8c7e96a-c191-4272-b7d8-a2828cd70fe6.txt","category":"immutable-evidence","sha256":"0787900d0d575dff6a981f6ba5168f5318e8f21334301d173ed438eda1c82891"},
+    {"path":"docs/evidence/release-pipeline/71183e941eef99efb3ad4328abd7c91d02938a1d/runtime/protected-restored-report.txt","category":"immutable-evidence","sha256":"4797da00ff6a29e6014fbf6a3e5089d8cf01d64a914c2ef39b8405d8a34fcf65"},
+    {"path":"docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-report-6897e335-d191-42e3-bbdb-c44e2a683812.txt","category":"immutable-evidence","sha256":"f4c6207f64292314bba288ba0dcf5d645f2486125e26de04fa819f10a548783a"},
+    {"path":"docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-report-c678172b-a774-40c2-a117-219303af47da.txt","category":"immutable-evidence","sha256":"5798e3813dcca53e28d8149c8f2f8a3b6608eee3dc372e7b76f062913d0fc074"},
+    {"path":"docs/evidence/release-pipeline/b1323c3a41dfdeb2008e0c9fdc811e4004067ac8/runtime/protected-restored-report.txt","category":"immutable-evidence","sha256":"5798e3813dcca53e28d8149c8f2f8a3b6608eee3dc372e7b76f062913d0fc074"},
+    {"path":"docs/evidence/release-pipeline/coverage.md","category":"immutable-evidence","sha256":"d2e5f4d1a15d5b427b1ce85a32e4258fb7db960cb0398a51f54fb4484894eccb"},
+    {"path":"docs/evidence/release-pipeline/delivery-index.md","category":"immutable-evidence","sha256":"5d99d7d136f09a214f96d61e1a8ef671267742608fcaaa689b9d0052fecf8035"},
+    {"path":"docs/evidence/release-pipeline/diagnostic-history.md","category":"immutable-evidence","sha256":"68745add03d4045e04664fcdff9df7bb90e0f8b8464007496e8e0a2ca560f66b"},
+    {"path":"docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-report-80d7b2a6-1522-4095-95b9-a84113f17654.txt","category":"immutable-evidence","sha256":"da80ebc03316bbe795d145678746b91691abfa49696cbca37ef22b636a7dd093"},
+    {"path":"docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-report-eeb63e8c-b8b0-4cdb-8535-2b48db430068.txt","category":"immutable-evidence","sha256":"70405a8f8225799184289ef9559f0003b151a110135f2ec6e9ed1e29638be0d5"},
+    {"path":"docs/evidence/release-pipeline/e21c3a3e26dbb4cee3e8cd4700d39aebae1b93c1/runtime/protected-restored-report.txt","category":"immutable-evidence","sha256":"da80ebc03316bbe795d145678746b91691abfa49696cbca37ef22b636a7dd093"},
+    {"path":"docs/evidence/release-pipeline/execution-ledger.md","category":"immutable-evidence","sha256":"7c2edbf47dc6938df2a5de12119902bac0c35b39d49f7b5bc100f6ffb821e7a2"},
+    {"path":"docs/evidence/release-pipeline/final-review.md","category":"immutable-evidence","sha256":"97e31f690c1c54d9d5851c5b4d91c1c7336a0fb38829ab854125c056d3f14e01"},
+    {"path":"docs/evidence/release-pipeline/follow-up.md","category":"immutable-evidence","sha256":"87c095b3b90cdb802893e719faec336d707642ae56ddf2aa3b2dec776ca09555"},
+    {"path":"docs/evidence/release-pipeline/installation-interruption.md","category":"immutable-evidence","sha256":"c3f283107caa1cfbf7d135aa93b27b0b7845433e66121ed44172cdef69d0b6fd"},
+    {"path":"docs/evidence/release-pipeline/installation-protocol.md","category":"immutable-evidence","sha256":"90614451a064cabac7d907a9854feb73a23467dca17b286bbf76b44b2facfbe0"},
+    {"path":"docs/evidence/release-pipeline/installation.md","category":"immutable-evidence","sha256":"b1a696f9a8e1da741dc2f1c4b72c236e5b55bb76a54e86e31add2bb2130c4b26"},
+    {"path":"docs/evidence/release-pipeline/m1-update.md","category":"immutable-evidence","sha256":"826e7af27d47fbd6a005886d37aa8dccc0cf690b2098c797895dde14402ff6c9"},
+    {"path":"docs/evidence/release-pipeline/merge-check.md","category":"immutable-evidence","sha256":"afccb257e73a986ccdf1c478e9bc26f76146fccf9fe1f32ef0c06916e0a978fd"},
+    {"path":"docs/evidence/release-pipeline/rulings.md","category":"immutable-evidence","sha256":"74dc732b51ce555d55ef46706cca4c524d4d2719952d2517d00a918ef98ee0f1"},
+    {"path":"docs/evidence/release-pipeline/verification.md","category":"immutable-evidence","sha256":"3bf30d8b21a1d556238126ae87075cddb6d6f3e880af02ec013e1ce035ba360d"},
+    {"path":"docs/evidence/release-promotion/4fc6e860ce039e8dea0db0040763eaa9d490b866/b9-browser/README.md","category":"immutable-evidence","sha256":"1e48e197c8ffaa513b205fa95f7463e74f02d34baaa51591d33a25336bfea22b"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime-attempt1/README.md","category":"immutable-evidence","sha256":"215844d9ac4c4c60a43abaf71dd754bb6ca02405e481e8c44b5fdde21b61e51e"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/README.md","category":"immutable-evidence","sha256":"2efdf082747a130cfb8fb139d3c47e633f2acbd5d7274558b6337ae318e81f4f"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/b11-runtime/synthetic-restored-report.txt","category":"immutable-evidence","sha256":"cb838a4e0d4a102ff9d99f9d4c903b3d655c5006ddaf47fcffe5cd839c87323f"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/original-install/README.md","category":"immutable-evidence","sha256":"9335c837193e3749477aa871f503a231f47a71cfd50bafb67aa02315bc19ba86"},
+    {"path":"docs/evidence/release-promotion/a445534f82f11ae9a45c3b2904bd07108bd165a9/review-fix-evidence.md","category":"immutable-evidence","sha256":"5f93f8817e3c5566a95156a6ed304303682a0af62819028ede1c67d941c1ad9d"},
+    {"path":"docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b10-browser/README.md","category":"immutable-evidence","sha256":"2f389e08b27e6174e933a0739362ebfb0493633999f8e9b719cfa34392a71eed"},
+    {"path":"docs/evidence/release-promotion/c0860c05426725c1ed7e58c1caf30f44410df0a3/b11-runtime/README.md","category":"immutable-evidence","sha256":"9a0c8c68dd3897ba67274dce5ecdabec8cecd4f87503a7dc6abca0be3236d136"},
+    {"path":"docs/evidence/release-promotion/decisions.md","category":"immutable-evidence","sha256":"91a3e020b59482b733a0438c4a26e3f0ca2bc8620928d28eb70a038eb738110d"},
+    {"path":"docs/evidence/release-promotion/delivery-index.md","category":"immutable-evidence","sha256":"4f39fd6543dd10483c9026e2f80dbe4fe9049dcc751e41fc15b2c53f83ec6c2c"},
+    {"path":"docs/evidence/release-promotion/execution-ledger.md","category":"immutable-evidence","sha256":"85f8769b4de8f374cbe82fe7ec21f41f7e3d9759f0b6520455732457b84fdf27"},
+    {"path":"docs/evidence/release-promotion/fa0c583d3177b5f86a467db1da166f5ad5a2d077/b11-runtime/README.md","category":"immutable-evidence","sha256":"14f9b258bab95392a3fb549cc0d38d8770c06bdea0f280fc29c41f33cb106290"},
+    {"path":"docs/evidence/release-promotion/fa0c583d3177b5f86a467db1da166f5ad5a2d077/b11-runtime/synthetic-restored-report.txt","category":"immutable-evidence","sha256":"9d50d94f481e3f713d5c93face400f6eb5a35c952f2f7310836d035f11315c9a"},
+    {"path":"docs/evidence/release-promotion/final-review.md","category":"immutable-evidence","sha256":"1a34e59d3be3687386f79c8ce764f37eb136e07e68c63dfa7e02cce450df2845"},
+    {"path":"docs/evidence/scope-editor-upgrade/README.txt","category":"immutable-evidence","sha256":"735296ab792507c1ac6edd7df4c02f5aa748da958e5f4c4eded5e05d2590ebc4"},
+    {"path":"docs/evidence/scope-editor-upgrade/merged-tests.txt","category":"immutable-evidence","sha256":"03db5f07aaf7f555007e2bd8d66e23720c0f6e58358dfa85319a475bd1ebd468"},
+    {"path":"docs/evidence/scope-editor-upgrade/precommit-tests.txt","category":"immutable-evidence","sha256":"b1a8a2caec6a3edc5ee4c05236c966e47aa539b746b211a9307b350f3a7bc5d6"},
+    {"path":"docs/evidence/scope-editor-upgrade/recovery-green.txt","category":"immutable-evidence","sha256":"e41a95443d2c6b72bdb7008a7b68fbb9f9cb2f2f63037383b700f7798fc8d7e7"},
+    {"path":"docs/evidence/scope-editor-upgrade/recovery-red.txt","category":"immutable-evidence","sha256":"f6db94ffd5c7a9f1bf6d81ca82689ba9e64f3deeff81e98db2f69209abc5252b"},
+    {"path":"docs/evidence/scope-editor/build.txt","category":"immutable-evidence","sha256":"a8bba1bce5c38e05c74a158f31ec40e826d062429e4a47007b3b723f6c0a9b85"},
+    {"path":"docs/evidence/scope-editor/dto-regression-red.txt","category":"immutable-evidence","sha256":"29d35991ef836f4c8e7caf0b1cf344ee5eac795a24ab9e2361f1f806cc02eef7"},
+    {"path":"docs/evidence/scope-editor/duplicate-red.txt","category":"immutable-evidence","sha256":"cf16b965ec3534f136b5eb4df9a4ce4abd30d849429e4b8fd61e12f94b7b333a"},
+    {"path":"docs/evidence/scope-editor/test-green.txt","category":"immutable-evidence","sha256":"c927e68f1dcbd8fd10aadf49d5757b03472ff7fbe99c730a656348003ce1f09a"},
+    {"path":"docs/evidence/scope-editor/test-red.txt","category":"immutable-evidence","sha256":"f963019043cb8fdaf1d0ec5d2b67fe5b21e68cbb793e00beb1753346f764e805"},
+    {"path":"docs/evidence/security-hardening/execution-ledger.md","category":"immutable-evidence","sha256":"87baec7b19dd86bf8ffb4e91e707fc99ff0b160f0a32c5094ec82f0d95614a73"},
+    {"path":"docs/evidence/security-hardening/source-review.md","category":"immutable-evidence","sha256":"06fb2e09490bdbe61e12c0fff1f8f6a83c9691c55e2686bfefd57ceea19f26fa"},
+    {"path":"docs/evidence/settings-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"10ee566a724df39f926e848fed1258760ae15ad21b8251e508e58c893039df55"},
+    {"path":"docs/evidence/settings-upgrade/ui/chrome/checkpoint.md","category":"immutable-evidence","sha256":"c2a886fd64c5887ef3231540b02aec2a7239a9c95474b3027602258094d09f2c"},
+    {"path":"docs/evidence/settings-upgrade/ui/chrome/final-report.md","category":"immutable-evidence","sha256":"e9432646710f0b70aa8d420dcf88f3a5c7f597e95a5786d2e8a3d44baa87d494"},
+    {"path":"docs/evidence/settings/final-review.md","category":"immutable-evidence","sha256":"f0c4d1ff649be8637af95de0c21de55521ad6de604485bac9b5b8fa046d3f754"},
+    {"path":"docs/evidence/sso-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"7d5eed3d9c3dea43b60cce0da7bda0346f6fdd5d3103140c8a2281aaf370fd7d"},
+    {"path":"docs/evidence/sso-upgrade/ui/report.md","category":"immutable-evidence","sha256":"29a7a7a807f672a2ac8d51279d40c7e655c9fe83e5923d7ed43c4d79455aaaf9"},
+    {"path":"docs/evidence/sso/execution-decisions.md","category":"immutable-evidence","sha256":"6f6f2deb0b1a5d1374f13720af39e5c02a4827c3f7d69ae92b8f438dbbbcde8f"},
+    {"path":"docs/evidence/sso/independent-review.md","category":"immutable-evidence","sha256":"49f13bf241edae218c530e568b4548b2d94581ca0a757cb790fa73ef9fd97e9d"},
+    {"path":"docs/evidence/sso/ui/final-report.md","category":"immutable-evidence","sha256":"e6f0e7dda81deab762f5cdadb0b0d4f1e84ac0581d7648f1306f7f6b7aed2be5"},
+    {"path":"docs/evidence/sso/ui/initial-review-phase/final-report.md","category":"immutable-evidence","sha256":"0c56fc7ed77bd28dd5de8c2747e396b21c5ea2d4caa3b128dee8d9a920e9428e"},
+    {"path":"docs/evidence/standalone-dialog-qa/baseline-tests.txt","category":"immutable-evidence","sha256":"5c18aa9e473343fcd38a37580bccd0ef11794824c0cdaa089fc86895c689ecf3"},
+    {"path":"docs/evidence/standalone-dialog-qa/build.txt","category":"immutable-evidence","sha256":"9a990953f17cf144e6d097cd79e5a98f54696af7576f814892338f2bbe178198"},
+    {"path":"docs/evidence/standalone-dialog-qa/full-tests.txt","category":"immutable-evidence","sha256":"a4a0d657b717b5874ce21217f6ac48c807964f659aac7555adc0e40ad5f02a9f"},
+    {"path":"docs/evidence/standalone-dialog-qa/red-tests.txt","category":"immutable-evidence","sha256":"308544f3ffff8fabaddf1172fc95ec2beded8ae4242f3c7b84f9c4606aa17313"},
+    {"path":"docs/evidence/standalone-dialog-qa/result.md","category":"immutable-evidence","sha256":"5afc829ade14f8c7c7a399ddc427e954783cf4c2b21b408d40e0b439a4b3bb91"},
+    {"path":"docs/evidence/standalone-dialog-qa/typecheck.txt","category":"immutable-evidence","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
+    {"path":"docs/evidence/version-comparison-upgrade/execution-ledger.md","category":"immutable-evidence","sha256":"7bf378aec392e7b3c03094395939aba944ccd88210bcae6c5ce20b79e30dec51"},
+    {"path":"docs/evidence/version-comparison-upgrade/result.md","category":"immutable-evidence","sha256":"24ce6420234a39ecf70178512dcb590301379dee0b2961436bb619e415a3fc97"},
+    {"path":"docs/evidence/version-comparison/delivery.md","category":"immutable-evidence","sha256":"ac94ec0d419c638480f7bba8172b3826c42855a8ee1b6ab6242fb08651d9aa8e"},
+    {"path":"docs/evidence/version-comparison/execution-ledger.md","category":"immutable-evidence","sha256":"7cc341c5fcc250456eff3f02db6b662b886d2f3962dcf8de44dc55db44cb8273"},
+    {"path":"docs/evidence/version-comparison/result.md","category":"immutable-evidence","sha256":"652bc52970eb9bceca5ac1a8b95c00f04f1a6e86e425c1bdc4fb4d80bf5c3bb8"},
+    {"path":"docs/evidence/version-comparison/source-review-resolution.md","category":"immutable-evidence","sha256":"99fb4c7c6172e9fe836674e0d019058669432da759fdffa58a2a27a59b4feeca"},
+    {"path":"docs/evidence/version-comparison/ui-audit.md","category":"immutable-evidence","sha256":"aa44cdc845586d41f3eff4ceb8a7fac8fb55afe01bb41ad34877a590a1f4cf2f"},
+    {"path":"docs/evidence/work-package3-policy-readiness/2026-10-13-readiness-and-proposal.md","category":"immutable-evidence","sha256":"9b9b647adae81276c016cb0d4ed95086a268926a21b44d2d951b981919531c8e"},
+    {"path":"docs/evidence/work-package4/2026-10-16-fixed-ba9031c/README.md","category":"immutable-evidence","sha256":"c9e4e39ef373589025d887d726c2a454208e508c874bb890488a1c7638c9c241"},
+    {"path":"docs/evidence/work-package4/final-summary.md","category":"immutable-evidence","sha256":"afdbfc5189fd6d026a0a812da5da36b892d0a97ce1ae87f0c57cdaae92a8e80e"},
+    {"path":"docs/evidence/work-package4/requirements-status.md","category":"immutable-evidence","sha256":"42c1808f0fee6ab7feb6abf4ac1a51b4fa03cbf501949efc986ae6e38bf19c2c"},
+    {"path":"docs/evidence/workbench/result.md","category":"immutable-evidence","sha256":"3d48bcce18408966e2be3027734ce57a62f6a36ea93f8744a297b9f04642ccae"},
+    {"path":"docs/governance-security.md","category":"topic-reference","sha256":"433bd544de84836fcb97008c67f1a5260d00946c3b9fb0b31935c987d72d1ecd"},
+    {"path":"docs/observability-data-dictionary.md","category":"topic-reference","sha256":"39a16bdf9a523ba59b784f25747dce6cef6f8ed50ba9542c6f04ae4c36e99a5b"},
+    {"path":"docs/openapi-credentials.md","category":"topic-reference","sha256":"f8e888bb2ea7ad34f1bccdc6fe96cacbdb74e1baf44a442dbab29dcdab9c5c07"},
+    {"path":"docs/operations.md","category":"topic-reference","sha256":"2ad2c677b91da0ceb144451831da24cee0eedd02528cb104602f745d7fb0437a"},
+    {"path":"docs/planning/2026-10-05-sso-scope-assessment.md","category":"historical-design-plan","sha256":"47378760cafa271e46face3db02e3e3ebb69af980f77f12045fb0fcd6dfe2bfd"},
+    {"path":"docs/releases-approval.md","category":"topic-reference","sha256":"2d443168e69fb1cb2c5496aca752caa1c399b2a4445c568f171303b4c03e445c"},
+    {"path":"docs/session-security.md","category":"topic-reference","sha256":"4b9b11978bf7828c19720dea8859786a1d0022578018cdda029c2eaa8c62e896"},
+    {"path":"docs/superpowers/plans/2026-10-04-core-loop-implementation.md","category":"historical-design-plan","sha256":"2d4d66871ad57851cd7ab1196d0a5f258b9cf42b6fdbf71917fbab73d8121645"},
+    {"path":"docs/superpowers/plans/2026-10-04-local-runtime-implementation.md","category":"historical-design-plan","sha256":"00edee88259fc8d6c418636195e93771e395190682fbcbb60cb858133ac264d0"},
+    {"path":"docs/superpowers/plans/2026-10-04-observability-alerting-implementation.md","category":"historical-design-plan","sha256":"ee2c114185371c769ef15f9126237e4f53646da73f6759458591ef194535e313"},
+    {"path":"docs/superpowers/plans/2026-10-05-sso-oidc-implementation.md","category":"historical-design-plan","sha256":"d435619db58d3f7c4da664f607474e9cde8f25b4eb3e4695bc9732ee402d0a21"},
+    {"path":"docs/superpowers/plans/2026-10-05-system-settings-implementation.md","category":"historical-design-plan","sha256":"4f0d0e225ba815ced04dd41f209140c5a138ce8534ef2a9e13516e16a50bb1cc"},
+    {"path":"docs/superpowers/plans/2026-10-05-traffic-policies-implementation.md","category":"historical-design-plan","sha256":"968ddeeea2c0771cdffeae6690b08b0baefab81692c5ebd4aaef0cc94554c3cd"},
+    {"path":"docs/superpowers/plans/2026-10-06-version-comparison-implementation.md","category":"historical-design-plan","sha256":"bb9d4a7ea2ed3f552258ce54849ac0db448320b83b73a96ffd65592455925741"},
+    {"path":"docs/superpowers/plans/2026-10-07-contract-management-completion.md","category":"historical-design-plan","sha256":"977565e0812653b6854089057b9b2f567a7749a38053057a4059d5f0efe47d21"},
+    {"path":"docs/superpowers/plans/2026-10-07-gateway-jwt-retry-cache.md","category":"historical-design-plan","sha256":"c34530c1391cef7936839ca4e298179b7b011e1f8cff10c027b9378d880758a3"},
+    {"path":"docs/superpowers/plans/2026-10-08-cross-environment-approvals.md","category":"historical-design-plan","sha256":"13c16f43887e27eb0a4de3080729d166d9e9583f72341c067db1bb2a95c18980"},
+    {"path":"docs/superpowers/plans/2026-10-08-external-notifications.md","category":"historical-design-plan","sha256":"113012e23b00cc9960ad1529b7829e0cffef2a250a7de5627f3aa99fe5ebe76f"},
+    {"path":"docs/superpowers/plans/2026-10-08-notification-approval-delivery.md","category":"historical-design-plan","sha256":"6860d51fba37e2aedfd524a956f39a570a3918167a22ebc165315fa612e10577"},
+    {"path":"docs/superpowers/plans/2026-10-08-security-hardening.md","category":"historical-design-plan","sha256":"0e5ad71c8a259120285a01ceeb2552518c57a470772e02d49837311b514664b4"},
+    {"path":"docs/superpowers/plans/2026-10-09-environment-access-address.md","category":"historical-design-plan","sha256":"f19e69d76873124174c33079ef528ae6a1905a2eb544760da482f7896ee662ef"},
+    {"path":"docs/superpowers/plans/2026-10-09-gateway-query-performance.md","category":"historical-design-plan","sha256":"7128c3b427dc65f88064bef47d46f2c131534bcf783a609d375b246bf8aa524f"},
+    {"path":"docs/superpowers/plans/2026-10-09-release-pipeline.md","category":"historical-design-plan","sha256":"17cfe58bbe3cbc3fb74699881c51550e1e02644eaa90844a484d3740fedbe0f8"},
+    {"path":"docs/superpowers/plans/2026-10-09-release-promotion.md","category":"historical-design-plan","sha256":"105f45df44f65bedf1bb25e28e52e3257e7e3c9c52cea55374dc1beaf4227ae4"},
+    {"path":"docs/superpowers/plans/2026-10-12-current-business-combined-performance-baseline.md","category":"historical-design-plan","sha256":"055a72f379277dff504e2490c9af8789db99510986ddd5cd7fea90a60d6d51f1"},
+    {"path":"docs/superpowers/plans/2026-10-12-fixed-main-verification.md","category":"historical-design-plan","sha256":"68505da7a9f4203f3c13281373f682418bd42b3ea7ce0ba71183d734828f763d"},
+    {"path":"docs/superpowers/plans/2026-10-13-cors-ip-transform-json-body.md","category":"historical-design-plan","sha256":"acf273a9adfc98a5bada352ce0ca00b2debb1b5fec5c2e85a6cf969cec5e074f"},
+    {"path":"docs/superpowers/plans/2026-10-13-cors-ip-transform.md","category":"historical-design-plan","sha256":"f08365b17fa5ab77c2e196f807d88d403708fddd4a2650d024c616a4b1ac3811"},
+    {"path":"docs/superpowers/plans/2026-10-15-account-credential-closeout-a-accounts.md","category":"historical-design-plan","sha256":"e558cb5b43a3297d2c0f37187940f97bb5c5462c23917910c8acfd37f2d755e5"},
+    {"path":"docs/superpowers/plans/2026-10-15-account-credential-closeout-b-usage.md","category":"historical-design-plan","sha256":"d9f60fa2dc2b57533d651d514c99e6cf19e2f31fbd8481d00aa6f857797b14c7"},
+    {"path":"docs/superpowers/plans/2026-10-15-account-credential-closeout-c-delivery.md","category":"historical-design-plan","sha256":"71d30511436408df1d75091e07ac46656f0a6aae83eded8f7f4e9f0c1cf83f43"},
+    {"path":"docs/superpowers/plans/2026-10-15-account-credential-closeout.md","category":"historical-design-plan","sha256":"8a2e467fc458830cf59fcaad749eb9151cc3f14da95120ae972396049d66a2fc"},
+    {"path":"docs/superpowers/plans/2026-11-04-authoritative-notification-migration.md","category":"historical-design-plan","sha256":"93b2acff33b804468465f56a06d3c6fe5618a138eea0964f21040ea9e119c77c"},
+    {"path":"docs/superpowers/plans/2026-11-04-governance-snapshot-24-integration.md","category":"historical-design-plan","sha256":"549a437807dac7cd2f65d5dc504347fe5d92b0db20cda6861a0a1164041fde30"},
+    {"path":"docs/superpowers/plans/2026-11-04-independent-security-evidence-increment.md","category":"historical-design-plan","sha256":"d2a45f008e81c8e8b797eeb447e5b7ca721626a53a3cdae223d29af8d4dedfb3"},
+    {"path":"docs/superpowers/plans/2026-11-04-migration-budget-trace.md","category":"historical-design-plan","sha256":"905679c28bfa7bcddef365abb62752004f97b922f96109851085fdbab9805873"},
+    {"path":"docs/superpowers/plans/2026-11-05-independent-persistent-storage-verification.md","category":"historical-design-plan","sha256":"aa4b225afe55644023ddb3db23fa06abbf085f34091aa26e987e74f9ed9a6a16"},
+    {"path":"docs/superpowers/plans/2026-11-10-console-ci-phase1.md","category":"historical-design-plan","sha256":"6bac439be30ffbfd5394faf6f0058fde88c882cad05a8c0edb13cf8e8599776e"},
+    {"path":"docs/superpowers/plans/2026-11-10-contracts-ci-phase2.md","category":"historical-design-plan","sha256":"487a7b2c742441b0dfb2c23b1f9a3649475fb42398a3bd08756041bc6a4cb479"},
+    {"path":"docs/superpowers/plans/2026-11-11-project-resource-counts.md","category":"historical-design-plan","sha256":"82a84fd5375d62a398cf7f51faba362f84982aea184c98da6c8f30bb4f98f8de"},
+    {"path":"docs/superpowers/specs/2026-10-04-core-loop-design.md","category":"historical-design-plan","sha256":"233db0162d086761ce82a70b5ca9c7b9757e23a4f6dab1cd821d4fa79e73696e"},
+    {"path":"docs/superpowers/specs/2026-10-04-local-runtime-design.md","category":"historical-design-plan","sha256":"a2d30dfc472461306886aedf4b8df669fd8a4daadfef61ad17e015b0883166a4"},
+    {"path":"docs/superpowers/specs/2026-10-04-observability-alerting-design.md","category":"historical-design-plan","sha256":"b8e37e2d0f04e3d1a4b7cd384fc51902f021a0b62ebf5734a29325ecbc629d85"},
+    {"path":"docs/superpowers/specs/2026-10-05-sso-oidc-design.md","category":"historical-design-plan","sha256":"7fd1e5cda221ab123cbc69e4102609f7fded8523eb16758d9d7c9cc6c81cb97e"},
+    {"path":"docs/superpowers/specs/2026-10-05-system-settings-design.md","category":"historical-design-plan","sha256":"7693051dc9212b4134538fe208d611fa57ebfd547e7ccb9d73af17327de15d63"},
+    {"path":"docs/superpowers/specs/2026-10-05-traffic-policies-design.md","category":"historical-design-plan","sha256":"4405ea26787fd3fb61546ba370d6414ef7a7edccf0e7facc36d99c89a5d716a7"},
+    {"path":"docs/superpowers/specs/2026-10-06-contract-management-completion-design.md","category":"historical-design-plan","sha256":"db8083a74531a85f014de29ba4ee684bca08789148733a40e538087e79b82e4a"},
+    {"path":"docs/superpowers/specs/2026-10-06-version-comparison-design.md","category":"historical-design-plan","sha256":"70d3f4002bae7ffa46cb35ad0411e3873fa285c7574481b7562568f968494acc"},
+    {"path":"docs/superpowers/specs/2026-10-07-gateway-jwt-retry-cache-design.md","category":"historical-design-plan","sha256":"5fdeb27a18959bad7597b235bb67893a9c0f793ec2b197d61e222a65753c6e68"},
+    {"path":"docs/superpowers/specs/2026-10-08-notification-cross-environment-approvals-design.md","category":"historical-design-plan","sha256":"79f5d7c229c76cbc90e908ca0270e707ca914832eb2dc93fa0b44f722554f9f8"},
+    {"path":"docs/superpowers/specs/2026-10-08-security-hardening-design.md","category":"historical-design-plan","sha256":"aaaa90179cff5c565cd124f788863d159ea3f8e66a2109963c399c5aaa34533c"},
+    {"path":"docs/superpowers/specs/2026-10-09-environment-access-address-design.md","category":"historical-design-plan","sha256":"2c0be771f7cce4373dec7192ceddabbad91f0d9d77fa514d8aca3dfe7325c5b9"},
+    {"path":"docs/superpowers/specs/2026-10-09-gateway-query-performance-design.md","category":"historical-design-plan","sha256":"e047bd7f3657c567a6606823f563b648c56cf2f5466b6731b1d9a96f4b975b3c"},
+    {"path":"docs/superpowers/specs/2026-10-09-release-pipeline-design.md","category":"historical-design-plan","sha256":"4654e72c7c8fc9610774688132775b5c40fd299803929f0a25dd613ce53c09b8"},
+    {"path":"docs/superpowers/specs/2026-10-09-release-promotion-design.md","category":"historical-design-plan","sha256":"a01f8f11a270f5493f19bb3cf2af33176cd86dfdef3c7c187486223395a2076a"},
+    {"path":"docs/superpowers/specs/2026-10-12-current-business-combined-performance-baseline-design.md","category":"historical-design-plan","sha256":"98ff99ab88bf504d0e9f9d32fb288b15e168997867aaa69e1bbf6b91f659bbe0"},
+    {"path":"docs/superpowers/specs/2026-10-13-cors-ip-transform-design.md","category":"historical-design-plan","sha256":"5820962e5c8f9ec1f452e2baf11e8caab76479e830c79fc97ec30f8d34283209"},
+    {"path":"docs/superpowers/specs/2026-10-13-cors-ip-transform-json-body-design.md","category":"historical-design-plan","sha256":"494a14b5bd22c5331a7419ed383ddf516863a7c5f41f64e42be801e9c2d7c554"},
+    {"path":"docs/superpowers/specs/2026-10-15-account-credential-closeout-design.md","category":"historical-design-plan","sha256":"b3b0c33dd71a6fb83b28c6efe99f74a592d580995d34618f612bbc4f43413994"},
+    {"path":"docs/superpowers/specs/2026-11-04-governance-snapshot-24-integration-design.md","category":"historical-design-plan","sha256":"d0f1c8293fb2255a826dc5c31eb353dc25a0ab4dfb2d6196fa1809549a925cad"},
+    {"path":"docs/superpowers/specs/2026-11-04-independent-witness-recovery-boundaries.md","category":"historical-design-plan","sha256":"eb584cecff4fb37b6a07b63457c70345632e393e382b8f2298ba006239e8f473"},
+    {"path":"docs/superpowers/specs/2026-11-04-migration-budget-trace-design.md","category":"historical-design-plan","sha256":"dc275d28975a8c7dd474a6d670a4dac1642b568315a29b55a78c4eb0d99adc75"},
+    {"path":"docs/superpowers/specs/2026-11-05-independent-quota-backend-design.md","category":"historical-design-plan","sha256":"77976d8aa63c210b102c133c957ba1df6b606a8bcaea9dfa113715a254c186f4"},
+    {"path":"docs/superpowers/specs/2026-11-10-console-ci-phase1-design.md","category":"historical-design-plan","sha256":"791fe388cf24e087e581425c0a56b756f0dcc11c2ab7c399c310729fe4f82d54"},
+    {"path":"docs/superpowers/specs/2026-11-10-contracts-ci-phase2-design.md","category":"historical-design-plan","sha256":"1be4ab24ffbc6b52cc5501064fcb7846c3d3d7a0f153056b16826f86b3896ee1"},
+    {"path":"docs/superpowers/specs/2026-11-11-project-resource-counts-design.md","category":"historical-design-plan","sha256":"1c356cd4513ab5cc6418b725bb400e96b4b3d06ff7505e58d9a1ce569708fab5"},
+    {"path":"docs/traffic-policy-data-dictionary.md","category":"topic-reference","sha256":"02611712f6ed8b89033e1abd9d5028a595a5b5f4e1155427e7548ec7dc902022"},
+    {"path":"docs/workbench.md","category":"topic-reference","sha256":"4f15104d0c5fbd10b4f0561eee8cf61ae5758cf1115d384723869980b3fc82d4"}
+  ],
+  "repositoryRefresh20261112": {
+    "observedAt": "2026-11-11T17:22:15.641024+00:00",
+    "githubMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "previousObservedMain": "51924152199f4b4ca0323df776d10772e8fd3905",
+    "localInputCommit": "3230bc5024b8d5fa5ff099195a3e9449400c97aa",
+    "localProductBaseline": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
+    "mergedPullRequests": [
+      {
+        "number": 7,
+        "title": "feat: add permission-aware project resource counts",
+        "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/7",
+        "merge_commit_sha": "5ca458a4ba4e3eea7ee24b7a6df048d36b653de2",
+        "merged_at": "2026-11-11T05:18:56Z"
+      },
+      {
+        "number": 8,
+        "title": "fix: avoid recreating existing containers during cold backups",
+        "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/8",
+        "merge_commit_sha": "437b7d82a57d27bb9d6962830eb8c58d8f66947f",
+        "merged_at": "2026-11-11T07:18:50Z"
+      },
+      {
+        "number": 9,
+        "title": "ci: stabilize hosted check deadlines",
+        "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/9",
+        "merge_commit_sha": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "merged_at": "2026-11-11T09:27:49Z"
+      }
+    ],
+    "remoteAdvanceFiles": [
+      {
+        "path": "console/src/pages/Governance.tsx",
+        "githubBlob": "e1362cc2924c6bfa9798c9f440f7980637ee5a3f",
+        "localBlob": "f463d34cef960bcaa2fcc8a34384c9139fa5b77c"
+      },
+      {
+        "path": "docs/superpowers/plans/2026-11-11-project-resource-counts.md",
+        "githubBlob": "20645026c803a15163e839dcfea4b919045bb333",
+        "localBlob": null
+      },
+      {
+        "path": "docs/superpowers/specs/2026-11-11-project-resource-counts-design.md",
+        "githubBlob": "33c7073cb752435f5d3df40396f8c07ab090e25f",
+        "localBlob": null
+      },
+      {
+        "path": "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+        "githubBlob": "74a01e89f230a0f7fcade65afa7d9c12fd77dba5",
+        "localBlob": "02a1a929c8204f3ddb7d00c0b001f06ff288c8f7"
+      },
+      {
+        "path": "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+        "githubBlob": "b0e2b3110856af175bfc7f58a30737a57aa2df5f",
+        "localBlob": "f30c5996f105e0cc116bc55f0f24a00384e6317e"
+      },
+      {
+        "path": "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+        "githubBlob": "cd6a6b66e70bec7ed1fd74407a2dd3b06872fc38",
+        "localBlob": "223253c04720461be58a36f732bcb641b3e9e371"
+      },
+      {
+        "path": "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+        "githubBlob": "36ac6c786abf698dd0d00b9a508d4d839a18df0b",
+        "localBlob": null
+      },
+      {
+        "path": "docs/deployment/local-runtime-runbook.md",
+        "githubBlob": "2b8e3d9a24fb7818741df0638e7dfeeb366063c7",
+        "localBlob": "6ed92d880f10a9a32395bd97a43b5c00fce8d4c3"
+      },
+      {
+        "path": "scripts/account-credential/deployment-guard.mjs",
+        "githubBlob": "8cd67a773b5c298cb0858460ada09a8535908cc1",
+        "localBlob": "32ec6f25132cc20f25ca471c8b3e667fa131e5bc"
+      },
+      {
+        "path": "scripts/runtime/acceptance-backup.mjs",
+        "githubBlob": "c445a055fdee2337ff544daf22a857d0b49e5a52",
+        "localBlob": "616b6d9e93934f0fe7b300b5c343bfdf671c720f"
+      },
+      {
+        "path": "tests/account-credential/deployment-guard.test.mjs",
+        "githubBlob": "31aceb8e4897027827a39d865c668df4942cd475",
+        "localBlob": "0a2fa8624c050d75c464a5a939d0a4dfb2ae70d1"
+      },
+      {
+        "path": "tests/runtime/backup.test.mjs",
+        "githubBlob": "2d1ce8a28aaf179d0942bff6ac70360ceb4829ef",
+        "localBlob": "3cba48508f46b943ea1f7937cbf043dac1a4a776"
+      },
+      {
+        "path": ".github/workflows/contracts-ci.yml",
+        "githubBlob": "82063232ccc3bf7b1f17238b2ac12696af89f091",
+        "localBlob": "f7b5b146067eda99a25956795cfebe6df004db4f"
+      },
+      {
+        "path": "tests/WebApi.Domain.Tests/SchemaProcessTests.cs",
+        "githubBlob": "6722d8d22ff8a4084373c2421b28edc5fde7f705",
+        "localBlob": "d2bd0e31d73ca876280fcd167f34ebe0cf957385"
+      }
+    ],
+    "remoteAdvanceNonDocumentationFiles": [
+      "console/src/pages/Governance.tsx",
+      "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+      "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+      "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+      "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+      "scripts/account-credential/deployment-guard.mjs",
+      "scripts/runtime/acceptance-backup.mjs",
+      "tests/account-credential/deployment-guard.test.mjs",
+      "tests/runtime/backup.test.mjs",
+      ".github/workflows/contracts-ci.yml",
+      "tests/WebApi.Domain.Tests/SchemaProcessTests.cs"
+    ],
+    "localOnlyTestChanges": [
+      "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+      "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs"
+    ],
+    "sourceDifferenceToGithub": [
+      ".github/workflows/contracts-ci.yml",
+      "console/src/pages/Governance.tsx",
+      "scripts/account-credential/deployment-guard.mjs",
+      "scripts/runtime/acceptance-backup.mjs",
+      "src/WebApi.Contracts/Governance/GovernanceContracts.cs",
+      "src/WebApi.ControlPlane/Governance/GovernanceEndpoints.cs",
+      "src/WebApi.Infrastructure/Governance/GovernanceService.cs",
+      "tests/WebApi.Domain.Tests/SchemaProcessTests.cs",
+      "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+      "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+      "tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs",
+      "tests/account-credential/deployment-guard.test.mjs",
+      "tests/runtime/backup.test.mjs"
+    ],
+    "treeComparison": {
+      ".github": {
+        "local": "65d28475d1a946976daf94be3cfb8de661641c6b",
+        "github": "3a7421ce9ca0a933e8f6dffd82b5912f7e0be992",
+        "same": false
+      },
+      "console": {
+        "local": "ce8f6db038dfd94bff63b2e0296f964f5c68eecd",
+        "github": "818f0b0116ef5b0efe2620b69157f24bf94e4cff",
+        "same": false
+      },
+      "deploy": {
+        "local": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "github": "e2e323ed774730ef70f101bde89f81e642df73ed",
+        "same": true
+      },
+      "scripts": {
+        "local": "f8c99c7e249e9a91fc216a04c028fcdd7b07e54c",
+        "github": "69c7750f37a1641a43ce8249913d96a70c1b85e3",
+        "same": false
+      },
+      "src": {
+        "local": "b6806df08a5a559afe3ca696e0a2e2f501326f53",
+        "github": "f44d7aa87f65986177b2f462f318b4f920f49bbf",
+        "same": false
+      },
+      "tests": {
+        "local": "4c6e17970cf2cd32baec8fce60a434909551274a",
+        "github": "889d9488b963d6edab0925a4766f96f133efa551",
+        "same": false
+      },
+      "third_party": {
+        "local": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "github": "0f97699e9c943d2db9186802ef730b57c43c0cb5",
+        "same": true
+      },
+      "tools": {
+        "local": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "github": "d1d7cbb0f5ed195aeb47d1cbabb82f5afb976f58",
+        "same": true
+      },
+      ".config": {
+        "local": "f60b6727724d2f612838401aa9e8af9cdabf4b6e",
+        "github": "f60b6727724d2f612838401aa9e8af9cdabf4b6e",
+        "same": true
+      },
+      "global.json": {
+        "local": "af07787e724ca1b56f29adafa8a91a6d4b1fe433",
+        "github": "af07787e724ca1b56f29adafa8a91a6d4b1fe433",
+        "same": true
+      },
+      "Directory.Build.props": {
+        "local": "e5db0cbe4ab306bfc545c64203028cc99bfe496a",
+        "github": "e5db0cbe4ab306bfc545c64203028cc99bfe496a",
+        "same": true
+      },
+      "Directory.Packages.props": {
+        "local": "2ea54660c82fddcf9b0c386a2293e79285fbd325",
+        "github": "2ea54660c82fddcf9b0c386a2293e79285fbd325",
+        "same": true
+      }
+    },
+    "publicLedger": {
+      "requirements": 454,
+      "statusCounts": {
+        "已关闭": 36,
+        "待复验": 360,
+        "缺失": 18,
+        "部分": 40
+      },
+      "blob": "eefb28cb1ef456a765b4da5fc2f2d5827dd263e4",
+      "sha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
+      "sameBlobAsPrior519Observation": true,
+      "newRequirementsAccepted": 0
+    },
+    "requirementOverlay": [
+      {
+        "id": "P04-C03",
+        "historicalStatus": "缺失",
+        "latestCodeStatus": "implemented-in-main-with-ci-regression",
+        "currentAcceptance": "not-reaccepted-by-this-read-only-review",
+        "scope": "permission-aware project environment/API/project-owned application counts; organization-shared applications excluded",
+        "remaining": "browser acceptance and full requirement semantics at fixed new main"
+      },
+      {
+        "id": "P04-C04",
+        "historicalStatus": "缺失",
+        "latestCodeStatus": "implemented-in-main-with-ci-regression",
+        "currentAcceptance": "not-reaccepted-by-this-read-only-review",
+        "scope": "permission-aware project environment/API/project-owned application counts; organization-shared applications excluded",
+        "remaining": "browser acceptance and full requirement semantics at fixed new main"
+      },
+      {
+        "id": "P04-C05",
+        "historicalStatus": "缺失",
+        "latestCodeStatus": "implemented-in-main-with-ci-regression",
+        "currentAcceptance": "not-reaccepted-by-this-read-only-review",
+        "scope": "permission-aware project environment/API/project-owned application counts; organization-shared applications excluded",
+        "remaining": "browser acceptance and full requirement semantics at fixed new main"
+      }
+    ],
+    "newProjectResourceCountCases": 10,
+    "openPullRequests": 0,
+    "protected": true,
+    "requiredContexts": [
+      "console",
+      "contracts-domain",
+      "contracts-integration",
+      "contracts-gateway"
+    ],
+    "fullBranchProtectionRevalidated": false,
+    "rulesetsRevalidated": false,
+    "resourcePreservationQualification": "inherited incomplete; shared-container absence remains Unknown",
+    "backupFixExplainsHistoricalContainerLoss": "Unknown; no causal evidence",
+    "sharedResourcesReinspected": false,
+    "newRuntimeOrNetworkTestStarted": false,
+    "newProductTestsExecutedLocally": 0,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "rulesWritten": false,
+    "deployed": false,
+    "nextSteps": [
+      "Reconcile an isolated candidate with fixed main50d and six local test files while preserving documentation and historical evidence.",
+      "Freeze a separate resource-preserving scope before a real SDK10.0.401/xUnit cleanup and credential regression; keep all resource Unknown.",
+      "Complete browser, deployed-node publication and requirement-by-requirement acceptance; safety admission and production acceptance remain outstanding."
+    ]
+  },
+  "mainCi50dVerification": {
+    "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "observedAt": "2026-11-11T17:22:15.641024+00:00",
+    "suites": [
+      {
+        "suite": "console",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438060385,
+        "run": 42995380808,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995380808",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": null,
+        "archivedLogSha256": "2768cdbf6a2b4f14ea9a6cf89f2f5a8add91db969b060280ae865e5d01dc0eb1"
+      },
+      {
+        "suite": "domain",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438061699,
+        "run": 42995381080,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 1251,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": "14 s",
+        "archivedLogSha256": "c68c6d54bfdcaf8107fd5b30b63fed7f2a1b46350eeec6af96836b2da71e82c3"
+      },
+      {
+        "suite": "gateway",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438061706,
+        "run": 42995381080,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 555,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": "8 m 8 s",
+        "archivedLogSha256": "fabb00032b4a9ee9bd53a26d0b7f855f5c913e862d9dd934571efceaedc4c5fc"
+      },
+      {
+        "suite": "integration",
+        "head": "50d6fb9c71dc45f965461c04191cc2107308037c",
+        "job": 130438061509,
+        "run": 42995381080,
+        "url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/42995381080",
+        "status": "completed",
+        "conclusion": "success",
+        "passed": 2138,
+        "failed": 0,
+        "skipped": 0,
+        "testDuration": "53 m 59 s",
+        "archivedLogSha256": "621c6d8ffaeaf9118ad01b9af8b788d784d0ff3312f22393c9a172790be08bc4"
+      }
+    ],
+    "passed": 4265,
+    "failed": 0,
+    "skipped": 0,
+    "actualRunsNotPathSkipped": true,
+    "consoleTypecheckAndBuildPassed": true,
+    "consoleLargeChunkWarningRetained": true,
+    "integrationTestDuration": "53m59s",
+    "remoteIntegrationJobTimeoutMinutes": 90,
+    "localIntegrationJobTimeoutMinutes": 60,
+    "domainGatewayJobTimeoutMinutes": 45,
+    "allFourVerified": true,
+    "localSixTestFilesIncluded": false,
+    "localFixed401CleanupRerun": false,
+    "prior4255RunsRetainedSeparately": true,
+    "newRequirementsAccepted": 0
+  },
+  "candidateAlignment20261112": {
+    "observedAt": "2026-11-11T17:51:22.291387+00:00",
+    "inputLocalCommit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+    "mergedMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "mergeBase": "00f45a8617cbf8634e58621594bdbb7e8b0ede16",
+    "candidateType": "local merge of fixed main and existing local testing/documentation chain; no publication or deployment",
+    "implementationAndWorkflowBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "sourceDifferenceToMain": [
+      "tests/WebApi.Gateway.Tests/CredentialWindowActivationTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs",
+      "tests/WebApi.Integration.Tests/CredentialImpactTests.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildControlPlane.cs",
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs"
+    ],
+    "localSixTestFilesUnchanged": true,
+    "conflictResolutions": {
+      ".github/workflows/contracts-ci.yml": "exact fixed-main blob; integration90/domain45/gateway45",
+      "docs/deployment/current-project-status.md": "retain latest local qualifications; describe aligned candidate separately from prior fixed versions",
+      "docs/deployment/github-quality-gates-proposal.md": "retain selected A and historical failures; preserve public PR6 full-protection declaration as sourced historical record; current full read403",
+      "docs/deployment/local-runtime-runbook.md": "retain local owner/runtime/budget limitations; incorporate main no-recreate and read-only proxy behavior and trust-sync exception"
+    },
+    "offlineNodeTests": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "node": "24.22.1",
+      "files": [
+        "tests/runtime/backup.test.mjs",
+        "tests/account-credential/deployment-guard.test.mjs"
+      ],
+      "logSha256": "fc2bb52ee29ab560d7c43afe7cfc25083a0bbf55946ae37597c0ebc0f8275ac1",
+      "qualification": "mocked runtime commands and owned private temporary files; no actual Docker/database/HTTP/backup restore"
+    },
+    "consoleTypecheck": {
+      "passed": true,
+      "command": [
+        "/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "consoleBuild": {
+      "passed": true,
+      "command": [
+        "/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "node_modules/vite/bin/vite.js",
+        "build"
+      ],
+      "logSha256": "85da8bc932dbcbe70a54053981e8479bc33f23e92df291049a2ae43372995578",
+      "largeChunkWarningRetained": true
+    },
+    "fullConsole321Rerun": false,
+    "fullConsoleRerunReason": "includes local HTTP fixtures; omitted under current offline-only scope",
+    "fixedSdk401XunitRerun": false,
+    "credential48Rerun": false,
+    "nativeOffline14Rerun": false,
+    "github4265IsThisCandidateVerification": false,
+    "dependenciesDownloaded": false,
+    "publicLedger": {
+      "path": "docs/evidence/work-package4/requirements-closeout.json",
+      "adoptedFromMain": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "sha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
+      "counts": {
+        "已关闭": 36,
+        "部分": 40,
+        "缺失": 18,
+        "待复验": 360
+      }
+    },
+    "historicalLedgerSnapshot": {
+      "commit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+      "path": "docs/evidence/work-package4/requirements-closeout.json",
+      "sha256": "1bc074b29e51870cabc521c8e925654c537cc6980377584fcd831256b5161cc0",
+      "counts": {
+        "已关闭": 33,
+        "部分": 40,
+        "缺失": 18,
+        "待复验": 363
+      }
+    },
+    "historicalStatusSnapshot": {
+      "commit": "41c84ba3e3be771f628cbf6ee722ce6de72b5aae",
+      "path": "docs/evidence/work-package4/requirements-status.md",
+      "sha256": "8a9fd1be5796e0963bbd24c97c85f0e3930cc4f4a8a0549eca034258e3a2776e"
+    },
+    "all454ReviewEntriesAndPriorRunObjectsRetained": true,
+    "publicProtectionDeclaration": {
+      "sourceCommit": "50d6fb9c71dc45f965461c04191cc2107308037c",
+      "path": "docs/deployment/github-quality-gates-proposal.md",
+      "declaredObservationDate": "2026-11-11",
+      "declaresPrStrictConversationAdminAndNoForceDelete": true,
+      "declaredApprovals": 0,
+      "currentFullReadVerified": false
+    },
+    "currentFullProtectionRead": {
+      "status": 403,
+      "message": "Resource not accessible by integration",
+      "retried": false,
+      "rulesWritten": false
+    },
+    "historicalEvidenceFilesUnchanged": 353,
+    "primaryFilesUnchanged": 14,
+    "priorC08FailureRetained": true,
+    "priorResourceUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical shared-container absence Unknown",
+    "runtimeResourcesQueried": false,
+    "newRuntimeStarted": false,
+    "resourcesRecovered": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false
+  },
+  "fixed401CleanupSourceVerification": {
+    "sourceRevision": "e1e880c09e4e835c00b79d21c0e396efc9df24a0",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "sourceHashes": {
+      "tests/WebApi.Integration.Tests/Support/ChildProcessCleanup.cs": "d371d16ac1fc641bbe5e5f443cb98f8aa708be41447d293513ae488be1a864ef",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupTests.cs": "7e52920ab69a0ea7ccacff9f8a1c5248bb8e3ac504d1da9dc97797fa3cc008ba",
+      "tests/WebApi.Integration.Tests/ChildProcessCleanupNativeTests.cs": "d2e080ce837c5f7b80f5e9fc47b90e47d8a241e496ccfc656937d8314b60c59c"
+    },
+    "sdk": "10.0.401",
+    "os": "linux",
+    "architecture": "arm64",
+    "image": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317",
+    "realXunitRunner": true,
+    "minimalAssertionAdapterUsed": false,
+    "testSdk": "18.10.1",
+    "xunit": "2.9.3",
+    "visualStudioRunner": "3.1.5",
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "callbackCases": 9,
+    "nativeAndSetupCases": 5,
+    "cases": [
+      "WebApi.Integration.Tests.ChildProcessCleanupTests.Live_permission_error_preserves_directory_and_allows_retry",
+      "WebApi.Integration.Tests.ChildProcessCleanupNativeTests.Native_already_exited_child_is_released_without_kill_or_wait",
+      "WebApi.Integration.Tests.ChildProcessCleanupNativeTests.Native_directory_retry_does_not_access_a_released_process",
+      "WebApi.Integration.Tests.ChildProcessCleanupTests.Already_exited_process_releases_and_cleans_only_once",
+      "WebApi.Integration.Tests.ChildProcessCleanupTests.Natural_exit_during_kill_invalid_operation_still_cleans",
+      "WebApi.Integration.Tests.ChildProcessCleanupNativeTests.Native_live_child_exits_before_handle_release_and_directory_deletion",
+      "WebApi.Integration.Tests.ChildProcessCleanupTests.Directory_failure_can_retry_without_touching_released_process",
+      "WebApi.Integration.Tests.ChildProcessCleanupTests.Wait_timeout_preserves_directory_and_allows_retry_after_exit",
+      "WebApi.Integration.Tests.ChildProcessCleanupNativeTests.Native_unstarted_process_does_not_require_liveness_or_stop",
+      "WebApi.Integration.Tests.ChildProcessCleanupTests.Live_process_is_stopped_and_confirmed_before_directory_cleanup",
+      "WebApi.Integration.Tests.ChildProcessCleanupTests.Natural_exit_during_kill_os_error_still_cleans",
+      "WebApi.Integration.Tests.ChildProcessCleanupTests.Unproven_exit_does_not_release_or_delete_the_directory",
+      "WebApi.Integration.Tests.ChildProcessCleanupNativeTests.Native_setup_failure_keeps_original_error_and_removes_its_directory",
+      "WebApi.Integration.Tests.ChildProcessCleanupTests.Unexpected_kill_error_is_not_hidden_even_after_natural_exit"
+    ],
+    "testProject": "dedicated Cleanup.Fixed401.Tests.csproj linking only three exact cleanup sources; original build properties and central package versions",
+    "wholeIntegrationProjectBuildVerified": false,
+    "original48CrossProcessCasesRerun": false,
+    "childControlPlaneIntegrationVerifiedByThisRun": false,
+    "github4265AddedToThisCount": false,
+    "logSha256": "160cc63296c1a05cf04a6cf632f7a0b630020c4155380581841891c2bb9b0c95",
+    "trxSha256": "45cac313677cb9c67e99fec20d1447add7e396b970dc2f2c0f10e7444e9f2ff5",
+    "lockSha256": "3d7b03cb8f05982d19e904f3a95ea049cd3c9e24f9d19d238b4de52bd38b48e0",
+    "inputSnapshotHashes": {
+      "Cleanup.Fixed401.Tests.csproj": "cc17ba5e2e60aaa15146d78f9bf885a1a3fab24b8c040553d834a23f675d6f5d",
+      "NuGet.Config": "9866446dfd54882ee530d7f45b1a9e91799ac063c1b2c61524519c63102df571",
+      "run-inside.sh": "65904db64245b0bbaa7c13a5eeb84e9aa4d7e49dbbb5beb5341b06612df79713",
+      "Directory.Build.props": "e12bdb14ecd296e46a21c6faa0d8d6ede284e01c52855c5da2b23b1a1d5f4402",
+      "Directory.Packages.props": "44ff2b9f5bf9f3a3556f198000dbaba331eaa38aeedc1b516084c67e03cda635",
+      "global.json": "9969064a379ad96f0fd9358b4133bf2652018a32c60d44f37a0638168381a90d",
+      "src/ChildProcessCleanupNativeTests.cs": "d2e080ce837c5f7b80f5e9fc47b90e47d8a241e496ccfc656937d8314b60c59c",
+      "src/ChildProcessCleanup.cs": "d371d16ac1fc641bbe5e5f443cb98f8aa708be41447d293513ae488be1a864ef",
+      "src/ChildProcessCleanupTests.cs": "7e52920ab69a0ea7ccacff9f8a1c5248bb8e3ac504d1da9dc97797fa3cc008ba"
+    },
+    "startedAt": "2026-11-11T18:32:25.706346+00:00",
+    "endedAt": "2026-11-11T18:32:29.427002+00:00",
+    "elapsedSeconds": 3.72,
+    "networkMode": "none",
+    "sourceAndPackageSeedReadOnly": true,
+    "createdContainers": 1,
+    "createdVolumes": 0,
+    "createdNetworks": 0,
+    "containerId": "134513ce90f7d9924b4e1414d7999052712c4aa9485fa632bfc58ff03297fe40",
+    "ownedContainerRemoved": true,
+    "sharedResourcesAtStart": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "sharedResourcesAfter": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "startingResourceIdsRetained": true,
+    "resourceBeforeSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "resourceAfterSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "newSharedMissingContainerIds": [],
+    "priorResourceUnknownRetained": true,
+    "cumulativeResourcePreservationQualification": "inherited incomplete; historical Unknown not cleared",
+    "historicalEvidenceFilesUnchanged": 373,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "priorC08FailureRetained": true,
+    "prior403HarnessAndRedGreenEvidenceRetained": true,
+    "workloadVerificationNoticeRetained": true,
+    "workloadUpdateExecuted": false,
+    "dependenciesDownloaded": false,
+    "automaticRetry": false,
+    "postgresRedisOrControlPlaneStarted": false,
+    "httpOrBrowserAcceptanceExecuted": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false,
+    "qualification": "Fixed401/real xUnit validation of the exact three cleanup sources only. Not an original Integration project build, credential48 regression, SDK E2E, installed-node or production acceptance."
+  },
+  "integration401RestoreAttempt": {
+    "sourceRevision": "555cd4e193838e8041f4aead47ecf7af73d698a6",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "scope": "original Integration project build and selected credential48 plus cleanup14 were planned; restore failed before any compiler or test execution",
+    "status": "restore-failed-before-build-and-tests",
+    "restoreStatus": "failed",
+    "buildStatus": "not-started",
+    "testStatus": "not-started",
+    "plannedCredentialCases": 48,
+    "plannedCleanupCases": 14,
+    "plannedTotal": 62,
+    "executedTests": 0,
+    "passed": null,
+    "failed": null,
+    "skipped": null,
+    "trxCreated": false,
+    "sdkActualVersion": "10.0.401",
+    "os": "linux",
+    "architecture": "arm64",
+    "images": {
+      "postgresImage": "postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+      "redisImage": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+      "sdkImage": "mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317"
+    },
+    "sourceSnapshotFiles": 1802,
+    "sourceManifestSha256": "8a2529b317ec3b04c4ea120f22a5d82b92909c44580a85e4fce93d9fa896316b",
+    "runnerHashes": {
+      "run-inside.sh": "290c109bcf88e5b2b8549105077cdf6a236c21deb233f7214df4a0bef296ea34",
+      "NuGet.Config": "ccc5fc72dcfc37afc486abce931c28e7788aeba2aa01d03e549d495ea5437bb0"
+    },
+    "logSha256": "2c1fcca67581fdc83a0a5e58ce8a7c3f09ed9c943c576987c67810217f4f8d43",
+    "rawRestoreErrorsSha256": "324abcc12aa6cfaf91fc9799537e0662c63744fa9989d6f76b6668fc2e94a22d",
+    "startedAt": "2026-11-12T02:34:29.466646+00:00",
+    "endedAt": "2026-11-12T02:34:37.481155+00:00",
+    "elapsedSeconds": 8.014,
+    "exitCode": 1,
+    "restoreErrorCodes": [
+      "NU1101",
+      "NU1102"
+    ],
+    "restorePackageGaps": [
+      {
+        "id": "Humanizer.Core",
+        "version": "3.0.10",
+        "lockContentHash": "yZIhtw8sYuvsONzQbZxWpR60tMWYHXoo0DL6nyOqSFiU5POjBTSEyWFpTQtJEZuy+oqiYTXKXY/Mjx7KnqIQFw==",
+        "hostCache": "exact package file missing on host"
+      },
+      {
+        "id": "MailKit",
+        "version": "4.17.0",
+        "lockContentHash": "1nUAVLxM9fhT/78we6/AGsCesnpn5dRNLLeRqOfr52Wnk87pzVwo5YMTMyqnmoXrYc7piGhmayiMA/OgDluIjg==",
+        "hostCache": "exact package file missing on host"
+      },
+      {
+        "id": "Microsoft.AspNetCore.Authentication.OpenIdConnect",
+        "version": "10.0.12",
+        "lockContentHash": "UfkKr9EP+LBgnFfxwkfnZzta7XkalCroZWoxg2yW9dt8iPXO7bJYpcmyFIeM+FLcAlOKZeduP93XhuCcfWaYIQ==",
+        "hostCache": "exact package file missing on host"
+      },
+      {
+        "id": "Microsoft.IdentityModel.JsonWebTokens",
+        "version": "8.19.2",
+        "lockContentHash": "ui3fuBT4fs8kdKfBthI4NzLYIBIneEVS8UrL1JVBzAn80UiKmngBBi0BEByE7n/9c+EElcfFlCMFFTqpkBSLNA==",
+        "hostCache": "archive/sidecar plus recorded metadata matches lock; no NuGet recomputation"
+      },
+      {
+        "id": "Microsoft.IdentityModel.Protocols.OpenIdConnect",
+        "version": "8.19.2",
+        "lockContentHash": "1XOcyY36cVymzE3qKdzKaUEZ4Pzt7ZpSa14JZoPPK1NLFUkQDs85TCqpV6XDo0YjFXj6nVK00AfOHppjghjhtw==",
+        "hostCache": "archive/sidecar plus recorded metadata matches lock; no NuGet recomputation"
+      },
+      {
+        "id": "Microsoft.IdentityModel.Tokens",
+        "version": "8.19.2",
+        "lockContentHash": "GtPC1S02uH1gOO4fQ+zRysIicKmEXaYFP8PIkdJYXqMyruYhopre4ozVHp0XiDSA0+GJvOZH9prxCPvgBMg4Ww==",
+        "hostCache": "archive/sidecar plus recorded metadata matches lock; no NuGet recomputation"
+      },
+      {
+        "id": "System.Security.Cryptography.Pkcs",
+        "version": "10.0.13",
+        "lockContentHash": "a+EovgC1fBnwdlQ6cn3j4JFBfKqiFaFvoAhjisOoSvazLAcIznaBzPQP0oYnvccmeXfqUH1KebVZOxSeH6rMaw==",
+        "hostCache": "exact package file missing on host"
+      },
+      {
+        "id": "YamlDotNet",
+        "version": "18.1.0",
+        "lockContentHash": "5K+9KFg2TdTl7VXv88Qzi/0lqK6JFoNP3lRuImPYGRV7K/QYklDyTrj4+A+KAki1JsQi6qKY+hDyY7d6WRqjrw==",
+        "hostCache": "exact package file missing on host"
+      }
+    ],
+    "hostCacheAudit": {
+      "lockFiles": 21,
+      "lockedPackageVersions": 81,
+      "archiveAndCacheSidecarMatches": 38,
+      "cachedMetadataContentHashMatchesLock": 38,
+      "packageFilesMissing": 43,
+      "metadataHashMismatchEvidence": 0,
+      "nugetContentHashIndependentlyRecomputed": false,
+      "fullSeedInventoryAvailable": false,
+      "hostMissing43DoesNotDescribeSeedVolumeMissingCount": true,
+      "qualification": "cached metadata comparison and raw archive/sidecar validation only; not NuGet restore or independent normalized content-hash verification"
+    },
+    "rawArchiveVsLockHashComparisonPreservedButNotQualified": true,
+    "hashReference": "https://github.com/NuGet/Home/wiki/Nupkg-Metadata-File",
+    "dependencyGapManifestSha256": "dc3918921b3faf11e6f97793b60c7e2f53ad74dccd7967a4db2b818c2c695c33",
+    "hostCacheQualificationSha256": "a1c65824b898b4d9a04e3ace07c9c2ca7ac399f40767013322f0a7d7b302c287",
+    "sharedSeedReadOnly": true,
+    "sourceReadOnly": true,
+    "networkInternal": true,
+    "hostPortsPublished": 0,
+    "externalNuGetSourcesConfigured": false,
+    "dependenciesDownloaded": false,
+    "packageVersionsOrLocksChanged": false,
+    "automaticRetry": false,
+    "newAttemptStartedAfterFailure": false,
+    "postgresRedisStarted": true,
+    "controlPlaneOrChildStarted": false,
+    "httpAcceptanceStarted": false,
+    "createdResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "sharedResourcesAtStart": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "sharedResourcesAfter": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "startingResourceIdsRetained": true,
+    "resourceBeforeSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "resourceAfterSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "createdResourceBindingsSha256": "c28158acc0131493fa4d6bc199567cde16b52ab124169ba76096cd79c94bbce6",
+    "randomPasswordFileRemoved": true,
+    "priorC08FailureRetained": true,
+    "priorResourceUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical Unknown not cleared",
+    "historicalEvidenceFilesUnchanged": 404,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "priorIndependentFixed401Cleanup14Retained": true,
+    "prior48StillBoundToHistoricalCommit": true,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false,
+    "nextSteps": [
+      "Inventory the existing seed under a separately frozen read-only scope before claiming complete union coverage.",
+      "Prepare a separate offline feed using exact locked versions and NuGet content-hash validation; do not overwrite the original shared seed or edit lock files.",
+      "If any locked packages remain unavailable, disclose the exact acquisition list/source and obtain the necessary network scope before downloading.",
+      "Create a fresh bounded attempt only after dependency readiness is proven; retain this restore failure and all historical resource Unknown."
+    ],
+    "qualification": "Dependency-readiness failure, not a compiler/test/product failure. No62-case pass/fail/skip result exists. Prior fixed401 dedicated cleanup14 and old48 results retain original versions and scope."
+  },
+  "integration401ReplayVerification": {
+    "sourceRevision": "3d23c138f4e7df13b856f37c69ca41a99b630ccb",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "status": "targeted-original-integration-build-and-tests-passed",
+    "sdk": "10.0.401",
+    "os": "linux",
+    "architecture": "arm64",
+    "realXunitRunner": true,
+    "visualStudioAdapter": "3.1.5",
+    "originalIntegrationProject": "tests/WebApi.Integration.Tests/WebApi.Integration.Tests.csproj",
+    "originalIntegrationBuildPassed": true,
+    "warnings": 0,
+    "errors": 0,
+    "solutionLockedRestorePassed": true,
+    "runtimeToolLockedRestorePassed": true,
+    "runtimeToolAndMigratorBuildPassed": true,
+    "passed": 62,
+    "failed": 0,
+    "skipped": 0,
+    "credentialCasesPassed": 48,
+    "cleanupCasesPassed": 14,
+    "crossProcessCasesPassed": 4,
+    "crossProcessCases": [
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"scope\", revokeFirst: True)",
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"permission\", revokeFirst: False)",
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"permission\", revokeFirst: True)",
+      "WebApi.Integration.Tests.CredentialImpactTests.Cross_process_writer_observes_independent_operator_revocation_on_governance_lock(loss: \"scope\", revokeFirst: False)"
+    ],
+    "testFilter": "FullyQualifiedName~WebApi.Integration.Tests.CredentialImpactTests|FullyQualifiedName~WebApi.Integration.Tests.ChildProcessCleanupTests|FullyQualifiedName~WebApi.Integration.Tests.ChildProcessCleanupNativeTests",
+    "buildArtifactHashes": {
+      "tests/WebApi.Integration.Tests/bin/Release/net10.0/WebApi.Integration.Tests.dll": "1f2d78347b61efe553b72964168768c1d7422c929069a7cf517318e898b9b063",
+      "src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll": "1a0afec39fa7c7cfe136c7859b27a49ea913093bf722d52ffb8f3c6de80882f4"
+    },
+    "logSha256": "000c5d1eaa7e053c7a33121cff8ade966b5ffa622b273d09ba7141c24e955c60",
+    "trxSha256": "a5bc666df012f532549d3beb98b745dbc2570fb239ae9c4d9325606b623df5d2",
+    "buildBindingsSha256": "8181b7869c7076bd3ea3eb48a14ab345ea01bc3418dd25dd5ba1a7fa339a265a",
+    "sourceSnapshotFiles": 1802,
+    "sourceManifestSha256": "8a2529b317ec3b04c4ea120f22a5d82b92909c44580a85e4fce93d9fa896316b",
+    "offlineFeed": {
+      "packageVersions": 81,
+      "lockFiles": 21,
+      "nugetPackageIdentityAndContentHashesMatched": 81,
+      "oldSeedAndHostUnion": 74,
+      "copiedFrom": {
+        "project-counts-cache": 7,
+        "host-cache": 8,
+        "old-seed": 66
+      },
+      "readinessSha256": "8fadb4663ea8995155d747a1093ca0b777c604bd89930c575976747b0f0d24ec",
+      "hashReportSha256": "08a06d2df20dd43b312dfffb9e29acb2c5a3ddf102aca5ec8037ee967680f45c",
+      "hashToolSdk": "10.0.403",
+      "hashToolPurpose": "NuGet identity/content-hash input verification only; actual application restore/build/tests use SDK401",
+      "signatureTrustOrCurrentRevocationQualificationGranted": false,
+      "sourceCacheArchiveAndMetadataBytesPreserved": true,
+      "signedArchivePayloadIntegrityVerified": 81,
+      "payloadIntegrityReportSha256": "1d33f3ccb4eee9636e3a077e63dfcc2714ac750ca157d883b29ba86d4c591547",
+      "payloadIntegrityToolSourceSha256": "899dbd190d06aaec8af02c2f44f8aa047cf2f4492c68d1406429fc3fda274d3c",
+      "payloadIntegrityToolAssemblySha256": "1a146031ad3b8973bd8ad4ebf4acd4be460ebb05a30bde3d3b2fbb9bda86f991",
+      "payloadIntegrityLogSha256": "375f4437c18dff36389ac30c2f907a9cb3a1b5b0fa156dd645d1daeac8426e4a",
+      "macCryptoModuleNoticePreserved": true
+    },
+    "sharedCacheMountedDuringReplay": false,
+    "sourceRunnerAndPrivateFeedReadOnly": true,
+    "externalNuGetSourceConfigured": false,
+    "newDownloads": false,
+    "originalCachesModified": false,
+    "networkInternal": true,
+    "hostPortsPublished": 0,
+    "createdResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "startingResourceIdsRetained": true,
+    "sharedResourcesAtStart": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "sharedResourcesAfter": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "resourceBeforeSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "resourceAfterSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "childDirectoriesRemaining": 0,
+    "randomPasswordFileRemoved": true,
+    "startedAt": "2026-11-12T04:00:41.918470+00:00",
+    "endedAt": "2026-11-12T04:03:02.071768+00:00",
+    "elapsedSeconds": 140.149,
+    "priorRestoreFailureRetained": true,
+    "priorRestoreFailureLogSha256": "2c1fcca67581fdc83a0a5e58ce8a7c3f09ed9c943c576987c67810217f4f8d43",
+    "priorIndependentFixed401Cleanup14RetainedSeparately": true,
+    "priorResourceUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical Unknown not cleared",
+    "priorC08FailureRetained": true,
+    "historicalEvidenceFilesUnchanged": 2249,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "gatewayTargeted20Rerun": false,
+    "allIntegrationTestsRerun": false,
+    "fullFourSuiteCandidateCiPassed": false,
+    "browserOrInstalledNodeAcceptance": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false,
+    "qualification": "Fresh fixed401 original Integration project build and selected62 tests only. Earlier restore failure remains failed. The81 archive checks are input qualification, not81 application tests. No full-suite, browser, deployed-node, production, signer-trust or historical Unknown clearance."
+  },
+  "gateway401ReplayVerification": {
+    "sourceRevision": "b605cf1d3618436a40c873852e18a5fa5788e4fd",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "sdk": "10.0.401",
+    "os": "linux",
+    "architecture": "arm64",
+    "realXunitRunner": true,
+    "originalGatewayProject": "tests/WebApi.Gateway.Tests/WebApi.Gateway.Tests.csproj",
+    "originalGatewayBuildPassed": true,
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "windowCasesPassed": 5,
+    "existingRuntimeCasesPassed": 15,
+    "cases": [
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"shorten\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"multi-segment\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"valid\", status: 200)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"revoked\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"disabled\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"any-valid-window\", status: 200)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"extend\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"future\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"case\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Published_window_includes_exact_start_and_excludes_exact_expiry_on_both_nodes",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"future-grant\", status: 403)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"unknown\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"future\")",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.CredentialExpiresAtAdmission",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"wrong-secret\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"expired-grant\", status: 403)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"missing\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"empty\", status: 401)",
+      "WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries(kind: \"expired\", status: 401)",
+      "WebApi.Gateway.Tests.CredentialWindowActivationTests.Working_window_or_revocation_changes_require_republish_before_both_nodes_change(change: \"revoke\")"
+    ],
+    "filter": "FullyQualifiedName~WebApi.Gateway.Tests.CredentialWindowActivationTests|FullyQualifiedName~WebApi.Gateway.Tests.GatewayRuntimeTests.IndexedAuthPreservesStatusAndTimeBoundaries|FullyQualifiedName~WebApi.Gateway.Tests.GatewayRuntimeTests.CredentialExpiresAtAdmission",
+    "scenarioQualification": "same-process two gateway nodes and backends over real local HTTP/PostgreSQL; controllable clock boundaries plus one real wait; not installed-node or SDK E2E acceptance",
+    "buildArtifactHashes": {
+      "tests/WebApi.Gateway.Tests/bin/Release/net10.0/WebApi.Gateway.Tests.dll": "f1aa231eff8976cdddfaedbce542478f1a796d476b74f4b8852d008662696093",
+      "src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll": "1a0afec39fa7c7cfe136c7859b27a49ea913093bf722d52ffb8f3c6de80882f4"
+    },
+    "logSha256": "b1f072a43e1b05c8b6f2dc84c3419137bb72738e3934bda5f065a840b84b3243",
+    "trxSha256": "c37b3ab4848c583193c545d3ac02291b4d0946dad0b576e4a25d3d4d78651060",
+    "buildBindingsSha256": "6a82f0ecfb73d4c5bb9d7faca5ce8c392ddee10aee8d83e2ed6c158b926aa61d",
+    "startedAt": "2026-11-12T12:26:19.144596+00:00",
+    "endedAt": "2026-11-12T12:28:02.046643+00:00",
+    "elapsedSeconds": 102.901,
+    "sourceSnapshotFiles": 1802,
+    "privateOfflinePackageVersions": 81,
+    "feedArchiveHashesUnchanged": true,
+    "oldCachesMounted": false,
+    "newDownloads": false,
+    "hostPortsPublished": 0,
+    "networkInternal": true,
+    "createdResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "sharedResourcesAtStart": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "sharedResourcesAfter": {
+      "containers": 250,
+      "volumes": 549,
+      "networks": 43
+    },
+    "startingResourceIdsRetained": true,
+    "resourceBeforeSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "resourceAfterSha256": "ef77eebba637b3875bbda84faff11286b8a81d538e79cc0836c80582ae34697d",
+    "randomPasswordFileRemoved": true,
+    "historicalEvidenceFilesUnchanged": 2281,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "priorRestoreFailureRetained": true,
+    "priorC08FailureRetained": true,
+    "priorUnknownRetained": true,
+    "resourcePreservationQualification": "inherited incomplete; historical Unknown not cleared",
+    "priorIntegration62RetainedSeparately": true,
+    "fullGatewaySuiteRerun": false,
+    "fullFourSuiteCandidateCiPassed": false,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false
+  },
+  "candidateFullCiScope": {
+    "inputCommit": "b605cf1d3618436a40c873852e18a5fa5788e4fd",
+    "status": "planned-not-run",
+    "allFourPassed": false,
+    "remoteRunTriggered": false,
+    "projectedCounts": {
+      "console": 321,
+      "domain": 1251,
+      "integration": 2189,
+      "gateway": 560
+    },
+    "projectedTotal": 4321,
+    "projectionIsNotDiscoveryOrPass": true,
+    "sourceDeltaExplanation": {
+      "credentialMain": 11,
+      "credentialLocal": 48,
+      "credentialAdded": 37,
+      "cleanupAdded": 14,
+      "gatewayAdded": 5
+    },
+    "jobTimeoutMinutes": {
+      "console": 15,
+      "domain": 45,
+      "integration": 90,
+      "gateway": 45
+    },
+    "fullPlanSha256": "16c818836be18c867ee7242b07879b9c987e402ad4cb42f2a9c55eeaf2db6ad2",
+    "requiresUnfilteredRunsAgainstSameFrozenSource": true,
+    "publicationAuthorizedByThisPlan": false
+  },
+  "fullCandidateLocalVerification": {
+    "sourceRevision": "155de03130dbab2d884882dc804f4d83ad5f8b94",
+    "productBaseline": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "status": "incomplete-stopped-for-shared-resource-discrepancy",
+    "allFourPassed": false,
+    "githubHostedCiRun": false,
+    "console": {
+      "passed": 321,
+      "failed": 0,
+      "skipped": 0,
+      "unfiltered": true,
+      "typecheckAndBuildPassed": true,
+      "node": "24.22.1",
+      "pnpm": "11.25.0",
+      "finalLogSha256": "d70b821af2a11c76319803b799c5e9846a2a9759ebf2f2f7ca2f3bc9bffd8d38",
+      "finalResultSha256": "8f18c115ae99984e04bcec02126af785ae7cf00367c0c2333caadc83480f487e",
+      "restrictedAttempt": {
+        "tests": 321,
+        "passed": 320,
+        "failed": 1,
+        "skipped": 0,
+        "reason": "listen EPERM on required loopback fixture",
+        "logSha256": "2b6862a6a9d9c94a5066a07c67dd8b205bf217736ea2f6a8b907dd554aee60db",
+        "resultSha256": "3762d81aed284a163df41fcdbac3430365ae7eb54f45b44b95c1071060c34518"
+      },
+      "permissionCorrectedAttempt": {
+        "tests": 321,
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "buildStarted": false,
+        "reason": "pnpm relocated dependency metadata caused an install/removal confirmation error",
+        "logSha256": "a33e23408adb9e8bf15769e3fffd272a7b6845c1b0df2b2fefd01b4ca82c52c5",
+        "resultSha256": "5f7ec09ca7e5ba8af8489e053708ffe00ccc597b9164c6c358a65e3fcaa3b2d3"
+      },
+      "layoutCorrection": "copied existing pnpm store; offline frozen install with ignore-scripts in private dependency copy; dependency checks retained; source and locks unchanged",
+      "layoutLogSha256": "7088295ceedf0a9c02a0302e6b1e22171c11ff263394555960ed03bc4ac83ebb",
+      "originalDependencyDirectoryModified": false,
+      "priorAttemptsRetained": true
+    },
+    "completedBackendSuites": [
+      {
+        "suite": "domain",
+        "passed": 1251,
+        "failed": 0,
+        "skipped": 0,
+        "unfiltered": true,
+        "originalProjectBuildPassed": true,
+        "testProcessExitCode": 0,
+        "orchestrationExitCode": 0,
+        "logSha256": "4fe8a6963804871723bc247ad31b787184b21a4ed4e8f96136755ff155c815a9",
+        "trxSha256": "4e6e9610a5b2655a66fa9bee84fd1bc76e484b55e3525cebb489a66ba1710e21",
+        "resourceBeforeSha256": "144f6139f02276092898051fe78d4d9e69646964353f4959d3abd3a559308d1f",
+        "resourceAfterSha256": "27bcee0412e8cca8eee06b73d3254527357d0183df47ceddd93b4ca1710a20d9",
+        "startingResourcesRetained": true,
+        "missingStartingResources": {
+          "containers": [],
+          "volumes": [],
+          "networks": []
+        },
+        "ownResourcesRemaining": {
+          "containers": 0,
+          "volumes": 0,
+          "networks": 0
+        },
+        "startedAt": "2026-11-12T14:18:09.016339+00:00",
+        "endedAt": "2026-11-12T14:19:22.396842+00:00"
+      },
+      {
+        "suite": "gateway",
+        "passed": 560,
+        "failed": 0,
+        "skipped": 0,
+        "unfiltered": true,
+        "originalProjectBuildPassed": true,
+        "testProcessExitCode": 0,
+        "orchestrationExitCode": 1,
+        "logSha256": "21c4fbfa783974f25b1ed5919d99bef6d9c364157055cf2ffd77e31584b3b7c8",
+        "trxSha256": "610bfed69c3f26f91774720bbe9211f3a2b055d6c815cb042f1a6d0916305d06",
+        "resourceBeforeSha256": "27bcee0412e8cca8eee06b73d3254527357d0183df47ceddd93b4ca1710a20d9",
+        "resourceAfterSha256": "84742dc0f700de7f400a3d802f71e110b879da13c0160e41a6da0eac8454a604",
+        "startingResourcesRetained": false,
+        "missingStartingResources": {
+          "containers": [
+            "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88"
+          ],
+          "volumes": [],
+          "networks": []
+        },
+        "ownResourcesRemaining": {
+          "containers": 0,
+          "volumes": 0,
+          "networks": 0
+        },
+        "startedAt": "2026-11-12T14:19:23.112046+00:00",
+        "endedAt": "2026-11-12T14:26:15.856008+00:00"
+      }
+    ],
+    "completedLatestSuiteTests": 2132,
+    "integration": {
+      "status": "not-started",
+      "projectedCountNotPass": 2189,
+      "runManifestExists": false,
+      "trxExists": false,
+      "stagingPasswordRemoved": true
+    },
+    "originalProjectedTotalNotPass": 4321,
+    "resourceGuardTriggered": true,
+    "newMissingStartingContainerIds": [
+      "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88"
+    ],
+    "missingContainerWindow": {
+      "start": "2026-11-12T14:19:23.112046+00:00",
+      "end": "2026-11-12T14:26:15.856008+00:00"
+    },
+    "missingContainerNotOwnedByThisRun": true,
+    "missingContainerNameOrOwner": "Unknown",
+    "missingContainerCause": "Unknown",
+    "eventQueryExitCode": 0,
+    "eventsReturned": 0,
+    "currentMissingInspectExitCode": 1,
+    "resourceDiscrepancySha256": "641db592919930edce9e6049e2eb0e4bbdfc895f310331e4759919040d8ecc86",
+    "resourcePreservationQualification": "inherited incomplete plus one newly missing starting shared container; name/owner/cause Unknown",
+    "ownedResourcesCleanedAfterEachExecutedBackend": true,
+    "integrationResourcesCreated": false,
+    "sourceSnapshotFiles": 1802,
+    "privateFeedVersions": 81,
+    "historicalEvidenceFilesUnchanged": 2307,
+    "otherTrackedFilesUnchanged": 4370,
+    "primaryFilesAndStatusUnchanged": 14,
+    "priorRestoreFailureRetained": true,
+    "priorTargeted62And20RetainedSeparately": true,
+    "priorC08FailureAndUnknownRetained": true,
+    "productTestsOrLocksModified": false,
+    "newDownloads": false,
+    "automaticRetryLoop": false,
+    "runtimeStoppedAfterResourceGuard": true,
+    "newRequirementsAccepted": 0,
+    "pushed": false,
+    "deployed": false,
+    "qualification": "Three successful unfiltered local suites only, after frontend environment corrections. Gateway test process succeeded but its preservation check failed. Integration was not started.2132 is not a four-suite or GitHub CI pass and cannot be combined with prior targeted62/20."
+  },
+  "sharedContainerReadOnlyDiagnosis": {
+    "missingContainerId": "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88",
+    "status": "Unknown",
+    "observations": {
+      "firstSeenInDomainAfterInventory": true,
+      "absentFromDomainStartingInventory": true,
+      "absentFromGatewayAfterInventory": true,
+      "notInSixOwnedContainerIds": true,
+      "historicalNameOwnerLabelsNotCaptured": true,
+      "expandedEventWindow": [
+        "2026-11-12T14:17:00Z",
+        "2026-11-12T14:28:01Z"
+      ],
+      "expandedEventCount": 0,
+      "allTypesWindowEventCount": 0,
+      "currentInspectExitCode": 1,
+      "currentContainerCount": 256,
+      "gatewayAfterIdsStillPresentNow": true,
+      "foreignContainersAddedSinceGateway": 2,
+      "containersWithRetainedOwnershipLabels": 167,
+      "containersWithoutRetainedOwnershipLabels": 89
+    },
+    "limits": [
+      "Inventory samples bound observation, not an exact deletion timestamp.",
+      "No returned events does not establish that no deletion occurred or explain event retention.",
+      "Historical snapshots did not bind daemon ID/endpoint; current OrbStack identity cannot retroactively prove historical context.",
+      "No current foreign container is assumed to be the missing container or its replacement.",
+      "Unlabelled or newly appearing containers are not deemed disposable or excluded from protection.",
+      "Label counts refer only to retained com.docker.compose/com.webapi ownership labels, not proof of all original labels."
+    ],
+    "searches": [
+      {
+        "scope": "this worktree .superpowers JSON/JSONL/log",
+        "result": "exact ID found only in recorded full-candidate evidence, no historical name/owner"
+      },
+      {
+        "scope": "status-ledger-sync and primary enterprise .superpowers JSON/JSONL/log",
+        "result": "no exact ID match"
+      },
+      {
+        "scope": "current-day Codex session exact-ID matches",
+        "result": "same-worktree review/approval echoes only; no independent creation or deletion record"
+      },
+      {
+        "scope": "existing ~/.orbstack/log files, exact full ID/prefix",
+        "result": "no match; no daemon internal files or VM filesystem accessed"
+      }
+    ],
+    "cause": "Unknown",
+    "name": "Unknown",
+    "owner": "Unknown",
+    "restored": false,
+    "runtimeMutations": 0,
+    "oldUnknownOrFailuresCleared": false,
+    "nextScopeBoundary": {
+      "oldAttempt": "remain stopped; Integration not started",
+      "historicalMissingIds": "remain Unknown/incomplete; no restoration, cause attribution or acceptance",
+      "newAttempt": "separate one-shot full Integration only after fresh immutable scope/preflight; not an automatic rerun",
+      "protectedResources": "ALL starting current containers by full ID, ALL starting networks by full ID and volume names/metadata; no exception for unlabelled/temporary/foreign resources",
+      "maxOwnResources": {
+        "containers": 3,
+        "volumes": 2,
+        "networks": 1
+      },
+      "cleanupAuthority": "only exact newly bound IDs/names additionally matching random owner+project+service and absent from protected baseline; fail closed on ambiguity",
+      "runtimeIdentity": "explicit current OrbStack context, endpoint and daemon ID pinned; drift stops before further mutation",
+      "dataAccess": "source/feed read-only copies; no existing volumes, no Docker socket or host ports; no foreign exec/log/file reads",
+      "images": "already installed pinned ARM64 SDK401/Postgres/Redis; never pull",
+      "test": "original Integration project, unfiltered, 90 minute budget, full log/TRX; expected2189 remains projection until execution",
+      "observation": "capture metadata for all starting resources and read-only live events before mutation; retained observer limitations do not clear history",
+      "stop": "test failure/timeout, resource ID loss, cleanup or daemon identity ambiguity => stop; no automatic retry",
+      "qualification": "fresh-run test and preservation results separate; inherited preservation incomplete remains even on success",
+      "pushDeployOrOriginalInstallChanges": false
+    },
+    "recordedAt": "2026-11-12T15:38:49.859362+00:00"
+  },
+  "integrationFullPreservationVerification": {
+    "sourceRevision": "62f90b436c1c4b372263172b0a8b344ba54e2f33",
+    "backendSourceEquivalentTo": "155de03130dbab2d884882dc804f4d83ad5f8b94",
+    "onlyFiveDocumentationFilesChangedBetweenInputs": true,
+    "status": "passed-with-inherited-resource-incomplete",
+    "unfiltered": true,
+    "sdk": "10.0.401",
+    "expectedCountBeforeRunNotResult": 2189,
+    "actualTrxCounters": {
+      "total": 2189,
+      "executed": 2189,
+      "passed": 2189,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    },
+    "originalProjectBuildPassed": true,
+    "passed": 2189,
+    "failed": 0,
+    "skipped": 0,
+    "testProcessExitCode": 0,
+    "error": null,
+    "newAttemptTestAndPreservationQualified": true,
+    "beforeCounts": {
+      "containers": 256,
+      "volumes": 549,
+      "networks": 43
+    },
+    "afterCounts": {
+      "containers": 258,
+      "volumes": 549,
+      "networks": 43
+    },
+    "allStartingResourceIdsRetained": true,
+    "allStartingVolumeMetadataRetained": true,
+    "missingStartingResources": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "changedStartingVolumes": [],
+    "ownResourcesRemaining": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "cleanupErrors": [],
+    "temporaryPasswordRemoved": true,
+    "activeGuardTriggered": false,
+    "liveResourceObservations": 337,
+    "liveEventsRecorded": 48263,
+    "eventObserverHealthy": true,
+    "runtimeIdentityPinned": true,
+    "cleanupExactCreatedBindingsOnly": true,
+    "maximumOwnResources": {
+      "containers": 3,
+      "volumes": 2,
+      "networks": 1
+    },
+    "hostPortsPublished": 0,
+    "networkInternal": true,
+    "noDockerSocketOrExistingVolumesMounted": true,
+    "sourceAndPrivate81FeedReadOnly": true,
+    "newDownloads": false,
+    "originalInstallationModified": false,
+    "automaticRetry": false,
+    "originalStoppedAttemptRemainsUnchanged": true,
+    "originalStoppedAttemptIntegration": "not-started",
+    "originalStoppedAttemptAllFourPassed": false,
+    "earlierConsoleEnvironmentFailuresRetained": true,
+    "priorRestoreAndC08FailuresRetained": true,
+    "missingSharedContainerId": "044fcb6ccc18fe0197cb4866543e984c1a7f00fd574c2e69130202628c1b9f88",
+    "missingSharedName": "Unknown",
+    "missingSharedOwner": "Unknown",
+    "missingSharedCause": "Unknown",
+    "historicalResourcePreservationQualification": "incomplete; all inherited Unknown retained",
+    "historicalMissingResourcesRestored": false,
+    "readOnlyDiagnosisSha256": "c35aaf9fa045909dee406757114027f57ae461443d7360f35608340b0d07d6d9",
+    "runLogSha256": "ecc92bfc1e966a7061d0bc6ffadc634440c7e7c1940765bed14c5a43ff9241b9",
+    "trxSha256": "235c50c231e456a4e6bcaccc128b3f34960bdf8a94668956a230c5c77c566129",
+    "runResultSha256": "989e0a5a2c6a9bdc910e5dd464de6f292363af71d2f52fb826fe82e46e570e05",
+    "eventLogSha256": "b5d87826b29d7fb04924343a53b357d9a2aad30258f5f7a736b90bb2277c1c0b",
+    "beforeMetadataSha256": "d4ace822cf64732aae1f51248dffa305588d8384482bd922b71ecc0f9393fc4d",
+    "afterMetadataSha256": "10131826a35a7d8717178cdd7efb42b5f99a47cb1b10e416e5e729d8c1c260c7",
+    "createdBindingsSha256": "64985abe6cb2ab4df8a7fc36850795fdb964f56a9464614a07e388d534a653ee",
+    "preRunReviewSha256": "ec17eca40dacd48fece87294c70b5073260293657d59b4adc108bd593fe6afdd",
+    "guardChecksOffline": 12,
+    "guardChecksAreProductTests": false,
+    "trackedFilesPreservedDuringRun": 4375,
+    "otherTrackedFilesAfterDocumentationUpdate": 4370,
+    "historicalEvidenceFilesUnchanged": 2374,
+    "readOnlyEvidenceFilesUnchanged": 8,
+    "sourceFilesAndModesVerified": 1802,
+    "privateFeedVersions": 81,
+    "primaryFilesAndStatusUnchanged": 14,
+    "newRequirementsAccepted": 0,
+    "githubHostedCiRun": false,
+    "pushed": false,
+    "deployed": false,
+    "startedAt": "2026-11-12T15:51:13.509966+00:00",
+    "endedAt": "2026-11-12T16:30:15.925748+00:00",
+    "resourceObservationIntervalSeconds": {
+      "pollingTarget": 5,
+      "includesCliQueryAndWaitTime": true,
+      "actualMedian": 6.967,
+      "actualMaximum": 7.32
+    },
+    "preservationBoundaryLimits": [
+      "Protect all starting container/network full IDs and volume names with creation metadata; no owner-based exclusion.",
+      "No inspection or proof of pre-existing volume content consistency, business process state, availability or service health.",
+      "Shared-daemon external actions are outside this runner control; this attempt does not explain, restore or accept prior loss."
+    ],
+    "sameSourceLocalSuiteCoverage": {
+      "console": 321,
+      "domain": 1251,
+      "gateway": 560,
+      "integration": 2189,
+      "allFourTestSuitesCovered": true,
+      "totalPassed": 4321,
+      "singleGitHubRun": false,
+      "singleOriginalFourSuiteAttemptPassed": false,
+      "qualifier": "Results from two separately frozen attempts with only documentation differences; previous resource guard failure and cumulative resource incomplete remain."
+    },
+    "newNonOwnedContainersObservedAfterStart": 2,
+    "newNonOwnedContainersUntouched": true,
+    "newForeignResourceObservationsSha256": "bd6fc00e81fa90077d0a645fee45cf5df6901504abd7f862fb2831ab3d380c32"
+  },
+  "publicationScopeSnapshot": {
+    "sourceRevision": "9d01066d11faed90d89fa1e5dfeca40d37c55a26",
+    "verifiedMainAtPreparation": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "repository": "leileipei/WebAPI-Platform-Enterprise",
+    "intendedBranch": "codex/credential-verification-docs-20261113",
+    "targetBase": "main",
+    "statusAtSourceRevision": "local-only; no push or pull request executed by this workflow",
+    "statusMeaning": "Historical verification snapshot only; later public PR, merge and CI status must be checked on GitHub rather than inferred from the snapshot.",
+    "expectedFinalDifferenceFiles": 60,
+    "newProductScriptWorkflowOrDependencyDifference": false,
+    "oldUnknownOrFailuresCleared": false,
+    "publicationIsProductionAcceptance": false,
+    "newRequirementsAccepted": 0,
+    "recordedAt": "2026-11-12T16:49:34.734437+00:00"
+  },
+  "githubPublicationFirstAttempt": {
+    "sourceRevision": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
+    "pullRequest": 10,
+    "pullRequestUrl": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/10",
+    "branch": "codex/credential-verification-docs-20261113",
+    "mainAtFailure": "50d6fb9c71dc45f965461c04191cc2107308037c",
+    "merged": false,
+    "allFourRequiredChecksPassed": false,
+    "mergeAllowed": false,
+    "runAttempt": 1,
+    "consoleRun": 43341776718,
+    "contractsRun": 43341776589,
+    "checks": {
+      "console": {
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0,
+        "status": "success"
+      },
+      "contracts-domain": {
+        "passed": 1251,
+        "failed": 0,
+        "skipped": 0,
+        "status": "success"
+      },
+      "contracts-gateway": {
+        "passed": 560,
+        "failed": 0,
+        "skipped": 0,
+        "status": "success"
+      },
+      "contracts-integration": {
+        "passed": 2188,
+        "failed": 1,
+        "skipped": 0,
+        "total": 2189,
+        "status": "failure",
+        "jobId": 131611553329
+      }
+    },
+    "totalPassed": 4320,
+    "totalFailed": 1,
+    "totalSkipped": 0,
+    "totalTests": 4321,
+    "failedTest": "WebApi.Integration.Tests.LoginRateStoreTests.UnavailableFailsClosedAndCancellationPropagates",
+    "failureSourceLine": 56,
+    "failedAssertion": "DateTime.UtcNow-started < TimeSpan.FromSeconds(2)",
+    "unavailableResultAssertionPassed": true,
+    "cancellationAssertionReachedInThisMethod": false,
+    "preciseElapsedMilliseconds": "Unknown",
+    "failureCause": "Unknown; no measured stage durations, scheduler or wall-clock data",
+    "existingTestAndProductUnchangedRelativeToMain50d": true,
+    "productRedisOperationBudgetMilliseconds": 1000,
+    "existingRegressionThresholdMilliseconds": 2000,
+    "integrationDuration": "55m2s",
+    "failedLogSha256": "3bd6a5f28a72ac43924401ca81c43a79a471b5e11e16a4e08dbedd853ab37541",
+    "automaticRerunExecuted": false,
+    "additionalPublicCommitPushed": false,
+    "oldFailuresAndResourceUnknownRetained": true,
+    "cumulativeResourcePreservation": "incomplete",
+    "newRequirementsAccepted": 0,
+    "deployedOrRestored": false,
+    "recordedAt": "2026-11-13T02:34:53.126175+00:00"
+  },
+  "loginRateTimingDiagnosticProposal": {
+    "basePublicHead": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
+    "status": "local-diagnostic-only-not-executed",
+    "testFile": "tests/WebApi.Integration.Tests/LoginRateStoreTests.cs",
+    "testFileSha256": "306f547279cef0c4f83876aa3ed03bc1952fc993d6c82fc5329a3a1ad8b8ef72",
+    "goal": "Collect accurate monotonic total and phase timings without masking caller cancellation; do not claim a latency fix",
+    "monotonicStopwatch": true,
+    "stages": [
+      "before ValueTask return",
+      "await and continuation",
+      "decision assertion"
+    ],
+    "measuredBeforeCancellationAssertion": true,
+    "cancellationAssertionBeforeTimingGuard": true,
+    "thresholdMilliseconds": 2000,
+    "productBudgetMilliseconds": 1000,
+    "productSourceModified": false,
+    "warmupIsolationOrThresholdIncreaseAdded": false,
+    "newTestCaseAdded": false,
+    "expectedCountsAreProjectionOnly": {
+      "console": 321,
+      "domain": 1251,
+      "gateway": 560,
+      "integration": 2189,
+      "total": 4321
+    },
+    "originalSdk401RuntimeExecuted": false,
+    "newTestsExecuted": 0,
+    "localCompile": {
+      "compilerSdk": "10.0.403",
+      "realXunitRedisReferences": true,
+      "compileOnlyPassed": true,
+      "sdkDefaultNoWarn1701And1702Preserved": true,
+      "notOriginalProjectSdk401Verification": true,
+      "earlierPrivateRestoreAndUnificationPreparationFailuresRetained": true
+    },
+    "hostCompilerFirstUseState": {
+      "developmentCertificateMessageReported": true,
+      "publicCertificateQueryExitCode": 206,
+      "priorCertificateBaselineAvailable": false,
+      "certificateAndWorkloadState": "Unknown",
+      "trustUpdateOrCleanupExecuted": false,
+      "capturedTrackedFilesPreserved": true,
+      "doesNotEstablishWholeHostEnvironmentUnchanged": true
+    },
+    "newRedisDockerOrNetworkResourcesCreated": 0,
+    "publicAppendAndOneNewCiRunRequireConfirmation": true,
+    "mergeOnlyAfterFourNewHostedChecksPass": true,
+    "oldFailedAttemptMustRemainFailed": true,
+    "recordedAt": "2026-11-13T02:34:53.126297+00:00"
+  },
+  "githubPublicationDiagnosticAttempt": {
+    "candidate": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+    "pullRequest": 10,
+    "contractsRun": 43360477377,
+    "consoleRun": 43360477373,
+    "runAttempt": 1,
+    "allFourPassed": false,
+    "merged": false,
+    "stopReason": "Domain failed; user required failure to stop, so remaining jobs were cancelled",
+    "cancelRequestSubmittedViaExistingGithubCli": true,
+    "checks": {
+      "console": {
+        "status": "success",
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0
+      },
+      "contracts-domain": {
+        "status": "failure",
+        "passed": 1250,
+        "failed": 1,
+        "skipped": 0,
+        "total": 1251,
+        "failure": "WebApi.Domain.Tests.SchemaProcessTests.QueueDeadlineStartsBeforeSlotAcquisition",
+        "sourceLine": 74,
+        "timeoutCodeAssertionPassed": true,
+        "elapsedLessThanOneSecondAssertionFailed": true,
+        "followingPidCountAssertionReached": false,
+        "exactElapsedAndCause": "Unknown"
+      },
+      "contracts-integration": {
+        "status": "cancelled",
+        "completeCounts": null,
+        "qualification": "not completed, no full-suite pass granted"
+      },
+      "contracts-gateway": {
+        "status": "cancelled",
+        "completeCounts": null,
+        "qualification": "not completed, no full-suite pass granted"
+      }
+    },
+    "domainTestAndProductUnchangedRelativeToMain50d": true,
+    "newLoginRateDiagnosticPhaseNumbersAvailable": false,
+    "newLoginRateSpecificCasePassNotEstablishedByPartialLog": true,
+    "firstPublic231FailureAndAllUnknownRetained": true,
+    "hostCertificateAndWorkloadUnknownRetained": true,
+    "cumulativeResourcePreservation": "incomplete",
+    "logs": {
+      "console": {
+        "sha256": "e0eea7a4fee0987cd6371dd900b4f4ccbb653b0f54747f9b3648df7d02b4ae66",
+        "bytes": 58709
+      },
+      "domain-failed": {
+        "sha256": "97fa8f3890e1d6c7cf9fa6753d66b4304754c5be489a847fc317d298697dacd6",
+        "bytes": 57007
+      },
+      "integration-cancelled": {
+        "sha256": "ea63474eaa302d99aec7d2f907dfa2954b81bd07c50c4d63cf6d1508da656696",
+        "bytes": 57166
+      },
+      "gateway-cancelled": {
+        "sha256": "4bb0a665dc248f8385f06eab8611f8b321dd4b027e54fddc8a9509977d410d62",
+        "bytes": 55010
+      }
+    },
+    "testMerge": "9e83ad70b0aec6ada090831520cfcf0f755596e8",
+    "testedTree": "6c665f59ce6282698b977f02339988662b4ea96e",
+    "trackedWorktreeClean": true,
+    "historicalEvidenceUnchanged": 2374,
+    "readOnlyEvidenceUnchanged": 8,
+    "primaryFilesAndStatusUnchanged": 14,
+    "automaticRerun": false,
+    "additionalRepairCommitPushed": false,
+    "deployedOrRestored": false,
+    "newRequirementsAccepted": 0,
+    "recordedAt": "2026-11-13T03:54:24.675367+00:00"
+  },
+  "localTargetedTimingDiagnostic": {
+    "verifiedAt": "2026-11-13T07:07:52.686971+00:00",
+    "inputCommit": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+    "attempts": 1,
+    "elapsedSeconds": 43.957,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "WebApi.Domain.Tests.SchemaProcessTests.QueueDeadlineStartsBeforeSlotAcquisition",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "trxSha256": "d8211fefe43b9e15384bc05768c48dc5d5253ccb7631d44272ed631000ef0047"
+      },
+      {
+        "name": "WebApi.Integration.Tests.LoginRateStoreTests.UnavailableFailsClosedAndCancellationPropagates",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "trxSha256": "0d1eb4545187a2a1ae06c63822b6d10b2b519bf4da7afccba82ffafe31d46523"
+      }
+    ],
+    "queueTimingsMs": {
+      "total": 202.275,
+      "call_return": 0.205,
+      "caller_resume": 201.692,
+      "result_assert": 0.584
+    },
+    "loginTimingsMs": {
+      "total": 1002.131,
+      "before_valuetask": 11.73,
+      "await": 989.24,
+      "decision_assert": 1.161
+    },
+    "beforeCounts": {
+      "containers": 262,
+      "volumes": 553,
+      "networks": 43
+    },
+    "afterCounts": {
+      "containers": 262,
+      "volumes": 553,
+      "networks": 43
+    },
+    "allStartingResourceIdsRetained": true,
+    "allStartingIdentityMetadataRetained": true,
+    "liveResourceChecks": 8,
+    "ownResourceCountsCreated": {
+      "containers": 1,
+      "volumes": 0,
+      "networks": 0
+    },
+    "ownResourcesRemaining": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "trackedFilesRetained": 4375,
+    "historicalEvidenceFilesRetained": 2578,
+    "primaryDirtyFilesRetained": 14,
+    "sourceFilesAndModesRetained": 1802,
+    "privateFeedArchivesRetained": 81,
+    "rootCause": "Unknown; neither hosted timing failure reproduced in this filtered private-instrumented local run",
+    "originalFailuresRetained": true,
+    "integrationCancelledQualificationRetained": true,
+    "hostCertificateAndWorkloadState": "Unknown, not changed or investigated in this attempt",
+    "noPublicPushOrGitHubRerunOrMerge": true,
+    "qualification": "Two targeted cases on Linux ARM64 SDK10.0.401 with real xUnit; private instrumentation preserves existing measured guards. Does not establish complete-suite, hosted CI, root-cause, regression fix, deployment or production acceptance.",
+    "evidenceHashes": {
+      "run-result.json": "9e15ef7395fa23416cc5f54fb39a051fea2c8b0dc2b5c5077729a7e10a3cec38",
+      "run-manifest.json": "d8e89b525c72a8d8499c0768a2a4cde90ce9a77deb0120b0c20e3ac4c87f1bd4",
+      "run.log": "ac012841eaee22f6f4527f2d886ef1a52684e5cca47df168e75cc27b21e0d154",
+      "events.jsonl": "3f45ce5b7138c1e7e39ab3c999bdf1be6c78f8a72a6e246a632b5eff928bce16",
+      "created-resource-bindings.json": "1b434a8592336f5f6548253d1e273b2f9756dda58043d8dbced316e106ff6011",
+      "results/queue.trx": "d8211fefe43b9e15384bc05768c48dc5d5253ccb7631d44272ed631000ef0047",
+      "results/login.trx": "0d1eb4545187a2a1ae06c63822b6d10b2b519bf4da7afccba82ffafe31d46523"
+    }
+  },
+  "hostedTimingDiagnosticCandidate": {
+    "parentPublicHead": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+    "status": "local-candidate-not-published",
+    "purpose": "Collect timing evidence on the existing two failed cases; not a demonstrated fix",
+    "testFiles": {
+      "tests/WebApi.Domain.Tests/SchemaProcessTests.cs": "e0d431a476ec5e1ba68ea2aacb040f878e261ce0fce4c12b031585ed3de28bfd",
+      "tests/WebApi.Integration.Tests/LoginRateStoreTests.cs": "70392ca97cea9eb470df86305b9f2ed991ed4217e871e3e80a36c52da32ec3c6"
+    },
+    "exactBytesPreviouslyExecuted": true,
+    "localEvidenceInput": "35c4c2a plus two private instrumented overrides; all other backend source bytes unchanged",
+    "regressionThresholdsMs": {
+      "queue": 1000,
+      "login": 2000
+    },
+    "productBudgetsMs": {
+      "queueRequested": 200,
+      "redisOperation": 1000
+    },
+    "newCasesAdded": 0,
+    "productScriptsWorkflowDependenciesOrParallelismChanged": false,
+    "hostedSuccessTimingVisibility": "Not guaranteed by existing default console logger; ITestOutputHelper and assertion message provide failure diagnostics. No hosted timing numbers inferred.",
+    "rootCause": "Unknown",
+    "additionalLocalRuntimeExecution": false,
+    "publicationAndOneNewHostedAttemptRequireExplicitApproval": true,
+    "newRequirementsAccepted": 0
+  }
+}

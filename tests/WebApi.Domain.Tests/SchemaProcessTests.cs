@@ -2,8 +2,9 @@ using System.Diagnostics;
 using System.Text.Json;
 using WebApi.Infrastructure.Contracts;
 using Xunit;
+using Xunit.Abstractions;
 namespace WebApi.Domain.Tests;
-public class SchemaProcessTests
+public class SchemaProcessTests(ITestOutputHelper output)
 {
     private static ContractProcessRequest Request=>new("schema",JsonSerializer.SerializeToElement(new {value=1}));
     private sealed class ToolFixture:IDisposable
@@ -70,8 +71,15 @@ public class SchemaProcessTests
         try {
             for(var i=0;i<100&&(!File.Exists(f.Pids)||File.ReadAllLines(f.Pids).Length<2);i++)await Task.Delay(10);
             Assert.Equal(2,File.ReadAllLines(f.Pids).Length);var watch=Stopwatch.StartNew();
-            var queued=await runner.RunAsync(Request,TimeSpan.FromMilliseconds(200),default);
-            Assert.Contains(queued.Issues,x=>x.Code=="contract_process_timeout");Assert.True(watch.Elapsed<TimeSpan.FromSeconds(1));Assert.Equal(2,File.ReadAllLines(f.Pids).Length);
+            var pending=runner.RunAsync(Request,TimeSpan.FromMilliseconds(200),default);
+            var returned=watch.Elapsed;
+            var queued=await pending;
+            var resumed=watch.Elapsed;
+            Assert.Contains(queued.Issues,x=>x.Code=="contract_process_timeout");
+            var elapsed=watch.Elapsed;
+            var timing=FormattableString.Invariant($"QUEUE_DIAGNOSTIC total_ms={elapsed.TotalMilliseconds:F3}, call_return_ms={returned.TotalMilliseconds:F3}, caller_resume_ms={resumed.TotalMilliseconds:F3}, result_assert_ms={(elapsed-resumed).TotalMilliseconds:F3}");
+            output.WriteLine(timing);
+            Assert.True(elapsed<TimeSpan.FromSeconds(1),timing);Assert.Equal(2,File.ReadAllLines(f.Pids).Length);
         }finally{cancel.Cancel();await Task.WhenAll(first,second);}
     }
     [Fact]public async Task OutputOverflowTerminatesAndReleasesTheSlot()

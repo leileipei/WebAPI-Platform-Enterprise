@@ -1,10 +1,12 @@
 # 核心闭环配置与运维
 
+版本以 [global.json](../global.json)、[Directory.Packages.props](../Directory.Packages.props)、[console/package.json](../console/package.json)和锁文件为准。主题手册及历史安装结果从[运维目录](deployment/README.md)选择，本页不声明持久服务已采用这些版本。
+
 ## 环境与固定依赖
 
-.NET SDK 10.0.401，目标 .NET 10，EF Core 10.0.12、Npgsql 10.0.3、YARP 2.3.0、StackExchange.Redis 3.3.1；所有 NuGet 使用集中版本及 packages.lock.json。React 19.2、TypeScript 5.9.3、Vite 6.4.2、Tabler 3.48，前端用 pnpm-lock.yaml 锁定。固定镜像摘要以 deploy/compose.test.yml 和 deploy/compose.e2e.yml 为准，不能把标签最新版本替代锁定摘要而不回归。
+.NET SDK 10.0.401，目标 .NET 10，EF Core 10.0.12、Npgsql 10.0.3、YARP 2.3.0、StackExchange.Redis 3.3.1；所有 NuGet 使用集中版本及 packages.lock.json。React 19.2、TypeScript 5.9.3、Vite 6.4.3、Tabler 3.48，前端用 pnpm-lock.yaml 锁定。固定镜像摘要以 deploy/compose.test.yml 和 deploy/compose.e2e.yml 为准，不能把标签最新版本替代锁定摘要而不回归。
 
-当前 Compose 使用固定 SDK 镜像与源码挂载，服务间仅在专用 Docker 网络通信。本机外露端口绑定 127.0.0.1。它是开发/验收配置，尚未交付企业生产镜像、TLS 终端、密钥管理或监控设施。
+测试 Compose 使用固定 SDK 镜像与源码挂载；[运行镜像构建](../scripts/runtime/build.mjs)和[运行部署](../deploy/compose.runtime.yml)另有固定源码的应用镜像流程，不能把所有安装都称为 SDK 挂载模式。仓库也已有观测组件与配置，但这些实现及本机 loopback 验证不代表企业生产镜像、TLS/HA、外部密钥管理或容量已验收。
 
 ## 显式初始化
 
@@ -38,13 +40,15 @@
 
 PostgreSQL 是业务与发布事实源：备份源库、迁移历史、Snapshot bytea、审计、节点身份摘要和 Outbox；凭证/节点秘密须由受控密钥管理独立备份。两个网关 LKG 卷分别保存 current/previous 文件。不要只备份 Redis。
 
-恢复时先停写，恢复 PostgreSQL 到同一一致性点并验证迁移；检查环境期望指针和序列，重建 Redis 缓存；核对两个 LKG 与节点实际状态，必要时通过正常审批/恢复记录重新协调。首次生产导入前必须在目标环境演练备份恢复并记录 RPO/RTO。本地测试不证明目标备份可恢复。
+恢复前先核对[运行工具的预算与硬配额阻断条件](deployment/local-runtime-runbook.md#恢复目前的阻断条件)和[数据库恢复约束](database-core.md)。当前默认硬配额集成缺失，不能直接执行旧恢复示例或用合成证明代替。具备有效恢复前提后，才按已批准方案停写、核对一致性点、迁移、期望指针/LKG/节点事实并通过正常协议协调；本地测试不证明目标备份可恢复，目标环境仍需记录 RPO/RTO。
 
 管理 Snapshot 下载是脱敏查询视图，不能拿它充当网关的原字节 LKG。内部节点 desired 端点携带完整运行校验材料，限制在专用网络；日志、截图、工单不得包含 API Key、Cookie、节点 Secret、初始化密码或凭证摘要。故障代码按白名单返回；TraceId 可用于审计定位。
 
 ## 临时 E2E 清理
 
-`e2e.sh` 每次生成随机 `webapi-enterprise-e2e-*` 项目，记录在当前会话 `.runtime/browser-e2e.json` 或进程环境。正常退出自动删除该项目容器、网络、卷与随机秘密文件，不清理其他项目。
+[核心闭环 e2e.sh](../scripts/e2e.sh)每次生成随机 `webapi-enterprise-e2e-*` 项目，记录在浏览器 metadata 或进程环境。退出路径会尝试删除该精确项目的容器、网络、卷及随机秘密，仍须核对结果；不能用退出码代替清理证明。
+
+[运行工具验收](../scripts/runtime/acceptance.mjs)是另一条入口：目前还受恢复集成保护条件阻断，其结束逻辑保留夹具供复核，不能套用核心 E2E 的清理说明。
 
 强杀进程可能留下测试卷。仅在核对**本次精确项目名**、确认其中全是可丢弃合成数据后，使用 Compose 的同一配置/环境清理该项目。禁止按前缀批量清理、禁止清理持久 core-test 或企业数据库。不要将 `.runtime` 或 `.secrets` 送入交付包。
 

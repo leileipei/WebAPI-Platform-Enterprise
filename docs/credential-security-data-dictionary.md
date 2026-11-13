@@ -1,6 +1,6 @@
 # 凭证安全数据字典（G 系列账本表）
 
-适用来源：main `57f2ef2`（tag `governance-g13-57f2ef2`）。字段清单提取自最终 EF 模型快照（`20261104090000_Governance24MigrationReceipts.Designer.cs`），与迁移 SQL 逐字一致。关联：[操作手册](deployment/credential-security-operations.md)、[P2-4 独立评审](evidence/governance-merge/p2-4-crypto-review.md)。
+初版来源：main `57f2ef2`（tag `governance-g13-57f2ef2`）及当时迁移 Designer `20261104090000_Governance24MigrationReceipts.Designer.cs`。本页是字段与语义摘要，不是完整 DDL，也不代表实际数据库已迁移。当前静态结构以[EF 模型快照](../src/WebApi.Infrastructure/Persistence/Migrations/WebApiDbContextModelSnapshot.cs)及对应实体配置为准；实际库仍须独立核对迁移历史。关联：[操作手册](deployment/credential-security-operations.md)、[P2-4 独立评审](evidence/governance-merge/p2-4-crypto-review.md)。
 
 > **2026-11-10 运行边界补充（固定主干 `7626115`）**：本页描述表结构及协议语义，不表示对应生产写入、签发、上报路径已接入。`SecurityLeaseIssuer.IssueAsync` 仍为 503 桩，`SecurityAckService`、`CurrentSecurityProofService` 与网关 `SecurityStateStore` 无生产接线；当前普通凭证撤销只修改工作配置，再次审批发布后由新快照生效。安全组件测试与临时 seeder 账本备份演练不能替代实时撤销验收。详见[当前项目状态](deployment/current-project-status.md)。
 
@@ -55,7 +55,7 @@ ACK 的独立验证记录（七重验证结果、租约绑定）、失败尝试�
 ## 凭证使用证据
 
 ### `credential_usage_batches`（冻结批次）
-`node_id uuid` · `collector_id uuid` · `sequence bigint` · `accepted_through timestamptz` · `applied_at timestamptz` · `core_hash char(64)`
+`node_id uuid` · `collector_id uuid` · `sequence bigint` · `accepted_through timestamptz`（可空）· `applied_at timestamptz` · `core_hash char(64)`
 节点上报的计数冻结批次（每节点单调 `sequence`），`core_hash` 保护批次内容。
 
 ### `credential_usage_hourly`（小时聚合）
@@ -63,8 +63,8 @@ ACK 的独立验证记录（七重验证结果、租约绑定）、失败尝试�
 查询面向的聚合（UTC 整小时，保留天数受限）。
 
 ### `credential_usage_coverage`（覆盖状态）
-`environment_id uuid` · `node_id uuid` · `hour_start timestamptz` · `state varchar(16)`（Available/NoData/Partial/Unknown/Unavailable）· `accepted_through timestamptz` · `durable_through timestamptz` · `gaps jsonb` · `intervals jsonb` · `updated_at timestamptz`
-声明每个小时窗口的数据完整性；`NoData` ≠ 0 使用（无数据到达）。
+`environment_id uuid` · `node_id uuid` · `hour_start timestamptz` · `state varchar(16)`（Available/NoData/Partial/Unknown/Unavailable）· `accepted_through timestamptz`（可空）· `durable_through timestamptz`（可空） · `gaps jsonb` · `intervals jsonb` · `updated_at timestamptz`
+保存每节点小时覆盖材料；查询状态还须结合预期节点、覆盖区间、持久高水位及缺口重新计算。查询在来源 Available 且该凭证计数为 0 时返回 NoData，表示完整覆盖下的零使用；不能将缺少小时聚合行直接判为零。Partial 可返回已观察到的计数（包括 0），但不证明完整零使用；Unknown/Unavailable 不返回计数。当前小时在来源可判定时仍为 Partial，不覆盖 Unknown/Unavailable。来源见[使用查询](../src/WebApi.Infrastructure/CredentialUsage/CredentialUsageQuery.cs)与[覆盖计算](../src/WebApi.Infrastructure/CredentialUsage/UsageCoverageReader.cs)。
 
 ### `credential_usage_collectors` / `credential_usage_collector_instances`
 收集器配置与其节点实例（上报方身份）。
@@ -72,5 +72,5 @@ ACK 的独立验证记录（七重验证结果、租约绑定）、失败尝试�
 ## 发布访问上下文
 
 ### `release_access_contexts`（发布访问上下文）
-`release_id uuid` · `environment_id uuid` · `access_address_revision bigint` · `base_path varchar(512)` · `internal_origin varchar(2048)` · `public_origin varchar(2048)` · `captured_at timestamptz`
+`release_id uuid` · `environment_id uuid` · `access_address_revision bigint` · `base_path varchar(512)` · `internal_origin varchar(2048)`（可空）· `public_origin varchar(2048)`（可空） · `captured_at timestamptz`
 发布时冻结的访问地址上下文（审批与投递一致性校验用）。

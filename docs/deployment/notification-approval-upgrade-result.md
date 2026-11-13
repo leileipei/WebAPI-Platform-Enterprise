@@ -24,6 +24,6 @@
 
 ## 正式交付包
 
-[下载ZIP](../../deliverables/WebAPI_Enterprise_通知与跨环境审批_已安装交付_20261008.zip)，23208314字节、1925文件。固定包源码`b3f320b22242f8d10d17fef0aee9865573c0cf93`，原实例软件仍为`adbcbed56a7e465c483b7462e4f3de9ac1156669`；两个身份用途不同。整包SHA256：`4e32fb8e76f7b212eef1b528a9e4b3d62b762ba3073a05c509b9743294129f0b`。CRC、全部文件摘要、124实际私有canary/私钥块/令牌检查均通过；同一固定包源码全部208项Node功能测试通过，零失败/跳过。
+历史包 `WebAPI_Enterprise_通知与跨环境审批_已安装交付_20261008.zip`（当前目录缺失，不能下载），23208314字节、1925文件。固定包源码`b3f320b22242f8d10d17fef0aee9865573c0cf93`，原实例软件仍为`adbcbed56a7e465c483b7462e4f3de9ac1156669`；两个身份用途不同。整包SHA256：`4e32fb8e76f7b212eef1b528a9e4b3d62b762ba3073a05c509b9743294129f0b`。CRC、全部文件摘要、124实际私有canary/私钥块/令牌检查均通过；同一固定包源码全部208项Node功能测试通过，零失败/跳过。
 
 [包装状态](../evidence/notification-approval/d3-installed-adbcbed/package-status.json)和ZIP外部sha256文件为最终封存回执；包内规格/计划为固定源捕获时的文本，最终步骤完成状态在本仓库当前计划及外部回执，避免包内自引用整包摘要。旧ZIP和原七项修改继续保留。

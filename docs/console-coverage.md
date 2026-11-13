@@ -1,6 +1,6 @@
 # 原40页面与真实管理控制台对应
 
-2026-10-16集成说明：以[本次交付边界](deployment/full-project-integration-20261016.md)及[454项逐条台账](evidence/work-package4/requirements-status.md)为当前索引；下文阶段性部署措辞属于对应历史记录。
+本表保留 2026-10-16 能力映射及后续阶段补记，表内安装、验收和“本包”措辞属于对应版本。最新源码及远端状态先看[当前状态页](deployment/current-project-status.md)，再读[历史集成](deployment/full-project-integration-20261016.md)和[454 项台账](evidence/work-package4/requirements-status.md)；不将页面入口数当成需求完成率。
 
 原V1.4完整高保真原型保留在 ../prototype，下面说明新真实服务控制台的能力。已接入指核心API真实读写，不代表原页所有后续能力已经实现；后续能力不会显示模拟成功。
 

@@ -1,10 +1,19 @@
-# 核心闭环验收
+# 验收证据入口与历史闭环记录
 
 > 本页主体为首期核心闭环的历史验收，下面的“当前证据”指该阶段。2026-10-16全项目集成检查见[本次记录](deployment/full-project-integration-20261016.md)；第4包固定运行验收见[阶段总结](evidence/work-package4/final-summary.md)。各提交、本机部署与生产验收分别记录，不能用某阶段通过替代全部功能或新版本验收。
 
 验收对象是已确认首期真实核心，原 40 页高保真原型仍完整保留。各页真实接入及后续能力以 console-coverage.md 为准；后续模块不显示模拟成功。
 
-## 当前证据
+## 当前资料入口
+
+实际源码、远端及本地后续验证范围统一见[状态页](deployment/current-project-status.md)。既有证据按固定输入查阅：
+
+- [第4包固定验收](evidence/work-package4/final-summary.md)与[验收账本](acceptance/account-credential-closeout.md)。
+- [2026-11-10 网络策略固定交付](evidence/network-policies/2026-11-10-c946bbb/delivery-index.md)。
+- [两批 CI 本地验证](deployment/github-quality-gates-proposal.md)，不能作为 GitHub Actions 已执行的证明。
+- [运行验收入口及当前阻断条件](deployment/local-runtime-runbook.md#验收入口的区别)。当前入口保留夹具待复核，不能将旧 complete 证据改标为今天的结果。
+
+## 首期核心闭环证据
 
 |验收层|证据|实际覆盖|
 |---|---|---|
@@ -24,7 +33,7 @@
 
 在本机 Docker Linux ARM64 验证；AMD64 编译与运行尚未验证，企业实网/TLS、真实数据库恢复、容量/SLA、HA、灾备、外部SSO与企业适配未验收。没有 5k RPS 或生产上线结论。
 
-后续业务范围：完整企业指标工作台、监控/告警、系统设置、标签运营、完整 Breaking Change 分析、JWT/重试/缓存策略、SSO/首次改密、URL/YAML OpenAPI 导入等，详见40页映射。原高保真交互演示的完整页面数量不等于全部业务后端已经上线。
+首期记录曾将工作台、监控/告警、系统设置、策略、SSO/首次改密及 URL/YAML 导入等列为后续范围；其中多项后续已有实现和固定版本验收。今天的能力从[页面映射](console-coverage.md)与状态页分别核对，不继续将这一历史清单当作当前缺失功能；完整原型也不等于全部业务已上线。
 
 本批独立版本流量策略的真实验收、回归、UI QA 与明确边界见 [策略交付索引](evidence/policies/delivery-index.md)。原 4192 数据与镜像保持不变。
 

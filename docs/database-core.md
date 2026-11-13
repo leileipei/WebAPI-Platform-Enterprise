@@ -1,6 +1,16 @@
-# 首期数据库模型
+# 数据库模型、历史清单与迁移约束
 
-来源36表中保留32表，延期告警规则 / 事件、SSO Provider和系统设置；补充5表。API Version无environment字段，Route按环境关联。
+按[当前状态页](deployment/current-project-status.md)列出的固定源码，EF [ModelSnapshot](../src/WebApi.Infrastructure/Persistence/Migrations/WebApiDbContextModelSnapshot.cs)声明了 **96 个不同表映射**。这是源码模型计数，不是对某个已安装数据库的查询，也不证明迁移已执行。实体、映射和迁移以[持久化源码](../src/WebApi.Infrastructure/Persistence/)为准。
+
+## 当前模型与首期清单的关系
+
+除首期核心表外，当前模型已包含告警与评估、SSO/外部身份、系统设置、通知投递、契约来源及导入预览、凭证使用统计、跨环境交付、阶段流水线和安全账本等表。不能继续将“告警、SSO、系统设置延期”理解为当前未实现；安全相关表存在也不表示安全签发和网关准入链路已经启用。
+
+主要主题：[观测数据字典](observability-data-dictionary.md)、[安全数据字典](credential-security-data-dictionary.md)、[账号与凭证操作](deployment/account-credential-operations.md)、[跨环境交付](deployment/release-promotion-runbook.md)。
+
+## 首期 37 表历史映射
+
+以下保留首期“来源 36 表保留 32、补充 5”的清单及当时字段数，不是当前完整表结构。API Version 不含 environment 归属，Route 按环境关联；后续字段和约束须读当前映射。
 
 - `organizations` → `Organization`，7字段
 - `projects` → `Project`，9字段
@@ -44,7 +54,9 @@ Snapshot的payload_bytes是哈希对应原始UTF-8字节，JSONB查询副本不�
 
 ## 约束与构建基线
 
-所有外键采用Restrict，保留审计所需实体；以状态停用代替级联删除。复合引用约束保证项目属于组织、Scope环境属于项目、API分组属于项目、Cluster属于环境、Route方法属于同一Route环境。角色分系统 / 组织两种唯一范围。`route_methods`的(environment_id, method, normalized_path)唯一索引承担并发冲突保护，业务保存必须同事务维护。
+首期以 Restrict 保留审计所需实体，但不能据此概括当前所有关系。当前模型也有显式 Cascade，例如[契约来源](../src/WebApi.Infrastructure/Persistence/Configurations/ApiVersionContractSourcesConfiguration.cs)及[凭证使用采集关系](../src/WebApi.Infrastructure/Persistence/Configurations/CredentialUsageCollectorInstanceConfiguration.cs)；删除影响须按具体关系和业务命令核对，不能靠本文推断可以安全清理数据。
+
+复合引用约束用于校验项目/组织、Scope、Cluster 和 Route 等归属；角色按系统/组织范围区分。`route_methods` 的环境、方法与规范化路径唯一约束承担并发冲突保护，业务保存必须同事务维护。
 
 迁移由EF模型生成，包括关联、唯一索引及有效期 / 超时检查；不在运行时自动建表或隐式种子。独立Migrator从受限Secret文件读取数据库密码，显式执行。`deploy/initial-core.sql`是对应幂等脚本。
 

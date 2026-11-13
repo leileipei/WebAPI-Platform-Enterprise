@@ -30,9 +30,9 @@ Collector 下划线转换后，环境、API、应用、目标的查询标签分�
 
 ## 指标与连续采集覆盖
 
-监控提供 RPS、成功率、4xx / 5xx 比例、P50 / P95 / P99 七种同源趋势；API / 应用 / 后端 / HTTP 状态分组支持请求量、P95、P99、5xx 比例排序。分位数合并桶后计算，不能平均节点分位数。
+监控提供 RPS、成功率、4xx / 5xx 比例、P50 / P95 / P99 七种同源趋势；API / 应用 / 后端 / HTTP 状态分组支持请求量、P95、P99、5xx 比例排序。分位数合并桶后计算，不能平均节点分位数。另有 circuit_rejected_count、rate_limit_store_unavailable_count 两项策略 KPI 与计数趋势；适用范围、空值及决策含义见[数据字典](../observability-data-dictionary.md)。
 
-一次指标查询最多 10 个供应商请求（8 个瞬时查询、2 个范围查询），共享 10 秒预算，响应 8MiB 与结果行 / 趋势点预算保持既有上限。日志和链路覆盖各使用 5 个 Prometheus 瞬时查询，不需 metrics.read。覆盖期待所有当前授权环境中 Enabled 的已登记节点，Ready / NotReady / Degraded 不改变采集期待；只有明确禁用才移除期待。
+一次指标查询最多 14 个供应商请求（11 个瞬时查询、3 个范围查询，包含策略观测与 Collector 诊断），共享 10 秒预算，响应 8MiB 与结果行 / 趋势点预算保持既有上限。日志和链路覆盖各使用 7 个 Prometheus 瞬时查询（6 个节点/信号检查加 1 个 Collector 检查），不需 metrics.read。覆盖期待所有当前授权环境中 Enabled 的已登记节点，Ready / NotReady / Degraded 不改变采集期待；只有明确禁用才移除期待。
 
 首个采集时点须覆盖窗口起始（45秒容差），最新采集距窗口末尾最多45秒；另以服务器构建的固定15秒步长 max_over_time(time() - node observation timestamp) 检查窗口内部最大观察年龄。中间观察年龄超过45秒、缺节点、丢弃或导出失败均保持 Partial，无法证明完整的 KPI / 趋势为空值。固定步长可发现超过容差的采集中断，不声称逐毫秒无损历史或生产容量 / SLA 证明。
 
@@ -60,7 +60,7 @@ CSV从相同过滤与截止时间的首行重新读取，忽略列表cursor；�
 
 规则创建/编辑/启停复用Cookie、CSRF、If-Match、幂等键和治理事务锁。任何规则操作检查其完整写Scope；几个环境grant不能替代组织/项目宽grant。预览POST `/observability/alert-rules/preview`返回当前Active环境ID和未来Active环境自动纳入政策，不创建持久记录。
 
-同名唯一使用trim、NFKC和Invariant uppercase规范化，宽Scope的SQL NULL同样参与唯一约束。规则OrganizationId在创建后固定；项目/环境范围仍可修改，跨组织需要新建并停用旧规则。原因是历史事件冻结组织归属，不能随规则租户迁移。修改name/notification只增加revision；判断逻辑、目标、Scope、severity、for/window或enabled改变增加logic_revision，并同事务关闭旧活动事件、追加流转及审计。仅站内中心启用，Email/Webhook/EnterpriseIm只保存意向枚举，不允许URL或密钥。
+同名唯一使用trim、NFKC和Invariant uppercase规范化，宽Scope的SQL NULL同样参与唯一约束。规则OrganizationId在创建后固定；项目/环境范围仍可修改，跨组织需要新建并停用旧规则。原因是历史事件冻结组织归属，不能随规则租户迁移。修改name/notification只增加revision；判断逻辑、目标、Scope、severity、for/window或enabled改变增加logic_revision，并同事务关闭旧活动事件、追加流转及审计。站内中心始终保留；当前规则还可通过结构化通知策略显式启用 Email/Webhook，收件目标、恢复通知与重试预算须通过[通知策略校验](../../src/WebApi.Domain/Notifications/NotificationPolicyValidator.cs)。渠道配置及秘密由平台设置与受控部署引用管理，不在告警规则中接受任意 URL 或密钥。EnterpriseIm 仍只保留意向枚举，没有对应发送通道。投递按[通知规划](../../src/WebApi.Infrastructure/Notifications/NotificationPlanner.cs)和[分发实现](../../src/WebApi.Infrastructure/Notifications/NotificationDispatcher.cs)执行；未配置、禁用或未获部署策略允许时不等于已投递。真实企业端点仍需目标环境验收。
 
 `unhealthy_destinations`目前只支持环境或具体Destination目标。健康gauge没有API依赖关系，API目标返回422；API仍支持RPS、5xx比例和P95时延。不能借用整个环境的健康值表示单API健康。
 

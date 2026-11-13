@@ -10,4 +10,4 @@ API详情中workingRevision为工作区版本；runningConfigVersion只在启用
 
 最后启用Destination不能删除或禁用；被引用Cluster和版本拒绝删除。字段结构问题返回422，授权不足403，业务冲突409，旧ETag412。请求限制8MiB，单文本4MiB，结构深度16，子项最多5000。
 
-已通过真实PostgreSQL/HTTP验证同形路径、方法区分、并发单赢家、静态优先、版本不可变、跨环境Cluster、Destination限制及快照隔离；尚未据此声称网关运行闭环已经完成。
+上述工作区约定与[网关运行代际](contracts/gateway-generation.md)、[快照兼容边界](contracts/runtime-snapshot.md)共同解释。网关和发布闭环已有实现；各固定版本的 PostgreSQL/HTTP、真实网关、浏览器与部署验证须从[当前状态页](deployment/current-project-status.md)分别追溯，不能沿用早期“网关尚未实现”的阶段结论。

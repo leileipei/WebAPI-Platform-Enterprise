@@ -1,10 +1,10 @@
 # 流量策略运行手册
 
-本批在独立评审环境实现策略中心与编辑器、路由绑定、正常两级审批发布、双网关共享限流与各节点独立熔断。现有 4192 服务保持旧版本；本批未自动 Git 提交、合并或替换其镜像。
+本页记录最初四类策略的独立评审交付，含策略中心与编辑器、路由绑定、两级审批发布、双网关共享限流及各节点独立熔断。4192 保持旧版本及当时未提交/合并的说法仅属于该阶段；当前代码、协议和安装身份见[当前项目状态](current-project-status.md)，新增网络策略见[对应手册](network-policies-runbook.md)。
 
 ## 入口与源码身份
 
-在本源码根目录执行 `./scripts/check-policies.sh e2e`。脚本创建随机项目、专用 PostgreSQL、Redis、两 Gateway、三源与上游；只对本次 owner 资源注入故障，结束清理本项目容器、卷和秘密。`./scripts/check-policies.sh browser` 提供独立评审入口，地址记录在 `.runtime/policy-review.json`。登录凭证仅保存在该文件指向的私有目录中，不包含于交付包。关闭评审环境使用 `node scripts/policies/cleanup-review.mjs`，它检查记录项目与每个容器 owner 后精确清理；不可按模糊名称批量删除。
+在本源码根目录执行 `./scripts/check-policies.sh e2e`。脚本创建随机项目、专用 PostgreSQL、Redis、两 Gateway、三源与上游；只对本次 owner 资源注入故障，成功 e2e 路径核对本项目容器、卷及列明秘密的清理；失败路径会尝试清理并保存失败记录，不能保证已清理成功。`./scripts/check-policies.sh browser` 提供独立评审入口，地址记录在 `.runtime/policy-review.json`。登录凭证仅保存在该文件指向的私有目录中，不包含于交付包。关闭评审环境使用 `node scripts/policies/cleanup-review.mjs`，它检查记录项目与每个容器 owner 后精确清理；不可按模糊名称批量删除。
 
 构建先复制实际工作树中的构建源码，排除秘密、缓存和逃逸符号链接，产生 `docs/evidence/policies/source-manifest.json`。镜像以 sourceManifestHash 标识；baseCommit 只代表起点，不代表未提交变更已经提交。长期运行入口仍要求明确不可变 Git revision，须在源码审阅并授权固定提交后使用原部署程序升级。升级前由操作者安排维护窗口与备份，按 owner 锁、冻结依赖构建、双节点验证流程执行。出现问题使用原已验证镜像和历史自足快照回退，不用当前工作策略重建历史内容。
 
@@ -28,7 +28,7 @@
 
 排障查看工作/运行修订、desired、实例当前版本与部署序列，再关联访问日志与 Trace 决策。指标按环境统计熔断拒绝和限流存储故障；按 API、应用或后端筛选时“不适用”。不足时窗、采集断点、缺源沿用 Partial/Unavailable/Stale，空值不表示零。日志及 Trace 最多两条安全决策，不含原始 API Key、Redis Secret 或内部 bucket key。
 
-生产性能、第三方企业系统、SSO、JWT、重试与缓存未执行/未实现，本批不增加相关承诺。
+当次四类策略交付不覆盖生产性能、企业系统、SSO、JWT、重试与缓存；当前源码已有后几项相应实现，不能将原批次范围当作全仓缺失。运行约束分别见[SSO](sso-oidc-runbook.md)、[JWT/重试/缓存](gateway-jwt-retry-cache-runbook.md)；企业系统与生产验收仍需目标环境证据。
 
 ## 本机复现前提
 
