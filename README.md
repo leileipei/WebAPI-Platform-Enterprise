@@ -28,7 +28,9 @@ GitHub 主干与本地目录可能处于不同提交。阅读“当前”“已�
 
 ## 构建与验证
 
-当前公开候选`23136fb`已发布到[PR #10](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/10)，尚未合入main。首次GitHub检查为Console321、Domain1251、Gateway560通过；Integration2188通过、1失败、0跳过，失败于既有登录限流测试的2秒耗时断言。`Unavailable`返回断言已过，本例取消断言未执行，精确耗时及原因仍Unknown。首次失败保留，不自动重跑；本地另准备单调计时/分阶段诊断，保留2秒门槛和产品1000ms预算，尚未运行或追加公开。
+当前公开PR #10为`35c4c2a`，未合并：第二次Console321通过，Domain1250通过/1失败，Integration与Gateway按失败即停要求取消，无完整通过资格。随后一次明确批准的固定SDK401本地双用例诊断为2通过、0失败/跳过：排队202.275ms、登录1002.131ms，原1秒/2秒门槛未变，远端失败原因仍Unknown。唯一新容器已清理，全部起始262/553/43资源标识和记录元数据保留；历史失败、Unknown、累计incomplete及原目录14份内容保持。本地另准备两份已验证诊断源码，尚未追加公开或CI，不是已验证修复，详见[当前状态](docs/deployment/current-project-status.md)。
+
+首次发布时（历史）：公开候选`23136fb`已发布到[PR #10](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/10)，尚未合入main。首次GitHub检查为Console321、Domain1251、Gateway560通过；Integration2188通过、1失败、0跳过，失败于既有登录限流测试的2秒耗时断言。`Unavailable`返回断言已过，本例取消断言未执行，精确耗时及原因仍Unknown。首次失败保留，不自动重跑；本地另准备单调计时/分阶段诊断，保留2秒门槛和产品1000ms预算，尚未运行或追加公开。
 
 依赖版本以 [SDK 配置](global.json)、[后端集中版本](Directory.Packages.props)、[前端依赖](console/package.json)及对应锁文件为准。当前 SDK 固定为 `10.0.401`，禁止自动滚动到其他版本；CI 配置使用 Node `24.22.1`、pnpm `11.25.0`。
 

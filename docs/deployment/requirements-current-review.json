@@ -14798,6 +14798,75 @@
         }
       },
       "description": "Preserved before recording first public PR10 CI failure and a local, unexecuted monotonic timing diagnostic proposal; no failure is relabelled."
+    },
+    {
+      "commit": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+      "sha256": "78447915eba1dd2010c364ca9ba82732ac5168dd52cd0851c7cc3205b84f1168",
+      "summary": {
+        "requirements": 454,
+        "pages": 40,
+        "historicalStatusCounts": {
+          "已关闭": 33,
+          "待复验": 363,
+          "缺失": 18,
+          "部分": 40
+        },
+        "sourceFiles": 67,
+        "unchangedSourceFiles": 61,
+        "changedSourceFiles": 6,
+        "missingSourceFiles": 0,
+        "requirementsWithUnchangedSourceRefs": 328,
+        "requirementsWithChangedSourceRefs": 126,
+        "historicallyClosedWithChangedSourceRefs": 16,
+        "historicalEvidenceFilesHashMatched": 8,
+        "historicalTestDefinitionsFound": 14,
+        "historicalGapsReviewed": 58,
+        "gapCategories": {
+          "source-gap": 50,
+          "semantics-to-confirm": 1,
+          "targeted-acceptance-needed": 6,
+          "requirement-model-conflict": 1
+        },
+        "newRequirementsAccepted": 0,
+        "newProductTestsRun": 54,
+        "projectCompletionPercentage": null,
+        "newVerifierTestsRun": 11,
+        "newOfflineTestsRun": 39,
+        "newBackendTestsRun": 26,
+        "newBrowserAcceptanceTestsRun": 17,
+        "browserCheckpointGranularity": "observed UI checkpoints; not complete requirement acceptance",
+        "browserGroupsPartiallyExercised": 5,
+        "credentialFollowupCheckpointRecords": 13,
+        "credentialFollowupExecuted": 12,
+        "credentialFollowupPass": 11,
+        "credentialFollowupFail": 1,
+        "credentialFollowupPreparationOnly": 1,
+        "credentialReadOnlyFollowupExecuted": 7,
+        "credentialReadOnlyFollowupPass": 7,
+        "credentialReadOnlyFollowupFail": 0,
+        "customValiditySaveVerified": true,
+        "customValidityFollowupExecuted": 4,
+        "customValidityFollowupPass": 4,
+        "customValidityFollowupFail": 0,
+        "credentialBoundaryHttpChecks": 14,
+        "credentialBoundaryPassed": 14,
+        "credentialBoundaryFailed": 0,
+        "credentialBoundaryNewCredentials": 0,
+        "crossDaySaveCasesExecuted": 2,
+        "crossDaySaveCasesPassed": 2,
+        "crossDaySaveCasesFailed": 0,
+        "credentialPermissionChecks": 48,
+        "credentialPermissionPassed": 48,
+        "credentialPermissionFailed": 0,
+        "latestPublishedLedgerStatusCounts": {
+          "已关闭": 36,
+          "部分": 40,
+          "缺失": 18,
+          "待复验": 360,
+          "经确认延期": 0
+        }
+      },
+      "description": "Preserved before adding the second hosted failure/cancellation and one authorized local two-case diagnostic; no requirement or prior qualification upgraded."
     }
   ],
   "targetedFollowup": {
@@ -20155,5 +20224,188 @@
     "mergeOnlyAfterFourNewHostedChecksPass": true,
     "oldFailedAttemptMustRemainFailed": true,
     "recordedAt": "2026-11-13T02:34:53.126297+00:00"
+  },
+  "githubPublicationDiagnosticAttempt": {
+    "candidate": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+    "pullRequest": 10,
+    "contractsRun": 43360477377,
+    "consoleRun": 43360477373,
+    "runAttempt": 1,
+    "allFourPassed": false,
+    "merged": false,
+    "stopReason": "Domain failed; user required failure to stop, so remaining jobs were cancelled",
+    "cancelRequestSubmittedViaExistingGithubCli": true,
+    "checks": {
+      "console": {
+        "status": "success",
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0
+      },
+      "contracts-domain": {
+        "status": "failure",
+        "passed": 1250,
+        "failed": 1,
+        "skipped": 0,
+        "total": 1251,
+        "failure": "WebApi.Domain.Tests.SchemaProcessTests.QueueDeadlineStartsBeforeSlotAcquisition",
+        "sourceLine": 74,
+        "timeoutCodeAssertionPassed": true,
+        "elapsedLessThanOneSecondAssertionFailed": true,
+        "followingPidCountAssertionReached": false,
+        "exactElapsedAndCause": "Unknown"
+      },
+      "contracts-integration": {
+        "status": "cancelled",
+        "completeCounts": null,
+        "qualification": "not completed, no full-suite pass granted"
+      },
+      "contracts-gateway": {
+        "status": "cancelled",
+        "completeCounts": null,
+        "qualification": "not completed, no full-suite pass granted"
+      }
+    },
+    "domainTestAndProductUnchangedRelativeToMain50d": true,
+    "newLoginRateDiagnosticPhaseNumbersAvailable": false,
+    "newLoginRateSpecificCasePassNotEstablishedByPartialLog": true,
+    "firstPublic231FailureAndAllUnknownRetained": true,
+    "hostCertificateAndWorkloadUnknownRetained": true,
+    "cumulativeResourcePreservation": "incomplete",
+    "logs": {
+      "console": {
+        "sha256": "e0eea7a4fee0987cd6371dd900b4f4ccbb653b0f54747f9b3648df7d02b4ae66",
+        "bytes": 58709
+      },
+      "domain-failed": {
+        "sha256": "97fa8f3890e1d6c7cf9fa6753d66b4304754c5be489a847fc317d298697dacd6",
+        "bytes": 57007
+      },
+      "integration-cancelled": {
+        "sha256": "ea63474eaa302d99aec7d2f907dfa2954b81bd07c50c4d63cf6d1508da656696",
+        "bytes": 57166
+      },
+      "gateway-cancelled": {
+        "sha256": "4bb0a665dc248f8385f06eab8611f8b321dd4b027e54fddc8a9509977d410d62",
+        "bytes": 55010
+      }
+    },
+    "testMerge": "9e83ad70b0aec6ada090831520cfcf0f755596e8",
+    "testedTree": "6c665f59ce6282698b977f02339988662b4ea96e",
+    "trackedWorktreeClean": true,
+    "historicalEvidenceUnchanged": 2374,
+    "readOnlyEvidenceUnchanged": 8,
+    "primaryFilesAndStatusUnchanged": 14,
+    "automaticRerun": false,
+    "additionalRepairCommitPushed": false,
+    "deployedOrRestored": false,
+    "newRequirementsAccepted": 0,
+    "recordedAt": "2026-11-13T03:54:24.675367+00:00"
+  },
+  "localTargetedTimingDiagnostic": {
+    "verifiedAt": "2026-11-13T07:07:52.686971+00:00",
+    "inputCommit": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+    "attempts": 1,
+    "elapsedSeconds": 43.957,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "WebApi.Domain.Tests.SchemaProcessTests.QueueDeadlineStartsBeforeSlotAcquisition",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "trxSha256": "d8211fefe43b9e15384bc05768c48dc5d5253ccb7631d44272ed631000ef0047"
+      },
+      {
+        "name": "WebApi.Integration.Tests.LoginRateStoreTests.UnavailableFailsClosedAndCancellationPropagates",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "trxSha256": "0d1eb4545187a2a1ae06c63822b6d10b2b519bf4da7afccba82ffafe31d46523"
+      }
+    ],
+    "queueTimingsMs": {
+      "total": 202.275,
+      "call_return": 0.205,
+      "caller_resume": 201.692,
+      "result_assert": 0.584
+    },
+    "loginTimingsMs": {
+      "total": 1002.131,
+      "before_valuetask": 11.73,
+      "await": 989.24,
+      "decision_assert": 1.161
+    },
+    "beforeCounts": {
+      "containers": 262,
+      "volumes": 553,
+      "networks": 43
+    },
+    "afterCounts": {
+      "containers": 262,
+      "volumes": 553,
+      "networks": 43
+    },
+    "allStartingResourceIdsRetained": true,
+    "allStartingIdentityMetadataRetained": true,
+    "liveResourceChecks": 8,
+    "ownResourceCountsCreated": {
+      "containers": 1,
+      "volumes": 0,
+      "networks": 0
+    },
+    "ownResourcesRemaining": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "trackedFilesRetained": 4375,
+    "historicalEvidenceFilesRetained": 2578,
+    "primaryDirtyFilesRetained": 14,
+    "sourceFilesAndModesRetained": 1802,
+    "privateFeedArchivesRetained": 81,
+    "rootCause": "Unknown; neither hosted timing failure reproduced in this filtered private-instrumented local run",
+    "originalFailuresRetained": true,
+    "integrationCancelledQualificationRetained": true,
+    "hostCertificateAndWorkloadState": "Unknown, not changed or investigated in this attempt",
+    "noPublicPushOrGitHubRerunOrMerge": true,
+    "qualification": "Two targeted cases on Linux ARM64 SDK10.0.401 with real xUnit; private instrumentation preserves existing measured guards. Does not establish complete-suite, hosted CI, root-cause, regression fix, deployment or production acceptance.",
+    "evidenceHashes": {
+      "run-result.json": "9e15ef7395fa23416cc5f54fb39a051fea2c8b0dc2b5c5077729a7e10a3cec38",
+      "run-manifest.json": "d8e89b525c72a8d8499c0768a2a4cde90ce9a77deb0120b0c20e3ac4c87f1bd4",
+      "run.log": "ac012841eaee22f6f4527f2d886ef1a52684e5cca47df168e75cc27b21e0d154",
+      "events.jsonl": "3f45ce5b7138c1e7e39ab3c999bdf1be6c78f8a72a6e246a632b5eff928bce16",
+      "created-resource-bindings.json": "1b434a8592336f5f6548253d1e273b2f9756dda58043d8dbced316e106ff6011",
+      "results/queue.trx": "d8211fefe43b9e15384bc05768c48dc5d5253ccb7631d44272ed631000ef0047",
+      "results/login.trx": "0d1eb4545187a2a1ae06c63822b6d10b2b519bf4da7afccba82ffafe31d46523"
+    }
+  },
+  "hostedTimingDiagnosticCandidate": {
+    "parentPublicHead": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+    "status": "local-candidate-not-published",
+    "purpose": "Collect timing evidence on the existing two failed cases; not a demonstrated fix",
+    "testFiles": {
+      "tests/WebApi.Domain.Tests/SchemaProcessTests.cs": "e0d431a476ec5e1ba68ea2aacb040f878e261ce0fce4c12b031585ed3de28bfd",
+      "tests/WebApi.Integration.Tests/LoginRateStoreTests.cs": "70392ca97cea9eb470df86305b9f2ed991ed4217e871e3e80a36c52da32ec3c6"
+    },
+    "exactBytesPreviouslyExecuted": true,
+    "localEvidenceInput": "35c4c2a plus two private instrumented overrides; all other backend source bytes unchanged",
+    "regressionThresholdsMs": {
+      "queue": 1000,
+      "login": 2000
+    },
+    "productBudgetsMs": {
+      "queueRequested": 200,
+      "redisOperation": 1000
+    },
+    "newCasesAdded": 0,
+    "productScriptsWorkflowDependenciesOrParallelismChanged": false,
+    "hostedSuccessTimingVisibility": "Not guaranteed by existing default console logger; ITestOutputHelper and assertion message provide failure diagnostics. No hosted timing numbers inferred.",
+    "rootCause": "Unknown",
+    "additionalLocalRuntimeExecution": false,
+    "publicationAndOneNewHostedAttemptRequireExplicitApproval": true,
+    "newRequirementsAccepted": 0
   }
 }

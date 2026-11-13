@@ -29,7 +29,7 @@
       "immutable-evidence": 153,
       "historical-design-plan": 60
     },
-    "relativeLinksChecked": 867,
+    "relativeLinksChecked": 868,
     "unresolvedHistoricalReferences": 47,
     "preservedDuplicateEvidenceGroups": 7
   },
@@ -455,7 +455,7 @@
     "sourceRevision": "3774ccc7fd97a59ff4851d3a9f55179c4635c61f",
     "path": "docs/deployment/requirements-current-review.md",
     "dataPath": "docs/deployment/requirements-current-review.json",
-    "dataSha256": "78447915eba1dd2010c364ca9ba82732ac5168dd52cd0851c7cc3205b84f1168",
+    "dataSha256": "c6adf9f38e71976ff25187c66d4d835412e48cfa649e8822da8c77d746197bf3",
     "reviewType": "static traceability and gap review, no new acceptance",
     "requirements": 454,
     "historicalGapsReviewed": 58,
@@ -658,6 +658,18 @@
       "newAccepted": 0
     },
     "latestHostedPublicationAttempt": {
+      "sourceRevision": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+      "pullRequest": 10,
+      "allFourPassed": false,
+      "consolePassed": 321,
+      "domainPassed": 1250,
+      "domainFailed": 1,
+      "integration": "cancelled-not-qualified",
+      "gateway": "cancelled-not-qualified",
+      "merged": false,
+      "newAccepted": 0
+    },
+    "priorHostedPublicationAttemptSnapshot": {
       "sourceRevision": "23136fb4ff28041122ce3a92c8d0bc918cc9ca5f",
       "pullRequest": 10,
       "allFourPassed": false,
@@ -667,6 +679,16 @@
       "totalFailed": 1,
       "merged": false,
       "diagnosticPatch": "local-only-not-executed",
+      "newAccepted": 0
+    },
+    "latestLocalTargetedTimingDiagnostic": {
+      "sourceRevision": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+      "privateOverrides": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "fullSuiteQualified": false,
+      "cause": "Unknown",
       "newAccepted": 0
     }
   },
@@ -1094,7 +1116,7 @@
     "newRequirementsAccepted": 0
   },
   "documents": [
-    {"path":"README.md","category":"navigation","sha256":"07cdb100ed1bb47f25a45e6368d00c68cd805669ae426d8ed21c0435a893a29d"},
+    {"path":"README.md","category":"navigation","sha256":"b895f055e4546084e500f300be5e8d305c686690169693aefcd0832aedafdc80"},
     {"path":"architecture-review.md","category":"historical-review","sha256":"d858887e1e7717db8043255e1f5ccfa383da32554a6b7c289638c08a7c1b6c23"},
     {"path":"docs/README.md","category":"navigation","sha256":"2f903ef2da578e5d1bcc77daf81c71cc79d76b07f0fd9e163d55482e0568d120"},
     {"path":"docs/acceptance.md","category":"topic-reference","sha256":"4ba7540617c5ff6007a3149ad04a01ba80fe9de1bdf485ea5e960909c6bc64b1"},
@@ -1133,7 +1155,7 @@
     {"path":"docs/deployment/credential-security-operations.md","category":"operations-reference","sha256":"168f50c631ad034c48199893cd18336f7f17d263b04b0807666331f85e6b196e"},
     {"path":"docs/deployment/current-local-delivery-index.md","category":"historical-deployment-record","sha256":"f0656965dbc9f22a8053f06f22941bcad9f552c6b40fca2146160614039e160a"},
     {"path":"docs/deployment/current-local-status.md","category":"historical-deployment-record","sha256":"8f93b0e6ed49557ca7f408e34bda5f93e9c556f9c79afcdd0ab366245ca9b0a7"},
-    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"1e2ce29fe03a21e525c76bac8c8fea426f778abd520ea585891542b9f83bad7c"},
+    {"path":"docs/deployment/current-project-status.md","category":"current-status","sha256":"8e5151301b626d9df8026456dcd0bb4fe67156f7a4bfa1c501aed851eec1110c"},
     {"path":"docs/deployment/current-sso-delivery-index.md","category":"historical-deployment-record","sha256":"292f5e694bc93b4935a9b832410181cbc2a49af24126f17f62a9cebf55653b56"},
     {"path":"docs/deployment/current-system-settings-delivery-index.md","category":"historical-deployment-record","sha256":"04cc0f6ed64b42df7b8dfb3ae0019338b080f42d362bceeff3f7ec2a0849b569"},
     {"path":"docs/deployment/environment-access-runbook.md","category":"operations-reference","sha256":"943cec06dc6df299739a870d4416a91b975d3201f5371dd48c814e676a67a4e0"},
@@ -1174,7 +1196,7 @@
     {"path":"docs/deployment/observability-runbook.md","category":"operations-reference","sha256":"4fcbf584bebb56f0ef61605fb542080a5be3594939f7e27076eeaa0966b88aa0"},
     {"path":"docs/deployment/post-upgrade-observation-result.md","category":"historical-deployment-record","sha256":"3547988631980de2a1c641f60fb2dc5c5b8deb3ba98d51bb052a5778ead2752f"},
     {"path":"docs/deployment/release-promotion-runbook.md","category":"operations-reference","sha256":"4c85a39ad2e129c0ac56d19de31e7c52d1f6284d780f5c78e4bd6f1f0026b9b8"},
-    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"4346f9b90ec103d4f61668f4343a96dadac3e9c6d80530eb9bb2af965c07f3f1"},
+    {"path":"docs/deployment/requirements-current-review.md","category":"current-requirements-review","sha256":"a9ece00c2200dbb42614d67e0433bdff36e135238e0e74c5fb3c1abc8127cb32"},
     {"path":"docs/deployment/security-hardening-4192-upgrade-preparation.md","category":"historical-deployment-record","sha256":"136b7dd5f423183d6bdf064e00dc83bc868ece79c67b130afa5383cdda16cd19"},
     {"path":"docs/deployment/security-hardening-runbook.md","category":"operations-reference","sha256":"716e53cdf282408313665e4af769191c9601ed226f11162710602c67938b1eb6"},
     {"path":"docs/deployment/sso-oidc-capability.md","category":"historical-deployment-record","sha256":"6360783bd9abc94dcfb0ff830c7c01d254ed84f4b74dd0aad231473631848750"},
@@ -2855,5 +2877,188 @@
     "mergeOnlyAfterFourNewHostedChecksPass": true,
     "oldFailedAttemptMustRemainFailed": true,
     "recordedAt": "2026-11-13T02:34:53.126297+00:00"
+  },
+  "githubPublicationDiagnosticAttempt": {
+    "candidate": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+    "pullRequest": 10,
+    "contractsRun": 43360477377,
+    "consoleRun": 43360477373,
+    "runAttempt": 1,
+    "allFourPassed": false,
+    "merged": false,
+    "stopReason": "Domain failed; user required failure to stop, so remaining jobs were cancelled",
+    "cancelRequestSubmittedViaExistingGithubCli": true,
+    "checks": {
+      "console": {
+        "status": "success",
+        "passed": 321,
+        "failed": 0,
+        "skipped": 0
+      },
+      "contracts-domain": {
+        "status": "failure",
+        "passed": 1250,
+        "failed": 1,
+        "skipped": 0,
+        "total": 1251,
+        "failure": "WebApi.Domain.Tests.SchemaProcessTests.QueueDeadlineStartsBeforeSlotAcquisition",
+        "sourceLine": 74,
+        "timeoutCodeAssertionPassed": true,
+        "elapsedLessThanOneSecondAssertionFailed": true,
+        "followingPidCountAssertionReached": false,
+        "exactElapsedAndCause": "Unknown"
+      },
+      "contracts-integration": {
+        "status": "cancelled",
+        "completeCounts": null,
+        "qualification": "not completed, no full-suite pass granted"
+      },
+      "contracts-gateway": {
+        "status": "cancelled",
+        "completeCounts": null,
+        "qualification": "not completed, no full-suite pass granted"
+      }
+    },
+    "domainTestAndProductUnchangedRelativeToMain50d": true,
+    "newLoginRateDiagnosticPhaseNumbersAvailable": false,
+    "newLoginRateSpecificCasePassNotEstablishedByPartialLog": true,
+    "firstPublic231FailureAndAllUnknownRetained": true,
+    "hostCertificateAndWorkloadUnknownRetained": true,
+    "cumulativeResourcePreservation": "incomplete",
+    "logs": {
+      "console": {
+        "sha256": "e0eea7a4fee0987cd6371dd900b4f4ccbb653b0f54747f9b3648df7d02b4ae66",
+        "bytes": 58709
+      },
+      "domain-failed": {
+        "sha256": "97fa8f3890e1d6c7cf9fa6753d66b4304754c5be489a847fc317d298697dacd6",
+        "bytes": 57007
+      },
+      "integration-cancelled": {
+        "sha256": "ea63474eaa302d99aec7d2f907dfa2954b81bd07c50c4d63cf6d1508da656696",
+        "bytes": 57166
+      },
+      "gateway-cancelled": {
+        "sha256": "4bb0a665dc248f8385f06eab8611f8b321dd4b027e54fddc8a9509977d410d62",
+        "bytes": 55010
+      }
+    },
+    "testMerge": "9e83ad70b0aec6ada090831520cfcf0f755596e8",
+    "testedTree": "6c665f59ce6282698b977f02339988662b4ea96e",
+    "trackedWorktreeClean": true,
+    "historicalEvidenceUnchanged": 2374,
+    "readOnlyEvidenceUnchanged": 8,
+    "primaryFilesAndStatusUnchanged": 14,
+    "automaticRerun": false,
+    "additionalRepairCommitPushed": false,
+    "deployedOrRestored": false,
+    "newRequirementsAccepted": 0,
+    "recordedAt": "2026-11-13T03:54:24.675367+00:00"
+  },
+  "localTargetedTimingDiagnostic": {
+    "verifiedAt": "2026-11-13T07:07:52.686971+00:00",
+    "inputCommit": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+    "attempts": 1,
+    "elapsedSeconds": 43.957,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "WebApi.Domain.Tests.SchemaProcessTests.QueueDeadlineStartsBeforeSlotAcquisition",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "trxSha256": "d8211fefe43b9e15384bc05768c48dc5d5253ccb7631d44272ed631000ef0047"
+      },
+      {
+        "name": "WebApi.Integration.Tests.LoginRateStoreTests.UnavailableFailsClosedAndCancellationPropagates",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "trxSha256": "0d1eb4545187a2a1ae06c63822b6d10b2b519bf4da7afccba82ffafe31d46523"
+      }
+    ],
+    "queueTimingsMs": {
+      "total": 202.275,
+      "call_return": 0.205,
+      "caller_resume": 201.692,
+      "result_assert": 0.584
+    },
+    "loginTimingsMs": {
+      "total": 1002.131,
+      "before_valuetask": 11.73,
+      "await": 989.24,
+      "decision_assert": 1.161
+    },
+    "beforeCounts": {
+      "containers": 262,
+      "volumes": 553,
+      "networks": 43
+    },
+    "afterCounts": {
+      "containers": 262,
+      "volumes": 553,
+      "networks": 43
+    },
+    "allStartingResourceIdsRetained": true,
+    "allStartingIdentityMetadataRetained": true,
+    "liveResourceChecks": 8,
+    "ownResourceCountsCreated": {
+      "containers": 1,
+      "volumes": 0,
+      "networks": 0
+    },
+    "ownResourcesRemaining": {
+      "containers": [],
+      "volumes": [],
+      "networks": []
+    },
+    "trackedFilesRetained": 4375,
+    "historicalEvidenceFilesRetained": 2578,
+    "primaryDirtyFilesRetained": 14,
+    "sourceFilesAndModesRetained": 1802,
+    "privateFeedArchivesRetained": 81,
+    "rootCause": "Unknown; neither hosted timing failure reproduced in this filtered private-instrumented local run",
+    "originalFailuresRetained": true,
+    "integrationCancelledQualificationRetained": true,
+    "hostCertificateAndWorkloadState": "Unknown, not changed or investigated in this attempt",
+    "noPublicPushOrGitHubRerunOrMerge": true,
+    "qualification": "Two targeted cases on Linux ARM64 SDK10.0.401 with real xUnit; private instrumentation preserves existing measured guards. Does not establish complete-suite, hosted CI, root-cause, regression fix, deployment or production acceptance.",
+    "evidenceHashes": {
+      "run-result.json": "9e15ef7395fa23416cc5f54fb39a051fea2c8b0dc2b5c5077729a7e10a3cec38",
+      "run-manifest.json": "d8e89b525c72a8d8499c0768a2a4cde90ce9a77deb0120b0c20e3ac4c87f1bd4",
+      "run.log": "ac012841eaee22f6f4527f2d886ef1a52684e5cca47df168e75cc27b21e0d154",
+      "events.jsonl": "3f45ce5b7138c1e7e39ab3c999bdf1be6c78f8a72a6e246a632b5eff928bce16",
+      "created-resource-bindings.json": "1b434a8592336f5f6548253d1e273b2f9756dda58043d8dbced316e106ff6011",
+      "results/queue.trx": "d8211fefe43b9e15384bc05768c48dc5d5253ccb7631d44272ed631000ef0047",
+      "results/login.trx": "0d1eb4545187a2a1ae06c63822b6d10b2b519bf4da7afccba82ffafe31d46523"
+    }
+  },
+  "hostedTimingDiagnosticCandidate": {
+    "parentPublicHead": "35c4c2a894c71a488786ac6f5829b7c64119f1b2",
+    "status": "local-candidate-not-published",
+    "purpose": "Collect timing evidence on the existing two failed cases; not a demonstrated fix",
+    "testFiles": {
+      "tests/WebApi.Domain.Tests/SchemaProcessTests.cs": "e0d431a476ec5e1ba68ea2aacb040f878e261ce0fce4c12b031585ed3de28bfd",
+      "tests/WebApi.Integration.Tests/LoginRateStoreTests.cs": "70392ca97cea9eb470df86305b9f2ed991ed4217e871e3e80a36c52da32ec3c6"
+    },
+    "exactBytesPreviouslyExecuted": true,
+    "localEvidenceInput": "35c4c2a plus two private instrumented overrides; all other backend source bytes unchanged",
+    "regressionThresholdsMs": {
+      "queue": 1000,
+      "login": 2000
+    },
+    "productBudgetsMs": {
+      "queueRequested": 200,
+      "redisOperation": 1000
+    },
+    "newCasesAdded": 0,
+    "productScriptsWorkflowDependenciesOrParallelismChanged": false,
+    "hostedSuccessTimingVisibility": "Not guaranteed by existing default console logger; ITestOutputHelper and assertion message provide failure diagnostics. No hosted timing numbers inferred.",
+    "rootCause": "Unknown",
+    "additionalLocalRuntimeExecution": false,
+    "publicationAndOneNewHostedAttemptRequireExplicitApproval": true,
+    "newRequirementsAccepted": 0
   }
 }
