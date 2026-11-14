@@ -80,7 +80,7 @@ public sealed class CredentialUsageRecordingTests
     [Fact]
     public async Task Shared_cache_hit_counts_each_external_request_once()
     {
-        var recorder=new Recorder();await using var s=new CachePipelineFixture();var original=s.F.ConfigureGateway;s.F.ConfigureGateway=b=>{original?.Invoke(b);b.Services.AddSingleton<ICredentialUsageRecorder>(recorder);};await s.Init();
+        var recorder=new Recorder();await using var s=new CachePipelineFixture();var original=s.F.ConfigureGateway;s.F.ConfigureGateway=b=>{original?.Invoke(b);b.Services.AddSingleton<ICredentialUsageRecorder>(recorder);};await s.Init();await s.PrepareCacheConnectionsAsync();
         using var first=await s.Get();first.EnsureSuccessStatusCode();await s.WaitWrites(1);using var second=await s.Get(1);second.EnsureSuccessStatusCode();
         Assert.Equal(1,s.Calls);Assert.Equal(2,recorder.Observations.Count);Assert.All(recorder.Observations,x=>Assert.Equal(1,x.Item.Count));
     }

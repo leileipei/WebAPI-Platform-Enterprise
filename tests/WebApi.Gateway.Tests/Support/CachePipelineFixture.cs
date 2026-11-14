@@ -72,6 +72,32 @@ internal sealed class CachePipelineFixture : IAsyncDisposable
     {var c=key.Claims();var now=DateTimeOffset.UtcNow.ToUnixTimeSeconds();c["iat"]=now-60;c["exp"]=now+1800;c["sub"]=subject;c["jti"]=nonce;return key.Token(c);}
     internal async Task WaitWrites(int n)
     {for(var i=0;i<100;i++){if(Stores.Sum(s=>Volatile.Read(ref s.Writes))>=n)return;await Task.Delay(20);}Assert.Fail("Expected successful cache writes did not complete. "+CacheDiagnostics());}
+    // Explicit setup for scenarios that require an available cache. Init/Get remain cold.
+    // Probe the same DI singleton, without HTTP requests or business-key writes.
+    internal async Task PrepareCacheConnectionsAsync()
+    {
+        var started=Stopwatch.GetTimestamp();var limit=TimeSpan.FromSeconds(10);
+        using var deadline=new CancellationTokenSource(limit);
+        var key=new CacheLookupKey(Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant());
+        try
+        {
+            foreach(var gateway in F.Gateways)
+            {
+                var store=Assert.IsType<ObservedStore>(gateway.Services.GetRequiredService<IResponseCacheStore>());
+                while(true)
+                {
+                    if(Stopwatch.GetElapsedTime(started)>=limit)throw new OperationCanceledException();
+                    var result=await store.ProbeReadAsync(key,deadline.Token);
+                    if(Stopwatch.GetElapsedTime(started)>=limit)throw new OperationCanceledException();
+                    if(result.Kind==CacheReadKind.Miss)break;
+                    Assert.True(result.Kind==CacheReadKind.Unavailable,"Unexpected readiness probe hit. "+CacheDiagnostics());
+                    await Task.Delay(25,deadline.Token);
+                }
+            }
+        }
+        catch(OperationCanceledException)
+        {Assert.Fail("Cache connections did not become ready within the setup deadline. "+CacheDiagnostics());}
+    }
     internal async Task<DesiredConfigResponse> Rollback(DesiredConfigResponse from,long target)
     {
         using var created=await ApiFixture.CommandAsync(F.Control.Client,$"/api/v1/releases/{from.Envelope.ReleaseId}/rollback",new{targetConfigVersion=target});created.EnsureSuccessStatusCode();var id=(await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
@@ -90,9 +116,11 @@ internal sealed class CachePipelineFixture : IAsyncDisposable
     internal string CacheDiagnostics()
     {
         ObservedStore[] stores;lock(Stores)stores=Stores.ToArray();
+        static object Phase(ResponseCacheDiagnosticEvent e)=>new { e.OperationOrdinal,e.Operation,Phase=e.Phase.ToString(),Outcome=e.Outcome.ToString(),e.ElapsedMs,WaitingFor=e.WaitingFor?.ToString(),e.ConnectionIsConnected,e.TaskIsCompleted };
         return JsonSerializer.Serialize(new { nodes=stores.Select((store,node)=>new {
             node,writeAttempts=Volatile.Read(ref store.WriteAttempts),storedWrites=Volatile.Read(ref store.Writes),
-            operations=store.Operations.Take(64).ToArray(),phases=store.Phases.Take(64).Select(e=>new { e.OperationOrdinal,e.Operation,Phase=e.Phase.ToString(),Outcome=e.Outcome.ToString(),e.ElapsedMs,WaitingFor=e.WaitingFor?.ToString(),e.ConnectionIsConnected,e.TaskIsCompleted }).ToArray(),phasesTruncated=store.PhasesTruncated
+            operations=store.Operations.Take(64).ToArray(),phases=store.Phases.Take(64).Select(Phase).ToArray(),phasesTruncated=store.PhasesTruncated,
+            preparation=new { operations=store.PreparationOperations.Take(64).ToArray(),phases=store.PreparationPhases.Take(64).Select(Phase).ToArray(),phasesTruncated=store.PreparationPhasesTruncated }
         }) });
     }
     internal sealed record CacheOperation(string Operation,string Outcome,double ElapsedMs);
@@ -103,14 +131,30 @@ internal sealed class CachePipelineFixture : IAsyncDisposable
         internal ObservedStore(GatewayCacheSettings settings)=>inner=new(settings,this);
         internal ConcurrentQueue<ResponseCacheDiagnosticEvent> Phases=[];
         internal bool PhasesTruncated;
+        private readonly AsyncLocal<bool> preparing=new();
+        internal ConcurrentQueue<ResponseCacheDiagnosticEvent> PreparationPhases=[];
+        internal ConcurrentQueue<CacheOperation> PreparationOperations=[];
+        internal bool PreparationPhasesTruncated;
         public void Record(in ResponseCacheDiagnosticEvent value)
-        {if(Phases.Count<64)Phases.Enqueue(value);else PhasesTruncated=true;}
+        {
+            // AsyncLocal preserves the source of late completions after a probe times out.
+            if(preparing.Value){if(PreparationPhases.Count<64)PreparationPhases.Enqueue(value);else PreparationPhasesTruncated=true;}
+            else {if(Phases.Count<64)Phases.Enqueue(value);else PhasesTruncated=true;}
+        }
         internal int Writes;
         internal int WriteAttempts;
         internal ConcurrentQueue<CacheReadKind> Reads=[];
         internal ConcurrentQueue<CacheOperation> Operations=[];
         private void Record(string operation,string outcome,long started)
-        {if(Operations.Count<64)Operations.Enqueue(new(operation,outcome,Math.Round(Stopwatch.GetElapsedTime(started).TotalMilliseconds,3)));}
+        {var target=preparing.Value?PreparationOperations:Operations;if(target.Count<64)target.Enqueue(new(operation,outcome,Math.Round(Stopwatch.GetElapsedTime(started).TotalMilliseconds,3)));}
+        internal async ValueTask<CacheReadResult> ProbeReadAsync(CacheLookupKey key,CancellationToken ct)
+        {
+            var prior=preparing.Value;preparing.Value=true;var started=Stopwatch.GetTimestamp();
+            try {var result=await inner.GetAsync(key,ct);Record("read",result.Kind.ToString(),started);return result;}
+            catch(OperationCanceledException){Record("read","Cancelled",started);throw;}
+            catch {Record("read","Exception",started);throw;}
+            finally {preparing.Value=prior;}
+        }
         public async ValueTask<CacheReadResult> GetAsync(CacheLookupKey key,CancellationToken ct)
         {
             var started=Stopwatch.GetTimestamp();
