@@ -5,9 +5,9 @@ using StackExchange.Redis;
 namespace WebApi.Gateway.Policies;
 
 public enum ResponseCachePhase { Decision, Connect, Command }
-public enum ResponseCacheOutcome { Started, Completed, BudgetElapsed, RequestCancelled, RedisConnection, RedisTimeout, RedisServer, RedisOther, Timeout, Io, InvalidResult, Unexpected }
+public enum ResponseCacheOutcome { Started, Completed, BudgetElapsed, RequestCancelled, RedisConnection, RedisTimeout, RedisServer, RedisOther, Timeout, Io, InvalidResult, Unexpected, TaskReturned }
 public readonly record struct ResponseCacheDiagnosticEvent(long OperationOrdinal,string Operation,ResponseCachePhase Phase,
-    ResponseCacheOutcome Outcome,double ElapsedMs,ResponseCachePhase? WaitingFor=null,bool? ConnectionIsConnected=null);
+    ResponseCacheOutcome Outcome,double ElapsedMs,ResponseCachePhase? WaitingFor=null,bool? ConnectionIsConnected=null,bool? TaskIsCompleted=null);
 public interface IResponseCacheDiagnosticSink { void Record(in ResponseCacheDiagnosticEvent value); }
 
 // Optional observation only: no keys, payloads, connection strings or exception messages.
@@ -21,7 +21,14 @@ internal sealed class ResponseCacheDiagnosticOperation(IResponseCacheDiagnosticS
     {
         var began=Stopwatch.GetTimestamp();Volatile.Write(ref waiting,(int)phase);
         Record(phase,ResponseCacheOutcome.Started,began);
-        try {var result=await action();Record(phase,ResponseCacheOutcome.Completed,began,connectionIsConnected:ConnectionState(result));return result;}
+        try
+        {
+            var pending=action();
+            // This marks return from the synchronous call, not network dispatch
+            // or server completion. It does not change how the task is awaited.
+            Record(phase,ResponseCacheOutcome.TaskReturned,began,taskIsCompleted:pending.IsCompleted);
+            var result=await pending;Record(phase,ResponseCacheOutcome.Completed,began,connectionIsConnected:ConnectionState(result));return result;
+        }
         catch(Exception error){Record(phase,Classify(error),began);throw;}
         finally {Volatile.Write(ref waiting,-1);}
     }
@@ -51,9 +58,9 @@ internal sealed class ResponseCacheDiagnosticOperation(IResponseCacheDiagnosticS
         try {return value is ConnectionMultiplexer connection?connection.IsConnected:null;}
         catch {return null;}
     }
-    private void Record(ResponseCachePhase phase,ResponseCacheOutcome outcome,long began,ResponseCachePhase? waitingFor=null,bool? connectionIsConnected=null)
+    private void Record(ResponseCachePhase phase,ResponseCacheOutcome outcome,long began,ResponseCachePhase? waitingFor=null,bool? connectionIsConnected=null,bool? taskIsCompleted=null)
     {
-        try {sink.Record(new(id,operation,phase,outcome,Math.Round(Stopwatch.GetElapsedTime(began).TotalMilliseconds,3),waitingFor,connectionIsConnected));}
+        try {sink.Record(new(id,operation,phase,outcome,Math.Round(Stopwatch.GetElapsedTime(began).TotalMilliseconds,3),waitingFor,connectionIsConnected,taskIsCompleted));}
         catch { /* Diagnostic failures cannot replace a cache result or cancellation. */ }
     }
 }

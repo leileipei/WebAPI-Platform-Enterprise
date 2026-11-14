@@ -92,7 +92,7 @@ internal sealed class CachePipelineFixture : IAsyncDisposable
         ObservedStore[] stores;lock(Stores)stores=Stores.ToArray();
         return JsonSerializer.Serialize(new { nodes=stores.Select((store,node)=>new {
             node,writeAttempts=Volatile.Read(ref store.WriteAttempts),storedWrites=Volatile.Read(ref store.Writes),
-            operations=store.Operations.Take(64).ToArray(),phases=store.Phases.Take(64).Select(e=>new { e.OperationOrdinal,e.Operation,Phase=e.Phase.ToString(),Outcome=e.Outcome.ToString(),e.ElapsedMs,WaitingFor=e.WaitingFor?.ToString(),e.ConnectionIsConnected }).ToArray(),phasesTruncated=store.PhasesTruncated
+            operations=store.Operations.Take(64).ToArray(),phases=store.Phases.Take(64).Select(e=>new { e.OperationOrdinal,e.Operation,Phase=e.Phase.ToString(),Outcome=e.Outcome.ToString(),e.ElapsedMs,WaitingFor=e.WaitingFor?.ToString(),e.ConnectionIsConnected,e.TaskIsCompleted }).ToArray(),phasesTruncated=store.PhasesTruncated
         }) });
     }
     internal sealed record CacheOperation(string Operation,string Outcome,double ElapsedMs);
