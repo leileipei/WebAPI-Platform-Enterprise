@@ -12,10 +12,11 @@ public sealed class RedisAuthenticationAuditGate : IAuthenticationAuditGate,IDis
 {
     private readonly Lazy<Task<ConnectionMultiplexer>> connection;
     private readonly string prefix;
-    public RedisAuthenticationAuditGate(string connectionString,string prefix)
+    private readonly IAuthenticationDiagnosticSink? diagnostics;
+    public RedisAuthenticationAuditGate(string connectionString,string prefix,IAuthenticationDiagnosticSink? diagnostics=null)
     {
         if(prefix.Length is <1 or >128||prefix.Any(c=>!char.IsAsciiLetterOrDigit(c)&&c is not '-' and not '_' and not ':'))throw new ArgumentException("Invalid authentication audit namespace.");
-        this.prefix=prefix;var options=ConfigurationOptions.Parse(connectionString);options.AbortOnConnectFail=false;options.ConnectTimeout=1000;options.AsyncTimeout=1000;options.ConnectRetry=0;connection=new(()=>ConnectionMultiplexer.ConnectAsync(options));
+        this.prefix=prefix;this.diagnostics=diagnostics;var options=ConfigurationOptions.Parse(connectionString);options.AbortOnConnectFail=false;options.ConnectTimeout=1000;options.AsyncTimeout=1000;options.ConnectRetry=0;connection=new(()=>ConnectionMultiplexer.ConnectAsync(options));
     }
     private const string ClaimScript="""
         local t=redis.call('TIME') local now=tonumber(t[1])*1000+math.floor(tonumber(t[2])/1000)
@@ -37,24 +38,44 @@ public sealed class RedisAuthenticationAuditGate : IAuthenticationAuditGate,IDis
         """;
     public async ValueTask<AuthenticationAuditLease?> ClaimAsync(string ipFingerprint,CancellationToken ct)
     {
+        using var phase=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.GateClaim);
+        try
+        {
         if(ipFingerprint.Length!=64||ipFingerprint.Any(c=>c is not (>= '0' and <= '9') and not (>= 'a' and <= 'f')))throw new ArgumentException("Invalid authentication IP fingerprint.");
         var key=$"{prefix}:{{login}}:audit:{ipFingerprint}";var token=Guid.NewGuid().ToString("N");
-        var result=(RedisResult[]?)await Evaluate(ClaimScript,key,[token],ct)??throw new InvalidOperationException("Invalid authentication audit lease result.");
+        var result=(RedisResult[]?)await Evaluate(ClaimScript,key,[token],ct,phase?.OperationOrdinal??0)??throw new InvalidOperationException("Invalid authentication audit lease result.");
         if(result.Length==0)return null;
         if(result.Length!=2)throw new InvalidOperationException("Invalid authentication audit lease result.");
         return new(key+"|"+((long)result[0]).ToString(CultureInfo.InvariantCulture),token,DateTimeOffset.FromUnixTimeMilliseconds((long)result[1]));
+        }
+        catch(Exception error){phase?.Fail(error,ct);throw;}
     }
     public ValueTask ConfirmAsync(AuthenticationAuditLease lease,CancellationToken ct)=>Finish(lease,"confirm",ct);
     public ValueTask ReleaseAsync(AuthenticationAuditLease lease,CancellationToken ct)=>Finish(lease,"release",ct);
     private async ValueTask Finish(AuthenticationAuditLease lease,string operation,CancellationToken ct)
     {
+        using var phase=AuthenticationDiagnostics.Start(diagnostics,operation=="confirm"?AuthenticationDiagnosticPhase.GateConfirm:AuthenticationDiagnosticPhase.GateRelease);
+        try
+        {
         var parts=lease.BucketKey.Split('|');if(parts.Length!=2||!parts[0].StartsWith(prefix+":{login}:audit:",StringComparison.Ordinal)||!long.TryParse(parts[1],out _))throw new ArgumentException("Invalid authentication audit lease.");
-        await Evaluate(FinishScript,parts[0],[parts[1],lease.Token,operation],ct);
+        await Evaluate(FinishScript,parts[0],[parts[1],lease.Token,operation],ct,phase?.OperationOrdinal??0);
+        }
+        catch(Exception error){phase?.Fail(error,ct);throw;}
     }
-    private async Task<RedisResult> Evaluate(string script,string key,RedisValue[] args,CancellationToken ct)
+    private async Task<RedisResult> Evaluate(string script,string key,RedisValue[] args,CancellationToken ct,long operation)
     {
         ct.ThrowIfCancellationRequested();using var timeout=CancellationTokenSource.CreateLinkedTokenSource(ct);timeout.CancelAfter(1000);
-        var mux=await connection.Value.WaitAsync(timeout.Token);return await mux.GetDatabase().ScriptEvaluateAsync(script,[key],args).WaitAsync(timeout.Token);
+        ConnectionMultiplexer mux;
+        using(var phase=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.GateConnect,1000,connection.IsValueCreated,operation))
+        {
+            try{mux=await connection.Value.WaitAsync(timeout.Token);}
+            catch(Exception error){phase?.Fail(error,ct,timeout.Token);AuthenticationDiagnostics.NotReached(diagnostics,AuthenticationDiagnosticPhase.GateLua,operation);throw;}
+        }
+        using(var phase=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.GateLua,1000,operation:operation))
+        {
+            try{return await mux.GetDatabase().ScriptEvaluateAsync(script,[key],args).WaitAsync(timeout.Token);}
+            catch(Exception error){phase?.Fail(error,ct,timeout.Token);throw;}
+        }
     }
     public void Dispose(){if(connection.IsValueCreated)_=connection.Value.ContinueWith(t=>{if(t.Status==TaskStatus.RanToCompletion)t.Result.Dispose();},TaskScheduler.Default);}
 }

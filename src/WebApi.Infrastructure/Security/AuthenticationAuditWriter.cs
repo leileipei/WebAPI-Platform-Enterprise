@@ -18,25 +18,42 @@ public static class AuthenticationProtectionMetrics
     public static void Reject()=>Throttled.Add(1);
     public static void AuditFailure()=>AuditFailures.Add(1);
 }
-public sealed class AuthenticationAuditWriter(WebApiDbContext db) : IAuthenticationAuditWriter
+public sealed class AuthenticationAuditWriter(WebApiDbContext db,IAuthenticationDiagnosticSink? diagnostics=null) : IAuthenticationAuditWriter
 {
     private sealed record Summary(string Code,string? AccountFingerprint,DateTimeOffset? FirstRejectedAt);
     public async Task WriteAsync(AuthenticationAuditEvent entry,CancellationToken ct)
     {
+        var kind=entry.Action switch{"auth.login"=>AuthenticationAuditKind.Success,"auth.login.failed"=>AuthenticationAuditKind.InvalidCredentials,"auth.login.throttled"=>AuthenticationAuditKind.Throttled,_=>AuthenticationAuditKind.None};
+        AuthenticationDiagnosticScope? phase=null;
+        try
+        {
+        phase=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.AuditValidate,auditKind:kind);
         var expected=entry.Action switch{"auth.login"=>"authenticated","auth.login.failed"=>"invalid_credentials","auth.login.throttled"=>"login_rate_limited","auth.logout"=>"logged_out",_=>throw new ArgumentException("Invalid authentication audit action.")};
         var anonymous=entry.Action is "auth.login.failed" or "auth.login.throttled";
         if(entry.Code!=expected||anonymous&&entry.UserId is not null||!anonymous&&entry.UserId is null||entry.TraceId.Length>128||entry.TraceId.Any(char.IsControl)||entry.AccountFingerprint is { } fingerprint&&(fingerprint.Length!=64||fingerprint.Any(c=>c is not (>= '0' and <= '9') and not (>= 'a' and <= 'f')))||entry.Action=="auth.login.throttled"&&entry.Lease is null)
             throw new ArgumentException("Invalid authentication audit summary.");
         var resource=entry.Lease is null?entry.UserId?.ToString()??"local-login":Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(entry.Lease.BucketKey)));
+        phase?.Dispose();phase=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.AuditTransaction,auditKind:kind);
         await using var ownTransaction=db.Database.CurrentTransaction is null?await db.Database.BeginTransactionAsync(ct):null;
         if(entry.Lease is not null)
         {
             // Redis lease alone cannot prevent duplicate DB commits after caller crashes before confirmation.
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended({resource},0))",ct);
             if(await db.Set<AuditLog>().AnyAsync(x=>x.Action=="auth.login.throttled"&&x.ResourceId==resource,ct))
-            {if(ownTransaction is not null)await ownTransaction.CommitAsync(ct);return;}
+            {
+                phase?.Dispose();phase=null;
+                AuthenticationDiagnostics.NotReached(diagnostics,AuthenticationDiagnosticPhase.AuditSave,auditKind:kind);
+                if(ownTransaction is not null){phase=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.AuditCommit,auditKind:kind);await ownTransaction.CommitAsync(ct);}
+                return;
+            }
         }
+        phase?.Dispose();phase=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.AuditSave,auditKind:kind);
         db.Add(new AuditLog{UserId=entry.UserId,Action=entry.Action,ResourceType="authentication",ResourceId=resource,Ip=entry.Ip,TraceId=entry.TraceId,AfterJson=JsonSerializer.Serialize(new Summary(entry.Code,entry.AccountFingerprint,entry.Lease?.FirstRejectedAt),CanonicalJson.Options)});
-        await db.SaveChangesAsync(ct);if(ownTransaction is not null)await ownTransaction.CommitAsync(ct);
+        await db.SaveChangesAsync(ct);
+        phase?.Dispose();phase=null;
+        if(ownTransaction is not null){phase=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.AuditCommit,auditKind:kind);await ownTransaction.CommitAsync(ct);}
+        }
+        catch(Exception error){phase?.Fail(error,ct);throw;}
+        finally{phase?.Dispose();}
     }
 }

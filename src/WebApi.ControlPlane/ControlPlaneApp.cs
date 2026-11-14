@@ -50,8 +50,9 @@ public static class ControlPlaneApp
         builder.Services.TryAddScoped<IPasswordHasher<UserRecord>,PasswordHasher<UserRecord>>();
         builder.Services.AddSingleton(sp=>LoginProtectionDeploymentSettings.Read(sp.GetRequiredService<IConfiguration>()));
         builder.Services.AddSingleton(sp=>new LoginKeyHasher(sp.GetRequiredService<LoginProtectionDeploymentSettings>().HmacSecret));
-        builder.Services.TryAddSingleton<ILoginRateStore>(sp=>{var settings=sp.GetRequiredService<LoginProtectionDeploymentSettings>();return new RedisLoginRateStore(settings.RedisConnection,settings.RedisPrefix);});
-        builder.Services.TryAddSingleton<IAuthenticationAuditGate>(sp=>{var settings=sp.GetRequiredService<LoginProtectionDeploymentSettings>();return new RedisAuthenticationAuditGate(settings.RedisConnection,settings.RedisPrefix);});
+        builder.Services.TryAddSingleton<IAuthenticationDiagnosticSink,NullAuthenticationDiagnosticSink>();
+        builder.Services.TryAddSingleton<ILoginRateStore>(sp=>{var settings=sp.GetRequiredService<LoginProtectionDeploymentSettings>();return new RedisLoginRateStore(settings.RedisConnection,settings.RedisPrefix,sp.GetRequiredService<IAuthenticationDiagnosticSink>());});
+        builder.Services.TryAddSingleton<IAuthenticationAuditGate>(sp=>{var settings=sp.GetRequiredService<LoginProtectionDeploymentSettings>();return new RedisAuthenticationAuditGate(settings.RedisConnection,settings.RedisPrefix,sp.GetRequiredService<IAuthenticationDiagnosticSink>());});
         builder.Services.TryAddScoped<IAuthenticationAuditWriter,AuthenticationAuditWriter>();
         builder.Services.AddHostedService<LoginProtectionStartupCheck>();
         builder.Services.AddHttpContextAccessor();builder.Services.AddScoped<IdempotentCommandExecutor>();
