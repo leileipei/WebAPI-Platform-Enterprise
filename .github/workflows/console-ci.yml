@@ -29,6 +29,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Test local diagnostic helpers
+        run: python3 -B -m unittest discover -s tests/local_diagnostics -p 'test_*.py' -v
+
       - name: Set up Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
