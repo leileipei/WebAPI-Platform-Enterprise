@@ -41,7 +41,7 @@ internal sealed class CachePipelineFixture : IAsyncDisposable
             b.Configuration["GatewayPolicies:Cache:HmacSecretFile"]=file;b.Configuration["GatewayPolicies:Cache:KeyPrefix"]=Prefix;b.Configuration["GatewayPolicies:Cache:RedisConnection"]="redis:6379";
             b.Logging.AddProvider(new ErrorCollector(Errors));
             b.Services.AddSingleton<IRateLimitStore>(Limiter);b.Services.AddSingleton<TimeProvider>(Clock);
-            b.Services.AddSingleton<IResponseCacheStore>(sp=>{var store=new ObservedStore(new RedisResponseCacheStore(sp.GetRequiredService<GatewayCacheSettings>()));lock(Stores)Stores.Add(store);return store;});
+            b.Services.AddSingleton<IResponseCacheStore>(sp=>{var store=new ObservedStore(sp.GetRequiredService<GatewayCacheSettings>());lock(Stores)Stores.Add(store);return store;});
         },ConfigureBackendA=a=>a.Use(async(ctx,next)=>{
             if(ctx.Request.Path=="/health"){await next();return;}
             var n=Interlocked.Increment(ref Calls);
@@ -92,12 +92,19 @@ internal sealed class CachePipelineFixture : IAsyncDisposable
         ObservedStore[] stores;lock(Stores)stores=Stores.ToArray();
         return JsonSerializer.Serialize(new { nodes=stores.Select((store,node)=>new {
             node,writeAttempts=Volatile.Read(ref store.WriteAttempts),storedWrites=Volatile.Read(ref store.Writes),
-            operations=store.Operations.Take(64).ToArray()
+            operations=store.Operations.Take(64).ToArray(),phases=store.Phases.Take(64).Select(e=>new { e.OperationOrdinal,e.Operation,Phase=e.Phase.ToString(),Outcome=e.Outcome.ToString(),e.ElapsedMs,WaitingFor=e.WaitingFor?.ToString(),e.ConnectionIsConnected }).ToArray(),phasesTruncated=store.PhasesTruncated
         }) });
     }
     internal sealed record CacheOperation(string Operation,string Outcome,double ElapsedMs);
-    internal sealed class ObservedStore(RedisResponseCacheStore inner):IResponseCacheStore,IDisposable
+    internal sealed class ObservedStore:IResponseCacheStore,IResponseCacheDiagnosticSink,IDisposable
     {
+        private readonly RedisResponseCacheStore inner;
+        internal ObservedStore(RedisResponseCacheStore inner)=>this.inner=inner;
+        internal ObservedStore(GatewayCacheSettings settings)=>inner=new(settings,this);
+        internal ConcurrentQueue<ResponseCacheDiagnosticEvent> Phases=[];
+        internal bool PhasesTruncated;
+        public void Record(in ResponseCacheDiagnosticEvent value)
+        {if(Phases.Count<64)Phases.Enqueue(value);else PhasesTruncated=true;}
         internal int Writes;
         internal int WriteAttempts;
         internal ConcurrentQueue<CacheReadKind> Reads=[];

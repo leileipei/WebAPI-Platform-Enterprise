@@ -292,6 +292,39 @@ public sealed class LoginDiagnosticPreparationTests
         Assert.Equal(HttpStatusCode.ServiceUnavailable,response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("save","incomplete")]
+    [InlineData("commit","incomplete")]
+    [InlineData("failure","incomplete")]
+    [InlineData("none","complete")]
+    public async Task AuditFailureCompletenessRequiresSaveCommitAndFailureEvidence(string missing,string expected)
+    {
+        var context=new DefaultHttpContext { TraceIdentifier="audit-boundary" };context.Request.Path="/api/v1/auth/login";
+        var collector=new LoginDiagnosticCollector(new HttpContextAccessor { HttpContext=context });
+        using(var server=AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.ServerLogin))
+        {
+            using(AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.RateTotal))
+            {
+                using(AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.RateConnect)) { }
+                using(AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.RateLua)) { }
+                using(AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.RateDecode)) { }
+            }
+            using(AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.AuditWrite,auditKind:AuthenticationAuditKind.Success))
+            {
+                using(AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.AuditValidate,auditKind:AuthenticationAuditKind.Success)) { }
+                using(AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.AuditTransaction,auditKind:AuthenticationAuditKind.Success)) { }
+                if(missing!="save")using(AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.AuditSave,auditKind:AuthenticationAuditKind.Success)) { }
+            }
+            if(missing!="commit")
+                using(var commit=AuthenticationDiagnostics.Start(collector,AuthenticationDiagnosticPhase.AuditCommit,auditKind:AuthenticationAuditKind.Success))
+                    if(missing!="failure")commit?.Fail(new TimeoutException());
+            server?.Fail(new IOException());
+        }
+        using var response=Response("{\"code\":\"authentication_audit_unavailable\",\"traceId\":\"audit-boundary\"}");
+        using var document=JsonDocument.Parse((await collector.BuildFailureAsync(response,1,0,0,0))!);
+        Assert.Equal(expected,document.RootElement.GetProperty("diagnosticStatus").GetString());
+    }
+
     private sealed class ThrowingSink : IAuthenticationDiagnosticSink
     {
         public bool Enabled => true;

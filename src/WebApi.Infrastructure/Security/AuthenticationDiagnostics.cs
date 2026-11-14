@@ -66,11 +66,11 @@ public static class AuthenticationDiagnostics
     {
         try { sink?.MarkIncomplete(); } catch { /* Never replace a business result. */ }
     }
-    public static void NotReached(IAuthenticationDiagnosticSink? sink, AuthenticationDiagnosticPhase phase, long operation = 0)
+    public static void NotReached(IAuthenticationDiagnosticSink? sink, AuthenticationDiagnosticPhase phase, long operation = 0, AuthenticationAuditKind auditKind = AuthenticationAuditKind.None)
     {
         try
         {
-            if (sink?.Enabled == true) Record(sink, new(phase, AuthenticationDiagnosticOutcome.NotReached, 0, 0, OperationOrdinal: operation));
+            if (sink?.Enabled == true) Record(sink, new(phase, AuthenticationDiagnosticOutcome.NotReached, 0, 0, OperationOrdinal: operation, AuditKind: auditKind));
         }
         catch { MarkIncomplete(sink); }
     }

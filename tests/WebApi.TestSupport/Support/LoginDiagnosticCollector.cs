@@ -163,18 +163,48 @@ public sealed class LoginDiagnosticCollector(IHttpContextAccessor accessor) : IA
         }
         if(events.Any(e=>(e.Phase is AuthenticationDiagnosticPhase.GateConnect or AuthenticationDiagnosticPhase.GateLua) &&
             !gates.Any(g=>g.OperationOrdinal==e.OperationOrdinal)))return false;
+        static bool Failed(AuthenticationDiagnosticEvent e)=>e.Outcome is AuthenticationDiagnosticOutcome.Failed or AuthenticationDiagnosticOutcome.Cancelled;
         var writes=events.Where(e=>e.Phase==AuthenticationDiagnosticPhase.AuditWrite).ToArray();
+        var auditFailure=false;
+        if(writes.GroupBy(e=>e.AuditKind).Any(g=>g.Count()!=1))return false;
         foreach(var write in writes)
         {
-            var validation=events.Where(e=>e.Phase==AuthenticationDiagnosticPhase.AuditValidate && e.AuditKind==write.AuditKind).ToArray();
-            if(validation.Length!=1)return false;
-            if(validation[0].Outcome!=AuthenticationDiagnosticOutcome.Completed)continue;
-            var transaction=events.Where(e=>e.Phase==AuthenticationDiagnosticPhase.AuditTransaction && e.AuditKind==write.AuditKind).ToArray();
-            if(transaction.Length!=1)return false;
-            if(transaction[0].Outcome==AuthenticationDiagnosticOutcome.Completed &&
-                !events.Any(e=>e.AuditKind==write.AuditKind && (e.Phase is AuthenticationDiagnosticPhase.AuditSave or AuthenticationDiagnosticPhase.AuditCommit)))return false;
+            bool Phase(AuthenticationDiagnosticPhase phase,out AuthenticationDiagnosticEvent value)
+            {
+                var matches=events.Where(e=>e.Phase==phase && e.AuditKind==write.AuditKind).Take(2).ToArray();
+                value=matches.Length==1?matches[0]:default;
+                return matches.Length==1 && value.Outcome!=AuthenticationDiagnosticOutcome.Started;
+            }
+            bool Present(AuthenticationDiagnosticPhase phase)=>events.Any(e=>e.Phase==phase && e.AuditKind==write.AuditKind);
+            if(!Phase(AuthenticationDiagnosticPhase.AuditValidate,out var validation))return false;
+            if(Failed(validation))
+            {
+                if(!Failed(write) || Present(AuthenticationDiagnosticPhase.AuditTransaction) || Present(AuthenticationDiagnosticPhase.AuditSave) || Present(AuthenticationDiagnosticPhase.AuditCommit))return false;
+                auditFailure=true;continue;
+            }
+            if(validation.Outcome!=AuthenticationDiagnosticOutcome.Completed || !Phase(AuthenticationDiagnosticPhase.AuditTransaction,out var transaction))return false;
+            if(Failed(transaction))
+            {
+                if(!Failed(write) || Present(AuthenticationDiagnosticPhase.AuditSave) || Present(AuthenticationDiagnosticPhase.AuditCommit))return false;
+                auditFailure=true;continue;
+            }
+            if(transaction.Outcome!=AuthenticationDiagnosticOutcome.Completed || !Phase(AuthenticationDiagnosticPhase.AuditSave,out var save))return false;
+            if(Failed(save))
+            {
+                if(!Failed(write) || Present(AuthenticationDiagnosticPhase.AuditCommit))return false;
+                auditFailure=true;continue;
+            }
+            if(save.Outcome!=AuthenticationDiagnosticOutcome.Completed &&
+                !(write.AuditKind==AuthenticationAuditKind.Throttled && save.Outcome==AuthenticationDiagnosticOutcome.NotReached))return false;
+            if(!Phase(AuthenticationDiagnosticPhase.AuditCommit,out var commit))return false;
+            if(Failed(commit))
+            {
+                if(!Failed(write) && !(write.AuditKind==AuthenticationAuditKind.Success && write.Outcome==AuthenticationDiagnosticOutcome.Completed))return false;
+                auditFailure=true;
+            }
+            else if(commit.Outcome!=AuthenticationDiagnosticOutcome.Completed || write.Outcome!=AuthenticationDiagnosticOutcome.Completed)return false;
         }
-        return code!="authentication_audit_unavailable" || writes.Length>0 || gates.Any(g=>g.Outcome is AuthenticationDiagnosticOutcome.Failed or AuthenticationDiagnosticOutcome.Cancelled);
+        return code!="authentication_audit_unavailable" || auditFailure || gates.Any(Failed);
     }
 
     public static async Task<LoginFailureResponse> ReadResponseAsync(HttpResponseMessage response)

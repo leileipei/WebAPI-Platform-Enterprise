@@ -42,6 +42,7 @@ public sealed class AuthenticationAuditWriter(WebApiDbContext db,IAuthentication
             if(await db.Set<AuditLog>().AnyAsync(x=>x.Action=="auth.login.throttled"&&x.ResourceId==resource,ct))
             {
                 phase?.Dispose();phase=null;
+                AuthenticationDiagnostics.NotReached(diagnostics,AuthenticationDiagnosticPhase.AuditSave,auditKind:kind);
                 if(ownTransaction is not null){phase=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.AuditCommit,auditKind:kind);await ownTransaction.CommitAsync(ct);}
                 return;
             }
