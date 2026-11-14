@@ -10,8 +10,9 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
+using Xunit.Abstractions;
 namespace WebApi.Integration.Tests;
-public sealed class DeliveryPersistenceTests
+public sealed class DeliveryPersistenceTests(ITestOutputHelper output)
 {
     [Fact] public async Task UpgradePreservesOrganizationWideApplicationAndLegacyReleaseBytes()
     {
@@ -118,7 +119,7 @@ public sealed class DeliveryPersistenceTests
     }
     [Fact] public async Task SavingRequiresTargetWriteAndReadingRechecksBothEnvironmentScopes()
     {
-        await using var api=new ApiFixture();var source=await Setup(api);using var save=await api.WriteAsync(HttpMethod.Put,Url(api),Body(source.Id,api.Environment.Id),"\"0\"");save.EnsureSuccessStatusCode();
+        await using var api=new ApiFixture(enableLoginDiagnostics:true,diagnosticOutput:output.WriteLine);var source=await Setup(api);using var save=await api.WriteAsync(HttpMethod.Put,Url(api),Body(source.Id,api.Environment.Id),"\"0\"");save.EnsureSuccessStatusCode();
         await using(var db=api.Context()){await db.Set<UserProjectScope>().ExecuteDeleteAsync();db.AddRange(new UserProjectScope{UserId=api.User.Id,OrganizationId=api.Organization.Id,ProjectId=api.Project.Id,EnvironmentId=source.Id,AccessMode="read_write"},new UserProjectScope{UserId=api.User.Id,OrganizationId=api.Organization.Id,ProjectId=api.Project.Id,EnvironmentId=api.Environment.Id,AccessMode="read"});await db.SaveChangesAsync();}
         using var denied=await api.WriteAsync(HttpMethod.Put,Url(api),Body(source.Id,api.Environment.Id,"Legacy"),"\"1\"");Assert.Equal(HttpStatusCode.Forbidden,denied.StatusCode);
         await using(var db=api.Context()){await db.Set<UserProjectScope>().Where(x=>x.EnvironmentId==source.Id).ExecuteDeleteAsync();db.Add(new UserProjectScope{UserId=api.User.Id,OrganizationId=api.Organization.Id,ProjectId=api.Project.Id,AccessMode="read"});await db.SaveChangesAsync();}

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Diagnostics;
 using WebApi.Contracts.Releases;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Builder;
@@ -10,12 +11,25 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 using WebApi.ControlPlane;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Security;
 namespace WebApi.Integration.Tests.Support;
 public sealed class ApiFixture : IAsyncDisposable
 {
+    private readonly HttpContextAccessor? diagnosticAccessor;
+    private readonly LoginDiagnosticCollector? loginDiagnostics;
+    private readonly Action<string>? diagnosticOutput;
+    private int loginDiagnosticOrdinal;
+    public ApiFixture() { }
+    public ApiFixture(bool enableLoginDiagnostics,Action<string>? diagnosticOutput=null)
+    {
+        if(!enableLoginDiagnostics)return;
+        diagnosticAccessor=new HttpContextAccessor();loginDiagnostics=new(diagnosticAccessor);
+        this.diagnosticOutput=diagnosticOutput??(Action<string>)Console.WriteLine;
+    }
     public PostgresDatabase Database { get; } = new();
     // Existing-account fixture. First-login tests explicitly set MustChangePassword and use real HTTP changes.
     public UserRecord User { get; } = new() { Username = "actor_"+Guid.NewGuid().ToString("N"), DisplayName="测试用户", SecurityStamp=Guid.NewGuid().ToString("N") };
@@ -41,6 +55,11 @@ public sealed class ApiFixture : IAsyncDisposable
             builder.Configuration["ConnectionStrings:WebApi"]=Database.ConnectionString;
             builder.Configuration["VerificationReports:Directory"]=Path.Combine(LoginProtectionDirectory,"verification-reports");
             builder.Logging.ClearProviders();
+            if(loginDiagnostics is not null)
+            {
+                builder.Services.AddSingleton<IHttpContextAccessor>(diagnosticAccessor!);
+                builder.Services.AddSingleton<IAuthenticationDiagnosticSink>(loginDiagnostics);
+            }
             LoginProtectionTestConfiguration.Apply(builder,LoginProtectionDirectory,LoginProtectionDeploymentId);
             serverConfiguration?.Invoke(builder);
         });
@@ -60,8 +79,28 @@ public sealed class ApiFixture : IAsyncDisposable
     }
     public async Task<HttpResponseMessage> LoginAsync(string? password=null)
     {
-        var token=await CsrfAsync(); using var request=new HttpRequestMessage(HttpMethod.Post,"/api/v1/auth/login") {Content=JsonContent.Create(new {username=User.Username,password=password??Password})};
-        request.Headers.Add("X-CSRF-Token",token); return await Client.SendAsync(request);
+        var started=loginDiagnostics is null?0:Stopwatch.GetTimestamp();
+        var ordinal=loginDiagnostics is null?0:Interlocked.Increment(ref loginDiagnosticOrdinal);
+        var token=await CsrfAsync();
+        var csrfCompleted=loginDiagnostics is null?0:Stopwatch.GetTimestamp();
+        using var request=new HttpRequestMessage(HttpMethod.Post,"/api/v1/auth/login") {Content=JsonContent.Create(new {username=User.Username,password=password??Password})};
+        request.Headers.Add("X-CSRF-Token",token);
+        var sending=loginDiagnostics is null?0:Stopwatch.GetTimestamp();
+        var response=await Client.SendAsync(request);
+        if(loginDiagnostics is not null)
+        {
+            var received=Stopwatch.GetTimestamp();
+            try
+            {
+                var output=await loginDiagnostics.BuildFailureAsync(response,ordinal,
+                    Stopwatch.GetElapsedTime(started,csrfCompleted).TotalMilliseconds,
+                    Stopwatch.GetElapsedTime(sending,received).TotalMilliseconds,
+                    Stopwatch.GetElapsedTime(started,received).TotalMilliseconds);
+                if(output is not null)diagnosticOutput!("login-diagnostic="+output);
+            }
+            catch { /* Preserve the original response and its caller's assertions. */ }
+        }
+        return response;
     }
     public Organization Organization { get; } = new() {Code="ORG",Name="组织"};
     public Project Project { get; } = new() {Code="PROJECT",Name="项目"};

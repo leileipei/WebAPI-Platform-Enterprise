@@ -20,15 +20,20 @@ public static class SessionEndpoints
     private static async Task WriteOutsideAuthentication(HttpContext ctx,AuthenticationAuditEvent entry,CancellationToken ct)
     {
         await using var scope=ctx.RequestServices.GetRequiredService<IServiceScopeFactory>().CreateAsyncScope();
+        using var diagnostic=AuthenticationDiagnostics.Start(ctx.RequestServices.GetService<IAuthenticationDiagnosticSink>(),AuthenticationDiagnosticPhase.AuditWrite,
+            auditKind:entry.Action=="auth.login.throttled"?AuthenticationAuditKind.Throttled:AuthenticationAuditKind.InvalidCredentials);
         try{await scope.ServiceProvider.GetRequiredService<IAuthenticationAuditWriter>().WriteAsync(entry,ct);}
-        catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
-        catch{throw AuditUnavailable(ctx);}
+        catch(OperationCanceledException error) when(ct.IsCancellationRequested){diagnostic?.Fail(error,ct);throw;}
+        catch(Exception error){diagnostic?.Fail(error,ct);throw AuditUnavailable(ctx);}
     }
     public static void MapSessions(this WebApplication app)
     {
         var group=app.MapGroup("/api/v1/auth").AddEndpointFilter<RequestValidationFilter>();
         group.MapGet("/csrf",(HttpContext ctx,IAntiforgery antiforgery)=> {ctx.Response.Headers.CacheControl="no-store";return Results.Ok(new { token=antiforgery.GetAndStoreTokens(ctx).RequestToken });}).AllowAnonymous();
-        group.MapPost("/login",async (LoginRequest request,HttpContext ctx,AccountService accounts,WebApiDbContext db,SystemSettingsReader settings,Microsoft.AspNetCore.Identity.IPasswordHasher<UserRecord> hasher,PlatformSessionIssuer issuer,ILoginRateStore rates,LoginKeyHasher keys,IAuthenticationAuditGate auditGate,IAuthenticationAuditWriter audit,CancellationToken ct)=> {
+        group.MapPost("/login",async (LoginRequest request,HttpContext ctx,AccountService accounts,WebApiDbContext db,SystemSettingsReader settings,Microsoft.AspNetCore.Identity.IPasswordHasher<UserRecord> hasher,PlatformSessionIssuer issuer,ILoginRateStore rates,LoginKeyHasher keys,IAuthenticationAuditGate auditGate,IAuthenticationAuditWriter audit,IAuthenticationDiagnosticSink diagnostics,CancellationToken ct)=> {
+            using var loginDiagnostic=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.ServerLogin);
+            try
+            {
             ctx.Response.Headers.CacheControl="no-store";
             if(string.IsNullOrWhiteSpace(request.Username)||request.Username.Length>128||string.IsNullOrEmpty(request.Password)||request.Password.Length>1024)
                 throw new ApiException(401,"invalid_credentials","用户名或密码错误。");
@@ -66,9 +71,17 @@ public static class SessionEndpoints
                 user=await db.Set<UserRecord>().FromSqlInterpolated($"SELECT * FROM users WHERE id={user.Id} FOR UPDATE").AsNoTracking().SingleAsync(ct);
                 if(user.Status!="Active"||user.AuthSource!="local"||user.PasswordHash is null||hasher.VerifyHashedPassword(user,user.PasswordHash,request.Password)==Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
                     throw new ApiException(401,"invalid_credentials","用户名或密码错误。");
-                try{await audit.WriteAsync(new("auth.login",user.Id,ctx.Connection.RemoteIpAddress,ctx.TraceIdentifier,identity.AuditAccount,"authenticated"),ct);await tx.CommitAsync(ct);}
-                catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
-                catch{throw AuditUnavailable(ctx);}
+                AuthenticationDiagnosticScope? auditDiagnostic=null;
+                try
+                {
+                    auditDiagnostic=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.AuditWrite,auditKind:AuthenticationAuditKind.Success);
+                    await audit.WriteAsync(new("auth.login",user.Id,ctx.Connection.RemoteIpAddress,ctx.TraceIdentifier,identity.AuditAccount,"authenticated"),ct);
+                    auditDiagnostic?.Dispose();auditDiagnostic=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.AuditCommit,auditKind:AuthenticationAuditKind.Success);
+                    await tx.CommitAsync(ct);
+                }
+                catch(OperationCanceledException error) when(ct.IsCancellationRequested){auditDiagnostic?.Fail(error,ct);throw;}
+                catch(Exception error){auditDiagnostic?.Fail(error,ct);throw AuditUnavailable(ctx);}
+                finally{auditDiagnostic?.Dispose();}
             }
             catch(ApiException error) when(error.Status==401&&error.Code=="invalid_credentials")
             {
@@ -77,6 +90,8 @@ public static class SessionEndpoints
             if(user.MustChangePassword)await issuer.IssueRestrictedAsync(ctx,user.Id,user.SecurityStamp,security.SessionTtlMinutes,ct);
             else await issuer.IssueAsync(ctx,user.Id,user.SecurityStamp,security.SessionTtlMinutes,null,ct);
             return Results.Ok(await accounts.IdentityAsync(user.Id,ct));
+            }
+            catch(Exception error){loginDiagnostic?.Fail(error,ct);throw;}
         }).AllowAnonymous();
         group.MapPost("/change-password",async(HttpContext ctx,PasswordLifecycleService lifecycle,SystemSettingsReader settings,ILoginRateStore rates,LoginKeyHasher keys,PlatformSessionIssuer issuer,CommandRequestContext command,CancellationToken ct)=>{
             ctx.Response.Headers.CacheControl="no-store";PasswordRequestReader.RequireCommandKey(command.IdempotencyKey);
