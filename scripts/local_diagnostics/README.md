@@ -19,6 +19,8 @@ python3 -B -m unittest discover -s tests/local_diagnostics -p 'test_*.py' -v
 - `t0.capture_once(state, inventory, metadata, events, healthy, diagnostics=None)`：按 A 清单、A 身份、B 清单、B 身份、C 清单及事件窗口依次核对。回调由调用方提供；函数自身没有引擎适配器。
 - `t0.verify_protected(before, before_meta, current, current_meta)`：`current` 是含新增项的当前完整清单；`current_meta` 只包含 `before` 起始保护集的当前身份元数据，键集合必须与 `before` 完全一致。调用方应针对起始 ID 读取身份，或先将完整元数据投影到起始 ID；新增项由完整清单的差集报告，不授予清理权限。
 - `t0_diagnostics.T0Diagnostics(directory, stream_path=None, check_budget=None)`：为到达的阶段写入私有证据，并可对调用方已留存的本地事件流做一次有界匹配。`check_budget` 应由调用方传入，在写入和读取过程中检查现有绝对截止时间。
+- `output_bounds.StopMachine`、`LogCapture`、`copy_trx`：处理调用方观测、日志字节和私有普通文件，限制组件自身接纳的输出；详见[输出边界](OUTPUT_BOUNDS.md)。
+- `io_coordinator.IoDeadlineCoordinator`：使用显式时刻和合成事件协调字节预留、确认、EOF与排空截止，只返回数据意图；详见[I/O模型](IO_COORDINATOR.md)。
 
 `stream_path` 必须是调用方已留存的自有普通文件，不能传入管道、FIFO 或设备文件。读取大小有界，`check_budget` 在读写前后检查预算；阻塞 I/O 的硬中断由调用方的绝对截止机制负责。
 

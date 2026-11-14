@@ -61,7 +61,10 @@ public sealed class RedisResponseCacheStore : IResponseCacheStore, IDisposable
             var pending=executor is RedisExecutor redis && observation is not null
                 ?redis.ExecuteObservedAsync(operation,settings.KeyPrefix,key,payload,settings.MaxTotalBytes,settings.MaxEntries,ttl,timeout.Token,observation)
                 :executor.ExecuteAsync(operation,settings.KeyPrefix,key,payload,settings.MaxTotalBytes,settings.MaxEntries,ttl,timeout.Token);
-            var result=await pending.WaitAsync(timeout.Token);observation?.Finish();return result;
+            var result=await pending.WaitAsync(timeout.Token);
+            // An already-completed task can win WaitAsync even after cancellation.
+            // Do not report a cache success after the decision or request was cancelled.
+            ct.ThrowIfCancellationRequested();timeout.Token.ThrowIfCancellationRequested();observation?.Finish();return result;
         }
         catch (OperationCanceledException error) when (!ct.IsCancellationRequested) { observation?.Finish(error);return null; }
         catch (Exception error) when (error is RedisException or TimeoutException or SocketException or InvalidOperationException or IOException) { observation?.Finish(error);return null; }
