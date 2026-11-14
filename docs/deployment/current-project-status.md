@@ -1,10 +1,23 @@
 # 当前源码与验证状态
 
-核对日期：2026-11-13。本页以此前核实的GitHub固定主干版本和本地整合候选为依据，统一替代历史“当前索引”。本轮在独立工作树整合主干与本地测试，未推送或改变原安装环境；下文各轮运行记录仍绑定各自固定版本。
+核对日期：2026-11-14。本页按固定提交分别记录主干与候选的验证状态；下文历史轮次仍绑定各自版本。源码合并不表示已更新原安装环境。
 
 历史本地验证和“尚未公开”“未推送”等表述仍绑定`9d01066`及各轮具名输入时点；新增GitHub运行单列真实提交与运行号，不回填旧记录。实际发布及合并状态应核对本仓库PR和对应CI，历史失败、Unknown及累计保全incomplete不会因发布而解除。
 
-## 最新核对：第二次CI停止，两个本地定向用例通过
+## 最新核对：PR #11 已合并，固定主干四项检查通过
+
+[PR #11](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/11) 的 `51114608eb7fea5bda345ed8c5ea3ca52ce203e1` 于 2026-11-14 合并为 `48741be7904accce7795dce3827f2971e6de7847`。以下两轮分别实际执行，不能相加为一次测试总数：
+
+| 固定输入 | Console / Python | Domain | Gateway | Integration | 合计 |
+| --- | --- | --- | --- | --- | --- |
+| PR #11 `5111460` | [321 / 24](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43581516559) | [1251](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43581516561/job/132407059893) | [565](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43581516561/job/132407059723) | [2225](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43581516561/job/132407059820) | 4386，0失败/跳过 |
+| 合并后 main `48741be` | [321 / 24](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43587046737) | [1251](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43587046607/job/132423686936) | [565](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43587046607/job/132423687064) | [2225](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43587046607/job/132423687073) | 4386，0失败/跳过 |
+
+两轮前端类型检查和构建均通过。主分支四项必需检查、严格同步、管理员保护与会话解决要求保持，禁止强推和删除；原产品预算和测试断言没有放宽。历史两次失败缺少关键阶段日志，根因仍为 Unknown；本轮成功不回填失败原因或解除历史资源保全 incomplete。此次合并未部署。
+
+随后逐项核对剩余 8 个本地分支与原先保全的未提交资料，处置依据见[本地资料审计](local-material-audit-20261114.md)。旧治理运行链、历史恢复桥、性能对照和当前产品分别判断，不以文件旧或分支未合并推断功能缺失。下文所有“当前”“尚未公开”等用语保留各次历史时点。
+
+## 历史：2026-11-13 第二次CI停止，两个本地定向用例通过
 
 公开PR #10当前输入为`35c4c2a`（37提交、61文件），尚未合并，main为`50d6fb9`。[第二次Console](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43360477373)321通过、0失败/跳过，类型与构建通过；[第二次Contracts](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/43360477377)的Domain1250通过、1失败、0跳过。失败是既有`QueueDeadlineStartsBeforeSlotAcquisition`的1秒断言；预期timeout返回已验证，之后的PID数量断言未执行。按照该次失败即停授权，Integration与Gateway已取消，无完整汇总，不计通过或跳过。首次23136fb的Integration2188通过/1失败及两轮原日志均保留，不自动重跑。
 
