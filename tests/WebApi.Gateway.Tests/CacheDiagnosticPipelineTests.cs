@@ -50,6 +50,8 @@ public sealed class CacheDiagnosticPipelineTests
             }
         }
         Assert.Equal(0,fixture.Stores[0].Writes);
+        Assert.Equal(0,fixture.Stores[0].WriteAttempts);
+        Assert.Equal(1,fixture.Calls);
     }
     [Fact]
     public async Task RealRedisCommandDenialDistinguishesReadAndWriteFromConnectionFailure()
