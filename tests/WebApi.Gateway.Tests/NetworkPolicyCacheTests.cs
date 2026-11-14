@@ -9,9 +9,10 @@ using WebApi.Gateway.Observability;
 using WebApi.Gateway.Tests.Support;
 using WebApi.Infrastructure.Persistence.Entities;
 using Xunit;
+using Xunit.Abstractions;
 using static WebApi.Gateway.Tests.Support.RecordingTelemetrySink;
 namespace WebApi.Gateway.Tests;
-public sealed class NetworkPolicyCacheTests
+public sealed class NetworkPolicyCacheTests(ITestOutputHelper output)
 {
     private static void Telemetry(CachePipelineFixture fixture,RecordingTelemetrySink sink)
     {var prior=fixture.F.ConfigureGateway;fixture.F.ConfigureGateway=b=>{prior?.Invoke(b);b.Configuration["Observability:Enabled"]="true";b.Configuration["Observability:TraceSampleRatio"]="1";b.Configuration["Observability:BatchDelayMs"]="20";b.Services.AddSingleton<ITelemetryBatchSink>(sink);};}
@@ -30,7 +31,7 @@ public sealed class NetworkPolicyCacheTests
         {
             byte[]? first=null;
             for(var read=0;read<2;read++)
-            {using var response=await Get(fixture,origin,node:read);response.EnsureSuccessStatusCode();var bytes=await response.Content.ReadAsByteArrayAsync();if(first is null)first=bytes;else Assert.Equal(first,bytes);using var json=JsonDocument.Parse(bytes);Assert.Equal(new[]{"original","mapped"},json.RootElement.GetProperty("items").EnumerateArray().Select(x=>x.GetString()));Assert.Equal(origin??"",json.RootElement.GetProperty("origin").GetString());Assert.Equal("inventory",response.Headers.GetValues("X-Upstream-Service").Single());Assert.Contains("Origin",response.Headers.Vary);if(origin is null)Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));else Assert.Equal(wildcard?"*":origin,response.Headers.GetValues("Access-Control-Allow-Origin").Single());Assert.Equal(bytes.Length,response.Content.Headers.ContentLength);if(read==0)await fixture.WaitWrites(++partitions);}
+            {using var response=await Get(fixture,origin,node:read);response.EnsureSuccessStatusCode();var bytes=await response.Content.ReadAsByteArrayAsync();output.WriteLine("cache-diagnostic="+fixture.CacheDiagnostics());if(first is null)first=bytes;else Assert.Equal(first,bytes);using var json=JsonDocument.Parse(bytes);Assert.Equal(new[]{"original","mapped"},json.RootElement.GetProperty("items").EnumerateArray().Select(x=>x.GetString()));Assert.Equal(origin??"",json.RootElement.GetProperty("origin").GetString());Assert.Equal("inventory",response.Headers.GetValues("X-Upstream-Service").Single());Assert.Contains("Origin",response.Headers.Vary);if(origin is null)Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));else Assert.Equal(wildcard?"*":origin,response.Headers.GetValues("Access-Control-Allow-Origin").Single());Assert.Equal(bytes.Length,response.Content.Headers.ContentLength);if(read==0)await fixture.WaitWrites(++partitions);}
         }
         await sink.WaitAsync(()=>sink.Logs.Length==6);Assert.Equal(3,fixture.Calls);Assert.Equal(3,fixture.Stores.Sum(s=>s.Writes));Assert.Equal(3,sink.Logs.Count(l=>Attribute(l,"webapi.cache.disposition")=="Hit"));Assert.All(sink.Logs,l=>Assert.Equal("Applied",Attribute(l,"webapi.policy.transform.decision")));var all=string.Join("\n",sink.Items.Select(i=>i.Item.GetRawText()));Assert.DoesNotContain("https://portal.example.com",all);Assert.DoesNotContain("https://partner.example.com",all);
     }

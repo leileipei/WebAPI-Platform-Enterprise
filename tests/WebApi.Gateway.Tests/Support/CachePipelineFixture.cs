@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -70,7 +71,7 @@ internal sealed class CachePipelineFixture : IAsyncDisposable
     internal static string Token(SigningKey key,string subject="user-1",string nonce="first")
     {var c=key.Claims();var now=DateTimeOffset.UtcNow.ToUnixTimeSeconds();c["iat"]=now-60;c["exp"]=now+1800;c["sub"]=subject;c["jti"]=nonce;return key.Token(c);}
     internal async Task WaitWrites(int n)
-    {for(var i=0;i<100;i++){if(Stores.Sum(s=>Volatile.Read(ref s.Writes))>=n)return;await Task.Delay(20);}Assert.Fail("Expected cache writes did not complete.");}
+    {for(var i=0;i<100;i++){if(Stores.Sum(s=>Volatile.Read(ref s.Writes))>=n)return;await Task.Delay(20);}Assert.Fail("Expected successful cache writes did not complete. "+CacheDiagnostics());}
     internal async Task<DesiredConfigResponse> Rollback(DesiredConfigResponse from,long target)
     {
         using var created=await ApiFixture.CommandAsync(F.Control.Client,$"/api/v1/releases/{from.Envelope.ReleaseId}/rollback",new{targetConfigVersion=target});created.EnsureSuccessStatusCode();var id=(await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
@@ -86,6 +87,42 @@ internal sealed class CachePipelineFixture : IAsyncDisposable
     {public ILogger CreateLogger(string categoryName)=>new ErrorLog(errors);public void Dispose(){}private sealed class ErrorLog(ConcurrentQueue<string> errors):ILogger{public IDisposable? BeginScope<TState>(TState state)where TState:notnull=>null;public bool IsEnabled(LogLevel level)=>level>=LogLevel.Error;public void Log<TState>(LogLevel level,EventId id,TState state,Exception? exception,Func<TState,Exception?,string> formatter){if(exception is not null)errors.Enqueue(exception.GetType().Name+" "+exception.StackTrace);}}}
     internal sealed class CountingLimiter:IRateLimitStore
     {internal ConcurrentQueue<RateLimitRequest> Requests=[];internal bool Reject;public ValueTask<RateLimitDecision> TakeAsync(RateLimitRequest r,CancellationToken ct){Requests.Enqueue(r);return ValueTask.FromResult(new RateLimitDecision(Reject?RateLimitDecisionKind.Exceeded:RateLimitDecisionKind.Allowed));}}
+    internal string CacheDiagnostics()
+    {
+        ObservedStore[] stores;lock(Stores)stores=Stores.ToArray();
+        return JsonSerializer.Serialize(new { nodes=stores.Select((store,node)=>new {
+            node,writeAttempts=Volatile.Read(ref store.WriteAttempts),storedWrites=Volatile.Read(ref store.Writes),
+            operations=store.Operations.Take(64).ToArray()
+        }) });
+    }
+    internal sealed record CacheOperation(string Operation,string Outcome,double ElapsedMs);
     internal sealed class ObservedStore(RedisResponseCacheStore inner):IResponseCacheStore,IDisposable
-    {internal int Writes;internal ConcurrentQueue<CacheReadKind> Reads=[];public async ValueTask<CacheReadResult> GetAsync(CacheLookupKey key,CancellationToken ct){var r=await inner.GetAsync(key,ct);Reads.Enqueue(r.Kind);return r;}public async ValueTask<CacheWriteResult> PutAsync(CacheLookupKey key,CacheEntry entry,CancellationToken ct){var r=await inner.PutAsync(key,entry,ct);Interlocked.Increment(ref Writes);return r;}public void Dispose()=>inner.Dispose();}
+    {
+        internal int Writes;
+        internal int WriteAttempts;
+        internal ConcurrentQueue<CacheReadKind> Reads=[];
+        internal ConcurrentQueue<CacheOperation> Operations=[];
+        private void Record(string operation,string outcome,long started)
+        {if(Operations.Count<64)Operations.Enqueue(new(operation,outcome,Math.Round(Stopwatch.GetElapsedTime(started).TotalMilliseconds,3)));}
+        public async ValueTask<CacheReadResult> GetAsync(CacheLookupKey key,CancellationToken ct)
+        {
+            var started=Stopwatch.GetTimestamp();
+            try {var result=await inner.GetAsync(key,ct);Reads.Enqueue(result.Kind);Record("read",result.Kind.ToString(),started);return result;}
+            catch(OperationCanceledException){Record("read","Cancelled",started);throw;}
+            catch {Record("read","Exception",started);throw;}
+        }
+        public async ValueTask<CacheWriteResult> PutAsync(CacheLookupKey key,CacheEntry entry,CancellationToken ct)
+        {
+            var started=Stopwatch.GetTimestamp();Interlocked.Increment(ref WriteAttempts);
+            try
+            {
+                var result=await inner.PutAsync(key,entry,ct);Record("write",result.Kind.ToString(),started);
+                if(result.Kind==CacheWriteKind.Stored)Interlocked.Increment(ref Writes);
+                return result;
+            }
+            catch(OperationCanceledException){Record("write","Cancelled",started);throw;}
+            catch {Record("write","Exception",started);throw;}
+        }
+        public void Dispose()=>inner.Dispose();
+    }
 }
