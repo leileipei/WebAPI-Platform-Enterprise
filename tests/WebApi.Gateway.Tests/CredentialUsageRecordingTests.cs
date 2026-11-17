@@ -66,6 +66,12 @@ public sealed class CredentialUsageRecordingTests
         public int Attempts;public string? Failure;
         public bool TryRecord(UsageObservation observation){Interlocked.Increment(ref Attempts);if(Failure=="throw")throw new IOException("synthetic usage collector failure");if(Failure=="full")return false;Observations.Enqueue(observation);return true;}
     }
+    private static async Task OwnAccumulatorDrainAsync(GatewayFixture fixture)
+    {
+        // These assertions consume the in-memory queue. Finish the reporter's final drain
+        // before recording so it cannot take the evidence first. Reporter tests cover handoff.
+        await fixture.Gateways[0].Services.GetRequiredService<CredentialUsageReporter>().StopAsync(CancellationToken.None);
+    }
     [Theory][InlineData(false)][InlineData(true)]
     public async Task Authorized_request_counts_once_for_success_or_three_failed_backend_attempts(bool fail)
     {
@@ -88,6 +94,7 @@ public sealed class CredentialUsageRecordingTests
     public async Task Recorder_failure_never_changes_authorized_response(string failure)
     {
         var recorder=new Recorder{Failure=failure};await using var f=new GatewayFixture{ConfigureGateway=b=>b.Services.AddSingleton<ICredentialUsageRecorder>(recorder)};await f.InitializeAsync();await f.ApplyBothAsync(await f.PublishAsync());
+        await OwnAccumulatorDrainAsync(f);
         using var response=await f.RequestAsync();response.EnsureSuccessStatusCode();Assert.Equal(1,recorder.Attempts);Assert.Empty(recorder.Observations);
         if(failure=="throw")Assert.Equal("RecorderFailure",Assert.Single(f.Gateways[0].Services.GetRequiredService<CredentialUsageAccumulator>().DrainGaps(DateTimeOffset.UtcNow)).Reason);
     }
@@ -101,6 +108,7 @@ public sealed class CredentialUsageRecordingTests
     public async Task Actual_accumulator_saturation_keeps_authentication_working_and_emits_gap()
     {
         await using var f=new GatewayFixture{ConfigureGateway=b=>b.Configuration["CredentialUsage:MaxInMemoryKeys"]="100"};await f.InitializeAsync();await f.ApplyBothAsync(await f.PublishAsync());
+        await OwnAccumulatorDrainAsync(f);
         var accumulator=f.Gateways[0].Services.GetRequiredService<CredentialUsageAccumulator>();var a=Observation();for(var i=0;i<100;i++)Assert.True(accumulator.TryRecord(a with{Item=a.Item with{CredentialId=Guid.NewGuid()}}));
         using var response=await f.RequestAsync();response.EnsureSuccessStatusCode();Assert.Equal(1,accumulator.DroppedCount);Assert.Contains(accumulator.DrainGaps(DateTimeOffset.UtcNow),x=>x.Reason=="AccumulatorFull");
     }

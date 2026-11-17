@@ -248,6 +248,8 @@ public sealed class CredentialImpactTests
             (existing.ValidFrom,existing.ExpiresAt,existing.Status,existing.Revision));
         if(created is not null)
         {
+            Assert.False(created.SecretUnavailable);
+            Assert.NotNull(created.Secret);
             Assert.NotEqual(f.Key.Id,created.Credential.Id);
             var saved=await check.Set<ApplicationCredential>().AsNoTracking().SingleAsync(x=>x.Id==created.Credential.Id);
             Assert.Equal((f.Api.Application.Id,f.Key.ValidFrom,end,"Active",1L),
