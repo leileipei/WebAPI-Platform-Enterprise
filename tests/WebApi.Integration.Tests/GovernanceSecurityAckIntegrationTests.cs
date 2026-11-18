@@ -93,7 +93,7 @@ public sealed class GovernanceSecurityAckIntegrationTests
     [InlineData("unexpected-failure-constraint")]
     public async Task AckRequiresRealSignedMaterialAndIndependentCurrentProof(string scenario)
     {
-        await using var database = new PostgresDatabase();
+        await using var database = new PostgresDatabase(ContractDatabaseGroup.GovernanceSecurityAck);
         await database.InitializeAsync();
         var clock = new FrozenSecurityClockFixture();
         var advanceClock = new AdvanceClockOnReceipt(clock);

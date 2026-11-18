@@ -11,7 +11,7 @@ using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
 namespace WebApi.Integration.Tests;
-public sealed class ImportSessionTests(MigratedDatabaseTemplateFixture template) : IClassFixture<MigratedDatabaseTemplateFixture>
+public sealed class ImportSessionTests(ImportSessionDatabaseTemplateFixture template) : IClassFixture<ImportSessionDatabaseTemplateFixture>
 {
     internal static object Input(ApiFixture f,string? text=null,object[]? files=null)=>new {projectId=f.Project.Id,environmentId=f.Environment.Id,clusterId=f.Cluster.Id,sourceText=text??ImportAndCredentialTests.Source,format="json",files};
     internal static async Task<ImportSessionDto> Preview(ApiFixture f,object? input=null)
@@ -19,13 +19,19 @@ public sealed class ImportSessionTests(MigratedDatabaseTemplateFixture template)
         using var r=await f.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-previews",input??Input(f));Assert.True(r.IsSuccessStatusCode,await r.Content.ReadAsStringAsync());return(await r.Content.ReadFromJsonAsync<ImportSessionDto>())!;
     }
     internal static object Commit(ImportSessionDto p,string code="SESSION",object[]? targets=null)=>new {expectedBundleHash=p.BundleHash,targets=targets??[new {operationId="readOne",newApiCode=code,newApiName=code,version="1.0.0"}]};
-    internal static async Task<ApiFixture> Setup(MigratedDatabaseTemplate? databaseTemplate=null)
+    internal static Task<ApiFixture> Setup(MigratedDatabaseTemplate? databaseTemplate=null)
+        => Setup(databaseTemplate, ContractDatabaseGroup.Shared);
+
+    private static Task<ApiFixture> SetupImport(MigratedDatabaseTemplate? databaseTemplate=null)
+        => Setup(databaseTemplate, ContractDatabaseGroup.ImportSession);
+
+    private static Task<ApiFixture> Setup(MigratedDatabaseTemplate? databaseTemplate, ContractDatabaseGroup group)
     {
-        return await ApiFixture.CreateAsync(async f=>{await f.InitializeAsync();await f.SeedCatalogAsync();using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();},databaseTemplate);
+        return ApiFixture.CreateAsync(async f=>{await f.InitializeAsync();await f.SeedCatalogAsync();using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();},databaseTemplate,group);
     }
     [Fact] public async Task TextAndYamlPreviewPersistSourcesAndDraftRoutes()
     {
-        await using var f=await Setup(template.Template);var text="openapi: 3.1.0\ninfo: {title: Test, version: '1'}\npaths:\n  /yaml-session:\n    get:\n      operationId: readOne\n      responses: {'200': {description: ok}}\n";
+        await using var f=await SetupImport(template.Template);var text="openapi: 3.1.0\ninfo: {title: Test, version: '1'}\npaths:\n  /yaml-session:\n    get:\n      operationId: readOne\n      responses: {'200': {description: ok}}\n";
         var p=await Preview(f,new {projectId=f.Project.Id,environmentId=f.Environment.Id,clusterId=f.Cluster.Id,sourceText=text,format="yaml"});Assert.Single(p.Operations);Assert.Equal(0,p.SourcePolicyRevision);using(var get=await f.Client.GetAsync($"/api/v1/openapi/import-previews/{p.PreviewId}")){get.EnsureSuccessStatusCode();using var value=System.Text.Json.JsonDocument.Parse(await get.Content.ReadAsStringAsync());Assert.Equal("yaml",value.RootElement.GetProperty("sourceFormat").GetString());}
         using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));r.EnsureSuccessStatusCode();
         await using var db=f.Context();var version=await db.Set<ApiVersion>().SingleAsync(x=>x.ApiId!=f.Api.Id);Assert.Equal(text,version.OpenapiSource);Assert.Equal("yaml",version.SourceFormat);Assert.Equal("Draft",version.Status);Assert.Equal(p.BundleHash,(await db.Set<ApiVersionContractSources>().SingleAsync()).BundleHash);Assert.Equal("Committed",(await db.Set<ApiImportPreview>().SingleAsync()).Status);Assert.Single(await db.Set<RoutePolicyBinding>().ToArrayAsync());
@@ -33,7 +39,7 @@ public sealed class ImportSessionTests(MigratedDatabaseTemplateFixture template)
     [Theory][InlineData("hash")][InlineData("expired")][InlineData("policy")][InlineData("revoked")][InlineData("scope")][InlineData("cluster")]
     public async Task ChangedPreviewOrCurrentScopeCannotCommit(string change)
     {
-        await using var f=await Setup();var p=await Preview(f);
+        await using var f=await SetupImport();var p=await Preview(f);
         if(change=="revoked"){using var revoke=await f.WriteAsync(HttpMethod.Delete,$"/api/v1/openapi/import-previews/{p.PreviewId}");revoke.EnsureSuccessStatusCode();}
         await using(var db=f.Context()){
             if(change=="expired")await db.Set<ApiImportPreview>().ExecuteUpdateAsync(s=>s.SetProperty(x=>x.CreatedAt,DateTimeOffset.UtcNow.AddHours(-2)).SetProperty(x=>x.ExpiresAt,DateTimeOffset.UtcNow.AddHours(-1)));
@@ -44,15 +50,15 @@ public sealed class ImportSessionTests(MigratedDatabaseTemplateFixture template)
     }
     [Fact] public async Task PreviewIsInvisibleToAnotherActor()
     {
-        await using var f=await Setup();var p=await Preview(f);var foreign=await f.NewReviewerAsync("PreviewReader");using var get=await foreign.Client.GetAsync($"/api/v1/openapi/import-previews/{p.PreviewId}");Assert.Equal(HttpStatusCode.NotFound,get.StatusCode);using var commit=await ApiFixture.CommandAsync(foreign.Client,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));Assert.Equal(HttpStatusCode.NotFound,commit.StatusCode);
+        await using var f=await SetupImport();var p=await Preview(f);var foreign=await f.NewReviewerAsync("PreviewReader");using var get=await foreign.Client.GetAsync($"/api/v1/openapi/import-previews/{p.PreviewId}");Assert.Equal(HttpStatusCode.NotFound,get.StatusCode);using var commit=await ApiFixture.CommandAsync(foreign.Client,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));Assert.Equal(HttpStatusCode.NotFound,commit.StatusCode);
     }
     [Fact] public async Task InvalidTargetRollsBackWholeBatchAndPreviewStatus()
     {
-        await using var f=await Setup();var p=await Preview(f);object[] targets=[new {operationId="readOne",newApiCode="GOOD",newApiName="Good"},new {operationId="writeTwo",newApiCode="bad code",newApiName="Bad"}];using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p,targets:targets));Assert.Equal(HttpStatusCode.UnprocessableEntity,r.StatusCode);await using var db=f.Context();Assert.Equal(1,await db.Set<Api>().CountAsync());Assert.Empty(await db.Set<ApiVersionContractSources>().ToArrayAsync());Assert.Equal("Active",(await db.Set<ApiImportPreview>().SingleAsync()).Status);
+        await using var f=await SetupImport();var p=await Preview(f);object[] targets=[new {operationId="readOne",newApiCode="GOOD",newApiName="Good"},new {operationId="writeTwo",newApiCode="bad code",newApiName="Bad"}];using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p,targets:targets));Assert.Equal(HttpStatusCode.UnprocessableEntity,r.StatusCode);await using var db=f.Context();Assert.Equal(1,await db.Set<Api>().CountAsync());Assert.Empty(await db.Set<ApiVersionContractSources>().ToArrayAsync());Assert.Equal("Active",(await db.Set<ApiImportPreview>().SingleAsync()).Status);
     }
     [Fact] public async Task SameKeyReplayWorksAfterContentCleanupAndSealing()
     {
-        await using var f=await Setup();var p=await Preview(f);var path=$"/api/v1/openapi/import-previews/{p.PreviewId}/commit";var key=Guid.NewGuid().ToString("N");var body=Commit(p);
+        await using var f=await SetupImport();var p=await Preview(f);var path=$"/api/v1/openapi/import-previews/{p.PreviewId}/commit";var key=Guid.NewGuid().ToString("N");var body=Commit(p);
         using var first=await ApiFixture.CommandAsync(f.Client,path,body,key);first.EnsureSuccessStatusCode();var bytes=await first.Content.ReadAsByteArrayAsync();
         await using(var db=f.Context()){await db.Set<ApiImportPreview>().ExecuteUpdateAsync(s=>s.SetProperty(x=>x.CreatedAt,DateTimeOffset.UtcNow.AddHours(-2)).SetProperty(x=>x.ExpiresAt,DateTimeOffset.UtcNow.AddHours(-1)));await db.Set<ApiVersion>().Where(x=>x.ApiId!=f.Api.Id).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.Status,"Approved").SetProperty(x=>x.Revision,10));}
         using(var scope=f.Services())Assert.Equal(1,await scope.ServiceProvider.GetRequiredService<ImportPreviewCleanupService>().RunAsync(100,default));
@@ -63,22 +69,22 @@ public sealed class ImportSessionTests(MigratedDatabaseTemplateFixture template)
     [Theory][InlineData("../schema.json")][InlineData("/schema.json")][InlineData("schemas/../x.json")][InlineData("schemas\\x.json")][InlineData("https://example/schema.json")]
     public async Task UnsafeFileNamesAreRejected(string name)
     {
-        await using var f=await Setup();using var r=await f.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-previews",Input(f,files:[new {name,content="true",format="json"}]));Assert.Equal(HttpStatusCode.UnprocessableEntity,r.StatusCode);await using var db=f.Context();Assert.Empty(await db.Set<ApiImportPreview>().ToArrayAsync());
+        await using var f=await SetupImport();using var r=await f.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-previews",Input(f,files:[new {name,content="true",format="json"}]));Assert.Equal(HttpStatusCode.UnprocessableEntity,r.StatusCode);await using var db=f.Context();Assert.Empty(await db.Set<ApiImportPreview>().ToArrayAsync());
     }
     [Fact] public async Task AttachedRecursiveSchemaIsKeptAsFiniteGraph()
     {
-        await using var f=await Setup(template.Template);var text=ImportAndCredentialTests.Source.Replace("#/components/schemas/Order","schemas/order.json");var p=await Preview(f,Input(f,text,[new {name="schemas/order.json",content="{\"$id\":\"order.json\",\"type\":\"object\",\"properties\":{\"child\":{\"$ref\":\"order.json\"}}}",format="json"}]));Assert.All(p.Operations,x=>Assert.True(x.Supported));using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));r.EnsureSuccessStatusCode();await using var db=f.Context();Assert.Contains("schemas/order.json",(await db.Set<ApiVersionContractSources>().SingleAsync()).BundleJson);
+        await using var f=await SetupImport(template.Template);var text=ImportAndCredentialTests.Source.Replace("#/components/schemas/Order","schemas/order.json");var p=await Preview(f,Input(f,text,[new {name="schemas/order.json",content="{\"$id\":\"order.json\",\"type\":\"object\",\"properties\":{\"child\":{\"$ref\":\"order.json\"}}}",format="json"}]));Assert.All(p.Operations,x=>Assert.True(x.Supported));using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));r.EnsureSuccessStatusCode();await using var db=f.Context();Assert.Contains("schemas/order.json",(await db.Set<ApiVersionContractSources>().SingleAsync()).BundleJson);
     }
 
     [Fact] public async Task MidBatchRouteConflictLeavesNoPartialRows()
     {
-        await using var f=await Setup();using var route=await f.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{f.Environment.Id}/routes",f.RouteBody("/import/two","POST"));route.EnsureSuccessStatusCode();var p=await Preview(f);
+        await using var f=await SetupImport();using var route=await f.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{f.Environment.Id}/routes",f.RouteBody("/import/two","POST"));route.EnsureSuccessStatusCode();var p=await Preview(f);
         object[] targets=[new{operationId="readOne",newApiCode="ROUTE1",newApiName="Route1"},new{operationId="writeTwo",newApiCode="ROUTE2",newApiName="Route2"}];using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p,targets:targets));Assert.Equal(HttpStatusCode.Conflict,r.StatusCode);await using var db=f.Context();Assert.Equal(1,await db.Set<Api>().CountAsync());Assert.Single(await db.Set<ApiRoute>().ToArrayAsync());Assert.Empty(await db.Set<ApiVersionContractSources>().ToArrayAsync());Assert.Equal("Active",(await db.Set<ApiImportPreview>().SingleAsync()).Status);
     }
     [Theory][InlineData("sealed")][InlineData("revision")][InlineData("foreign")][InlineData("permission")]
     public async Task ExistingVersionIsCheckedAgainAtCommit(string change)
     {
-        await using var f=await Setup();var p=await Preview(f);Guid versionId=f.Version.Id;
+        await using var f=await SetupImport();var p=await Preview(f);Guid versionId=f.Version.Id;
         await using(var db=f.Context()){
             if(change=="sealed")await db.Set<ApiVersion>().ExecuteUpdateAsync(s=>s.SetProperty(x=>x.SealedAt,DateTimeOffset.UtcNow));
             if(change=="revision")await db.Set<ApiVersion>().ExecuteUpdateAsync(s=>s.SetProperty(x=>x.Revision,2));
@@ -88,12 +94,12 @@ public sealed class ImportSessionTests(MigratedDatabaseTemplateFixture template)
     }
     [Fact] public async Task ReferenceFailureMarksOnlyAffectedOperationUnsupported()
     {
-        await using var f=await Setup();var text=ImportAndCredentialTests.Source.Replace("\"schema\":{\"type\":\"string\"}","\"schema\":{\"$ref\":\"missing.json\"}");var p=await Preview(f,Input(f,text));Assert.False(p.Operations.Single(x=>x.OperationId=="readOne").Supported);Assert.True(p.Operations.Single(x=>x.OperationId=="writeTwo").Supported);Assert.NotEmpty(p.Issues);
+        await using var f=await SetupImport();var text=ImportAndCredentialTests.Source.Replace("\"schema\":{\"type\":\"string\"}","\"schema\":{\"$ref\":\"missing.json\"}");var p=await Preview(f,Input(f,text));Assert.False(p.Operations.Single(x=>x.OperationId=="readOne").Supported);Assert.True(p.Operations.Single(x=>x.OperationId=="writeTwo").Supported);Assert.NotEmpty(p.Issues);
         using var ok=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p,targets:[new{operationId="writeTwo",newApiCode="UNRELATED",newApiName="Unrelated"}]));ok.EnsureSuccessStatusCode();
     }
     [Fact] public async Task ResponseHeaderParameterContentAndExamplesKeepReferenceBases()
     {
-        await using var f=await Setup(template.Template);const string text="""
+        await using var f=await SetupImport(template.Template);const string text="""
         {"openapi":"3.1.0","info":{"title":"External","version":"1"},"paths":{"/external-body":{"get":{"operationId":"readOne","parameters":[{"$ref":"parts/param.json"}],"responses":{"2XX":{"$ref":"parts/response.json"}},"callbacks":{"notify":{"{$request.body#/callback}":{"post":{"responses":{"200":{"description":"ok"}}}}}}}}},"webhooks":{"hook":{"post":{"responses":{"200":{"description":"ok"}}}}}}
         """;
         object[] files=[new{name="parts/param.json",content="{\"name\":\"filter\",\"in\":\"query\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"schemas/filter.json\"}}}}",format="json"},new{name="parts/response.json",content="{\"description\":\"ok\",\"headers\":{\"X-Mode\":{\"schema\":{\"type\":\"string\"}}},\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"schemas/filter.json\"},\"examples\":{\"zero\":{\"value\":0},\"external\":{\"externalValue\":\"https://never-fetch.example/data\"}}}}}",format="json"},new{name="parts/schemas/filter.json",content="{\"type\":\"integer\"}",format="json"}];
@@ -101,34 +107,34 @@ public sealed class ImportSessionTests(MigratedDatabaseTemplateFixture template)
     }
     [Fact] public async Task DeepDocumentWithinSemanticLimitPersistsInBundleEnvelope()
     {
-        await using var f=await Setup(template.Template);System.Text.Json.Nodes.JsonNode schema=new System.Text.Json.Nodes.JsonObject{["type"]="integer"};for(var n=0;n<29;n++)schema=new System.Text.Json.Nodes.JsonObject{["type"]="object",["properties"]=new System.Text.Json.Nodes.JsonObject{["child"]=schema}};
+        await using var f=await SetupImport(template.Template);System.Text.Json.Nodes.JsonNode schema=new System.Text.Json.Nodes.JsonObject{["type"]="integer"};for(var n=0;n<29;n++)schema=new System.Text.Json.Nodes.JsonObject{["type"]="object",["properties"]=new System.Text.Json.Nodes.JsonObject{["child"]=schema}};
         var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;root["components"]!["schemas"]!["Order"]=schema;var text=root.ToJsonString(new System.Text.Json.JsonSerializerOptions{MaxDepth=64});var p=await Preview(f,Input(f,text));using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));r.EnsureSuccessStatusCode();
     }
     [Fact] public async Task EmbeddedSchemaIdsInExternalParameterAndResponseKeepScope()
     {
-        await using var f=await Setup(template.Template);var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;root["paths"]!["/import/one"]!["get"]!["parameters"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["$ref"]="parts/param.json"});
+        await using var f=await SetupImport(template.Template);var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;root["paths"]!["/import/one"]!["get"]!["parameters"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["$ref"]="parts/param.json"});
         object[] files=[new{name="parts/param.json",content="{\"name\":\"nested\",\"in\":\"query\",\"schema\":{\"$id\":\"schemas/filter.json\",\"$ref\":\"#filter\",\"$defs\":{\"value\":{\"$anchor\":\"filter\",\"type\":\"integer\"}}}}",format="json"}];
         var p=await Preview(f,Input(f,root.ToJsonString(),files));Assert.True(p.Operations.Single(x=>x.OperationId=="readOne").Supported,string.Join(";",p.Operations.Single(x=>x.OperationId=="readOne").Warnings));
     }
     private sealed class ImportClock(DateTimeOffset now):TimeProvider {public DateTimeOffset Now{get;set;}=now;public override DateTimeOffset GetUtcNow()=>Now;}
     [Fact] public async Task CommittedContentHasTwentyMinutesFromCommit()
     {
-        var clock=new ImportClock(DateTimeOffset.UtcNow);await using var f=new ApiFixture();await f.InitializeAsync(b=>b.Services.AddSingleton<TimeProvider>(clock));await f.SeedCatalogAsync();using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();var p=await Preview(f);clock.Now=clock.Now.AddMinutes(19);
+        var clock=new ImportClock(DateTimeOffset.UtcNow);await using var f=new ApiFixture(ContractDatabaseGroup.ImportSession);await f.InitializeAsync(b=>b.Services.AddSingleton<TimeProvider>(clock));await f.SeedCatalogAsync();using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();var p=await Preview(f);clock.Now=clock.Now.AddMinutes(19);
         using var commit=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));commit.EnsureSuccessStatusCode();await using(var db=f.Context())Assert.InRange(((await db.Set<ApiImportPreview>().SingleAsync()).ExpiresAt-clock.Now.AddMinutes(20)).Duration(),TimeSpan.Zero,TimeSpan.FromMicroseconds(1));
         clock.Now=clock.Now.AddMinutes(2);using var services=f.Services();Assert.Equal(0,await services.ServiceProvider.GetRequiredService<ImportPreviewCleanupService>().RunAsync(100,default));
     }
     [Fact] public async Task LegacyTextImportAlsoUsesProjectResourceBudget()
     {
-        await using var f=await Setup();using var policy=await f.WriteAsync(HttpMethod.Put,$"/api/v1/projects/{f.Project.Id}/import-source-policy",new SaveImportSourcePolicyRequest([],new(MaxDocumentBytes:100)),"\"0\"");policy.EnsureSuccessStatusCode();using var r=await f.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-preview",new{projectId=f.Project.Id,environmentId=f.Environment.Id,clusterId=f.Cluster.Id,source=ImportAndCredentialTests.Source});Assert.Equal(HttpStatusCode.RequestEntityTooLarge,r.StatusCode);
+        await using var f=await SetupImport();using var policy=await f.WriteAsync(HttpMethod.Put,$"/api/v1/projects/{f.Project.Id}/import-source-policy",new SaveImportSourcePolicyRequest([],new(MaxDocumentBytes:100)),"\"0\"");policy.EnsureSuccessStatusCode();using var r=await f.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-preview",new{projectId=f.Project.Id,environmentId=f.Environment.Id,clusterId=f.Cluster.Id,source=ImportAndCredentialTests.Source});Assert.Equal(HttpStatusCode.RequestEntityTooLarge,r.StatusCode);
     }
     [Fact] public async Task PreviewAuditHasHashesAndNoRawContractExample()
     {
-        await using var f=await Setup();const string marker="private-contract-example-not-for-audit";var text=ImportAndCredentialTests.Source.Replace("\"title\":\"Orders\"","\"title\":\"Orders\",\"x-private-example\":\""+marker+"\"");var p=await Preview(f,Input(f,text));await using var db=f.Context();var row=await db.Set<AuditLog>().SingleAsync(x=>x.Action=="openapi.preview.create");var audit=row.BeforeJson+row.AfterJson;Assert.Contains(p.SourceHash,audit);Assert.Contains(p.BundleHash,audit);Assert.DoesNotContain(marker,audit);Assert.DoesNotContain("openapi",row.AfterJson!,StringComparison.OrdinalIgnoreCase);
+        await using var f=await SetupImport();const string marker="private-contract-example-not-for-audit";var text=ImportAndCredentialTests.Source.Replace("\"title\":\"Orders\"","\"title\":\"Orders\",\"x-private-example\":\""+marker+"\"");var p=await Preview(f,Input(f,text));await using var db=f.Context();var row=await db.Set<AuditLog>().SingleAsync(x=>x.Action=="openapi.preview.create");var audit=row.BeforeJson+row.AfterJson;Assert.Contains(p.SourceHash,audit);Assert.Contains(p.BundleHash,audit);Assert.DoesNotContain(marker,audit);Assert.DoesNotContain("openapi",row.AfterJson!,StringComparison.OrdinalIgnoreCase);
     }
     [Theory][InlineData("[]")][InlineData("123")][InlineData("null")]
     public async Task InvalidParameterContentCannotBecomeAStringSchema(string content)
     {
-        await using var f=await Setup();var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;var parameter=(System.Text.Json.Nodes.JsonObject)root["paths"]!["/import/one"]!["get"]!["parameters"]![1]!;parameter.Remove("schema");parameter["content"]=System.Text.Json.Nodes.JsonNode.Parse(content);var p=await Preview(f,Input(f,root.ToJsonString()));Assert.False(p.Operations.Single(x=>x.OperationId=="readOne").Supported);Assert.True(p.Operations.Single(x=>x.OperationId=="writeTwo").Supported);
+        await using var f=await SetupImport();var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;var parameter=(System.Text.Json.Nodes.JsonObject)root["paths"]!["/import/one"]!["get"]!["parameters"]![1]!;parameter.Remove("schema");parameter["content"]=System.Text.Json.Nodes.JsonNode.Parse(content);var p=await Preview(f,Input(f,root.ToJsonString()));Assert.False(p.Operations.Single(x=>x.OperationId=="readOne").Supported);Assert.True(p.Operations.Single(x=>x.OperationId=="writeTwo").Supported);
     }
     private sealed class LoopbackDns:IContractDnsResolver {public Task<IPAddress[]> ResolveAsync(string host,CancellationToken ct)=>Task.FromResult(new[]{IPAddress.Loopback});}
     private sealed class ChangingSource:IAsyncDisposable
@@ -140,13 +146,13 @@ public sealed class ImportSessionTests(MigratedDatabaseTemplateFixture template)
     }
     [Fact] public async Task CommitUsesPreviewBytesAfterUrlChanges()
     {
-        await using var source=new ChangingSource();await using var f=new ApiFixture();var origin=source.Origin.GetLeftPart(UriPartial.Authority);
+        await using var source=new ChangingSource();await using var f=new ApiFixture(ContractDatabaseGroup.ImportSession);var origin=source.Origin.GetLeftPart(UriPartial.Authority);
         await f.InitializeAsync(b=>{b.Configuration["ContractImport:AllowHttp"]="true";b.Configuration["ContractImport:FixtureEnabled"]="true";b.Configuration["ContractImport:FixtureOrigins:0"]=origin;b.Configuration["ContractImport:AllowedPrivateCidrs:0"]="127.0.0.1/32";b.Services.AddSingleton<IContractDnsResolver,LoopbackDns>();});await f.SeedCatalogAsync();using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();using var policy=await f.WriteAsync(HttpMethod.Put,$"/api/v1/projects/{f.Project.Id}/import-source-policy",new SaveImportSourcePolicyRequest([new(origin,"/contracts",["127.0.0.1/32"])],new()),"\"0\"");policy.EnsureSuccessStatusCode();
         var p=await Preview(f,new {projectId=f.Project.Id,environmentId=f.Environment.Id,clusterId=f.Cluster.Id,sourceUrl=new Uri(source.Origin,"/contracts/openapi.json").AbsoluteUri});source.Text=ImportAndCredentialTests.Source.Replace("/import/one","/changed");using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));r.EnsureSuccessStatusCode();Assert.Equal(1,source.Calls);await using var db=f.Context();Assert.Equal("/import/one",(await db.Set<ApiRoute>().SingleAsync()).Path);
     }
     [Fact] public async Task FailedExternalSourcesStillCountAgainstNetworkResourceBudget()
     {
-        await using var source=new ChangingSource{FailExternal=true};var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;for(var n=0;n<20;n++)root["components"]!["schemas"]!["Missing"+n]=new System.Text.Json.Nodes.JsonObject{["$ref"]="missing"+n+".json"};source.Text=root.ToJsonString();await using var f=new ApiFixture();var origin=source.Origin.GetLeftPart(UriPartial.Authority);
+        await using var source=new ChangingSource{FailExternal=true};var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;for(var n=0;n<20;n++)root["components"]!["schemas"]!["Missing"+n]=new System.Text.Json.Nodes.JsonObject{["$ref"]="missing"+n+".json"};source.Text=root.ToJsonString();await using var f=new ApiFixture(ContractDatabaseGroup.ImportSession);var origin=source.Origin.GetLeftPart(UriPartial.Authority);
         await f.InitializeAsync(b=>{b.Configuration["ContractImport:AllowHttp"]="true";b.Configuration["ContractImport:FixtureEnabled"]="true";b.Configuration["ContractImport:FixtureOrigins:0"]=origin;b.Configuration["ContractImport:AllowedPrivateCidrs:0"]="127.0.0.1/32";b.Services.AddSingleton<IContractDnsResolver,LoopbackDns>();});await f.SeedCatalogAsync();using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();using var policy=await f.WriteAsync(HttpMethod.Put,$"/api/v1/projects/{f.Project.Id}/import-source-policy",new SaveImportSourcePolicyRequest([new(origin,"/contracts",["127.0.0.1/32"])],new()),"\"0\"");policy.EnsureSuccessStatusCode();
         using var r=await f.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-previews",new{projectId=f.Project.Id,environmentId=f.Environment.Id,clusterId=f.Cluster.Id,sourceUrl=new Uri(source.Origin,"/contracts/openapi.json").AbsoluteUri});Assert.Equal(HttpStatusCode.UnprocessableEntity,r.StatusCode);Assert.True(source.Calls<=16);await using var db=f.Context();Assert.Empty(await db.Set<ApiImportPreview>().ToArrayAsync());
     }

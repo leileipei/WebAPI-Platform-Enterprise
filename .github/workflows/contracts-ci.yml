@@ -47,4 +47,6 @@ jobs:
           docker compose version
 
       - name: Test contracts
+        env:
+          WEBAPI_CONTRACT_SPLIT_POSTGRES: ${{ matrix.suite == 'integration' && '1' || '0' }}
         run: bash scripts/check-contracts.sh "$WEBAPI_CONTRACT_SUITE"

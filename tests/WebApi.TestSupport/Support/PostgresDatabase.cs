@@ -2,12 +2,34 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using WebApi.Infrastructure.Persistence;
 namespace WebApi.Integration.Tests.Support;
+
+internal enum ContractDatabaseGroup
+{
+    Shared,
+    GovernanceSecurityAck,
+    CredentialImpact,
+    ImportSession
+}
+
 public sealed class PostgresDatabase : IAsyncDisposable
 {
     private readonly string name = "test_" + Guid.NewGuid().ToString("N");
     private readonly bool retain;
+    private readonly string? groupHost;
     private string? connectionSettings;
     public PostgresDatabase(bool retain = false) => this.retain = retain || Environment.GetEnvironmentVariable("WEBAPI_TEST_RETAIN_DATABASES") == "1";
+    internal PostgresDatabase(ContractDatabaseGroup group) : this()
+    {
+        if (Environment.GetEnvironmentVariable("WEBAPI_CONTRACT_SPLIT_POSTGRES") != "1") return;
+        groupHost = group switch
+        {
+            ContractDatabaseGroup.Shared => null,
+            ContractDatabaseGroup.GovernanceSecurityAck => "postgres-security",
+            ContractDatabaseGroup.CredentialImpact => "postgres-credential",
+            ContractDatabaseGroup.ImportSession => "postgres-import",
+            _ => throw new ArgumentOutOfRangeException(nameof(group))
+        };
+    }
     internal PostgresDatabase(string connectionSettings, bool retain) { this.connectionSettings = connectionSettings; this.retain = retain; }
     internal bool RetainsDatabase => retain;
     internal string Name => name;
@@ -18,7 +40,7 @@ public sealed class PostgresDatabase : IAsyncDisposable
         if (connectionSettings is not null)
             return new NpgsqlConnectionStringBuilder(connectionSettings) { Database = database }.ConnectionString;
         var builder = new NpgsqlConnectionStringBuilder {
-            Host = Environment.GetEnvironmentVariable("WEBAPI_TEST_DB_HOST") ?? "postgres",
+            Host = groupHost ?? Environment.GetEnvironmentVariable("WEBAPI_TEST_DB_HOST") ?? "postgres",
             Username = "webapi", Database = database,
             Password = File.ReadAllText("/run/secrets/postgres-password").Trim()
         };
