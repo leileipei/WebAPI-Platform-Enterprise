@@ -214,14 +214,14 @@ internal sealed class PostgresGovernanceCommitStore(string connectionString, IPo
             }
             catch (PostgresException error) when (error.SqlState is PostgresErrorCodes.UndefinedTable or PostgresErrorCodes.InvalidSchemaName)
             {
-                await DisposeAsync();
+                await fence.DisposeAfterFailureAsync(error);
                 throw Inconsistent(error);
             }
-            catch
+            catch (Exception error)
             {
                 // A lost connection or ambiguous commit ends this session. A new
                 // coordinator attempt must acquire the fence and observe both sides.
-                await DisposeAsync();
+                await fence.DisposeAfterFailureAsync(error);
                 throw;
             }
         }
