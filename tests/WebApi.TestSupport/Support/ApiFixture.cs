@@ -24,13 +24,26 @@ public sealed class ApiFixture : IAsyncDisposable
     private readonly Action<string>? diagnosticOutput;
     private int loginDiagnosticOrdinal;
     public ApiFixture() { }
+    private readonly MigratedDatabaseTemplate? databaseTemplate;
+    public ApiFixture(MigratedDatabaseTemplate template) => databaseTemplate = template ?? throw new ArgumentNullException(nameof(template));
+    public static async Task<ApiFixture> CreateAsync(Func<ApiFixture, Task> initialize, MigratedDatabaseTemplate? template = null)
+    {
+        var fixture = template is null ? new ApiFixture() : new ApiFixture(template);
+        try { await initialize(fixture); return fixture; }
+        catch (Exception failure)
+        {
+            try { await fixture.DisposeAsync(); }
+            catch (Exception cleanup) { throw new AggregateException("Fixture initialization and cleanup failed.", failure, cleanup); }
+            throw;
+        }
+    }
     public ApiFixture(bool enableLoginDiagnostics,Action<string>? diagnosticOutput=null)
     {
         if(!enableLoginDiagnostics)return;
         diagnosticAccessor=new HttpContextAccessor();loginDiagnostics=new(diagnosticAccessor);
         this.diagnosticOutput=diagnosticOutput??(Action<string>)Console.WriteLine;
     }
-    public PostgresDatabase Database { get; } = new();
+    public PostgresDatabase Database { get; private set; } = new();
     // Existing-account fixture. First-login tests explicitly set MustChangePassword and use real HTTP changes.
     public UserRecord User { get; } = new() { Username = "actor_"+Guid.NewGuid().ToString("N"), DisplayName="测试用户", SecurityStamp=Guid.NewGuid().ToString("N") };
     public string Password { get; } = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
@@ -43,8 +56,9 @@ public sealed class ApiFixture : IAsyncDisposable
     public IServiceScope Services() => app!.Services.CreateScope();
     public async Task InitializeAsync(Action<WebApplicationBuilder>? configure=null)
     {
-        await Database.InitializeAsync();
-        await using(var db=Context()) { await db.Database.MigrateAsync(); User.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(User,Password); db.Add(User); await db.SaveChangesAsync(); }
+        if(databaseTemplate is null) await Database.InitializeAsync();
+        else Database=await databaseTemplate.CreateDatabaseAsync();
+        await using(var db=Context()) { if(databaseTemplate is null) await db.Database.MigrateAsync(); User.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(User,Password); db.Add(User); await db.SaveChangesAsync(); }
         serverConfiguration=configure;
         await StartServerAsync();
     }

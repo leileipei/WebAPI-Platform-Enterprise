@@ -6,9 +6,17 @@ public sealed class PostgresDatabase : IAsyncDisposable
 {
     private readonly string name = "test_" + Guid.NewGuid().ToString("N");
     private readonly bool retain;
+    private string? connectionSettings;
     public PostgresDatabase(bool retain = false) => this.retain = retain || Environment.GetEnvironmentVariable("WEBAPI_TEST_RETAIN_DATABASES") == "1";
+    internal PostgresDatabase(string connectionSettings, bool retain) { this.connectionSettings = connectionSettings; this.retain = retain; }
+    internal bool RetainsDatabase => retain;
+    internal string Name => name;
+    internal string AdministrativeConnectionString => Connection("postgres");
+    internal void FreezeConnectionSettings() => connectionSettings ??= Connection(name);
     private string Connection(string database)
     {
+        if (connectionSettings is not null)
+            return new NpgsqlConnectionStringBuilder(connectionSettings) { Database = database }.ConnectionString;
         var builder = new NpgsqlConnectionStringBuilder {
             Host = Environment.GetEnvironmentVariable("WEBAPI_TEST_DB_HOST") ?? "postgres",
             Username = "webapi", Database = database,
@@ -25,6 +33,14 @@ public sealed class PostgresDatabase : IAsyncDisposable
         await using var connection = new NpgsqlConnection(Connection("postgres"));
         await connection.OpenAsync();
         await using var command = new NpgsqlCommand($"CREATE DATABASE {name}", connection);
+        await command.ExecuteNonQueryAsync();
+        if (retain) Console.WriteLine("isolated-test-db-retained=" + name);
+    }
+    internal async Task InitializeFromTemplateAsync(string templateName)
+    {
+        // Both identifiers are owned random names, not user input.
+        await using var connection = new NpgsqlConnection(Connection("postgres")); await connection.OpenAsync();
+        await using var command = new NpgsqlCommand($"CREATE DATABASE {name} TEMPLATE {templateName}", connection);
         await command.ExecuteNonQueryAsync();
         if (retain) Console.WriteLine("isolated-test-db-retained=" + name);
     }

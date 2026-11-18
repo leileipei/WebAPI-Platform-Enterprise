@@ -8,14 +8,15 @@ using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
 namespace WebApi.Integration.Tests;
-public sealed class SchemaValidationApiTests
+public sealed class SchemaValidationApiTests(MigratedDatabaseTemplateFixture template) : IClassFixture<MigratedDatabaseTemplateFixture>
 {
     internal const string Root="{\"openapi\":\"3.1.0\",\"info\":{\"title\":\"Test\",\"version\":\"1\"},\"paths\":{},\"components\":{\"schemas\":{\"Value\":{\"type\":\"integer\"}}}}";
-    internal static async Task<(ApiFixture Fixture,ApiSchema Schema,ApiParameter Parameter)> Setup(string schema="{\"type\":\"integer\"}",string contentType="application/json")
+    internal static async Task<(ApiFixture Fixture,ApiSchema Schema,ApiParameter Parameter)> Setup(string schema="{\"type\":\"integer\"}",string contentType="application/json",MigratedDatabaseTemplate? databaseTemplate=null)
     {
-        var f=new ApiFixture();await f.InitializeAsync(b=>b.Services.AddSingleton(new SchemaValidationSettings(System.Environment.GetEnvironmentVariable("WEBAPI_RUNTIME_TOOL_DLL")??throw new InvalidOperationException("Fresh RuntimeTool missing"))));await f.SeedCatalogAsync();
-        var s=new ApiSchema{ApiVersionId=f.Version.Id,SchemaType="component",Name="Value",ContentType=contentType,SchemaJson=schema};var p=new ApiParameter{ApiVersionId=f.Version.Id,Name="q",Location="query",DataType="integer",Schema="{\"type\":\"integer\"}"};
-        await using(var db=f.Context()){var v=await db.Set<ApiVersion>().SingleAsync();v.OpenapiDocument=Root;v.OpenapiSource=Root;v.SourceFormat="json";db.AddRange(s,p);await db.SaveChangesAsync();}using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();return(f,s,p);
+        ApiSchema s=null!;ApiParameter p=null!;
+        var fixture=await ApiFixture.CreateAsync(async f=>{await f.InitializeAsync(b=>b.Services.AddSingleton(new SchemaValidationSettings(System.Environment.GetEnvironmentVariable("WEBAPI_RUNTIME_TOOL_DLL")??throw new InvalidOperationException("Fresh RuntimeTool missing"))));await f.SeedCatalogAsync();
+        s=new ApiSchema{ApiVersionId=f.Version.Id,SchemaType="component",Name="Value",ContentType=contentType,SchemaJson=schema};p=new ApiParameter{ApiVersionId=f.Version.Id,Name="q",Location="query",DataType="integer",Schema="{\"type\":\"integer\"}"};
+        await using(var db=f.Context()){var v=await db.Set<ApiVersion>().SingleAsync();v.OpenapiDocument=Root;v.OpenapiSource=Root;v.SourceFormat="json";db.AddRange(s,p);await db.SaveChangesAsync();}using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();},databaseTemplate);return(fixture,s,p);
     }
     internal static string Path(ApiFixture f)=>$"/api/v1/versions/{f.Version.Id}/schema-validation";
     internal static object Body(Guid? schemaId,string example="0",long revision=1,bool draft=false,string? draftSchema=null,Guid? parameterId=null)=>new{expectedVersionRevision=revision,schemaId,parameterId,draft,draftSchemaJson=draftSchema,exampleJson=example,direction="request",formatMode="Annotation"};
@@ -29,9 +30,9 @@ public sealed class SchemaValidationApiTests
     }
     [Theory][InlineData("0","Valid")][InlineData("null","Invalid")][InlineData("\"PRIVATE-EXAMPLE\"","Invalid")]
     public async Task RealJsonExamplesAreValidatedWithoutEcho(string example,string expected)
-    {var s=await Setup();await using var f=s.Fixture;using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(s.Schema.Id,example));Assert.True(r.IsSuccessStatusCode,await r.Content.ReadAsStringAsync());var text=await r.Content.ReadAsStringAsync();using var value=JsonDocument.Parse(text);Assert.Equal(expected,value.RootElement.GetProperty("result").GetProperty("status").GetString());Assert.DoesNotContain("PRIVATE-EXAMPLE",text);Assert.NotEmpty(value.RootElement.GetProperty("result").GetProperty("exampleHash").GetString()!);}
+    {var s=await Setup(databaseTemplate:template.Template);await using var f=s.Fixture;using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(s.Schema.Id,example));Assert.True(r.IsSuccessStatusCode,await r.Content.ReadAsStringAsync());var text=await r.Content.ReadAsStringAsync();using var value=JsonDocument.Parse(text);Assert.Equal(expected,value.RootElement.GetProperty("result").GetProperty("status").GetString());Assert.DoesNotContain("PRIVATE-EXAMPLE",text);Assert.NotEmpty(value.RootElement.GetProperty("result").GetProperty("exampleHash").GetString()!);}
     [Fact] public async Task ParameterSelectorUsesServerDefinition()
-    {var s=await Setup();await using var f=s.Fixture;using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(null,"\"x\"",parameterId:s.Parameter.Id));r.EnsureSuccessStatusCode();using var v=JsonDocument.Parse(await r.Content.ReadAsStringAsync());Assert.Equal("Invalid",v.RootElement.GetProperty("result").GetProperty("status").GetString());}
+    {var s=await Setup(databaseTemplate:template.Template);await using var f=s.Fixture;using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(null,"\"x\"",parameterId:s.Parameter.Id));r.EnsureSuccessStatusCode();using var v=JsonDocument.Parse(await r.Content.ReadAsStringAsync());Assert.Equal("Invalid",v.RootElement.GetProperty("result").GetProperty("status").GetString());}
     [Theory][InlineData("permission")][InlineData("scope")][InlineData("revision")][InlineData("foreign")][InlineData("ambiguous")][InlineData("no_selector")][InlineData("draft_missing")][InlineData("draft_flag")][InlineData("invalid_json")]
     public async Task InvalidSelectionOrAuthorizationIsRejected(string change)
     {
@@ -47,16 +48,16 @@ public sealed class SchemaValidationApiTests
     [Fact] public async Task ClientCannotReplaceServerSourceBundle()
     {var s=await Setup();await using var f=s.Fixture;using var r=await f.WriteAsync(HttpMethod.Post,Path(f),new{expectedVersionRevision=1,schemaId=s.Schema.Id,exampleJson="0",direction="request",bundle=new{rootUri="https://attacker.invalid/schema"}});Assert.Equal(HttpStatusCode.UnprocessableEntity,r.StatusCode);}
     [Fact] public async Task NewDraftDoesNotNeedSavedDefinition()
-    {var s=await Setup();await using var f=s.Fixture;using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(null,"null",draft:true,draftSchema:"{\"type\":\"null\"}"));r.EnsureSuccessStatusCode();using var value=JsonDocument.Parse(await r.Content.ReadAsStringAsync());Assert.Equal("Valid",value.RootElement.GetProperty("result").GetProperty("status").GetString());}
+    {var s=await Setup(databaseTemplate:template.Template);await using var f=s.Fixture;using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(null,"null",draft:true,draftSchema:"{\"type\":\"null\"}"));r.EnsureSuccessStatusCode();using var value=JsonDocument.Parse(await r.Content.ReadAsStringAsync());Assert.Equal("Valid",value.RootElement.GetProperty("result").GetProperty("status").GetString());}
     [Fact] public async Task HistoricalInvalidSchemaRemainsReadableWithClearDiagnostic()
-    {var s=await Setup("{\"type\":\"nonsense\"}");await using var f=s.Fixture;using var read=await f.Client.GetAsync($"/api/v1/versions/{f.Version.Id}/schemas");read.EnsureSuccessStatusCode();Assert.Contains("nonsense",await read.Content.ReadAsStringAsync());using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(s.Schema.Id));r.EnsureSuccessStatusCode();using var v=JsonDocument.Parse(await r.Content.ReadAsStringAsync());Assert.Equal("Invalid",v.RootElement.GetProperty("result").GetProperty("status").GetString());}
+    {var s=await Setup("{\"type\":\"nonsense\"}", databaseTemplate:template.Template);await using var f=s.Fixture;using var read=await f.Client.GetAsync($"/api/v1/versions/{f.Version.Id}/schemas");read.EnsureSuccessStatusCode();Assert.Contains("nonsense",await read.Content.ReadAsStringAsync());using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(s.Schema.Id));r.EnsureSuccessStatusCode();using var v=JsonDocument.Parse(await r.Content.ReadAsStringAsync());Assert.Equal("Invalid",v.RootElement.GetProperty("result").GetProperty("status").GetString());}
     [Fact] public async Task NonJsonMediaIsExplicitlyIncomplete()
-    {var s=await Setup(contentType:"application/xml");await using var f=s.Fixture;using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(s.Schema.Id));r.EnsureSuccessStatusCode();using var v=JsonDocument.Parse(await r.Content.ReadAsStringAsync());Assert.Equal("Incomplete",v.RootElement.GetProperty("result").GetProperty("status").GetString());Assert.Contains("schema_non_json_media",await r.Content.ReadAsStringAsync());}
+    {var s=await Setup(contentType:"application/xml", databaseTemplate:template.Template);await using var f=s.Fixture;using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(s.Schema.Id));r.EnsureSuccessStatusCode();using var v=JsonDocument.Parse(await r.Content.ReadAsStringAsync());Assert.Equal("Incomplete",v.RootElement.GetProperty("result").GetProperty("status").GetString());Assert.Contains("schema_non_json_media",await r.Content.ReadAsStringAsync());}
     [Fact] public async Task SealedVersionSupportsTemporaryReadOnlyValidation()
-    {var s=await Setup();await using var f=s.Fixture;await using(var db=f.Context())await db.Set<ApiVersion>().ExecuteUpdateAsync(x=>x.SetProperty(v=>v.Status,"Published").SetProperty(v=>v.SealedAt,DateTimeOffset.UtcNow));using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(s.Schema.Id));r.EnsureSuccessStatusCode();}
+    {var s=await Setup(databaseTemplate:template.Template);await using var f=s.Fixture;await using(var db=f.Context())await db.Set<ApiVersion>().ExecuteUpdateAsync(x=>x.SetProperty(v=>v.Status,"Published").SetProperty(v=>v.SealedAt,DateTimeOffset.UtcNow));using var r=await f.WriteAsync(HttpMethod.Post,Path(f),Body(s.Schema.Id));r.EnsureSuccessStatusCode();}
     [Fact] public async Task ImportedExternalParameterKeepsRelativeSourceInTemporaryAndSavedDraft()
     {
-        var setup=await Setup();await using var f=setup.Fixture;
+        var setup=await Setup(databaseTemplate:template.Template);await using var f=setup.Fixture;
         const string text="""
         {"openapi":"3.1.0","info":{"title":"External","version":"1"},"paths":{"/external":{"get":{"operationId":"readOne","parameters":[{"$ref":"parts/param.json"}],"responses":{"200":{"description":"ok"}}}},"/unselected":{"get":{"operationId":"other","responses":{"200":{"description":"ok"}}}}}}
         """;
@@ -70,13 +71,13 @@ public sealed class SchemaValidationApiTests
     }
     [Fact] public async Task ImportedEmbeddedIdKeepsPhysicalSourceAndLocation()
     {
-        var setup=await Setup();await using var f=setup.Fixture;var text=ImportAndCredentialTests.Source.Replace("\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}}","\"$id\":\"embedded/order\",\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}}");var preview=await ImportSessionTests.Preview(f,ImportSessionTests.Input(f,text));using var commit=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{preview.PreviewId}/commit",ImportSessionTests.Commit(preview));commit.EnsureSuccessStatusCode();Guid versionId;Guid schemaId;await using(var db=f.Context()){versionId=(await db.Set<ApiVersionContractSources>().SingleAsync()).ApiVersionId;schemaId=(await db.Set<ApiSchema>().SingleAsync(x=>x.ApiVersionId==versionId&&x.SchemaType=="component")).Id;}
+        var setup=await Setup(databaseTemplate:template.Template);await using var f=setup.Fixture;var text=ImportAndCredentialTests.Source.Replace("\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}}","\"$id\":\"embedded/order\",\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}}");var preview=await ImportSessionTests.Preview(f,ImportSessionTests.Input(f,text));using var commit=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{preview.PreviewId}/commit",ImportSessionTests.Commit(preview));commit.EnsureSuccessStatusCode();Guid versionId;Guid schemaId;await using(var db=f.Context()){versionId=(await db.Set<ApiVersionContractSources>().SingleAsync()).ApiVersionId;schemaId=(await db.Set<ApiSchema>().SingleAsync(x=>x.ApiVersionId==versionId&&x.SchemaType=="component")).Id;}
         using var response=await f.WriteAsync(HttpMethod.Post,$"/api/v1/versions/{versionId}/schema-validation",Body(schemaId,"{\"id\":\"bad\"}"));Assert.True(response.IsSuccessStatusCode,await response.Content.ReadAsStringAsync());using var value=JsonDocument.Parse(await response.Content.ReadAsStringAsync());var result=value.RootElement.GetProperty("result");Assert.Equal("Invalid",result.GetProperty("status").GetString());Assert.Contains(result.GetProperty("issues").EnumerateArray(),x=>x.GetProperty("keyword").GetString()=="type"&&x.GetProperty("line").ValueKind==JsonValueKind.Number);
     }
 
     [Fact] public async Task ServerSelectorPreservesPercentSlashAndTildeInDefinitionName()
     {
-        var setup=await Setup();await using var f=setup.Fixture;await using(var db=f.Context())await db.Set<ApiSchema>().ExecuteUpdateAsync(x=>x.SetProperty(s=>s.Name,"Part%2F/~name"));
+        var setup=await Setup(databaseTemplate:template.Template);await using var f=setup.Fixture;await using(var db=f.Context())await db.Set<ApiSchema>().ExecuteUpdateAsync(x=>x.SetProperty(s=>s.Name,"Part%2F/~name"));
         using var response=await f.WriteAsync(HttpMethod.Post,Path(f),Body(setup.Schema.Id));Assert.True(response.IsSuccessStatusCode,await response.Content.ReadAsStringAsync());var body=await response.Content.ReadAsStringAsync();Assert.True(body.Contains("\"status\":\"Valid\"",StringComparison.Ordinal),body);
     }
 
