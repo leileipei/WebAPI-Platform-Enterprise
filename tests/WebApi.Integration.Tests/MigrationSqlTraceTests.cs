@@ -247,7 +247,7 @@ public sealed class MigrationSqlTraceTests
             Console.WriteLine("receipt-schema-fingerprint=" + fingerprints[^1] + "; installer=" + (sqlEntry ? "Sql" : "EF"));
         }
         Assert.All(fingerprints, value => Assert.Equal(fingerprints[0], value));
-        Assert.True(GovernanceSchemaFingerprints.Expected.TryGetValue("20261104090000_Governance24MigrationReceipts", out var registered));
+        Assert.True(GovernanceSchemaFingerprints.Expected.TryGetValue("20261118130000_CredentialGovernanceJournal", out var registered));
         Assert.Equal(registered, fingerprints[0]);
         foreach (var database in databases) await database.DisposeAsync();
     }

@@ -49,6 +49,8 @@ public static class GovernanceMigrationRunner
                 if (state is not null) await MigrationEvidenceContinuity.VerifyInOwnedTransactionAsync(db, state.CheckedHistory, migrationToken);
                 await GovernanceMigrationWriteFence.AcquireHistoryAsync(db, migrationToken);
                 var known = db.Database.GetMigrations().ToArray();
+                if (known.Length == 0 || !GovernanceSchemaFingerprints.Expected.TryGetValue(known[^1], out var targetFingerprint))
+                    throw new InvalidOperationException("governance_migration_preflight_failed: unverified target schema version");
                 var applied = await GovernanceMigrationHistory.ReadAppliedAsync(db, migrationToken);
                 if (applied.SequenceEqual(known, StringComparer.Ordinal))
                 {
@@ -82,6 +84,9 @@ public static class GovernanceMigrationRunner
                 generator.EnableManagedValidation();
                 try { await db.Database.MigrateAsync(migrationToken); }
                 finally { generator.DisableManagedValidation(); }
+                var installedFingerprint = await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync(migrationToken);
+                if (!string.Equals(installedFingerprint, targetFingerprint, StringComparison.Ordinal))
+                    throw new InvalidOperationException("governance_migration_preflight_failed: target schema fingerprint mismatch");
                 if (state is not null)
                 {
                     await InsertReceiptAsync(db, budget, state, known, applied, sourceSchemaHash, summary, migrationToken);

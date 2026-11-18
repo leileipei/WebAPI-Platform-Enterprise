@@ -1,15 +1,20 @@
 using System.Collections.Concurrent;
+using WebApi.Contracts.Common;
 using WebApi.Contracts.Runtime;
 using System.Collections.ObjectModel;
 using WebApi.Contracts.Policies;
 using WebApi.Domain.Policies;
+using WebApi.Domain.Runtime;
 using WebApi.Gateway.Policies;
 namespace WebApi.Gateway.Configuration;
 public sealed class RuntimeGeneration
 {
+    private readonly Lazy<(bool Valid, bool OnlyRouteMethodPermissions)> securityValidation;
+
     public RuntimeGeneration(SnapshotEnvelope envelope,byte[] payload,RuntimeSnapshot snapshot)
     {
         Envelope=envelope;Payload=payload.ToArray();Snapshot=Freeze(snapshot);
+        securityValidation = new(ValidateSecuritySnapshot);
         PoliciesById=new ReadOnlyDictionary<Guid,RuntimePolicy>(Snapshot.Policies.ToDictionary(p=>p.Id));
         RateLimits=new ReadOnlyDictionary<Guid,RateLimitConfiguration>(Snapshot.Policies.Where(p=>p.Type=="rate_limit").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseRate(p.Config)));
         CircuitConfigurations=new ReadOnlyDictionary<Guid,CircuitBreakerConfiguration>(Snapshot.Policies.Where(p=>p.Type=="circuit_breaker").ToDictionary(p=>p.Id,p=>PolicyConfigurationValidator.ParseCircuit(p.Config)));
@@ -39,13 +44,44 @@ public sealed class RuntimeGeneration
     public IReadOnlyDictionary<Guid,CompiledJsonBodyMapping> RequestBodyMappings {get;}
     public IReadOnlyDictionary<Guid,CompiledJsonBodyMapping> ResponseBodyMappings {get;}
     internal Dictionary<Guid,CircuitStateLease> CircuitLeases {get;}=[];
+
+    internal void PrepareSecurityAdmission() => _ = securityValidation.Value;
+
+    internal (bool Valid, bool OnlyRouteMethodPermissions)? PreparedSecurityValidation =>
+        securityValidation.IsValueCreated ? securityValidation.Value : null;
+
+    private (bool Valid, bool OnlyRouteMethodPermissions) ValidateSecuritySnapshot()
+    {
+        try { SnapshotValidator.Validate(Snapshot, Snapshot.EnvironmentId); }
+        catch (ApiException) { return (false, false); }
+        return (true, Snapshot.Applications.All(application =>
+            application.Permissions.All(permission => permission.Mode == "RouteMethod")));
+    }
+
     private static RuntimeSnapshot Freeze(RuntimeSnapshot snapshot)=>snapshot with
     {
         Routes=Array.AsReadOnly(snapshot.Routes.Select(r=>r with {Methods=Array.AsReadOnly(r.Methods.ToArray()),PolicyBindings=r.PolicyBindings is null?null:Array.AsReadOnly(r.PolicyBindings.ToArray())}).ToArray()),
         Clusters=Array.AsReadOnly(snapshot.Clusters.Select(c=>c with {Destinations=Array.AsReadOnly(c.Destinations.ToArray())}).ToArray()),
         Policies=Array.AsReadOnly(snapshot.Policies.ToArray()),
-        Applications=Array.AsReadOnly(snapshot.Applications.Select(a=>a with {Credentials=Array.AsReadOnly(a.Credentials.ToArray()),Permissions=Array.AsReadOnly(a.Permissions.ToArray())}).ToArray())
+        Applications = Array.AsReadOnly(snapshot.Applications.Select(application => application with
+        {
+            Credentials = Array.AsReadOnly(application.Credentials.ToArray()),
+            Permissions = Array.AsReadOnly(application.Permissions.Select(FreezePermission).ToArray())
+        }).ToArray())
     };
+
+    private static RuntimePermission FreezePermission(RuntimePermission permission)
+    {
+        if (permission.RouteMethods is not { } grants) return permission;
+        return permission with
+        {
+            RouteMethods = Array.AsReadOnly(grants.Select(grant => grant with
+            {
+                Methods = Array.AsReadOnly(grant.Methods.ToArray())
+            }).ToArray())
+        };
+    }
+
     internal int Leases;internal bool Retired;internal ConcurrentDictionary<Guid,Counter> Counters {get;}=new();internal sealed class Counter {public long Value;}
 }
 public sealed class RuntimeGenerationStore(CircuitStateRegistry? circuits=null,GatewaySettings? settings=null) : IDisposable

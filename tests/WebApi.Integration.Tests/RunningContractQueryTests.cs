@@ -26,6 +26,7 @@ namespace WebApi.Integration.Tests;
 
 public sealed class RunningContractQueryTests
 {
+    private const string ReceiptMigrationId="20261104090000_Governance24MigrationReceipts";
     private const string Document="""{"openapi":"3.0.3","info":{"title":"Frozen orders","version":"1"},"paths":{"/orders":{"get":{"responses":{"200":{"description":"ok"}}}}}}""";
     private sealed class Capture : DbCommandInterceptor
     {
@@ -37,10 +38,12 @@ public sealed class RunningContractQueryTests
             return ValueTask.FromResult(result);
         }
     }
-    private static async Task Configure(DeploymentScenario s,Capture capture)
+    private static async Task Configure(DeploymentScenario s,Capture capture,string? targetMigration=null)
     {
-        await s.InitializeAsync(b=>b.Services.AddDbContext<WebApiDbContext>(o=>o.AddInterceptors(capture)));
-        await using var db=s.Api.Context();var v=await db.Set<ApiVersion>().SingleAsync();v.OpenapiDocument=Document;v.OpenapiSource=Document;
+        await s.InitializeAsync(b=>b.Services.AddDbContext<WebApiDbContext>(o=>o.AddInterceptors(capture)),targetMigration);
+        await using var db=s.Api.Context();
+        if(targetMigration is not null) Assert.Equal(targetMigration,(await db.Database.GetAppliedMigrationsAsync()).Last());
+        var v=await db.Set<ApiVersion>().SingleAsync();v.OpenapiDocument=Document;v.OpenapiSource=Document;
         var e=await db.Set<EnvironmentRecord>().SingleAsync();e.GatewayPublicUrl="https://api.test";await db.SaveChangesAsync();
     }
     [Fact] public async Task RunningAddressDoesNotLoadCandidateBodies()
@@ -58,7 +61,7 @@ public sealed class RunningContractQueryTests
     }
     [Fact] public async Task LegacyMigrationBackfillsWithoutRewritingCandidates()
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var releaseId=await s.PublishAsync();await using var db=s.Api.Context();
+        await using var s=new DeploymentScenario();await Configure(s,new Capture(),ReceiptMigrationId);var releaseId=await s.PublishAsync();await using var db=s.Api.Context();
         var bytes=(await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==releaseId)).CandidateBytes!.ToArray();
         // The receipt ledger blocks the rollback this rehearsal used to perform;
         // the guard is the regression surface for the G boundary now.
@@ -70,7 +73,7 @@ public sealed class RunningContractQueryTests
     }
     [Fact] public async Task InvalidLegacyCandidateBlocksMigrationAtomically()
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var releaseId=await s.PublishAsync();await using var db=s.Api.Context();
+        await using var s=new DeploymentScenario();await Configure(s,new Capture(),ReceiptMigrationId);var releaseId=await s.PublishAsync();await using var db=s.Api.Context();
         var migrator=db.GetService<IMigrator>();
         var bad=System.Text.Encoding.UTF8.GetBytes("{\"versions\":null}");await db.Set<ReleaseRecord>().Where(r=>r.Id==releaseId).ExecuteUpdateAsync(p=>p.SetProperty(r=>r.CandidateBytes,bad));
         var error=await Assert.ThrowsAnyAsync<Exception>(()=>migrator.MigrateAsync("20261010091247_GatewayQueryIndexes"));
@@ -89,7 +92,7 @@ public sealed class RunningContractQueryTests
     [InlineData("nullExample")]
     public async Task StrongTypeCorruptionBlocksBeforeLegacyMigrationCommit(string fault)
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();
+        await using var s=new DeploymentScenario();await Configure(s,new Capture(),ReceiptMigrationId);var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();
         var candidate=JsonNode.Parse((await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id)).CandidateBytes!)!;var frozen=candidate["versions"]![0]!;
         JsonObject Parameter()=>new(){["id"]=Guid.NewGuid().ToString(),["apiVersionId"]=s.Api.Version.Id.ToString(),["location"]="query",["name"]="q",["dataType"]="string",["required"]=false};
         switch(fault)
@@ -110,7 +113,7 @@ public sealed class RunningContractQueryTests
     }
     [Fact] public async Task LegacyOmittedOptionalFieldsKeepConstructorDefaults()
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();
+        await using var s=new DeploymentScenario();await Configure(s,new Capture(),ReceiptMigrationId);var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();
         var node=JsonNode.Parse((await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id)).CandidateBytes!)!.AsObject();node.Remove("riskReviewReferences");node.Remove("sharedCredentialImpact");
         node["versions"]![0]!["version"]!.AsObject().Remove("dialect");node["versions"]![0]!["version"]!.AsObject().Remove("sealedAt");
         foreach(var app in node["applications"]!.AsArray())app!["application"]!.AsObject().Remove("activation");

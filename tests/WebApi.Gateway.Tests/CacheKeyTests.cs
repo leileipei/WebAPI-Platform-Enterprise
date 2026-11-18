@@ -32,9 +32,12 @@ public sealed class CacheKeyTests
     public void IdentityAndTokenForwardingPartitionPrecisely()
     {
         using var f = new CacheEligibilityTests.SettingsFixture(); var builder = new CacheKeyBuilder(f.Settings); var request = CacheEligibilityTests.Request().Request;
-        var a = new VerifiedTrafficIdentity(AuthenticationMode.JWT, App, new("https://issuer", "private-sub-A", "app", "token-A"));
-        var b = new VerifiedTrafficIdentity(AuthenticationMode.JWT, App, new("https://issuer", "private-sub-B", "app", "token-A"));
-        var refresh = new VerifiedTrafficIdentity(AuthenticationMode.JWT, App, new("https://issuer", "private-sub-A", "app", "token-B"));
+        var a = new VerifiedTrafficIdentity(AuthenticationMode.JWT, App, new("https://issuer", "private-sub-A", "app", "token-A",
+            issuedAt: 1_800_000_000, expiresAt: 1_800_000_300, notBefore: null, clockSkewSeconds: 0));
+        var b = new VerifiedTrafficIdentity(AuthenticationMode.JWT, App, new("https://issuer", "private-sub-B", "app", "token-A",
+            issuedAt: 1_800_000_000, expiresAt: 1_800_000_300, notBefore: null, clockSkewSeconds: 0));
+        var refresh = new VerifiedTrafficIdentity(AuthenticationMode.JWT, App, new("https://issuer", "private-sub-A", "app", "token-B",
+            issuedAt: 1_800_000_000, expiresAt: 1_800_000_300, notBefore: null, clockSkewSeconds: 0));
         var first = builder.Build(Execution(a), request, CacheEligibilityTests.Config); Assert.NotNull(first);
         Assert.NotEqual(first, builder.Build(Execution(b), request, CacheEligibilityTests.Config)); Assert.Equal(first, builder.Build(Execution(refresh), request, CacheEligibilityTests.Config));
         Assert.NotEqual(builder.Build(Execution(a, true), request, CacheEligibilityTests.Config), builder.Build(Execution(refresh, true), request, CacheEligibilityTests.Config));

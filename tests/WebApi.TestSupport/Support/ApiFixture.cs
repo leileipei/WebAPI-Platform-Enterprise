@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
@@ -59,11 +61,19 @@ public sealed class ApiFixture : IAsyncDisposable
     public HttpClient Client { get; private set; } = null!;
     public WebApiDbContext Context() => Database.Context();
     public IServiceScope Services() => app!.Services.CreateScope();
-    public async Task InitializeAsync(Action<WebApplicationBuilder>? configure=null)
+    public async Task InitializeAsync(Action<WebApplicationBuilder>? configure=null,string? targetMigration=null)
     {
+        if(databaseTemplate is not null && targetMigration is not null)
+            throw new ArgumentException("A historical migration requires a fresh fixture database.",nameof(targetMigration));
         if(databaseTemplate is null) await Database.InitializeAsync();
         else Database=await databaseTemplate.CreateDatabaseAsync();
-        await using(var db=Context()) { if(databaseTemplate is null) await db.Database.MigrateAsync(); User.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(User,Password); db.Add(User); await db.SaveChangesAsync(); }
+        await using(var db=Context())
+        {
+            if(databaseTemplate is null) await db.GetService<IMigrator>().MigrateAsync(targetMigration);
+            User.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(User,Password);
+            db.Add(User);
+            await db.SaveChangesAsync();
+        }
         serverConfiguration=configure;
         await StartServerAsync();
     }

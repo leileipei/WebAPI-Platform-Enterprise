@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace WebApi.Infrastructure.Persistence;
 
 /// <summary>
-/// Keeps existing public table rows stable while a caller-owned migration transaction is open.
+/// Keeps existing platform and governance table rows stable during the migration transaction.
 /// This does not replace external isolation of old processes, credentials, or privileged roles.
 /// </summary>
 public static class GovernanceMigrationWriteFence
@@ -46,8 +46,8 @@ public static class GovernanceMigrationWriteFence
                     SELECT n.nspname, c.relname
                     FROM pg_catalog.pg_class c
                     JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-                    WHERE n.nspname='public' AND c.relkind IN ('r','p')
-                    ORDER BY c.relname COLLATE "C"
+                    WHERE n.nspname IN ('public','credential_governance') AND c.relkind IN ('r','p')
+                    ORDER BY n.nspname COLLATE "C", c.relname COLLATE "C"
                 LOOP
                     EXECUTE pg_catalog.format('LOCK TABLE ONLY %I.%I IN SHARE MODE',target.nspname,target.relname);
                 END LOOP;

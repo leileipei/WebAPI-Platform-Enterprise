@@ -35,7 +35,9 @@ public sealed class CacheEligibilityTests
         Assert.True(CacheEligibility.Request(c, identity, Config, f.Settings).Eligible);
         foreach (var header in new[] { "Authorization", "Cookie", "Range", "If-None-Match", "Upgrade" })
         { c = Request(); c.Request.Headers[header] = "synthetic"; Assert.False(CacheEligibility.Request(c, identity, Config, f.Settings).Eligible); }
-        c = Request(); c.Request.Headers.Authorization = "Bearer verified"; Assert.True(CacheEligibility.Request(c, new(AuthenticationMode.JWT, Guid.NewGuid(), new("issuer", "sub", "app", "verified")), Config, f.Settings).Eligible);
+        c = Request(); c.Request.Headers.Authorization = "Bearer verified";
+        Assert.True(CacheEligibility.Request(c, new(AuthenticationMode.JWT, Guid.NewGuid(), new("issuer", "sub", "app", "verified",
+            issuedAt: 1_800_000_000, expiresAt: 1_800_000_300, notBefore: null, clockSkewSeconds: 0)), Config, f.Settings).Eligible);
         foreach (var method in new[] { "HEAD", "POST", "PUT" }) { c = Request(); c.Request.Method = method; Assert.False(CacheEligibility.Request(c, identity, Config, f.Settings).Eligible); }
         c = Request(); c.Features.Set<IHttpRequestBodyDetectionFeature>(new Body(true)); Assert.False(CacheEligibility.Request(c, identity, Config, f.Settings).Eligible);
         foreach (var control in new[] { "no-store", "no-cache", "max-age=0", "max-age=\"0\"", "invalid=\"" }) { c = Request(); c.Request.Headers.CacheControl = control; Assert.False(CacheEligibility.Request(c, identity, Config, f.Settings).Eligible); }

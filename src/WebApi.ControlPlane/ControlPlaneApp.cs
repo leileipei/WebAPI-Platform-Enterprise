@@ -47,6 +47,7 @@ public static class ControlPlaneApp
         builder.WebHost.ConfigureKestrel(options=>options.Limits.MaxRequestBodySize=8*1024*1024);
         var connection=builder.Configuration.GetConnectionString("WebApi")??DatabaseSettings.ConnectionString();
         builder.Services.AddDbContext<WebApiDbContext>(options=>options.UseNpgsql(connection));
+        builder.Services.AddConfiguredWitness(builder.Configuration);
         builder.Services.TryAddScoped<IPasswordHasher<UserRecord>,PasswordHasher<UserRecord>>();
         builder.Services.AddSingleton(sp=>LoginProtectionDeploymentSettings.Read(sp.GetRequiredService<IConfiguration>()));
         builder.Services.AddSingleton(sp=>new LoginKeyHasher(sp.GetRequiredService<LoginProtectionDeploymentSettings>().HmacSecret));
@@ -149,6 +150,6 @@ public static class ControlPlaneApp
             await next();
         });
         app.MapGet("/health/live",()=>Results.Ok(new { status="live" })).AllowAnonymous();
-        app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapEnvironmentAccess();app.MapCatalog();app.MapSchemaValidation();app.MapImportSourcePolicies();app.MapImportSessions();app.MapComparisons();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapOpenApiImport();app.MapReleases();app.MapDelivery();app.MapPipelines();app.MapVerificationReports();app.MapApprovalInbox();app.MapInternalNodes();app.MapCredentialUsage();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();WebApi.ControlPlane.Notifications.NotificationEndpoints.MapNotifications(app);return app;
+        app.MapSsoLogin();app.MapExternalIdentities();app.MapSsoProviders();app.MapSystemSettings();app.MapSessions();app.MapGovernance();app.MapEnvironmentAccess();app.MapCatalog();app.MapSchemaValidation();app.MapImportSourcePolicies();app.MapImportSessions();app.MapComparisons();app.MapRouting();app.MapPolicies();app.MapApplications();app.MapCredentialGovernance();app.MapOpenApiImport();app.MapReleases();app.MapDelivery();app.MapPipelines();app.MapVerificationReports();app.MapApprovalInbox();app.MapInternalNodes();app.MapCredentialUsage();app.MapGatewayRead();app.MapObservationMetrics();app.MapObservationLogs();app.MapObservationTraces();app.MapAlertRules();app.MapAlertEvents();WebApi.ControlPlane.Notifications.NotificationEndpoints.MapNotifications(app);return app;
     }
 }

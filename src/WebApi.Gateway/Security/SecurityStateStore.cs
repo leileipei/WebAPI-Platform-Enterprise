@@ -38,6 +38,19 @@ public sealed class SecurityStateStore(SecurityNodeAudience audience,ISecurityLk
   var state=Volatile.Read(ref current);
   if(state is null||CanAdmitCore(Guid.Empty,null)!=SecurityAdmissionDecision.Allow)return false;
   try{SnapshotValidator.Validate(snapshot,audience.EnvironmentId);}catch(ApiException){return false;}
+  return MatchesCheckpoint(snapshot,state,null);
+ }
+ internal bool CanUseSnapshot(RuntimeGeneration generation)
+ {
+  var state=Volatile.Read(ref current);
+  var snapshot=generation.Snapshot;
+  if(state is null||snapshot.EnvironmentId!=audience.EnvironmentId||
+   generation.PreparedSecurityValidation is not { } validation||!validation.Valid||
+   CanAdmitCore(Guid.Empty,null)!=SecurityAdmissionDecision.Allow)return false;
+  return MatchesCheckpoint(snapshot,state,validation.OnlyRouteMethodPermissions);
+ }
+ private bool MatchesCheckpoint(RuntimeSnapshot snapshot,State state,bool? onlyRouteMethodPermissions)
+ {
   var checkpoint=state.Checkpoint.Payload;
   if(!SnapshotSchemaRules.AtLeast(snapshot.SchemaVersion,checkpoint.MinimumSnapshotSchema))return false;
   var governance=snapshot.RequiredSecurityGeneration is not null;
@@ -46,7 +59,8 @@ public sealed class SecurityStateStore(SecurityNodeAudience audience,ISecurityLk
    // Network 2.3 does not imply the governance 2.3 safety contract.
    return checkpoint.MinimumSnapshotSchema is not ("2.3" or "2.4")&&ReferenceEquals(state,Volatile.Read(ref current));
   }
-  if(checkpoint.MinimumSnapshotSchema is "2.3" or "2.4"&&snapshot.Applications.Any(a=>a.Permissions.Any(p=>p.Mode!="RouteMethod")))return false;
+  if(checkpoint.MinimumSnapshotSchema is "2.3" or "2.4"&&
+   !(onlyRouteMethodPermissions??snapshot.Applications.All(a=>a.Permissions.All(p=>p.Mode=="RouteMethod"))))return false;
   return snapshot.RequiredSecurityGeneration==checkpoint.SecurityGeneration&&snapshot.RequiredSecurityEpoch is >=0&&snapshot.RequiredSecurityEpoch<=checkpoint.Epoch
    &&snapshot.MinimumSnapshotSchema==checkpoint.MinimumSnapshotSchema&&snapshot.RequireEnvironmentCredentials==checkpoint.RequireEnvironmentCredentials
    &&ReferenceEquals(state,Volatile.Read(ref current));

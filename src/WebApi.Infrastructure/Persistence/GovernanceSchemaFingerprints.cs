@@ -44,45 +44,49 @@ internal static class GovernanceSchemaFingerprints
         ["20261104070000_Governance24LeaseExpiryObservation"] = "3f978fb52f0009a5ccde4aa35c91e32755913ec1568dec2676c267a366383ea0",
         ["20261104080000_Governance24DatabaseClock"] = "2ed7307ab78b49bd8c1cca47ed5af4a1567460bb2a2b4fb9214f6d5011f93aec",
         ["20261104090000_Governance24MigrationReceipts"] = "22543989e453281197c4f6e4ca568823de70b528e7abfd55efc0cdde83302309",
+        ["20261118130000_CredentialGovernanceJournal"] = "c74639ddb36def9e61b123bd70e58647c84306431bbf3a33f7d77479f4f5a705",
     };
 
     internal const string Query = """
         WITH facts(fact) AS (
-            SELECT pg_catalog.jsonb_build_array('relation',c.relname,c.relkind::text,c.relpersistence::text,c.relrowsecurity,c.relforcerowsecurity)::text
-            FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-            WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','f')
+            SELECT pg_catalog.jsonb_build_array('schema',nspname)::text
+            FROM pg_catalog.pg_namespace WHERE nspname='credential_governance'
             UNION ALL
-            SELECT pg_catalog.jsonb_build_array('column',c.relname,a.attnum,a.attname,pg_catalog.format_type(a.atttypid,a.atttypmod),
+            SELECT pg_catalog.jsonb_build_array('relation',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,c.relkind::text,c.relpersistence::text,c.relrowsecurity,c.relforcerowsecurity)::text
+            FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+            WHERE n.nspname IN ('public','credential_governance') AND c.relkind IN ('r','p','v','m','f')
+            UNION ALL
+            SELECT pg_catalog.jsonb_build_array('column',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,a.attnum,a.attname,pg_catalog.format_type(a.atttypid,a.atttypmod),
                 a.attnotnull,a.attidentity::text,a.attgenerated::text,pg_catalog.pg_get_expr(d.adbin,d.adrelid))::text
             FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid=a.attrelid
             JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
             LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
-            WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','f') AND a.attnum>0 AND NOT a.attisdropped
+            WHERE n.nspname IN ('public','credential_governance') AND c.relkind IN ('r','p','v','m','f') AND a.attnum>0 AND NOT a.attisdropped
             UNION ALL
-            SELECT pg_catalog.jsonb_build_array('constraint',c.relname,k.conname,k.contype::text,pg_catalog.pg_get_constraintdef(k.oid,true),
+            SELECT pg_catalog.jsonb_build_array('constraint',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,k.conname,k.contype::text,pg_catalog.pg_get_constraintdef(k.oid,true),
                 k.convalidated,k.condeferrable,k.condeferred)::text
             FROM pg_catalog.pg_constraint k JOIN pg_catalog.pg_class c ON c.oid=k.conrelid
-            JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'
+            JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','credential_governance')
             UNION ALL
-            SELECT pg_catalog.jsonb_build_array('index',c.relname,i.relname,pg_catalog.pg_get_indexdef(i.oid),x.indisunique,x.indisprimary,x.indisvalid)::text
+            SELECT pg_catalog.jsonb_build_array('index',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,i.relname,pg_catalog.pg_get_indexdef(i.oid),x.indisunique,x.indisprimary,x.indisvalid)::text
             FROM pg_catalog.pg_index x JOIN pg_catalog.pg_class c ON c.oid=x.indrelid
             JOIN pg_catalog.pg_class i ON i.oid=x.indexrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-            WHERE n.nspname='public'
+            WHERE n.nspname IN ('public','credential_governance')
             UNION ALL
-            SELECT pg_catalog.jsonb_build_array('trigger',c.relname,t.tgname,pg_catalog.pg_get_triggerdef(t.oid,true),t.tgenabled::text)::text
+            SELECT pg_catalog.jsonb_build_array('trigger',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,t.tgname,pg_catalog.pg_get_triggerdef(t.oid,true),t.tgenabled::text)::text
             FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid
-            JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND NOT t.tgisinternal
+            JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','credential_governance') AND NOT t.tgisinternal
             UNION ALL
-            SELECT pg_catalog.jsonb_build_array('function',p.proname,pg_catalog.pg_get_function_identity_arguments(p.oid),CASE WHEN p.proname='forbid_notification_profile_mutation' AND pg_catalog.pg_get_function_identity_arguments(p.oid)='' AND pg_catalog.pg_get_functiondef(p.oid)=pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLmZvcmJpZF9ub3RpZmljYXRpb25fcHJvZmlsZV9tdXRhdGlvbigpCiBSRVRVUk5TIHRyaWdnZXIKIExBTkdVQUdFIHBscGdzcWwKQVMgJGZ1bmN0aW9uJAogICAgQkVHSU4gUkFJU0UgRVhDRVBUSU9OICdOb3RpZmljYXRpb24gcHJvZmlsZXMgYXJlIGltbXV0YWJsZScgVVNJTkcgRVJSQ09ERT0nMjM1MTQnOyBFTkQgJGZ1bmN0aW9uJAo=','base64'),'UTF8') THEN pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLmZvcmJpZF9ub3RpZmljYXRpb25fcHJvZmlsZV9tdXRhdGlvbigpCiBSRVRVUk5TIHRyaWdnZXIKIExBTkdVQUdFIHBscGdzcWwKQVMgJGZ1bmN0aW9uJApCRUdJTiBSQUlTRSBFWENFUFRJT04gJ05vdGlmaWNhdGlvbiBwcm9maWxlcyBhcmUgaW1tdXRhYmxlJyBVU0lORyBFUlJDT0RFPScyMzUxNCc7IEVORCAkZnVuY3Rpb24kCg==','base64'),'UTF8') WHEN p.proname='pipeline_immutable_fact' AND pg_catalog.pg_get_function_identity_arguments(p.oid)='' AND pg_catalog.pg_get_functiondef(p.oid)=pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLnBpcGVsaW5lX2ltbXV0YWJsZV9mYWN0KCkKIFJFVFVSTlMgdHJpZ2dlcgogTEFOR1VBR0UgcGxwZ3NxbApBUyAkZnVuY3Rpb24kCiAgICBCRUdJTgogICAgICAgIFJBSVNFIEVYQ0VQVElPTiAnUGlwZWxpbmUgdmVyc2lvbnMgYW5kIGV2ZW50cyBhcmUgYXBwZW5kLW9ubHknIFVTSU5HIEVSUkNPREU9JzIzNTE0JzsKICAgIEVORDsKICAgICRmdW5jdGlvbiQK','base64'),'UTF8') THEN pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLnBpcGVsaW5lX2ltbXV0YWJsZV9mYWN0KCkKIFJFVFVSTlMgdHJpZ2dlcgogTEFOR1VBR0UgcGxwZ3NxbApBUyAkZnVuY3Rpb24kCkJFR0lOCiAgICBSQUlTRSBFWENFUFRJT04gJ1BpcGVsaW5lIHZlcnNpb25zIGFuZCBldmVudHMgYXJlIGFwcGVuZC1vbmx5JyBVU0lORyBFUlJDT0RFPScyMzUxNCc7CkVORDsKJGZ1bmN0aW9uJAo=','base64'),'UTF8') ELSE pg_catalog.pg_get_functiondef(p.oid) END)::text
-            FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.prokind='f'
+            SELECT pg_catalog.jsonb_build_array('function',CASE WHEN n.nspname='public' THEN p.proname::text ELSE n.nspname::text||'.'||p.proname::text END,pg_catalog.pg_get_function_identity_arguments(p.oid),CASE WHEN p.proname='forbid_notification_profile_mutation' AND pg_catalog.pg_get_function_identity_arguments(p.oid)='' AND pg_catalog.pg_get_functiondef(p.oid)=pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLmZvcmJpZF9ub3RpZmljYXRpb25fcHJvZmlsZV9tdXRhdGlvbigpCiBSRVRVUk5TIHRyaWdnZXIKIExBTkdVQUdFIHBscGdzcWwKQVMgJGZ1bmN0aW9uJAogICAgQkVHSU4gUkFJU0UgRVhDRVBUSU9OICdOb3RpZmljYXRpb24gcHJvZmlsZXMgYXJlIGltbXV0YWJsZScgVVNJTkcgRVJSQ09ERT0nMjM1MTQnOyBFTkQgJGZ1bmN0aW9uJAo=','base64'),'UTF8') THEN pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLmZvcmJpZF9ub3RpZmljYXRpb25fcHJvZmlsZV9tdXRhdGlvbigpCiBSRVRVUk5TIHRyaWdnZXIKIExBTkdVQUdFIHBscGdzcWwKQVMgJGZ1bmN0aW9uJApCRUdJTiBSQUlTRSBFWENFUFRJT04gJ05vdGlmaWNhdGlvbiBwcm9maWxlcyBhcmUgaW1tdXRhYmxlJyBVU0lORyBFUlJDT0RFPScyMzUxNCc7IEVORCAkZnVuY3Rpb24kCg==','base64'),'UTF8') WHEN p.proname='pipeline_immutable_fact' AND pg_catalog.pg_get_function_identity_arguments(p.oid)='' AND pg_catalog.pg_get_functiondef(p.oid)=pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLnBpcGVsaW5lX2ltbXV0YWJsZV9mYWN0KCkKIFJFVFVSTlMgdHJpZ2dlcgogTEFOR1VBR0UgcGxwZ3NxbApBUyAkZnVuY3Rpb24kCiAgICBCRUdJTgogICAgICAgIFJBSVNFIEVYQ0VQVElPTiAnUGlwZWxpbmUgdmVyc2lvbnMgYW5kIGV2ZW50cyBhcmUgYXBwZW5kLW9ubHknIFVTSU5HIEVSUkNPREU9JzIzNTE0JzsKICAgIEVORDsKICAgICRmdW5jdGlvbiQK','base64'),'UTF8') THEN pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLnBpcGVsaW5lX2ltbXV0YWJsZV9mYWN0KCkKIFJFVFVSTlMgdHJpZ2dlcgogTEFOR1VBR0UgcGxwZ3NxbApBUyAkZnVuY3Rpb24kCkJFR0lOCiAgICBSQUlTRSBFWENFUFRJT04gJ1BpcGVsaW5lIHZlcnNpb25zIGFuZCBldmVudHMgYXJlIGFwcGVuZC1vbmx5JyBVU0lORyBFUlJDT0RFPScyMzUxNCc7CkVORDsKJGZ1bmN0aW9uJAo=','base64'),'UTF8') ELSE pg_catalog.pg_get_functiondef(p.oid) END)::text
+            FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname IN ('public','credential_governance') AND p.prokind='f'
             UNION ALL
-            SELECT pg_catalog.jsonb_build_array('sequence',c.relname,s.seqstart,s.seqincrement,s.seqmax,s.seqmin,s.seqcache,s.seqcycle)::text
+            SELECT pg_catalog.jsonb_build_array('sequence',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,s.seqstart,s.seqincrement,s.seqmax,s.seqmin,s.seqcache,s.seqcycle)::text
             FROM pg_catalog.pg_sequence s JOIN pg_catalog.pg_class c ON c.oid=s.seqrelid
-            JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'
+            JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','credential_governance')
             UNION ALL
-            SELECT pg_catalog.jsonb_build_array('type',t.typname,t.typtype::text,pg_catalog.format_type(t.oid,NULL))::text
+            SELECT pg_catalog.jsonb_build_array('type',CASE WHEN n.nspname='public' THEN t.typname::text ELSE n.nspname::text||'.'||t.typname::text END,t.typtype::text,pg_catalog.format_type(t.oid,NULL))::text
             FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON n.oid=t.typnamespace
-            WHERE n.nspname='public' AND t.typtype IN ('e','d','r','m')
+            WHERE n.nspname IN ('public','credential_governance') AND t.typtype IN ('e','d','r','m')
         )
         SELECT pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(COALESCE(pg_catalog.string_agg(fact,E'\n' ORDER BY fact COLLATE "C"),''),'UTF8')),'hex') AS "Value" FROM facts
         """;

@@ -1,13 +1,49 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Applications;
+using WebApi.Contracts.Common;
+using WebApi.Contracts.Security;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Gateway;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.CredentialSecurity;
 public sealed class SecurityOperationStatusReader(WebApiDbContext db)
 {
- public async Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadAsync(Guid operation,CancellationToken ct=default)
+ public Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadAsync(Guid operation,CancellationToken ct=default) =>
+  ReadAsync(operation,null,ct);
+
+ public async Task<RevocationOperationDto> ReadRevocationAsync(Guid operation,ActorContext actor,
+  Func<WebApiDbContext,CancellationToken,Task> requireSession,CancellationToken ct=default)
+ {
+  RevocationOperationDto? receipt=null;
+  var runtime=await ReadAsync(operation,async token=>
+  {
+   await requireSession(db,token);
+   var row=await db.Set<SecurityOperation>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==operation && x.Kind=="CredentialRevoke",token);
+   if(row?.CredentialId is not Guid credential) throw RevocationMissing();
+   var facts=await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation).OrderBy(x=>x.EnvironmentId).ToArrayAsync(token);
+   if(facts.Length==0||facts.Any(x=>x.OrganizationId!=row.OrganizationId||x.CredentialId!=credential||x.EventType!="CredentialRevoked"))
+    throw RevocationMissing();
+   var authorization=new AuthorizationService(db);
+   foreach(var fact in facts)
+    await authorization.RequireAsync(actor,"credential.revoke",new("credential",credential,
+     new(fact.OrganizationId,fact.ProjectId,fact.EnvironmentId)),token);
+   receipt=new(operation,credential,row.CommittedAt,row.Revision,"Unconfirmed",$"/api/v1/credential-revocations/{operation}",
+    facts.Select(fact=>new RevocationEnvironmentDto(fact.EnvironmentId,fact.SecurityGeneration,fact.Epoch,fact.EventHash)).ToArray(),[]);
+  },ct);
+  // The poll view exposes recorded targets. Full coverage requires independently
+  // reverified journal effects and current ingress isolation together.
+  return receipt! with
+  {
+   Targets=runtime.Targets.Select(target=>target with {State="Pending",Reason="independent_coverage_unverified"}).ToArray(),
+   CoverageGaps=[..runtime.CoverageGaps,new(null,null,"independent_coverage_unverified")]
+  };
+ }
+
+ private static ApiException RevocationMissing()=>new(404,"credential_revocation_not_found","找不到撤销操作。");
+
+ private async Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadAsync(Guid operation,Func<CancellationToken,Task>? authorize,CancellationToken ct)
  {
   // An inherited repeatable-read snapshot may have been fixed before a
   // concurrent authority change. This diagnostic reader owns its transaction;
@@ -19,6 +55,7 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
   // wait. Cooperative authority writers use the same global/environment lock
   // order. Deployment must also fence non-cooperative database writers.
   await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
+  if(authorize is not null) await authorize(ct);
   var environments=await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation).Select(x=>x.EnvironmentId)
    .Concat(db.Set<SecurityOperationTarget>().AsNoTracking().Where(x=>x.OperationId==operation).Select(x=>x.EnvironmentId))
    .Distinct().OrderBy(x=>x).ToArrayAsync(ct);
