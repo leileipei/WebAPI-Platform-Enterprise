@@ -9,6 +9,11 @@ case "$mode" in
   console) exec ./scripts/check-console.sh "$@" ;;
   *) echo 'Usage: check-contracts.sh domain|integration|gateway|console [test args]' >&2; exit 2 ;;
 esac
+case "${WEBAPI_CONTRACT_SPLIT_POSTGRES:-0}" in
+  0) ;;
+  1) [ "$mode" = integration ] || { echo 'PostgreSQL groups require the integration suite.' >&2; exit 2; } ;;
+  *) echo 'WEBAPI_CONTRACT_SPLIT_POSTGRES must be 0 or 1.' >&2; exit 2 ;;
+esac
 contract_node=${WEBAPI_NODE:-$(command -v node || true)}
 if [ -z "$contract_node" ]; then contract_node=/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node; fi
 [ -x "$contract_node" ] || { echo 'Set WEBAPI_NODE to an existing Node executable.' >&2; exit 3; }
@@ -23,6 +28,13 @@ export WEBAPI_CONTRACT_TEST_DIRECTORY="$PWD/.runtime/$WEBAPI_CONTRACT_TEST_PROJE
 mkdir -m 700 "$WEBAPI_CONTRACT_TEST_DIRECTORY"
 "$contract_node" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";fs.writeFileSync(process.env.WEBAPI_CONTRACT_TEST_DIRECTORY+"/postgres-password",crypto.randomBytes(32).toString("base64url"),{mode:0o600});'
 compose_args=(-p "$WEBAPI_CONTRACT_TEST_PROJECT" -f deploy/compose.test.yml -f deploy/compose.contracts-test.yml)
+postgres_services=(postgres)
+sdk_options=(--rm)
+if [ "${WEBAPI_CONTRACT_SPLIT_POSTGRES:-0}" = 1 ]; then
+  compose_args+=(-f deploy/compose.contracts-postgres-groups.yml)
+  postgres_services+=(postgres-security postgres-credential postgres-import)
+  sdk_options+=(-e WEBAPI_CONTRACT_SPLIT_POSTGRES=1)
+fi
 if [ -n "${WEBAPI_CONTRACT_TEST_SUBNET:-}" ]; then
   "$contract_node" --input-type=module -e 'import fs from "node:fs";const subnet=process.env.WEBAPI_CONTRACT_TEST_SUBNET;fs.writeFileSync(process.env.WEBAPI_CONTRACT_TEST_DIRECTORY+"/network.json",JSON.stringify({networks:{default:{ipam:{config:[{subnet}]}}}}),{mode:0o600});'
   compose_args+=(-f "$WEBAPI_CONTRACT_TEST_DIRECTORY/network.json")
@@ -62,8 +74,8 @@ cleanup(){
   exit "$prior"
 }
 trap cleanup EXIT
-compose up -d --wait postgres redis
-compose run --rm sdk bash -c '
+compose up -d --wait "${postgres_services[@]}" redis
+compose run "${sdk_options[@]}" sdk bash -c '
   set -euo pipefail
   mkdir -p /test-src /root/.nuget/packages
   tar --exclude=bin --exclude=obj --exclude=node_modules -cf - -C /workspace Directory.Build.props Directory.Packages.props WebApi.Enterprise.sln .config src tests third_party deploy scripts tools | tar -xf - -C /test-src

@@ -23,12 +23,17 @@ public sealed class ApiFixture : IAsyncDisposable
     private readonly LoginDiagnosticCollector? loginDiagnostics;
     private readonly Action<string>? diagnosticOutput;
     private int loginDiagnosticOrdinal;
-    public ApiFixture() { }
+    public ApiFixture() : this(ContractDatabaseGroup.Shared) { }
+    internal ApiFixture(ContractDatabaseGroup group) => Database = new PostgresDatabase(group);
     private readonly MigratedDatabaseTemplate? databaseTemplate;
-    public ApiFixture(MigratedDatabaseTemplate template) => databaseTemplate = template ?? throw new ArgumentNullException(nameof(template));
-    public static async Task<ApiFixture> CreateAsync(Func<ApiFixture, Task> initialize, MigratedDatabaseTemplate? template = null)
+    private ApiFixture(MigratedDatabaseTemplate? template, ContractDatabaseGroup group) : this(group) => databaseTemplate = template;
+    public ApiFixture(MigratedDatabaseTemplate template)
+        : this(template ?? throw new ArgumentNullException(nameof(template)), ContractDatabaseGroup.Shared) { }
+    public static Task<ApiFixture> CreateAsync(Func<ApiFixture, Task> initialize, MigratedDatabaseTemplate? template = null)
+        => CreateAsync(initialize, template, ContractDatabaseGroup.Shared);
+    internal static async Task<ApiFixture> CreateAsync(Func<ApiFixture, Task> initialize, MigratedDatabaseTemplate? template, ContractDatabaseGroup group)
     {
-        var fixture = template is null ? new ApiFixture() : new ApiFixture(template);
+        var fixture = new ApiFixture(template, group);
         try { await initialize(fixture); return fixture; }
         catch (Exception failure)
         {
@@ -37,13 +42,13 @@ public sealed class ApiFixture : IAsyncDisposable
             throw;
         }
     }
-    public ApiFixture(bool enableLoginDiagnostics,Action<string>? diagnosticOutput=null)
+    public ApiFixture(bool enableLoginDiagnostics,Action<string>? diagnosticOutput=null) : this()
     {
         if(!enableLoginDiagnostics)return;
         diagnosticAccessor=new HttpContextAccessor();loginDiagnostics=new(diagnosticAccessor);
         this.diagnosticOutput=diagnosticOutput??(Action<string>)Console.WriteLine;
     }
-    public PostgresDatabase Database { get; private set; } = new();
+    public PostgresDatabase Database { get; private set; }
     // Existing-account fixture. First-login tests explicitly set MustChangePassword and use real HTTP changes.
     public UserRecord User { get; } = new() { Username = "actor_"+Guid.NewGuid().ToString("N"), DisplayName="测试用户", SecurityStamp=Guid.NewGuid().ToString("N") };
     public string Password { get; } = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));

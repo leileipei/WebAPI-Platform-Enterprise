@@ -16,9 +16,15 @@ public sealed class MigratedDatabaseTemplate : IAsyncDisposable
     internal bool RetainsDatabase => database.RetainsDatabase;
     public string SchemaFingerprint { get; private set; } = "";
 
-    public MigratedDatabaseTemplate(bool retain = false) : this(db => db.Database.MigrateAsync(), retain) { }
+    public MigratedDatabaseTemplate(bool retain = false) : this(new PostgresDatabase(retain)) { }
+    internal MigratedDatabaseTemplate(ContractDatabaseGroup group) : this(new PostgresDatabase(group)) { }
     internal MigratedDatabaseTemplate(Func<WebApiDbContext, Task> migrate, bool retain = false)
-    { this.migrate = migrate; database = new PostgresDatabase(retain); }
+        : this(new PostgresDatabase(retain), migrate) { }
+    private MigratedDatabaseTemplate(PostgresDatabase database, Func<WebApiDbContext, Task>? migrate = null)
+    {
+        this.database = database;
+        this.migrate = migrate ?? (db => db.Database.MigrateAsync());
+    }
 
     public async Task InitializeAsync()
     {

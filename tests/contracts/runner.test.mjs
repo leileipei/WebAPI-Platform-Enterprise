@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 const root=path.resolve(import.meta.dirname,'../..');
-async function run({exit=0,foreign=false}={}){
+async function run({exit=0,foreign=false,mode='domain',split='0'}={}){
  const temp=await fs.mkdtemp(path.join(os.tmpdir(),'contract-runner-'));
  try{
   const capture=path.join(temp,'calls.json');
@@ -18,7 +18,7 @@ if(a[0]==='inspect'){console.log(JSON.stringify({'com.docker.compose.project':pr
 if(a.includes('ps'))console.log('owned-container');
 if(a.includes('run'))process.exit(Number(process.env.CONTRACT_TEST_EXIT));
 `,{mode:0o700});
-  const result=spawnSync('bash',[path.join(root,'scripts/check-contracts.sh'),'domain','--filter','ReaderTests'],{cwd:root,encoding:'utf8',env:{...process.env,PATH:temp+path.delimiter+process.env.PATH,WEBAPI_NODE:process.execPath,CONTRACT_TEST_CAPTURE:capture,CONTRACT_TEST_EXIT:String(exit),CONTRACT_TEST_FOREIGN:foreign?'1':'0'}});
+  const result=spawnSync('bash',[path.join(root,'scripts/check-contracts.sh'),mode,'--filter','ReaderTests'],{cwd:root,encoding:'utf8',env:{...process.env,PATH:temp+path.delimiter+process.env.PATH,WEBAPI_NODE:process.execPath,WEBAPI_CONTRACT_SPLIT_POSTGRES:split,CONTRACT_TEST_CAPTURE:capture,CONTRACT_TEST_EXIT:String(exit),CONTRACT_TEST_FOREIGN:foreign?'1':'0'}});
   return {status:result.status,stderr:result.stderr,calls:JSON.parse(await fs.readFile(capture,'utf8').catch(()=> '[]'))};
  } finally{await fs.rm(temp,{recursive:true,force:true});}
 }
@@ -40,4 +40,20 @@ test('foreign ownership prevents destructive cleanup',async()=>{
  assert(!r.calls.some(x=>x.includes('down')));
  // Remove only this test's empty private fixture directory, after the runner has retained it.
  const c=r.calls.find(x=>x[0]==='compose');if(c)await fs.rm(path.join(root,'.runtime',c[c.indexOf('-p')+1]),{recursive:true,force:true});
+});
+test('integration can use dedicated PostgreSQL services in the same owned project',async()=>{
+ const r=await run({mode:'integration',split:'1'});assert.equal(r.status,0,r.stderr);
+ const calls=r.calls.filter(args=>args[0]==='compose');
+ const up=calls.find(args=>args.includes('up'));
+ assert.deepEqual(up.slice(up.indexOf('--wait')+1),['postgres','postgres-security','postgres-credential','postgres-import','redis']);
+ const sdk=calls.find(args=>args.includes('run'));
+ assert(sdk.includes('WEBAPI_CONTRACT_SPLIT_POSTGRES=1'));
+ assert(sdk.includes('--filter')&&sdk.includes('ReaderTests'));
+ assert(calls.some(args=>args.includes('down')&&args.includes('--volumes')));
+ assert(calls.every(args=>args.includes('deploy/compose.contracts-postgres-groups.yml')));
+});
+test('database grouping rejects a non-integration suite and invalid values before starting Docker',async()=>{
+ for(const options of [{mode:'domain',split:'1'},{mode:'integration',split:'unexpected'}]){
+  const r=await run(options);assert.equal(r.status,2,r.stderr);assert.deepEqual(r.calls,[]);
+ }
 });

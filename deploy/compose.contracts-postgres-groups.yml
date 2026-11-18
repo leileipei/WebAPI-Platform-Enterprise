@@ -1,0 +1,26 @@
+services:
+  postgres-security:
+    extends:
+      file: compose.test.yml
+      service: postgres
+    volumes: [pg-security-test:/var/lib/postgresql/data]
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
+  postgres-credential:
+    extends:
+      file: compose.test.yml
+      service: postgres
+    volumes: [pg-credential-test:/var/lib/postgresql/data]
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
+  postgres-import:
+    extends:
+      file: compose.test.yml
+      service: postgres
+    volumes: [pg-import-test:/var/lib/postgresql/data]
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
+volumes:
+  pg-security-test:
+  pg-credential-test:
+  pg-import-test:

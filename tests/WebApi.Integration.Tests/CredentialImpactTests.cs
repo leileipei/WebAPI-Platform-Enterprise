@@ -19,7 +19,7 @@ public sealed class CredentialImpactTests
     private sealed class Clock:TimeProvider{public DateTimeOffset Now=DateTimeOffset.FromUnixTimeMilliseconds(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());public override DateTimeOffset GetUtcNow()=>Now;}
     private sealed class Fixture:IAsyncDisposable
     {
-        public readonly ApiFixture Api=new();public readonly Clock Time=new();public ApplicationCredential Key=null!;public ApplicationCredential? Other;
+        public readonly ApiFixture Api=new(ContractDatabaseGroup.CredentialImpact);public readonly Clock Time=new();public ApplicationCredential Key=null!;public ApplicationCredential? Other;
         public async Task InitializeAsync(bool replacement=false,bool published=false)
         {
             await Api.InitializeAsync(b=>b.Services.AddSingleton<TimeProvider>(Time));await Api.SeedConsumerAsync();using var login=await Api.LoginAsync();login.EnsureSuccessStatusCode();
