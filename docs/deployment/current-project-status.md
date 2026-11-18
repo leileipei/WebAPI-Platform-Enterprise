@@ -1,10 +1,31 @@
 # 当前源码与验证状态
 
-核对日期：2026-11-14。本页按固定提交分别记录主干与候选的验证状态；下文历史轮次仍绑定各自版本。源码合并不表示已更新原安装环境。
+核对日期：2026-11-18。本页按固定提交分别记录主干与候选的验证状态；下文历史轮次仍绑定各自版本。源码合并不表示已更新原安装环境。
 
 历史本地验证和“尚未公开”“未推送”等表述仍绑定`9d01066`及各轮具名输入时点；新增GitHub运行单列真实提交与运行号，不回填旧记录。实际发布及合并状态应核对本仓库PR和对应CI，历史失败、Unknown及累计保全incomplete不会因发布而解除。
 
-## 最新核对：PR #11 已合并，固定主干四项检查通过
+## 最新核对：PR #14、#15 已合并，main 复跑全部通过
+
+[PR #14](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/14) 将 `4acea080e073efe265cdbfc6a67e9f42a1eb79d2` 合并为 `287b0a3143f295d13a689e3e4a39f3a8b1c560b4`，实现凭证创建幂等与仅含元数据的秘密回执。同键同请求只创建一次，重试不再返回 Secret/API Key，并重新核对当前授权与应用状态。20并发、丢失响应、服务重启、冲突、权限变化、事务回滚与秘密边界已有真实 HTTP/PostgreSQL 回归。该批另修复网关记录测试与后台 Reporter 竞争消费队列的问题，原失败、复现及修复日志保留。
+
+[PR #15](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/15) 将 `62315349f1cefe447b7d14db694ee53bb6085729` 合并为当前已验证主线 `da230b6d464bde3e18c396c98fa5b90cb13ad31d`。新增12项真实治理撤权与创建重试的确定性并发测试：权限、角色、范围三类撤销，两个锁顺序，同进程及独立控制面进程。撤销先行必须拒绝；重试先行只返回无秘密元数据；撤销后旧键重试和新键创建均拒绝。临时把授权移到锁前的错误变体被6个撤销先行用例明确捕获，恢复原件后全量通过；错误变体未提交。
+
+以下各行是独立执行轮次，不能相加为一次测试总数：
+
+| 固定输入 | Console / Python | Domain | Gateway | Integration | 合计与结果 |
+| --- | --- | --- | --- | --- | --- |
+| PR #14 `4acea08` | [325 / 94](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44077460893) | 1251 | 576 | 2242 | [4488，0失败/跳过](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44077460762) |
+| 合并后 main `287b0a3` | [325 / 94](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44086235399) | 1251 | 576 | 2242 | [4488，0失败/跳过](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44086235878) |
+| PR #15 `6231534` | [325 / 94](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44137671249) | 1251 | 576 | 2254 | [4500，0失败/跳过](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44137671446) |
+| 合并后 main `da230b6` | [325 / 94](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44149215095) | 1251 | 576 | 2254 | [4500，0失败/跳过](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44149214904) |
+
+各轮前端类型检查与构建通过。PR #15对应源码在本机也完整执行4500项，零失败、零跳过；完整集成脚本用时1860.423秒。main复跑的集成测试摘要为59分48秒，脚本总时长与测试摘要是不同统计范围，不混用。测试阶段拆分及优化建议见[集成测试耗时分析](integration-test-timing-20261118.md)。
+
+主分支四项必需检查、严格同步、管理员保护及其他保护设置保持不变，未放宽产品期限、测试断言或跳过策略。合并后的测试分支引用已在可恢复备份验证后清理，工作区、两份stash、433项旧治理输入、3份G14状态及所有历史失败记录保留。通知恢复桥和性能对照分支保留为历史资料，不代表待直接合并的产品改动。
+
+凭证创建幂等、秘密回执和撤权/重试并发回归已经完成；独立安全证明与准入、即时撤销、正式轮换等旧治理运行链仍未开启。历史通知资格缺口、G14缺失原件及独立核验、历史CI失败的Unknown不因当前通过而解除。上述源码工作未部署到原安装环境，也不替代企业IdP、DNS/TLS/LB、容量/HA、真实上游或外部通知验收。
+
+## 历史：PR #11 已合并，固定主干四项检查通过
 
 [PR #11](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/11) 的 `51114608eb7fea5bda345ed8c5ea3ca52ce203e1` 于 2026-11-14 合并为 `48741be7904accce7795dce3827f2971e6de7847`。以下两轮分别实际执行，不能相加为一次测试总数：
 

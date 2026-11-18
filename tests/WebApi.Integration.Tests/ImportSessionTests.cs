@@ -11,7 +11,7 @@ using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
 namespace WebApi.Integration.Tests;
-public sealed class ImportSessionTests
+public sealed class ImportSessionTests(MigratedDatabaseTemplateFixture template) : IClassFixture<MigratedDatabaseTemplateFixture>
 {
     internal static object Input(ApiFixture f,string? text=null,object[]? files=null)=>new {projectId=f.Project.Id,environmentId=f.Environment.Id,clusterId=f.Cluster.Id,sourceText=text??ImportAndCredentialTests.Source,format="json",files};
     internal static async Task<ImportSessionDto> Preview(ApiFixture f,object? input=null)
@@ -19,13 +19,13 @@ public sealed class ImportSessionTests
         using var r=await f.WriteAsync(HttpMethod.Post,"/api/v1/openapi/import-previews",input??Input(f));Assert.True(r.IsSuccessStatusCode,await r.Content.ReadAsStringAsync());return(await r.Content.ReadFromJsonAsync<ImportSessionDto>())!;
     }
     internal static object Commit(ImportSessionDto p,string code="SESSION",object[]? targets=null)=>new {expectedBundleHash=p.BundleHash,targets=targets??[new {operationId="readOne",newApiCode=code,newApiName=code,version="1.0.0"}]};
-    internal static async Task<ApiFixture> Setup()
+    internal static async Task<ApiFixture> Setup(MigratedDatabaseTemplate? databaseTemplate=null)
     {
-        var f=new ApiFixture();await f.InitializeAsync();await f.SeedCatalogAsync();using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();return f;
+        return await ApiFixture.CreateAsync(async f=>{await f.InitializeAsync();await f.SeedCatalogAsync();using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();},databaseTemplate);
     }
     [Fact] public async Task TextAndYamlPreviewPersistSourcesAndDraftRoutes()
     {
-        await using var f=await Setup();var text="openapi: 3.1.0\ninfo: {title: Test, version: '1'}\npaths:\n  /yaml-session:\n    get:\n      operationId: readOne\n      responses: {'200': {description: ok}}\n";
+        await using var f=await Setup(template.Template);var text="openapi: 3.1.0\ninfo: {title: Test, version: '1'}\npaths:\n  /yaml-session:\n    get:\n      operationId: readOne\n      responses: {'200': {description: ok}}\n";
         var p=await Preview(f,new {projectId=f.Project.Id,environmentId=f.Environment.Id,clusterId=f.Cluster.Id,sourceText=text,format="yaml"});Assert.Single(p.Operations);Assert.Equal(0,p.SourcePolicyRevision);using(var get=await f.Client.GetAsync($"/api/v1/openapi/import-previews/{p.PreviewId}")){get.EnsureSuccessStatusCode();using var value=System.Text.Json.JsonDocument.Parse(await get.Content.ReadAsStringAsync());Assert.Equal("yaml",value.RootElement.GetProperty("sourceFormat").GetString());}
         using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));r.EnsureSuccessStatusCode();
         await using var db=f.Context();var version=await db.Set<ApiVersion>().SingleAsync(x=>x.ApiId!=f.Api.Id);Assert.Equal(text,version.OpenapiSource);Assert.Equal("yaml",version.SourceFormat);Assert.Equal("Draft",version.Status);Assert.Equal(p.BundleHash,(await db.Set<ApiVersionContractSources>().SingleAsync()).BundleHash);Assert.Equal("Committed",(await db.Set<ApiImportPreview>().SingleAsync()).Status);Assert.Single(await db.Set<RoutePolicyBinding>().ToArrayAsync());
@@ -67,7 +67,7 @@ public sealed class ImportSessionTests
     }
     [Fact] public async Task AttachedRecursiveSchemaIsKeptAsFiniteGraph()
     {
-        await using var f=await Setup();var text=ImportAndCredentialTests.Source.Replace("#/components/schemas/Order","schemas/order.json");var p=await Preview(f,Input(f,text,[new {name="schemas/order.json",content="{\"$id\":\"order.json\",\"type\":\"object\",\"properties\":{\"child\":{\"$ref\":\"order.json\"}}}",format="json"}]));Assert.All(p.Operations,x=>Assert.True(x.Supported));using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));r.EnsureSuccessStatusCode();await using var db=f.Context();Assert.Contains("schemas/order.json",(await db.Set<ApiVersionContractSources>().SingleAsync()).BundleJson);
+        await using var f=await Setup(template.Template);var text=ImportAndCredentialTests.Source.Replace("#/components/schemas/Order","schemas/order.json");var p=await Preview(f,Input(f,text,[new {name="schemas/order.json",content="{\"$id\":\"order.json\",\"type\":\"object\",\"properties\":{\"child\":{\"$ref\":\"order.json\"}}}",format="json"}]));Assert.All(p.Operations,x=>Assert.True(x.Supported));using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));r.EnsureSuccessStatusCode();await using var db=f.Context();Assert.Contains("schemas/order.json",(await db.Set<ApiVersionContractSources>().SingleAsync()).BundleJson);
     }
 
     [Fact] public async Task MidBatchRouteConflictLeavesNoPartialRows()
@@ -93,7 +93,7 @@ public sealed class ImportSessionTests
     }
     [Fact] public async Task ResponseHeaderParameterContentAndExamplesKeepReferenceBases()
     {
-        await using var f=await Setup();const string text="""
+        await using var f=await Setup(template.Template);const string text="""
         {"openapi":"3.1.0","info":{"title":"External","version":"1"},"paths":{"/external-body":{"get":{"operationId":"readOne","parameters":[{"$ref":"parts/param.json"}],"responses":{"2XX":{"$ref":"parts/response.json"}},"callbacks":{"notify":{"{$request.body#/callback}":{"post":{"responses":{"200":{"description":"ok"}}}}}}}}},"webhooks":{"hook":{"post":{"responses":{"200":{"description":"ok"}}}}}}
         """;
         object[] files=[new{name="parts/param.json",content="{\"name\":\"filter\",\"in\":\"query\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"schemas/filter.json\"}}}}",format="json"},new{name="parts/response.json",content="{\"description\":\"ok\",\"headers\":{\"X-Mode\":{\"schema\":{\"type\":\"string\"}}},\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"schemas/filter.json\"},\"examples\":{\"zero\":{\"value\":0},\"external\":{\"externalValue\":\"https://never-fetch.example/data\"}}}}}",format="json"},new{name="parts/schemas/filter.json",content="{\"type\":\"integer\"}",format="json"}];
@@ -101,12 +101,12 @@ public sealed class ImportSessionTests
     }
     [Fact] public async Task DeepDocumentWithinSemanticLimitPersistsInBundleEnvelope()
     {
-        await using var f=await Setup();System.Text.Json.Nodes.JsonNode schema=new System.Text.Json.Nodes.JsonObject{["type"]="integer"};for(var n=0;n<29;n++)schema=new System.Text.Json.Nodes.JsonObject{["type"]="object",["properties"]=new System.Text.Json.Nodes.JsonObject{["child"]=schema}};
+        await using var f=await Setup(template.Template);System.Text.Json.Nodes.JsonNode schema=new System.Text.Json.Nodes.JsonObject{["type"]="integer"};for(var n=0;n<29;n++)schema=new System.Text.Json.Nodes.JsonObject{["type"]="object",["properties"]=new System.Text.Json.Nodes.JsonObject{["child"]=schema}};
         var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;root["components"]!["schemas"]!["Order"]=schema;var text=root.ToJsonString(new System.Text.Json.JsonSerializerOptions{MaxDepth=64});var p=await Preview(f,Input(f,text));using var r=await f.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{p.PreviewId}/commit",Commit(p));r.EnsureSuccessStatusCode();
     }
     [Fact] public async Task EmbeddedSchemaIdsInExternalParameterAndResponseKeepScope()
     {
-        await using var f=await Setup();var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;root["paths"]!["/import/one"]!["get"]!["parameters"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["$ref"]="parts/param.json"});
+        await using var f=await Setup(template.Template);var root=System.Text.Json.Nodes.JsonNode.Parse(ImportAndCredentialTests.Source)!;root["paths"]!["/import/one"]!["get"]!["parameters"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["$ref"]="parts/param.json"});
         object[] files=[new{name="parts/param.json",content="{\"name\":\"nested\",\"in\":\"query\",\"schema\":{\"$id\":\"schemas/filter.json\",\"$ref\":\"#filter\",\"$defs\":{\"value\":{\"$anchor\":\"filter\",\"type\":\"integer\"}}}}",format="json"}];
         var p=await Preview(f,Input(f,root.ToJsonString(),files));Assert.True(p.Operations.Single(x=>x.OperationId=="readOne").Supported,string.Join(";",p.Operations.Single(x=>x.OperationId=="readOne").Warnings));
     }

@@ -6,11 +6,11 @@ using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
 namespace WebApi.Integration.Tests;
-public sealed class CatalogTests
+public sealed class CatalogTests(MigratedDatabaseTemplateFixture template) : IClassFixture<MigratedDatabaseTemplateFixture>
 {
     [Fact] public async Task SameShapeMethodsConflict()
     {
-        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
+        await using var api=new ApiFixture(template.Template);await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
         using var first=await api.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{api.Environment.Id}/routes",api.RouteBody("/orders/{id}"));Assert.Equal(HttpStatusCode.OK,first.StatusCode);
         using var duplicate=await api.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{api.Environment.Id}/routes",api.RouteBody("/orders/{code}"));Assert.Equal(HttpStatusCode.Conflict,duplicate.StatusCode);
         using var otherMethod=await api.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{api.Environment.Id}/routes",api.RouteBody("/orders/{code}","POST"));Assert.Equal(HttpStatusCode.OK,otherMethod.StatusCode);
@@ -26,7 +26,7 @@ public sealed class CatalogTests
     }
     [Fact] public async Task StaticRouteHasDeterministicPriority()
     {
-        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
+        await using var api=new ApiFixture(template.Template);await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
         using var dynamic=await api.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{api.Environment.Id}/routes",api.RouteBody("/orders/{id}"));Assert.Equal(HttpStatusCode.OK,dynamic.StatusCode);
         using var search=await api.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{api.Environment.Id}/routes",api.RouteBody("/orders/search"));Assert.Equal(HttpStatusCode.OK,search.StatusCode);
         var d=await dynamic.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();var s=await search.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();Assert.True(s.GetProperty("matchOrder").GetInt32()<d.GetProperty("matchOrder").GetInt32());
@@ -47,13 +47,13 @@ public sealed class CatalogTests
     }
     [Fact] public async Task LastDestinationProtected()
     {
-        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
+        await using var api=new ApiFixture(template.Template);await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
         using var result=await api.WriteAsync(HttpMethod.Delete,$"/api/v1/destinations/{api.Destination.Id}",etag:"\"1\"");Assert.Equal(HttpStatusCode.Conflict,result.StatusCode);
         await using var check=api.Context();Assert.Single(await check.Set<UpstreamDestination>().ToListAsync());
     }
     [Fact] public async Task EditingWorkingRouteLeavesPublishedSnapshotBytesUnchanged()
     {
-        await using var api=new ApiFixture();await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
+        await using var api=new ApiFixture(template.Template);await api.InitializeAsync();await api.SeedCatalogAsync();using var login=await api.LoginAsync();
         using var create=await api.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{api.Environment.Id}/routes",api.RouteBody("/old"));Assert.Equal(HttpStatusCode.OK,create.StatusCode);
         var bytes=Encoding.UTF8.GetBytes("{\"immutable\":true}");Guid routeId;
         await using(var db=api.Context()) {var config=new GatewayConfigVersion {EnvironmentId=api.Environment.Id,VersionNo=1,Status="Published",CreatedBy=api.User.Id};db.Add(config);db.Add(new GatewayConfigSnapshot {ConfigVersionId=config.Id,Payload=Encoding.UTF8.GetString(bytes),PayloadBytes=bytes,SizeBytes=bytes.Length});routeId=(await db.Set<ApiRoute>().SingleAsync()).Id;await db.SaveChangesAsync();}
