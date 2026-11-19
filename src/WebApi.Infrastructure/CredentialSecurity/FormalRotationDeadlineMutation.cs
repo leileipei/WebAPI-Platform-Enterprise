@@ -40,39 +40,51 @@ internal static class FormalRotationDeadlineMutation
         Func<WebApiDbContext, CancellationToken, Task<DateTimeOffset>> clock, CancellationToken ct)
     {
         var (plan, _, credential, application, environment) = await RequirePreparedScopeAsync(db, journal, intent, clock, ct);
-        CredentialRevocationMutation.RecordOperation(db, credential, application, intent.OperationId, plan.ActorId,
-            FormalRotationDeadlineIntent.Reason, plan.EventTime);
-        var fact = plan.Event(intent.OperationId);
-        await CredentialRevocationMutation.AppendRevocationAsync(db, environment, fact, plan.ApplicationId, plan.ActorId,
-            intent.OperationId, AuditAction, ct);
-        db.AddRange(plan.Targets.Select(target => target.ToRow(intent.OperationId, plan.EnvironmentId, plan.EventTime)));
+        await ApplyRevocationAsync(db, credential, application, environment, plan.Event(intent.OperationId), plan.ActorId,
+            FormalRotationDeadlineIntent.Reason, AuditAction, plan.Targets, ct);
     }
 
     internal static async Task<bool> VerifyAsync(WebApiDbContext db, GovernanceJournalId journal, GovernanceWriteIntent intent, CancellationToken ct)
     {
         var plan = FormalRotationDeadlineIntent.Read(intent);
         await ReadMatchingScheduleAsync(db, journal, intent, plan, ct);
-        var fact = plan.Event(intent.OperationId);
-        var ledger = await new SecurityLedgerReader(db).ReadCompleteLockedAsync(plan.EnvironmentId, ct);
-        if (!ledger.Events.Any(item => item.OperationId == intent.OperationId && item.EventHash == fact.EventHash) ||
-            !ledger.Revocations.Any(item => item.OperationId == intent.OperationId && item.CredentialId == plan.CredentialId && item.Epoch == fact.Epoch) ||
-            !await db.Set<SecurityOperation>().AnyAsync(item => item.Id == intent.OperationId && item.Kind == "CredentialRevoke" &&
-                item.OrganizationId == plan.OrganizationId && item.ApplicationId == plan.ApplicationId && item.CredentialId == plan.CredentialId &&
-                item.RequestedBy == plan.ActorId && item.Reason == FormalRotationDeadlineIntent.Reason && item.CommittedAt == plan.EventTime, ct) ||
-            !await db.Set<SecurityOutboxMessage>().AnyAsync(item => item.Id == intent.OperationId && item.OperationId == intent.OperationId &&
-                item.EnvironmentId == plan.EnvironmentId && item.SecurityGeneration == plan.SecurityGeneration &&
-                item.Epoch == fact.Epoch && item.CreatedAt == plan.EventTime, ct)) return false;
+        return await VerifyRevocationAsync(db, plan.Event(intent.OperationId), plan.ApplicationId, plan.ActorId,
+            FormalRotationDeadlineIntent.Reason, AuditAction, plan.Targets, ct);
+    }
 
-        var targets = await db.Set<SecurityOperationTarget>().AsNoTracking().Where(item => item.OperationId == intent.OperationId &&
-            item.EnvironmentId == plan.EnvironmentId).ToArrayAsync(ct);
-        if (!plan.Targets.All(target => targets.Any(item => item.NodeId == target.NodeId && item.InstanceGuid == target.InstanceId &&
+    internal static async Task ApplyRevocationAsync(WebApiDbContext db, ApplicationCredential credential, ApplicationRecord application,
+        EnvironmentRecord environment, SecurityEvent fact, Guid actorId, string reason, string auditAction,
+        FormalRotationDeadlineTarget[] targets, CancellationToken ct)
+    {
+        CredentialRevocationMutation.RecordOperation(db, credential, application, fact.OperationId, actorId, reason, fact.OccurredAt);
+        await CredentialRevocationMutation.AppendRevocationAsync(db, environment, fact, application.Id, actorId, fact.OperationId, auditAction, ct);
+        db.AddRange(targets.Select(target => target.ToRow(fact.OperationId, fact.EnvironmentId, fact.OccurredAt)));
+    }
+
+    internal static async Task<bool> VerifyRevocationAsync(WebApiDbContext db, SecurityEvent fact, Guid applicationId,
+        Guid actorId, string reason, string auditAction, FormalRotationDeadlineTarget[] expectedTargets, CancellationToken ct)
+    {
+        var ledger = await new SecurityLedgerReader(db).ReadCompleteLockedAsync(fact.EnvironmentId, ct);
+        if (!ledger.Events.Any(item => item.OperationId == fact.OperationId && item.EventHash == fact.EventHash) ||
+            !ledger.Revocations.Any(item => item.OperationId == fact.OperationId && item.CredentialId == fact.CredentialId && item.Epoch == fact.Epoch) ||
+            !await db.Set<SecurityOperation>().AnyAsync(item => item.Id == fact.OperationId && item.Kind == "CredentialRevoke" &&
+                item.OrganizationId == fact.OrganizationId && item.ApplicationId == applicationId && item.CredentialId == fact.CredentialId &&
+                item.RequestedBy == actorId && item.Reason == reason && item.CommittedAt == fact.OccurredAt, ct) ||
+            !await db.Set<SecurityOutboxMessage>().AnyAsync(item => item.Id == fact.OperationId && item.OperationId == fact.OperationId &&
+                item.EnvironmentId == fact.EnvironmentId && item.SecurityGeneration == fact.SecurityGeneration &&
+                item.Epoch == fact.Epoch && item.CreatedAt == fact.OccurredAt, ct)) return false;
+
+        var targets = await db.Set<SecurityOperationTarget>().AsNoTracking().Where(item => item.OperationId == fact.OperationId &&
+            item.EnvironmentId == fact.EnvironmentId).ToArrayAsync(ct);
+        if (!expectedTargets.All(target => targets.Any(item => item.NodeId == target.NodeId && item.InstanceGuid == target.InstanceId &&
                 item.ChallengeNonce == target.ChallengeNonce && item.ProtocolSupportedAtFreeze == target.ProtocolSupported &&
-                item.CreatedAt == plan.EventTime && (target.LastLeaseUntil is null || item.LastLeaseUntil >= target.LastLeaseUntil))))
+                item.CreatedAt == fact.OccurredAt && (target.LastLeaseUntil is null || item.LastLeaseUntil >= target.LastLeaseUntil))))
             return false;
 
-        var audit = await db.Set<AuditLog>().Where(item => item.Action == AuditAction && item.UserId == plan.ActorId &&
-                item.OrganizationId == plan.OrganizationId && item.ProjectId == plan.ProjectId && item.EnvironmentId == plan.EnvironmentId &&
-                item.ResourceType == "credential" && item.ResourceId == plan.CredentialId.ToString() && item.CreatedAt == plan.EventTime)
+        var resourceId = fact.CredentialId!.Value.ToString();
+        var audit = await db.Set<AuditLog>().Where(item => item.Action == auditAction && item.UserId == actorId &&
+                item.OrganizationId == fact.OrganizationId && item.ProjectId == fact.ProjectId && item.EnvironmentId == fact.EnvironmentId &&
+                item.ResourceType == "credential" && item.ResourceId == resourceId && item.CreatedAt == fact.OccurredAt)
             .Select(item => item.AfterJson).ToArrayAsync(ct);
         return audit.Any(item => FormalRotationMutation.AuditMatches(item, CredentialRevocationMutation.AuditFact(fact)));
     }
@@ -116,7 +128,7 @@ internal static class FormalRotationDeadlineMutation
         return schedule;
     }
 
-    private static async Task<FormalRotationDeadlineTarget[]> ReadTargetsAsync(WebApiDbContext db, Guid environmentId,
+    internal static async Task<FormalRotationDeadlineTarget[]> ReadTargetsAsync(WebApiDbContext db, Guid environmentId,
         FormalRotationScheduleIntent schedule, CancellationToken ct)
     {
         var nodes = await db.Set<GatewayNode>().AsNoTracking().Where(node => node.EnvironmentId == environmentId && node.Enabled).ToArrayAsync(ct);

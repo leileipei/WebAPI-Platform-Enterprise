@@ -13,6 +13,7 @@ internal static class FormalRotationJournalIntent
 {
     internal const string Schedule = "FormalRotationSchedule";
     internal const string DeadlineRevocation = "FormalRotationDeadlineRevocation";
+    internal const string Decision = "FormalRotationDecision";
 
     private static readonly JsonSerializerOptions Strict = new(CanonicalJson.Options)
     {
@@ -30,7 +31,7 @@ internal static class FormalRotationJournalIntent
                 new JsonDocumentOptions { MaxDepth = Strict.MaxDepth });
             if (json.RootElement.ValueKind != JsonValueKind.Object) throw Invalid();
             if (!json.RootElement.TryGetProperty("kind", out var kind)) return null;
-            return kind.GetString() is Schedule or DeadlineRevocation ? kind.GetString() : throw Invalid();
+            return kind.GetString() is Schedule or DeadlineRevocation or Decision ? kind.GetString() : throw Invalid();
         }
         catch (Exception error) when (error is FormatException or JsonException or InvalidOperationException) { throw Invalid(); }
     }

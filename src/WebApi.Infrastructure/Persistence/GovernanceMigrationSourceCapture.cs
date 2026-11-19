@@ -9,7 +9,7 @@ namespace WebApi.Infrastructure.Persistence;
 /// <summary>Captures source shape for review; it does not attest deployment history or gateway state.</summary>
 public static class GovernanceMigrationSourceCapture
 {
-    private const int LastSupportedMainlineIndex = 21;
+    internal const int LastSupportedMainlineIndex = 21;
 
     public static async Task CaptureAsync(WebApiDbContext db, CancellationToken ct = default)
     {

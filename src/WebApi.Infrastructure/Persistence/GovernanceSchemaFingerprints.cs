@@ -47,6 +47,7 @@ internal static class GovernanceSchemaFingerprints
         ["20261118130000_CredentialGovernanceJournal"] = "c74639ddb36def9e61b123bd70e58647c84306431bbf3a33f7d77479f4f5a705",
         ["20261119123000_LegacyGlobalRevocationInheritance"] = "e27916f774c0798661f069145ba10f96611c575ef53f77580b4067c29ee1f60f",
         ["20261119140000_FormalCredentialRotation"] = "ebcfb6d59e33e69c00d447897f707b3b874b7bbbac1a5e3b499f7816fdbbfec0",
+        ["20261119150000_FormalRotationDecision"] = "32a2230df07e54a40c3233c265c71abbb65fed42aacc7d9776f0245acba5e677",
     };
 
     internal const string Query = """

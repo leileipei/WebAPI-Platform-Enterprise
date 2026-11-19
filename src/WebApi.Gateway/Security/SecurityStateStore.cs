@@ -33,6 +33,15 @@ public sealed class SecurityStateStore(SecurityNodeAudience audience,ISecurityLk
  public long? CurrentEpoch=>Volatile.Read(ref current)?.Checkpoint.Payload.Epoch;
  public VerifiedCheckpoint? CurrentCheckpoint=>Volatile.Read(ref current)?.Checkpoint;
  public Task<SecurityAdmissionGate.Ticket> EnterAdmissionAsync(CancellationToken ct=default)=>admission.EnterReadAsync(ct);
+ // Read the same checkpoint and lease that allowed the request, while its admission ticket is held.
+ internal FormalRotationLease? CaptureFormalRotationLease()
+ {
+  var state=Volatile.Read(ref current);
+  if(state?.Lease is not { } lease)return null;
+  var grant=lease.Payload;
+  return new(grant.EnvironmentId,grant.NodeId,grant.InstanceId,grant.SecurityGeneration,grant.Epoch,
+   state.Checkpoint.Payload.HeadHash,grant.LeaseId);
+ }
  public bool CanUseSnapshot(RuntimeSnapshot snapshot)
  {
   var state=Volatile.Read(ref current);

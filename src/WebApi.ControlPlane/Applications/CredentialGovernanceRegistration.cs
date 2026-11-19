@@ -96,7 +96,7 @@ public static class CredentialGovernanceRegistration
             var horizon = sp.GetService<IFormalRotationLeaseHorizonWitness>() ?? throw CredentialGovernanceEndpoints.Unavailable();
             var clients = sp.GetRequiredService<WitnessOwner>().Clients;
             return new(ConnectionString(sp), clients.JournalId, clients.FormalRotationWitness, coverage, horizon,
-                sp.GetService<ICredentialArchivedIngressWitness>());
+                sp.GetService<ICredentialArchivedIngressWitness>(), sp.GetService<IFormalRotationRequestProofWitness>());
         });
         return services;
     }

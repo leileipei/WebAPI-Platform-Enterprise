@@ -10,10 +10,11 @@ using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Policies;
+using WebApi.Infrastructure.Releases;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Delivery;
 internal sealed record PromotionRouteState(PromotionRouteMapping Mapping,Guid? PreparedRouteId=null,IReadOnlyList<Guid>? PrivatePolicyIds=null,long PreparedRevision=0);
-public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver scopes,AuthorizationService auth,ReleaseArtifactService artifacts,PolicyAccess policyAccess,PromotionCredentialSelection credentials,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks,DeliveryGateContextResolver gates)
+public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver scopes,AuthorizationService auth,ReleaseArtifactService artifacts,PolicyAccess policyAccess,PromotionCredentialSelection credentials,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,DeliveryLockCoordinator locks,DeliveryGateContextResolver gates,PublishSettings settings)
 {
  internal static ApiException Invalid()=>new(422,"invalid_promotion_mapping","映射须完整且引用本项目目标环境的有效资源与制品策略槽位。");
  internal static ApiException NotDraft()=>new(409,"promotion_not_draft","只有草稿晋级可编辑或准备映射。");
@@ -45,7 +46,11 @@ public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver sco
   if(request.Routes.Count!=content.Routes.Count||request.Routes.Count>1000||request.Routes.Select(r=>r.ArtifactRouteKey).Distinct().Count()!=request.Routes.Count||request.Applications.Count>1000||request.Applications.Select(a=>a.ApplicationId).Distinct().Count()!=request.Applications.Count)throw Invalid();
   var scope=await scopes.EnvironmentAsync(p.TargetEnvironmentId,ct);
   foreach(var route in request.Routes){var source=content.Routes.SingleOrDefault(r=>r.Key==route.ArtifactRouteKey)??throw Invalid();if(route.TimeoutMs is <1 or >300000||!await db.Set<UpstreamCluster>().AnyAsync(c=>c.Id==route.ClusterId&&c.EnvironmentId==p.TargetEnvironmentId&&c.ProjectId==p.ProjectId&&c.Status=="Active",ct))throw Invalid();await auth.RequireAsync(actor,"cluster.read",new("cluster",route.ClusterId,scope),ct);
-   if(route.TargetRouteId is Guid id)await RequireMatchingRouteAsync(id,p,source,actor,ct);
+   var actual = route.TargetRouteId is Guid id ? await RequireMatchingRouteAsync(id,p,source,actor,ct) : null;
+   if (settings.EnablesGovernanceSnapshot24(p.TargetEnvironmentId) && source.Enabled && source.AuthenticationMode != "Anonymous" &&
+       (actual is null || actual.ApiVersionId != source.VersionId || actual.Path != source.Path ||
+        !actual.Methods.SequenceEqual(source.Methods.Order(StringComparer.Ordinal)) || actual.AuthenticationMode != source.AuthenticationMode))
+       throw new ApiException(409, "governance_promotion_target_route_required", "请先在目标环境准备相同版本、路径、方法和认证模式的路由，并授权其当前修订。");
    if(route.Policies.Count!=source.Policies.Count||route.Policies.Select(x=>(x.Type,x.Priority)).Distinct().Count()!=route.Policies.Count)throw Invalid();
    if(source.Policies.Count>0)await auth.RequireAsync(actor,"policy.write",new("environment",p.TargetEnvironmentId,scope),ct);
    foreach(var template in source.Policies){var mapping=route.Policies.SingleOrDefault(x=>x.Type==template.Type&&x.Priority==template.Priority)??throw Invalid();await ResolvePolicyAsync(p,template,mapping,actor,ct);}

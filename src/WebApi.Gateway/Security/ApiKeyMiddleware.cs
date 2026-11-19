@@ -11,7 +11,8 @@ using WebApi.Infrastructure.Security;
 
 namespace WebApi.Gateway.Security;
 
-public sealed class ApiKeyMiddleware(RequestDelegate next, IGovernanceAdmissionStateProvider? governance = null)
+public sealed class ApiKeyMiddleware(RequestDelegate next, IGovernanceAdmissionStateProvider? governance = null,
+    IFormalRotationRequestProofSink? rotationProofs = null)
 {
     public static readonly object GenerationItem = new();
     private sealed record Rejection(int Status, string Code, bool Bearer = false);
@@ -71,6 +72,14 @@ public sealed class ApiKeyMiddleware(RequestDelegate next, IGovernanceAdmissionS
                 var final = state.CanAdmit(usedCredential?.Id ?? Guid.Empty, now);
                 if (final == SecurityAdmissionDecision.KnownRevoked) rejection = InvalidApiKey;
                 else if (!snapshotAllowed || !providerCurrent || final != SecurityAdmissionDecision.Allow) rejection = SecurityUnavailable;
+
+                if (rotationProofs is not null && rejection is null && mode == AuthenticationMode.ApiKey &&
+                    snapshot.SchemaVersion == "2.4" && usedCredential is not null && app is not null && usedWindow is not null &&
+                    state.CaptureFormalRotationLease() is { } lease)
+                {
+                    execution.FormalRotationAdmission = new(lease, usedCredential.Id, app.Id, route.Id, ctx.Request.Method,
+                        generation.Envelope, now, ctx.RequestAborted);
+                }
             }
         }
         else

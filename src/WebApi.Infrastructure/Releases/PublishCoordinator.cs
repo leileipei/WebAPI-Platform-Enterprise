@@ -27,6 +27,7 @@ public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSecond
 public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution,ReleaseCandidateBuilder candidates,GatewayPolicyDeploymentRules? deployment=null)
 {
     private readonly GatewayPolicyDeploymentRules bodyLimits=deployment??new();
+    private readonly GovernedRollbackCandidate governedRollback = new(history, candidates, compiler);
     private void ValidateBodyPolicies(RuntimeSnapshot snapshot)
     {foreach(var policy in snapshot.Policies.Where(p=>p.Type=="transform")) bodyLimits.Validate(policy.Type,policy.Config);}
     public async Task<ReleaseDto> StartAsync(Guid id,ActorContext actor,CancellationToken ct=default)
@@ -63,7 +64,13 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
         await auth.RequireAsync(actor,"release.publish",new("environment",r.EnvironmentId,scope),ct);
         if(r.ReleaseType=="publish"&&r.PromotionId is Guid promotionId&&await db.Set<WebApi.Infrastructure.Persistence.Entities.ReleasePromotion>().AsNoTracking().AnyAsync(p=>p.Id==promotionId&&p.GateOrigin=="PipelineRunStage",ct))await auth.RequireAsync(actor,"pipeline.run",new("environment",r.EnvironmentId,scope),ct);
         if(r.ApprovalPolicy is null) return;
-        foreach(var version in Candidate(r).Versions)
+        var candidate = Candidate(r);
+        if (candidate.GovernedRollback is not null)
+        {
+            await auth.RequireAsync(actor, "release.rollback", new("release", r.Id, scope), ct);
+            await auth.RequireAsync(actor, "gateway.config.read", new("environment", r.EnvironmentId, scope), ct);
+        }
+        foreach(var version in candidate.Versions)
         {var actual=await scopes.ApiAsync(version.Api.Id,ct);if(actual.OrganizationId!=scope.OrganizationId||actual.ProjectId!=scope.ProjectId) throw new ApiException(409,"candidate_scope_changed","候选资源范围已变化。");await auth.RequireAsync(actor,"release.publish",new("api",version.Api.Id,actual with {EnvironmentId=r.EnvironmentId}),ct);}
     }
     private async Task VerifyVersionsAsync(ReleaseRecord r,CancellationToken ct)
@@ -85,7 +92,7 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
     private async Task<string> TargetSchemaAsync(ReleaseRecord release,EnvironmentRecord environment,CancellationToken ct)
     {
         var frozen=Candidate(release);
-        if(release.ReleaseType is "rollback" or "retry")
+        if(release.ReleaseType is ("rollback" or "retry") && frozen.GovernedRollback is null)
         {
             var artifact=await history.ReadAsync(release.EnvironmentId,release.ToConfigVersion,ct);
             await RequireHistoricalDeliveryAsync(environment,artifact.Snapshot,ct);
@@ -106,11 +113,22 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
     {
         if (frozen.Governance is null)
         {
-            if (settings.EnablesGovernanceSnapshot24(env.Id)) throw ReleaseCandidateBuilder.GovernanceRequired();
+            if (settings.EnablesGovernanceSnapshot24(env.Id) || frozen.GovernedRollback is not null)
+                throw ReleaseCandidateBuilder.GovernanceRequired();
             return;
         }
-        if (!settings.EnablesGovernanceSnapshot24(env.Id) || release.ApprovalPolicy is null || release.PromotionId is not null)
+        if (!settings.EnablesGovernanceSnapshot24(env.Id) || release.ApprovalPolicy is null)
             throw ReleaseCandidateBuilder.GovernanceRequired();
+
+        if (frozen.GovernedRollback is not null)
+        {
+            await governedRollback.RequireCurrentAsync(release, env, frozen, ct);
+            return;
+        }
+        // The execution guard already rebuilt the exact promotion mapping and checked
+        // its reviewed candidate hash in this transaction. A general publish preview
+        // would include working grants outside the explicitly approved mapping.
+        if (release.ReleaseType == "publish" && release.PromotionId is not null) return;
 
         var current = await candidates.PreviewAsync(env.Id,new(release.BaselineConfigVersion,frozen.VersionIds),ct);
         var rebuilt = CanonicalJson.Serialize(current with { RiskReviewReferences = frozen.RiskReviewReferences });
@@ -159,8 +177,9 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==r.EnvironmentId,ct);var baseline=new RuntimeSnapshot("2.0",env.Id,0,DateTimeOffset.UtcNow,[],[],[],[]);
             if(r.BaselineConfigVersion>0) baseline=(await history.ReadAsync(env.Id,r.BaselineConfigVersion,ct)).Snapshot;
             var next=(await db.Set<GatewayConfigVersion>().Where(v=>v.EnvironmentId==env.Id).Select(v=>(long?)v.VersionNo).MaxAsync(ct)??0)+1;var frozen=Candidate(r);CompiledSnapshot compiled;
+            var historicalDelivery = r.ReleaseType is ("rollback" or "retry") && frozen.GovernedRollback is null;
             RuntimeSnapshot? historical = null;
-            if(r.ReleaseType is "rollback" or "retry") {next=r.ToConfigVersion;var artifact=await history.ReadAsync(env.Id,next,ct);historical=artifact.Snapshot;compiled=new(artifact.Payload,artifact.Hash,artifact.Size);}
+            if(historicalDelivery) {next=r.ToConfigVersion;var artifact=await history.ReadAsync(env.Id,next,ct);historical=artifact.Snapshot;compiled=new(artifact.Payload,artifact.Hash,artifact.Size);}
             else
             {
                 await RequireFrozenGovernanceAsync(r,frozen,env,ct);
@@ -174,9 +193,9 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
                 await ReleaseCandidateBuilder.RequireLegacyApplicationsAsync(db,frozen.Applications,ct);
             }
             SnapshotSchemaCapabilities.RequireSupported(nodes,schema);
-            if(r.ReleaseType is not ("rollback" or "retry")) {var config=new GatewayConfigVersion {EnvironmentId=env.Id,VersionNo=next,Status="Publishing",CreatedBy=publisher,SnapshotHash=compiled.Hash};config.SnapshotKey=$"environment/{env.Id}/snapshot/{next}";db.Add(config);db.Add(new GatewayConfigSnapshot {ConfigVersionId=config.Id,PayloadBytes=compiled.Payload.ToArray(),Payload=Encoding.UTF8.GetString(compiled.Payload.Span),SizeBytes=compiled.Size});}
+            if(!historicalDelivery) {var config=new GatewayConfigVersion {EnvironmentId=env.Id,VersionNo=next,Status="Publishing",CreatedBy=publisher,SnapshotHash=compiled.Hash};config.SnapshotKey=$"environment/{env.Id}/snapshot/{next}";db.Add(config);db.Add(new GatewayConfigSnapshot {ConfigVersionId=config.Id,PayloadBytes=compiled.Payload.ToArray(),Payload=Encoding.UTF8.GetString(compiled.Payload.Span),SizeBytes=compiled.Size});}
             env.DeploymentSequence=checked(env.DeploymentSequence+1);env.DesiredConfigVersion=next;r.ToConfigVersion=next;r.DeploymentSequence=env.DeploymentSequence;r.Status="Publishing";r.DeadlineAt=DateTimeOffset.UtcNow.AddSeconds(settings.AckTimeoutSeconds);
-            if(r.ReleaseType=="publish")FrozenContractSource.Capture(db,r,frozen);
+            if(!historicalDelivery)FrozenContractSource.Capture(db,r,frozen);
             foreach(var node in nodes) {db.Add(new ReleaseTarget {ReleaseId=r.Id,NodeId=node.Id,InstanceId=node.InstanceId});node.TargetConfigVersion=next;}
             foreach(var v in frozen.Versions) {var version=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==v.Version.Id,ct);version.SealedAt??=DateTimeOffset.UtcNow;version.Status="Publishing";}
             var message=new OutboxMessage {EnvironmentId=env.Id,ReleaseId=r.Id,DeploymentSequence=env.DeploymentSequence,EventType="desired_config"};message.Payload=JsonSerializer.Serialize(new DeploymentEvent(message.Id,env.Id,env.DeploymentSequence,r.Id,next),CanonicalJson.Options);db.Add(message);

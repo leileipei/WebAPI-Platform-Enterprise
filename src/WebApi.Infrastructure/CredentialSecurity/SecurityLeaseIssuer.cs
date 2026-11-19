@@ -88,7 +88,7 @@ public sealed class SecurityLeaseIssuer(WebApiDbContext db, NodeIdentityService 
             throw new ApiException(409, "gateway_security_capability_required", "当前节点实例未声明所需的快照及安全协议能力。");
         await RequireLiveConfigurationAsync(environment, node, authority, requires24, token);
 
-        var hardDeadline = await ReadOutstandingDeadlineAsync(authority, token);
+        var hardDeadline = await ReadOutstandingDeadlineAsync(authority, confirmed, token);
         var challenges = await ReadChallengesAsync(authority, node.Id, instanceId, token);
         var signer = signing.LoadSigner();
         var keys = signing.LoadTrustedKeys();
@@ -199,11 +199,14 @@ public sealed class SecurityLeaseIssuer(WebApiDbContext db, NodeIdentityService 
         catch (ApiException error) when (error.Status != 503) { throw Unavailable(); }
     }
 
-    private Task<DateTimeOffset?> ReadOutstandingDeadlineAsync(SecurityLedgerMaterial authority, CancellationToken ct)
+    private async Task<DateTimeOffset?> ReadOutstandingDeadlineAsync(SecurityLedgerMaterial authority, GovernanceContinuity confirmed,
+        CancellationToken ct)
     {
         var revoked = authority.Revocations.Select(item => item.CredentialId).ToArray();
-        return db.Set<FormalCredentialRotation>().AsNoTracking()
-            .Where(item => item.EnvironmentId == authority.EnvironmentId && !revoked.Contains(item.CredentialId))
+        var aborted = await FormalRotationDecisionMutation.ReadResolvedAbortsAsync(db, confirmed.Journal, confirmed.Position,
+            authority.EnvironmentId, ct);
+        return await db.Set<FormalCredentialRotation>().AsNoTracking()
+            .Where(item => item.EnvironmentId == authority.EnvironmentId && !revoked.Contains(item.CredentialId) && !aborted.Contains(item.Id))
             .MinAsync(item => (DateTimeOffset?)item.HardDeadline, ct);
     }
 

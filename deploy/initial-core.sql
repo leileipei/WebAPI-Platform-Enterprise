@@ -144,7 +144,8 @@ DECLARE
         '20261104090000_Governance24MigrationReceipts',
         '20261118130000_CredentialGovernanceJournal',
         '20261119123000_LegacyGlobalRevocationInheritance',
-        '20261119140000_FormalCredentialRotation'
+        '20261119140000_FormalCredentialRotation',
+        '20261119150000_FormalRotationDecision'
     ];
     expected_fingerprints CONSTANT text[] := ARRAY[
         'fe52425b83f9af0a549474b72f66d9fa289e21439476cad5c55b3915d186abf7',
@@ -185,7 +186,8 @@ DECLARE
         '22543989e453281197c4f6e4ca568823de70b528e7abfd55efc0cdde83302309',
         'c74639ddb36def9e61b123bd70e58647c84306431bbf3a33f7d77479f4f5a705',
         'e27916f774c0798661f069145ba10f96611c575ef53f77580b4067c29ee1f60f',
-        'ebcfb6d59e33e69c00d447897f707b3b874b7bbbac1a5e3b499f7816fdbbfec0'
+        'ebcfb6d59e33e69c00d447897f707b3b874b7bbbac1a5e3b499f7816fdbbfec0',
+        '32a2230df07e54a40c3233c265c71abbb65fed42aacc7d9776f0245acba5e677'
     ];
     applied text[] := ARRAY[]::text[];
     actual_fingerprint text;
@@ -7149,6 +7151,48 @@ BEGIN
 END $EF$;
 -- WEBAPI_MIGRATION_END 39
 
+-- WEBAPI_MIGRATION_START 40
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119150000_FormalRotationDecision') THEN
+CREATE TABLE public.formal_rotation_decisions (
+    id uuid NOT NULL,
+    schedule_id uuid NOT NULL,
+    kind text COLLATE "C" NOT NULL,
+    recorded_at timestamp with time zone NOT NULL,
+    intent_hash text NOT NULL,
+    CONSTRAINT "PK_formal_rotation_decisions" PRIMARY KEY (id),
+    CONSTRAINT "FK_formal_rotation_decisions_schedule" FOREIGN KEY (schedule_id)
+        REFERENCES public.formal_credential_rotations (id) ON DELETE RESTRICT,
+    CONSTRAINT ck_formal_rotation_decision CHECK (
+id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND kind IN ('Complete', 'AbortRequested', 'AbortConfirmed')
+AND pg_catalog.isfinite(recorded_at)
+AND intent_hash COLLATE "C" ~ '^[0-9a-f]{64}$'
+    )
+);
+CREATE UNIQUE INDEX "IX_formal_rotation_decisions_schedule_id_kind"
+    ON public.formal_rotation_decisions (schedule_id, kind);
+CREATE UNIQUE INDEX "IX_formal_rotation_decisions_schedule_complete_or_abort"
+    ON public.formal_rotation_decisions (schedule_id) WHERE kind IN ('Complete', 'AbortRequested');
+
+CREATE TRIGGER formal_rotation_decision_no_change BEFORE UPDATE OR DELETE ON public.formal_rotation_decisions
+    FOR EACH ROW EXECUTE FUNCTION public.formal_credential_rotation_immutable();
+CREATE TRIGGER formal_rotation_decision_no_truncate BEFORE TRUNCATE ON public.formal_rotation_decisions
+    FOR EACH STATEMENT EXECUTE FUNCTION public.formal_credential_rotation_immutable();
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119150000_FormalRotationDecision') THEN
+        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+        VALUES ('20261119150000_FormalRotationDecision', '10.0.12');
+    END IF;
+END $EF$;
+-- WEBAPI_MIGRATION_END 40
+
 
 
 DO $WEBAPI_MIGRATION_RECEIPT$
@@ -7181,7 +7225,7 @@ BEGIN
         historical_sql_hash,build_hash,recorded_at)
     VALUES(
         attempt,'Sql',NULLIF(pg_catalog.current_setting('webapi.migration_source_version'),''),
-        '20261119140000_FormalCredentialRotation',
+        '20261119150000_FormalRotationDecision',
         CASE WHEN cluster IS NULL OR database_oid IS NULL THEN 'Unknown' ELSE 'Observed' END,
         CASE WHEN database_oid IS NULL THEN NULL ELSE cluster END,
         CASE WHEN cluster IS NULL OR database_oid IS NULL THEN NULL ELSE pg_catalog.current_database() END,

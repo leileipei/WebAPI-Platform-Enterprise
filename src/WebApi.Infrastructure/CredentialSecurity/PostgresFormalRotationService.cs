@@ -10,9 +10,9 @@ using WebApi.Infrastructure.Security;
 
 namespace WebApi.Infrastructure.CredentialSecurity;
 
-public sealed class PostgresFormalRotationService(string connectionString, GovernanceJournalId journal,
+public sealed partial class PostgresFormalRotationService(string connectionString, GovernanceJournalId journal,
     IFormalRotationJournalWitness witness, ICredentialRevocationCoverage coverage, IFormalRotationLeaseHorizonWitness? horizon,
-    ICredentialArchivedIngressWitness? archive = null)
+    ICredentialArchivedIngressWitness? archive = null, IFormalRotationRequestProofWitness? requestProofs = null)
 {
     private const int MaximumDuePerPass = 32;
     internal Func<WebApiDbContext, CancellationToken, Task<DateTimeOffset>> DeadlineClock { get; init; } = SecurityDatabaseClock.ObserveAsync;
@@ -37,7 +37,7 @@ public sealed class PostgresFormalRotationService(string connectionString, Gover
         var preparation = new PostgresFormalRotationPreparation(connectionString, journal, coverage, horizon);
         var mutation = new FormalRotationMutation(actor, coverage, requireSession, archive, preparation, journal);
         var store = new PostgresGovernanceCommitStore(connectionString, mutation);
-        var coordinator = new GovernanceCommitCoordinator(journal, store, witness, PrepareOrderedAsync);
+        var coordinator = new GovernanceCommitCoordinator(journal, store, witness, PrepareOrderedAsync, RequireRecoveredPreparationAsync);
 
         Task<GovernanceWriteIntent> PlanAsync() => store.InspectAsync(journal, operationId, async (db, local, saved, token) =>
         {
@@ -49,7 +49,7 @@ public sealed class PostgresFormalRotationService(string connectionString, Gover
 
             var preview = await preparation.ReadPreviewAsync(db, local, credentialId, window, ifMatch, actor, requireSession, token);
             if (preview.PreviewHash != request.PreviewHash) throw Changed();
-            await FormalRotationMutation.RequireNoScheduleAsync(db, credentialId, replacementId, token);
+            await FormalRotationMutation.RequireNoScheduleAsync(db, journal, local.Position, credentialId, replacementId, token);
             var credential = await db.Set<ApplicationCredential>().AsNoTracking().SingleAsync(item => item.Id == credentialId, token);
             var now = await SecurityDatabaseClock.ObserveAsync(db, token);
             var plan = new FormalRotationScheduleIntent(credentialId, preview.ApplicationId, actor.UserId, credential.OrganizationId,
@@ -90,31 +90,24 @@ public sealed class PostgresFormalRotationService(string connectionString, Gover
         var store = new PostgresGovernanceCommitStore(connectionString, mutation);
         return store.InspectAsync(journal, rotationId, async (db, local, saved, token) =>
         {
-            if (saved is null || FormalRotationJournalIntent.Kind(saved) != FormalRotationJournalIntent.Schedule)
-                throw new ApiException(404, "formal_rotation_not_found", "找不到正式轮换。");
-            var schedule = FormalRotationScheduleIntent.Read(saved);
-            await mutation.AuthorizeScheduleAsync(db, schedule, token);
-            var observed = await witness.ObserveAsync(journal, rotationId, token);
-            RequireContinuous(local, observed);
-            if (observed.OperationConfirmation != new GovernanceOperationConfirmation(rotationId, GovernanceJournalProtocol.NextPosition(journal, saved)))
-                throw PostgresFormalRotationPreparation.EvidenceUnavailable();
-            var ledger = await new SecurityLedgerReader(db).ReadCompleteLockedAsync(schedule.Window.EnvironmentId, token);
-            var revocationId = ledger.Revocations.SingleOrDefault(item => item.CredentialId == schedule.CredentialId)?.OperationId;
-            return schedule.Receipt(rotationId, revocationId, replayed);
+            var schedule = await RequireObservedScheduleAsync(db, rotationId, local, saved, mutation, token);
+            return await ReadCurrentReceiptAsync(db, rotationId, local.Position, schedule, replayed, token);
         }, ct);
     }
 
     public async Task<int> RevokeDueAsync(CancellationToken ct = default)
     {
-        var mutation = new FormalRotationMutation(null, coverage, archive: archive, journal: journal, deadlineClock: DeadlineClock);
+        var decisions = new FormalRotationDecisionMutation(journal, coverage, requestProofs, DeadlineClock);
+        var mutation = new FormalRotationMutation(null, coverage, archive: archive, journal: journal, deadlineClock: DeadlineClock,
+            decisionMutation: decisions);
         var store = new PostgresGovernanceCommitStore(connectionString, mutation);
-        var coordinator = new GovernanceCommitCoordinator(journal, store, witness, PrepareOrderedAsync);
+        var coordinator = new GovernanceCommitCoordinator(journal, store, witness, PrepareOrderedAsync, RequireRecoveredPreparationAsync);
         var recoveredDeadline = false;
         if (!await coordinator.RecoverSelectedAsync(intent =>
             {
                 var kind = FormalRotationJournalIntent.Kind(intent);
                 recoveredDeadline = kind == FormalRotationJournalIntent.DeadlineRevocation;
-                return recoveredDeadline || kind == FormalRotationJournalIntent.Schedule;
+                return recoveredDeadline || kind is FormalRotationJournalIntent.Schedule or FormalRotationJournalIntent.Decision;
             }, ct)) return 0;
         var applied = recoveredDeadline ? 1 : 0;
 
@@ -125,24 +118,35 @@ public sealed class PostgresFormalRotationService(string connectionString, Gover
                 RequireContinuous(local, await witness.ObserveAsync(journal, null, token));
                 var now = await DeadlineClock(db, token);
                 if (!FormalRotationJournalIntent.Instant(now)) throw FormalRotationJournalIntent.Invalid();
+                var aborted = await FormalRotationDecisionMutation.ReadResolvedAbortsAsync(db, journal, local.Position, null, token);
                 var row = await db.Set<FormalCredentialRotation>().AsNoTracking().Where(item => item.HardDeadline <= now &&
+                        !aborted.Contains(item.Id) &&
                         !db.Set<CredentialRevocation>().Any(revoked => revoked.EnvironmentId == item.EnvironmentId &&
                             revoked.CredentialId == item.CredentialId))
                     .OrderBy(item => item.HardDeadline).ThenBy(item => item.Id).FirstOrDefaultAsync(token);
-                return row is null ? null : await FormalRotationDeadlineMutation.PlanAsync(db, journal, local.Position, row, now, token);
+                return row is null ? await FindAbortToConfirmAsync(db, local.Position, decisions, now, token)
+                    : await FormalRotationDeadlineMutation.PlanAsync(db, journal, local.Position, row, now, token);
             }, ct);
             if (next is null) break;
-            if (await coordinator.ExecuteAsync(next, ct) == GovernanceCommitResult.Committed) applied++;
+            if (await coordinator.ExecuteAsync(next, ct) == GovernanceCommitResult.Committed &&
+                FormalRotationJournalIntent.Kind(next) == FormalRotationJournalIntent.DeadlineRevocation) applied++;
         }
         return applied;
     }
 
     private Task<GovernanceWitnessState> PrepareOrderedAsync(GovernanceWriteIntent intent, CancellationToken ct)
     {
-        if (FormalRotationJournalIntent.Kind(intent) == FormalRotationJournalIntent.Schedule)
+        var kind = FormalRotationJournalIntent.Kind(intent);
+        if (kind == FormalRotationJournalIntent.Schedule)
         {
             var plan = FormalRotationScheduleIntent.Read(intent);
             return witness.PrepareFormalRotationAsync(journal, intent, plan.Window.EnvironmentId, plan.Window.HardDeadline, ct);
+        }
+        if (kind == FormalRotationJournalIntent.Decision)
+        {
+            var plan = FormalRotationDecisionIntent.Read(intent);
+            return witness.PrepareFormalRotationDecisionAsync(journal, intent, plan.ScheduleId, plan.EnvironmentId, plan.HardDeadline,
+                plan.Decision, ct);
         }
         var due = FormalRotationDeadlineIntent.Read(intent);
         return witness.PrepareFormalRotationRevocationAsync(journal, intent, due.ScheduleId, due.EnvironmentId, due.HardDeadline, ct);
@@ -153,6 +157,9 @@ public sealed class PostgresFormalRotationService(string connectionString, Gover
         if (local.AwaitingConfirmation is not null || observed.Pending is not null || local.Position != observed.Confirmed)
             throw PostgresFormalRotationPreparation.EvidenceUnavailable();
     }
+
+    private Task RequireRecoveredPreparationAsync(GovernanceWriteIntent intent, GovernanceWitnessState observed, CancellationToken ct) =>
+        FormalRotationDecisionMutation.RequireRecoveredPreparationAsync(journal, witness, intent, observed, ct);
 
     internal static ApiException Changed() =>
         new(409, "formal_rotation_changed", "轮换信息或已登记的决定有变更，请重新核对。");

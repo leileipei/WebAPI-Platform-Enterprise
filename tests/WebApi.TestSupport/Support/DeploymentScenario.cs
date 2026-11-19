@@ -37,5 +37,11 @@ public sealed class DeploymentScenario : IAsyncDisposable
     {var desired=await DesiredAsync(id);for(var i=0;i<2;i++) {using var ack=await NodeAsync(i,$"/internal/v1/nodes/{NodeIds[i]}/ack",new NodeAck(Instances[i],id,desired.Envelope.ConfigVersion,desired.Envelope.DeploymentSequence,desired.Envelope.PayloadHash,DateTimeOffset.UtcNow,true,null));ack.EnsureSuccessStatusCode();}}
     public async Task<Guid> PublishAsync(bool acknowledge=true) {var id=await ReadyAsync();await BuildAsync(id);if(acknowledge) await AckAllAsync(id);return id;}
     public async Task<HttpResponseMessage> NodeAsync(int i,string path,object body) {using var request=new HttpRequestMessage(HttpMethod.Post,path) {Content=JsonContent.Create(body)};request.Headers.Authorization=new("Bearer",secrets[i]);return await Api.Client.SendAsync(request);}
+    public async Task<HttpResponseMessage> NodeGetAsync(int i, string path)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        request.Headers.Authorization = new("Bearer", secrets[i]);
+        return await Api.Client.SendAsync(request);
+    }
     public async ValueTask DisposeAsync() {await Api.DisposeAsync();foreach(var file in files) File.Delete(file);}
 }

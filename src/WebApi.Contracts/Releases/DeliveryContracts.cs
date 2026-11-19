@@ -36,9 +36,11 @@ public sealed record PromotionSummaryDto(Guid Id,Guid ArtifactId,string Artifact
 public sealed record DeliveryCounts(int AwaitingApproval,int AwaitingVerification,int DeploymentFailed,int VerificationFailed);
 public sealed record DeliveryOverviewDto(Guid ProjectId,string Coverage,IReadOnlyList<DeliveryEnvironmentDto> Environments,string PromotionsVisibility,WebApi.Contracts.Common.PageResult<PromotionSummaryDto>? Promotions,DeliveryCounts? Counts,PipelinePageDto<PipelineRunDto>? PipelineRuns=null,PipelineRunCounts? PipelineCounts=null,string PipelineVisibility="Restricted");
 public sealed record PromotionClusterChoice(Guid Id,string Name);
-public sealed record PromotionRouteChoice(Guid Id,Guid ApiId,string Path,IReadOnlyList<string> Methods,long Revision);
+public sealed record PromotionRouteChoice(Guid Id,Guid ApiId,string Path,IReadOnlyList<string> Methods,long Revision,
+ [property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Guid? ApiVersionId=null);
 public sealed record PromotionPolicyChoice(Guid Id,string Name,string Type,long Revision);
 public sealed record PromotionCredentialChoice(Guid Id,string Last4,DateTimeOffset ExpiresAt);
 public sealed record PromotionAuthorizationChoice(Guid Id,Guid ApiId);
 public sealed record PromotionApplicationChoice(Guid Id,string Name,IReadOnlyList<PromotionCredentialChoice> Credentials,IReadOnlyList<PromotionAuthorizationChoice> Authorizations,bool SharedAcrossEnvironments,IReadOnlyList<Guid> RequiredCredentialIds,IReadOnlyList<Guid> RetainedApiIds);
-public sealed record PromotionMappingOptionsDto(Guid TargetEnvironmentId,IReadOnlyList<PromotionClusterChoice>? Clusters,IReadOnlyList<PromotionRouteChoice>? Routes,IReadOnlyList<PromotionPolicyChoice>? Policies,IReadOnlyList<PromotionApplicationChoice>? Applications,bool Truncated);
+public sealed record PromotionMappingOptionsDto(Guid TargetEnvironmentId,IReadOnlyList<PromotionClusterChoice>? Clusters,IReadOnlyList<PromotionRouteChoice>? Routes,IReadOnlyList<PromotionPolicyChoice>? Policies,IReadOnlyList<PromotionApplicationChoice>? Applications,bool Truncated,
+ [property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)] bool GovernedTarget=false);

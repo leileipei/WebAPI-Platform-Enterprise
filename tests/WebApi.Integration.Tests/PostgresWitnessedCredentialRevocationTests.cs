@@ -418,6 +418,171 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         await AssertFormalRotationAsync(fixture, request.Window, schedule.RotationId, revoked: true);
     }
 
+    [Fact]
+    public async Task FormalCompletionRequiresCurrentReplacementProofsAndTheCurrentRevision()
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var service = fixture.RotationService();
+        var scheduled = await service.ConfirmAsync(fixture.CredentialId, request, "\"1\"", new("schedule-complete"), fixture.Actor);
+
+        var stale = await Assert.ThrowsAsync<ApiException>(() => service.CompleteAsync(scheduled.RotationId,
+            new(true, "credential_retired"), "\"2\"", new("finish-rotation"), fixture.Actor));
+        Assert.Equal(412, stale.Status);
+        await Assert.ThrowsAsync<ApiException>(() => service.CompleteAsync(scheduled.RotationId,
+            new(true, "credential_retired"), "\"1\"", new("finish-rotation"), fixture.Actor));
+        Assert.Equal(0, fixture.Witness.ManualPreparations);
+        Assert.Equal("Unavailable", (await service.ReadVerificationAsync(scheduled.RotationId, fixture.Actor)).State);
+        await AssertFormalRotationAsync(fixture, request.Window, scheduled.RotationId);
+    }
+
+    [Theory]
+    [InlineData("correct")]
+    [InlineData("single-instance")]
+    [InlineData("replaced-instance")]
+    [InlineData("different-artifact")]
+    [InlineData("different-epoch")]
+    [InlineData("failed-request")]
+    [InlineData("unauthorized-method")]
+    [InlineData("revoked-permission")]
+    public async Task FormalCompletionOnlyAcceptsTheCurrentTwoInstancePublication(string scenario)
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true, publishReplacement: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var proof = new TestSuccessfulRequests(fixture.ProofRouteId, fixture.ProofApplicationId, scenario);
+        var service = fixture.RotationService(proofs: proof);
+        var scheduled = await service.ConfirmAsync(fixture.CredentialId, request, "\"1\"", new("schedule-with-proof"), fixture.Actor);
+        Assert.Equal(0, await service.RevokeDueAsync());
+        var verification = await service.ReadVerificationAsync(scheduled.RotationId, fixture.Actor);
+        Assert.Equal(2, verification.Targets.Count);
+        Task<FormalRotationReceipt> Complete() => service.CompleteAsync(scheduled.RotationId,
+            new(true, "credential_retired"), "\"1\"", new("complete-with-proof"), fixture.Actor);
+
+        if (scenario == "revoked-permission")
+        {
+            await using var db = fixture.Database.Context();
+            await db.Set<RolePermission>().Where(x => x.PermissionId == fixture.RevokePermission).ExecuteDeleteAsync();
+            Assert.Equal(403, (await Assert.ThrowsAsync<ApiException>(Complete)).Status);
+        }
+        else if (scenario == "correct")
+        {
+            Assert.Equal("Verified", verification.State);
+            var replies = await Task.WhenAll(Complete(), Complete());
+            var committed = Assert.Single(replies, x => !x.Replayed);
+            var replay = Assert.Single(replies, x => x.Replayed);
+            Assert.Equal(committed, replay with { Replayed = false });
+            Assert.Equal("ManualRevocationRecorded", committed.Status);
+            Assert.Equal(2, committed.Revision);
+            Assert.NotNull(committed.RevocationOperationId);
+            Assert.Equal(1, fixture.Witness.ManualPreparations);
+            await AssertFormalRotationAsync(fixture, request.Window, scheduled.RotationId, revoked: true);
+            return;
+        }
+        else
+        {
+            Assert.Equal("AwaitingProof", verification.State);
+            Assert.Single(verification.Targets, x => x.State == "Missing");
+            Assert.Equal("formal_rotation_replacement_unverified", (await Assert.ThrowsAsync<ApiException>(Complete)).Code);
+        }
+
+        Assert.Equal(0, fixture.Witness.ManualPreparations);
+        await AssertFormalRotationAsync(fixture, request.Window, scheduled.RotationId);
+    }
+
+    [Fact]
+    public async Task ConcurrentFormalAbortRevokesOnlyTheReplacementAndAcknowledgeGapsPreserveTheDeadline()
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var clock = request.Window.OverlapUntil;
+        var service = fixture.RotationService((_, _) => Task.FromResult(clock));
+        var scheduled = await service.ConfirmAsync(fixture.CredentialId, request, "\"1\"", new("schedule-abort"), fixture.Actor);
+        fixture.Witness.FormalNow = clock;
+        Task<FormalRotationReceipt> Abort() => service.AbortAsync(scheduled.RotationId,
+            new(true, "owner_request"), "\"1\"", new("abort-rotation"), fixture.Actor);
+
+        var replies = await Task.WhenAll(Abort(), Abort());
+        var started = Assert.Single(replies, receipt => !receipt.Replayed);
+        Assert.All(replies, receipt => Assert.Equal("AbortPending", receipt.Status));
+        Assert.Equal(started.AbortRevocationOperationId, Assert.Single(replies, receipt => receipt.Replayed).AbortRevocationOperationId);
+        Assert.Equal(2, started.Revision);
+        Assert.Equal(1, fixture.Witness.ManualPreparations);
+        Assert.Equal(0, await service.RevokeDueAsync());
+        await using (var db = fixture.Database.Context())
+        {
+            var revoked = Assert.Single(await db.Set<CredentialRevocation>().ToArrayAsync());
+            Assert.Equal(scheduled.ReplacementCredentialId, revoked.CredentialId);
+            Assert.Equal(started.AbortRevocationOperationId, revoked.OperationId);
+        }
+
+        clock = request.Window.HardDeadline;
+        fixture.Witness.FormalNow = clock;
+        Assert.Equal(1, await service.RevokeDueAsync());
+        Assert.Equal(0, await service.RevokeDueAsync());
+        var final = await service.ReadAsync(scheduled.RotationId, fixture.Actor);
+        Assert.Equal("RevocationRecorded", final.Status);
+        Assert.NotNull(final.RevocationOperationId);
+        Assert.Equal(started.AbortRevocationOperationId, final.AbortRevocationOperationId);
+    }
+
+    [Theory]
+    [InlineData("before-cutoff")]
+    [InlineData("prepare-reply-lost")]
+    [InlineData("confirmed-reply-lost")]
+    [InlineData("independent-cutoff")]
+    [InlineData("generic-pending")]
+    public async Task AbortStopsAutomaticRevocationOnlyWithAnExactBeforeCutoffDecision(string scenario)
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        DateTimeOffset? overrideClock = null;
+        var service = fixture.RotationService((db, ct) => overrideClock is { } now
+            ? Task.FromResult(now) : SecurityDatabaseClock.ObserveAsync(db, ct));
+        var scheduled = await service.ConfirmAsync(fixture.CredentialId, request, "\"1\"", new("schedule-signed-abort"), fixture.Actor);
+        var pending = await service.AbortAsync(scheduled.RotationId, new(true, "owner_request"), "\"1\"",
+            new("begin-signed-abort"), fixture.Actor);
+        var operation = Assert.IsType<Guid>(pending.AbortRevocationOperationId);
+        await fixture.ApplyAbortProofsAsync(operation, ackCount: 1);
+        Assert.Equal(0, await service.RevokeDueAsync());
+        Assert.Equal("AbortPending", (await service.ReadAsync(scheduled.RotationId, fixture.Actor)).Status);
+        await fixture.ApplyAbortProofsAsync(operation, ackCount: 2);
+
+        if (scenario is "prepare-reply-lost" or "confirmed-reply-lost" or "generic-pending") fixture.Witness.Fault = scenario;
+        if (scenario == "independent-cutoff") fixture.Witness.FormalNow = request.Window.HardDeadline;
+        if (scenario == "before-cutoff")
+        {
+            Assert.Equal(0, await service.RevokeDueAsync());
+            Assert.Equal("Aborted", (await service.ReadAsync(scheduled.RotationId, fixture.Actor)).Status);
+        }
+        else
+        {
+            await Assert.ThrowsAsync<IOException>(() => service.RevokeDueAsync());
+            Assert.Equal(scenario is "prepare-reply-lost" or "generic-pending", fixture.Witness.Pending is not null);
+        }
+
+        fixture.Witness.Fault = null;
+        overrideClock = request.Window.HardDeadline;
+        fixture.Witness.FormalNow = overrideClock;
+        if (scenario == "generic-pending")
+        {
+            await Assert.ThrowsAsync<InvalidDataException>(() => service.RevokeDueAsync());
+            await using var blocked = fixture.Database.Context();
+            Assert.Single(await blocked.Set<FormalRotationDecision>().ToArrayAsync(), x => x.Kind == "AbortRequested");
+            Assert.Equal(scheduled.ReplacementCredentialId, (await blocked.Set<CredentialRevocation>().SingleAsync()).CredentialId);
+            return;
+        }
+        var expired = scenario == "independent-cutoff";
+        Assert.Equal(expired ? 1 : 0, await service.RevokeDueAsync());
+        var receipt = await service.ReadAsync(scheduled.RotationId, fixture.Actor);
+        Assert.Equal(expired ? "RevocationRecorded" : "Aborted", receipt.Status);
+        Assert.Equal(operation, receipt.AbortRevocationOperationId);
+        Assert.Equal(3, receipt.Revision);
+        Assert.Equal(expired, receipt.RevocationOperationId is not null);
+        await using var db = fixture.Database.Context();
+        Assert.Equal(expired ? 2 : 1, await db.Set<CredentialRevocation>().CountAsync());
+        Assert.Equal(expired ? 1 : 2, fixture.Witness.ManualPreparations);
+    }
+
     private static async Task<FormalRotationConfirmRequest> PrepareFormalRotationAsync(Fixture fixture)
     {
         await using var db = fixture.Database.Context();
@@ -425,10 +590,15 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         var role = await db.Set<Role>().SingleAsync(item => item.Code == "SECURITY-FIXTURE");
         var manage = new Permission { Code = "credential.manage", Name = "Manage", Module = "credential" };
         var now = await db.Database.SqlQueryRaw<DateTimeOffset>("SELECT pg_catalog.clock_timestamp() AS \"Value\"").SingleAsync();
-        var replacement = new ApplicationCredential { ApplicationId = original.ApplicationId, OrganizationId = original.OrganizationId,
+        var replacement = await db.Set<ApplicationCredential>().SingleOrDefaultAsync(x => x.Id == fixture.PublishedReplacementId);
+        if (replacement is null)
+        {
+            replacement = new ApplicationCredential { ApplicationId = original.ApplicationId, OrganizationId = original.OrganizationId,
             ProjectId = original.ProjectId, EnvironmentId = fixture.EnvironmentId, BindingMode = "EnvironmentBound",
             AccessKey = "isolated-replacement-access", SecretHash = new string('b', 64), ValidFrom = now, ExpiresAt = now.AddHours(2) };
-        db.AddRange(manage, new RolePermission { RoleId = role.Id, PermissionId = manage.Id }, replacement);
+            db.Add(replacement);
+        }
+        db.AddRange(manage, new RolePermission { RoleId = role.Id, PermissionId = manage.Id });
         await db.SaveChangesAsync();
 
         var window = new FormalRotationPreviewRequest(fixture.EnvironmentId, replacement.ValidFrom, replacement.ExpiresAt,
@@ -786,18 +956,22 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         public Guid CredentialId { get; } = Guid.NewGuid();
         public Guid EnvironmentId { get; } = Guid.NewGuid();
         public Guid RevokePermission { get; } = Guid.NewGuid();
+        public Guid PublishedReplacementId { get; } = Guid.NewGuid();
+        public Guid ProofRouteId { get; } = Guid.NewGuid();
+        public Guid ProofApplicationId { get; private set; }
         public Guid[] EnvironmentIds { get; private set; } = [];
 
         public static async Task<Fixture> StartAsync(bool withCurrentProof = true, bool withGovernanceSnapshot = true, bool global = false,
-            TimeSpan? leaseLifetime = null, bool archived = false, bool includeCredentialInPublication = false)
+            TimeSpan? leaseLifetime = null, bool archived = false, bool includeCredentialInPublication = false, bool publishReplacement = false)
         {
             var fixture = new Fixture();
-            try { await fixture.InitializeAsync(withCurrentProof, withGovernanceSnapshot, global, leaseLifetime ?? TimeSpan.FromSeconds(30), archived, includeCredentialInPublication); return fixture; }
+            try { await fixture.InitializeAsync(withCurrentProof, withGovernanceSnapshot, global, leaseLifetime ?? TimeSpan.FromSeconds(30),
+                archived, includeCredentialInPublication, publishReplacement); return fixture; }
             catch { await fixture.DisposeAsync(); throw; }
         }
 
         private async Task InitializeAsync(bool withCurrentProof, bool withGovernanceSnapshot, bool global, TimeSpan leaseLifetime, bool archived,
-            bool includeCredentialInPublication)
+            bool includeCredentialInPublication, bool publishReplacement)
         {
             await Database.InitializeAsync();
             await using var db = Database.Context();
@@ -806,6 +980,7 @@ public sealed class PostgresWitnessedCredentialRevocationTests
             var project = new Project { OrganizationId = org.Id, Code = "REV-PROJECT", Name = "Isolated" };
             var environment = new EnvironmentRecord { Id = EnvironmentId, ProjectId = project.Id, Code = "TEST", Name = "Isolated", DeploymentSequence = 1, DesiredConfigVersion = 1 };
             var app = new ApplicationRecord { OrganizationId = org.Id, ProjectId = global ? null : project.Id, Code = "APP", Name = "Isolated" };
+            ProofApplicationId = app.Id;
             var role = new Role { OrganizationId = org.Id, Code = "SECURITY-FIXTURE", Name = "Isolated" };
             var permitRecovery = new Permission { Code = "credential.governance.recover", Module = "credential", Name = "Recover" };
             db.AddRange(org, project, environment, app, role, permitRecovery,
@@ -821,6 +996,19 @@ public sealed class PostgresWitnessedCredentialRevocationTests
                 BindingMode = global ? "LegacyGlobal" : "EnvironmentBound", AccessKey = "isolated-access-key",
                 SecretHash = new string('a', 64), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
             db.Add(credential);
+            ApplicationCredential? replacement = null;
+            if (publishReplacement)
+            {
+                var current = DateTimeOffset.UtcNow;
+                var validFrom = current.AddTicks(-(current.Ticks % 10));
+                replacement = new()
+                {
+                    Id = PublishedReplacementId, ApplicationId = app.Id, OrganizationId = org.Id, ProjectId = project.Id,
+                    EnvironmentId = EnvironmentId, BindingMode = "EnvironmentBound", AccessKey = "isolated-published-replacement",
+                    SecretHash = new string('b', 64), ValidFrom = validFrom, ExpiresAt = validFrom.AddHours(2)
+                };
+                db.Add(replacement);
+            }
             var environments = new List<EnvironmentRecord> { environment };
             if (global)
             {
@@ -842,13 +1030,14 @@ public sealed class PostgresWitnessedCredentialRevocationTests
                 new RolePermission { RoleId = recoveryRole.Id, PermissionId = permitRecovery.Id });
             foreach (var target in environments)
                 AddDeployment(db, org.Id, target, app, credential, withGovernanceSnapshot,
-                    target == environment && global || withCurrentProof, leaseLifetime, includeCredentialInPublication);
+                    target == environment && global || withCurrentProof, leaseLifetime, includeCredentialInPublication, replacement);
             await db.SaveChangesAsync();
             await IsolatedGovernanceJournalSchema.InstallAsync(db, Journal);
         }
 
         private void AddDeployment(WebApiDbContext db, Guid organizationId, EnvironmentRecord environment, ApplicationRecord app,
-            ApplicationCredential credential, bool withGovernanceSnapshot, bool withCurrentProof, TimeSpan leaseLifetime, bool includeCredentialInPublication)
+            ApplicationCredential credential, bool withGovernanceSnapshot, bool withCurrentProof, TimeSpan leaseLifetime,
+            bool includeCredentialInPublication, ApplicationCredential? replacement)
         {
             var environmentId = environment.Id;
             var projectId = environment.ProjectId;
@@ -857,8 +1046,26 @@ public sealed class PostgresWitnessedCredentialRevocationTests
             RuntimeApplication[] applications = includeCredentialInPublication && withGovernanceSnapshot
                 ? [new(app.Id, "Active", [new(credential.Id, credential.AccessKey, credential.SecretHash, credential.Status,
                     credential.ValidFrom, credential.ExpiresAt, environmentId, "EnvironmentBound")], [], environmentId)] : [];
+            RuntimeRoute[] routes = [];
+            RuntimeCluster[] clusters = [];
+            if (replacement is not null)
+            {
+                var cluster = new RuntimeCluster(Guid.NewGuid(), environmentId, "RoundRobin", false, "/health", 10,
+                    [new(Guid.NewGuid(), "http://127.0.0.1/", 1)]);
+                var route = new RuntimeRoute(ProofRouteId, Guid.NewGuid(), Guid.NewGuid(), cluster.Id, "/rotation-test", ["GET"], 0,
+                    1000, true, AuthorizationRevision: 1, EnvironmentId: environmentId);
+                clusters = [cluster];
+                routes = [route];
+                applications[0] = applications[0] with
+                {
+                    Credentials = [.. applications[0].Credentials, new(replacement.Id, replacement.AccessKey, replacement.SecretHash,
+                        replacement.Status, replacement.ValidFrom, replacement.ExpiresAt, environmentId, "EnvironmentBound")],
+                    Permissions = [new(route.ApiId, replacement.ValidFrom, replacement.ExpiresAt, "RouteMethod",
+                        [new(route.Id, 1, ["GET"])], environmentId)]
+                };
+            }
             var snapshot = withGovernanceSnapshot
-                ? new RuntimeSnapshot("2.4", environmentId, 1, DateTimeOffset.UtcNow, [], [], [], applications, state.SecurityGeneration, 0, false, "2.0")
+                ? new RuntimeSnapshot("2.4", environmentId, 1, DateTimeOffset.UtcNow, routes, clusters, [], applications, state.SecurityGeneration, 0, false, "2.0")
                 : new RuntimeSnapshot("2.3", environmentId, 1, DateTimeOffset.UtcNow, [], [], [], []);
             var bytes = CanonicalJson.Serialize(snapshot);
             var snapshotHash = Convert.ToHexStringLower(SHA256.HashData(bytes));
@@ -901,9 +1108,62 @@ public sealed class PostgresWitnessedCredentialRevocationTests
 
         public PostgresCredentialRevocationService Service() => new(Database.ConnectionString, Journal, Witness, Coverage, Archive);
 
-        public PostgresFormalRotationService RotationService(Func<WebApiDbContext, CancellationToken, Task<DateTimeOffset>>? clock = null) =>
-            new(Database.ConnectionString, Journal, Witness, Coverage, new TestRotationHorizon { Approved = true }, Archive)
+        public PostgresFormalRotationService RotationService(Func<WebApiDbContext, CancellationToken, Task<DateTimeOffset>>? clock = null,
+            IFormalRotationRequestProofWitness? proofs = null) =>
+            new(Database.ConnectionString, Journal, Witness, Coverage, new TestRotationHorizon { Approved = true }, Archive, proofs)
             { DeadlineClock = clock ?? SecurityDatabaseClock.ObserveAsync };
+
+        public async Task ApplyAbortProofsAsync(Guid operation, int ackCount)
+        {
+            await using var db = Database.Context();
+            var targets = await db.Set<SecurityOperationTarget>().AsNoTracking().Where(x => x.OperationId == operation).OrderBy(x => x.NodeId).ToArrayAsync();
+            Assert.Equal(2, targets.Length);
+            var state = await db.Set<EnvironmentSecurityState>().AsNoTracking().SingleAsync();
+            var fact = await db.Set<SecurityEvent>().AsNoTracking().SingleAsync(x => x.OperationId == operation);
+            using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+            const string keyId = "isolated-abort-signer";
+            var signer = new SecurityCheckpointSigner(keyId, key.ExportPkcs8PrivateKeyPem());
+            var signing = new SecuritySigningSettings(null, null, new Dictionary<string, string>
+                { [keyId] = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) });
+            var identities = new NodeIdentityService(db, new([]));
+            var reader = new SecurityLedgerReader(db);
+            for (var index = 0; index < targets.Length; index++)
+            {
+                var target = targets[index];
+                if (await db.Set<SecurityAckVerification>().AnyAsync(x => x.OperationId == operation && x.NodeId == target.NodeId)) continue;
+                var created = DateTimeOffset.UtcNow;
+                var issued = created.AddTicks(-(created.Ticks % 10));
+                var expires = issued.AddSeconds(30);
+                var checkpoint = new SecurityCheckpointPayload(SecuritySignedEncoding.Protocol, EnvironmentId, state.SecurityGeneration,
+                    state.Epoch, state.HeadHash, [new(fact.CredentialId!.Value, operation, fact.Epoch, fact.OccurredAt, fact.EventHash)],
+                    state.RequireEnvironmentCredentials, state.MinimumSnapshotSchema, issued, expires, keyId);
+                var checkpointHash = SecuritySignedEncoding.CheckpointHash(checkpoint);
+                var lease = new SecurityNodeLeasePayload(Guid.NewGuid(), SecuritySignedEncoding.Protocol, EnvironmentId,
+                    state.SecurityGeneration, state.Epoch, checkpointHash, target.NodeId, target.InstanceGuid,
+                    SecuritySignedEncoding.Audience, issued, expires, keyId,
+                    AckChallenges: [new(operation, target.ChallengeNonce, fact.Epoch, fact.CredentialId)]);
+                var horizon = await db.Set<GatewaySecurityLease>().SingleAsync(x => x.NodeId == target.NodeId);
+                horizon.LeaseId = lease.LeaseId;
+                horizon.Epoch = lease.Epoch;
+                horizon.CheckpointHash = checkpointHash;
+                horizon.IssuedAt = issued;
+                horizon.FreshUntil = horizon.LastIssuedLeaseUntil = expires;
+                horizon.SigningKeyId = keyId;
+                horizon.Revision++;
+                db.Add(SecurityLeaseIssuanceEvidence.Create(lease, state.OrganizationId, state.ProjectId));
+                await db.SaveChangesAsync();
+
+                var identity = new NodeIdentity(target.NodeId, EnvironmentId, new string('a', 64));
+                var signedCheckpoint = signer.SignCheckpoint(checkpoint);
+                var signedLease = signer.SignNodeLease(lease);
+                var proof = new CurrentSecurityProof(target.InstanceGuid, signedCheckpoint, signedLease, issued, true, true);
+                await new CurrentSecurityProofService(db, identities, reader, signing).RecordAsync(target.NodeId, proof, identity);
+                if (index >= ackCount) continue;
+                var ack = new SecurityAck(operation, target.NodeId, target.InstanceGuid, EnvironmentId, state.SecurityGeneration,
+                    state.Epoch, checkpointHash, issued, true, true, true, target.ChallengeNonce, null, signedCheckpoint, signedLease);
+                Assert.False((await new SecurityAckService(db, identities, reader, signing).RecordAsync(target.NodeId, ack, identity)).Duplicate);
+            }
+        }
 
         public async Task<Guid> AddInheritedEnvironmentAsync()
         {
@@ -996,11 +1256,35 @@ public sealed class PostgresWitnessedCredentialRevocationTests
             scope.DeploymentSequence == 1 && scope.ConfigVersion == 1;
     }
 
+    private sealed class TestSuccessfulRequests(Guid routeId, Guid applicationId, string scenario) : IFormalRotationRequestProofWitness
+    {
+        public Task<IReadOnlyList<FormalRotationRequestProof>> ObserveAsync(FormalRotationRequestProofScope scope, CancellationToken ct)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var deployment = scope.Deployment;
+            var proofs = deployment.Nodes.Select(node => new FormalRotationRequestProof(deployment.EnvironmentId, node.NodeId,
+                node.InstanceId, scope.ReplacementCredentialId, applicationId, routeId, "GET", deployment.ReleaseId,
+                deployment.ConfigVersion, deployment.DeploymentSequence, deployment.SnapshotHash, deployment.SecurityGeneration,
+                deployment.Epoch, deployment.HeadHash, node.LeaseId, now, now, 204)).ToArray();
+            proofs[1] = scenario switch
+            {
+                "replaced-instance" => proofs[1] with { InstanceId = Guid.NewGuid() },
+                "different-artifact" => proofs[1] with { SnapshotHash = new string('f', 64) },
+                "different-epoch" => proofs[1] with { SecurityEpoch = deployment.Epoch + 1 },
+                "failed-request" => proofs[1] with { StatusCode = 503 },
+                "unauthorized-method" => proofs[1] with { Method = "POST" },
+                _ => proofs[1]
+            };
+            return Task.FromResult<IReadOnlyList<FormalRotationRequestProof>>(scenario == "single-instance" ? [proofs[0]] : proofs);
+        }
+    }
+
     private sealed class TestWitness : IFormalRotationJournalWitness
     {
         private readonly object sync = new();
         private readonly Dictionary<Guid, GovernanceOperationConfirmation> confirmations = [];
         private readonly Dictionary<Guid, (Guid EnvironmentId, DateTimeOffset Deadline)> formalSchedules = [];
+        private readonly Dictionary<Guid, GovernanceWriteIntent> sealedDecisions = [];
         private GovernanceJournalPosition position = GovernanceJournalProtocol.Genesis;
         public GovernanceWriteIntent? Pending { get; private set; }
         public Guid? Operation { get; private set; }
@@ -1012,6 +1296,7 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         public int FormalPreparations { get; private set; }
         public int FormalRevocationChecks { get; private set; }
         public int FormalRevocationPreparations { get; private set; }
+        public int ManualPreparations { get; private set; }
 
         public Task<GovernanceWitnessState> ObserveAsync(GovernanceJournalId journal, Guid? operationId, CancellationToken ct)
         {
@@ -1050,6 +1335,49 @@ public sealed class PostgresWitnessedCredentialRevocationTests
                     throw new IOException("Fixture independent deadline has not arrived.");
                 FormalRevocationPreparations++;
                 return Task.FromResult(Prepare(intent));
+            }
+        }
+
+        public Task<GovernanceWitnessState> PrepareFormalRotationDecisionAsync(GovernanceJournalId journal,
+            GovernanceWriteIntent intent, Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, string decision, CancellationToken ct)
+        {
+            lock (sync)
+            {
+                Assert.Equal((environmentId, hardDeadline), formalSchedules[scheduleId]);
+                Assert.Contains(scheduleId, confirmations.Keys);
+                if ((FormalNow ?? DateTimeOffset.UtcNow) >= hardDeadline)
+                    throw new IOException("Fixture cannot prepare a decision at or after the deadline.");
+                if (Fault == "generic-pending")
+                {
+                    _ = Prepare(intent);
+                    throw new IOException("Fixture recovered only an ordinary pending record.");
+                }
+                var plan = FormalRotationDecisionIntent.Read(intent);
+                Assert.Equal(decision, plan.Decision);
+                if (decision == "AbortConfirmed")
+                {
+                    var abort = Assert.IsType<Guid>(plan.AbortOperationId);
+                    Assert.Contains(abort, confirmations.Keys);
+                    Assert.Equal("AbortRequested", FormalRotationDecisionIntent.Read(sealedDecisions[abort]).Decision);
+                    Assert.Equal(2, plan.AbortAcks.Length);
+                }
+                sealedDecisions.Add(intent.OperationId, intent);
+                ManualPreparations++;
+                return Task.FromResult(Prepare(intent));
+            }
+        }
+
+        public Task<GovernanceWitnessState> ObserveFormalRotationDecisionAsync(GovernanceJournalId journal, GovernanceWriteIntent intent,
+            Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, string decision, CancellationToken ct)
+        {
+            lock (sync)
+            {
+                if (sealedDecisions.GetValueOrDefault(intent.OperationId) != intent)
+                    throw new InvalidDataException("No specialized preparation in fixture.");
+                var plan = FormalRotationDecisionIntent.Read(intent);
+                Assert.Equal((scheduleId, environmentId, hardDeadline, decision),
+                    (plan.ScheduleId, plan.EnvironmentId, plan.HardDeadline, plan.Decision));
+                return Task.FromResult(Observe(intent.OperationId));
             }
         }
 

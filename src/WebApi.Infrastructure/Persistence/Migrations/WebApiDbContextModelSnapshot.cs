@@ -2426,6 +2426,54 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.FormalRotationDecision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedNever()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("IntentHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("intent_hash");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("kind")
+                        .UseCollation("C");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("ScheduleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("schedule_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScheduleId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_formal_rotation_decisions_schedule_complete_or_abort")
+                        .HasFilter("kind IN ('Complete', 'AbortRequested')");
+
+                    b.HasIndex("ScheduleId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("IX_formal_rotation_decisions_schedule_id_kind");
+
+                    b.ToTable("formal_rotation_decisions", "public", t =>
+                        {
+                            t.HasCheckConstraint("ck_formal_rotation_decision", """
+                                id <> '00000000-0000-0000-0000-000000000000'::uuid
+                                AND kind IN ('Complete', 'AbortRequested', 'AbortConfirmed')
+                                AND pg_catalog.isfinite(recorded_at)
+                                AND intent_hash COLLATE "C" ~ '^[0-9a-f]{64}$'
+                                """);
+                        });
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewayAck", b =>
                 {
                     b.Property<Guid>("ReleaseId")
@@ -7135,6 +7183,16 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_formal_credential_rotations_replacement_credential");
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.FormalRotationDecision", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.FormalCredentialRotation", null)
+                        .WithMany()
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_formal_rotation_decisions_schedule");
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewayAck", b =>

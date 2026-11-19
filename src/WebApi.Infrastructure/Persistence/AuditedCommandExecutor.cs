@@ -91,6 +91,11 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
         }
         if(e.Entity is EnvironmentSecurityInitialization)
             foreach(var name in new[]{"State","FreshProofId","EvidenceHash","ConfirmedBy","ConfirmedAt"})captured[name]=original?e.Property(name).OriginalValue:e.Property(name).CurrentValue;
+        if (e.Entity is ApplicationApiPermission)
+            captured["Mode"] = original ? e.Property("Mode").OriginalValue : e.Property("Mode").CurrentValue;
+        if (e.Entity is ApplicationRouteMethodGrant)
+            foreach (var name in new[] { "RouteId", "Method", "AuthorizationRevision" })
+                captured[name] = original ? e.Property(name).OriginalValue : e.Property(name).CurrentValue;
         if(e.Entity is AlertRule)
         {
             captured.Remove("Notification");var property=e.Property(nameof(AlertRule.Notification));var json=(string?)(original?property.OriginalValue:property.CurrentValue);

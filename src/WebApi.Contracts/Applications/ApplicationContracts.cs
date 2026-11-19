@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using WebApi.Contracts.Runtime;
+
 namespace WebApi.Contracts.Applications;
 public sealed record SaveApplicationRequest(Guid OrganizationId,Guid? ProjectId,string Code,string Name,string Owner,string Status="Active");
 public sealed record ApplicationDto(Guid Id,Guid OrganizationId,Guid? ProjectId,string Code,string Name,string Owner,string Status,long Revision,string Activation="WorkingConfiguration",[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ApplicationSummaryDto? Summary=null);
@@ -9,5 +12,11 @@ public sealed record CredentialDto(Guid Id,Guid ApplicationId,string AccessKey,s
     [property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Guid? EnvironmentId=null,
     [property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? BindingMode=null);
 public sealed record CredentialCreateResponse(CredentialDto Credential,string? Secret,string? ApiKey,bool SecretUnavailable=false);
-public sealed record PermissionSaveRequest(Guid ApiId,Guid EnvironmentId,DateTimeOffset ValidFrom,DateTimeOffset? ExpiresAt=null);
-public sealed record ApplicationPermissionDto(Guid Id,Guid ApplicationId,Guid ApiId,Guid EnvironmentId,DateTimeOffset ValidFrom,DateTimeOffset? ExpiresAt,long Revision,string Activation="WorkingConfiguration");
+public sealed record PermissionSaveRequest(Guid ApiId,Guid EnvironmentId,DateTimeOffset ValidFrom,DateTimeOffset? ExpiresAt=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string? Mode=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<RuntimeRouteMethodGrant>? RouteMethods=null);
+public sealed record ApplicationPermissionDto(Guid Id,Guid ApplicationId,Guid ApiId,Guid EnvironmentId,DateTimeOffset ValidFrom,DateTimeOffset? ExpiresAt,long Revision,string Activation="WorkingConfiguration",
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string? Mode=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<RuntimeRouteMethodGrant>? RouteMethods=null);
+public sealed record RouteMethodChoice(Guid RouteId, string Path, long AuthorizationRevision, IReadOnlyList<string> Methods);
+public sealed record RouteMethodOptionsDto(Guid EnvironmentId, Guid ApiId, IReadOnlyList<RouteMethodChoice> Routes);

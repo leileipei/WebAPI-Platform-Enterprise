@@ -26,14 +26,10 @@ public sealed class AckService(WebApiDbContext db,NodeIdentityService identities
             using var snapshot=JsonDocument.Parse(artifact.PayloadBytes);
             var schema=snapshot.RootElement.GetProperty("schemaVersion").GetString()!;
             SnapshotSchemaCapabilities.RequireSupported([node],schema);
-            if(schema=="2.4"||GovernanceSnapshotDelivery.RequiresFence(continuity,governanceDelivery)||
-                await GlobalCredentialPublicationGuard.RequiresGovernance24Async(db,node.EnvironmentId,ct))
-            {
-                var envelope=new SnapshotEnvelope(r.Id,ack.DeploymentSequence,ack.ConfigVersion,ack.PayloadHash,artifact.SizeBytes);
-                if(await GovernanceSnapshotDelivery.RequireAsync(db,r.EnvironmentId,new(envelope,artifact.PayloadBytes),continuity,governanceDelivery,ct,
-                    published:r.Status=="Succeeded"&&config!.Status=="Published",publication:publication))
-                    await RequireCurrentSecurityAsync(node,ack.InstanceId,ct);
-            }
+            var envelope=new SnapshotEnvelope(r.Id,ack.DeploymentSequence,ack.ConfigVersion,ack.PayloadHash,artifact.SizeBytes);
+            if(await GovernanceSnapshotDelivery.RequireAsync(db,r.EnvironmentId,new(envelope,artifact.PayloadBytes),continuity,governanceDelivery,ct,
+                published:r.Status=="Succeeded"&&config!.Status=="Published",publication:publication))
+                await RequireCurrentSecurityAsync(node,ack.InstanceId,ct);
         }
         if(ack.AppliedAt.Offset!=TimeSpan.Zero||ack.AppliedAt>DateTimeOffset.UtcNow.AddMinutes(5)||ack.AppliedAt<r.CreatedAt.AddMinutes(-5)||ack.Success&&ack.ErrorCode is not null||!ack.Success&&(ack.ErrorCode is null||!errorCodes.Contains(ack.ErrorCode))) throw new ApiException(422,"invalid_ack","确认时间或错误代码不合法。");
         if(target.InstanceId!=ack.InstanceId.ToString())

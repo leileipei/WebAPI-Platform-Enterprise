@@ -10,8 +10,10 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Releases;
-public sealed class RollbackService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,HistoricalSnapshotService history,PublishSettings publishSettings,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution)
+public sealed class RollbackService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,HistoricalSnapshotService history,PublishSettings publishSettings,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution,ReleaseCandidateBuilder candidates,SnapshotCompiler compiler)
 {
+    private readonly GovernedRollbackCandidate governedRollback = new(history, candidates, compiler);
+
     public async Task<ReleaseDto> CreateAsync(Guid originalId,long target,ActorContext actor,CancellationToken ct=default)
     {
         var original=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==originalId,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(original.EnvironmentId,ct);
@@ -20,9 +22,17 @@ public sealed class RollbackService(WebApiDbContext db,AuthorizationService auth
             return await idempotency.ExecuteAsync(new(actor.UserId,scope,"release.rollback.create",requestContext.IdempotencyKey),CanonicalJson.Serialize(new {originalId,targetConfigVersion=target}),async inner=>{
                 await deliveryExecution.RequireRecoveryVisibilityAsync(original,actor,inner);var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==original.EnvironmentId,inner);
                 if(original.Status is not ("Succeeded" or "Failed")||original.DeploymentSequence!=env.DeploymentSequence||original.ToConfigVersion!=env.DesiredConfigVersion||target<=0||target==env.DesiredConfigVersion) throw new ApiException(409,"stale_deployment","只能从当前已结束部署建立指向不同历史快照的回滚。");
-                if(await db.Set<ReleaseRecord>().AnyAsync(r=>r.EnvironmentId==env.Id&&(r.Status=="Building"||r.Status=="Publishing"),inner)) throw new ApiException(409,"environment_busy","环境正在下发。");var candidate=await history.CandidateAsync(env.Id,target,env.DesiredConfigVersion!.Value,inner);
-                var schema=(await history.ReadAsync(env.Id,target,inner)).Snapshot.SchemaVersion;
-                if(schema is "2.2" or "2.3") await SnapshotSchemaCapabilities.RequireOnlineSchemaAsync(db,publishSettings,env.Id,schema,inner);
+                if(await db.Set<ReleaseRecord>().AnyAsync(r=>r.EnvironmentId==env.Id&&(r.Status=="Building"||r.Status=="Publishing"),inner)) throw new ApiException(409,"environment_busy","环境正在下发。");
+                FrozenReleaseCandidate candidate;
+                if (publishSettings.EnablesGovernanceSnapshot24(env.Id))
+                    candidate = await governedRollback.BuildAsync(env, target, inner);
+                else
+                {
+                    var schema = (await history.ReadAsync(env.Id, target, inner)).Snapshot.SchemaVersion;
+                    if (schema == "2.4") throw ReleaseCandidateBuilder.GovernanceRequired();
+                    candidate = await history.CandidateAsync(env.Id, target, env.DesiredConfigVersion!.Value, inner);
+                    if (schema is "2.2" or "2.3") await SnapshotSchemaCapabilities.RequireOnlineSchemaAsync(db, publishSettings, env.Id, schema, inner);
+                }
                 var r=new ReleaseRecord {EnvironmentId=env.Id,ReleaseNo="RBK-"+Guid.NewGuid().ToString("N"),ReleaseType="rollback",Status="Draft",RequestedBy=actor.UserId,RollbackOf=original.Id,ArtifactId=original.ArtifactId,SourceReleaseId=original.SourceReleaseId,BaselineConfigVersion=env.DesiredConfigVersion.Value,FromConfigVersion=env.DesiredConfigVersion.Value,ToConfigVersion=target,CandidateBytes=CanonicalJson.Serialize(candidate)};db.Add(r);return await releases.DtoAsync(r,inner);
             },token);
         },ct);

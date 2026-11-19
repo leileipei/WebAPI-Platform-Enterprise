@@ -29,7 +29,8 @@ internal static class GovernanceSnapshotDelivery
         var guarded = await GlobalCredentialPublicationGuard.RequiresGovernance24Async(db, environmentId, ct);
         if (continuity is null)
         {
-            if (guarded || settings?.RequireIndependentContinuity == true) throw Unavailable();
+            if (guarded || settings?.RequireIndependentContinuity == true ||
+                !await LegacyEnvironmentCompatibility.IsVerifiedAsync(db, environmentId, ct)) throw Unavailable();
             var legacy = RedisSnapshotStore.ReadArtifact(environmentId, desired.Envelope, desired.Payload, allowGovernance24: false);
             await RequireCredentialScopeAsync(db, legacy, ct);
             return false;
@@ -44,7 +45,8 @@ internal static class GovernanceSnapshotDelivery
         await RequireCredentialScopeAsync(db, snapshot, ct);
         if (snapshot.SchemaVersion != "2.4")
         {
-            if (guarded || ledger.Revocations.Count > 0 || ledger.MinimumSnapshotSchema is "2.3" or "2.4") throw Unavailable();
+            if (guarded || ledger.RequireEnvironmentCredentials || ledger.Revocations.Count > 0 || ledger.MinimumSnapshotSchema is "2.3" or "2.4" ||
+                !await LegacyEnvironmentCompatibility.IsVerifiedAsync(db, environmentId, ct)) throw Unavailable();
             return false;
         }
         if (snapshot.RequiredSecurityGeneration != ledger.SecurityGeneration || snapshot.RequiredSecurityEpoch is not long epoch ||
@@ -84,11 +86,64 @@ internal static class GovernanceSnapshotDelivery
         var routeIds = frozen.Routes.Select(item => item.RouteId).ToArray();
         var routes = await db.Set<ApiRoute>().AsNoTracking().Where(item => item.EnvironmentId == ledger.EnvironmentId && routeIds.Contains(item.Id))
             .OrderBy(item => item.Id).Select(item => new FrozenGovernanceRoute(item.Id, item.AuthorizationRevision)).ToArrayAsync(ct);
-        var permissions = candidate.ResourceRevisions.Where(item => item.Type == "authorization").OrderBy(item => item.Id).ToArray();
-        var permissionIds = permissions.Select(item => item.Id).ToArray();
-        var currentPermissions = await db.Set<ApplicationApiPermission>().AsNoTracking().Where(item => item.EnvironmentId == ledger.EnvironmentId &&
-                permissionIds.Contains(item.Id)).OrderBy(item => item.Id).Select(item => new ResourceRevision("authorization", item.Id, item.Revision)).ToArrayAsync(ct);
-        if (!frozen.Routes.SequenceEqual(routes) || !permissions.SequenceEqual(currentPermissions)) throw Unavailable();
+        if (!frozen.Routes.SequenceEqual(routes)) throw Unavailable();
+        await RequireFrozenRevisionsAsync(db, candidate.ResourceRevisions, ledger, ct);
+    }
+
+    private static async Task RequireFrozenRevisionsAsync(WebApiDbContext db, IReadOnlyList<ResourceRevision> revisions,
+        SecurityLedgerMaterial ledger, CancellationToken ct)
+    {
+        if (revisions is null || revisions.Any(item => item is null || item.Id == Guid.Empty || item.Revision <= 0) ||
+            !revisions.Any(item => item.Type == "environment" && item.Id == ledger.EnvironmentId)) throw Unavailable();
+
+        var apis = db.Set<Api>().AsNoTracking().Where(item => item.OrganizationId == ledger.OrganizationId && item.ProjectId == ledger.ProjectId);
+        var clusters = db.Set<UpstreamCluster>().AsNoTracking().Where(item => item.EnvironmentId == ledger.EnvironmentId && item.ProjectId == ledger.ProjectId);
+        var applications = db.Set<ApplicationRecord>().AsNoTracking().Where(item => item.OrganizationId == ledger.OrganizationId &&
+            (item.ProjectId == null || item.ProjectId == ledger.ProjectId));
+        foreach (var type in revisions.GroupBy(item => item.Type, StringComparer.Ordinal))
+        {
+            // Ledger and target checks above already qualify the synthetic governance stamp.
+            if (type.Key == "governance_snapshot") continue;
+            var ids = type.Select(item => item.Id).ToArray();
+            var current = type.Key switch
+            {
+                "route" => db.Set<ApiRoute>().AsNoTracking().Where(item => ids.Contains(item.Id) && item.EnvironmentId == ledger.EnvironmentId)
+                    .Select(item => new ResourceRevision("route", item.Id, item.Revision)),
+                "cluster" => clusters.Where(item => ids.Contains(item.Id))
+                    .Select(item => new ResourceRevision("cluster", item.Id, item.Revision)),
+                "destination" => db.Set<UpstreamDestination>().AsNoTracking().Where(item => ids.Contains(item.Id) &&
+                        clusters.Any(cluster => cluster.Id == item.ClusterId))
+                    .Select(item => new ResourceRevision("destination", item.Id, item.Revision)),
+                "policy" => db.Set<Policy>().AsNoTracking().Where(item => ids.Contains(item.Id) && item.OrganizationId == ledger.OrganizationId &&
+                        (item.ProjectId == null || item.ProjectId == ledger.ProjectId))
+                    .Select(item => new ResourceRevision("policy", item.Id, item.VersionNo)),
+                "api" => apis.Where(item => ids.Contains(item.Id))
+                    .Select(item => new ResourceRevision("api", item.Id, item.VersionNo)),
+                "version" => db.Set<ApiVersion>().AsNoTracking().Where(item => ids.Contains(item.Id) && apis.Any(api => api.Id == item.ApiId))
+                    .Select(item => new ResourceRevision("version", item.Id, item.Revision)),
+                "application" => applications.Where(item => ids.Contains(item.Id))
+                    .Select(item => new ResourceRevision("application", item.Id, item.Revision)),
+                "credential" => db.Set<ApplicationCredential>().AsNoTracking()
+                    .Where(item => ids.Contains(item.Id) && item.OrganizationId == ledger.OrganizationId &&
+                        applications.Any(app => app.Id == item.ApplicationId) &&
+                        (!ledger.RequireEnvironmentCredentials && item.BindingMode == "LegacyGlobal" && item.EnvironmentId == null ||
+                         item.BindingMode == "EnvironmentBound" && item.EnvironmentId == ledger.EnvironmentId && item.ProjectId == ledger.ProjectId))
+                    .Select(item => new ResourceRevision("credential", item.Id, item.Revision)),
+                "authorization" => db.Set<ApplicationApiPermission>().AsNoTracking()
+                    .Where(item => ids.Contains(item.Id) && item.EnvironmentId == ledger.EnvironmentId)
+                    .Select(item => new ResourceRevision("authorization", item.Id, item.Revision)),
+                "environment" => db.Set<EnvironmentRecord>().AsNoTracking().Where(item => ids.Contains(item.Id) &&
+                        item.Id == ledger.EnvironmentId && item.ProjectId == ledger.ProjectId && item.Status == "Active")
+                    .Select(item => new ResourceRevision("environment", item.Id, item.Revision)),
+                "approval_flow" => db.Set<ApprovalFlow>().AsNoTracking().Where(item => ids.Contains(item.Id) &&
+                        item.OrganizationId == ledger.OrganizationId && item.Enabled)
+                    .Select(item => new ResourceRevision("approval_flow", item.Id, item.Revision)),
+                _ => throw Unavailable()
+            };
+            var actual = await current.ToDictionaryAsync(item => item.Id, item => item.Revision, ct);
+            if (actual.Count != ids.Length || type.Any(item => !actual.TryGetValue(item.Id, out var revision) || revision != item.Revision))
+                throw Unavailable();
+        }
     }
 
     private static async Task RequireCredentialScopeAsync(WebApiDbContext db, RuntimeSnapshot snapshot, CancellationToken ct)

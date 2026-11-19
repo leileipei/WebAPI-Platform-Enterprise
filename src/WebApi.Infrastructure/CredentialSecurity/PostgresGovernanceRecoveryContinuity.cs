@@ -39,6 +39,8 @@ public sealed class PostgresGovernanceRecoveryContinuity : IGovernanceRecoveryCo
                 if (!await FormalRotationMutation.VerifyCommittedAsync(db, journal, intent, ct)) throw Unavailable();
             var rotations = entries.Count(intent => FormalRotationJournalIntent.Kind(intent) == FormalRotationJournalIntent.Schedule);
             if (await db.Set<FormalCredentialRotation>().CountAsync(ct) != rotations) throw Unavailable();
+            var decisions = entries.Count(intent => FormalRotationJournalIntent.Kind(intent) == FormalRotationJournalIntent.Decision);
+            if (await db.Set<FormalRotationDecision>().CountAsync(ct) != decisions) throw Unavailable();
 
             var ledger = await new SecurityLedgerReader(db).ReadCompleteLockedAsync(environmentId, ct);
             var origin = await db.Set<EnvironmentSecurityInitialization>().AsNoTracking().SingleAsync(row => row.EnvironmentId == environmentId, ct);
@@ -84,13 +86,14 @@ public sealed class PostgresGovernanceRecoveryContinuity : IGovernanceRecoveryCo
     private static async Task RequirePermanentSecurityTablesAsync(WebApiDbContext db, CancellationToken ct)
     {
         var present = await db.Database.SqlQueryRaw<bool>("""
-            SELECT pg_catalog.count(*) = 12 AS "Value"
+            SELECT pg_catalog.count(*) = 15 AS "Value"
               FROM pg_catalog.pg_class relation
               JOIN pg_catalog.pg_namespace ns ON ns.oid = relation.relnamespace
              WHERE ns.nspname = 'public' AND relation.relkind = 'r' AND relation.relpersistence = 'p'
                AND relation.relname IN ('environments', 'environment_security_initializations', 'environment_security_states',
                   'security_events', 'security_operations', 'credential_revocations', 'applications', 'application_credentials',
-                  'formal_credential_rotations', 'audit_logs', 'security_outbox_messages', 'security_operation_targets')
+                  'formal_credential_rotations', 'formal_rotation_decisions', 'audit_logs', 'security_outbox_messages',
+                  'security_operation_targets', 'security_ack_verifications', 'gateway_security_lease_issuances')
             """).SingleAsync(ct);
         if (!present) throw Unavailable();
     }

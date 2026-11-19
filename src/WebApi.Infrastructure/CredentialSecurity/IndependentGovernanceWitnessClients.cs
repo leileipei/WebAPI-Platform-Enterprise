@@ -115,6 +115,14 @@ public sealed class IndependentGovernanceWitnessClients : IFormalRotationJournal
         GovernanceWriteIntent intent, Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, CancellationToken ct) =>
         journal.PrepareFormalRotationRevocationAsync(RequireConfiguredJournal(journalId), intent, scheduleId, environmentId, hardDeadline, ct);
 
+    Task<GovernanceWitnessState> IFormalRotationJournalWitness.PrepareFormalRotationDecisionAsync(GovernanceJournalId journalId,
+        GovernanceWriteIntent intent, Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, string decision, CancellationToken ct) =>
+        journal.PrepareFormalRotationDecisionAsync(RequireConfiguredJournal(journalId), intent, scheduleId, environmentId, hardDeadline, decision, ct);
+
+    Task<GovernanceWitnessState> IFormalRotationJournalWitness.ObserveFormalRotationDecisionAsync(GovernanceJournalId journalId,
+        GovernanceWriteIntent intent, Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, string decision, CancellationToken ct) =>
+        journal.ObserveFormalRotationDecisionAsync(RequireConfiguredJournal(journalId), intent, scheduleId, environmentId, hardDeadline, decision, ct);
+
     Task<VerifiedGovernanceLeaseReservation> IGovernanceLeaseReservationWitness.ReserveAllowLeaseAsync(GovernanceJournalId journalId,
         GovernanceJournalPosition expectedConfirmed, GovernanceLeaseReservation reservation, CancellationToken ct) =>
         journal.ReserveAllowLeaseAsync(RequireConfiguredJournal(journalId), expectedConfirmed, reservation, ct);

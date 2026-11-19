@@ -15,7 +15,8 @@ namespace WebApi.Infrastructure.CredentialSecurity;
 internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRevocationCoverage coverage,
     Func<WebApiDbContext, CancellationToken, Task>? requireSession = null, ICredentialArchivedIngressWitness? archive = null,
     PostgresFormalRotationPreparation? preparation = null, GovernanceJournalId? journal = null,
-    Func<WebApiDbContext, CancellationToken, Task<DateTimeOffset>>? deadlineClock = null) : IPostgresGovernanceMutation
+    Func<WebApiDbContext, CancellationToken, Task<DateTimeOffset>>? deadlineClock = null,
+    FormalRotationDecisionMutation? decisionMutation = null) : IPostgresGovernanceMutation
 {
     private const string ScheduleAction = "credential.formal-rotation.confirm";
     private readonly CredentialRevocationMutation revocation = new(actor ?? new(Guid.Empty, "formal-rotation"), coverage, requireSession, archive);
@@ -32,6 +33,9 @@ internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRev
             case FormalRotationJournalIntent.DeadlineRevocation:
                 if (actor is not null) throw PermissionDenied();
                 _ = FormalRotationDeadlineIntent.Read(intent);
+                break;
+            case FormalRotationJournalIntent.Decision:
+                await AuthorizeDecisionAsync(db, intent, ct);
                 break;
             default:
                 if (actor is null) throw PermissionDenied();
@@ -56,11 +60,17 @@ internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRev
                 if (preview.PreviewHash != schedule.PreviewHash || preview.ApplicationId != scope.ApplicationId ||
                     !preview.Targets.SequenceEqual(schedule.Targets) || schedule.RecordedAt > await SecurityDatabaseClock.ObserveAsync(db, ct))
                     throw PostgresFormalRotationService.Changed();
-                await RequireNoScheduleAsync(db, schedule.CredentialId, schedule.Window.ReplacementCredentialId!.Value, ct);
+                await RequireNoScheduleAsync(db, journal ?? throw FormalRotationJournalIntent.Invalid(), intent.Previous,
+                    schedule.CredentialId, schedule.Window.ReplacementCredentialId!.Value, ct);
                 break;
             case FormalRotationJournalIntent.DeadlineRevocation:
                 if (actor is not null || journal is null) throw PermissionDenied();
                 await FormalRotationDeadlineMutation.ValidateNewAsync(db, journal, intent, Clock, ct);
+                break;
+            case FormalRotationJournalIntent.Decision:
+                if (decisionMutation is null) throw PermissionDenied();
+                await AuthorizeDecisionAsync(db, intent, ct);
+                await decisionMutation.ValidateNewAsync(db, intent, ct);
                 break;
             default:
                 await revocation.ValidateNewAsync(db, intent, ct);
@@ -76,8 +86,9 @@ internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRev
                 // The exact plan was durably prepared at the deadline-aware
                 // authority. Recovery preserves that decision across time/role changes.
                 var plan = FormalRotationScheduleIntent.Read(intent);
-                await RequireNoScheduleAsync(db, plan.CredentialId, plan.Window.ReplacementCredentialId!.Value, ct);
-                await RequireBindingAsync(db, plan, ct);
+                await RequireNoScheduleAsync(db, journal ?? throw FormalRotationJournalIntent.Invalid(), intent.Previous,
+                    plan.CredentialId, plan.Window.ReplacementCredentialId!.Value, ct);
+                await RequireBindingAsync(db, plan, plan.CredentialId, ct);
                 db.Add(new FormalCredentialRotation
                 {
                     Id = intent.OperationId, CredentialId = plan.CredentialId, EnvironmentId = plan.Window.EnvironmentId,
@@ -93,6 +104,9 @@ internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRev
                 break;
             case FormalRotationJournalIntent.DeadlineRevocation:
                 await FormalRotationDeadlineMutation.ApplyAsync(db, journal ?? throw FormalRotationJournalIntent.Invalid(), intent, Clock, ct);
+                break;
+            case FormalRotationJournalIntent.Decision:
+                await FormalRotationDecisionMutation.ApplyAsync(db, journal ?? throw FormalRotationJournalIntent.Invalid(), intent, ct);
                 break;
             default:
                 if (actor is null) throw PermissionDenied();
@@ -110,6 +124,8 @@ internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRev
             FormalRotationJournalIntent.Schedule => VerifyScheduleAsync(db, intent, ct),
             FormalRotationJournalIntent.DeadlineRevocation => FormalRotationDeadlineMutation.VerifyAsync(db,
                 journal ?? throw FormalRotationJournalIntent.Invalid(), intent, ct),
+            FormalRotationJournalIntent.Decision => FormalRotationDecisionMutation.VerifyAsync(db,
+                journal ?? throw FormalRotationJournalIntent.Invalid(), intent, ct),
             _ => CredentialRevocationMutation.VerifyCommittedAsync(db, intent, ct)
         };
 
@@ -117,7 +133,7 @@ internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRev
     {
         if (actor is null) throw PermissionDenied();
         if (requireSession is not null) await requireSession(db, ct);
-        var credential = await RequireBindingAsync(db, plan, ct);
+        var credential = await RequireBindingAsync(db, plan, plan.CredentialId, ct);
         var target = new ResourceRef("credential", credential.Id, new(plan.OrganizationId, plan.ProjectId, plan.Window.EnvironmentId));
         var auth = new AuthorizationService(db);
         await auth.RequireAsync(actor, "credential.manage", target, ct);
@@ -125,15 +141,53 @@ internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRev
         return credential;
     }
 
-    internal static async Task RequireNoScheduleAsync(WebApiDbContext db, Guid credentialId, Guid replacementId, CancellationToken ct)
+    private async Task AuthorizeDecisionAsync(WebApiDbContext db, GovernanceWriteIntent intent, CancellationToken ct)
     {
-        if (await db.Set<FormalCredentialRotation>().AnyAsync(item => item.CredentialId == credentialId ||
-                item.CredentialId == replacementId || item.ReplacementCredentialId == replacementId, ct) ||
+        var plan = FormalRotationDecisionIntent.Read(intent);
+        if (plan.Decision == FormalRotationDecisionIntent.AbortConfirmed)
+        {
+            if (actor is not null) throw PermissionDenied();
+            return;
+        }
+        if (actor?.UserId != plan.ActorId || journal is null) throw PermissionDenied();
+        var schedule = await ReadConfirmedScheduleAsync(db, journal, plan.ScheduleId, intent.Previous, ct);
+        await AuthorizeManualAsync(db, schedule, ct);
+    }
+
+    internal async Task AuthorizeManualAsync(WebApiDbContext db, FormalRotationScheduleIntent schedule, CancellationToken ct)
+    {
+        await AuthorizeScheduleAsync(db, schedule, ct);
+        var replacement = await RequireBindingAsync(db, schedule, schedule.Window.ReplacementCredentialId!.Value, ct);
+        var target = new ResourceRef("credential", replacement.Id, new(schedule.OrganizationId, schedule.ProjectId, schedule.Window.EnvironmentId));
+        var auth = new AuthorizationService(db);
+        await auth.RequireAsync(actor!, "credential.manage", target, ct);
+        await auth.RequireAsync(actor!, "credential.revoke", target, ct);
+    }
+
+    internal static async Task RequireNoScheduleAsync(WebApiDbContext db, GovernanceJournalId journal, GovernanceJournalPosition position,
+        Guid credentialId, Guid replacementId, CancellationToken ct)
+    {
+        if (await db.Set<FormalCredentialRotation>().AnyAsync(item => item.CredentialId == replacementId || item.ReplacementCredentialId == replacementId, ct) ||
             await db.Set<SecurityOperation>().AnyAsync(item => item.Kind == "CredentialRevoke" && item.CredentialId == credentialId, ct))
             throw PostgresFormalRotationService.Changed();
+        var existing = await db.Set<FormalCredentialRotation>().Where(x => x.CredentialId == credentialId).Select(x => x.Id).ToArrayAsync(ct);
+        if (existing.Length == 0) return;
+        var aborted = await db.Set<FormalRotationDecision>().AsNoTracking()
+            .Where(x => existing.Contains(x.ScheduleId) && x.Kind == FormalRotationDecisionIntent.AbortConfirmed).ToArrayAsync(ct);
+        if (aborted.Length != existing.Length) throw PostgresFormalRotationService.Changed();
+        foreach (var decision in aborted)
+            await FormalRotationDecisionMutation.ReadDecisionAsync(db, journal, position, decision, ct);
     }
 
     internal static async Task<FormalRotationScheduleIntent> ReadConfirmedScheduleAsync(WebApiDbContext db, GovernanceJournalId journal,
+        Guid id, GovernanceJournalPosition latest, CancellationToken ct)
+    {
+        var intent = await ReadConfirmedIntentAsync(db, journal, id, latest, ct);
+        if (!await VerifyScheduleAsync(db, intent, ct)) throw FormalRotationJournalIntent.Invalid();
+        return FormalRotationScheduleIntent.Read(intent);
+    }
+
+    internal static async Task<GovernanceWriteIntent> ReadConfirmedIntentAsync(WebApiDbContext db, GovernanceJournalId journal,
         Guid id, GovernanceJournalPosition latest, CancellationToken ct)
     {
         var row = await db.Database.SqlQuery<ScheduleJournalRow>($"""
@@ -148,9 +202,9 @@ internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRev
         if (row is null || row.Sequence is <= 0 || row.Sequence > latest.Sequence) throw FormalRotationJournalIntent.Invalid();
         var intent = new GovernanceWriteIntent(id, new(row.Sequence - 1, row.PreviousHash), row.RecoveryMaterial);
         var position = GovernanceJournalProtocol.NextPosition(journal, intent);
-        if (position.Hash != row.PositionHash || position.Sequence == latest.Sequence && position != latest ||
-            !await VerifyScheduleAsync(db, intent, ct)) throw FormalRotationJournalIntent.Invalid();
-        return FormalRotationScheduleIntent.Read(intent);
+        if (position.Hash != row.PositionHash || position.Sequence == latest.Sequence && position != latest)
+            throw FormalRotationJournalIntent.Invalid();
+        return intent;
     }
 
     internal static async Task<bool> VerifyScheduleAsync(WebApiDbContext db, GovernanceWriteIntent intent, CancellationToken ct)
@@ -179,9 +233,10 @@ internal sealed class FormalRotationMutation(ActorContext? actor, ICredentialRev
     private static string ScheduleAudit(GovernanceWriteIntent intent, FormalRotationScheduleIntent plan) =>
         JsonSerializer.Serialize(new { RotationId = intent.OperationId, plan.Window, plan.Reason, plan.PreviewHash, plan.Targets });
 
-    private static async Task<ApplicationCredential> RequireBindingAsync(WebApiDbContext db, FormalRotationScheduleIntent plan, CancellationToken ct)
+    internal static async Task<ApplicationCredential> RequireBindingAsync(WebApiDbContext db, FormalRotationScheduleIntent plan, Guid credentialId,
+        CancellationToken ct)
     {
-        return await db.Set<ApplicationCredential>().AsNoTracking().SingleOrDefaultAsync(item => item.Id == plan.CredentialId &&
+        return await db.Set<ApplicationCredential>().AsNoTracking().SingleOrDefaultAsync(item => item.Id == credentialId &&
             item.ApplicationId == plan.ApplicationId && item.OrganizationId == plan.OrganizationId && item.ProjectId == plan.ProjectId &&
             item.EnvironmentId == plan.Window.EnvironmentId && item.BindingMode == "EnvironmentBound", ct)
             ?? throw FormalRotationJournalIntent.Invalid();

@@ -18,6 +18,129 @@ public sealed class FormalCredentialRotationMigrationTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public async Task BothUpgradePathsPreserveTheScheduleAndInstallTheDecisionProjection(bool sqlEntry)
+    {
+        await using var database = new PostgresDatabase();
+        await database.InitializeAsync();
+        FormalCredentialRotation scheduled;
+        await using (var predecessor = database.Context())
+        {
+            await predecessor.GetService<IMigrator>().MigrateAsync(RotationMigration);
+            Assert.Equal(GovernanceSchemaFingerprints.Expected[RotationMigration],
+                await predecessor.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
+            scheduled = await SeedScheduleAsync(predecessor);
+            predecessor.Add(scheduled);
+            await predecessor.SaveChangesAsync();
+        }
+
+        await InstallUpgradeAsync(database, sqlEntry);
+
+        await using var db = database.Context();
+        Assert.True(await db.Database.SqlQueryRaw<bool>("""
+            SELECT pg_catalog.to_regclass('public.formal_rotation_decisions') IS NOT NULL AS "Value"
+            """).SingleAsync());
+        Assert.False(db.Database.HasPendingModelChanges());
+        Assert.Equal(FormalRotationDecisionProjection.Id, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        Assert.Equal(GovernanceSchemaFingerprints.Expected[FormalRotationDecisionProjection.Id],
+            await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
+        Assert.Equal(scheduled.IntentHash, await db.Set<FormalCredentialRotation>()
+            .Where(row => row.Id == scheduled.Id).Select(row => row.IntentHash).SingleAsync());
+        Assert.Empty(await db.FormalRotationDecisions.ToArrayAsync());
+        Assert.True(await db.Database.SqlQueryRaw<bool>("""
+            SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_constraint
+                WHERE conrelid = 'public.formal_rotation_decisions'::regclass
+                  AND confrelid = 'public.formal_credential_rotations'::regclass
+                  AND contype = 'f' AND confdeltype = 'r') AS "Value"
+            """).SingleAsync());
+
+        var decision = new FormalRotationDecision
+        {
+            Id = Guid.NewGuid(), ScheduleId = scheduled.Id, Kind = "Complete",
+            RecordedAt = scheduled.RecordedAt.AddMinutes(1), IntentHash = new string('c', 64)
+        };
+        db.FormalRotationDecisions.Add(decision);
+        await db.SaveChangesAsync();
+
+        await AssertImmutableAsync(() => db.Database.ExecuteSqlInterpolatedAsync($"UPDATE public.formal_rotation_decisions SET kind='AbortRequested' WHERE id={decision.Id}"));
+        await AssertImmutableAsync(() => db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM public.formal_rotation_decisions WHERE id={decision.Id}"));
+        await AssertImmutableAsync(() => db.Database.ExecuteSqlRawAsync("TRUNCATE TABLE public.formal_rotation_decisions"));
+        var downgrade = await Assert.ThrowsAsync<PostgresException>(() => db.GetService<IMigrator>().MigrateAsync(RotationMigration));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, downgrade.SqlState);
+        Assert.Equal("formal_rotation_decision_down_blocked", downgrade.MessageText);
+
+        if (sqlEntry) await InstallUpgradeAsync(database, sqlEntry);
+        Assert.Equal(FormalRotationDecisionProjection.Id, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        var retained = await db.FormalRotationDecisions.AsNoTracking().SingleAsync();
+        Assert.Equal((decision.Id, decision.ScheduleId, decision.Kind, decision.RecordedAt, decision.IntentHash),
+            (retained.Id, retained.ScheduleId, retained.Kind, retained.RecordedAt, retained.IntentHash));
+        Assert.Equal(TimeSpan.Zero, retained.RecordedAt.Offset);
+    }
+
+    [Fact]
+    public async Task DecisionConstraintsRejectConflictsAndInvalidEvidence()
+    {
+        await using var database = new PostgresDatabase();
+        await database.InitializeAsync();
+        await using var db = database.Context();
+        await db.Database.MigrateAsync();
+        var completed = await SeedScheduleAsync(db);
+        db.Add(completed);
+        await db.SaveChangesAsync();
+        var aborted = Guid.NewGuid();
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO public.formal_credential_rotations
+                (id, credential_id, replacement_credential_id, environment_id, hard_deadline, recorded_at, intent_hash)
+            SELECT {aborted}, credential_id, replacement_credential_id, environment_id, hard_deadline, recorded_at, intent_hash
+            FROM public.formal_credential_rotations WHERE id={completed.Id}
+            """);
+
+        var at = completed.RecordedAt.AddMinutes(1).ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+        var hash = new string('c', 64);
+        Task AppendAsync(Guid schedule, string kind, Guid? id = null, string? recorded = null, string? intent = null) =>
+            db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO public.formal_rotation_decisions (id, schedule_id, kind, recorded_at, intent_hash)
+                VALUES ({id ?? Guid.NewGuid()}, {schedule}, {kind}, CAST({recorded ?? at} AS timestamptz), {intent ?? hash})
+                """);
+
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "Complete", id: Guid.Empty),
+            PostgresErrorCodes.CheckViolation, "ck_formal_rotation_decision");
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "complete"),
+            PostgresErrorCodes.CheckViolation, "ck_formal_rotation_decision");
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "Complete "),
+            PostgresErrorCodes.CheckViolation, "ck_formal_rotation_decision");
+        await AssertConstraintAsync(() => AppendAsync(aborted, "AbortRequested "),
+            PostgresErrorCodes.CheckViolation, "ck_formal_rotation_decision");
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "Complete", recorded: "infinity"),
+            PostgresErrorCodes.CheckViolation, "ck_formal_rotation_decision");
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "Complete", recorded: "-infinity"),
+            PostgresErrorCodes.CheckViolation, "ck_formal_rotation_decision");
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "Complete", intent: hash.ToUpperInvariant()),
+            PostgresErrorCodes.CheckViolation, "ck_formal_rotation_decision");
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "Complete", intent: hash[..63]),
+            PostgresErrorCodes.CheckViolation, "ck_formal_rotation_decision");
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "Complete", intent: hash + " "),
+            PostgresErrorCodes.CheckViolation, "ck_formal_rotation_decision");
+        await AssertConstraintAsync(() => AppendAsync(Guid.NewGuid(), "Complete"),
+            PostgresErrorCodes.ForeignKeyViolation, "FK_formal_rotation_decisions_schedule");
+
+        var operation = Guid.NewGuid();
+        await AppendAsync(completed.Id, "Complete", id: operation);
+        await AppendAsync(aborted, "AbortRequested");
+        await AppendAsync(aborted, "AbortConfirmed");
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "AbortConfirmed", id: operation),
+            PostgresErrorCodes.UniqueViolation, "PK_formal_rotation_decisions");
+        await AssertConstraintAsync(() => AppendAsync(aborted, "AbortConfirmed"),
+            PostgresErrorCodes.UniqueViolation, "IX_formal_rotation_decisions_schedule_id_kind");
+        await AssertConstraintAsync(() => AppendAsync(completed.Id, "AbortRequested"),
+            PostgresErrorCodes.UniqueViolation, "IX_formal_rotation_decisions_schedule_complete_or_abort");
+        await AssertConstraintAsync(() => AppendAsync(aborted, "Complete"),
+            PostgresErrorCodes.UniqueViolation, "IX_formal_rotation_decisions_schedule_complete_or_abort");
+        Assert.Equal(3, await db.FormalRotationDecisions.CountAsync());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public async Task BothUpgradePathsPreserveTheCredentialsAndCreateAnAppendOnlySchedule(bool sqlEntry)
     {
         await using var database = new PostgresDatabase();
@@ -36,8 +159,8 @@ public sealed class FormalCredentialRotationMigrationTests
         Assert.True(await db.Database.SqlQueryRaw<bool>("""
             SELECT pg_catalog.to_regclass('public.formal_credential_rotations') IS NOT NULL AS "Value"
             """).SingleAsync());
-        Assert.Equal(RotationMigration, (await db.Database.GetAppliedMigrationsAsync()).Last());
-        Assert.Equal(GovernanceSchemaFingerprints.Expected[RotationMigration],
+        Assert.Equal(FormalRotationDecisionProjection.Id, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        Assert.Equal(GovernanceSchemaFingerprints.Expected[FormalRotationDecisionProjection.Id],
             await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
         Assert.Equal(2, await db.Set<ApplicationCredential>().CountAsync(key => key.EnvironmentId == scheduled.EnvironmentId));
         db.Add(scheduled);
@@ -56,6 +179,20 @@ public sealed class FormalCredentialRotationMigrationTests
 
         await AssertImmutableAsync(() => db.Database.ExecuteSqlInterpolatedAsync($"UPDATE public.formal_credential_rotations SET hard_deadline=hard_deadline + interval '1 second' WHERE id={scheduled.Id}"));
         await AssertImmutableAsync(() => db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM public.formal_credential_rotations WHERE id={scheduled.Id}"));
+        await AssertImmutableAsync(() => db.Database.ExecuteSqlRawAsync("TRUNCATE TABLE public.formal_credential_rotations CASCADE"));
+    }
+
+    [Fact]
+    public async Task TheScheduleMigrationCannotBeRolledBack()
+    {
+        await using var database = new PostgresDatabase();
+        await database.InitializeAsync();
+        await using var db = database.Context();
+        await db.GetService<IMigrator>().MigrateAsync(RotationMigration);
+        var scheduled = await SeedScheduleAsync(db);
+        db.Add(scheduled);
+        await db.SaveChangesAsync();
+
         await AssertImmutableAsync(() => db.Database.ExecuteSqlRawAsync("TRUNCATE TABLE public.formal_credential_rotations"));
         var downgrade = await Assert.ThrowsAsync<PostgresException>(() => db.GetService<IMigrator>().MigrateAsync(LegacyGlobalRevocationInheritance.Id));
         Assert.Equal(PostgresErrorCodes.CheckViolation, downgrade.SqlState);
@@ -98,11 +235,14 @@ public sealed class FormalCredentialRotationMigrationTests
         Assert.Equal("formal_credential_rotation_immutable", error.MessageText);
     }
 
-    private static async Task AssertInvalidAsync(Func<Task> append)
+    private static Task AssertInvalidAsync(Func<Task> append) =>
+        AssertConstraintAsync(append, PostgresErrorCodes.CheckViolation, "ck_formal_credential_rotation");
+
+    private static async Task AssertConstraintAsync(Func<Task> append, string sqlState, string constraint)
     {
         var error = await Assert.ThrowsAsync<PostgresException>(append);
-        Assert.Equal(PostgresErrorCodes.CheckViolation, error.SqlState);
-        Assert.Equal("ck_formal_credential_rotation", error.ConstraintName);
+        Assert.Equal(sqlState, error.SqlState);
+        Assert.Equal(constraint, error.ConstraintName);
     }
 
     private static async Task<FormalCredentialRotation> SeedScheduleAsync(WebApiDbContext db)

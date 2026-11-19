@@ -40,9 +40,9 @@ public sealed class OutboxFailureIsolationTests
     [InlineData("cache-conflict")]
     public async Task PoisonedEnvironmentDoesNotBlockHealthyReconciliation(string failure)
     {
-        await using var api = new ApiFixture(); await api.InitializeAsync(); await api.SeedScopeAsync();
+        await using var api = new ApiFixture(); await api.InitializeAsync(); await api.SeedScopeAsync(seedFreshEnvironment: true);
         var healthy = new EnvironmentRecord { ProjectId = api.Project.Id, Code = "HEALTHY", Name = "Healthy" };
-        await using (var db = api.Context()) { db.Add(healthy); await db.SaveChangesAsync(); }
+        await using (var db = api.Context()) { db.Add(healthy); api.AddFreshEnvironmentOrigin(db, healthy); await db.SaveChangesAsync(); }
         var bad = await SeedAsync(api, api.Environment.Id); var good = await SeedAsync(api, healthy.Id);
         using var redis = new RedisSnapshotStore("redis:6379", "isolation:" + Guid.NewGuid());
         SnapshotEnvelope? conflicting = null;
@@ -62,7 +62,7 @@ public sealed class OutboxFailureIsolationTests
     [Fact]
     public async Task FailedGlobalReconciliationStillDispatchesAndWaitsForNextReconciliationInterval()
     {
-        await using var api = new ApiFixture(); await api.InitializeAsync(); await api.SeedScopeAsync();
+        await using var api = new ApiFixture(); await api.InitializeAsync(); await api.SeedScopeAsync(seedFreshEnvironment: true);
         var seeded = await SeedAsync(api, api.Environment.Id, outbox: true);
         var failure = new ReconciliationQueryFailure();
         using var redis = new RedisSnapshotStore("redis:6379", "worker-isolation:" + Guid.NewGuid());

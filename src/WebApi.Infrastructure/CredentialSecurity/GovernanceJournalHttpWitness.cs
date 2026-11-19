@@ -49,6 +49,22 @@ public sealed class GovernanceJournalHttpWitness : IGovernanceJournalWitness, ID
         Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, CancellationToken ct) =>
         SendFormalRotationAsync(FormalRotationJournalProtocol.PrepareRevocation(journal, intent, scheduleId, environmentId, hardDeadline), ct);
 
+    internal Task<GovernanceWitnessState> PrepareFormalRotationDecisionAsync(GovernanceJournalId journal, GovernanceWriteIntent intent,
+        Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, string decision, CancellationToken ct) =>
+        SendFormalRotationDecisionAsync(FormalRotationDecisionJournalProtocol.Prepare(journal, intent, scheduleId, environmentId, hardDeadline, decision), ct);
+
+    internal Task<GovernanceWitnessState> ObserveFormalRotationDecisionAsync(GovernanceJournalId journal, GovernanceWriteIntent intent,
+        Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, string decision, CancellationToken ct) =>
+        SendFormalRotationDecisionAsync(FormalRotationDecisionJournalProtocol.Observe(journal, intent, scheduleId, environmentId, hardDeadline, decision), ct);
+
+    private async Task<GovernanceWitnessState> SendFormalRotationDecisionAsync(FormalRotationDecisionPrepareRequest request, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        var bytes = FormalRotationDecisionJournalProtocol.EncodeRequest(request);
+        var response = await transport.PostAsync(endpoint, bytes, GovernanceJournalProtocol.MaxWireBytes, ct);
+        return FormalRotationDecisionJournalProtocol.VerifyResponse(request, response, trust);
+    }
+
     internal async Task<VerifiedGovernanceLeaseReservation> ReserveAllowLeaseAsync(GovernanceJournalId journal,
         GovernanceJournalPosition expectedConfirmed, GovernanceLeaseReservation reservation, CancellationToken ct = default)
     {

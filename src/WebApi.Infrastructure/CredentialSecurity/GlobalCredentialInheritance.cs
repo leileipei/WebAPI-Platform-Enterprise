@@ -24,6 +24,9 @@ internal static class GlobalCredentialInheritance
         orderby operation.CommittedAt, operation.Id
         select new Origin(operation.Id, credential.Id, application.Id, operation.CommittedAt);
 
+    internal static Task<bool> HasApplicableAsync(WebApiDbContext db, Guid organizationId, Guid projectId, CancellationToken ct) =>
+        Applicable(db, organizationId, projectId).AnyAsync(ct);
+
     internal static async Task InitializeNewAsync(WebApiDbContext db, Guid environmentId, ScopeRef scope, ActorContext actor, CancellationToken ct)
     {
         var facts = await Applicable(db, scope.OrganizationId, scope.ProjectId!.Value).ToArrayAsync(ct);

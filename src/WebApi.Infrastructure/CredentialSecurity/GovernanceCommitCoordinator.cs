@@ -52,18 +52,21 @@ public sealed class GovernanceCommitCoordinator
     private readonly IGovernanceCommitStore store;
     private readonly IGovernanceJournalWitness witness;
     private readonly Func<GovernanceWriteIntent, CancellationToken, Task<GovernanceWitnessState>>? prepareOrdered;
+    private readonly Func<GovernanceWriteIntent, GovernanceWitnessState, CancellationToken, Task>? verifyRecoveredPreparation;
 
     public GovernanceCommitCoordinator(GovernanceJournalId journal, IGovernanceCommitStore store, IGovernanceJournalWitness witness)
         : this(journal, store, witness, null) { }
 
     internal GovernanceCommitCoordinator(GovernanceJournalId journal, IGovernanceCommitStore store, IGovernanceJournalWitness witness,
-        Func<GovernanceWriteIntent, CancellationToken, Task<GovernanceWitnessState>>? prepareOrdered)
+        Func<GovernanceWriteIntent, CancellationToken, Task<GovernanceWitnessState>>? prepareOrdered,
+        Func<GovernanceWriteIntent, GovernanceWitnessState, CancellationToken, Task>? verifyRecoveredPreparation = null)
     {
         GovernanceJournalProtocol.RequireJournal(journal);
         this.journal = journal;
         this.store = store;
         this.witness = witness;
         this.prepareOrdered = prepareOrdered;
+        this.verifyRecoveredPreparation = verifyRecoveredPreparation;
     }
 
     public async Task<GovernanceCommitResult> ExecuteAsync(GovernanceWriteIntent intent, CancellationToken ct = default)
@@ -83,6 +86,7 @@ public sealed class GovernanceCommitCoordinator
         if (observed.Pending is { } pending)
         {
             if (pending != intent) return GovernanceCommitResult.Conflict;
+            await VerifyRecoveredPreparationAsync(intent, observed, ct);
             await FinishPreparedAsync(session, local, observed, next, ct);
             return GovernanceCommitResult.Replayed;
         }
@@ -120,6 +124,7 @@ public sealed class GovernanceCommitCoordinator
         if (observed.Pending is { } pending)
         {
             if (!canFinish(pending)) return false;
+            await VerifyRecoveredPreparationAsync(pending, observed, ct);
             await FinishPreparedAsync(session, local, observed, GovernanceJournalProtocol.NextPosition(journal, pending), ct);
             return true;
         }
@@ -131,6 +136,7 @@ public sealed class GovernanceCommitCoordinator
         {
             if (!canFinish(intent)) return false;
             Require(await session.VerifyCommittedMutationAsync(intent, ct));
+            await VerifyRecoveredPreparationAsync(intent, observed, ct);
             await FinishMarkerAsync(session, local, observed, ct);
         }
         else Require(await ReadLocalAsync(session, ct) == local);
@@ -151,9 +157,15 @@ public sealed class GovernanceCommitCoordinator
 
         Require(await session.VerifyCommittedMutationAsync(intent, ct));
         if (observed.Pending is null && local.AwaitingConfirmation == intent)
+        {
+            await VerifyRecoveredPreparationAsync(intent, observed, ct);
             await FinishMarkerAsync(session, local, observed, ct);
+        }
         return GovernanceCommitResult.Replayed;
     }
+
+    private Task VerifyRecoveredPreparationAsync(GovernanceWriteIntent intent, GovernanceWitnessState observed, CancellationToken ct) =>
+        verifyRecoveredPreparation is null ? Task.CompletedTask : verifyRecoveredPreparation(intent, observed, ct);
 
     private async Task FinishPreparedAsync(IGovernanceCommitSession session, GovernanceLocalJournalState local,
         GovernanceWitnessState prepared, GovernanceJournalPosition next, CancellationToken ct)

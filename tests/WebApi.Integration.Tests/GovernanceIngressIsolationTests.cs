@@ -131,7 +131,9 @@ public sealed class GovernanceIngressIsolationTests
         var project = new Project { OrganizationId = organization.Id, Code = "PROJECT", Name = "Fixture project" };
         var environment = new EnvironmentRecord { ProjectId = project.Id, Code = "TEST", Name = "Fixture environment" };
         var user = new UserRecord { Username = "isolated-publisher", DisplayName = "Fixture publisher" };
-        db.AddRange(organization, project, environment, user);
+        db.AddRange(organization, project, environment, user,
+            new EnvironmentSecurityInitialization { EnvironmentId = environment.Id, ProjectId = project.Id,
+                OrganizationId = organization.Id, State = "FreshNonStrict", FreshProofId = Guid.NewGuid() });
         await db.SaveChangesAsync();
         return new(organization.Id, project.Id, environment.Id, user.Id);
     }

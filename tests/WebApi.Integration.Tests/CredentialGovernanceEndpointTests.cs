@@ -130,6 +130,57 @@ public sealed class CredentialGovernanceEndpointTests
     }
 
     [Fact]
+    public async Task FormalRotationEligibilityUsesBothPermissionsInTheCredentialOrganization()
+    {
+        await using var fixture = new ApiFixture();
+        await fixture.InitializeAsync();
+        await fixture.SeedConsumerAsync();
+        var path = $"/api/v1/applications/{fixture.Application.Id}/formal-rotation-eligibility";
+        Guid credentialId;
+        Guid targetRoleId;
+        Guid revokePermissionId;
+        await using (var db = fixture.Context())
+        {
+            targetRoleId = await db.Set<UserRole>().Where(x => x.UserId == fixture.User.Id).Select(x => x.RoleId).SingleAsync();
+            var credential = new ApplicationCredential
+            {
+                ApplicationId = fixture.Application.Id, OrganizationId = fixture.Organization.Id, ProjectId = fixture.Project.Id,
+                EnvironmentId = fixture.Environment.Id, BindingMode = "EnvironmentBound", AccessKey = "ak_formal_eligible_fixture",
+                SecretHash = new string('f', 64), ValidFrom = DateTimeOffset.UtcNow.AddMinutes(-1), ExpiresAt = DateTimeOffset.UtcNow.AddDays(1)
+            };
+            credentialId = credential.Id;
+            var other = new Organization { Code = "ROTATION-OUTSIDE", Name = "Other organization" };
+            var role = new Role { OrganizationId = other.Id, Code = "OTHER-ROTATION", Name = "Other organization rotation" };
+            var permission = await db.Set<Permission>().SingleOrDefaultAsync(x => x.Code == "credential.revoke");
+            if (permission is null)
+            {
+                permission = new Permission { Code = "credential.revoke", Name = "Revoke", Module = "credential" };
+                db.Add(permission);
+            }
+            db.AddRange(credential, other, role, new UserRole { UserId = fixture.User.Id, RoleId = role.Id },
+                new RolePermission { RoleId = role.Id, PermissionId = permission.Id });
+            revokePermissionId = permission.Id;
+            await db.SaveChangesAsync();
+        }
+        using var login = await fixture.LoginAsync();
+        login.EnsureSuccessStatusCode();
+        using (var outside = await fixture.Client.GetAsync(path))
+        {
+            outside.EnsureSuccessStatusCode();
+            Assert.Empty((await outside.Content.ReadFromJsonAsync<FormalRotationEligibilityDto>())!.CredentialIds);
+        }
+        await using (var db = fixture.Context())
+        {
+            db.Add(new RolePermission { RoleId = targetRoleId, PermissionId = revokePermissionId });
+            await db.SaveChangesAsync();
+        }
+        using var eligible = await fixture.Client.GetAsync(path);
+        eligible.EnsureSuccessStatusCode();
+        Assert.True(eligible.Headers.CacheControl?.NoStore);
+        Assert.Equal(credentialId, Assert.Single((await eligible.Content.ReadFromJsonAsync<FormalRotationEligibilityDto>())!.CredentialIds));
+    }
+
+    [Fact]
     public async Task EnrollmentRequiresPlatformRecoveryPermissionAndReverifiesAnExactReplay()
     {
         await using var fixture = new ApiFixture();

@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Policies;
+using WebApi.Domain.Applications;
 using WebApi.Domain.Policies;
 using WebApi.Infrastructure.Policies;
 using WebApi.Infrastructure.Gateway;
@@ -32,6 +33,7 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
     {
         var candidate=await PreviewCoreAsync(environmentId,request,ct,routeIds,selection);
         if(routeIds.Count==0||routeIds.Distinct().Count()!=routeIds.Count||routeIds.Any(id=>!candidate.Routes.Any(r=>r.Id==id)))throw new ApiException(422,"invalid_promotion_routes","晋级目标路由准备不完整。");
+        if(candidate.Governance is not null) return candidate with { SharedCredentialImpact=selection.Impact };
         var routes=candidate.Routes.Where(r=>routeIds.Contains(r.Id)).ToArray();var bindings=candidate.Bindings.Where(b=>routeIds.Contains(b.RouteId)).ToArray();var policyIds=bindings.Select(b=>b.PolicyId).ToHashSet();var clusterIds=routes.Select(r=>r.ClusterId).ToHashSet();
         var revisions=candidate.ResourceRevisions.Where(r=>r.Type is not("application" or "credential" or "authorization")&&(r.Type!="route"||routeIds.Contains(r.Id))&&(r.Type!="policy"||policyIds.Contains(r.Id))&&(r.Type!="cluster"||clusterIds.Contains(r.Id))&&(r.Type!="destination"||candidate.Clusters.Where(c=>clusterIds.Contains(c.Id)).Any(c=>c.Destinations.Any(d=>d.Id==r.Id)))).Concat(selection.ResourceRevisions).DistinctBy(r=>(r.Type,r.Id)).OrderBy(r=>r.Type,StringComparer.Ordinal).ThenBy(r=>r.Id).ToArray();
         return candidate with{Routes=routes,Bindings=bindings,Policies=candidate.Policies.Where(p=>policyIds.Contains(p.Id)).ToArray(),Clusters=candidate.Clusters.Where(c=>clusterIds.Contains(c.Id)).ToArray(),Applications=selection.Applications,ResourceRevisions=revisions,SharedCredentialImpact=selection.Impact};
@@ -57,7 +59,6 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
         GatewayNode[]? targets = null;
         if (governed)
         {
-            if (selection is not null) throw new ApiException(409, "governance_promotion_rebuild_required", "2.4 晋级需要按当前授权建立并审批新的晋级候选。");
             if (env.Status != "Active") throw new ApiException(409, "governance_environment_inactive", "环境停用时不能发布治理快照。");
             if (continuity is null) throw ContinuityRequired();
             await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={environmentId} FOR NO KEY UPDATE", ct);
@@ -123,9 +124,19 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
         var publishedVersions = versions.Where(v => v.Api.LifecycleStatus != "Retired").Select(v => v.Version.Id).ToHashSet();
         var selectedRuntimeRoutes = routeEntities.Where(r => r.Enabled && publishedVersions.Contains(r.ApiVersionId)).ToArray();
         var publishedApiIds = selectedRuntimeRoutes.Select(r => r.ApiId).Concat(retainedRoutes.Select(r => r.ApiId)).Distinct().ToArray();
+        var selectedGrantIds = governed && selection is not null
+            ? selection.Applications.SelectMany(x => x.Permissions).Select(x => x.Id).ToArray() : null;
         var grants=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(p=>p.EnvironmentId==environmentId &&
-            (governed ? publishedApiIds.Contains(p.ApiId) : p.Mode=="LegacyApi")).OrderBy(p=>p.Id).ToArrayAsync(ct);var applications=new List<FrozenApplication>();
-        if(selection is not null){await RequireLegacyApplicationsAsync(db, selection.Applications, ct);applications.AddRange(selection.Applications);revisions.AddRange(selection.ResourceRevisions);if(mappedIds.Except(selection.Applications.Select(a=>a.Application.Id)).Any())throw new ApiException(422,"jwt_application_not_selected","目标JWT映射应用须明确选择或由保留业务基线提供。");}
+            (governed ? publishedApiIds.Contains(p.ApiId) : p.Mode=="LegacyApi") &&
+            (selectedGrantIds == null || selectedGrantIds.Contains(p.Id))).OrderBy(p=>p.Id).ToArrayAsync(ct);var applications=new List<FrozenApplication>();
+        if(selection is not null)
+        {
+            if (!governed) await RequireLegacyApplicationsAsync(db, selection.Applications, ct);
+            applications.AddRange(selection.Applications);
+            revisions.AddRange(selection.ResourceRevisions);
+            if(mappedIds.Except(selection.Applications.Select(a=>a.Application.Id)).Any())
+                throw new ApiException(422,"jwt_application_not_selected","目标JWT映射应用须明确选择或由保留业务基线提供。");
+        }
         else foreach(var appId in grants.Select(g=>g.ApplicationId).Concat(mappedIds).Distinct().OrderBy(x=>x))
         {
             var app=await db.Set<ApplicationRecord>().AsNoTracking().SingleAsync(a=>a.Id==appId,ct);if(app.OrganizationId!=scope.OrganizationId||app.ProjectId is Guid p&&p!=scope.ProjectId) throw new ApiException(422,"foreign_application","候选应用跨范围。");
@@ -166,12 +177,57 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
             || baseline is not null&&baseline.Routes.Where(r=>!apiIds.Contains(r.ApiId)).Any(r=>r.AuthenticationMode==AuthenticationMode.JWT||(r.PolicyBindings??[]).Any(b=>baseline.Policies.Any(p=>p.Id==b.PolicyId&&RequiresModernSchema(p.Type,p.Config))));
         if(newSemantics || governed)
         {
-            var compiled=compiler.Compile(candidate,baseline??new RuntimeSnapshot("2.0",environmentId,0,DateTimeOffset.UtcNow,[],[],[],[]),request.BaseConfigVersion+1,DateTimeOffset.UtcNow);
+            var compileTime = DateTimeOffset.UtcNow;
+            var compiled=compiler.Compile(candidate,baseline??new RuntimeSnapshot("2.0",environmentId,0,compileTime,[],[],[],[]),request.BaseConfigVersion+1,compileTime);
+            if (ledger is not null && selection is not null)
+                RequireGovernedPromotionAccess(SnapshotValidator.ParsePayload(compiled.Payload.Span, environmentId),
+                    baseline, apiIds, ledger, compileTime);
             using var document=JsonDocument.Parse(compiled.Payload);
             var schema=document.RootElement.GetProperty("schemaVersion").GetString()!;
             if(schema is "2.2" or "2.3") await SnapshotSchemaCapabilities.RequireOnlineSchemaAsync(db,publishSettings,environmentId,schema,ct);
         }
         return candidate;
+    }
+
+    private static void RequireGovernedPromotionAccess(RuntimeSnapshot current, RuntimeSnapshot? baseline,
+        HashSet<Guid> selectedApis, SecurityLedgerMaterial ledger, DateTimeOffset now)
+    {
+        var revoked = ledger.Revocations.Select(x => x.CredentialId).ToHashSet();
+        var policies = current.Policies.ToDictionary(x => x.Id);
+        foreach (var route in current.Routes.Where(x => selectedApis.Contains(x.ApiId)))
+        {
+            IEnumerable<RuntimeApplication> eligible;
+            if (route.RequireApiKey)
+            {
+                eligible = current.Applications.Where(app => app.Credentials.Any(key =>
+                    key.BindingMode == "EnvironmentBound" && key.EnvironmentId == current.EnvironmentId && key.Status == "Active" &&
+                    now >= key.ValidFrom && now < key.ExpiresAt && !revoked.Contains(key.Id)));
+            }
+            else if (route.AuthenticationMode == AuthenticationMode.JWT)
+            {
+                var mappings = (route.PolicyBindings ?? []).Select(x => policies[x.PolicyId])
+                    .Where(x => x.Type == "authentication")
+                    .SelectMany(x => PolicyConfigurationValidator.ParseAuthentication(x.Config).Jwt?.ApplicationMappings ?? [])
+                    .Select(x => x.ApplicationId).ToHashSet();
+                eligible = current.Applications.Where(app => mappings.Contains(app.Id));
+            }
+            else continue;
+
+            if (route.Methods.Any(method => !eligible.Any(app => PermissionEvaluator.IsAllowed(app, route, method, now))))
+                throw new ApiException(409, "governance_promotion_access_unverified", "每个受保护的晋级路由及方法都须有当前目标环境的明确授权。");
+        }
+
+        if (baseline is null) return;
+        var retainedApis = baseline.Routes.Select(x => x.ApiId).Where(id => !selectedApis.Contains(id)).ToHashSet();
+        foreach (var app in baseline.Applications)
+        {
+            var original = app.Permissions.Where(x => retainedApis.Contains(x.ApiId)).OrderBy(x => x.ApiId).ToArray();
+            if (original.Length == 0) continue;
+            var actual = current.Applications.SingleOrDefault(x => x.Id == app.Id)?.Permissions
+                .Where(x => retainedApis.Contains(x.ApiId)).OrderBy(x => x.ApiId).ToArray();
+            if (actual is null || !CanonicalJson.Serialize(actual).AsSpan().SequenceEqual(CanonicalJson.Serialize(original)))
+                throw new ApiException(409, "governance_promotion_retained_grants_changed", "保留路由的当前授权与基线不符，请先按既有审批流程单独更新。");
+        }
     }
 
     private async Task<FrozenGovernance24> FreezeGovernanceAsync(SecurityLedgerMaterial ledger, GatewayNode[] targets,
@@ -223,6 +279,8 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
     {
         if (environment.RequireEnvironmentCredential || await GlobalCredentialPublicationGuard.RequiresGovernance24Async(db, environment.Id, ct))
             throw GovernanceRequired();
+        if (!await LegacyEnvironmentCompatibility.IsVerifiedAsync(db, environment.Id, ct))
+            throw new ApiException(409, "legacy_environment_unverified", "环境尚未证实兼容旧版快照，请先核验初始化证据。");
     }
 
     internal static async Task RequireLegacyApplicationsAsync(WebApiDbContext db, IReadOnlyList<FrozenApplication> applications, CancellationToken ct)

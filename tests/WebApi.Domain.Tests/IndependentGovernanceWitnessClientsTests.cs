@@ -219,6 +219,31 @@ public sealed class IndependentGovernanceWitnessClientsTests
         await Assert.ThrowsAsync<InvalidDataException>(() => clients.JournalWitness.ConfirmAsync(other, intent, cancellation.Token));
     }
 
+    [Fact]
+    public async Task FormalRotationDecisionRequiresTheConfiguredAuthorityAndGeneration()
+    {
+        using var fixture = new Fixture();
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var writer = CreateCertificate(key);
+        using var clients = IndependentGovernanceWitnessClients.Create(fixture.Options, writer)!;
+        var intent = new GovernanceWriteIntent(Guid.NewGuid(), GovernanceJournalProtocol.Genesis, "YQ");
+        var schedule = Guid.NewGuid();
+        var environment = Guid.NewGuid();
+        var deadline = new DateTimeOffset(2026, 11, 19, 12, 0, 0, TimeSpan.Zero);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        foreach (var journal in new[]
+        {
+            fixture.Journal with { AuthorityId = Guid.NewGuid() },
+            fixture.Journal with { Generation = Guid.NewGuid() }
+        })
+            await Assert.ThrowsAsync<InvalidDataException>(() => clients.FormalRotationWitness.PrepareFormalRotationDecisionAsync(
+                journal, intent, schedule, environment, deadline, "Complete", cancellation.Token));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => clients.FormalRotationWitness.PrepareFormalRotationDecisionAsync(
+            fixture.Journal, intent, schedule, environment, deadline, "Complete", cancellation.Token));
+    }
+
     private static X509Certificate2 CreateCertificate(ECDsa key, X509KeyUsageFlags? keyUsage = null, string? eku = null)
     {
         var request = new CertificateRequest("CN=offline-writer-fixture", key, HashAlgorithmName.SHA256);

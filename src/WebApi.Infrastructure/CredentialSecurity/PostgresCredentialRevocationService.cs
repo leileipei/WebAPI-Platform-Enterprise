@@ -107,7 +107,9 @@ public sealed class PostgresCredentialRevocationService
     public Task RecoverAsync(ActorContext actor, CancellationToken ct = default,
         Func<WebApiDbContext, CancellationToken, Task>? requireSession = null) =>
         new GovernanceCommitCoordinator(journal, new PostgresGovernanceCommitStore(connectionString,
-            new FormalRotationMutation(actor, coverage, requireSession, archive, journal: journal)), witness).RecoverAsync(ct);
+            new FormalRotationMutation(actor, coverage, requireSession, archive, journal: journal)), witness, null,
+            (intent, observed, token) => FormalRotationDecisionMutation.RequireRecoveredPreparationAsync(journal, witness, intent, observed, token))
+            .RecoverAsync(ct);
 
     private static ApiException Conflict() => new(409, "credential_revocation_conflict", "撤销请求与已记录的请求或当前状态冲突。");
 }
