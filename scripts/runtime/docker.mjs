@@ -1,12 +1,34 @@
+import {AsyncLocalStorage} from 'node:async_hooks';
 import {spawn} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {RuntimeError} from './state.mjs';
+const localEndpoint=new AsyncLocalStorage();
+export function withLocalDockerEndpoint(endpoint,action){return localEndpoint.run(endpoint,action);}
+export function isLocalDockerEndpointBound(endpoint){
+ const current=localEndpoint.getStore();
+ return Boolean(current&&(endpoint===undefined||current===endpoint));
+}
+export function restoreVolumeIdentity(volume){
+ const labels=Object.entries(volume.Labels??{}).sort(([left],[right])=>left.localeCompare(right));
+ return createHash('sha256').update(JSON.stringify([volume.Name,volume.Driver,volume.Scope,volume.CreatedAt,volume.Mountpoint,volume.Options,labels])).digest('hex');
+}
 export function createBoundedDockerOutput(limit){
  if(!Number.isSafeInteger(limit)||limit<1||limit>16*1024*1024)throw new RuntimeError('Invalid Docker output limit.',3);
  const data={stdout:Buffer.alloc(limit),stderr:Buffer.alloc(limit)},length={stdout:0,stderr:0};let remaining=limit,outputTruncated=false;
  return {push(stream,chunk){if(!Object.hasOwn(data,stream))throw new RuntimeError('Invalid Docker output stream.',3);const bytes=Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk);const count=Math.min(remaining,bytes.length);if(count){bytes.copy(data[stream],length[stream],0,count);length[stream]+=count;remaining-=count;}if(count<bytes.length)outputTruncated=true;},
   result(){return {stdout:data.stdout.subarray(0,length.stdout).toString('utf8'),stderr:data.stderr.subarray(0,length.stderr).toString('utf8'),outputTruncated};}};
 }
-export function docker(args,{input,inputFd,env=process.env,cwd,allowFailure=false,maxOutputBytes,spawnProcess=spawn}={}){return new Promise((resolve,reject)=>{
+export async function docker(args,options={}){
+ const endpoint=localEndpoint.getStore();
+ if(!endpoint)return runDocker(args,options);
+ await endpoint.assertCurrent();
+ const host='unix://'+endpoint.path;
+ const env={...(options.env??process.env),DOCKER_HOST:host};
+ for(const name of ['DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','DOCKER_API_VERSION'])delete env[name];
+ try{return await runDocker(['--host',host,...args],{...options,env});}
+ finally{await endpoint.assertCurrent();}
+}
+function runDocker(args,{input,inputFd,env=process.env,cwd,allowFailure=false,maxOutputBytes,spawnProcess=spawn}={}){return new Promise((resolve,reject)=>{
  if(!args.every(a=>typeof a==='string'))return reject(new RuntimeError('Docker arguments must be strings.'));
  if(inputFd!==undefined&&(!Number.isInteger(inputFd)||inputFd<0||input!==undefined))return reject(new RuntimeError('Invalid Docker input descriptor.',3));
  let bounded;try{bounded=maxOutputBytes===undefined?null:createBoundedDockerOutput(maxOutputBytes);}catch(error){return reject(error);}

@@ -18,8 +18,8 @@ test('restore storage budgets are explicit and reject invalid or overflowing lim
 
 test('restore cannot proceed without a bound hard quota provider and matching scope',async()=>{
  await assert.rejects(requireRestoreStorageProof({...args,phase:'preflight'}),/quota/i);
- let quotaId='synthetic-quota-identity';const fake=async input=>({schemaVersion:1,kind:'enforced-hard-quota',phase:input.phase,projectName:input.projectName,directory:input.directory,
-  quotaId,quotaBytes:budget.maxTargetBytes,availableBytes:budget.maxTargetBytes+budget.minTargetFreeBytes,
+ let quotaId='synthetic-quota-identity',quotaBytes=budget.maxTargetBytes;const fake=async input=>({schemaVersion:1,kind:'enforced-hard-quota',phase:input.phase,projectName:input.projectName,directory:input.directory,
+  quotaId,quotaBytes,availableBytes:budget.maxTargetBytes+budget.minTargetFreeBytes,
   evidenceDigest:'a'.repeat(64),volumeNames:input.volumeNames,...(input.phase!=='preflight'?{ownerId:input.ownerId,volumeIdentities:input.volumeIdentities}:{})});
  const proof=await requireRestoreStorageProof({...args,phase:'preflight',provider:fake});
  const identities={'pg':'b'.repeat(64),'lkg-a':'c'.repeat(64)},ownerId=randomUUID();
@@ -28,6 +28,8 @@ test('restore cannot proceed without a bound hard quota provider and matching sc
  await assert.rejects(requireRestoreStorageProof({...args,phase:'before-extraction',provider:fake,previous:initialized,ownerId,volumeIdentities:{...identities,pg:'d'.repeat(64)}}),/proof|identity/i);
  await assert.rejects(requireRestoreStorageProof({...args,phase:'before-extraction',previous:proof,ownerId,volumeIdentities:identities,provider:fake}),/preflight|proof/i);
  quotaId='different-quota-identity';await assert.rejects(requireRestoreStorageProof({...args,phase:'before-extraction',previous:initialized,ownerId,volumeIdentities:identities,provider:fake}),/quota/i);quotaId='synthetic-quota-identity';
+ quotaBytes--;
+ await assert.rejects(requireRestoreStorageProof({...args,phase:'before-extraction',previous:initialized,ownerId,volumeIdentities:identities,provider:fake}),/quota/i);
  await assert.rejects(requireRestoreStorageProof({...args,phase:'preflight',provider:async input=>({...await fake(input),volumeNames:['pg']})}),/quota/i);
 });
 

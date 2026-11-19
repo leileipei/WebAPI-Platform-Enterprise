@@ -5,7 +5,7 @@ import {synchronizeConsoleProxyTrust} from '../security/proxy-trust.mjs';
 import {notificationVolumes,notificationStateName,notificationBackupRequiredInputs,copyNotificationBackup,restoreNotificationBackup} from '../notifications/runtime-secrets.mjs';
 import {copyCacheBackup,restoreCacheBackup,cacheReceiptName} from '../gateway-policies/runtime-secrets.mjs';
 import{copySsoBackup,restoreSsoBackup,ssoConfigName}from'./sso-deployment.mjs';
-import fs from'node:fs/promises';import{constants}from'node:fs';import path from'node:path';import{createHash,randomBytes}from'node:crypto';import{initializeState,saveState,writePrivate,loadState,validateState,withRuntimeLock,safeFile,ownedDirectory}from'./state.mjs';import{docker,inspectResources,assertOwnership}from'./docker.mjs';
+import fs from'node:fs/promises';import{constants}from'node:fs';import path from'node:path';import{createHash,randomBytes}from'node:crypto';import{initializeState,saveState,writePrivate,loadState,validateState,withRuntimeLock,safeFile,ownedDirectory}from'./state.mjs';import{docker,inspectResources,assertOwnership,restoreVolumeIdentity}from'./docker.mjs';
 import{validateFixture}from'./fixture-guard.mjs';
 import{runtimeServices,loadRelease,waitForRuntime}from'./lifecycle.mjs';import{prepareContext}from'./context.mjs';
 import {prepareMigrationEvidenceVolume,markMigrationEvidenceVolumeReady} from './migration-evidence-volume.mjs';
@@ -220,8 +220,7 @@ function restoreVolumeIdentities(state,resources,names){
  for(const name of [...names].sort()){
   const matches=resources.filter(item=>item.Kind==='volume'&&item.Name===state.projectName+'_'+name);
   if(matches.length!==1)throw Error('Restore target volume identity is unavailable');
-  const item=matches[0],labels=Object.entries(item.Labels??{}).sort(([left],[right])=>left.localeCompare(right));
-  identities[name]=createHash('sha256').update(JSON.stringify([item.Name,item.Driver,item.Scope,item.CreatedAt,item.Mountpoint,item.Options,labels])).digest('hex');
+  identities[name]=restoreVolumeIdentity(matches[0]);
  }
  return identities;
 }

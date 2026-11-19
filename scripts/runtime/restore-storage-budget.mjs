@@ -24,6 +24,11 @@ export function requireRestoreIntegration({restoreBudget,storageVerifier}={}){
  return budget;
 }
 
+export function hasRestoreQuotaCapacity({quotaBytes,availableBytes},budget){
+ return Number.isSafeInteger(quotaBytes)&&quotaBytes>0&&quotaBytes<=budget.maxTargetBytes&&
+  Number.isSafeInteger(availableBytes)&&availableBytes>=quotaBytes+budget.minTargetFreeBytes;
+}
+
 // Only a proof returned by this process can authorize the next stage. This is
 // an accidental-misuse guard, not protection from the same host user.
 export function requireBoundRestoreProof(proof,{budget,provider,projectName,directory,volumeNames,phase,ownerId,volumeIdentities}){
@@ -46,12 +51,11 @@ export async function requireRestoreStorageProof({provider,budget,phase,projectN
  const expected=['schemaVersion','kind','phase','projectName','directory','quotaId','quotaBytes','availableBytes','evidenceDigest','volumeNames',...(hasIdentities?['ownerId','volumeIdentities']:[])].sort();
  if(!proof||typeof proof!=='object'||Array.isArray(proof)||JSON.stringify(Object.keys(proof).sort())!==JSON.stringify(expected)||proof.schemaVersion!==1||proof.kind!=='enforced-hard-quota'||proof.phase!==phase||
     proof.projectName!==projectName||proof.directory!==directory||!/^[-a-zA-Z0-9_]{16,128}$/.test(proof.quotaId??'')||
-    !Number.isSafeInteger(proof.quotaBytes)||proof.quotaBytes<1||proof.quotaBytes>budget.maxTargetBytes||
-    !Number.isSafeInteger(proof.availableBytes)||proof.availableBytes<proof.quotaBytes+budget.minTargetFreeBytes||
+    !hasRestoreQuotaCapacity(proof,budget)||
     !/^[a-f0-9]{64}$/.test(proof.evidenceDigest??'')||!Array.isArray(proof.volumeNames)||
     JSON.stringify([...proof.volumeNames].sort())!==JSON.stringify([...volumeNames].sort())||
     hasIdentities&&(proof.ownerId!==ownerId||JSON.stringify(Object.entries(proof.volumeIdentities??{}).sort())!==JSON.stringify(Object.entries(volumeIdentities).sort()))||
-    previous&&proof.quotaId!==previous.quotaId)throw new Error('Restore target hard quota is unverified');
+    previous&&(proof.quotaId!==previous.quotaId||proof.quotaBytes!==previous.quotaBytes))throw new Error('Restore target hard quota is unverified');
  const providerIdentity=Object.freeze({kind:'javascript-source-fingerprint',sourceSha256:createHash('sha256').update(Function.prototype.toString.call(provider)).digest('hex')});
  const issued=Object.freeze({...proof,volumeNames:Object.freeze([...proof.volumeNames]),...(hasIdentities?{volumeIdentities:Object.freeze({...proof.volumeIdentities})}:{}),
   traceFormatVersion:2,budget,providerIdentity,operationId:previous?.operationId??randomUUID(),previousProofSha256:previous?createHash('sha256').update(encodeProof(previous)).digest('hex'):null});

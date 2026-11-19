@@ -43,13 +43,15 @@ PR #18 于 2026-11-19 20:44:23（北京时间）将 `4374afd12c4479e3235877f3245
 
 **原现场仍待验收。** 原控制台接回身份服务后，需核对 SSO 正常登录、无绑定身份的拒绝与权限结果。历史测试 Key 已到期，两台网关均需使用有效测试凭证验证订单调用成功。11 月 18 日验收报告（本地存档 `deliverables/maintenance-acceptance-20261118/acceptance-report.md`）
 
-## 2026-11-20 平台恢复工具与验收缺口
+## 2026-11-20 平台恢复工具与验收缺口（`c65a0c0` 基线）
 
 **`restoreColdBackup` 仍缺真实硬配额接入。** 按 `c65a0c0` 源码，调用方必须显式传入 `restoreBudget` 的四项预算。`maxSnapshotBytes` 限制输入快照字节数，`minHostFreeBytes` 规定宿主机须保留的空间，`maxTargetBytes` 限制目标写入字节数，`minTargetFreeBytes` 规定目标存储须保留的空间。调用方还须提供 `storageVerifier`，在预检、初始化前和解包前核验目标身份、全部写入卷及实际生效的硬配额。当前缺少可验证真实硬配额的默认实现。[恢复源码](../../scripts/runtime/acceptance-backup.mjs) · [预算和验证器门禁](../../scripts/runtime/restore-storage-budget.mjs) · [本机运行手册](local-runtime-runbook.md#恢复目前的阻断条件)
 
 **运行验收入口未传入恢复依赖。** `runAcceptance` 会先校验 `restoreBudget` 和 `storageVerifier`。现有命令行包装调用时未传入两者，因此 `check-local-runtime.sh` 的 `e2e` 与 `browser` 模式受该前置校验阻断。[运行验收源码](../../scripts/runtime/acceptance.mjs) · [验收入口说明](local-runtime-runbook.md#验收入口的区别)
 
 **平台恢复及 RPO/RTO 仍待验收。** 4194 冷备隔离恢复验证的是 Keycloak 身份服务。平台完整恢复仍需在目标环境单独实测，并核对实际恢复点和恢复耗时是否满足 RPO/RTO。4194 隔离恢复记录（本地存档 `deliverables/maintenance-acceptance-20261118/onsite-idp-restore-rehearsal.json`） · [备份与恢复运维要求](../operations.md)
+
+**后续恢复工具接线。** `e2e` 和 `browser` 入口支持显式传入四项预算、独立验证服务和专用 Docker socket。恢复预检、初始化前及解包前继续核对配额、挂载及全部写入卷。隔离验证与真实硬配额及恢复点验收分别记录。[运行参数与信任边界](restore-quota-verifier.md)
 
 ## 2026-11-20 历史通知与企业环境验收补记
 
