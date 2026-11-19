@@ -1,10 +1,148 @@
 # 当前源码与验证状态
 
-核对日期：2026-11-18。本页按固定提交分别记录主干与候选的验证状态；下文历史轮次仍绑定各自版本。源码合并不表示已更新原安装环境。
+核对日期：2026-11-20。本页按固定提交分别记录主干与候选的验证状态；下文历史轮次仍绑定各自版本。源码合并不表示已更新原安装环境。 [c65a0c0 合并与复跑补记](#2026-11-19-核对pr-18-已合并main-复跑全部通过)
 
 历史本地验证和“尚未公开”“未推送”等表述仍绑定`9d01066`及各轮具名输入时点；新增GitHub运行单列真实提交与运行号，不回填旧记录。实际发布及合并状态应核对本仓库PR和对应CI，历史失败、Unknown及累计保全incomplete不会因发布而解除。
 
-## 最新核对：PR #14、#15 已合并，main 复跑全部通过
+## 2026-11-19 核对：PR #18 已合并，main 复跑全部通过
+
+PR #18 于 2026-11-19 20:44:23（北京时间）将 `4374afd12c4479e3235877f324558da772712b7f` 合入 `main`。合并提交 `c65a0c0a45bcb8895246bb0558ac24e96bb3d33d` 与该修订的文件树一致。[PR #18](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/18) · [合并提交](https://github.com/leileipei/WebAPI-Platform-Enterprise/commit/c65a0c0a45bcb8895246bb0558ac24e96bb3d33d)
+
+合并自动触发的两条 GitHub 工作流均在首次执行中成功。最后一项 `contracts-integration` 于当日 21:46:44（北京时间）完成。四项必需检查共 **5,072 项通过、0 项失败、0 项跳过**。[Contracts CI 44526685383](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44526685383) · [Console CI 44526685389](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44526685389)
+
+| 必需检查 | 通过 | 失败 | 跳过 | 作业日志 |
+| --- | ---: | ---: | ---: | --- |
+| `console` | 433（Node 339，Python 94） | 0 | 0 | [Console 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44526685389/job/135569001917) |
+| `contracts-domain` | 1,426 | 0 | 0 | [Domain 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44526685383/job/135569002676) |
+| `contracts-gateway` | 631 | 0 | 0 | [Gateway 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44526685383/job/135569001864) |
+| `contracts-integration` | 2,582 | 0 | 0 | [Integration 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44526685383/job/135569002492) |
+
+### PR #18 合并后的凭证治理
+
+下文台账所写的“签发入口固定返回 `503 security_evidence_unavailable`”和“网关安全准入未接线”是 PR #18 前的旧版状态，对应 `97be653` 等旧基线。以下以合并提交 `c65a0c0` 为准。
+
+- **检查点、租约与网关准入。** 控制面已有独立时间、历史和日志见证客户端。签发会核验独立证据，在见证侧预留租约并持久记录发行事实后返回签名。网关已有按实例获取和复验安全状态、续租及治理 2.4 请求准入的接入扩展。缺少所需可信证据时，签发仍返回 `503 security_evidence_unavailable`。治理请求缺少有效安全状态时拒绝。[签发实现](../../src/WebApi.Infrastructure/CredentialSecurity/SecurityLeaseIssuer.cs) · [网关接入](../../src/WebApi.Gateway/Security/WitnessedGatewaySecurity.cs)
+- **全局撤销与正式轮换。** 已实现经见证的跨环境撤销落账及后续环境继承，以及正式轮换的预检、确认、硬截止、人工完成与中止。当前公开撤销查询仍显示 `Unconfirmed`，节点目标为 `Pending`。可信完成判定还需联合核验独立日志与实际入口覆盖。[治理入口](../../src/WebApi.ControlPlane/Applications/CredentialGovernanceEndpoints.cs) · [回执实现](../../src/WebApi.Infrastructure/CredentialSecurity/SecurityOperationStatusReader.cs)
+- **治理 2.4 交付与恢复。** 已实现按环境启用的治理发布、晋级与回滚，以及历史环境初始化和受治理数据库的恢复连续性核验。[治理交付与恢复](credential-governance-witness.md#2026-11-19-人工轮换与治理交付)
+
+**现场接入与联验仍待完成。** 目标部署须接入真实的独立可信时间、完整历史（含恢复历史）及持久日志见证，固定服务与签名身份。控制面、Worker 和网关须使用同一部署的证据来源和发布范围，并显式接入网关准入和 Worker 截止处理所需服务。随后须在两个真实网关实例上核对签发、续租、撤销传播、轮换硬截止及重启和恢复后的连续性，保留逐实例签名和业务请求证据。现有 CI 与隔离测试的结果仅覆盖其验证环境。[独立见证接入说明](credential-governance-witness.md)
+
+## 2026-11-19 G14 证据复核补记
+
+42 份恢复副本的长度和 SHA-256 均与恢复清单的登记值匹配。其中一处文件身份误标。登记为 `g14-sdk-synthetic-fixture-provenance-unknown-01.json` 的 977 字节副本，实际是 `g14-sdk-synthetic-fixture-unknown-approval-01.json` 批准回执。恢复清单（本地存档 `deliverables/maintenance-acceptance-20261118/g14-recovered/manifest.json`）
+
+真正的事件原文可从原会话的写入记录恢复。已在内存核对原文为 16,087 字节，SHA-256 `4da0f09b923989856858879cd8cbee16fc6d1372f5ad4a666b9158218ea17355` 与历史固定值一致。候选校验器的文件与摘要要求（本地存档 `deliverables/maintenance-acceptance-20261118/g14-recovered/staging/sdk_verifier_candidate_v1.py`）
+
+907 仅有历史独立全链通过记录。当前严格复验仍缺原暂存目录的文件系统身份及旧宿主证据。908 已核对找到的副本、链接和账目，独立全链认证、已批准的 952 字节预留入账及冻结仍待完成。历史失败与 Unknown 继续保留。历史验收记录（本地存档 `deliverables/maintenance-acceptance-20261118/acceptance-report.md`）
+
+## 2026-11-20 原 4192/4194 安装与 SSO 补记
+
+**4192 在 2026-11-18 的现场验收仅部分通过。** 实际运行镜像对应 `5ca458a`。控制台及 4196、4197 两台网关的基础检查通过，两台网关均为 v5/seq5。两个本机演示账号均能登录，访问用户管理均被拒绝，退出后会话均失效。两台网关的匿名订单请求均返回 401。现场响应（本地存档 `deliverables/maintenance-acceptance-20261118/onsite-live.json`） · 本机登录原始记录（本地存档 `deliverables/maintenance-acceptance-20261118/onsite-demo-login.json`） · 匿名订单响应记录（本地存档 `deliverables/maintenance-acceptance-20261118/onsite-observers-and-idp.json`）
+
+**4194 冷备已完成隔离恢复，原 Keycloak 尚未恢复。** 11 月 18 日现场记录显示原 4194 无监听，原 Keycloak、PostgreSQL 和三个必需卷缺失。2026-10-14 23:01（北京时间）的同源冷备在隔离网络恢复了四个卷，并核对了 PostgreSQL 就绪、原登录回调、两枚测试身份、OIDC 发现和签名公钥。备份时点之后的原身份数据状态仍待确认。原服务与卷记录（本地存档 `deliverables/maintenance-acceptance-20261118/onsite-idp-resources.json`） · 冷备核验原始记录（本地存档 `deliverables/maintenance-acceptance-20261118/onsite-idp-backup-verify.json`） · 隔离恢复原始记录（本地存档 `deliverables/maintenance-acceptance-20261118/onsite-idp-restore-rehearsal.json`）
+
+**原现场仍待验收。** 原控制台接回身份服务后，需核对 SSO 正常登录、无绑定身份的拒绝与权限结果。历史测试 Key 已到期，两台网关均需使用有效测试凭证验证订单调用成功。11 月 18 日验收报告（本地存档 `deliverables/maintenance-acceptance-20261118/acceptance-report.md`）
+
+## 2026-11-20 平台恢复工具与验收缺口
+
+**`restoreColdBackup` 仍缺真实硬配额接入。** 按 `c65a0c0` 源码，调用方必须显式传入 `restoreBudget` 的四项预算。`maxSnapshotBytes` 限制输入快照字节数，`minHostFreeBytes` 规定宿主机须保留的空间，`maxTargetBytes` 限制目标写入字节数，`minTargetFreeBytes` 规定目标存储须保留的空间。调用方还须提供 `storageVerifier`，在预检、初始化前和解包前核验目标身份、全部写入卷及实际生效的硬配额。当前缺少可验证真实硬配额的默认实现。[恢复源码](../../scripts/runtime/acceptance-backup.mjs) · [预算和验证器门禁](../../scripts/runtime/restore-storage-budget.mjs) · [本机运行手册](local-runtime-runbook.md#恢复目前的阻断条件)
+
+**运行验收入口未传入恢复依赖。** `runAcceptance` 会先校验 `restoreBudget` 和 `storageVerifier`。现有命令行包装调用时未传入两者，因此 `check-local-runtime.sh` 的 `e2e` 与 `browser` 模式受该前置校验阻断。[运行验收源码](../../scripts/runtime/acceptance.mjs) · [验收入口说明](local-runtime-runbook.md#验收入口的区别)
+
+**平台恢复及 RPO/RTO 仍待验收。** 4194 冷备隔离恢复验证的是 Keycloak 身份服务。平台完整恢复仍需在目标环境单独实测，并核对实际恢复点和恢复耗时是否满足 RPO/RTO。4194 隔离恢复记录（本地存档 `deliverables/maintenance-acceptance-20261118/onsite-idp-restore-rehearsal.json`） · [备份与恢复运维要求](../operations.md)
+
+## 2026-11-20 历史通知与企业环境验收补记
+
+**历史通知本机验收已完成。** `cf2b470` 的 N8 最终记录通过了 16 项协议、权限和竞态检查及 8 项必需界面检查，旧检查点缺少的撤权清空已补齐。`adbcbed` 的 D2 联验与 D3 历史安装验收均有通过记录。11 月 18 日复核了五份清单中的 192 个登记项，通知与审批定向回归 138 项通过、0 项失败、0 项跳过。[N8 最终记录](external-notifications-local-result.md) · [D2 联验](notification-approval-pre-install-result.md) · 证据复核（本地存档 `deliverables/maintenance-acceptance-20261118/notification-evidence-recheck.json`） · 定向回归日志（本地存档 `deliverables/maintenance-acceptance-20261118/notification-offline-tests.log`）
+
+**真实企业 SMTP 和 Webhook 仍待验收。** D3 原安装当时未保存通知设置，两类渠道的自动通知开关关闭，投递和尝试均为 0。本机或隔离环境的 SMTP 250、Webhook 202 与 `Accepted` 回执证明测试端点接受。企业环境仍需用实际目标渠道核对真实收件、Webhook 下游业务处理及失败恢复结果。[D3 安装原始状态](../evidence/notification-approval/d3-installed-adbcbed/installed-status.json) · [历史安装结果](notification-approval-upgrade-result.md) · 11 月 18 日验收记录（本地存档 `deliverables/maintenance-acceptance-20261118/acceptance-report.md`）
+
+**企业部署与运营仍待目标环境验收。** 待核对的现场证据包括企业 IdP 和真实上游、DNS/TLS 和负载均衡、反向代理与会话信任边界、AMD64 运行、容量与 SLA、数据库高可用和故障切换、备份恢复与 RPO/RTO，以及实际运行周期内的观测和保留。[企业 SSO 交付边界](sso-oidc-capability.md) · [运维要求](../operations.md) · [观测验收范围](observability-runbook.md#证据与交付边界)
+
+## 2026-11-20 产品缺口与 454 项需求验收补记
+
+以下按 `c65a0c0` 的页面、管理接口和测试源码核对。
+
+| 范围 | 已有实现 | 剩余缺口 | 源码依据 |
+| --- | --- | --- | --- |
+| API 授权矩阵 | 已支持单条授权和路由方法选择，后端已有撤权入口。 | 页面仍缺按环境展开的完整矩阵、跨条目批量操作和撤权入口，授权专用影响预览与生产环境风险确认也待补齐。 | [授权页面](../../console/src/pages/ApplicationPermissions.tsx) · [授权接口](../../src/WebApi.ControlPlane/Applications/ApplicationEndpoints.cs) |
+| 配置快照比较 | 已有快照列表、单份脱敏管理视图和 JSON 下载。 | 快照页面缺选取两个快照并查看差异的入口。 | [快照页面](../../console/src/pages/Snapshots.tsx) |
+| 节点 LKG 管理视图 | 可查看当前与目标配置及注册、心跳和 ACK 事件。最后可用配置（LKG）的底层重启恢复与损坏回退已有测试。 | 管理接口和详情页缺完整 LKG 状态。节点资源指标、手动重载或重试、诊断包下载仍缺页面入口。 | [节点数据](../../src/WebApi.Contracts/Gateway/GatewayReadContracts.cs) · [节点列表](../../console/src/pages/GatewayNodes.tsx) · [节点详情](../../console/src/pages/GatewayNodeDetail.tsx) · [运行恢复测试](../../tests/WebApi.Gateway.Tests/GatewayRuntimeTests.cs) |
+| 角色治理 | 页面已有新建、编辑及查看和配置角色权限，服务端有角色删除及引用保护。 | 页面缺角色复制、删除流程与用户数、权限数汇总。 | [治理页面](../../console/src/pages/Governance.tsx) · [角色服务](../../src/WebApi.Infrastructure/Governance/GovernanceService.cs) |
+| API 目录 | 支持分页、分组、当前页按名称或编码搜索，以及新建和进入详情。 | 缺跨页多字段检索、批量导出及目录中的请求方法、版本、负责人、标签与健康信息。 | [API 目录源码](../../console/src/pages/ApiCatalog.tsx) |
+| 后端集群与实例 | 支持集群及实例配置、负载均衡、实例权重和主动健康检查配置。 | 页面缺集群复制、路由引用数量和列表、运行健康汇总及立即探测。 | [集群与实例页面](../../console/src/pages/Clusters.tsx) |
+
+**项目三个资源计数已实现。** `P04-C03` 环境数、`P04-C04` API 数和 `P04-C05` 项目应用数已由 `e3bae92` 实现，项目列表按权限展示并有 HTTP 集成测试。旧台账的“缺失”描述对应当时的版本，当前版本需按这三个需求逐项补齐界面验收证据。[项目计数接口](../../src/WebApi.Infrastructure/Governance/GovernanceService.cs) · [计数回归](../../tests/WebApi.Integration.Tests/ProjectResourceCountsTests.cs)
+
+**454 项需求的历史台账口径。** 40 页原需求台账登记 **36 已关闭、40 部分、18 缺失、360 待复验**。这些状态绑定历史版本和原有证据。`c65a0c0` 的 454 项逐项验收仍待完成。[历史台账](../evidence/work-package4/requirements-status.md) · [逐项记录](../evidence/work-package4/requirements-closeout.json) · [需求追溯复核](requirements-current-review.md)
+
+## 2026-11-20 三项旧治理迁移候选
+
+旧侧依据是 `credential-governance-20261009` 工作区的未提交文件，工作区基线为 `40759aac`。主线按 `c65a0c0` 核对。治理 2.4 设计已覆盖环境绑定与可信策略校验，以下三项独立功能的交付范围仍待确认。旧工作区手册（本地存档 `work/credential-governance-20261009/docs/deployment/application-governance-runbook.md`） · [旧资料审计](local-material-audit-20261114.md) · [治理 2.4 设计依据](../superpowers/specs/2026-11-04-governance-snapshot-24-integration-design.md)
+
+| 候选 | 旧实现 | `c65a0c0` 的现状与缺口 | 待确认的交付范围 |
+| --- | --- | --- | --- |
+| 强制环境凭证切换 | 旧 `CutoverAsync` 在核对严格授权快照、当前节点确认和迁移证明后，可把环境凭证要求切为启用，使用旧治理 2.3 安全下限。旧切换服务（本地存档 `work/credential-governance-20261009/src/WebApi.Infrastructure/CredentialSecurity/EnvironmentSecurityPolicyService.cs`） | 已有环境凭证要求字段和账本策略校验。全局撤销继承按需提升快照下限至 2.4，并保留原 `RequireEnvironmentCredentials` 值。未见独立生产入口把已有环境切为强制使用环境绑定凭证。[当前策略规则](../../src/WebApi.Infrastructure/CredentialSecurity/SecurityPolicyRules.cs) · [当前撤销继承](../../src/WebApi.Infrastructure/CredentialSecurity/GlobalCredentialInheritance.cs) · [环境管理合同](../../src/WebApi.Contracts/Governance/GovernanceContracts.cs) | 是否交付从旧全局凭证迁移到强制使用环境绑定凭证的独立切换流程，以及相应的 2.4 发布和验收条件。 |
+| `MonitorOnly` 日/月凭证配额 | 旧服务按凭证和环境保存可选日上限、月上限，模式限于 `MonitorOnly`，仅监控且不因额度阻断请求。旧配额服务（本地存档 `work/credential-governance-20261009/src/WebApi.Infrastructure/Applications/CredentialQuotaPolicyService.cs`） | 现有凭证用量查询。当前源码未见等价的日/月配额保存、读取或控制台配置入口。[当前应用与用量接口](../../src/WebApi.ControlPlane/Applications/ApplicationEndpoints.cs) | 是否交付按凭证和环境配置及展示日/月监控配额，以及用量证据不足时如何呈现未知余额。 |
+| 专用安全操作告警 | 旧规划器按环境检查未确认或部分确认的安全操作，并按默认 10 秒告警、30 秒升级生成专用记录。旧告警规划器（本地存档 `work/credential-governance-20261009/src/WebApi.Infrastructure/CredentialSecurity/SecurityOperationAlertPlanner.cs`） | 保留 `SecurityOperationAlert` 实体与 EF 数据库映射。当前业务源码未见对应的告警生成、Worker 调度及通知入口。[当前告警实体](../../src/WebApi.Infrastructure/Persistence/Entities/CredentialSecurityEntities.cs) · [当前数据库映射](../../src/WebApi.Infrastructure/Persistence/Configurations/CredentialSecurityConfiguration.cs) | 是否将安全操作的超时告警和升级纳入交付。触发阈值、通知渠道和处理归属仍待确认。 |
+
+## 2026-11-20 保留分支、stash 与备份核对
+
+以下以 `c65a0c0` 的源码和可达历史为基线。
+
+- **通知恢复桥 `feature/notification-recovery-bridge`（`cf41823`）。** 保留的两个独有提交用于让旧版在恢复过程中只读访问扩展通知设置。主线已有原生九字段设置合同及通知接口。直接合入会引入重复路由、旧字段投影和旧版的写入锁定语义，仍按旧版恢复工件保留。[恢复桥手册](notification-approval-recovery-runbook.md) · [主线通知设置源码](../../src/WebApi.Infrastructure/Settings/SettingsValues.cs)
+- **性能对照 `perf/pkcs-baseline-20261016`（`f380385`）。** 该分支有四个独有提交，作为性能对照刻意使用线性扫描、全量加载和逐项查询。主线已有网关索引和数据库分页。保留该分支用于复现历史对照，合入会把相应查询退回到对照实现。[原分支比对](local-material-audit-20261114.md) · [主线网关索引](../../src/WebApi.Gateway/Configuration/RuntimeLookupIndex.cs) · [主线目录分页](../../src/WebApi.Infrastructure/Catalog/CatalogService.cs)
+- **两份 stash。** `1af7f31530dbba8d3253c3ce78f4bb0ca7ed4422` 的 664 个文件（9 个跟踪、655 个未跟踪）的内容对象均可追溯到 `c65a0c0` 可达历史。`c886bca7065b04d28ed956e7e585dfab2078b14a` 的六份文件均为文档，其中四份的内容在主线历史中，独有差异只在 `README.md` 和 `architecture-review.md` 的历史说明中，无独有产品代码。历史 stash 文件比对（本地存档 `outputs/remaining-content-audit-20261114/audit-root-stashes-20261114.json`）
+- **历史导航补丁。** 在内存中按原基线 `0b42f9e` 应用补丁，所得六份文件与保留副本逐字节相符，其 Git 内容对象均在 `c65a0c0` 可达历史中，其中两份与 `c65a0c0` 的对应文件相同。补丁 SHA-256 为 `72a120d6e9f19c292fe87168583cec817a5842ae534463cbacf0abd73ab39c84`。原导航补丁（本地存档 `navigation-restore/navigation-restore.patch`） · 补丁来源与基线（本地存档 `navigation-restore/README.md`）
+- **备份 bundle。** `all-refs-before-final-cleanup.bundle` 重新计算的 SHA-256 为 `5a19c828508b8319c388379dd115b7bed69d1f4e68ad739fc608957e4a33c675`，与登记一致。47 个引用与登记清单相符，包含两条保留分支和两份 stash 的归档引用。只读 `git bundle verify` 通过。bundle 摘要与引用（本地存档 `outputs/remaining-content-audit-20261114/bundle-identity.json`） · 历史验证记录（本地存档 `outputs/remaining-content-audit-20261114/bundle-verification.txt`）
+
+## 2026-11-18 历史验收事项复核
+
+**历史通知本机验收已完成。** `cf2b470` 最终记录包含 16 项协议、权限及竞态检查和 8 项必需界面检查，旧检查点缺失的撤权清空已有通过证据。`adbcbed` 的 D2 联验及 D3 历史安装验收也已归档。本轮复核五份清单共 192 个登记项，并通过 138 项本机定向回归。真实企业 SMTP、Webhook 投递及收件仍待企业目标环境验收。[N8 最终记录](external-notifications-local-result.md) · [D2 联验](notification-approval-pre-install-result.md) · [D3 安装结果](notification-approval-upgrade-result.md)
+
+**G14 恢复了部分原始证据，正式独立核验仍暂停。** 本机以历史长度和 SHA-256 校验了 42 份副本，共 2,787,072 字节，另复核 906 份检查点 JSON、904 条相邻父哈希和 07/08 压缩桥接。907 有历史全链通过记录。当前严格复验仍缺完整暂存原件及旧宿主证据，908 的完整认证、952 字节预留入账、独立审查和冻结仍待完成，历史失败与 Unknown 保留。[G14 历史故障矩阵](governance-g14-fault-matrix.md)
+
+**原 4192 安装现场验收部分通过。** 实际镜像对应 `5ca458a`，控制台和双网关在线，两个网关均为 v5/seq5，匿名订单请求返回 401，四个观测源最终可达。两个本机演示账号均成功登录，访问用户管理均被拒绝，退出后会话均失效。4194 的原 Keycloak 容器及三个必需卷缺失。已校验 2026-10-14 的同源冷备并在隔离环境恢复 PostgreSQL、OIDC 发现和签名公钥，确认原回调及两个测试身份仍在备份数据库内。原控制台 SSO 恢复与登录、双网关带凭证调用仍待现场复验。[本机安装历史](current-local-status.md) · [Keycloak 恢复手册](local-keycloak-demo.md)
+
+本轮原始复核、运行记录与冷备演练证据在本机 `deliverables/maintenance-acceptance-20261118/`。下文各 PR 记录保留各轮当时的判断。
+
+## 历史核对：PR #17 已合并，main 复跑全部通过
+
+当前主干见 [c65a0c0 合并与复跑补记](#2026-11-19-核对pr-18-已合并main-复跑全部通过)。
+
+PR #17 于 2026-11-18 将 `56e69ac8ca9fe7e6794432e17c6e9c9501c2a970` 合并为 `97be653eb94f175f21ab7f23288d52e412b6285a`。本机全量和 GitHub 四项必需检查通过后才合并。main 的文件树与候选一致，合并后独立完成了两条工作流。[PR #17](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/17)
+
+| 验证轮次 | Console / Python | Domain | Gateway | Integration | 合计 |
+| --- | --- | ---: | ---: | ---: | --- |
+| 本机 `56e69ac` | 325 / 94 | 1251 | 576 | 2266 | 4512 通过，0 失败，0 跳过 |
+| PR `56e69ac` | [325 / 94](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44263568779) | 1251 | 576 | 2266 | [4512 通过，0 失败，0 跳过](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44263568884) |
+| 合并后 main `97be653` | [325 / 94](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44272792372) | 1251 | 576 | 2266 | [4512 通过，0 失败，0 跳过](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44272792446) |
+
+三轮前端类型检查和构建均通过。集成套件覆盖原来的 2265 项和新增的 1 项数据库分组身份检查。首次本机控制台检查遇到临时端口权限错误，取得所需权限后以原命令通过，首次日志已保留。
+
+本机完整集成脚本用时 24 分 55 秒。GitHub 的 PR 集成任务用时 60 分 47 秒，main 复跑用时 59 分 43 秒。两轮测试框架计时分别为 58 分 23 秒和 57 分 30 秒。固定 149 项用例四组对照均缩短了包含启动、构建、清理的总耗时，配对降幅中位数为 5.64%，删库检查点等待的估算降幅中位数为 94.12%。全量任务的稳定提速仍待同条件对照。[PostgreSQL 分组对照](postgres-checkpoint-topology-20261118.md)
+
+集成检查仅为三个已测测试类启用独立 PostgreSQL，其他集成用例沿用共享实例，完整套件仍在一个测试进程中执行。四项必需检查、严格同步、管理员保护、超时及测试断言沿用原设置。分支备份已在临时仓库验证恢复后清理 GitHub 和本地的分支引用，既有工作目录、两份历史暂存和原始测试记录均保留。
+
+## 历史核对：PR #16 已合并，main 复跑全部通过
+
+PR #16 于 2026-11-18 将 `03ea8d6694afa42c716b346dd2e25b984b80ea7e` 合并为 `8dd156a7f15ccb01dd54984b5bfff6da7b09d22c`。合并后的文件树与已验证候选一致。本机全量和 GitHub 四项必需检查均通过后才合并，随后 main 又独立执行了两条工作流。[PR #16](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/16)
+
+| 验证轮次 | Console / Python | Domain | Gateway | Integration | 合计 |
+| --- | --- | ---: | ---: | ---: | --- |
+| 本机 `03ea8d6` | 325 / 94 | 1251 | 576 | 2265 | 4511 通过，0 失败，0 跳过 |
+| PR `03ea8d6` | [325 / 94](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44216062165) | 1251 | 576 | 2265 | [4511 通过，0 失败，0 跳过](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44216062228) |
+| 合并后 main `8dd156a` | [325 / 94](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44223625845) | 1251 | 576 | 2265 | [4511 通过，0 失败，0 跳过](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44223625743) |
+
+三轮前端类型检查与构建均通过。集成测试的本机脚本耗时 1930.479 秒。GitHub 上 PR 集成任务耗时 58 分 42 秒，main 复跑耗时 1 小时 3 分 49 秒，两轮测试框架分别报告 56 分 25 秒和约 1 小时 1 分钟。首次观察 main 时 GitHub API 连接中断，重新连接后确认同一轮执行成功，未触发重跑，观察日志已保留。
+
+四个测试类中的 26 项原有用例改用已迁移模板，每例仍使用独立数据库，另新增 11 项隔离、并发和失败清理回归。同机对照的 81 项原有用例平均测试耗时从 102.951 秒降至 84.696 秒，下降 17.7%，整段检查耗时下降 13.0%。全量集成测试提速仍待对照验证。[迁移模板与性能试点记录](migration-template-results-20261118.md)
+
+四项必需检查、严格同步与管理员保护保持原有设置，集成检查的超时、测试断言和跳过策略均未调整。本轮合并分支已完成可恢复备份并清理，旧资料、两份暂存、原始测试及历史失败日志均已归档。
+
+本机两轮定向计时各通过 149 项，共定位到两个下一步优化点。删库命令的活跃观测约 96% 在等待 PostgreSQL 检查点，首次 CSRF 请求约 300 毫秒在服务端接收请求到匹配路由之间。连接池对照确认全局清理会影响其他夹具的连接复用，单次重连差异约 2 毫秒。[数据库销毁与登录准备分析](integration-fixture-cleanup-login-timing-20261118.md)
+
+## 历史核对：PR #14、#15 已合并，main 复跑全部通过
 
 [PR #14](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/14) 将 `4acea080e073efe265cdbfc6a67e9f42a1eb79d2` 合并为 `287b0a3143f295d13a689e3e4a39f3a8b1c560b4`，实现凭证创建幂等与仅含元数据的秘密回执。同键同请求只创建一次，重试不再返回 Secret/API Key，并重新核对当前授权与应用状态。20并发、丢失响应、服务重启、冲突、权限变化、事务回滚与秘密边界已有真实 HTTP/PostgreSQL 回归。该批另修复网关记录测试与后台 Reporter 竞争消费队列的问题，原失败、复现及修复日志保留。
 
@@ -92,6 +230,8 @@ Gateway测试进程exit0、560项通过，但保全检查失败使编排exit1并
 
 ## 版本与事实来源
 
+下表为当轮的历史版本口径。当前主干见 [c65a0c0 合并与复跑补记](#2026-11-19-核对pr-18-已合并main-复跑全部通过)。
+
 | 层次 | 已核实的版本或状态 | 说明 |
 | --- | --- | --- |
 | [GitHub main](https://github.com/leileipei/WebAPI-Platform-Enterprise/tree/50d6fb9c71dc45f965461c04191cc2107308037c) | `50d6fb9c71dc45f965461c04191cc2107308037c` | PR #7/#8/#9在旧`5192415`后合入14份文件，涉及产品、测试、脚本、工作流及资料；新提交四项CI实际通过4265项，0失败/跳过 |
@@ -114,6 +254,8 @@ Gateway测试进程exit0、560项通过，但保全检查失败使编排exit1并
 两项修复的直接入口是[审计范围查询](../../src/WebApi.Infrastructure/Governance/AuditAccessQuery.cs)、[Outbox 分发器](../../src/WebApi.Infrastructure/Messaging/OutboxDispatcher.cs)与[后台分发任务](../../src/WebApi.Worker/Workers/OutboxWorker.cs)。历史审计原文保持不变，读取时逐快照校验真实环境及项目权限；单个环境恢复失败与消息分发分别处理。
 
 ## 源码能力及关闭边界
+
+下表保留 PR #18 前的历史口径。“固定 503、网关未接线”描述的是当时的源码。当前实现见 [c65a0c0 凭证治理补记](#pr-18-合并后的凭证治理)。
 
 | 能力 | 源码依据 | 当前解释 |
 | --- | --- | --- |
@@ -200,6 +342,8 @@ Gateway20项、`155de03`三套无过滤检查及后续`62f90b4`独立Integration
 随后离线修复子进程退出/清理竞态：旧逻辑9场景中2通过7失败，修复后9通过；释放进程与清理目录分别记录，只有确认退出才容忍停止竞态，失败后可重试。独立本机SDK10.0.403和最小断言适配器的结果单列，项目10.0.401未变，原48项仍绑定b4ef092且未重跑。本轮无Docker/数据库/HTTP现场操作，220份历史证据、原目录14文件及既有Unknown/保全不完整资格保持不变，新增需求关闭0。
 
 随后补验原生System.Diagnostics.Process与真实私有目录：4项生命周期检查加1项准备失败回归、原9项回调场景，共14项离线通过。准备失败的新增回归先复现13通过1失败，修正测试准备分支后14通过，原13通过及失败记录保留；三例实际自有子进程的退出、释放和目录删除已核对。仍为独立SDK403/最小适配器，固定401/48项未重跑；270份历史证据、4008源码及原目录14文件不变，既有Unknown和保全不完整资格不变，新增需求关闭0。
+
+下表保留该轮历史待办口径。凭证安全准入的当前实现见 [c65a0c0 凭证治理补记](#pr-18-合并后的凭证治理)。
 
 | 未完成项 | 当前依据与处理边界 |
 | --- | --- |
