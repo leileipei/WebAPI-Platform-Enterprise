@@ -5,7 +5,10 @@ namespace WebApi.Infrastructure.Governance;
 /// <summary>Reads independently verified deployment, recovery and node evidence for an environment.</summary>
 public interface ILegacyEnvironmentHistoryReader
 {
-    /// <summary>Returns a held stop-write fence only when the evidence can be read within it.</summary>
+    /// <summary>
+    /// Holds a reference to an independently established stop-write scope. Preview may call this
+    /// method, so acquiring the reference must not stop writers or initiate maintenance.
+    /// </summary>
     Task<ILegacyEnvironmentHistoryFence?> OpenAsync(Guid environmentId, CancellationToken ct);
 }
 
@@ -15,6 +18,9 @@ public interface ILegacyEnvironmentHistoryFence : IAsyncDisposable
 
     /// <summary>A true result guarantees the verified writers remain stopped until this fence is released.</summary>
     Task<bool> IsHeldAsync(CancellationToken ct);
+
+    /// <summary>Records a held reference for reconciliation when the local transaction outcome is unknown.</summary>
+    void RetainForRecovery() { }
 }
 
 public sealed record LegacyEnvironmentSource(Guid EnvironmentId, Guid ProjectId, Guid OrganizationId,

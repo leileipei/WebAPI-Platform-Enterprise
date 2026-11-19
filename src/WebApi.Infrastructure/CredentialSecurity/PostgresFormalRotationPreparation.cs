@@ -55,9 +55,11 @@ public sealed class PostgresFormalRotationPreparation(string connectionString, G
         CredentialRevocationCoverageScope current;
         SecurityLedgerMaterial ledger;
         RuntimeSnapshot snapshot;
-        try { (current, ledger, snapshot) = await CredentialRevocationMutation.ReadRunningCoverageAsync(db, credential, environment, now, ct); }
+        CredentialRunningIngressScope ingressScope;
+        try { (current, ledger, snapshot, ingressScope) = await CredentialRevocationMutation.ReadRunningCoverageAsync(db, credential, environment, now, ct); }
         catch (ApiException error) when (error.Status is 404 or 409 or 422) { throw ScopeUnverified(); }
-        if (!ingress.IsVerified(current) || application.Status != "Active" || credential.Status != "Active") throw ScopeUnverified();
+        var ingressExpiry = CredentialRunningIngress.VerifiedUntil(ingress, current, ingressScope, now);
+        if (ingressExpiry is null || ingressExpiry <= now || application.Status != "Active" || credential.Status != "Active") throw ScopeUnverified();
         var published = snapshot.Applications.SingleOrDefault(item => item.Id == application.Id && item.EnvironmentId == environmentId && item.Status == "Active");
         var publishedKey = published?.Credentials.SingleOrDefault(item => item.Id == credentialId && item.BindingMode == "EnvironmentBound" &&
             item.EnvironmentId == environmentId && item.Status == "Active");
@@ -99,6 +101,7 @@ public sealed class PostgresFormalRotationPreparation(string connectionString, G
         var checkedAt = await SecurityDatabaseClock.ObserveAsync(db, ct);
         var prepareBudget = BoundedWitnessHttpClient.RequestTimeout;
         if (checkedAt < evidenceAt || checkedAt > proof.Upper || proof.ValidUntil - checkedAt <= prepareBudget ||
+            ingressExpiry.Value - checkedAt <= prepareBudget ||
             current.Nodes.Any(node => node.FreshUntil - checkedAt <= prepareBudget))
             throw EvidenceUnavailable();
 

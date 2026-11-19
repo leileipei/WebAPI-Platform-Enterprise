@@ -6,18 +6,26 @@ using WebApi.Contracts.Security;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Gateway;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Releases;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.CredentialSecurity;
-public sealed class SecurityOperationStatusReader(WebApiDbContext db)
+public sealed class SecurityOperationStatusReader(WebApiDbContext db,PostgresRevocationReceiptEvidence? evidence=null)
 {
- public Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadAsync(Guid operation,CancellationToken ct=default) =>
-  ReadAsync(operation,null,ct);
+ private sealed record RuntimeStatus(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,
+  DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry);
+ private sealed record LockedStatus(RuntimeStatus Runtime,RevocationOperationDto? Receipt,PostgresRevocationReceiptEvidence.LocalEvidence? Evidence);
+ private static readonly TimeSpan HeartbeatGrace=TimeSpan.FromSeconds(new PublishSettings().HeartbeatGraceSeconds);
+
+ public async Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadAsync(Guid operation,CancellationToken ct=default)
+ {
+  var (runtime,_,_)=await ReadLockedAsync(operation,null,ct);
+  return(runtime.Status,runtime.Targets,runtime.CoverageGaps,runtime.ObservedAt,runtime.EarliestConfirmedLeaseExpiry);
+ }
 
  public async Task<RevocationOperationDto> ReadRevocationAsync(Guid operation,ActorContext actor,
   Func<WebApiDbContext,CancellationToken,Task> requireSession,CancellationToken ct=default)
  {
-  RevocationOperationDto? receipt=null;
-  var runtime=await ReadAsync(operation,async token=>
+  async Task<RevocationOperationDto> AuthorizeAsync(CancellationToken token)
   {
    await requireSession(db,token);
    var row=await db.Set<SecurityOperation>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==operation && x.Kind=="CredentialRevoke",token);
@@ -34,42 +42,52 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
     if(fact.EventType==CredentialRevocationEvents.Archived)await authorization.RequireArchivedCredentialRevocationAsync(actor,target,token);
     else await authorization.RequireAsync(actor,"credential.revoke",target,token);
    }
-   receipt=new(operation,credential,row.CommittedAt,row.Revision,"Unconfirmed",$"/api/v1/credential-revocations/{operation}",
+   return new(operation,credential,row.CommittedAt,row.Revision,"Unconfirmed",$"/api/v1/credential-revocations/{operation}",
     facts.Select(fact=>new RevocationEnvironmentDto(fact.EnvironmentId,fact.SecurityGeneration,fact.Epoch,fact.EventHash,
      CredentialRevocationEvents.CoverageState(fact))).ToArray(),[]);
-   return facts.Where(fact=>fact.EventType==CredentialRevocationEvents.Original).Select(fact=>fact.EnvironmentId).ToArray();
-  },ct);
-  // The poll view exposes recorded targets. Full coverage requires independently
-  // reverified journal effects and current ingress isolation together.
-  return receipt! with
-  {
-   Targets=runtime.Targets.Select(target=>target with {State="Pending",Reason="independent_coverage_unverified"}).ToArray(),
-   CoverageGaps=[..runtime.CoverageGaps,new(null,null,"independent_coverage_unverified")]
-  };
+  }
+
+  var first=await ReadLockedAsync(operation,AuthorizeAsync,ct,readEvidence:evidence is not null);
+  if(evidence is null||first.Evidence is not { } local)
+   return ProjectReceipt(first.Receipt!,first.Runtime,null,null);
+
+  // Witness I/O is bracketed by local, authorized samples. The confirmed
+  // journal attests the first sample. The last transaction tests that its
+  // facts are still applicable and that the session can still read them.
+  var independent=await evidence.ObserveAsync(local,ct);
+  var latest=await ReadLockedAsync(operation,AuthorizeAsync,ct,readEvidence:independent is not null,witnesses:local.Witnesses);
+  var receipt=latest.Receipt!;
+  var original=first.Receipt!;
+  var verification=receipt.CredentialId==original.CredentialId&&receipt.CommittedAt==original.CommittedAt&&
+   receipt.Revision==original.Revision&&receipt.Environments.SequenceEqual(original.Environments)
+   ?PostgresRevocationReceiptEvidence.Reconcile(local,independent,latest.Evidence):null;
+  return ProjectReceipt(receipt,latest.Runtime,verification,first.Runtime);
  }
 
  private static ApiException RevocationMissing()=>new(404,"credential_revocation_not_found","找不到撤销操作。");
 
- private async Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadAsync(Guid operation,Func<CancellationToken,Task<Guid[]>>? authorize,CancellationToken ct)
+ private async Task<LockedStatus> ReadLockedAsync(Guid operation,
+  Func<CancellationToken,Task<RevocationOperationDto>>? authorize,CancellationToken ct,bool readEvidence=false,
+  PostgresRevocationReceiptEvidence.Sources? witnesses=null)
  {
-  // An inherited repeatable-read snapshot may have been fixed before a
-  // concurrent authority change. This diagnostic reader owns its transaction;
-  // security transitions must perform their own locked, atomic revalidation.
+  // Lock before reading to avoid fixing a snapshot before an authority change.
   if(db.Database.CurrentTransaction is not null)
    throw new InvalidOperationException("Security operation status must own a fresh transaction.");
   await using var snapshot=await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted,ct);
-  // Lock before reading so a wait cannot preserve a snapshot from before the
-  // wait. Cooperative authority writers use the same global/environment lock
-  // order. Deployment must also fence non-cooperative database writers.
   await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
-  // The public receipt is scoped to its original authorized running environments.
-  // Later inherited environments must not be locked or have expiry records written by this poll.
-  var visible=authorize is null?null:await authorize(ct);
-  var environments=visible??await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation).Select(x=>x.EnvironmentId)
+
+  // Authorize only the original operation scope, including sealed environments.
+  // Inherited environments are neither exposed nor locked by the public poll.
+  if(authorize is not null)await db.Database.ExecuteSqlRawAsync("SET LOCAL search_path = pg_catalog, public, pg_temp",ct);
+  var receipt=authorize is null?null:await authorize(ct);
+  var environments=receipt?.Environments.Select(x=>x.EnvironmentId).ToArray()??
+   await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation).Select(x=>x.EnvironmentId)
    .Concat(db.Set<SecurityOperationTarget>().AsNoTracking().Where(x=>x.OperationId==operation).Select(x=>x.EnvironmentId))
    .Distinct().OrderBy(x=>x).ToArrayAsync(ct);
   foreach(var environment in environments)
-   await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={environment} FOR UPDATE",ct);
+   await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM public.environments WHERE id={environment} FOR UPDATE",ct);
+  var visible=receipt?.Environments.Where(x=>x.CoverageState!="SealedNoIngressAtCommit").Select(x=>x.EnvironmentId).ToArray();
+  var local=readEvidence&&receipt is not null&&evidence is not null?await evidence.ReadLocalAsync(db,receipt,witnesses,ct):null;
   using var completionBudget=new CancellationTokenSource();
   var recordingExpiry=false;
   CancellationToken ExpiryToken()
@@ -79,9 +97,33 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
   }
   var result=await ReadCoreAsync(operation,visible,ct,ExpiryToken);
   await snapshot.CommitAsync(recordingExpiry?completionBudget.Token:ct);
-  return result;
+  return new(result,receipt,local);
  }
- private async Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadCoreAsync(Guid operation,Guid[]? visible,CancellationToken ct,Func<CancellationToken> expiryToken)
+
+ private static RevocationOperationDto ProjectReceipt(RevocationOperationDto receipt,RuntimeStatus runtime,
+  PostgresRevocationReceiptEvidence.Observation? verification,RuntimeStatus? first)
+ {
+  var gaps=runtime.CoverageGaps.ToList();
+  var covered=verification?.Environments.Where(pair=>pair.Value.ValidUntil>runtime.ObservedAt)
+   .ToDictionary(pair=>pair.Key,pair=>pair.Value)??[];
+  if(verification is null)gaps.Add(new(null,null,"independent_coverage_unverified"));
+  else
+   foreach(var env in receipt.Environments.Where(x=>!covered.ContainsKey(x.EnvironmentId)))
+    gaps.Add(new(env.EnvironmentId,null,"independent_coverage_unverified"));
+  var previouslyApplied=first?.Targets.Where(target=>target.State=="Applied")
+   .Select(target=>(target.EnvironmentId,target.NodeId,target.InstanceGuid)).ToHashSet()??[];
+  var targets=runtime.Targets.Select(target=>covered.TryGetValue(target.EnvironmentId,out var valid)&&
+   valid.CurrentInstances.Contains((target.NodeId,target.InstanceGuid))&&
+   target.LastHeartbeatAt is DateTimeOffset heartbeat&&heartbeat<=runtime.ObservedAt&&runtime.ObservedAt-heartbeat<=HeartbeatGrace&&
+   (target.State!="Applied"||previouslyApplied.Contains((target.EnvironmentId,target.NodeId,target.InstanceGuid)))
+   ?target
+   :target with {State="Pending",Reason="independent_coverage_unverified",ErrorCode=null}).ToArray();
+  var applied=targets.Count(target=>target.State=="Applied");
+  var confirmed=gaps.Count==0&&applied==targets.Length;
+  return receipt with {Status=confirmed?"FullyApplied":applied>0?"Partial":"Unconfirmed",Targets=targets,CoverageGaps=gaps};
+ }
+
+ private async Task<RuntimeStatus> ReadCoreAsync(Guid operation,Guid[]? visible,CancellationToken ct,Func<CancellationToken> expiryToken)
  {
   var targets=await db.Set<SecurityOperationTarget>().AsNoTracking().Where(x=>x.OperationId==operation&&(visible==null||visible.Contains(x.EnvironmentId))).OrderBy(x=>x.EnvironmentId).ThenBy(x=>x.NodeId).ThenBy(x=>x.CreatedAt).ToArrayAsync(ct);
   var eventEnvironmentIds=await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation&&(visible==null||visible.Contains(x.EnvironmentId))).Select(x=>x.EnvironmentId).Distinct().ToArrayAsync(ct);
@@ -191,6 +233,6 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
   // These timestamps describe only this diagnostic observation. The expiry
   // bound does not guarantee unchanged nodes, ledger or traffic availability.
   var earliestExpiry=result.Where(x=>x.State=="Applied").Select(x=>(DateTimeOffset?)receiptsByInstance[(x.NodeId,x.InstanceGuid)].FreshUntil).Min();
-  return(result.Count>0&&gaps.Count==0&&applied==result.Count?"FullyApplied":applied>0?"Partial":"Unconfirmed",result,gaps,now,earliestExpiry);
+  return new(result.Count>0&&gaps.Count==0&&applied==result.Count?"FullyApplied":applied>0?"Partial":"Unconfirmed",result,gaps,now,earliestExpiry);
  }
 }

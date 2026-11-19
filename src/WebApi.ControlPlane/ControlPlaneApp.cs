@@ -24,6 +24,7 @@ using WebApi.ControlPlane.Security;
 using WebApi.ControlPlane.Governance;
 using WebApi.ControlPlane.Catalog;
 using WebApi.ControlPlane.Applications;
+using WebApi.Infrastructure.CredentialSecurity;
 using WebApi.Infrastructure.Applications;
 using WebApi.Infrastructure.Commands;
 using WebApi.Infrastructure.Releases;
@@ -47,7 +48,7 @@ public static class ControlPlaneApp
         builder.WebHost.ConfigureKestrel(options=>options.Limits.MaxRequestBodySize=8*1024*1024);
         var connection=builder.Configuration.GetConnectionString("WebApi")??DatabaseSettings.ConnectionString();
         builder.Services.AddDbContext<WebApiDbContext>(options=>options.UseNpgsql(connection));
-        builder.Services.AddConfiguredWitness(builder.Configuration);
+        builder.Services.AddConfiguredCredentialGovernance(builder.Configuration, nodeServices: true);
         builder.Services.TryAddScoped<IPasswordHasher<UserRecord>,PasswordHasher<UserRecord>>();
         builder.Services.AddSingleton(sp=>LoginProtectionDeploymentSettings.Read(sp.GetRequiredService<IConfiguration>()));
         builder.Services.AddSingleton(sp=>new LoginKeyHasher(sp.GetRequiredService<LoginProtectionDeploymentSettings>().HmacSecret));

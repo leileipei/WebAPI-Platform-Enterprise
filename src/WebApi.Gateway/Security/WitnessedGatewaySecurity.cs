@@ -4,6 +4,7 @@ using WebApi.Domain.CredentialSecurity;
 using WebApi.Gateway.Configuration;
 using WebApi.Gateway.Storage;
 using WebApi.Gateway.Workers;
+using WebApi.Infrastructure.CredentialSecurity;
 
 namespace WebApi.Gateway.Security;
 
@@ -19,6 +20,58 @@ public static class WitnessedGatewaySecurityRegistration
             evidence.LeaseKeys.SubjectPublicKeys.Values.Any(key => key == evidence.Trust.TimePublicKey || key == evidence.Trust.HistoryPublicKey))
             throw new ArgumentException("Gateway lease, time, and history authorities must have separate signing keys.", nameof(evidence));
         services.TryAddSingleton(evidence);
+        return Register(services);
+    }
+
+    internal static void AddConfiguredGatewaySecurity(this IServiceCollection services, IConfiguration configuration, GatewaySettings settings)
+    {
+        var section = configuration.GetSection("CredentialGovernance");
+        if (section["Enabled"] is null or "false") return;
+        if (bool.TryParse(section["Enabled"], out var enabled) && !enabled) return;
+        try
+        {
+            if (!enabled || settings.ControlPlaneUrl.Scheme != Uri.UriSchemeHttps)
+                throw new ArgumentException();
+            var time = section.GetSection("TimeEvidence").Get<IndependentWitnessRole>();
+            var history = section.GetSection("HistoryEvidence").Get<IndependentWitnessRole>();
+            var trust = IndependentGovernanceWitnessClients.RequireEvidenceTrust(time, history);
+            var configuredKeys = section.GetSection("LeaseVerificationKeys").GetChildren()
+                .ToDictionary(key => key.Key, key => key.Value ?? "", StringComparer.Ordinal);
+            var leaseKeys = IndependentGovernanceWitnessClients.RequireGatewayLeaseKeys(configuredKeys, trust);
+            services.TryAddSingleton(_ => new IndependentEvidenceHttpClient(time!.Endpoint, history!.Endpoint));
+            services.TryAddSingleton(sp =>
+            {
+                var client = sp.GetRequiredService<IndependentEvidenceHttpClient>();
+                return new GatewaySecurityEvidence(leaseKeys, client, client, trust);
+            });
+            ConfigureRotationProofDelivery(services, section, trust, leaseKeys);
+            Register(services);
+        }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException or FormatException or InvalidDataException)
+        {
+            throw new InvalidOperationException("Invalid credential governance settings for gateway.");
+        }
+    }
+
+    private static void ConfigureRotationProofDelivery(IServiceCollection services, IConfigurationSection section,
+        IndependentEvidenceTrust trust, TrustedSigningKeys leases)
+    {
+        var settings = section.GetSection("RotationProofs");
+        if (!settings.Exists()) return;
+        var role = IndependentGovernanceWitnessClients.RequireGatewayRotationProofRole(settings.Get<IndependentWitnessRole>(), trust, leases);
+        var journal = section.GetSection("JournalId").Get<GovernanceJournalId>() ?? throw new ArgumentException();
+        GovernanceJournalProtocol.RequireJournal(journal);
+        var certificate = section["RotationProofCertificateFile"];
+        if (certificate is null || !Path.IsPathFullyQualified(certificate)) throw new ArgumentException();
+        var disjointKeys = new[] { trust.TimePublicKey, trust.HistoryPublicKey }.Concat(leases.SubjectPublicKeys.Values).ToArray();
+        services.TryAddSingleton(_ => FormalRotationProofHttpWitness.OpenGatewayPublisher(role, journal, certificate, disjointKeys));
+        services.TryAddSingleton<FormalRotationProofDelivery>();
+        services.TryAddSingleton<IFormalRotationRequestProofSink>(sp => sp.GetRequiredService<FormalRotationProofDelivery>());
+        services.AddHostedService(sp => sp.GetRequiredService<FormalRotationProofDelivery>());
+    }
+
+    private static IServiceCollection Register(IServiceCollection services)
+    {
         services.TryAddSingleton<WitnessedGatewaySecurity>();
         services.TryAddSingleton<IGovernanceAdmissionStateProvider>(sp => sp.GetRequiredService<WitnessedGatewaySecurity>());
         services.AddHostedService<GatewaySecurityRenewalWorker>();
