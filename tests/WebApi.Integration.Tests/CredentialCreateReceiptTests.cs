@@ -78,6 +78,32 @@ public sealed class CredentialCreateReceiptTests
     }
 
     [Fact]
+    public async Task AReplacementCredentialCanBeCreatedForTheExactEnvironmentAndItsSecretIsReturnedOnce()
+    {
+        await using var api = new ApiFixture();
+        await Initialize(api);
+        var body = new
+        {
+            environmentId = api.Environment.Id,
+            validFrom = DateTimeOffset.Parse("2026-11-17T00:00:00Z"),
+            expiresAt = DateTimeOffset.Parse("2026-12-17T00:00:00Z")
+        };
+        using var created = await Send(api, body, "replacement-credential");
+        var first = await Read(created);
+        Assert.Equal(api.Environment.Id, first.GetProperty("credential").GetProperty("environmentId").GetGuid());
+        Assert.Equal("EnvironmentBound", first.GetProperty("credential").GetProperty("bindingMode").GetString());
+        Assert.Equal(JsonValueKind.String, first.GetProperty("secret").ValueKind);
+        using var retried = await Send(api, body, "replacement-credential");
+        AssertReplay(await Read(retried), CredentialId(first));
+        await using var db = api.Context();
+        var row = await db.Set<ApplicationCredential>().SingleAsync();
+        Assert.Equal(api.Environment.Id, row.EnvironmentId);
+        Assert.Equal(api.Project.Id, row.ProjectId);
+        Assert.Equal("EnvironmentBound", row.BindingMode);
+        Assert.Empty(await db.Set<FormalCredentialRotation>().ToArrayAsync());
+    }
+
+    [Fact]
     public async Task LostFirstResponseAndServerRestartReplayMetadataWithoutRecoveringSecret()
     {
         await using var api = new ApiFixture();

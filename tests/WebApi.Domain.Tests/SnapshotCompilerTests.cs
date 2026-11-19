@@ -1,11 +1,15 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Catalog;
 using WebApi.Contracts.Releases;
 using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Applications;
+using WebApi.Domain.Applications;
+using WebApi.Domain.Policies;
+using WebApi.Domain.Runtime;
 using WebApi.Infrastructure.Releases;
 using Xunit;
 namespace WebApi.Domain.Tests;
@@ -47,5 +51,99 @@ public sealed class SnapshotCompilerTests
     [Fact] public void DisabledSelectedRouteRemovesOnlyThatApi()
     {
         var c=Candidate();var snapshot=Read(Compile(c with {Routes=[c.Routes[0] with {Enabled=false}]}));Assert.Single(snapshot.Routes);Assert.Equal(OtherApi,snapshot.Routes[0].ApiId);
+    }
+
+    [Fact]
+    public void Governance24PreservesNetworkPolicyAndFreezesStaleGrantWithoutAllowingIt()
+    {
+        var candidate = Candidate();
+        var policy = new FrozenPolicy(Guid.NewGuid(), "cors", CorsPolicyConfigurationTests.Source, true, 6);
+        candidate = candidate with { Policies = [policy], Bindings = [new(candidate.Routes[0].Id, policy.Id, 0)] };
+        var (frozen, generation) = WithGovernance(candidate, "2.0", "RouteMethod");
+        var baseline = Baseline();
+        var compiled = new SnapshotCompiler().Compile(frozen, baseline with { Routes = baseline.Routes.Where(r => r.ApiId == SelectedApi).ToArray() }, 2, Now);
+        var snapshot = SnapshotValidator.ParsePayload(compiled.Payload.Span, Env);
+        Assert.Equal("2.4", snapshot.SchemaVersion);
+        Assert.Equal(generation, snapshot.RequiredSecurityGeneration);
+        Assert.Equal(7L, snapshot.RequiredSecurityEpoch);
+        Assert.Equal("2.0", snapshot.MinimumSnapshotSchema);
+        Assert.Contains(snapshot.Policies, value => value.Type == "cors");
+        var app = Assert.Single(snapshot.Applications);
+        var route = Assert.Single(snapshot.Routes);
+        Assert.Equal(9L, route.AuthorizationRevision);
+        Assert.Equal(Env, Assert.Single(app.Credentials).EnvironmentId);
+        Assert.Equal(8L, Assert.Single(Assert.Single(app.Permissions).RouteMethods!).AuthorizationRevision);
+        Assert.False(PermissionEvaluator.IsAllowed(app, route, "GET", Now));
+        Assert.Equal(compiled.Hash, Convert.ToHexStringLower(SHA256.HashData(compiled.Payload.Span)));
+    }
+
+    [Fact]
+    public void FirstGovernanceSnapshotRequiresSelectionOfEveryRunningApi()
+    {
+        var (candidate, _) = WithGovernance(Candidate(), "2.0", "RouteMethod");
+        var error = Assert.Throws<ApiException>(() => Compile(candidate));
+        Assert.Equal("governance_snapshot_full_freeze_required", error.Code);
+    }
+
+    [Fact]
+    public void LaterGovernanceSnapshotPreservesUnselectedRouteClusterAndNetworkPolicy()
+    {
+        var (candidate, generation) = WithGovernance(Candidate(), "2.0", "RouteMethod");
+        var baseline = Baseline();
+        var policySource = Guid.NewGuid();
+        var policyId = RuntimePolicyIdentity.Create(policySource, 3, "cors", CorsPolicyConfigurationTests.Source);
+        var policy = new RuntimePolicy(policyId, "cors", CorsPolicyConfigurationTests.Source, policySource, 3);
+        var retainedRoute = baseline.Routes[0] with { EnvironmentId = Env, AuthorizationRevision = 19, PolicyBindings = [new(policyId, 0)] };
+        baseline = baseline with { SchemaVersion = "2.4", Routes = [retainedRoute], Policies = [policy],
+            RequiredSecurityGeneration = generation, RequiredSecurityEpoch = 6, RequireEnvironmentCredentials = false, MinimumSnapshotSchema = "2.0" };
+        candidate = candidate with { Governance = candidate.Governance! with { Routes =
+            [.. candidate.Governance!.Routes, new(retainedRoute.Id, retainedRoute.AuthorizationRevision!.Value)] } };
+
+        var compiled = new SnapshotCompiler().Compile(candidate, baseline, 2, Now);
+        var snapshot = SnapshotValidator.ParsePayload(compiled.Payload.Span, Env);
+        Assert.Equal(CanonicalJson.Serialize(retainedRoute), CanonicalJson.Serialize(snapshot.Routes.Single(r => r.ApiId == OtherApi)));
+        Assert.Equal(CanonicalJson.Serialize(baseline.Clusters[0]), CanonicalJson.Serialize(snapshot.Clusters.Single(c => c.Id == retainedRoute.ClusterId)));
+        Assert.Equal(policy, Assert.Single(snapshot.Policies));
+    }
+
+    [Fact]
+    public void StrictSnapshotRejectsLegacyApiAuthorization()
+    {
+        var (candidate, _) = WithGovernance(Candidate(), "2.4", "LegacyApi");
+        var baseline = Baseline();
+        Assert.Throws<ApiException>(() => new SnapshotCompiler().Compile(candidate, baseline with { Routes = [] }, 2, Now));
+    }
+
+    [Fact]
+    public void LegacyCompilationCannotEraseAnExplicitCredentialBinding()
+    {
+        var candidate = JsonSerializer.SerializeToNode(Candidate(), CanonicalJson.Options)!.AsObject();
+        candidate["applications"]![0]!["credentials"]![0]!["environmentId"] = JsonValue.Create(Env);
+        candidate["applications"]![0]!["credentials"]![0]!["bindingMode"] = "EnvironmentBound";
+        var frozen = candidate.Deserialize<FrozenReleaseCandidate>(CanonicalJson.Options)!;
+        Assert.Throws<ApiException>(() => Compile(frozen));
+    }
+
+    private static (FrozenReleaseCandidate Candidate, Guid Generation) WithGovernance(FrozenReleaseCandidate candidate, string floor, string mode)
+    {
+        var generation = Guid.NewGuid();
+        var routeId = candidate.Routes[0].Id;
+        var permissionId = candidate.Applications[0].Permissions[0].Id;
+        var governance = JsonSerializer.SerializeToNode(new
+        {
+            securityGeneration = generation,
+            epoch = 7,
+            headHash = new string('b', 64),
+            requireEnvironmentCredentials = false,
+            minimumSnapshotSchema = floor,
+            routes = new[] { new { routeId, authorizationRevision = 9 } },
+            permissions = new[] { new { permissionId, mode, routeMethods = mode == "RouteMethod" ? new[] { new { routeId, authorizationRevision = 8, methods = new[] { "GET" } } } : [] } },
+            targets = Array.Empty<object>()
+        });
+        var node = JsonSerializer.SerializeToNode(candidate, CanonicalJson.Options)!.AsObject();
+        node["governance"] = governance;
+        node["applications"]![0]!["credentials"]![0]!["environmentId"] = JsonValue.Create(Env);
+        node["applications"]![0]!["credentials"]![0]!["bindingMode"] = "EnvironmentBound";
+        return (node.Deserialize<FrozenReleaseCandidate>(CanonicalJson.Options)!, generation);
     }
 }

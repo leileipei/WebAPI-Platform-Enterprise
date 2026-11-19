@@ -40,18 +40,30 @@ public interface IGovernanceCommitSession : IAsyncDisposable
 
 public enum GovernanceCommitResult { Committed, Replayed, Conflict }
 
+internal interface IAtomicGovernanceCommitSession
+{
+    Task<GovernanceWitnessState> PrepareAndCommitAsync(GovernanceWriteIntent intent,
+        Func<CancellationToken, Task<GovernanceWitnessState>> prepare, CancellationToken ct);
+}
+
 public sealed class GovernanceCommitCoordinator
 {
     private readonly GovernanceJournalId journal;
     private readonly IGovernanceCommitStore store;
     private readonly IGovernanceJournalWitness witness;
+    private readonly Func<GovernanceWriteIntent, CancellationToken, Task<GovernanceWitnessState>>? prepareOrdered;
 
     public GovernanceCommitCoordinator(GovernanceJournalId journal, IGovernanceCommitStore store, IGovernanceJournalWitness witness)
+        : this(journal, store, witness, null) { }
+
+    internal GovernanceCommitCoordinator(GovernanceJournalId journal, IGovernanceCommitStore store, IGovernanceJournalWitness witness,
+        Func<GovernanceWriteIntent, CancellationToken, Task<GovernanceWitnessState>>? prepareOrdered)
     {
         GovernanceJournalProtocol.RequireJournal(journal);
         this.journal = journal;
         this.store = store;
         this.witness = witness;
+        this.prepareOrdered = prepareOrdered;
     }
 
     public async Task<GovernanceCommitResult> ExecuteAsync(GovernanceWriteIntent intent, CancellationToken ct = default)
@@ -78,6 +90,18 @@ public sealed class GovernanceCommitCoordinator
         Require(local.Position == observed.Confirmed);
         Require(local.AwaitingConfirmation is null);
         if (local.Position != intent.Previous) return GovernanceCommitResult.Conflict;
+        if (prepareOrdered is not null)
+        {
+            if (session is not IAtomicGovernanceCommitSession atomic) throw Unavailable();
+            var ordered = await atomic.PrepareAndCommitAsync(intent, async token =>
+            {
+                var state = await prepareOrdered(intent, token);
+                Require(state.Pending == intent && state.Confirmed == intent.Previous && state.OperationConfirmation is null);
+                return state;
+            }, ct);
+            await FinishPreparedAsync(session, await ReadLocalAsync(session, ct), ordered, next, ct);
+            return GovernanceCommitResult.Committed;
+        }
         await session.ValidateNewMutationAsync(intent, ct);
         var prepared = await witness.PrepareAsync(journal, intent, ct);
         Require(prepared.Pending == intent);
@@ -85,7 +109,9 @@ public sealed class GovernanceCommitCoordinator
         return GovernanceCommitResult.Committed;
     }
 
-    public async Task RecoverAsync(CancellationToken ct = default)
+    public async Task RecoverAsync(CancellationToken ct = default) => await RecoverSelectedAsync(_ => true, ct);
+
+    internal async Task<bool> RecoverSelectedAsync(Func<GovernanceWriteIntent, bool> canFinish, CancellationToken ct)
     {
         await using var session = await store.OpenLockedAsync(journal, ct);
         await session.AuthorizeRecoveryAsync(ct);
@@ -93,8 +119,9 @@ public sealed class GovernanceCommitCoordinator
         var observed = await witness.ObserveAsync(journal, local.AwaitingConfirmation?.OperationId, ct);
         if (observed.Pending is { } pending)
         {
+            if (!canFinish(pending)) return false;
             await FinishPreparedAsync(session, local, observed, GovernanceJournalProtocol.NextPosition(journal, pending), ct);
-            return;
+            return true;
         }
 
         // A confirmed witness ahead of restored PostgreSQL cannot be rebuilt
@@ -102,10 +129,12 @@ public sealed class GovernanceCommitCoordinator
         Require(local.Position == observed.Confirmed);
         if (local.AwaitingConfirmation is { } intent)
         {
+            if (!canFinish(intent)) return false;
             Require(await session.VerifyCommittedMutationAsync(intent, ct));
             await FinishMarkerAsync(session, local, observed, ct);
         }
         else Require(await ReadLocalAsync(session, ct) == local);
+        return true;
     }
 
     private async Task<GovernanceCommitResult> ReplayConfirmedAsync(IGovernanceCommitSession session, GovernanceLocalJournalState local,

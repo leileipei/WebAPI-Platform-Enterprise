@@ -2364,6 +2364,68 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.FormalCredentialRotation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedNever()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CredentialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("credential_id");
+
+                    b.Property<Guid>("EnvironmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("environment_id");
+
+                    b.Property<DateTimeOffset>("HardDeadline")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("hard_deadline");
+
+                    b.Property<string>("IntentHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("intent_hash");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("recorded_at");
+
+                    b.Property<Guid>("ReplacementCredentialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("replacement_credential_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CredentialId")
+                        .HasDatabaseName("IX_formal_credential_rotations_credential_id");
+
+                    b.HasIndex("ReplacementCredentialId")
+                        .HasDatabaseName("IX_formal_credential_rotations_replacement_credential_id");
+
+                    b.HasIndex("EnvironmentId", "HardDeadline")
+                        .HasDatabaseName("IX_formal_credential_rotations_environment_id_hard_deadline");
+
+                    b.HasIndex("HardDeadline", "Id")
+                        .HasDatabaseName("IX_formal_credential_rotations_hard_deadline_id");
+
+                    b.ToTable("formal_credential_rotations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_formal_credential_rotation", """
+                                id <> '00000000-0000-0000-0000-000000000000'::uuid
+                                AND credential_id <> '00000000-0000-0000-0000-000000000000'::uuid
+                                AND replacement_credential_id <> '00000000-0000-0000-0000-000000000000'::uuid
+                                AND environment_id <> '00000000-0000-0000-0000-000000000000'::uuid
+                                AND credential_id <> replacement_credential_id
+                                AND pg_catalog.isfinite(hard_deadline) AND pg_catalog.isfinite(recorded_at)
+                                AND hard_deadline > recorded_at
+                                AND intent_hash COLLATE "C" ~ '^[0-9a-f]{64}$'
+                                """);
+                        });
+                });
+
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewayAck", b =>
                 {
                     b.Property<Guid>("ReleaseId")
@@ -7049,6 +7111,30 @@ namespace WebApi.Infrastructure.Persistence.Migrations
                         .HasPrincipalKey("Id", "OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.FormalCredentialRotation", b =>
+                {
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationCredential", null)
+                        .WithMany()
+                        .HasForeignKey("CredentialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_formal_credential_rotations_old_credential");
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.EnvironmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EnvironmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_formal_credential_rotations_environment");
+
+                    b.HasOne("WebApi.Infrastructure.Persistence.Entities.ApplicationCredential", null)
+                        .WithMany()
+                        .HasForeignKey("ReplacementCredentialId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_formal_credential_rotations_replacement_credential");
                 });
 
             modelBuilder.Entity("WebApi.Infrastructure.Persistence.Entities.GatewayAck", b =>

@@ -59,7 +59,10 @@ public sealed record IndependentEvidenceLimits(TimeSpan MaximumTimeWidth, TimeSp
 // Inspection is intentionally not an authorization capability. In particular,
 // it cannot prove two-phase witness durability or gateway recovery provenance.
 public sealed record IndependentEvidenceInspection(DateTimeOffset LowerAtSource, DateTimeOffset UpperAtSource,
-    DateTimeOffset ConservativeUpperAtInspection, TimeSpan ProcessingElapsed, long HistorySequence);
+    DateTimeOffset ConservativeUpperAtInspection, TimeSpan ProcessingElapsed, long HistorySequence)
+{
+    public DateTimeOffset ValidUntil { get; internal init; }
+}
 
 public sealed class IndependentEvidenceSession
 {
@@ -131,7 +134,7 @@ public sealed class IndependentEvidenceSession
             if (elapsed < TimeSpan.Zero || elapsed > limits.MaximumProcessing || conservativeUpper >= t.ValidUntil) throw Invalid();
         }
         catch (Exception error) when (IsRecoverable(error)) { throw Invalid(error); }
-        return new(t.Lower, t.Upper, conservativeUpper, elapsed, h.Sequence);
+        return new(t.Lower, t.Upper, conservativeUpper, elapsed, h.Sequence) { ValidUntil = t.ValidUntil };
     }
 
     internal static bool ValidLimits(IndependentEvidenceLimits? limits) => limits is not null &&

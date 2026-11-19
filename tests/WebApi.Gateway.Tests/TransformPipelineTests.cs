@@ -101,7 +101,7 @@ public sealed class TransformPipelineTests
         await using(var db=f.Control.Context())
         {
             var grant=await db.Set<ApplicationApiPermission>().SingleAsync();grant.ValidFrom=DateTimeOffset.UtcNow.AddHours(1);db.Add(other);
-            db.Add(new ApplicationApiPermission{ApplicationId=f.Control.Application.Id,EnvironmentId=f.Control.Environment.Id,ApiId=other.Id,ValidFrom=DateTimeOffset.UtcNow.AddHours(-1),CreatedBy=f.Control.Api.OwnerUserId});await db.SaveChangesAsync();
+            db.Add(new ApplicationApiPermission{ApplicationId=f.Control.Application.Id,EnvironmentId=f.Control.Environment.Id,ApiId=other.Id,Mode="LegacyApi",ValidFrom=DateTimeOffset.UtcNow.AddHours(-1),CreatedBy=f.Control.Api.OwnerUserId});await db.SaveChangesAsync();
         }
         using var version=await f.Control.WriteAsync(HttpMethod.Post,$"/api/v1/apis/{other.Id}/versions",new{version="1.0.0",changeType="compatible"});version.EnsureSuccessStatusCode();var id=(await version.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
         var route=System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(f.Control.RouteBody("/another-api")))!;route["apiVersionId"]=id;

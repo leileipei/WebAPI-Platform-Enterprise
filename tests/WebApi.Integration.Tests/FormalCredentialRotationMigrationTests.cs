@@ -1,0 +1,146 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql;
+using WebApi.Infrastructure.Persistence;
+using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Persistence.Migrations;
+using WebApi.Integration.Tests.Support;
+using Xunit;
+
+namespace WebApi.Integration.Tests;
+
+[Collection("MigrationIsolation")]
+public sealed class FormalCredentialRotationMigrationTests
+{
+    private const string RotationMigration = "20261119140000_FormalCredentialRotation";
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task BothUpgradePathsPreserveTheCredentialsAndCreateAnAppendOnlySchedule(bool sqlEntry)
+    {
+        await using var database = new PostgresDatabase();
+        await database.InitializeAsync();
+        FormalCredentialRotation scheduled;
+        await using (var predecessor = database.Context())
+        {
+            await predecessor.GetService<IMigrator>().MigrateAsync(LegacyGlobalRevocationInheritance.Id);
+            Assert.Equal(GovernanceSchemaFingerprints.Expected[LegacyGlobalRevocationInheritance.Id],
+                await predecessor.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
+            scheduled = await SeedScheduleAsync(predecessor);
+        }
+        await InstallUpgradeAsync(database, sqlEntry);
+
+        await using var db = database.Context();
+        Assert.True(await db.Database.SqlQueryRaw<bool>("""
+            SELECT pg_catalog.to_regclass('public.formal_credential_rotations') IS NOT NULL AS "Value"
+            """).SingleAsync());
+        Assert.Equal(RotationMigration, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        Assert.Equal(GovernanceSchemaFingerprints.Expected[RotationMigration],
+            await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
+        Assert.Equal(2, await db.Set<ApplicationCredential>().CountAsync(key => key.EnvironmentId == scheduled.EnvironmentId));
+        db.Add(scheduled);
+        await db.SaveChangesAsync();
+        var persisted = await db.Set<FormalCredentialRotation>().AsNoTracking().SingleAsync();
+        Assert.Equal((scheduled.Id, scheduled.CredentialId, scheduled.ReplacementCredentialId, scheduled.EnvironmentId,
+                scheduled.HardDeadline, scheduled.RecordedAt, scheduled.IntentHash),
+            (persisted.Id, persisted.CredentialId, persisted.ReplacementCredentialId, persisted.EnvironmentId,
+                persisted.HardDeadline, persisted.RecordedAt, persisted.IntentHash));
+        Assert.True(await db.Database.SqlQueryRaw<bool>("""
+            SELECT (SELECT count(*) FROM pg_catalog.pg_constraint WHERE conrelid='public.formal_credential_rotations'::regclass
+                      AND contype='f' AND confdeltype='r')=3
+                AND EXISTS (SELECT 1 FROM pg_catalog.pg_index WHERE indrelid='public.formal_credential_rotations'::regclass
+                        AND indexrelid='public."IX_formal_credential_rotations_credential_id"'::regclass AND NOT indisunique) AS "Value"
+            """).SingleAsync());
+
+        await AssertImmutableAsync(() => db.Database.ExecuteSqlInterpolatedAsync($"UPDATE public.formal_credential_rotations SET hard_deadline=hard_deadline + interval '1 second' WHERE id={scheduled.Id}"));
+        await AssertImmutableAsync(() => db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM public.formal_credential_rotations WHERE id={scheduled.Id}"));
+        await AssertImmutableAsync(() => db.Database.ExecuteSqlRawAsync("TRUNCATE TABLE public.formal_credential_rotations"));
+        var downgrade = await Assert.ThrowsAsync<PostgresException>(() => db.GetService<IMigrator>().MigrateAsync(LegacyGlobalRevocationInheritance.Id));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, downgrade.SqlState);
+        Assert.Equal("formal_credential_rotation_down_blocked", downgrade.MessageText);
+        Assert.Equal(RotationMigration, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        Assert.Equal(scheduled.HardDeadline, await db.Set<FormalCredentialRotation>().Select(row => row.HardDeadline).SingleAsync());
+    }
+
+    [Fact]
+    public async Task TheDatabaseRejectsIncompleteOrUnboundedSchedules()
+    {
+        await using var database = new PostgresDatabase();
+        await database.InitializeAsync();
+        await using var db = database.Context();
+        await db.Database.MigrateAsync();
+        var row = await SeedScheduleAsync(db);
+        var recorded = row.RecordedAt.ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+        var deadline = row.HardDeadline.ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+
+        Task AppendAsync(Guid id, Guid replacement, string until, string hash) => db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO public.formal_credential_rotations (id, credential_id, replacement_credential_id, environment_id, hard_deadline, recorded_at, intent_hash)
+            VALUES ({id}, {row.CredentialId}, {replacement}, {row.EnvironmentId}, CAST({until} AS timestamptz), CAST({recorded} AS timestamptz), {hash})
+            """);
+
+        await AssertInvalidAsync(() => AppendAsync(Guid.Empty, row.ReplacementCredentialId, deadline, row.IntentHash));
+        await AssertInvalidAsync(() => AppendAsync(row.Id, row.CredentialId, deadline, row.IntentHash));
+        await AssertInvalidAsync(() => AppendAsync(row.Id, row.ReplacementCredentialId, recorded, row.IntentHash));
+        await AssertInvalidAsync(() => AppendAsync(row.Id, row.ReplacementCredentialId, "infinity", row.IntentHash));
+        await AssertInvalidAsync(() => AppendAsync(row.Id, row.ReplacementCredentialId, deadline, row.IntentHash.ToUpperInvariant()));
+        var foreign = await Assert.ThrowsAsync<PostgresException>(() => AppendAsync(row.Id, Guid.NewGuid(), deadline, row.IntentHash));
+        Assert.Equal(PostgresErrorCodes.ForeignKeyViolation, foreign.SqlState);
+        Assert.Equal("FK_formal_credential_rotations_replacement_credential", foreign.ConstraintName);
+        Assert.False(await db.Set<FormalCredentialRotation>().AnyAsync());
+    }
+
+    private static async Task AssertImmutableAsync(Func<Task> mutate)
+    {
+        var error = await Assert.ThrowsAsync<PostgresException>(mutate);
+        Assert.Equal(PostgresErrorCodes.CheckViolation, error.SqlState);
+        Assert.Equal("formal_credential_rotation_immutable", error.MessageText);
+    }
+
+    private static async Task AssertInvalidAsync(Func<Task> append)
+    {
+        var error = await Assert.ThrowsAsync<PostgresException>(append);
+        Assert.Equal(PostgresErrorCodes.CheckViolation, error.SqlState);
+        Assert.Equal("ck_formal_credential_rotation", error.ConstraintName);
+    }
+
+    private static async Task<FormalCredentialRotation> SeedScheduleAsync(WebApiDbContext db)
+    {
+        var organization = new Organization { Code = "ROT-MIG", Name = "Rotation migration" };
+        var project = new Project { OrganizationId = organization.Id, Code = "ROT-MIG", Name = "Rotation migration" };
+        var environment = new EnvironmentRecord { ProjectId = project.Id, Code = "ROT-MIG", Name = "Rotation migration" };
+        var application = new ApplicationRecord { OrganizationId = organization.Id, ProjectId = project.Id,
+            Code = "ROT-MIG", Name = "Rotation migration", Owner = "Isolated test" };
+        var at = await db.Database.SqlQueryRaw<DateTimeOffset>("SELECT date_trunc('second', clock_timestamp()) AS \"Value\"").SingleAsync();
+        ApplicationCredential AddCredential(string key) => new() { ApplicationId = application.Id, OrganizationId = organization.Id,
+            ProjectId = project.Id, EnvironmentId = environment.Id, BindingMode = "EnvironmentBound", AccessKey = key,
+            SecretHash = new string('b', 64), ValidFrom = at.AddMinutes(-1), ExpiresAt = at.AddDays(1) };
+        var original = AddCredential("formal-migration-original");
+        var replacement = AddCredential("formal-migration-replacement");
+        db.AddRange(organization, project, environment, application, original, replacement);
+        await db.SaveChangesAsync();
+        return new() { Id = Guid.NewGuid(), CredentialId = original.Id, ReplacementCredentialId = replacement.Id, EnvironmentId = environment.Id,
+            HardDeadline = at.AddHours(1), RecordedAt = at, IntentHash = new string('a', 64) };
+    }
+
+    private static async Task InstallUpgradeAsync(PostgresDatabase database, bool sqlEntry)
+    {
+        NpgsqlConnection.ClearAllPools();
+        if (sqlEntry)
+        {
+            var root = Environment.GetEnvironmentVariable("WEBAPI_SOURCE_ROOT") ?? throw new InvalidOperationException("Isolated source root is required.");
+            var script = await File.ReadAllTextAsync(Path.Combine(root, "deploy", "initial-core.sql"));
+            await using var connection = await database.OpenAsync();
+            await using var configure = new NpgsqlCommand("SELECT pg_catalog.set_config('webapi.migration_transaction_seconds','900',false),pg_catalog.set_config('webapi.migration_receipt_max_rows','100000',false)", connection);
+            await configure.ExecuteNonQueryAsync();
+            await using var command = new NpgsqlCommand(script, connection);
+            await command.ExecuteNonQueryAsync();
+            return;
+        }
+        var options = new DbContextOptionsBuilder<WebApiDbContext>().UseNpgsql(database.ConnectionString);
+        GovernanceMigrationRunner.Configure(options);
+        await using var runner = new WebApiDbContext(options.Options);
+        await MigrationRunnerAssertions.RunAsync(runner, new(TimeSpan.FromMinutes(15), 65536, 16384, 100000, 67108864));
+    }
+}

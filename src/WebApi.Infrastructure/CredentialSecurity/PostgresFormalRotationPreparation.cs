@@ -11,8 +11,6 @@ using WebApi.Infrastructure.Security;
 
 namespace WebApi.Infrastructure.CredentialSecurity;
 
-// This is a read-only preview. Accepting a formal schedule also requires an
-// independently ordered deadline write and an issuer that enforces that deadline.
 public sealed class PostgresFormalRotationPreparation(string connectionString, GovernanceJournalId journal,
     ICredentialRevocationCoverage ingress, IFormalRotationLeaseHorizonWitness? horizon)
 {
@@ -20,22 +18,23 @@ public sealed class PostgresFormalRotationPreparation(string connectionString, G
         string? ifMatch, ActorContext actor, CancellationToken ct = default,
         Func<WebApiDbContext, CancellationToken, Task>? requireSession = null)
     {
-        request = request with { NewValidFrom = request.NewValidFrom.ToUniversalTime(), NewExpiresAt = request.NewExpiresAt.ToUniversalTime(),
-            OverlapUntil = request.OverlapUntil.ToUniversalTime(), HardDeadline = request.HardDeadline.ToUniversalTime() };
-        var verifier = new CredentialRevocationMutation(actor, ingress, requireSession);
+        request = Normalize(request);
+        var verifier = new FormalRotationMutation(actor, ingress, requireSession, journal: journal);
         var store = new PostgresGovernanceCommitStore(connectionString, verifier);
         return store.InspectAsync(journal, credentialId, (db, local, _, token) =>
             ReadPreviewAsync(db, local, credentialId, request, ifMatch, actor, requireSession, token), ct);
     }
 
-    private async Task<FormalRotationPreviewDto> ReadPreviewAsync(WebApiDbContext db, GovernanceLocalJournalState local,
+    internal async Task<FormalRotationPreviewDto> ReadPreviewAsync(WebApiDbContext db, GovernanceLocalJournalState local,
         Guid credentialId, FormalRotationPreviewRequest request, string? ifMatch, ActorContext actor,
         Func<WebApiDbContext, CancellationToken, Task>? requireSession, CancellationToken ct)
     {
         if (requireSession is not null) await requireSession(db, ct);
-        var credential = await db.Set<ApplicationCredential>().AsNoTracking().SingleOrDefaultAsync(item => item.Id == credentialId, ct)
+        var credential = await db.Set<ApplicationCredential>().FromSqlInterpolated(
+            $"SELECT * FROM application_credentials WHERE id={credentialId} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(ct)
             ?? throw new ApiException(404, "credential_not_found", "找不到凭证。");
-        var application = await db.Set<ApplicationRecord>().AsNoTracking().SingleAsync(item => item.Id == credential.ApplicationId, ct);
+        var application = await db.Set<ApplicationRecord>().FromSqlInterpolated(
+            $"SELECT * FROM applications WHERE id={credential.ApplicationId} FOR UPDATE").AsNoTracking().SingleAsync(ct);
         var auth = new AuthorizationService(db);
         var target = new ResourceRef("credential", credential.Id,
             new(credential.OrganizationId, credential.ProjectId ?? application.ProjectId, credential.EnvironmentId));
@@ -66,6 +65,21 @@ public sealed class PostgresFormalRotationPreparation(string connectionString, G
             credential.ValidFrom > now || publishedKey.ValidFrom > now || credential.ExpiresAt < request.HardDeadline ||
             publishedKey.ExpiresAt < request.HardDeadline) throw ScopeUnverified();
 
+        long? replacementRevision = null;
+        if (request.ReplacementCredentialId is Guid replacementId)
+        {
+            var replacement = await db.Set<ApplicationCredential>().FromSqlInterpolated(
+                $"SELECT * FROM application_credentials WHERE id={replacementId} FOR UPDATE").AsNoTracking().SingleOrDefaultAsync(ct);
+            if (replacement is null || replacement.Id == credentialId || replacement.ApplicationId != application.Id ||
+                replacement.OrganizationId != current.OrganizationId || replacement.ProjectId != projectId ||
+                replacement.BindingMode != "EnvironmentBound" || replacement.EnvironmentId != environmentId ||
+                replacement.Status != "Active" || replacement.ValidFrom != request.NewValidFrom || replacement.ExpiresAt != request.NewExpiresAt ||
+                ledger.Revocations.Any(item => item.CredentialId == replacement.Id) ||
+                await db.Set<FormalCredentialRotation>().AnyAsync(item => item.CredentialId == replacement.Id, ct))
+                throw new ApiException(409, "formal_rotation_replacement_changed", "替换凭证必须属于同一应用和环境，且有效期须匹配预览。");
+            replacementRevision = replacement.Revision;
+        }
+
         var revoked = ledger.Revocations.Select(item => item.CredentialId).ToArray();
         var working = !await db.Set<ApplicationCredential>().AnyAsync(item => item.ApplicationId == application.Id &&
             item.Id != credentialId && !revoked.Contains(item.Id) && item.Status == "Active" &&
@@ -95,12 +109,23 @@ public sealed class PostgresFormalRotationPreparation(string connectionString, G
                 ApplicationAuthorizationRevision = application.AuthorizationRevision, EnvironmentRevision = environment.Revision,
                 EnvironmentAuthorizationRevision = environment.AuthorizationRevision, current.OrganizationId, current.ProjectId,
                 current.SecurityGeneration, current.Epoch, current.HeadHash, current.ReleaseId, current.SnapshotHash,
-                current.ConfigVersion, current.DeploymentSequence, targets, working, running })));
+                current.ConfigVersion, current.DeploymentSequence, targets, working, running, replacementRevision })));
         var mask = credential.AccessKey.Length > 4 ? "••••" + credential.AccessKey[^4..] : "••••";
         return new(credentialId, application.Id, environmentId, mask, credential.Revision, hash, current.ConfigVersion,
             current.DeploymentSequence, request.NewValidFrom, request.NewExpiresAt, request.OverlapUntil, request.HardDeadline,
             working, running, targets);
     }
+
+    internal static FormalRotationPreviewRequest Normalize(FormalRotationPreviewRequest request) => request with
+    {
+        NewValidFrom = DatabasePrecision(request.NewValidFrom),
+        NewExpiresAt = DatabasePrecision(request.NewExpiresAt),
+        OverlapUntil = DatabasePrecision(request.OverlapUntil),
+        HardDeadline = DatabasePrecision(request.HardDeadline)
+    };
+
+    private static DateTimeOffset DatabasePrecision(DateTimeOffset time) =>
+        new(time.UtcTicks - time.UtcTicks % 10, TimeSpan.Zero);
 
     private static void ValidateWindow(FormalRotationPreviewRequest request, DateTimeOffset now)
     {

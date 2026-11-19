@@ -17,6 +17,19 @@ internal static class GlobalCredentialPublicationGuard
         return GlobalOperations(db).AnyAsync(operation => localOperations.Contains(operation.Id), ct);
     }
 
+    internal static Task<bool> RequiresGovernance24Async(WebApiDbContext db, Guid environmentId, CancellationToken ct)
+    {
+        var localOperations = LocalOperationIds(db, environmentId);
+        return db.Set<FormalCredentialRotation>().Where(item => item.EnvironmentId == environmentId).Select(item => item.Id)
+            .Concat(GlobalOperations(db).Where(operation => localOperations.Contains(operation.Id)).Select(operation => operation.Id))
+            .Concat(db.Set<EnvironmentRecord>().Where(item => item.Id == environmentId && item.RequireEnvironmentCredential).Select(item => item.Id))
+            .Concat(db.Set<EnvironmentSecurityState>().Where(item => item.EnvironmentId == environmentId &&
+                (item.RequireEnvironmentCredentials || item.MinimumSnapshotSchema == "2.3" || item.MinimumSnapshotSchema == "2.4"))
+                .Select(item => item.EnvironmentId))
+            .Concat(db.Set<EnvironmentSecurityInitialization>().Where(item => item.EnvironmentId == environmentId && item.State == "Governed")
+                .Select(item => item.EnvironmentId)).AnyAsync(ct);
+    }
+
     internal static async Task RequireApplicationInheritanceAsync(WebApiDbContext db, ScopeRef target, Guid applicationId,
         CancellationToken ct)
     {
@@ -38,7 +51,8 @@ internal static class GlobalCredentialPublicationGuard
         Guid organizationId, ReadOnlyMemory<byte> payload, CancellationToken ct)
     {
         var globalOperations = GlobalOperations(db);
-        if (!await globalOperations.AnyAsync(ct))
+        var hasRotation = await db.Set<FormalCredentialRotation>().AnyAsync(item => item.EnvironmentId == environment.Id, ct);
+        if (!hasRotation && !await globalOperations.AnyAsync(ct))
         {
             // The compiler or historical reader has already validated the payload.
             using var document = JsonDocument.Parse(payload);
@@ -69,7 +83,7 @@ internal static class GlobalCredentialPublicationGuard
                                localOperations.Contains(operation.Id)
                            select new { OperationId = operation.Id, CredentialId = operation.CredentialId!.Value, ApplicationId = app.Id,
                                app.OrganizationId, app.ProjectId }).ToArrayAsync(ct);
-        if (facts.Length == 0) return snapshot.SchemaVersion;
+        if (!hasRotation && facts.Length == 0) return snapshot.SchemaVersion;
 
         if (snapshot.SchemaVersion != "2.4" || !payload.Span.SequenceEqual(CanonicalJson.Serialize(snapshot)))
             throw InheritanceRequired();

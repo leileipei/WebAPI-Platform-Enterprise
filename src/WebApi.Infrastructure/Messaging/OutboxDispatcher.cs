@@ -4,12 +4,15 @@ using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Runtime;
+using WebApi.Infrastructure.CredentialSecurity;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Releases;
 using WebApi.Infrastructure.Runtime;
 namespace WebApi.Infrastructure.Messaging;
 public sealed record DeploymentEvent(Guid EventId,Guid EnvironmentId,long DeploymentSequence,Guid ReleaseId,long TargetVersion);
-public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store,Func<Task>? afterWrite=null,ILogger<OutboxDispatcher>? log=null)
+public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store,Func<Task>? afterWrite=null,ILogger<OutboxDispatcher>? log=null,
+    IGovernanceRecoveryContinuity? continuity=null,GovernanceDeliverySettings? governanceDelivery=null,PublishSettings? publication=null)
 {
     public async Task<bool> DispatchNextAsync(CancellationToken ct=default)
     {
@@ -30,12 +33,19 @@ public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store
         {
             await db.Set<OutboxMessage>().Where(m=>m.Id==id&&m.Attempts==attempt&&m.ProcessedAt==null).ExecuteUpdateAsync(s=>s.SetProperty(m=>m.LeaseUntil,(DateTimeOffset?)null),ct);return false;
         }
+        catch(ApiException error) when(error.Code=="credential_governance_delivery_unavailable")
+        {
+            // Retain the message and its short lease so other scopes can progress.
+            return false;
+        }
     }
 
     private async Task<bool> PublishCurrentAsync(Guid environmentId, DeploymentEvent? queued, CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
-        await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock_shared(8901202)", ct);
+        if (GovernanceSnapshotDelivery.RequiresFence(continuity,governanceDelivery))
+            await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)", ct);
+        else await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock_shared(8901202)", ct);
         var pointer = await RuntimeEnvironmentAccess.ActiveEnvironments(db).Where(env => env.Id == environmentId)
             .Select(env => new { env.DesiredConfigVersion, env.DeploymentSequence }).SingleOrDefaultAsync(ct);
         if (pointer is null || pointer.DesiredConfigVersion is not long version || pointer.DeploymentSequence <= 0 ||
@@ -50,22 +60,24 @@ public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store
             queued = new(Guid.Empty, environmentId, pointer.DeploymentSequence, releaseId, version);
         }
 
-        var desired = await ReadCommittedAsync(queued, ct);
+        var (desired, published) = await ReadCommittedAsync(queued, ct);
+        await GovernanceSnapshotDelivery.RequireAsync(db,environmentId,desired,continuity,governanceDelivery,ct,published,publication);
         ct.ThrowIfCancellationRequested();
         // Keep the archive transition ordered behind the Redis attempt through the client response or timeout.
-        await store.PutAsync(environmentId, desired.Envelope, desired.Payload, CancellationToken.None);
+        await store.PutVerifiedAsync(environmentId, desired.Envelope, desired.Payload, CancellationToken.None);
         await transaction.CommitAsync(ct);
         return true;
     }
 
-    private async Task<DesiredConfigResponse> ReadCommittedAsync(DeploymentEvent e,CancellationToken ct)
+    private async Task<(DesiredConfigResponse Desired, bool Published)> ReadCommittedAsync(DeploymentEvent e,CancellationToken ct)
     {
-        var row=await (from r in db.Set<ReleaseRecord>().AsNoTracking() join v in db.Set<GatewayConfigVersion>().AsNoTracking() on new {r.EnvironmentId,VersionNo=r.ToConfigVersion} equals new {v.EnvironmentId,v.VersionNo} join s in db.Set<GatewayConfigSnapshot>().AsNoTracking() on v.Id equals s.ConfigVersionId where r.Id==e.ReleaseId&&r.EnvironmentId==e.EnvironmentId&&r.DeploymentSequence==e.DeploymentSequence&&v.VersionNo==e.TargetVersion select new {v.SnapshotHash,s.PayloadBytes,s.SizeBytes}).SingleAsync(ct);
-        var envelope=new SnapshotEnvelope(e.ReleaseId,e.DeploymentSequence,e.TargetVersion,row.SnapshotHash!,row.SizeBytes);RedisSnapshotStore.Validate(e.EnvironmentId,envelope,row.PayloadBytes);return new(envelope,row.PayloadBytes);
+        var row=await (from r in db.Set<ReleaseRecord>().AsNoTracking() join v in db.Set<GatewayConfigVersion>().AsNoTracking() on new {r.EnvironmentId,VersionNo=r.ToConfigVersion} equals new {v.EnvironmentId,v.VersionNo} join s in db.Set<GatewayConfigSnapshot>().AsNoTracking() on v.Id equals s.ConfigVersionId where r.Id==e.ReleaseId&&r.EnvironmentId==e.EnvironmentId&&r.DeploymentSequence==e.DeploymentSequence&&v.VersionNo==e.TargetVersion select new {v.SnapshotHash,s.PayloadBytes,s.SizeBytes,Published=r.Status=="Succeeded"&&v.Status=="Published"}).SingleAsync(ct);
+        var envelope=new SnapshotEnvelope(e.ReleaseId,e.DeploymentSequence,e.TargetVersion,row.SnapshotHash!,row.SizeBytes);return (new(envelope,row.PayloadBytes),row.Published);
     }
     public async Task ReconcileDesiredAsync(CancellationToken ct=default)
     {
-        var environmentIds=await db.Set<EnvironmentRecord>().AsNoTracking().Where(e=>e.Status=="Active"&&e.DesiredConfigVersion!=null&&e.DeploymentSequence>0)
+        var environmentIds=await db.Set<EnvironmentRecord>().AsNoTracking().TagWith("desired-deployment-reconciliation")
+            .Where(e=>e.Status=="Active"&&e.DesiredConfigVersion!=null&&e.DeploymentSequence>0)
             .Select(env=>env.Id).ToArrayAsync(ct);
         foreach(var environmentId in environmentIds)
         {

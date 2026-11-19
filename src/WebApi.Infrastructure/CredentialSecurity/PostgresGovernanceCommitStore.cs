@@ -43,7 +43,7 @@ internal sealed class PostgresGovernanceCommitStore(string connectionString, IPo
     }
 
     private sealed class Session(GovernanceJournalId journal, PostgresGovernanceWriterFence fence, IPostgresGovernanceMutation mutation)
-        : IGovernanceCommitSession
+        : IGovernanceCommitSession, IAtomicGovernanceCommitSession
     {
         public Task<GovernanceLocalJournalState> ReadAsync(CancellationToken ct) =>
             InTransactionAsync(async (db, tx) => (await ReadVerifiedAsync(db, tx, null, ct)).State, ct);
@@ -67,17 +67,33 @@ internal sealed class PostgresGovernanceCommitStore(string connectionString, IPo
         public Task CommitPreparedAsync(GovernanceWriteIntent intent, CancellationToken ct) =>
             InTransactionAsync(async (db, tx) =>
             {
-                var next = GovernanceJournalProtocol.NextPosition(journal, intent);
                 await RequirePreviousAsync(db, tx, intent, ct);
-                await mutation.ApplyAsync(db, intent, ct);
-                RequireCurrentTransaction(db, tx);
-                await db.SaveChangesAsync(ct);
-                db.ChangeTracker.Clear();
-                await AppendAsync(tx, intent, next, isConfirmation: false, ct);
-
-                var committed = await ReadVerifiedAsync(db, tx, intent.OperationId, ct);
-                Require(committed.State == new GovernanceLocalJournalState(next, intent) && committed.Requested == intent);
+                await AppendPreparedAsync(db, tx, intent, ct);
             }, ct, commit: true);
+
+        public Task<GovernanceWitnessState> PrepareAndCommitAsync(GovernanceWriteIntent intent,
+            Func<CancellationToken, Task<GovernanceWitnessState>> prepare, CancellationToken ct) =>
+            InTransactionAsync(async (db, tx) =>
+            {
+                await RequirePreviousAsync(db, tx, intent, ct);
+                await mutation.ValidateNewAsync(db, intent, ct);
+                var prepared = await prepare(ct);
+                await AppendPreparedAsync(db, tx, intent, ct);
+                return prepared;
+            }, ct, commit: true);
+
+        private async Task AppendPreparedAsync(WebApiDbContext db, NpgsqlTransaction tx, GovernanceWriteIntent intent, CancellationToken ct)
+        {
+            var next = GovernanceJournalProtocol.NextPosition(journal, intent);
+            await mutation.ApplyAsync(db, intent, ct);
+            RequireCurrentTransaction(db, tx);
+            await db.SaveChangesAsync(ct);
+            db.ChangeTracker.Clear();
+            await AppendAsync(tx, intent, next, isConfirmation: false, ct);
+
+            var committed = await ReadVerifiedAsync(db, tx, intent.OperationId, ct);
+            Require(committed.State == new GovernanceLocalJournalState(next, intent) && committed.Requested == intent);
+        }
 
         public Task MarkConfirmedAsync(Guid operationId, GovernanceJournalPosition position, CancellationToken ct) =>
             InTransactionAsync(async (db, tx) =>
@@ -107,65 +123,12 @@ internal sealed class PostgresGovernanceCommitStore(string connectionString, IPo
 
         private async Task<JournalRead> ReadVerifiedAsync(WebApiDbContext db, NpgsqlTransaction tx, Guid? operationId, CancellationToken ct)
         {
-            var current = await ReadJournalAsync(tx, operationId, ct);
+            var current = await ReadJournalAsync(tx, journal, operationId, ct);
             if (current.Latest is { } latest)
                 Require(await mutation.VerifyAsync(db, latest, ct));
             if (current.Requested is { } requested && requested != current.Latest)
                 Require(await mutation.VerifyAsync(db, requested, ct));
             return current;
-        }
-
-        private async Task<JournalRead> ReadJournalAsync(NpgsqlTransaction tx, Guid? operationId, CancellationToken ct)
-        {
-            await VerifyRootAsync(tx, ct);
-            await using var command = new NpgsqlCommand("""
-                SELECT sequence, is_confirmation, operation_id, previous_hash, position_hash, recovery_material
-                FROM credential_governance.journal_entries
-                ORDER BY sequence, is_confirmation
-                """, tx.Connection, tx);
-            await using var rows = await command.ExecuteReaderAsync(ct);
-            var position = GovernanceJournalProtocol.Genesis;
-            GovernanceWriteIntent? latest = null;
-            GovernanceWriteIntent? pending = null;
-            GovernanceWriteIntent? requested = null;
-            var operations = new HashSet<Guid>();
-            while (await rows.ReadAsync(ct))
-            {
-                var recorded = new GovernanceJournalPosition(rows.GetInt64(0), rows.GetString(4));
-                var id = rows.GetGuid(2);
-                var previousHash = rows.GetString(3);
-                if (rows.GetBoolean(1))
-                {
-                    Require(pending is not null && id == pending.OperationId && previousHash == pending.Previous.Hash &&
-                        recorded == position && rows.IsDBNull(5));
-                    pending = null;
-                    continue;
-                }
-
-                Require(pending is null && previousHash == position.Hash && operations.Add(id) && !rows.IsDBNull(5));
-                var intent = new GovernanceWriteIntent(id, position, rows.GetString(5));
-                Require(GovernanceJournalProtocol.NextPosition(journal, intent) == recorded);
-                position = recorded;
-                latest = pending = intent;
-                if (id == operationId) requested = intent;
-            }
-            return new(new(position, pending), latest, requested);
-        }
-
-        private async Task VerifyRootAsync(NpgsqlTransaction tx, CancellationToken ct)
-        {
-            await using var command = new NpgsqlCommand("""
-                SELECT singleton, authority_id, generation, genesis_hash,
-                    (SELECT pg_catalog.count(*) = 2
-                       FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-                      WHERE n.nspname = 'credential_governance' AND c.relkind = 'r' AND c.relpersistence = 'p'
-                        AND c.relname IN ('journal_root', 'journal_entries'))
-                FROM credential_governance.journal_root
-                """, tx.Connection, tx);
-            await using var rows = await command.ExecuteReaderAsync(ct);
-            Require(await rows.ReadAsync(ct) && rows.GetBoolean(0) && rows.GetGuid(1) == journal.AuthorityId &&
-                rows.GetGuid(2) == journal.Generation && rows.GetString(3) == GovernanceJournalProtocol.Genesis.Hash &&
-                rows.GetBoolean(4) && !await rows.ReadAsync(ct));
         }
 
         private static async Task AppendAsync(NpgsqlTransaction tx, GovernanceWriteIntent intent,
@@ -226,14 +189,80 @@ internal sealed class PostgresGovernanceCommitStore(string connectionString, IPo
             }
         }
 
-        private static void RequireCurrentTransaction(WebApiDbContext db, NpgsqlTransaction tx) =>
-            Require(tx.Connection is { } connection && ReferenceEquals(connection, db.Database.GetDbConnection()) &&
-                ReferenceEquals(db.Database.CurrentTransaction?.GetDbTransaction(), tx));
-
         public ValueTask DisposeAsync() => fence.DisposeAsync();
-
-        private sealed record JournalRead(GovernanceLocalJournalState State, GovernanceWriteIntent? Latest, GovernanceWriteIntent? Requested);
     }
+
+    // Recovery continuity verifies every entry in the caller's transaction.
+    internal static async Task<(GovernanceJournalPosition Position, IReadOnlyList<GovernanceWriteIntent> Entries)> ReadConfirmedHistoryAsync(
+        WebApiDbContext db, NpgsqlTransaction tx, GovernanceJournalId journal, CancellationToken ct)
+    {
+        RequireCurrentTransaction(db, tx);
+        var entries = new List<GovernanceWriteIntent>();
+        var history = await ReadJournalAsync(tx, journal, null, ct, entries);
+        Require(history.State.AwaitingConfirmation is null);
+        return (history.State.Position, entries);
+    }
+
+    private static async Task<JournalRead> ReadJournalAsync(NpgsqlTransaction tx, GovernanceJournalId journal,
+        Guid? operationId, CancellationToken ct, List<GovernanceWriteIntent>? entries = null)
+    {
+        await VerifyRootAsync(tx, journal, ct);
+        await using var command = new NpgsqlCommand("""
+            SELECT sequence, is_confirmation, operation_id, previous_hash, position_hash, recovery_material
+            FROM credential_governance.journal_entries
+            ORDER BY sequence, is_confirmation
+            """, tx.Connection, tx);
+        await using var rows = await command.ExecuteReaderAsync(ct);
+        var position = GovernanceJournalProtocol.Genesis;
+        GovernanceWriteIntent? latest = null;
+        GovernanceWriteIntent? pending = null;
+        GovernanceWriteIntent? requested = null;
+        var operations = new HashSet<Guid>();
+        while (await rows.ReadAsync(ct))
+        {
+            var recorded = new GovernanceJournalPosition(rows.GetInt64(0), rows.GetString(4));
+            var id = rows.GetGuid(2);
+            var previousHash = rows.GetString(3);
+            if (rows.GetBoolean(1))
+            {
+                Require(pending is not null && id == pending.OperationId && previousHash == pending.Previous.Hash &&
+                    recorded == position && rows.IsDBNull(5));
+                pending = null;
+                continue;
+            }
+
+            Require(pending is null && previousHash == position.Hash && operations.Add(id) && !rows.IsDBNull(5));
+            var intent = new GovernanceWriteIntent(id, position, rows.GetString(5));
+            Require(GovernanceJournalProtocol.NextPosition(journal, intent) == recorded);
+            position = recorded;
+            latest = pending = intent;
+            entries?.Add(intent);
+            if (id == operationId) requested = intent;
+        }
+        return new(new(position, pending), latest, requested);
+    }
+
+    private static async Task VerifyRootAsync(NpgsqlTransaction tx, GovernanceJournalId journal, CancellationToken ct)
+    {
+        await using var command = new NpgsqlCommand("""
+            SELECT singleton, authority_id, generation, genesis_hash,
+                (SELECT pg_catalog.count(*) = 2
+                   FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+                  WHERE n.nspname = 'credential_governance' AND c.relkind = 'r' AND c.relpersistence = 'p'
+                    AND c.relname IN ('journal_root', 'journal_entries'))
+            FROM credential_governance.journal_root
+            """, tx.Connection, tx);
+        await using var rows = await command.ExecuteReaderAsync(ct);
+        Require(await rows.ReadAsync(ct) && rows.GetBoolean(0) && rows.GetGuid(1) == journal.AuthorityId &&
+            rows.GetGuid(2) == journal.Generation && rows.GetString(3) == GovernanceJournalProtocol.Genesis.Hash &&
+            rows.GetBoolean(4) && !await rows.ReadAsync(ct));
+    }
+
+    private static void RequireCurrentTransaction(WebApiDbContext db, NpgsqlTransaction tx) =>
+        Require(tx.Connection is { } connection && ReferenceEquals(connection, db.Database.GetDbConnection()) &&
+            ReferenceEquals(db.Database.CurrentTransaction?.GetDbTransaction(), tx));
+
+    private sealed record JournalRead(GovernanceLocalJournalState State, GovernanceWriteIntent? Latest, GovernanceWriteIntent? Requested);
 
     private static void Require(bool condition)
     {

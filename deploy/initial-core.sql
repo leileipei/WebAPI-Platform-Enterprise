@@ -143,7 +143,8 @@ DECLARE
         '20261104080000_Governance24DatabaseClock',
         '20261104090000_Governance24MigrationReceipts',
         '20261118130000_CredentialGovernanceJournal',
-        '20261119123000_LegacyGlobalRevocationInheritance'
+        '20261119123000_LegacyGlobalRevocationInheritance',
+        '20261119140000_FormalCredentialRotation'
     ];
     expected_fingerprints CONSTANT text[] := ARRAY[
         'fe52425b83f9af0a549474b72f66d9fa289e21439476cad5c55b3915d186abf7',
@@ -183,7 +184,8 @@ DECLARE
         '2ed7307ab78b49bd8c1cca47ed5af4a1567460bb2a2b4fb9214f6d5011f93aec',
         '22543989e453281197c4f6e4ca568823de70b528e7abfd55efc0cdde83302309',
         'c74639ddb36def9e61b123bd70e58647c84306431bbf3a33f7d77479f4f5a705',
-        'e27916f774c0798661f069145ba10f96611c575ef53f77580b4067c29ee1f60f'
+        'e27916f774c0798661f069145ba10f96611c575ef53f77580b4067c29ee1f60f',
+        'ebcfb6d59e33e69c00d447897f707b3b874b7bbbac1a5e3b499f7816fdbbfec0'
     ];
     applied text[] := ARRAY[]::text[];
     actual_fingerprint text;
@@ -7085,6 +7087,69 @@ BEGIN
 END $EF$;
 -- WEBAPI_MIGRATION_END 38
 
+-- WEBAPI_MIGRATION_START 39
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119140000_FormalCredentialRotation') THEN
+CREATE TABLE public.formal_credential_rotations (
+    id uuid NOT NULL,
+    credential_id uuid NOT NULL,
+    replacement_credential_id uuid NOT NULL,
+    environment_id uuid NOT NULL,
+    hard_deadline timestamp with time zone NOT NULL,
+    recorded_at timestamp with time zone NOT NULL,
+    intent_hash character varying(64) NOT NULL,
+    CONSTRAINT "PK_formal_credential_rotations" PRIMARY KEY (id),
+    CONSTRAINT "FK_formal_credential_rotations_old_credential" FOREIGN KEY (credential_id)
+        REFERENCES public.application_credentials (id) ON DELETE RESTRICT,
+    CONSTRAINT "FK_formal_credential_rotations_replacement_credential" FOREIGN KEY (replacement_credential_id)
+        REFERENCES public.application_credentials (id) ON DELETE RESTRICT,
+    CONSTRAINT "FK_formal_credential_rotations_environment" FOREIGN KEY (environment_id)
+        REFERENCES public.environments (id) ON DELETE RESTRICT,
+    CONSTRAINT ck_formal_credential_rotation CHECK (
+id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND credential_id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND replacement_credential_id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND environment_id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND credential_id <> replacement_credential_id
+AND pg_catalog.isfinite(hard_deadline) AND pg_catalog.isfinite(recorded_at)
+AND hard_deadline > recorded_at
+AND intent_hash COLLATE "C" ~ '^[0-9a-f]{64}$'
+    )
+);
+CREATE INDEX "IX_formal_credential_rotations_credential_id"
+    ON public.formal_credential_rotations (credential_id);
+CREATE INDEX "IX_formal_credential_rotations_replacement_credential_id"
+    ON public.formal_credential_rotations (replacement_credential_id);
+CREATE INDEX "IX_formal_credential_rotations_hard_deadline_id"
+    ON public.formal_credential_rotations (hard_deadline, id);
+CREATE INDEX "IX_formal_credential_rotations_environment_id_hard_deadline"
+    ON public.formal_credential_rotations (environment_id, hard_deadline);
+
+CREATE FUNCTION public.formal_credential_rotation_immutable() RETURNS trigger
+    LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+BEGIN
+    RAISE EXCEPTION 'formal_credential_rotation_immutable' USING ERRCODE='23514';
+END;
+$$;
+CREATE TRIGGER formal_credential_rotation_no_change BEFORE UPDATE OR DELETE ON public.formal_credential_rotations
+    FOR EACH ROW EXECUTE FUNCTION public.formal_credential_rotation_immutable();
+CREATE TRIGGER formal_credential_rotation_no_truncate BEFORE TRUNCATE ON public.formal_credential_rotations
+    FOR EACH STATEMENT EXECUTE FUNCTION public.formal_credential_rotation_immutable();
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119140000_FormalCredentialRotation') THEN
+        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+        VALUES ('20261119140000_FormalCredentialRotation', '10.0.12');
+    END IF;
+END $EF$;
+-- WEBAPI_MIGRATION_END 39
+
+
 
 DO $WEBAPI_MIGRATION_RECEIPT$
 DECLARE
@@ -7116,7 +7181,7 @@ BEGIN
         historical_sql_hash,build_hash,recorded_at)
     VALUES(
         attempt,'Sql',NULLIF(pg_catalog.current_setting('webapi.migration_source_version'),''),
-        '20261119123000_LegacyGlobalRevocationInheritance',
+        '20261119140000_FormalCredentialRotation',
         CASE WHEN cluster IS NULL OR database_oid IS NULL THEN 'Unknown' ELSE 'Observed' END,
         CASE WHEN database_oid IS NULL THEN NULL ELSE cluster END,
         CASE WHEN cluster IS NULL OR database_oid IS NULL THEN NULL ELSE pg_catalog.current_database() END,

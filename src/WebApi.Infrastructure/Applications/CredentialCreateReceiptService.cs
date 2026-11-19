@@ -20,7 +20,9 @@ public sealed class CredentialCreateReceiptService(WebApiDbContext db, Authoriza
     public async Task<CredentialCreateResponse> CreateAsync(Guid applicationId, CredentialCreateRequest request,
         CommandRequestContext command, ActorContext actor, CancellationToken ct = default)
     {
-        var scope = await scopes.ApplicationAsync(applicationId, ct);
+        var scope = request.EnvironmentId is Guid environmentId
+            ? await scopes.EnvironmentAsync(environmentId, ct)
+            : await scopes.ApplicationAsync(applicationId, ct);
         return await commands.ExecuteAsync(actor, scope, "credential.create", async (_, token) =>
         {
             // The command lock is acquired before authorization and receipt reads,
@@ -28,7 +30,11 @@ public sealed class CredentialCreateReceiptService(WebApiDbContext db, Authoriza
             await auth.RequireAsync(actor, "credential.manage", new("application", applicationId, scope), token);
             if (request.ValidFrom == DateTimeOffset.MinValue || request.ExpiresAt <= request.ValidFrom)
                 throw new ApiException(422, "invalid_validity_window", "有效期结束必须晚于开始时间。");
-            var app = await db.Set<ApplicationRecord>().SingleAsync(x => x.Id == applicationId, token);
+            var app = await db.Set<ApplicationRecord>().SingleOrDefaultAsync(x => x.Id == applicationId, token)
+                ?? throw ScopeResolver.Missing();
+            if (app.OrganizationId != scope.OrganizationId || app.ProjectId is Guid project && project != scope.ProjectId ||
+                request.EnvironmentId is Guid selected && await scopes.EnvironmentAsync(selected, token) != scope)
+                throw new ApiException(409, "credential_scope_changed", "应用和凭证环境的范围不匹配。");
             if (app.Status != "Active") throw new ApiException(409, "application_disabled", "停用应用不能创建凭证。");
 
             var identity = new CommandIdentity(actor.UserId, scope, "credential.create", command.IdempotencyKey);
@@ -44,6 +50,8 @@ public sealed class CredentialCreateReceiptService(WebApiDbContext db, Authoriza
             var credential = new ApplicationCredential
             {
                 ApplicationId = applicationId, OrganizationId = app.OrganizationId,
+                EnvironmentId = request.EnvironmentId, ProjectId = request.EnvironmentId is null ? null : scope.ProjectId,
+                BindingMode = request.EnvironmentId is null ? "LegacyGlobal" : "EnvironmentBound",
                 AccessKey = material.AccessKey, SecretHash = material.Hash, SecretLast4 = material.Last4,
                 Status = "Active", ValidFrom = request.ValidFrom.ToUniversalTime(), ExpiresAt = request.ExpiresAt.ToUniversalTime()
             };

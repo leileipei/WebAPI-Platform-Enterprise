@@ -79,7 +79,7 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
                 if(enabled&&await RuntimeEnvironmentAccess.RetiredNodeIds(db).AnyAsync(retired=>retired==id,token))
                     throw new ApiException(409,"gateway_archive_identity_retired","封存前的节点身份已退役，请使用新身份登记。");
                 if(enabled&&!SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,"2.4")&&
-                    await GlobalCredentialPublicationGuard.HasLocalRevocationAsync(db,node.EnvironmentId,token))
+                    await GlobalCredentialPublicationGuard.RequiresGovernance24Async(db,node.EnvironmentId,token))
                     throw new ApiException(409,"gateway_security_capability_required","当前环境要求节点声明兼容的快照和安全协议能力。");
                 node.Enabled=enabled;
                 db.Add(new GatewayNodeEvent{GatewayNodeId=node.Id,EventType=enabled?"usage.node.enabled":"usage.node.disabled",

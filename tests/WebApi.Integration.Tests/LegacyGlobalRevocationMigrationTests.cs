@@ -25,7 +25,7 @@ public sealed class LegacyGlobalRevocationMigrationTests
         await using var database = new PostgresDatabase();
         await database.InitializeAsync();
         await using var db = database.Context();
-        await db.Database.MigrateAsync();
+        await db.GetService<IMigrator>().MigrateAsync(LegacyGlobalRevocationInheritance.Id);
         var fixture = await SeedAsync(db);
         await using (var tx = await db.Database.BeginTransactionAsync())
         {
@@ -81,7 +81,7 @@ public sealed class LegacyGlobalRevocationMigrationTests
         await InstallUpgradeAsync(database, sqlEntry);
 
         await using var db = database.Context();
-        Assert.Equal(GovernanceSchemaFingerprints.Expected[LegacyGlobalRevocationInheritance.Id],
+        Assert.Equal(GovernanceSchemaFingerprints.Expected[FormalCredentialRotationSchedule.Id],
             await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
         Assert.Equal(originalHash, (await db.Set<SecurityEvent>().AsNoTracking().SingleAsync()).EventHash);
         Assert.True(await db.Set<CredentialRevocation>().AnyAsync(item => item.CredentialId == fixture.Credential.Id &&

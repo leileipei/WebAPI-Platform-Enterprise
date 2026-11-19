@@ -59,7 +59,7 @@ public sealed class PostgresCredentialRevocationService
         var requestHash = Convert.ToHexStringLower(SHA256.HashData(CanonicalJson.Serialize(
             new { credentialId, request.ExpectedEnvironmentId, ifMatch, reason })));
         var mutation = new CredentialRevocationMutation(actor, coverage, requireSession, archive);
-        var store = new PostgresGovernanceCommitStore(connectionString, mutation);
+        var store = new PostgresGovernanceCommitStore(connectionString, new FormalRotationMutation(actor, coverage, requireSession, archive, journal: journal));
         var coordinator = new GovernanceCommitCoordinator(journal, store, witness);
 
         Task<GovernanceWriteIntent> PrepareAsync() => store.InspectAsync(journal, operationId, async (db, local, saved, token) =>
@@ -107,7 +107,7 @@ public sealed class PostgresCredentialRevocationService
     public Task RecoverAsync(ActorContext actor, CancellationToken ct = default,
         Func<WebApiDbContext, CancellationToken, Task>? requireSession = null) =>
         new GovernanceCommitCoordinator(journal, new PostgresGovernanceCommitStore(connectionString,
-            new CredentialRevocationMutation(actor, coverage, requireSession, archive)), witness).RecoverAsync(ct);
+            new FormalRotationMutation(actor, coverage, requireSession, archive, journal: journal)), witness).RecoverAsync(ct);
 
     private static ApiException Conflict() => new(409, "credential_revocation_conflict", "撤销请求与已记录的请求或当前状态冲突。");
 }

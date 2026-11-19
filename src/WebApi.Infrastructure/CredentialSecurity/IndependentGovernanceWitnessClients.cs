@@ -12,29 +12,35 @@ public sealed record IndependentGovernanceWitnessOptions
     public bool Enabled { get; init; }
     public IndependentWitnessRole? TimeEvidence { get; init; }
     public IndependentWitnessRole? HistoryEvidence { get; init; }
+    public IndependentWitnessRole? RecoveryHistory { get; init; }
     public IndependentWitnessRole? GovernanceJournal { get; init; }
     public GovernanceJournalId? JournalId { get; init; }
 }
 
 /// <summary>Explicit host composition for the independent evidence and journal transports.</summary>
-public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitness, IGovernanceLeaseReservationWitness, IDisposable
+public sealed class IndependentGovernanceWitnessClients : IFormalRotationJournalWitness, IGovernanceLeaseReservationWitness,
+    IGovernanceEnvironmentHistoryWitness, IDisposable
 {
     private const string ClientAuthentication = "1.3.6.1.5.5.7.3.2";
     private const string AnyExtendedKeyUsage = "2.5.29.37.0";
     private readonly IndependentEvidenceHttpClient evidence;
     private readonly IndependentEvidenceTrust evidenceTrust;
     private readonly GovernanceJournalHttpWitness journal;
+    private readonly GovernanceEnvironmentHistoryHttpWitness? recoveryHistory;
 
     public GovernanceJournalId JournalId { get; }
     public IGovernanceJournalWitness JournalWitness => this;
     public IGovernanceLeaseReservationWitness LeaseReservationWitness => this;
+    public IFormalRotationJournalWitness FormalRotationWitness => this;
+    public IGovernanceEnvironmentHistoryWitness? RecoveryHistoryWitness => recoveryHistory is null ? null : this;
 
     private IndependentGovernanceWitnessClients(IndependentEvidenceHttpClient evidence, IndependentEvidenceTrust evidenceTrust,
-        GovernanceJournalHttpWitness journal, GovernanceJournalId journalId)
+        GovernanceJournalHttpWitness journal, GovernanceJournalId journalId, GovernanceEnvironmentHistoryHttpWitness? recoveryHistory)
     {
         this.evidence = evidence;
         this.evidenceTrust = evidenceTrust;
         this.journal = journal;
+        this.recoveryHistory = recoveryHistory;
         JournalId = journalId;
     }
 
@@ -49,6 +55,8 @@ public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitn
         var (time, timeKey) = RequireRole(options.TimeEvidence, nameof(options.TimeEvidence));
         var (history, historyKey) = RequireRole(options.HistoryEvidence, nameof(options.HistoryEvidence));
         var (write, writeKey) = RequireRole(options.GovernanceJournal, nameof(options.GovernanceJournal));
+        var recovery = options.RecoveryHistory;
+        var recoveryKey = recovery is null ? (ECPoint?)null : RequireRole(recovery, nameof(options.RecoveryHistory)).PublicPoint;
         if (options.JournalId is not { } journalId || journalId.AuthorityId == Guid.Empty || journalId.Generation == Guid.Empty)
             throw new ArgumentException("The journal authority and generation are required.", nameof(options.JournalId));
 
@@ -56,23 +64,27 @@ public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitn
         if (string.Equals(time.Endpoint.IdnHost, history.Endpoint.IdnHost, StringComparison.OrdinalIgnoreCase) &&
             time.Endpoint.Port == history.Endpoint.Port && time.Endpoint.AbsolutePath == history.Endpoint.AbsolutePath)
             throw new ArgumentException("Time and history evidence require distinct endpoints.", nameof(options));
-        if (SameKey(timeKey, historyKey) || SameKey(timeKey, writeKey))
+        if (SameKey(timeKey, historyKey) || SameKey(timeKey, writeKey) || recoveryKey is { } key && SameKey(timeKey, key))
             throw new ArgumentException("The time evidence signing key must be dedicated to that role.", nameof(options.TimeEvidence));
 
         ArgumentNullException.ThrowIfNull(writerCertificate);
-        RequireWriterCertificate(writerCertificate, timeKey, historyKey, writeKey);
+        RequireWriterCertificate(writerCertificate, timeKey, historyKey, writeKey, recoveryKey);
 
         var evidenceTrust = new IndependentEvidenceTrust(time.SourceId, time.KeyId, time.SubjectPublicKeyInfoBase64,
             history.SourceId, history.KeyId, history.SubjectPublicKeyInfoBase64);
         var journalTrust = new GovernanceWitnessTrust(write.SourceId, write.KeyId, write.SubjectPublicKeyInfoBase64);
         var evidence = new IndependentEvidenceHttpClient(time.Endpoint, history.Endpoint);
+        GovernanceEnvironmentHistoryHttpWitness? recoveryHistory = null;
         try
         {
+            if (recovery is not null)
+                recoveryHistory = new(recovery.Endpoint, new(recovery.SourceId, recovery.KeyId, recovery.SubjectPublicKeyInfoBase64));
             var journal = new GovernanceJournalHttpWitness(write.Endpoint, journalTrust, writerCertificate);
-            return new(evidence, evidenceTrust, journal, journalId);
+            return new(evidence, evidenceTrust, journal, journalId, recoveryHistory);
         }
         catch
         {
+            recoveryHistory?.Dispose();
             evidence.Dispose();
             throw;
         }
@@ -80,6 +92,11 @@ public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitn
 
     public Task<IndependentEvidenceInspection> InspectAsync(EvidenceScope scope, TimeProvider clock, IndependentEvidenceLimits limits,
         CancellationToken ct = default) => IndependentEvidenceInspector.InspectAsync(scope, clock, evidence, evidence, evidenceTrust, limits, ct);
+
+    Task<GovernanceEnvironmentHistory> IGovernanceEnvironmentHistoryWitness.ObserveAsync(GovernanceJournalId journalId,
+        GovernanceJournalPosition position, Guid environmentId, CancellationToken ct) =>
+        (recoveryHistory ?? throw new InvalidDataException("credential_governance_environment_history_unavailable"))
+            .ObserveAsync(RequireConfiguredJournal(journalId), position, environmentId, ct);
 
     Task<GovernanceWitnessState> IGovernanceJournalWitness.ObserveAsync(GovernanceJournalId journalId, Guid? operationId,
         CancellationToken ct) => journal.ObserveAsync(RequireConfiguredJournal(journalId), operationId, ct);
@@ -89,6 +106,14 @@ public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitn
 
     Task<GovernanceWitnessState> IGovernanceJournalWitness.ConfirmAsync(GovernanceJournalId journalId, GovernanceWriteIntent intent,
         CancellationToken ct) => journal.ConfirmAsync(RequireConfiguredJournal(journalId), intent, ct);
+
+    Task<GovernanceWitnessState> IFormalRotationJournalWitness.PrepareFormalRotationAsync(GovernanceJournalId journalId,
+        GovernanceWriteIntent intent, Guid environmentId, DateTimeOffset hardDeadline, CancellationToken ct) =>
+        journal.PrepareFormalRotationAsync(RequireConfiguredJournal(journalId), intent, environmentId, hardDeadline, ct);
+
+    Task<GovernanceWitnessState> IFormalRotationJournalWitness.PrepareFormalRotationRevocationAsync(GovernanceJournalId journalId,
+        GovernanceWriteIntent intent, Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, CancellationToken ct) =>
+        journal.PrepareFormalRotationRevocationAsync(RequireConfiguredJournal(journalId), intent, scheduleId, environmentId, hardDeadline, ct);
 
     Task<VerifiedGovernanceLeaseReservation> IGovernanceLeaseReservationWitness.ReserveAllowLeaseAsync(GovernanceJournalId journalId,
         GovernanceJournalPosition expectedConfirmed, GovernanceLeaseReservation reservation, CancellationToken ct) =>
@@ -126,7 +151,8 @@ public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitn
         throw new ArgumentException("This role requires a canonical Base64 P-256 DER SPKI public key.", parameter);
     }
 
-    private static void RequireWriterCertificate(X509Certificate2 writerCertificate, ECPoint timeKey, ECPoint historyKey, ECPoint writeKey)
+    private static void RequireWriterCertificate(X509Certificate2 writerCertificate, ECPoint timeKey, ECPoint historyKey, ECPoint writeKey,
+        ECPoint? recoveryKey)
     {
         try
         {
@@ -143,7 +169,8 @@ public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitn
             if (certificateKey is not null)
             {
                 var publicPoint = certificateKey.ExportParameters(false).Q;
-                if (SameKey(publicPoint, timeKey) || SameKey(publicPoint, historyKey) || SameKey(publicPoint, writeKey))
+                if (SameKey(publicPoint, timeKey) || SameKey(publicPoint, historyKey) || SameKey(publicPoint, writeKey) ||
+                    recoveryKey is { } key && SameKey(publicPoint, key))
                     throw new ArgumentException("The journal writer credential must use a different key from witness response signing.", nameof(writerCertificate));
             }
         }
@@ -158,6 +185,7 @@ public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitn
 
     public void Dispose()
     {
+        recoveryHistory?.Dispose();
         journal.Dispose();
         evidence.Dispose();
     }

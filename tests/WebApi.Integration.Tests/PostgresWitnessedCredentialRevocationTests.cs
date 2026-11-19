@@ -7,6 +7,7 @@ using WebApi.Contracts.Releases;
 using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Security;
 using WebApi.Domain.CredentialSecurity;
+using WebApi.Domain.Runtime;
 using WebApi.Gateway.Security;
 using WebApi.Gateway.Storage;
 using WebApi.Infrastructure.CredentialSecurity;
@@ -157,6 +158,321 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         }
         await fixture.AssertFactsAsync(0);
         Assert.Equal(0, fixture.Witness.Preparations);
+    }
+
+    [Fact]
+    public async Task DesiredDeliveryRequiresAQualifiedJournalAndTheExactCurrentInstance()
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        await using var db = fixture.Database.Context();
+        var config = await db.Set<GatewayConfigVersion>().SingleAsync();
+        config.Status = "Published";
+        await db.SaveChangesAsync();
+        var node = await db.Set<GatewayNode>().AsNoTracking().OrderBy(item => item.Id).FirstAsync();
+        var identity = new NodeIdentity(node.Id, node.EnvironmentId, node.IdentityHash);
+        var identities = new NodeIdentityService(db, new([]));
+        var instance = Guid.Parse(node.InstanceId);
+        var required = new GovernanceDeliverySettings(true);
+        var unavailable = new NodeRegistry(db, identities, governanceDelivery: required);
+
+        var missing = await Assert.ThrowsAsync<ApiException>(() => unavailable.DesiredAsync(identity, instanceId: instance));
+        Assert.Equal("credential_governance_delivery_unavailable", missing.Code);
+
+        var verified = new IsolatedDeliveryContinuity(fixture.Journal);
+        var registry = new NodeRegistry(db, identities, verified, required);
+        var mismatch = await Assert.ThrowsAsync<ApiException>(() => registry.DesiredAsync(identity, instanceId: Guid.NewGuid()));
+        Assert.Equal("node_instance_changed", mismatch.Code);
+        Assert.Equal(0, verified.Calls);
+        var desired = await registry.DesiredAsync(identity, instanceId: instance);
+        Assert.NotNull(desired);
+        Assert.Equal("2.4", SnapshotValidator.ParsePayload(desired.Payload, node.EnvironmentId).SchemaVersion);
+        Assert.Equal(1, verified.Calls);
+
+        verified.Available = false;
+        var restored = await Assert.ThrowsAsync<ApiException>(() => registry.DesiredAsync(identity, instanceId: instance));
+        Assert.Equal("credential_governance_delivery_unavailable", restored.Code);
+    }
+
+    [Fact]
+    public async Task ExactConcurrentFormalConfirmationsCreateOneScheduleWithTheOldCredentialStillActive()
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var service = fixture.RotationService();
+        Task<FormalRotationReceipt> Confirm() => service.ConfirmAsync(fixture.CredentialId, request,
+            "\"1\"", new("isolated-rotation"), fixture.Actor);
+
+        var replies = await Task.WhenAll(Confirm(), Confirm());
+        var created = Assert.Single(replies, reply => !reply.Replayed);
+        var replay = Assert.Single(replies, reply => reply.Replayed);
+        Assert.Equal(created, replay with { Replayed = false });
+        Assert.Equal("Scheduled", created.Status);
+        Assert.Null(created.RevocationOperationId);
+        Assert.Equal(fixture.CredentialId, created.CredentialId);
+        Assert.Equal(request.Window.ReplacementCredentialId, created.ReplacementCredentialId);
+        Assert.Equal(fixture.EnvironmentId, created.EnvironmentId);
+        Assert.Equal(request.Window.HardDeadline, created.HardDeadline);
+
+        var changed = await Assert.ThrowsAsync<ApiException>(() => service.ConfirmAsync(fixture.CredentialId,
+            request with { Reason = "policy_change" }, "\"1\"", new("isolated-rotation"), fixture.Actor));
+        Assert.Equal(409, changed.Status);
+        var secondSchedule = await Assert.ThrowsAsync<ApiException>(() => service.ConfirmAsync(fixture.CredentialId,
+            request, "\"1\"", new("second-rotation"), fixture.Actor));
+        Assert.Equal(409, secondSchedule.Status);
+        Assert.Equal(0, await service.RevokeDueAsync());
+        Assert.Equal(1, fixture.Witness.FormalPreparations);
+        Assert.Equal(1, fixture.Witness.Preparations);
+        Assert.Equal(1, fixture.Witness.Confirmations);
+        await AssertFormalRotationAsync(fixture, request.Window, created.RotationId);
+    }
+
+    [Theory]
+    [InlineData("missing-confirmation", 422)]
+    [InlineData("rejected-confirmation", 422)]
+    [InlineData("wrong-preview", 409)]
+    [InlineData("changed-deadline", 409)]
+    [InlineData("missing-permission", 403)]
+    [InlineData("changed-credential", 412)]
+    [InlineData("changed-replacement", 409)]
+    public async Task FormalConfirmationRechecksTheExplicitDecisionAndTheReviewedFacts(string scenario, int expectedStatus)
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var service = fixture.RotationService();
+        await using (var db = fixture.Database.Context())
+        {
+            switch (scenario)
+            {
+                case "missing-confirmation": request = request with { ConfirmAutomaticRevocation = null }; break;
+                case "rejected-confirmation": request = request with { ConfirmAutomaticRevocation = false }; break;
+                case "wrong-preview": request = request with { PreviewHash = new string('0', 64) }; break;
+                case "changed-deadline":
+                    request = request with { Window = request.Window with { HardDeadline = request.Window.HardDeadline.AddSeconds(1) } };
+                    break;
+                case "missing-permission":
+                    await db.Set<RolePermission>().Where(item => item.PermissionId == fixture.RevokePermission).ExecuteDeleteAsync();
+                    break;
+                case "changed-credential":
+                    await db.Set<ApplicationCredential>().Where(item => item.Id == fixture.CredentialId)
+                        .ExecuteUpdateAsync(set => set.SetProperty(item => item.Revision, item => item.Revision + 1));
+                    break;
+                case "changed-replacement":
+                    await db.Set<ApplicationCredential>().Where(item => item.Id == request.Window.ReplacementCredentialId)
+                        .ExecuteUpdateAsync(set => set.SetProperty(item => item.ExpiresAt, request.Window.NewExpiresAt.AddMinutes(5))
+                            .SetProperty(item => item.Revision, item => item.Revision + 1));
+                    break;
+            }
+        }
+
+        var error = await Assert.ThrowsAsync<ApiException>(() => service.ConfirmAsync(fixture.CredentialId, request,
+            "\"1\"", new("isolated-rotation"), fixture.Actor));
+        Assert.Equal(expectedStatus, error.Status);
+        Assert.Equal(0, fixture.Witness.Preparations);
+        await AssertFormalRotationAsync(fixture, request.Window, null);
+    }
+
+    [Theory]
+    [InlineData("prepare-reply-lost", false)]
+    [InlineData("commit-before-confirm", true)]
+    [InlineData("confirmed-reply-lost", true)]
+    public async Task AnAmbiguousFormalConfirmationResumesTheSameSchedule(string fault, bool recorded)
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        Task<FormalRotationReceipt> Confirm() => fixture.RotationService().ConfirmAsync(fixture.CredentialId, request,
+            "\"1\"", new("isolated-rotation"), fixture.Actor);
+
+        fixture.Witness.Fault = fault;
+        await Assert.ThrowsAsync<IOException>(Confirm);
+        await using (var db = fixture.Database.Context())
+        {
+            Assert.Equal(recorded ? 1 : 0, await db.Set<FormalCredentialRotation>().CountAsync());
+            Assert.Empty(await db.Set<SecurityEvent>().ToArrayAsync());
+        }
+
+        fixture.Witness.Fault = null;
+        var receipt = await Confirm();
+        Assert.Equal("Scheduled", receipt.Status);
+        Assert.True(receipt.Replayed);
+        Assert.Equal(1, fixture.Witness.FormalPreparations);
+        Assert.Equal(1, fixture.Witness.Confirmations);
+        await AssertFormalRotationAsync(fixture, request.Window, receipt.RotationId);
+    }
+
+    [Fact]
+    public async Task ConfirmCannotOvertakeAnAllowLeaseBeyondTheWitnessCutoff()
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var service = fixture.RotationService();
+        Task<FormalRotationReceipt> Confirm() => service.ConfirmAsync(fixture.CredentialId, request,
+            "\"1\"", new("isolated-rotation"), fixture.Actor);
+
+        fixture.Witness.LatestFormalAllowExpiry = request.Window.HardDeadline.AddSeconds(-1);
+        await Assert.ThrowsAsync<IOException>(Confirm);
+        Assert.Equal(0, fixture.Witness.Preparations);
+        Assert.Null(fixture.Witness.Pending);
+        await AssertFormalRotationAsync(fixture, request.Window, null);
+
+        fixture.Witness.LatestFormalAllowExpiry = request.Window.HardDeadline.AddSeconds(-2);
+        var scheduled = await Confirm();
+        Assert.False(scheduled.Replayed);
+        Assert.Equal(1, fixture.Witness.FormalPreparations);
+        await AssertFormalRotationAsync(fixture, request.Window, scheduled.RotationId);
+    }
+
+    [Fact]
+    public async Task PassingTheOverlapDoesNotRevokeAndTheExactDeadlineRecordsOneRevocation()
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var clock = request.Window.OverlapUntil.AddSeconds(1);
+        var service = fixture.RotationService((_, _) => Task.FromResult(clock));
+        var scheduled = await service.ConfirmAsync(fixture.CredentialId, request, "\"1\"", new("isolated-rotation"), fixture.Actor);
+        fixture.Witness.FormalNow = clock;
+
+        Assert.Equal(0, await service.RevokeDueAsync());
+        await AssertFormalRotationAsync(fixture, request.Window, scheduled.RotationId);
+        await using (var db = fixture.Database.Context())
+            await db.Set<RolePermission>().Where(item => item.PermissionId == fixture.RevokePermission).ExecuteDeleteAsync();
+
+        clock = request.Window.HardDeadline;
+        fixture.Witness.FormalNow = clock;
+        var results = await Task.WhenAll(service.RevokeDueAsync(), service.RevokeDueAsync());
+        Assert.Equal(1, results.Sum());
+        Assert.Equal(0, await service.RevokeDueAsync());
+        Assert.Equal(1, fixture.Witness.FormalRevocationPreparations);
+        await AssertFormalRotationAsync(fixture, request.Window, scheduled.RotationId, revoked: true);
+    }
+
+    [Fact]
+    public async Task TheDatabaseClockCannotTriggerRevocationBeforeTheIndependentDeadline()
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var service = fixture.RotationService((_, _) => Task.FromResult(request.Window.HardDeadline.AddSeconds(1)));
+        var schedule = await service.ConfirmAsync(fixture.CredentialId, request,
+            "\"1\"", new("isolated-rotation"), fixture.Actor);
+
+        fixture.Witness.FormalNow = request.Window.HardDeadline.AddMilliseconds(-1);
+        var failure = await Record.ExceptionAsync(() => service.RevokeDueAsync());
+        if (failure is not null) Assert.IsAssignableFrom<IOException>(failure);
+        Assert.Equal(1, fixture.Witness.FormalRevocationChecks);
+        Assert.Equal(0, fixture.Witness.FormalRevocationPreparations);
+        Assert.Null(fixture.Witness.Pending);
+        await AssertFormalRotationAsync(fixture, request.Window, schedule.RotationId);
+
+        fixture.Witness.FormalNow = request.Window.HardDeadline;
+        Assert.Equal(1, await service.RevokeDueAsync());
+        await AssertFormalRotationAsync(fixture, request.Window, schedule.RotationId, revoked: true);
+    }
+
+    [Theory]
+    [InlineData("prepare-reply-lost", false)]
+    [InlineData("commit-before-confirm", true)]
+    [InlineData("confirmed-reply-lost", true)]
+    public async Task AnAmbiguousHardDeadlineRevocationRecoversWithoutATombstoneDuplicate(string fault, bool recorded)
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var service = fixture.RotationService((_, _) => Task.FromResult(request.Window.HardDeadline));
+        Task<FormalRotationReceipt> Confirm() => service.ConfirmAsync(fixture.CredentialId, request,
+            "\"1\"", new("isolated-rotation"), fixture.Actor);
+        var schedule = await Confirm();
+
+        fixture.Witness.FormalNow = request.Window.HardDeadline;
+        fixture.Witness.Fault = fault;
+        var failure = await Record.ExceptionAsync(() => service.RevokeDueAsync());
+        if (failure is not null) Assert.IsAssignableFrom<IOException>(failure);
+        Assert.Equal(1, fixture.Witness.FormalRevocationPreparations);
+        await AssertFormalRotationAsync(fixture, request.Window, schedule.RotationId, revoked: recorded);
+
+        fixture.Witness.Fault = null;
+        await service.RevokeDueAsync();
+        Assert.Null(fixture.Witness.Pending);
+        Assert.Equal(2, fixture.Witness.Confirmations);
+        Assert.Equal(1, fixture.Witness.FormalRevocationPreparations);
+        await AssertFormalRotationAsync(fixture, request.Window, schedule.RotationId, revoked: true);
+
+        var replay = await Confirm();
+        Assert.True(replay.Replayed);
+        Assert.Equal(schedule.RotationId, replay.RotationId);
+        Assert.Equal("RevocationRecorded", replay.Status);
+        Assert.Equal(fixture.Witness.Operation, replay.RevocationOperationId);
+    }
+
+    [Fact]
+    public async Task AConfirmedFormalScheduleKeepsExplicitRevocationAvailable()
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true);
+        var request = await PrepareFormalRotationAsync(fixture);
+        var service = fixture.RotationService();
+        var schedule = await service.ConfirmAsync(fixture.CredentialId, request,
+            "\"1\"", new("isolated-rotation"), fixture.Actor);
+
+        var explicitRevocation = await fixture.RevokeAsync();
+        Assert.Equal("Unconfirmed", explicitRevocation.Status);
+        Assert.False(explicitRevocation.Replayed);
+        Assert.Equal(2, fixture.Witness.Preparations);
+        Assert.Equal(0, fixture.Witness.FormalRevocationPreparations);
+        await AssertFormalRotationAsync(fixture, request.Window, schedule.RotationId, revoked: true);
+    }
+
+    private static async Task<FormalRotationConfirmRequest> PrepareFormalRotationAsync(Fixture fixture)
+    {
+        await using var db = fixture.Database.Context();
+        var original = await db.Set<ApplicationCredential>().AsNoTracking().SingleAsync(item => item.Id == fixture.CredentialId);
+        var role = await db.Set<Role>().SingleAsync(item => item.Code == "SECURITY-FIXTURE");
+        var manage = new Permission { Code = "credential.manage", Name = "Manage", Module = "credential" };
+        var now = await db.Database.SqlQueryRaw<DateTimeOffset>("SELECT pg_catalog.clock_timestamp() AS \"Value\"").SingleAsync();
+        var replacement = new ApplicationCredential { ApplicationId = original.ApplicationId, OrganizationId = original.OrganizationId,
+            ProjectId = original.ProjectId, EnvironmentId = fixture.EnvironmentId, BindingMode = "EnvironmentBound",
+            AccessKey = "isolated-replacement-access", SecretHash = new string('b', 64), ValidFrom = now, ExpiresAt = now.AddHours(2) };
+        db.AddRange(manage, new RolePermission { RoleId = role.Id, PermissionId = manage.Id }, replacement);
+        await db.SaveChangesAsync();
+
+        var window = new FormalRotationPreviewRequest(fixture.EnvironmentId, replacement.ValidFrom, replacement.ExpiresAt,
+            now.AddSeconds(70), now.AddSeconds(120), replacement.Id);
+        var preview = new PostgresFormalRotationPreparation(fixture.Database.ConnectionString, fixture.Journal, fixture.Coverage,
+            new TestRotationHorizon { Approved = true });
+        var reviewed = await preview.PreviewAsync(fixture.CredentialId, window, "\"1\"", fixture.Actor);
+        return new(window, reviewed.PreviewHash, true, "credential_retired");
+    }
+
+    private static async Task AssertFormalRotationAsync(Fixture fixture, FormalRotationPreviewRequest window, Guid? rotationId,
+        bool revoked = false)
+    {
+        await using var db = fixture.Database.Context();
+        var schedules = await db.Set<FormalCredentialRotation>().AsNoTracking().ToArrayAsync();
+        if (rotationId is Guid recorded)
+        {
+            var schedule = Assert.Single(schedules);
+            Assert.Equal(recorded, schedule.Id);
+            Assert.Equal(fixture.CredentialId, schedule.CredentialId);
+            Assert.Equal(window.ReplacementCredentialId, schedule.ReplacementCredentialId);
+            Assert.Equal(fixture.EnvironmentId, schedule.EnvironmentId);
+            Assert.Equal(window.HardDeadline, schedule.HardDeadline);
+        }
+        else Assert.Empty(schedules);
+
+        var old = await db.Set<ApplicationCredential>().AsNoTracking().SingleAsync(item => item.Id == fixture.CredentialId);
+        var replacement = await db.Set<ApplicationCredential>().AsNoTracking().SingleAsync(item => item.Id == window.ReplacementCredentialId);
+        Assert.Equal(revoked ? "Revoked" : "Active", old.Status);
+        Assert.Equal("Active", replacement.Status);
+        Assert.Equal(revoked ? 1 : 0, await db.Set<SecurityEvent>().CountAsync());
+        Assert.Equal(revoked ? 1 : 0, await db.Set<CredentialRevocation>().CountAsync(item => item.CredentialId == old.Id));
+        if (revoked)
+        {
+            var fact = await db.Set<SecurityEvent>().SingleAsync();
+            var operation = await db.Set<SecurityOperation>().SingleAsync();
+            var outbox = await db.Set<SecurityOutboxMessage>().SingleAsync();
+            Assert.Equal(old.Id, fact.CredentialId);
+            Assert.Equal(window.EnvironmentId, fact.EnvironmentId);
+            Assert.Equal("CredentialRevoked", fact.EventType);
+            Assert.Equal(fact.OperationId, operation.Id);
+            Assert.Equal(fact.OperationId, outbox.OperationId);
+            Assert.Equal(2, await db.Set<SecurityOperationTarget>().CountAsync(item => item.OperationId == fact.OperationId));
+        }
     }
 
     [Fact]
@@ -585,6 +901,10 @@ public sealed class PostgresWitnessedCredentialRevocationTests
 
         public PostgresCredentialRevocationService Service() => new(Database.ConnectionString, Journal, Witness, Coverage, Archive);
 
+        public PostgresFormalRotationService RotationService(Func<WebApiDbContext, CancellationToken, Task<DateTimeOffset>>? clock = null) =>
+            new(Database.ConnectionString, Journal, Witness, Coverage, new TestRotationHorizon { Approved = true }, Archive)
+            { DeadlineClock = clock ?? SecurityDatabaseClock.ObserveAsync };
+
         public async Task<Guid> AddInheritedEnvironmentAsync()
         {
             await using var db = Database.Context();
@@ -632,6 +952,23 @@ public sealed class PostgresWitnessedCredentialRevocationTests
             new(scope, new string('d', 64), DateTimeOffset.UtcNow.AddSeconds(-10), DateTimeOffset.UtcNow.AddMinutes(2)) : null;
     }
 
+    private sealed class IsolatedDeliveryContinuity(GovernanceJournalId journal) : IGovernanceRecoveryContinuity
+    {
+        public bool Available { get; set; } = true;
+        public int Calls { get; private set; }
+
+        public async Task<GovernanceContinuity> RequireAsync(WebApiDbContext db, Guid environmentId, CancellationToken ct = default)
+        {
+            Calls++;
+            Assert.True(await db.Database.SqlQueryRaw<bool>("""
+                SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_locks WHERE pid=pg_backend_pid() AND locktype='advisory'
+                    AND classid=0 AND objid=8901202 AND objsubid=1 AND mode='ExclusiveLock' AND granted) AS "Value"
+                """).SingleAsync(ct));
+            if (!Available) throw new InvalidDataException("isolated-history-unavailable");
+            return new(journal, GovernanceJournalProtocol.Genesis, await new SecurityLedgerReader(db).ReadCompleteLockedAsync(environmentId, ct));
+        }
+    }
+
     private sealed class TestRotationHorizon : IFormalRotationLeaseHorizonWitness
     {
         public bool Approved;
@@ -659,39 +996,90 @@ public sealed class PostgresWitnessedCredentialRevocationTests
             scope.DeploymentSequence == 1 && scope.ConfigVersion == 1;
     }
 
-    private sealed class TestWitness : IGovernanceJournalWitness
+    private sealed class TestWitness : IFormalRotationJournalWitness
     {
+        private readonly object sync = new();
+        private readonly Dictionary<Guid, GovernanceOperationConfirmation> confirmations = [];
+        private readonly Dictionary<Guid, (Guid EnvironmentId, DateTimeOffset Deadline)> formalSchedules = [];
         private GovernanceJournalPosition position = GovernanceJournalProtocol.Genesis;
-        private GovernanceOperationConfirmation? confirmation;
         public GovernanceWriteIntent? Pending { get; private set; }
-        public Guid? Operation => confirmation?.OperationId;
+        public Guid? Operation { get; private set; }
         public string? Fault { get; set; }
+        public DateTimeOffset? FormalNow { get; set; }
+        public DateTimeOffset? LatestFormalAllowExpiry { get; set; }
         public int Preparations { get; private set; }
         public int Confirmations { get; private set; }
+        public int FormalPreparations { get; private set; }
+        public int FormalRevocationChecks { get; private set; }
+        public int FormalRevocationPreparations { get; private set; }
 
-        public Task<GovernanceWitnessState> ObserveAsync(GovernanceJournalId journal, Guid? operationId, CancellationToken ct) =>
-            Task.FromResult(new GovernanceWitnessState(position, Pending, operationId == confirmation?.OperationId ? confirmation : null));
+        public Task<GovernanceWitnessState> ObserveAsync(GovernanceJournalId journal, Guid? operationId, CancellationToken ct)
+        {
+            lock (sync) return Task.FromResult(Observe(operationId));
+        }
 
         public Task<GovernanceWitnessState> PrepareAsync(GovernanceJournalId journal, GovernanceWriteIntent intent, CancellationToken ct)
+        {
+            lock (sync) return Task.FromResult(Prepare(intent));
+        }
+
+        public Task<GovernanceWitnessState> PrepareFormalRotationAsync(GovernanceJournalId journal, GovernanceWriteIntent intent,
+            Guid environmentId, DateTimeOffset hardDeadline, CancellationToken ct)
+        {
+            lock (sync)
+            {
+                Assert.Equal(position, intent.Previous);
+                Assert.Null(Pending);
+                if (LatestFormalAllowExpiry > hardDeadline.AddSeconds(-2))
+                    throw new IOException("Fixture Allow expiry exceeds the cutoff.");
+                formalSchedules.Add(intent.OperationId, (environmentId, hardDeadline));
+                FormalPreparations++;
+                return Task.FromResult(Prepare(intent));
+            }
+        }
+
+        public Task<GovernanceWitnessState> PrepareFormalRotationRevocationAsync(GovernanceJournalId journal, GovernanceWriteIntent intent,
+            Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, CancellationToken ct)
+        {
+            lock (sync)
+            {
+                Assert.Equal((environmentId, hardDeadline), formalSchedules[scheduleId]);
+                Assert.Contains(scheduleId, confirmations.Keys);
+                FormalRevocationChecks++;
+                if ((FormalNow ?? DateTimeOffset.UtcNow) < hardDeadline)
+                    throw new IOException("Fixture independent deadline has not arrived.");
+                FormalRevocationPreparations++;
+                return Task.FromResult(Prepare(intent));
+            }
+        }
+
+        private GovernanceWitnessState Prepare(GovernanceWriteIntent intent)
         {
             Assert.Equal(position, intent.Previous);
             Assert.Null(Pending);
             Pending = intent;
             Preparations++;
             if (Fault == "prepare-reply-lost") throw new IOException("Fixture witness preparation response lost.");
-            return ObserveAsync(journal, intent.OperationId, ct);
+            return Observe(intent.OperationId);
         }
 
         public Task<GovernanceWitnessState> ConfirmAsync(GovernanceJournalId journal, GovernanceWriteIntent intent, CancellationToken ct)
         {
-            Assert.Equal(Pending, intent);
-            if (Fault == "commit-before-confirm") throw new IOException("Fixture stopped before witness confirmation.");
-            position = GovernanceJournalProtocol.NextPosition(journal, intent);
-            confirmation = new(intent.OperationId, position);
-            Pending = null;
-            Confirmations++;
-            if (Fault == "confirmed-reply-lost") throw new IOException("Fixture witness confirmation response lost.");
-            return ObserveAsync(journal, intent.OperationId, ct);
+            lock (sync)
+            {
+                Assert.Equal(Pending, intent);
+                if (Fault == "commit-before-confirm") throw new IOException("Fixture stopped before witness confirmation.");
+                position = GovernanceJournalProtocol.NextPosition(journal, intent);
+                confirmations.Add(intent.OperationId, new(intent.OperationId, position));
+                Operation = intent.OperationId;
+                Pending = null;
+                Confirmations++;
+                if (Fault == "confirmed-reply-lost") throw new IOException("Fixture witness confirmation response lost.");
+                return Task.FromResult(Observe(intent.OperationId));
+            }
         }
+
+        private GovernanceWitnessState Observe(Guid? operationId) =>
+            new(position, Pending, operationId is Guid id ? confirmations.GetValueOrDefault(id) : null);
     }
 }

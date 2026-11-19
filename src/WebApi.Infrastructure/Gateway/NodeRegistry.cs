@@ -7,9 +7,11 @@ using WebApi.Contracts.Runtime;
 using WebApi.Infrastructure.CredentialSecurity;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Releases;
 using WebApi.Infrastructure.Runtime;
 namespace WebApi.Infrastructure.Gateway;
-public sealed class NodeRegistry(WebApiDbContext db,NodeIdentityService identities)
+public sealed class NodeRegistry(WebApiDbContext db,NodeIdentityService identities,
+    IGovernanceRecoveryContinuity? continuity=null,GovernanceDeliverySettings? governanceDelivery=null,PublishSettings? publication=null)
 {
     public async Task<RegisteredNode> RegisterAsync(RegisterNodeRequest request,string secret,CancellationToken ct=default)
     {
@@ -44,7 +46,7 @@ public sealed class NodeRegistry(WebApiDbContext db,NodeIdentityService identiti
             .Where(e=>e.EnvironmentId==request.EnvironmentId&&!db.Set<SecurityOperationTarget>().Any(t=>t.OperationId==e.OperationId&&t.EnvironmentId==e.EnvironmentId&&t.NodeId==node.Id&&t.InstanceGuid==request.InstanceId))
             .Select(e=>e.OperationId).Distinct().ToArrayAsync(ct);
         var minimum=await db.Set<EnvironmentSecurityState>().AsNoTracking().Where(s=>s.EnvironmentId==request.EnvironmentId).Select(s=>s.MinimumSnapshotSchema).SingleOrDefaultAsync(ct);
-        if(await GlobalCredentialPublicationGuard.HasLocalRevocationAsync(db,request.EnvironmentId,ct)) minimum="2.4";
+        if(await GlobalCredentialPublicationGuard.RequiresGovernance24Async(db,request.EnvironmentId,ct)) minimum="2.4";
         var supported=SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,minimum);
         if((minimum is "2.3" or "2.4"||priorTargets.Length>0||missingOperations.Length>0)&&!supported)
             throw new ApiException(409,"gateway_security_capability_required","当前环境要求节点声明兼容的快照和安全协议能力。");
@@ -91,7 +93,7 @@ public sealed class NodeRegistry(WebApiDbContext db,NodeIdentityService identiti
         node.Metadata=SecurityProtocolCapabilities.Merge(node.Metadata,heartbeat.InstanceId,heartbeat.SecurityCapabilities);
         var status=heartbeat.Status;
         if(!SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,"2.4")&&
-            await GlobalCredentialPublicationGuard.HasLocalRevocationAsync(db,node.EnvironmentId,ct))
+            await GlobalCredentialPublicationGuard.RequiresGovernance24Async(db,node.EnvironmentId,ct))
         {
             status="NotReady";
             node.Metadata=SecurityProtocolCapabilities.ClearReceipt(RuntimeApplicationReceipt.Clear(node.Metadata));
@@ -100,14 +102,24 @@ public sealed class NodeRegistry(WebApiDbContext db,NodeIdentityService identiti
         node.CurrentConfigVersion=heartbeat.ConfigVersion;node.CurrentDeploymentSequence=heartbeat.DeploymentSequence;node.Status=status;node.LastHeartbeatAt=DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
     }
-    public async Task<DesiredConfigResponse?> DesiredAsync(NodeIdentity identity,CancellationToken ct=default)
+    public async Task<DesiredConfigResponse?> DesiredAsync(NodeIdentity identity,CancellationToken ct=default,Guid? instanceId=null)
     {
         // Scope changes and desired-pointer updates take the exclusive governance lock.
         await using var tx=await db.Database.BeginTransactionAsync(ct);
-        await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock_shared(8901202)",ct);
-        await identities.RevalidateAsync(identity,null,ct);var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==identity.EnvironmentId,ct);if(env.DesiredConfigVersion is not long version||env.DeploymentSequence<=0) return null;
-        var row=await (from r in db.Set<ReleaseRecord>().AsNoTracking() join v in db.Set<GatewayConfigVersion>() on new {r.EnvironmentId,VersionNo=r.ToConfigVersion} equals new {v.EnvironmentId,v.VersionNo} join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where r.EnvironmentId==env.Id&&r.DeploymentSequence==env.DeploymentSequence&&r.ToConfigVersion==version select new {r.Id,v.SnapshotHash,s.SizeBytes,s.PayloadBytes}).SingleAsync(ct);
-        var envelope=new SnapshotEnvelope(row.Id,env.DeploymentSequence,version,row.SnapshotHash!,row.SizeBytes);RedisSnapshotStore.Validate(env.Id,envelope,row.PayloadBytes);
-        await tx.CommitAsync(ct);return new(envelope,row.PayloadBytes);
+        if(GovernanceSnapshotDelivery.RequiresFence(continuity,governanceDelivery))
+        {
+            await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
+            await LockAsync(identity.EnvironmentId,ct);
+        }
+        else await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock_shared(8901202)",ct);
+        var node=await identities.RevalidateAsync(identity,instanceId,ct);
+        var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==identity.EnvironmentId,ct);if(env.DesiredConfigVersion is not long version||env.DeploymentSequence<=0) return null;
+        var row=await (from r in db.Set<ReleaseRecord>().AsNoTracking() join v in db.Set<GatewayConfigVersion>() on new {r.EnvironmentId,VersionNo=r.ToConfigVersion} equals new {v.EnvironmentId,v.VersionNo} join s in db.Set<GatewayConfigSnapshot>() on v.Id equals s.ConfigVersionId where r.EnvironmentId==env.Id&&r.DeploymentSequence==env.DeploymentSequence&&r.ToConfigVersion==version select new {r.Id,v.SnapshotHash,s.SizeBytes,s.PayloadBytes,Published=r.Status=="Succeeded"&&v.Status=="Published"}).SingleAsync(ct);
+        var envelope=new SnapshotEnvelope(row.Id,env.DeploymentSequence,version,row.SnapshotHash!,row.SizeBytes);
+        var desired=new DesiredConfigResponse(envelope,row.PayloadBytes);
+        if(await GovernanceSnapshotDelivery.RequireAsync(db,env.Id,desired,continuity,governanceDelivery,ct,row.Published,publication)&&
+            (instanceId is null||!SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,"2.4")))
+            throw GovernanceSnapshotDelivery.Unavailable();
+        await tx.CommitAsync(ct);return desired;
     }
 }

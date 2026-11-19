@@ -95,7 +95,11 @@ public sealed class OutboxFailureIsolationTests
         public int Attempts => Volatile.Read(ref attempts);
         public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
         {
-            if (command.CommandText.Contains("FROM environments", StringComparison.Ordinal)) { Interlocked.Increment(ref attempts); throw new InvalidOperationException("isolated reconciliation query failure"); }
+            if (command.CommandText.Contains("-- desired-deployment-reconciliation", StringComparison.Ordinal))
+            {
+                Interlocked.Increment(ref attempts);
+                throw new InvalidOperationException("isolated reconciliation query failure");
+            }
             return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
         }
     }

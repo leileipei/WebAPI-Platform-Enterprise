@@ -41,6 +41,14 @@ public sealed class GovernanceJournalHttpWitness : IGovernanceJournalWitness, ID
     public Task<GovernanceWitnessState> ConfirmAsync(GovernanceJournalId journal, GovernanceWriteIntent intent, CancellationToken ct) =>
         SendAsync(GovernanceJournalProtocol.Confirm(journal, intent), ct);
 
+    internal Task<GovernanceWitnessState> PrepareFormalRotationAsync(GovernanceJournalId journal, GovernanceWriteIntent intent,
+        Guid environmentId, DateTimeOffset hardDeadline, CancellationToken ct) =>
+        SendFormalRotationAsync(FormalRotationJournalProtocol.Prepare(journal, intent, environmentId, hardDeadline), ct);
+
+    internal Task<GovernanceWitnessState> PrepareFormalRotationRevocationAsync(GovernanceJournalId journal, GovernanceWriteIntent intent,
+        Guid scheduleId, Guid environmentId, DateTimeOffset hardDeadline, CancellationToken ct) =>
+        SendFormalRotationAsync(FormalRotationJournalProtocol.PrepareRevocation(journal, intent, scheduleId, environmentId, hardDeadline), ct);
+
     internal async Task<VerifiedGovernanceLeaseReservation> ReserveAllowLeaseAsync(GovernanceJournalId journal,
         GovernanceJournalPosition expectedConfirmed, GovernanceLeaseReservation reservation, CancellationToken ct = default)
     {
@@ -56,6 +64,13 @@ public sealed class GovernanceJournalHttpWitness : IGovernanceJournalWitness, ID
     {
         var response = await transport.PostAsync(endpoint, GovernanceJournalProtocol.EncodeRequest(request), GovernanceJournalProtocol.MaxWireBytes, ct);
         return GovernanceJournalProtocol.VerifyResponse(request, response, trust);
+    }
+
+    private async Task<GovernanceWitnessState> SendFormalRotationAsync(FormalRotationPrepareRequest request, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        var response = await transport.PostAsync(endpoint, FormalRotationJournalProtocol.EncodeRequest(request), GovernanceJournalProtocol.MaxWireBytes, ct);
+        return FormalRotationJournalProtocol.VerifyResponse(request, response, trust);
     }
 
     public void Dispose() => transport.Dispose();

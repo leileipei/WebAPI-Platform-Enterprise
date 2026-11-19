@@ -170,9 +170,36 @@ public sealed class IndependentGovernanceWitnessClientsTests
             Assert.NotNull(clients);
             Assert.Equal(fixture.Journal, clients.JournalId);
             Assert.NotNull(clients.JournalWitness);
+            Assert.Null(clients.RecoveryHistoryWitness);
         }
 
         Assert.True(writer.HasPrivateKey);
+    }
+
+    [Fact]
+    public async Task ConfiguredRecoveryHistoryUsesThePinnedJournalAndAnIndependentSigningKey()
+    {
+        using var fixture = new Fixture();
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        using var writer = CreateCertificate(key);
+        var role = fixture.Options.HistoryEvidence! with { Endpoint = new Uri("https://witness.example.test/recovery-history") };
+        var options = fixture.Options with { RecoveryHistory = role };
+        using var clients = IndependentGovernanceWitnessClients.Create(options, writer)!;
+        var recoveryHistory = Assert.IsAssignableFrom<IGovernanceEnvironmentHistoryWitness>(clients.RecoveryHistoryWitness);
+        var foreign = fixture.Journal with { Generation = Guid.NewGuid() };
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        await Assert.ThrowsAsync<InvalidDataException>(() => recoveryHistory.ObserveAsync(foreign, GovernanceJournalProtocol.Genesis,
+            Guid.NewGuid(), cancelled.Token));
+
+        Assert.Throws<ArgumentException>(() => IndependentGovernanceWitnessClients.Create(options with
+        {
+            RecoveryHistory = role with { SubjectPublicKeyInfoBase64 = fixture.Options.TimeEvidence!.SubjectPublicKeyInfoBase64 }
+        }, writer));
+        Assert.Throws<ArgumentException>(() => IndependentGovernanceWitnessClients.Create(options with
+        {
+            RecoveryHistory = role with { SubjectPublicKeyInfoBase64 = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) }
+        }, writer));
     }
 
     [Fact]

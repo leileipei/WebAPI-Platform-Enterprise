@@ -19,6 +19,8 @@ internal static class CredentialGovernanceEndpoints
         var endpoints = app.MapGroup("/api/v1").RequireAuthorization().AddEndpointFilter<RequestValidationFilter>();
         endpoints.MapPost("/credentials/{id:guid}/revoke", RevokeAsync);
         endpoints.MapPost("/credentials/{id:guid}/formal-rotation/preview", PreviewFormalRotationAsync);
+        endpoints.MapPost("/credentials/{id:guid}/formal-rotation/confirm", ConfirmFormalRotationAsync);
+        endpoints.MapGet("/credential-rotations/{id:guid}", ReadFormalRotationAsync);
         endpoints.MapGet("/credential-revocations/{id:guid}", ReadRevocationAsync);
         endpoints.MapPost("/credential-governance/journal/enroll", EnrollAsync);
         endpoints.MapPost("/credential-governance/journal/recover", RecoverAsync);
@@ -63,6 +65,33 @@ internal static class CredentialGovernanceEndpoints
                 RequireCurrentSession(context.User, actor)));
         }
         catch (InvalidDataException) { throw Unavailable(); }
+    }
+
+    private static async Task<IResult> ConfirmFormalRotationAsync(Guid id, FormalRotationConfirmRequest request, HttpContext context,
+        WebApiDbContext db, AuthorizationService authorization, CommandRequestContext command, CancellationToken ct)
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        var actor = context.Actor();
+        var target = await ResolveCredentialAsync(db, id, ct);
+        await authorization.RequireAsync(actor, "credential.manage", target, ct);
+        await authorization.RequireAsync(actor, "credential.revoke", target, ct);
+        var service = context.RequestServices.GetService<PostgresFormalRotationService>() ?? throw Unavailable();
+        try
+        {
+            var receipt = await service.ConfirmAsync(id, request, context.Request.Headers.IfMatch, command, actor, ct,
+                RequireCurrentSession(context.User, actor));
+            return Results.Accepted($"/api/v1/credential-rotations/{receipt.RotationId}", receipt);
+        }
+        catch (Exception error) when (error is IOException or InvalidDataException) { throw Unavailable(); }
+    }
+
+    private static async Task<IResult> ReadFormalRotationAsync(Guid id, HttpContext context, CancellationToken ct)
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        var actor = context.Actor();
+        var service = context.RequestServices.GetService<PostgresFormalRotationService>() ?? throw Unavailable();
+        try { return Results.Ok(await service.ReadAsync(id, actor, ct, RequireCurrentSession(context.User, actor))); }
+        catch (Exception error) when (error is IOException or InvalidDataException) { throw Unavailable(); }
     }
 
     private static async Task<ResourceRef> ResolveCredentialAsync(WebApiDbContext db, Guid id, CancellationToken ct)

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Win32.SafeHandles;
 using WebApi.Infrastructure.CredentialSecurity;
+using WebApi.Infrastructure.Gateway;
 using WebApi.Infrastructure.Persistence;
 
 namespace WebApi.ControlPlane.Applications;
@@ -21,12 +22,13 @@ public static class CredentialGovernanceRegistration
         ArgumentNullException.ThrowIfNull(options);
         if (!options.Enabled) return services;
         ArgumentNullException.ThrowIfNull(writerCertificate);
-        return Register(services, () => new WitnessOwner(CreateClients(options, writerCertificate)));
+        return Register(services, () => new WitnessOwner(CreateClients(options, writerCertificate)), options.RecoveryHistory is not null);
     }
 
     internal static void AddConfiguredWitness(this IServiceCollection services, IConfiguration configuration)
     {
         var section = configuration.GetSection("CredentialGovernance");
+        services.TryAddSingleton(GovernanceDeliverySettings.Read(section["Enabled"]));
         if (!bool.TryParse(section["Enabled"], out var enabled) || !enabled) return;
         Register(services, () =>
         {
@@ -48,12 +50,29 @@ public static class CredentialGovernanceRegistration
                 ownedCertificate?.Dispose();
                 throw;
             }
-        });
+        }, section.GetSection("RecoveryHistory").Exists());
     }
 
-    private static IServiceCollection Register(IServiceCollection services, Func<WitnessOwner> create)
+    private static IServiceCollection Register(IServiceCollection services, Func<WitnessOwner> create, bool historyConfigured)
     {
+        services.TryAddSingleton(new GovernanceDeliverySettings(true));
         services.TryAddSingleton<WitnessOwner>(_ => create());
+        services.TryAddScoped<IGovernanceRecoveryContinuity>(sp => new ConfiguredRecoveryContinuity(sp, historyConfigured));
+        services.TryAddSingleton(sp => SecuritySigningSettings.Read(sp.GetRequiredService<IConfiguration>()));
+        services.TryAddScoped<SecurityLedgerReader>();
+        services.TryAddScoped<CurrentSecurityProofService>();
+        services.TryAddScoped<SecurityAckService>();
+        services.TryAddScoped<SecurityLeaseIssuer>(sp =>
+        {
+            var db = sp.GetRequiredService<WebApiDbContext>();
+            var identities = sp.GetRequiredService<NodeIdentityService>();
+            var ledger = sp.GetRequiredService<SecurityLedgerReader>();
+            var signing = sp.GetRequiredService<SecuritySigningSettings>();
+            var evidence = sp.GetService<SecurityLeaseEvidenceSources>();
+            return evidence is null ? new(db, identities, ledger, signing) : new(db, identities, ledger, signing,
+                sp.GetRequiredService<IGovernanceRecoveryContinuity>(), sp.GetRequiredService<WitnessOwner>().Clients.LeaseReservationWitness,
+                evidence, sp.GetRequiredService<TimeProvider>());
+        });
         services.TryAddScoped<PostgresGovernanceJournalEnrollment>(sp =>
         {
             var clients = sp.GetRequiredService<WitnessOwner>().Clients;
@@ -71,7 +90,29 @@ public static class CredentialGovernanceRegistration
             var clients = sp.GetRequiredService<WitnessOwner>().Clients;
             return new(ConnectionString(sp), clients.JournalId, coverage, sp.GetService<IFormalRotationLeaseHorizonWitness>());
         });
+        services.TryAddScoped<PostgresFormalRotationService>(sp =>
+        {
+            var coverage = sp.GetService<ICredentialRevocationCoverage>() ?? throw CredentialGovernanceEndpoints.Unavailable();
+            var horizon = sp.GetService<IFormalRotationLeaseHorizonWitness>() ?? throw CredentialGovernanceEndpoints.Unavailable();
+            var clients = sp.GetRequiredService<WitnessOwner>().Clients;
+            return new(ConnectionString(sp), clients.JournalId, clients.FormalRotationWitness, coverage, horizon,
+                sp.GetService<ICredentialArchivedIngressWitness>());
+        });
         return services;
+    }
+
+    private sealed class ConfiguredRecoveryContinuity(IServiceProvider services, bool historyConfigured) : IGovernanceRecoveryContinuity
+    {
+        public Task<GovernanceContinuity> RequireAsync(WebApiDbContext db, Guid environmentId, CancellationToken ct = default)
+        {
+            var history = services.GetService<IGovernanceEnvironmentHistoryWitness>();
+            if (history is null && !historyConfigured) throw Unavailable();
+            var clients = services.GetRequiredService<WitnessOwner>().Clients;
+            history ??= clients.RecoveryHistoryWitness ?? throw Unavailable();
+            return new PostgresGovernanceRecoveryContinuity(clients.JournalId, clients.JournalWitness, history).RequireAsync(db, environmentId, ct);
+        }
+
+        private static InvalidDataException Unavailable() => new("credential_governance_recovery_continuity_unavailable");
     }
 
     private static IndependentGovernanceWitnessClients CreateClients(IndependentGovernanceWitnessOptions options,

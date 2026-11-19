@@ -15,3 +15,13 @@ public interface IGovernanceAdmissionStateProvider
     /// </summary>
     SecurityStateStore? GetActiveState(RuntimeGeneration generation);
 }
+
+internal static class GovernanceReadiness
+{
+    internal static bool CanUse(RuntimeGeneration generation, IGovernanceAdmissionStateProvider? provider)
+    {
+        if (provider is null) return generation.Snapshot.SchemaVersion != "2.4";
+        generation.PrepareSecurityAdmission();
+        return provider.GetActiveState(generation) is { } state && state.CanUseSnapshot(generation);
+    }
+}

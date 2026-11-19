@@ -108,42 +108,58 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
     {
         var plan = CredentialRevocationIntent.Read(intent);
         var resource = await ValidatePlanAsync(db, plan, TimeSpan.Zero, ct);
-        resource.Credential.Status = "Revoked";
-        resource.Credential.RevokedAt ??= plan.EventTime;
-        resource.Credential.Revision = checked(resource.Credential.Revision + 1);
-        resource.Application.Revision = checked(resource.Application.Revision + 1);
-        resource.Application.AuthorizationRevision = checked(resource.Application.AuthorizationRevision + 1);
-        resource.Application.UpdatedAt = plan.EventTime;
-        db.Add(new SecurityOperation { Id = intent.OperationId, OrganizationId = resource.Credential.OrganizationId, ApplicationId = plan.ApplicationId,
-            CredentialId = plan.CredentialId, RequestedBy = plan.ActorId, Reason = plan.Reason, CommittedAt = plan.EventTime });
+        RecordOperation(db, resource.Credential, resource.Application, intent.OperationId, plan.ActorId, plan.Reason, plan.EventTime);
         foreach (var (environment, frozen) in resource.Environments.Zip(plan.Environments()))
             await AppendEnvironmentAsync(db, plan, intent.OperationId, environment, frozen, ct);
+    }
+
+    internal static void RecordOperation(WebApiDbContext db, ApplicationCredential credential, ApplicationRecord application,
+        Guid operationId, Guid requestedBy, string reason, DateTimeOffset occurredAt)
+    {
+        credential.Status = "Revoked";
+        credential.RevokedAt ??= occurredAt;
+        credential.Revision = checked(credential.Revision + 1);
+        application.Revision = checked(application.Revision + 1);
+        application.AuthorizationRevision = checked(application.AuthorizationRevision + 1);
+        application.UpdatedAt = occurredAt;
+        db.Add(new SecurityOperation { Id = operationId, OrganizationId = credential.OrganizationId, ApplicationId = application.Id,
+            CredentialId = credential.Id, RequestedBy = requestedBy, Reason = reason, CommittedAt = occurredAt });
     }
 
     private static async Task AppendEnvironmentAsync(WebApiDbContext db, CredentialRevocationIntent plan, Guid operationId,
         EnvironmentRecord environment, CredentialRevocationEnvironmentIntent frozen, CancellationToken ct)
     {
         var fact = plan.Event(operationId, frozen);
-        var authority = await db.Set<EnvironmentSecurityState>().SingleAsync(x => x.EnvironmentId == fact.EnvironmentId, ct);
-        authority.Epoch = fact.Epoch;
-        authority.HeadHash = fact.EventHash;
-        authority.Revision = checked(authority.Revision + 1);
-        authority.UpdatedAt = plan.EventTime;
-        environment.AuthorizationRevision = checked(environment.AuthorizationRevision + 1);
-        db.AddRange(fact,
-            new CredentialRevocation { EnvironmentId = fact.EnvironmentId, OrganizationId = fact.OrganizationId, ProjectId = fact.ProjectId,
-                CredentialId = plan.CredentialId, ApplicationId = plan.ApplicationId, SecurityGeneration = fact.SecurityGeneration,
-                Epoch = fact.Epoch, OperationId = operationId, RevokedAt = plan.EventTime },
-            new SecurityOutboxMessage { Id = plan.OutboxId(operationId, fact.EnvironmentId), EnvironmentId = fact.EnvironmentId,
-                SecurityGeneration = fact.SecurityGeneration, Epoch = fact.Epoch, OperationId = operationId, CreatedAt = plan.EventTime },
-            new AuditLog { OrganizationId = fact.OrganizationId, ProjectId = fact.ProjectId, EnvironmentId = fact.EnvironmentId,
-                UserId = plan.ActorId, Action = "credential.revoke", ResourceType = "credential", ResourceId = plan.CredentialId.ToString(),
-                CreatedAt = plan.EventTime, AfterJson = JsonSerializer.Serialize(new RevocationAuditFact(operationId, fact.Epoch, fact.EventHash)) });
+        await AppendRevocationAsync(db, environment, fact, plan.ApplicationId, plan.ActorId,
+            plan.OutboxId(operationId, fact.EnvironmentId), "credential.revoke", ct);
         foreach (var (node, challenge) in (frozen.Coverage?.Nodes ?? []).Zip(frozen.Challenges))
             db.Add(new SecurityOperationTarget { OperationId = operationId, EnvironmentId = fact.EnvironmentId, NodeId = node.NodeId,
                 InstanceGuid = node.InstanceId, ChallengeNonce = challenge, CreatedAt = plan.EventTime,
                 LastLeaseUntil = node.LastLeaseUntil, ProtocolSupportedAtFreeze = true });
     }
+
+    internal static async Task AppendRevocationAsync(WebApiDbContext db, EnvironmentRecord environment, SecurityEvent fact,
+        Guid applicationId, Guid actorId, Guid outboxId, string auditAction, CancellationToken ct)
+    {
+        var authority = await db.Set<EnvironmentSecurityState>().SingleAsync(x => x.EnvironmentId == fact.EnvironmentId, ct);
+        authority.Epoch = fact.Epoch;
+        authority.HeadHash = fact.EventHash;
+        authority.Revision = checked(authority.Revision + 1);
+        authority.UpdatedAt = fact.OccurredAt;
+        environment.AuthorizationRevision = checked(environment.AuthorizationRevision + 1);
+        db.AddRange(fact,
+            new CredentialRevocation { EnvironmentId = fact.EnvironmentId, OrganizationId = fact.OrganizationId, ProjectId = fact.ProjectId,
+                CredentialId = fact.CredentialId!.Value, ApplicationId = applicationId, SecurityGeneration = fact.SecurityGeneration,
+                Epoch = fact.Epoch, OperationId = fact.OperationId, RevokedAt = fact.OccurredAt },
+            new SecurityOutboxMessage { Id = outboxId, EnvironmentId = fact.EnvironmentId,
+                SecurityGeneration = fact.SecurityGeneration, Epoch = fact.Epoch, OperationId = fact.OperationId, CreatedAt = fact.OccurredAt },
+            new AuditLog { OrganizationId = fact.OrganizationId, ProjectId = fact.ProjectId, EnvironmentId = fact.EnvironmentId,
+                UserId = actorId, Action = auditAction, ResourceType = "credential", ResourceId = fact.CredentialId.Value.ToString(),
+                CreatedAt = fact.OccurredAt, AfterJson = AuditFact(fact) });
+    }
+
+    internal static string AuditFact(SecurityEvent fact) =>
+        JsonSerializer.Serialize(new RevocationAuditFact(fact.OperationId, fact.Epoch, fact.EventHash));
 
     private async Task<Resource> ValidatePlanAsync(WebApiDbContext db, CredentialRevocationIntent plan,
         TimeSpan minimumRemaining, CancellationToken ct)
@@ -241,7 +257,9 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
             deployment.Release.Id, deployment.Snapshot.Hash, env.DeploymentSequence, env.DesiredConfigVersion.Value, targets), ledger, published);
     }
 
-    public async Task<bool> VerifyAsync(WebApiDbContext db, GovernanceWriteIntent intent, CancellationToken ct)
+    public Task<bool> VerifyAsync(WebApiDbContext db, GovernanceWriteIntent intent, CancellationToken ct) => VerifyCommittedAsync(db, intent, ct);
+
+    internal static async Task<bool> VerifyCommittedAsync(WebApiDbContext db, GovernanceWriteIntent intent, CancellationToken ct)
     {
         var plan = CredentialRevocationIntent.Read(intent);
         var environments = plan.Environments();

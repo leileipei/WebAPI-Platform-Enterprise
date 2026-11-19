@@ -14,7 +14,8 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
 {
     public static ApplicationDto Dto(ApplicationRecord a)=>new(a.Id,a.OrganizationId,a.ProjectId,a.Code,a.Name,a.Owner,a.Status,a.Revision);
     public static ApplicationDto Dto(ApplicationRecord a,ApplicationSummaryDto? summary)=>Dto(a) with{Summary=summary};
-    public static CredentialDto Dto(ApplicationCredential c,DateTimeOffset? visibleLastUsed=null)=>new(c.Id,c.ApplicationId,c.AccessKey,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,visibleLastUsed,c.RevokedAt,c.Revision);
+    public static CredentialDto Dto(ApplicationCredential c,DateTimeOffset? visibleLastUsed=null)=>new(c.Id,c.ApplicationId,c.AccessKey,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,visibleLastUsed,c.RevokedAt,c.Revision,
+        EnvironmentId:c.EnvironmentId,BindingMode:c.BindingMode=="EnvironmentBound"?c.BindingMode:null);
     public static ApplicationPermissionDto Dto(ApplicationApiPermission p)=>new(p.Id,p.ApplicationId,p.ApiId,p.EnvironmentId,p.ValidFrom,p.ExpiresAt,p.Revision);
     private async Task<ScopeRef> InputScopeAsync(SaveApplicationRequest request,CancellationToken ct)
     {if(request.ProjectId is Guid id) {var actual=await scopes.ProjectAsync(id,ct);if(actual.OrganizationId!=request.OrganizationId) throw new ApiException(422,"foreign_project","应用项目不属于组织。");return actual;}if(!await db.Set<Organization>().AnyAsync(o=>o.Id==request.OrganizationId,ct)) throw new ApiException(422,"invalid_organization","组织不存在。");return new(request.OrganizationId);}
