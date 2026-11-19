@@ -1,6 +1,6 @@
 # 凭证治理的独立见证接入
 
-本文记录独立分支上的可插拔实现与控制面接入。签名公钥、TLS 客户端证书和见证身份由独立运维配置并验收。在默认配置中，租约入口返回 `503 security_evidence_unavailable`，治理 2.4 激活需宿主显式接入经核验的独立来源。
+本文记录独立见证协议、标准宿主配置和撤销回执判定。签名公钥、TLS 客户端证书和见证身份由独立运维配置并验收。默认租约入口返回 `503 security_evidence_unavailable`。治理 2.4 需要明确启用并接入经核验的独立来源。
 
 ## 独立来源
 
@@ -25,13 +25,13 @@
 
 权限目录包含 `credential.revoke` 和 `credential.governance.recover`，默认授予平台管理员。即时撤销同时要求目标范围的写权限。既有实例按已批准的维护窗口执行 `--seed-catalog` 刷新目录。[权限目录运维流程](release-promotion-runbook.md)
 
-标准宿主读取 `CredentialGovernance` 配置。显式启用时固定 `TimeEvidence`、`HistoryEvidence`、`GovernanceJournal` 和 `JournalId`，并从 `WriterCertificateFile` 加载单独配置的客户端证书。在 Linux 和 macOS 上，以绝对路径挂载写入身份专用的无口令 PKCS#12，文件权限为 0400 或 0600。程序只在授权操作需要见证时加载证书。内嵌宿主也可以通过 `AddWitnessedCredentialGovernance` 注册已有证书。运行中的撤销需要宿主提供能复核对应部署与受控入口的 `ICredentialRevocationCoverage`。在缺少该证据时，写入返回 503。控制面在等待写锁后重新核对会话及操作授权。
+标准宿主读取 `CredentialGovernance` 配置并固定账本和独立签名身份。控制面在等待写锁后重新核对会话及操作授权。运行撤销要求受控入口证据，配置和协议见文末。内嵌控制面可通过 `AddWitnessedCredentialGovernance` 注册已有证书和注入显式证明来源。
 
 - `POST /api/v1/credential-governance/journal/enroll` 显式绑定当前独立账本。
 - `POST /api/v1/credential-governance/journal/recover` 按已准备的原命令恢复，并重新检查权限与证据。
 - `POST /api/v1/credentials/{id}/revoke` 接受有效的 `If-Match`、`Idempotency-Key` 和预定义理由 `compromised`、`owner_request`、`credential_retired` 或 `policy_change`。理由码可进入见证材料。
 - `POST /api/v1/credentials/{id}/formal-rotation/preview` 接受 `If-Match`、目标环境、新凭证有效期、重叠窗口及硬截止。要求目标范围的 `credential.manage` 和 `credential.revoke`，只读核验凭证与账本。
-- `GET /api/v1/credential-revocations/{operationId}` 复核所有记录环境的权限后返回本地账本与节点目标。独立复核和全部入口覆盖仍待联合验证时，公开状态为 `Unconfirmed`。
+- `GET /api/v1/credential-revocations/{operationId}` 对原操作的所有环境重新校验会话和撤销权限，并以 `Cache-Control: no-store` 返回落账事实、目标及按当前证据计算的传播状态。
 
 三种调用都发送 POST，使用小驼峰属性名、按序排列的对象键、无多余空白的 UTF-8 JSON。字段集合和顺序以 `GovernanceJournalProtocol` 的规范编码为准。每次请求生成新的 32 字节随机数。响应签名绑定包含随机数的整个请求摘要，使用 P-256/SHA-256 和 64 字节 IEEE P1363 签名，公钥使用 DER SPKI。签名与公钥按规范 Base64 表示。恢复材料使用无填充的规范 Base64URL。材料须能重建经授权的操作、完整环境范围、前后账本位置及精确写入结果，且不含凭证明文、秘密回执或签名私钥。
 
@@ -83,3 +83,41 @@
 - 治理回滚从可等价重建的已发布 2.4 工件读取历史业务配置，保留当前授权、凭证及账本，生成新配置版本和部署序列。提交、批准、排队、构建与节点交付复核对应门禁。路由身份、访问策略或原历史工件无法核验时停止。晋级使用目标环境最终版本路由、明确的路由方法授权、目标环境凭证与现有独立审批。路由方法授权是一项工作配置，经相应 2.4 发布和节点确认后生效。冻结版本、目标和安全状态都参与后续下发检查。
 
 独立服务、历史清单及两个网关的真实环境验收仍待接入。隔离验证使用独立数据库、控制面和签名测试替身。正式运行需要为控制面、Worker 和网关注入与同一治理部署匹配的证据来源及发布范围。
+
+
+## 2026-11-20 标准宿主配置
+
+在环境变量中以双下划线连接配置层级，例如用 `CredentialGovernance__Enabled` 配置 `CredentialGovernance:Enabled`。在各进程显式启用，发布环境名单由控制面与 Worker 使用相同的环境 UUID。三种宿主在启动时固定信任配置，按同一账本代次部署并重启以应用配置变更。
+
+| 宿主 | 配置 |
+| --- | --- |
+| 控制面和 Worker | `CredentialGovernance:Enabled=true`。配置相同的 `JournalId:AuthorityId`、`JournalId:Generation`、`Environments` 和下列外部见证角色。各宿主以 `WriterCertificateFile` 指定已授权的客户端身份。 |
+| 控制面 | `Security:Signing:KeyId`、`Security:Signing:PrivateKeyFile` 配置租约签发者，`Security:TrustedKeys` 固定明确仍受信任的租约公钥。部署覆盖、历史、日志、完成证明和签发者分别使用约定的信任根。 |
+| Gateway | `CredentialGovernance:Enabled=true`，配置 `TimeEvidence`、`HistoryEvidence`、`CredentialGovernance:LeaseVerificationKeys`。后者以签发 KeyId 为键，值为规范 Base64 P-256 DER SPKI 公钥。`Gateway:ControlPlaneUrl` 使用 HTTPS。要启用完成证明交付，再配置 `RotationProofs`、`JournalId` 和此网关专用的 `RotationProofCertificateFile`。 |
+
+每个角色均含 `Endpoint`、`SourceId`、`KeyId`、`SubjectPublicKeyInfoBase64`。端点固定于 HTTPS，响应校验固定身份、响应签名和请求摘要。Linux 和 macOS 以专用绝对路径挂载无口令 PKCS#12，文件权限为 0400 或 0600。私钥各自保存在签发者、客户端身份或独立见证的持有边界。活跃租约签发公钥也参与独立密钥冲突校验。
+
+| 角色 | 证明边界 |
+| --- | --- |
+| `TimeEvidence`、`HistoryEvidence` | 通过现有随机挑战验证确切节点、实例、账本安全状态和新鲜时间。控制面签发和网关准入分别请求。 |
+| `GovernanceJournal`、`RecoveryHistory` | 使用固定账本代次复核有序写入、租约预留、已确认位置与当前环境历史。缺少证据时关闭相应 2.4 投递及签发。 |
+| `DeploymentEvidence` | 由独立部署权威提供运行入口覆盖、停用封存、全局凭证历史枚举和正式轮换租约期限。 |
+| `RotationProofs` | 独立服务认证 Gateway 提交者并持久保存完成证明。控制面和 Worker 查询与排程及当前运行绑定的证明。 |
+| `LegacyInitializationHistory` | 独立来源提供迁移、发布、实例及恢复清单，在同一被持有的停写范围中复核。 |
+
+### 部署证据及撤销回执
+
+`DeploymentEvidence` 在后台通过 POST 更新内存证明。请求包含账本身份及随机数。响应绑定请求摘要，按 `GovernanceDeploymentEvidenceProtocol` 规定的域及规范 JSON 以 P-256/SHA-256 签名。请求或回复最多 512 KiB。证明快照最长有效 30 秒，运行入口自身观察时间距外层签名观察最多 5 秒且自身有效期最多 15 秒。以单调时间和本地可信时限按更早边界判定。签名、来源、内容或刷新失败后等待新的可验证证明。
+
+运行证明对 `CredentialRunningIngressScope` 的规范摘要作独立确认。范围含环境、项目、组织、入口地址修订及摘要、治理代次和头、成功发布、快照哈希、部署序列及按节点 ID 排序的全部当前实例和节点身份。签名服务须查验受控入口及运行实例，且在声明的时间窗内保证旧进程、直接访问和其他旁路隔离。历史覆盖声明需包含完整清单和当前独立复核。租约期限须来自同一个外部账本的有序租约预留，包括丢失回复与退役实例。新期限的准备仍由独立账本原子复验。
+
+回执的 `FullyApplied` 要求独立日志的确切操作确认和当前头有效、原落账效果完整、每个原环境入口证据新鲜、全部运行目标具备同实例的不可变操作 ACK 及有效的已接受最新租约证明。停用环境须有现行的独立封存证据，原落账状态仍展示 `SealedNoIngressAtCommit`。部分目标具备全部证明时显示 `Partial`，证据缺失时按可证实状态显示 `Unconfirmed` 或 `Pending`。实例更替后旧 ACK 继续保留为历史事实。状态查询复核原操作范围，不将后续继承环境加入回执。
+
+### 正式轮换请求证明与历史初始化
+
+`GovernanceEvidenceExchangeProtocol` 为 `rotation-request-proof` 和 `legacy-environment-history` 使用分开的请求及响应签名域。固定端点接收含账本、随机数和类型化范围的 POST，返回由该请求摘要绑定的规范签名响应。连接、读取和大小限制沿用见证传输。
+
+- Gateway 经本节点独立客户端证书发送 `RotationProofs` 的 `submit`，端点依据证书限定环境、节点和允许的实例，持久保存证明后对该次请求返回签名确认。队列上限为 256 条，满载、服务不可达或进程中止时可能缺失证明，提交路径不等待网络。部署验收需覆盖正常和峰值流量下的独立证明可达性及两实例完整性。控制面和 Worker 用具备读取权限的证书发送 `observe`，独立服务返回该排程、替换凭证和当前实例范围内的证明。现有校验继续复核实际发布、路由方法、授权、请求完成结果和不可变租约。缺少证明时人工完成保持拒绝。
+- `LegacyInitializationHistory` 的 `open` 仅取得已经独立停写范围的持有引用，预览也可取得该引用。主动停止旧写入者由独立授权的外部运维流程先完成。端点原子绑定环境、账本、随机持有编号和客户端身份，再返回签名的 `Held`、清单及摘要。`check` 使用新挑战核对同一栅栏及清单摘要，`release` 仅允许原持有者释放同一编号。平台在本地事务确定已提交或已回滚后释放停写。提交或回滚结果不明时返回 `legacy_initialization_fence_retained`，并保留远端持有记录。运维须按日志中的环境和持有编号、账本及客户端身份定位同一记录，核对本地事务结果后再释放。释放只有在同一编号的签名回复为 `Released` 或 `Absent` 时才算确定。`Absent` 需同时保证该编号无法因迟到的 `open` 再建立。释放回复不明时记录环境和持有编号，已提交的初始化仍按已提交处理。平台仍在本地事务复查迁移来源、发布、全部已知实例、当前权限与预览摘要。
+
+交付验证覆盖固定 SDK 的隔离 PostgreSQL、实际宿主注册点和签名夹具。现场仍需提供独立服务、真实证书和密钥、外部入口和旧进程隔离、备份恢复记录、两台网关及实际客户端的联合验收。

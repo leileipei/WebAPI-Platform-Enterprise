@@ -32,7 +32,7 @@ internal sealed class FormalRotationDecisionMutation(GovernanceJournalId journal
         if (now >= scope.Row.HardDeadline) return new(rotationId, "Closed", null, null, []);
         try
         {
-            var (coverage, ledger, snapshot) = await ReadCoverageAsync(db, scope, now, ct);
+            var (coverage, ledger, snapshot, ingressExpiry) = await ReadCoverageAsync(db, scope, now, ct);
             RequireBeforeDeadline(scope, ledger, now, abortOperation: null);
             var verified = new HashSet<(Guid, Guid)>();
             if (proofs is not null)
@@ -41,7 +41,7 @@ internal sealed class FormalRotationDecisionMutation(GovernanceJournalId journal
                     scope.Schedule.RecordedAt, scope.Row.HardDeadline, coverage);
                 var supplied = await FormalRotationDecisionEvidence.ObserveAsync(proofs, observation, ct);
                 var checkedAt = await clock(db, ct);
-                if (checkedAt < now || checkedAt >= scope.Row.HardDeadline || coverage.Nodes.Any(x => x.FreshUntil <= checkedAt))
+                if (checkedAt < now || checkedAt >= scope.Row.HardDeadline || checkedAt >= ingressExpiry || coverage.Nodes.Any(x => x.FreshUntil <= checkedAt))
                     return new(rotationId, "Unavailable", null, null, []);
                 verified = await FormalRotationDecisionEvidence.ReadVerifiedTargetsAsync(db, scope.Schedule, coverage,
                     snapshot, scope.Replacement, checkedAt, supplied, ct);
@@ -62,7 +62,7 @@ internal sealed class FormalRotationDecisionMutation(GovernanceJournalId journal
     {
         var scope = await ReadScopeAsync(db, journal, previous, rotationId, ct);
         var now = await clock(db, ct);
-        var (coverage, ledger, snapshot) = await ReadCoverageAsync(db, scope, now, ct);
+        var (coverage, ledger, snapshot, ingressExpiry) = await ReadCoverageAsync(db, scope, now, ct);
         RequireBeforeDeadline(scope, ledger, now, abortOperation: null);
         if (await db.Set<FormalRotationDecision>().AnyAsync(x => x.ScheduleId == rotationId, ct))
             throw PostgresFormalRotationService.Changed();
@@ -75,6 +75,7 @@ internal sealed class FormalRotationDecisionMutation(GovernanceJournalId journal
                 scope.Schedule.RecordedAt, scope.Row.HardDeadline, coverage);
             completed = await FormalRotationDecisionEvidence.ObserveAsync(proofs, observation, ct);
             now = await clock(db, ct);
+            if (now >= ingressExpiry) throw PostgresFormalRotationPreparation.EvidenceUnavailable();
             RequireBeforeDeadline(scope, ledger, now, abortOperation: null);
             await FormalRotationDecisionEvidence.RequireSuccessfulRequestsAsync(db, scope.Schedule, coverage, snapshot,
                 scope.Replacement, now, completed, ct);
@@ -92,11 +93,11 @@ internal sealed class FormalRotationDecisionMutation(GovernanceJournalId journal
         var original = await ReadDecisionAsync(db, journal, previous, pending, ct);
         if (original.Decision != FormalRotationDecisionIntent.AbortRequested ||
             !FormalRotationJournalIntent.Instant(now) || now >= scope.Row.HardDeadline) return null;
-        var (coverage, ledger, _) = await ReadCoverageAsync(db, scope, now, ct);
+        var (coverage, ledger, _, ingressExpiry) = await ReadCoverageAsync(db, scope, now, ct);
         RequireBeforeDeadline(scope, ledger, now, pending.Id);
         var replacement = ledger.Revocations.Single(x => x.CredentialId == scope.Replacement.Id);
         var acks = await FormalRotationDecisionEvidence.ReadAbortAcksAsync(db, coverage, replacement, now, ct);
-        if (acks is null) return null;
+        if (acks is null || await clock(db, ct) >= ingressExpiry) return null;
         var operationId = AbortConfirmationId(journal, scope.Row.Id, pending.Id);
         var hash = Convert.ToHexStringLower(SHA256.HashData(SecuritySignedEncoding.Unsigned(
             "webapi.formal-rotation.abort-confirmation.v1", new { pending.Id, operationId })));
@@ -110,7 +111,7 @@ internal sealed class FormalRotationDecisionMutation(GovernanceJournalId journal
         var scope = await ReadScopeAsync(db, journal, intent.Previous, plan.ScheduleId, ct);
         RequireMatchingSchedule(scope.Schedule, scope.Row.IntentHash, plan);
         var now = await clock(db, ct);
-        var (coverage, ledger, snapshot) = await ReadCoverageAsync(db, scope, now, ct);
+        var (coverage, ledger, snapshot, ingressExpiry) = await ReadCoverageAsync(db, scope, now, ct);
         RequireBeforeDeadline(scope, ledger, now, plan.AbortOperationId);
         if (plan.RecordedAt > now || !MatchesCoverage(plan, coverage) ||
             coverage.Nodes.Any(node => node.FreshUntil - now <= BoundedWitnessHttpClient.RequestTimeout))
@@ -134,7 +135,8 @@ internal sealed class FormalRotationDecisionMutation(GovernanceJournalId journal
             await FormalRotationDecisionEvidence.RequireSuccessfulRequestsAsync(db, scope.Schedule, coverage, snapshot,
                 scope.Replacement, plan.RecordedAt, plan.RequestProofs, ct);
         var sampled = await clock(db, ct);
-        if (sampled < now || sampled >= plan.HardDeadline || coverage.Nodes.Any(node =>
+        if (sampled < now || sampled >= plan.HardDeadline || ingressExpiry - sampled <= BoundedWitnessHttpClient.RequestTimeout ||
+            coverage.Nodes.Any(node =>
             node.FreshUntil - sampled <= BoundedWitnessHttpClient.RequestTimeout)) throw PostgresFormalRotationService.Changed();
     }
 
@@ -221,12 +223,14 @@ internal sealed class FormalRotationDecisionMutation(GovernanceJournalId journal
         row.Id == intent.OperationId && row.ScheduleId == plan.ScheduleId && row.Kind == plan.Decision &&
         row.RecordedAt == plan.RecordedAt && row.IntentHash == FormalRotationJournalIntent.Hash(intent);
 
-    private async Task<(CredentialRevocationCoverageScope Coverage, SecurityLedgerMaterial Ledger, RuntimeSnapshot Snapshot)> ReadCoverageAsync(
+    private async Task<(CredentialRevocationCoverageScope Coverage, SecurityLedgerMaterial Ledger, RuntimeSnapshot Snapshot,
+        DateTimeOffset IngressExpiry)> ReadCoverageAsync(
         WebApiDbContext db, DecisionScope scope, DateTimeOffset now, CancellationToken ct)
     {
         var active = await CredentialRevocationMutation.ReadRunningCoverageAsync(db, scope.Old, scope.Environment, now, ct);
-        if (!ingress.IsVerified(active.Coverage)) throw PostgresFormalRotationPreparation.EvidenceUnavailable();
-        return active;
+        var expiry = CredentialRunningIngress.VerifiedUntil(ingress, active.Coverage, active.Ingress, now);
+        if (expiry is null || expiry <= now) throw PostgresFormalRotationPreparation.EvidenceUnavailable();
+        return (active.Coverage, active.Ledger, active.Snapshot, expiry.Value);
     }
 
     private static void RequireBeforeDeadline(DecisionScope scope, SecurityLedgerMaterial ledger, DateTimeOffset now, Guid? abortOperation)

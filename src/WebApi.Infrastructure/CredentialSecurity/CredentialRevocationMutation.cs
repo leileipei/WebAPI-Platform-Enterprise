@@ -5,11 +5,9 @@ using WebApi.Contracts.Common;
 using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Security;
 using WebApi.Domain.CredentialSecurity;
-using WebApi.Infrastructure.Gateway;
 using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
-using WebApi.Infrastructure.Releases;
 using WebApi.Infrastructure.Security;
 
 namespace WebApi.Infrastructure.CredentialSecurity;
@@ -183,6 +181,7 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
         DateTimeOffset now, TimeSpan minimumRemaining, CancellationToken ct)
     {
         var scopes = new List<CredentialRevocationEnvironmentIntent>(resource.Environments.Length);
+        var ingressExpiry = DateTimeOffset.MaxValue;
         if (await db.Set<SecurityOperation>().AnyAsync(o => o.Kind == "CredentialRevoke" && o.CredentialId == resource.Credential.Id, ct))
             throw new ApiException(409, "credential_revocation_changed", "已有安全撤销或账本范围不一致。");
         foreach (var environment in resource.Environments)
@@ -194,20 +193,23 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
             }
             else
             {
-                var (scope, _, _) = await ReadRunningCoverageAsync(db, resource.Credential, environment, now, ct);
-                if (!coverage.IsVerified(scope)) throw CoverageUnavailable();
+                var (scope, _, _, ingress) = await ReadRunningCoverageAsync(db, resource.Credential, environment, now, ct);
+                var bound = CredentialRunningIngress.VerifiedUntil(coverage, scope, ingress, now) ?? throw CoverageUnavailable();
+                if (bound < ingressExpiry) ingressExpiry = bound;
                 scopes.Add(new(environment.AuthorizationRevision, scope, []));
             }
         }
         // A witness preparation remains durable after a timeout. Require fresh
         // exact coverage throughout the budget before preparing it.
         var finalSample = await SecurityDatabaseClock.ObserveAsync(db, ct);
-        if (finalSample < now || scopes.Any(item => item.FreshUntil - finalSample <= minimumRemaining))
+        if (finalSample < now || ingressExpiry - finalSample <= minimumRemaining ||
+            scopes.Any(item => item.FreshUntil - finalSample <= minimumRemaining))
             throw CoverageUnavailable();
         return [.. scopes];
     }
 
-    internal static async Task<(CredentialRevocationCoverageScope Coverage, SecurityLedgerMaterial Ledger, RuntimeSnapshot Snapshot)>
+    internal static async Task<(CredentialRevocationCoverageScope Coverage, SecurityLedgerMaterial Ledger, RuntimeSnapshot Snapshot,
+        CredentialRunningIngressScope Ingress)>
         ReadRunningCoverageAsync(WebApiDbContext db, ApplicationCredential credential, EnvironmentRecord env, DateTimeOffset now, CancellationToken ct)
     {
         SecurityLedgerMaterial ledger;
@@ -216,20 +218,7 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
         if (ledger.OrganizationId != credential.OrganizationId || ledger.ProjectId != env.ProjectId ||
             ledger.Revocations.Any(r => r.CredentialId == credential.Id))
             throw new ApiException(409, "credential_revocation_changed", "已有安全撤销或账本范围不一致。");
-        var deployment = await new RunningDeploymentReader(db, new HistoricalSnapshotService(db, new ScopeResolver(db))).ReadAsync(env.Id, null, ct);
-        var published = deployment.Snapshot.Snapshot;
-        if (published.SchemaVersion != "2.4" || published.RequiredSecurityGeneration != ledger.SecurityGeneration ||
-            published.RequiredSecurityEpoch is not long publishedEpoch || publishedEpoch > ledger.Epoch ||
-            published.MinimumSnapshotSchema != ledger.MinimumSnapshotSchema || published.RequireEnvironmentCredentials != ledger.RequireEnvironmentCredentials)
-            throw CoverageUnavailable();
-        var nodes = await db.Set<GatewayNode>().AsNoTracking().Where(x => x.EnvironmentId == env.Id && x.Enabled).ToArrayAsync(ct);
-        var grace = TimeSpan.FromSeconds(new PublishSettings().HeartbeatGraceSeconds);
-        if (env.DesiredConfigVersion is not > 0 || env.DeploymentSequence <= 0 || nodes.Length < 2 || nodes.Any(n =>
-            n.Status != "Ready" || n.CurrentConfigVersion != env.DesiredConfigVersion || n.CurrentDeploymentSequence != env.DeploymentSequence ||
-            !Guid.TryParse(n.InstanceId, out var instance) || instance == Guid.Empty ||
-            !SecuritySignedEncoding.HexHash(n.IdentityHash) || n.LastHeartbeatAt is not DateTimeOffset heartbeat || heartbeat > now || now - heartbeat > grace))
-            throw CoverageUnavailable();
-        SnapshotSchemaCapabilities.RequireSupported(nodes, "2.4");
+        var (ingress, published) = await CredentialRunningIngress.ReadAsync(db, env.Id, ledger, now, ct);
         var proven = await (from receipt in db.Set<GatewaySecurityCurrentReceipt>().AsNoTracking()
                             join lease in db.Set<GatewaySecurityLease>().AsNoTracking() on receipt.LeaseId equals lease.LeaseId
                             join issuance in db.Set<GatewaySecurityLeaseIssuance>().AsNoTracking() on receipt.LeaseId equals issuance.LeaseId
@@ -248,13 +237,10 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
                                 !db.Set<GatewaySecurityLeaseExpiryObservation>().Any(x => x.LeaseId == receipt.LeaseId)
                             select new CredentialRevocationNode(receipt.NodeId, receipt.InstanceId, receipt.LeaseId, issuance.PayloadHash,
                                 receipt.CheckpointHash, receipt.FreshUntil, lease.LastIssuedLeaseUntil)).ToArrayAsync(ct);
-        var targets = nodes.OrderBy(n => n.Id).Select(n =>
-        {
-            var instance = Guid.Parse(n.InstanceId);
-            return proven.SingleOrDefault(l => l.NodeId == n.Id && l.InstanceId == instance) ?? throw CoverageUnavailable();
-        }).ToArray();
+        var targets = ingress.Instances.Select(n => proven.SingleOrDefault(l => l.NodeId == n.NodeId && l.InstanceId == n.InstanceId)
+            ?? throw CoverageUnavailable()).ToArray();
         return (new(ledger.OrganizationId, ledger.ProjectId, env.Id, ledger.SecurityGeneration, ledger.Epoch, ledger.HeadHash,
-            deployment.Release.Id, deployment.Snapshot.Hash, env.DeploymentSequence, env.DesiredConfigVersion.Value, targets), ledger, published);
+            ingress.ReleaseId, ingress.SnapshotHash, ingress.DeploymentSequence, ingress.ConfigVersion, targets), ledger, published, ingress);
     }
 
     public Task<bool> VerifyAsync(WebApiDbContext db, GovernanceWriteIntent intent, CancellationToken ct) => VerifyCommittedAsync(db, intent, ct);

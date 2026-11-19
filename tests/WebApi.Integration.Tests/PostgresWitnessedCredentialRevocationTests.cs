@@ -1,3 +1,12 @@
+using System.Net;
+using System.Net.Http.Json;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using WebApi.ControlPlane;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using System.Security.Cryptography;
@@ -24,6 +33,324 @@ namespace WebApi.Integration.Tests;
 
 public sealed class PostgresWitnessedCredentialRevocationTests
 {
+    [Theory]
+    [InlineData("all", "FullyApplied", 2)]
+    [InlineData("one-ack", "Partial", 1)]
+    [InlineData("no-acks", "Unconfirmed", 0)]
+    [InlineData("missing-exact-confirmation", "Unconfirmed", 0)]
+    [InlineData("wrong-journal", "Unconfirmed", 0)]
+    [InlineData("wrong-environment-history", "Unconfirmed", 0)]
+    [InlineData("missing-ingress", "Unconfirmed", 0)]
+    [InlineData("expired-ingress", "Unconfirmed", 0)]
+    [InlineData("replaced-instance", "Unconfirmed", 0)]
+    public async Task PublicRevocationRequiresExactJournalCurrentIngressAndPerInstanceEvidence(string scenario,
+        string expectedStatus, int applied)
+    {
+        await using var fixture = await Fixture.StartAsync();
+        var committed = await fixture.RevokeAsync();
+        await fixture.ApplyAbortProofsAsync(committed.OperationId, scenario switch { "one-ack" => 1, "no-acks" => 0, _ => 2 });
+        await using var db = fixture.Database.Context();
+        var current = await new SecurityLedgerReader(db).ReadCompleteAsync(fixture.EnvironmentId);
+        var origin = await db.Set<EnvironmentSecurityInitialization>().AsNoTracking().SingleAsync();
+        var initialization = GovernanceEnvironmentHistoryProtocol.InitializationHash(new(origin.EnvironmentId, origin.ProjectId,
+            origin.OrganizationId, origin.State, origin.EvidenceHash, origin.FreshProofId, origin.ConfirmedBy, origin.ConfirmedAt,
+            origin.ConfirmationReason, origin.Revision));
+        var checkpoint = new GovernanceEnvironmentHistoryCheckpoint(current.OrganizationId, current.ProjectId, current.SecurityGeneration,
+            current.Epoch, scenario == "wrong-environment-history" ? new string('b', 64) : current.HeadHash, initialization,
+            current.RequireEnvironmentCredentials, current.MinimumSnapshotSchema, current.InitialRequireEnvironmentCredentials);
+        var journal = scenario == "wrong-journal" ? fixture.Journal with { Generation = Guid.NewGuid() } : fixture.Journal;
+        fixture.Witness.HideOperationConfirmation = scenario == "missing-exact-confirmation";
+        var ingress = new ReceiptIngress(scenario switch
+        {
+            "missing-ingress" => null,
+            "expired-ingress" => DateTimeOffset.UtcNow.AddSeconds(-1),
+            _ => DateTimeOffset.UtcNow.AddSeconds(20)
+        });
+        if (scenario == "replaced-instance")
+        {
+            var node = await db.Set<GatewayNode>().OrderBy(x => x.Id).FirstAsync();
+            node.InstanceId = Guid.NewGuid().ToString();
+            node.Metadata = null;
+            node.Status = "NotReady";
+            node.CurrentConfigVersion = node.CurrentDeploymentSequence = 0;
+            await db.SaveChangesAsync();
+        }
+
+        var evidence = new PostgresRevocationReceiptEvidence(journal, fixture.Witness, new ReceiptHistory(checkpoint), ingress);
+        var reader = new SecurityOperationStatusReader(db, evidence);
+        var receipt = await reader.ReadRevocationAsync(committed.OperationId, fixture.Actor, (_, _) => Task.CompletedTask);
+        Assert.Equal(expectedStatus, receipt.Status);
+        Assert.Equal(applied, receipt.Targets.Count(target => target.State == "Applied"));
+        Assert.DoesNotContain(receipt.Targets, target => target.State == "SafeSuperseded");
+        if (expectedStatus == "FullyApplied") Assert.Empty(receipt.CoverageGaps!);
+        if (expectedStatus == "Unconfirmed")
+            Assert.All(receipt.Targets, target => Assert.Equal("Pending", target.State));
+    }
+
+    [Theory]
+    [InlineData("unchanged")]
+    [InlineData("changed-cohort")]
+    [InlineData("changed-head")]
+    [InlineData("revoked-permission")]
+    [InlineData("journal-pending")]
+    [InlineData("witness-timeout")]
+    public async Task PublicReceiptRechecksAuthorizedFactsAfterUnfencedWitnessIo(string scenario)
+    {
+        await using var fixture = await Fixture.StartAsync();
+        var committed = await fixture.RevokeAsync();
+        await fixture.ApplyAbortProofsAsync(committed.OperationId, 2);
+        await using var db = fixture.Database.Context();
+        var checkpoint = await ReceiptCheckpointAsync(db, fixture.EnvironmentId);
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var released = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        async Task WaitForChangeAsync(CancellationToken ct)
+        {
+            entered.TrySetResult();
+            await released.Task.WaitAsync(ct);
+            if (scenario == "witness-timeout") throw new OperationCanceledException("Fixture witness timed out.");
+        }
+        var history = new ReceiptHistory(checkpoint, scenario is "revoked-permission" or "journal-pending" ? null : WaitForChangeAsync);
+        if (scenario is "revoked-permission" or "journal-pending") fixture.Witness.BeforeObserve = WaitForChangeAsync;
+        var evidence = new PostgresRevocationReceiptEvidence(fixture.Journal, fixture.Witness, history,
+            new ReceiptIngress(DateTimeOffset.MaxValue));
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var poll = new SecurityOperationStatusReader(db, evidence).ReadRevocationAsync(committed.OperationId, fixture.Actor,
+            (_, _) => Task.CompletedTask, timeout.Token);
+        try
+        {
+            await entered.Task.WaitAsync(timeout.Token);
+            Assert.Null(db.Database.CurrentTransaction);
+            await using var writer = fixture.Database.Context();
+            await using var tx = await writer.Database.BeginTransactionAsync(timeout.Token);
+            Assert.True(await writer.Database.SqlQueryRaw<bool>(
+                "SELECT pg_catalog.pg_try_advisory_xact_lock(8901202) AS \"Value\"").SingleAsync(timeout.Token));
+            if (scenario == "changed-cohort")
+            {
+                var node = await writer.Set<GatewayNode>().OrderBy(x => x.Id).FirstAsync(timeout.Token);
+                node.InstanceId = Guid.NewGuid().ToString();
+                node.Metadata = null;
+                node.Status = "NotReady";
+                node.CurrentConfigVersion = node.CurrentDeploymentSequence = 0;
+                await writer.SaveChangesAsync(timeout.Token);
+            }
+            if (scenario == "changed-head")
+            {
+                var state = await writer.Set<EnvironmentSecurityState>().SingleAsync(timeout.Token);
+                var now = await SecurityDatabaseClock.ObserveAsync(writer, timeout.Token);
+                var operation = new SecurityOperation { Kind = "EnvironmentPolicyCutover", OrganizationId = state.OrganizationId,
+                    RequestedBy = fixture.Actor.UserId, CommittedAt = now, Reason = "Isolated receipt fixture" };
+                var next = new SecurityEvent { OperationId = operation.Id, EnvironmentId = state.EnvironmentId, ProjectId = state.ProjectId,
+                    OrganizationId = state.OrganizationId, SecurityGeneration = state.SecurityGeneration, Epoch = state.Epoch + 1,
+                    EventType = "EnvironmentPolicyChanged", PolicyJson = "{\"requireEnvironmentCredentials\":false,\"minimumSnapshotSchema\":\"2.4\"}",
+                    PreviousHash = state.HeadHash, OccurredAt = now };
+                next.EventHash = SecurityEventHash.Compute(next);
+                state.Epoch = next.Epoch;
+                state.HeadHash = next.EventHash;
+                state.MinimumSnapshotSchema = "2.4";
+                state.Revision++;
+                writer.AddRange(operation, next);
+                await writer.SaveChangesAsync(timeout.Token);
+            }
+            if (scenario == "revoked-permission")
+                await writer.Set<RolePermission>().Where(x => x.PermissionId == fixture.RevokePermission).ExecuteDeleteAsync(timeout.Token);
+            if (scenario == "journal-pending")
+                fixture.Witness.PrepareAdditionalOperation();
+            await tx.CommitAsync(timeout.Token);
+        }
+        finally { released.TrySetResult(); }
+
+        if (scenario == "revoked-permission")
+        {
+            var error = await Assert.ThrowsAsync<ApiException>(() => poll);
+            Assert.Equal(403, error.Status);
+        }
+        else
+        {
+            var result = await poll;
+            Assert.Equal(scenario == "unchanged" ? "FullyApplied" : "Unconfirmed", result.Status);
+        }
+        Assert.Null(db.Database.CurrentTransaction);
+        Assert.Equal(1, await db.Database.SqlQueryRaw<int>("SELECT 1 AS \"Value\"").SingleAsync());
+    }
+
+    [Theory]
+    [InlineData("deadline")]
+    [InlineData("complete")]
+    [InlineData("abort")]
+    public async Task FormalRotationRevocationsUseTheSameExactAndCurrentReceiptProof(string scenario)
+    {
+        await using var fixture = await Fixture.StartAsync(includeCredentialInPublication: true, publishReplacement: scenario == "complete");
+        var request = await PrepareFormalRotationAsync(fixture);
+        DateTimeOffset? deadline = null;
+        var service = fixture.RotationService((db, ct) => deadline is { } at ? Task.FromResult(at) : SecurityDatabaseClock.ObserveAsync(db, ct),
+            new TestSuccessfulRequests(fixture.ProofRouteId, fixture.ProofApplicationId, "correct"));
+        var schedule = await service.ConfirmAsync(fixture.CredentialId, request, "\"1\"", new("receipt-rotation"), fixture.Actor);
+        Guid operation;
+        if (scenario == "deadline")
+        {
+            deadline = request.Window.HardDeadline;
+            fixture.Witness.FormalNow = deadline;
+            Assert.Equal(1, await service.RevokeDueAsync());
+            operation = (await service.ReadAsync(schedule.RotationId, fixture.Actor)).RevocationOperationId!.Value;
+        }
+        else
+        {
+            var decision = scenario == "complete"
+                ? await service.CompleteAsync(schedule.RotationId, new(true, "credential_retired"), "\"1\"", new("receipt-complete"), fixture.Actor)
+                : await service.AbortAsync(schedule.RotationId, new(true, "owner_request"), "\"1\"", new("receipt-abort"), fixture.Actor);
+            operation = (decision.RevocationOperationId ?? decision.AbortRevocationOperationId)!.Value;
+            await fixture.ApplyAbortProofsAsync(operation, 2);
+        }
+
+        await using var db = fixture.Database.Context();
+        var checkpoint = await ReceiptCheckpointAsync(db, fixture.EnvironmentId);
+        var evidence = new PostgresRevocationReceiptEvidence(fixture.Journal, fixture.Witness, new ReceiptHistory(checkpoint),
+            new ReceiptIngress(DateTimeOffset.MaxValue));
+        var reader = new SecurityOperationStatusReader(db, evidence);
+        var receipt = await reader.ReadRevocationAsync(operation, fixture.Actor, (_, _) => Task.CompletedTask);
+        Assert.Equal(scenario == "abort" ? schedule.ReplacementCredentialId : fixture.CredentialId, receipt.CredentialId);
+        Assert.Equal(checkpoint.HeadHash, Assert.Single(receipt.Environments).HeadHash);
+        Assert.Empty(receipt.CoverageGaps!);
+        // The deadline uses a fixture business clock. There are no current signed ACKs for it.
+        Assert.Equal(scenario == "deadline" ? "Unconfirmed" : "FullyApplied", receipt.Status);
+
+        fixture.Witness.HideOperationConfirmation = true;
+        var unconfirmed = await reader.ReadRevocationAsync(operation, fixture.Actor, (_, _) => Task.CompletedTask);
+        Assert.Equal("Unconfirmed", unconfirmed.Status);
+        Assert.Contains(unconfirmed.CoverageGaps!, item => item.Reason == "independent_coverage_unverified");
+    }
+
+    private static async Task<GovernanceEnvironmentHistoryCheckpoint> ReceiptCheckpointAsync(WebApiDbContext db, Guid environment)
+    {
+        var ledger = await new SecurityLedgerReader(db).ReadCompleteAsync(environment);
+        var origin = await db.Set<EnvironmentSecurityInitialization>().AsNoTracking().SingleAsync(row => row.EnvironmentId == environment);
+        var initialization = GovernanceEnvironmentHistoryProtocol.InitializationHash(new(origin.EnvironmentId, origin.ProjectId,
+            origin.OrganizationId, origin.State, origin.EvidenceHash, origin.FreshProofId, origin.ConfirmedBy, origin.ConfirmedAt,
+            origin.ConfirmationReason, origin.Revision));
+        return new(ledger.OrganizationId, ledger.ProjectId, ledger.SecurityGeneration, ledger.Epoch, ledger.HeadHash, initialization,
+            ledger.RequireEnvironmentCredentials, ledger.MinimumSnapshotSchema, ledger.InitialRequireEnvironmentCredentials);
+    }
+
+    [Fact]
+    public async Task PublishedReceiptRoutePreservesOriginalAuthorizationAndExcludesLaterInheritedEnvironments()
+    {
+        await using var fixture = await Fixture.StartAsync(global: true, archived: true);
+        fixture.Archive.Approved = true;
+        var operation = (await fixture.RevokeAsync()).OperationId;
+        var inherited = await fixture.AddInheritedEnvironmentAsync();
+        var password = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+        var checkpoints = new Dictionary<Guid, GovernanceEnvironmentHistoryCheckpoint>();
+        await using (var db = fixture.Database.Context())
+        {
+            var user = await db.Set<UserRecord>().SingleAsync(x => x.Id == fixture.Actor.UserId);
+            user.PasswordHash = new PasswordHasher<UserRecord>().HashPassword(user, password);
+            user.SecurityStamp = Guid.NewGuid().ToString("N");
+            await db.SaveChangesAsync();
+            foreach (var env in fixture.EnvironmentIds)
+            {
+                var material = await new SecurityLedgerReader(db).ReadCompleteAsync(env);
+                var origin = await db.Set<EnvironmentSecurityInitialization>().AsNoTracking().SingleAsync(x => x.EnvironmentId == env);
+                var initialization = GovernanceEnvironmentHistoryProtocol.InitializationHash(new(origin.EnvironmentId, origin.ProjectId,
+                    origin.OrganizationId, origin.State, origin.EvidenceHash, origin.FreshProofId, origin.ConfirmedBy, origin.ConfirmedAt,
+                    origin.ConfirmationReason, origin.Revision));
+                checkpoints.Add(env, new(material.OrganizationId, material.ProjectId, material.SecurityGeneration, material.Epoch,
+                    material.HeadHash, initialization, material.RequireEnvironmentCredentials, material.MinimumSnapshotSchema,
+                    material.InitialRequireEnvironmentCredentials));
+            }
+        }
+
+        var evidenceCalls = 0;
+        var transport = new PostgresRevocationReceiptEvidence(fixture.Journal, fixture.Witness,
+            new RoutedHistory(checkpoints, () => evidenceCalls++), new ReceiptIngress(DateTimeOffset.MaxValue), fixture.Archive);
+        var directory = Directory.CreateTempSubdirectory("webapi-receipt-http-");
+        try
+        {
+            await using var app = ControlPlaneApp.Build(["--environment", "Development"], builder =>
+            {
+                builder.WebHost.UseUrls("http://127.0.0.1:0");
+                builder.Configuration["ConnectionStrings:WebApi"] = fixture.Database.ConnectionString;
+                builder.Configuration["VerificationReports:Directory"] = directory.FullName;
+                builder.Logging.ClearProviders();
+                LoginProtectionTestConfiguration.Apply(builder, directory.FullName, Guid.NewGuid().ToString("N"));
+                builder.Services.AddSingleton(transport);
+            });
+            await app.StartAsync();
+            using var client = new HttpClient(new HttpClientHandler
+            {
+                CookieContainer = new(), AllowAutoRedirect = false
+            }) { BaseAddress = new Uri(app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single()) };
+            var csrf = await client.GetFromJsonAsync<Dictionary<string, string>>("/api/v1/auth/csrf");
+            using var loginRequest = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/login")
+            {
+                Content = JsonContent.Create(new { username = "isolated-operator", password })
+            };
+            loginRequest.Headers.Add("X-CSRF-Token", csrf!["token"]);
+            using (var login = await client.SendAsync(loginRequest)) login.EnsureSuccessStatusCode();
+            await fixture.ApplyAbortProofsAsync(operation, 2);
+
+            var path = $"/api/v1/credential-revocations/{operation}";
+            using (var response = await client.GetAsync(path))
+            {
+                response.EnsureSuccessStatusCode();
+                Assert.True(response.Headers.CacheControl?.NoStore);
+                var receipt = (await response.Content.ReadFromJsonAsync<RevocationOperationDto>())!;
+                Assert.Equal("FullyApplied", receipt.Status);
+                Assert.Equal(fixture.EnvironmentIds.Order(), receipt.Environments.Select(x => x.EnvironmentId));
+                Assert.All(receipt.Targets, target => Assert.Equal(fixture.EnvironmentId, target.EnvironmentId));
+                var wire = await response.Content.ReadAsStringAsync();
+                Assert.DoesNotContain(inherited.ToString(), wire);
+                Assert.DoesNotContain("isolated-access-key", wire);
+            }
+            Assert.Equal(2, evidenceCalls);
+
+            fixture.Archive.Approved = false;
+            using (var response = await client.GetAsync(path))
+            {
+                response.EnsureSuccessStatusCode();
+                var receipt = (await response.Content.ReadFromJsonAsync<RevocationOperationDto>())!;
+                Assert.Equal("Partial", receipt.Status);
+                Assert.Contains(receipt.CoverageGaps!, gap => gap.EnvironmentId == fixture.EnvironmentIds[1]);
+            }
+
+            await using (var db = fixture.Database.Context())
+                await db.Set<RolePermission>().Where(x => x.PermissionId == fixture.RevokePermission).ExecuteDeleteAsync();
+            using var denied = await client.GetAsync(path);
+            Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+            var denial = await denied.Content.ReadAsStringAsync();
+            Assert.DoesNotContain(fixture.EnvironmentIds[1].ToString(), denial);
+            Assert.DoesNotContain(inherited.ToString(), denial);
+            Assert.Equal(4, evidenceCalls);
+        }
+        finally { directory.Delete(recursive: true); }
+    }
+
+    private sealed class RoutedHistory(IReadOnlyDictionary<Guid, GovernanceEnvironmentHistoryCheckpoint> checkpoints, Action observe)
+        : IGovernanceEnvironmentHistoryWitness
+    {
+        public Task<GovernanceEnvironmentHistory> ObserveAsync(GovernanceJournalId journal, GovernanceJournalPosition position,
+            Guid environmentId, CancellationToken ct)
+        {
+            observe();
+            return Task.FromResult(new GovernanceEnvironmentHistory(journal, position, environmentId, "Confirmed", checkpoints[environmentId]));
+        }
+    }
+
+    private sealed class ReceiptIngress(DateTimeOffset? validUntil) : ICredentialRunningIngressWitness
+    {
+        public DateTimeOffset? VerifiedUntil(CredentialRunningIngressScope scope, DateTimeOffset now) => validUntil;
+    }
+
+    private sealed class ReceiptHistory(GovernanceEnvironmentHistoryCheckpoint checkpoint, Func<CancellationToken, Task>? beforeObserve = null)
+        : IGovernanceEnvironmentHistoryWitness
+    {
+        public async Task<GovernanceEnvironmentHistory> ObserveAsync(GovernanceJournalId journal, GovernanceJournalPosition position,
+            Guid environmentId, CancellationToken ct)
+        {
+            if (beforeObserve is not null) await beforeObserve(ct);
+            return new(journal, position, environmentId, "Confirmed", checkpoint);
+        }
+    }
+
     [Theory]
     [InlineData("prepare-reply-lost")]
     [InlineData("commit-before-confirm")]
@@ -1118,8 +1445,8 @@ public sealed class PostgresWitnessedCredentialRevocationTests
             await using var db = Database.Context();
             var targets = await db.Set<SecurityOperationTarget>().AsNoTracking().Where(x => x.OperationId == operation).OrderBy(x => x.NodeId).ToArrayAsync();
             Assert.Equal(2, targets.Length);
-            var state = await db.Set<EnvironmentSecurityState>().AsNoTracking().SingleAsync();
-            var fact = await db.Set<SecurityEvent>().AsNoTracking().SingleAsync(x => x.OperationId == operation);
+            var state = await db.Set<EnvironmentSecurityState>().AsNoTracking().SingleAsync(x => x.EnvironmentId == EnvironmentId);
+            var fact = await db.Set<SecurityEvent>().AsNoTracking().SingleAsync(x => x.OperationId == operation && x.EnvironmentId == EnvironmentId);
             using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             const string keyId = "isolated-abort-signer";
             var signer = new SecurityCheckpointSigner(keyId, key.ExportPkcs8PrivateKeyPem());
@@ -1289,6 +1616,8 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         public GovernanceWriteIntent? Pending { get; private set; }
         public Guid? Operation { get; private set; }
         public string? Fault { get; set; }
+        public bool HideOperationConfirmation { get; set; }
+        public Func<CancellationToken, Task>? BeforeObserve { get; set; }
         public DateTimeOffset? FormalNow { get; set; }
         public DateTimeOffset? LatestFormalAllowExpiry { get; set; }
         public int Preparations { get; private set; }
@@ -1298,9 +1627,15 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         public int FormalRevocationPreparations { get; private set; }
         public int ManualPreparations { get; private set; }
 
-        public Task<GovernanceWitnessState> ObserveAsync(GovernanceJournalId journal, Guid? operationId, CancellationToken ct)
+        public async Task<GovernanceWitnessState> ObserveAsync(GovernanceJournalId journal, Guid? operationId, CancellationToken ct)
         {
-            lock (sync) return Task.FromResult(Observe(operationId));
+            if (BeforeObserve is { } before) await before(ct);
+            lock (sync) return Observe(operationId);
+        }
+
+        public void PrepareAdditionalOperation()
+        {
+            lock (sync) Prepare(new(Guid.NewGuid(), position, "YQ"));
         }
 
         public Task<GovernanceWitnessState> PrepareAsync(GovernanceJournalId journal, GovernanceWriteIntent intent, CancellationToken ct)
@@ -1408,6 +1743,6 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         }
 
         private GovernanceWitnessState Observe(Guid? operationId) =>
-            new(position, Pending, operationId is Guid id ? confirmations.GetValueOrDefault(id) : null);
+            new(position, Pending, !HideOperationConfirmation && operationId is Guid id ? confirmations.GetValueOrDefault(id) : null);
     }
 }

@@ -181,7 +181,7 @@ internal static class CredentialGovernanceEndpoints
     {
         context.Response.Headers.CacheControl = "no-store";
         var actor = context.Actor();
-        var result = await new SecurityOperationStatusReader(db).ReadRevocationAsync(id, actor,
+        var result = await new SecurityOperationStatusReader(db, context.RequestServices.GetService<PostgresRevocationReceiptEvidence>()).ReadRevocationAsync(id, actor,
             RequireCurrentSession(context.User, actor), ct);
         return Results.Ok(result);
     }

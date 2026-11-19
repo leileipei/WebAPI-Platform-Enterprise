@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using WebApi.Domain.CredentialSecurity;
@@ -13,6 +14,9 @@ public sealed record IndependentGovernanceWitnessOptions
     public IndependentWitnessRole? TimeEvidence { get; init; }
     public IndependentWitnessRole? HistoryEvidence { get; init; }
     public IndependentWitnessRole? RecoveryHistory { get; init; }
+    public IndependentWitnessRole? DeploymentEvidence { get; init; }
+    public IndependentWitnessRole? RotationProofs { get; init; }
+    public IndependentWitnessRole? LegacyInitializationHistory { get; init; }
     public IndependentWitnessRole? GovernanceJournal { get; init; }
     public GovernanceJournalId? JournalId { get; init; }
 }
@@ -27,20 +31,28 @@ public sealed class IndependentGovernanceWitnessClients : IFormalRotationJournal
     private readonly IndependentEvidenceTrust evidenceTrust;
     private readonly GovernanceJournalHttpWitness journal;
     private readonly GovernanceEnvironmentHistoryHttpWitness? recoveryHistory;
+    internal FormalRotationProofHttpWitness? RotationProofWitness { get; }
+    internal GovernanceProofHttpTransport? LegacyHistoryTransport { get; }
 
     public GovernanceJournalId JournalId { get; }
+    public SecurityLeaseEvidenceSources LeaseEvidenceSources { get; }
     public IGovernanceJournalWitness JournalWitness => this;
     public IGovernanceLeaseReservationWitness LeaseReservationWitness => this;
     public IFormalRotationJournalWitness FormalRotationWitness => this;
     public IGovernanceEnvironmentHistoryWitness? RecoveryHistoryWitness => recoveryHistory is null ? null : this;
 
     private IndependentGovernanceWitnessClients(IndependentEvidenceHttpClient evidence, IndependentEvidenceTrust evidenceTrust,
-        GovernanceJournalHttpWitness journal, GovernanceJournalId journalId, GovernanceEnvironmentHistoryHttpWitness? recoveryHistory)
+        GovernanceJournalHttpWitness journal, GovernanceJournalId journalId, GovernanceEnvironmentHistoryHttpWitness? recoveryHistory,
+        FormalRotationProofHttpWitness? rotationProofWitness, GovernanceProofHttpTransport? legacyHistoryTransport,
+        IReadOnlySet<string> independentPublicKeys)
     {
         this.evidence = evidence;
         this.evidenceTrust = evidenceTrust;
+        LeaseEvidenceSources = new(evidence, evidence, evidenceTrust, independentPublicKeys);
         this.journal = journal;
         this.recoveryHistory = recoveryHistory;
+        RotationProofWitness = rotationProofWitness;
+        LegacyHistoryTransport = legacyHistoryTransport;
         JournalId = journalId;
     }
 
@@ -57,33 +69,41 @@ public sealed class IndependentGovernanceWitnessClients : IFormalRotationJournal
         var (write, writeKey) = RequireRole(options.GovernanceJournal, nameof(options.GovernanceJournal));
         var recovery = options.RecoveryHistory;
         var recoveryKey = recovery is null ? (ECPoint?)null : RequireRole(recovery, nameof(options.RecoveryHistory)).PublicPoint;
+        var deploymentKey = options.DeploymentEvidence is null ? (ECPoint?)null : RequireDeploymentRole(options).PublicPoint;
+        var rotation = options.RotationProofs;
+        var rotationKey = rotation is null ? (ECPoint?)null : RequireDedicatedRole(rotation, nameof(options.RotationProofs),
+            options.TimeEvidence, options.HistoryEvidence, options.GovernanceJournal, recovery, options.LegacyInitializationHistory).PublicPoint;
+        var legacy = options.LegacyInitializationHistory;
+        var legacyKey = legacy is null ? (ECPoint?)null : RequireDedicatedRole(legacy, nameof(options.LegacyInitializationHistory),
+            options.TimeEvidence, options.HistoryEvidence, options.GovernanceJournal, recovery).PublicPoint;
         if (options.JournalId is not { } journalId || journalId.AuthorityId == Guid.Empty || journalId.Generation == Guid.Empty)
             throw new ArgumentException("The journal authority and generation are required.", nameof(options.JournalId));
 
-        // The time and history requests have the same body, so their addresses must distinguish them.
-        if (string.Equals(time.Endpoint.IdnHost, history.Endpoint.IdnHost, StringComparison.OrdinalIgnoreCase) &&
-            time.Endpoint.Port == history.Endpoint.Port && time.Endpoint.AbsolutePath == history.Endpoint.AbsolutePath)
-            throw new ArgumentException("Time and history evidence require distinct endpoints.", nameof(options));
-        if (SameKey(timeKey, historyKey) || SameKey(timeKey, writeKey) || recoveryKey is { } key && SameKey(timeKey, key))
+        var evidenceTrust = RequireEvidenceTrust(time, timeKey, history, historyKey);
+        if (SameKey(timeKey, writeKey) || recoveryKey is { } key && SameKey(timeKey, key))
             throw new ArgumentException("The time evidence signing key must be dedicated to that role.", nameof(options.TimeEvidence));
 
         ArgumentNullException.ThrowIfNull(writerCertificate);
-        RequireWriterCertificate(writerCertificate, timeKey, historyKey, writeKey, recoveryKey);
+        RequireWriterCertificate(writerCertificate, timeKey, historyKey, writeKey, recoveryKey, deploymentKey, rotationKey, legacyKey);
 
-        var evidenceTrust = new IndependentEvidenceTrust(time.SourceId, time.KeyId, time.SubjectPublicKeyInfoBase64,
-            history.SourceId, history.KeyId, history.SubjectPublicKeyInfoBase64);
         var journalTrust = new GovernanceWitnessTrust(write.SourceId, write.KeyId, write.SubjectPublicKeyInfoBase64);
         var evidence = new IndependentEvidenceHttpClient(time.Endpoint, history.Endpoint);
         GovernanceEnvironmentHistoryHttpWitness? recoveryHistory = null;
+        FormalRotationProofHttpWitness? rotationProofs = null;
+        GovernanceProofHttpTransport? legacyTransport = null;
         try
         {
             if (recovery is not null)
                 recoveryHistory = new(recovery.Endpoint, new(recovery.SourceId, recovery.KeyId, recovery.SubjectPublicKeyInfoBase64));
+            if (rotation is not null) rotationProofs = new(rotation, journalId, writerCertificate);
+            if (legacy is not null) legacyTransport = new(legacy, journalId, writerCertificate);
             var journal = new GovernanceJournalHttpWitness(write.Endpoint, journalTrust, writerCertificate);
-            return new(evidence, evidenceTrust, journal, journalId, recoveryHistory);
+            return new(evidence, evidenceTrust, journal, journalId, recoveryHistory, rotationProofs, legacyTransport, PublicKeyPins(options));
         }
         catch
         {
+            legacyTransport?.Dispose();
+            rotationProofs?.Dispose();
             recoveryHistory?.Dispose();
             evidence.Dispose();
             throw;
@@ -131,6 +151,67 @@ public sealed class IndependentGovernanceWitnessClients : IFormalRotationJournal
         ? journalId
         : throw new InvalidDataException("credential_governance_witness_unavailable");
 
+    public static IndependentEvidenceTrust RequireEvidenceTrust(IndependentWitnessRole? time, IndependentWitnessRole? history)
+    {
+        var (clock, clockKey) = RequireRole(time, nameof(time));
+        var (ledger, ledgerKey) = RequireRole(history, nameof(history));
+        return RequireEvidenceTrust(clock, clockKey, ledger, ledgerKey);
+    }
+
+    private static IndependentEvidenceTrust RequireEvidenceTrust(IndependentWitnessRole time, ECPoint timeKey,
+        IndependentWitnessRole history, ECPoint historyKey)
+    {
+        if (string.Equals(time.Endpoint.IdnHost, history.Endpoint.IdnHost, StringComparison.OrdinalIgnoreCase) &&
+            time.Endpoint.Port == history.Endpoint.Port && time.Endpoint.AbsolutePath == history.Endpoint.AbsolutePath)
+            throw new ArgumentException("Time and history evidence require distinct endpoints.");
+        if (SameKey(timeKey, historyKey))
+            throw new ArgumentException("The time evidence signing key must be dedicated to that role.");
+        return new(time.SourceId, time.KeyId, time.SubjectPublicKeyInfoBase64, history.SourceId, history.KeyId, history.SubjectPublicKeyInfoBase64);
+    }
+
+    public static TrustedSigningKeys RequireGatewayLeaseKeys(IReadOnlyDictionary<string, string> configured, IndependentEvidenceTrust trust)
+    {
+        if (configured.Count == 0 || configured.Any(pair => !SecuritySignedEncoding.KeyId(pair.Key) ||
+            ReadPublicPoint(pair.Value) is null || pair.Value == trust.TimePublicKey || pair.Value == trust.HistoryPublicKey))
+            throw new ArgumentException("Independent gateway lease signing keys are required.", nameof(configured));
+        return new(configured.ToFrozenDictionary(StringComparer.Ordinal));
+    }
+
+    internal static IReadOnlySet<string> PublicKeyPins(IndependentGovernanceWitnessOptions options) =>
+        new[] { options.TimeEvidence, options.HistoryEvidence, options.GovernanceJournal, options.RecoveryHistory,
+                options.DeploymentEvidence, options.RotationProofs, options.LegacyInitializationHistory }
+            .Where(role => role?.SubjectPublicKeyInfoBase64 is not null)
+            .Select(role => role!.SubjectPublicKeyInfoBase64).ToFrozenSet(StringComparer.Ordinal);
+
+    internal static (IndependentWitnessRole Role, ECPoint PublicPoint) RequireDeploymentRole(IndependentGovernanceWitnessOptions options) =>
+        RequireDedicatedRole(options.DeploymentEvidence, nameof(options.DeploymentEvidence),
+            options.TimeEvidence, options.HistoryEvidence, options.GovernanceJournal, options.RecoveryHistory, options.RotationProofs,
+            options.LegacyInitializationHistory);
+
+    public static IndependentWitnessRole RequireGatewayRotationProofRole(IndependentWitnessRole? role,
+        IndependentEvidenceTrust trust, TrustedSigningKeys leases)
+    {
+        var (validated, _) = RequireRole(role, nameof(role));
+        var key = validated.SubjectPublicKeyInfoBase64;
+        if (key == trust.TimePublicKey || key == trust.HistoryPublicKey || leases.SubjectPublicKeys.Values.Contains(key))
+            throw new ArgumentException("The rotation proof service requires a dedicated signing key.", nameof(role));
+        return validated;
+    }
+
+    private static (IndependentWitnessRole Role, ECPoint PublicPoint) RequireDedicatedRole(IndependentWitnessRole? provided, string parameter,
+        params IndependentWitnessRole?[] otherRoles)
+    {
+        var role = RequireRole(provided, parameter);
+        foreach (var other in otherRoles)
+            if (ReadPublicPoint(other?.SubjectPublicKeyInfoBase64) is { } key && SameKey(role.PublicPoint, key))
+                throw new ArgumentException("This evidence role requires a dedicated signing key.", parameter);
+        return role;
+    }
+
+    internal static void RequireCertificateForRole(X509Certificate2 certificate, IndependentWitnessRole role,
+        IReadOnlyCollection<string> otherSigningKeys) => RequireWriterCertificate(certificate,
+            [RequireRole(role, nameof(role)).PublicPoint, .. otherSigningKeys.Select(ReadPublicPoint)]);
+
     private static (IndependentWitnessRole Role, ECPoint PublicPoint) RequireRole(IndependentWitnessRole? role, string parameter)
     {
         if (role is null || !SecuritySignedEncoding.KeyId(role.SourceId) || !SecuritySignedEncoding.KeyId(role.KeyId))
@@ -139,28 +220,31 @@ public sealed class IndependentGovernanceWitnessClients : IFormalRotationJournal
         try { BoundedWitnessHttpClient.RequireEndpoint(role.Endpoint); }
         catch (ArgumentException) { throw new ArgumentException("A fixed HTTPS endpoint is required for this role.", parameter); }
 
-        if (role.SubjectPublicKeyInfoBase64 is { Length: > 0 and <= 1024 } encoded)
-        {
-            try
-            {
-                using var key = ECDsa.Create();
-                var bytes = Convert.FromBase64String(encoded);
-                key.ImportSubjectPublicKeyInfo(bytes, out var read);
-                SecuritySignedEncoding.RequireP256(key);
-                if (read == bytes.Length && Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) == encoded)
-                    return (role, key.ExportParameters(false).Q);
-            }
-            catch (Exception error) when (error is FormatException or CryptographicException or InvalidDataException)
-            {
-                // Do not include configured key material in a startup error.
-            }
-        }
-
-        throw new ArgumentException("This role requires a canonical Base64 P-256 DER SPKI public key.", parameter);
+        if (ReadPublicPoint(role.SubjectPublicKeyInfoBase64) is not { } point)
+            throw new ArgumentException("This role requires a canonical Base64 P-256 DER SPKI public key.", parameter);
+        return (role, point);
     }
 
-    private static void RequireWriterCertificate(X509Certificate2 writerCertificate, ECPoint timeKey, ECPoint historyKey, ECPoint writeKey,
-        ECPoint? recoveryKey)
+    private static ECPoint? ReadPublicPoint(string? encoded)
+    {
+        if (encoded is not { Length: > 0 and <= 1024 }) return null;
+        try
+        {
+            using var key = ECDsa.Create();
+            var bytes = Convert.FromBase64String(encoded);
+            key.ImportSubjectPublicKeyInfo(bytes, out var read);
+            SecuritySignedEncoding.RequireP256(key);
+            if (read == bytes.Length && Convert.ToBase64String(key.ExportSubjectPublicKeyInfo()) == encoded)
+                return key.ExportParameters(false).Q;
+        }
+        catch (Exception error) when (error is FormatException or CryptographicException or InvalidDataException)
+        {
+            // Do not include configured key material in a startup error.
+        }
+        return null;
+    }
+
+    private static void RequireWriterCertificate(X509Certificate2 writerCertificate, params ECPoint?[] responseKeys)
     {
         try
         {
@@ -177,8 +261,7 @@ public sealed class IndependentGovernanceWitnessClients : IFormalRotationJournal
             if (certificateKey is not null)
             {
                 var publicPoint = certificateKey.ExportParameters(false).Q;
-                if (SameKey(publicPoint, timeKey) || SameKey(publicPoint, historyKey) || SameKey(publicPoint, writeKey) ||
-                    recoveryKey is { } key && SameKey(publicPoint, key))
+                if (responseKeys.Any(key => key is { } point && SameKey(publicPoint, point)))
                     throw new ArgumentException("The journal writer credential must use a different key from witness response signing.", nameof(writerCertificate));
             }
         }
@@ -193,6 +276,8 @@ public sealed class IndependentGovernanceWitnessClients : IFormalRotationJournal
 
     public void Dispose()
     {
+        LegacyHistoryTransport?.Dispose();
+        RotationProofWitness?.Dispose();
         recoveryHistory?.Dispose();
         journal.Dispose();
         evidence.Dispose();

@@ -1,9 +1,11 @@
+using System.Data.Common;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 using WebApi.Contracts.Common;
@@ -175,6 +177,72 @@ public sealed class LegacyEnvironmentInitializationTests
         await AssertUnknownAsync(database, fixture, fault == "stale-revision" ? 2 : 1);
     }
 
+    [Theory]
+    [InlineData("write-failed")]
+    [InlineData("fence-check-failed")]
+    [InlineData("commit-reply-lost")]
+    public async Task StopWriteFenceReleasesOnlyAfterLocalOutcomeIsDefinite(string failure)
+    {
+        await using var database = new PostgresDatabase();
+        var fixture = await SeedMainlineEnvironmentAsync(database, published: false);
+        var reader = new HistoryReader(fixture.Evidence);
+        var preview = await PreviewAsync(database, reader, fixture);
+        bool? localLockFreeAtRelease = null;
+        reader.OnDispose = async () =>
+        {
+            await using var connection = await database.OpenAsync();
+            await using var command = new NpgsqlCommand("SELECT pg_catalog.pg_try_advisory_lock(8901202)", connection);
+            localLockFreeAtRelease = (bool)(await command.ExecuteScalarAsync())!;
+        };
+        var options = new DbContextOptionsBuilder<WebApiDbContext>().UseNpgsql(database.ConnectionString);
+        if (failure == "commit-reply-lost") options.AddInterceptors(new LoseCommitReply());
+        if (failure == "write-failed") options.AddInterceptors(new FailGenesisWrite());
+        if (failure == "fence-check-failed") reader.AvailableChecks = 1;
+        await using (var db = new WebApiDbContext(options.Options))
+        {
+            var action = () => Service(db, reader).ConfirmAsync(fixture.EnvironmentId,
+                new(preview.Value.PreviewHash!, "Isolated historical review"), preview.ETag, fixture.Actor, CurrentSession(fixture));
+            if (failure == "write-failed") await Assert.ThrowsAsync<IOException>(action);
+            else
+            {
+                var error = await Assert.ThrowsAsync<ApiException>(action);
+                Assert.Equal(failure == "commit-reply-lost" ? "legacy_initialization_fence_retained" : "legacy_initialization_history_unverified",
+                    error.Code);
+            }
+        }
+
+        if (failure == "commit-reply-lost")
+        {
+            Assert.Null(localLockFreeAtRelease);
+            Assert.Equal(1, reader.Disposed);
+            await using var verify = database.Context();
+            Assert.Equal("VerifiedLegacyNetwork", (await verify.Set<EnvironmentSecurityInitialization>().SingleAsync()).State);
+        }
+        else
+        {
+            Assert.True(localLockFreeAtRelease);
+            Assert.Equal(2, reader.Disposed);
+            await AssertUnknownAsync(database, fixture);
+        }
+    }
+
+    private sealed class LoseCommitReply : DbTransactionInterceptor
+    {
+        public override Task TransactionCommittedAsync(DbTransaction transaction, TransactionEndEventData eventData,
+            CancellationToken cancellationToken = default) => throw new IOException("Isolated commit confirmation lost.");
+    }
+
+    private sealed class FailGenesisWrite : SaveChangesInterceptor
+    {
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData,
+            InterceptionResult<int> result, CancellationToken cancellationToken = default)
+        {
+            if (eventData.Context!.ChangeTracker.Entries<EnvironmentSecurityState>().Any(row => row.State == EntityState.Added))
+                throw new IOException("Isolated genesis write failed.");
+            return base.SavingChangesAsync(eventData, result, cancellationToken);
+        }
+    }
+
     [Fact]
     public async Task ACloneCannotReuseTheOriginalDatabaseReceiptAndEvidence()
     {
@@ -334,6 +402,7 @@ public sealed class LegacyEnvironmentInitializationTests
         public LegacyEnvironmentHistoryEvidence Evidence { get; set; } = evidence;
         public int AvailableChecks { get; set; } = int.MaxValue;
         public int Disposed { get; private set; }
+        public Func<Task>? OnDispose { get; set; }
 
         public Task<ILegacyEnvironmentHistoryFence?> OpenAsync(Guid environmentId, CancellationToken ct)
         {
@@ -346,10 +415,10 @@ public sealed class LegacyEnvironmentInitializationTests
             private int checks;
             public LegacyEnvironmentHistoryEvidence Evidence => reader.Evidence;
             public Task<bool> IsHeldAsync(CancellationToken ct) => Task.FromResult(++checks <= reader.AvailableChecks);
-            public ValueTask DisposeAsync()
+            public async ValueTask DisposeAsync()
             {
                 reader.Disposed++;
-                return ValueTask.CompletedTask;
+                if (reader.OnDispose is not null) await reader.OnDispose();
             }
         }
     }

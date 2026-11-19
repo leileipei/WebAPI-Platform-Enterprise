@@ -1,7 +1,9 @@
 import {notificationVolumes} from '../notifications/runtime-secrets.mjs';
 import fs from'node:fs/promises';import path from'node:path';import net from'node:net';import{randomUUID,createHash}from'node:crypto';import{fileURLToPath}from'node:url';import assert from'node:assert/strict';
-import{RuntimeError,writePrivate,loadState}from'./state.mjs';import{initializeRuntime,operateRuntime,loadRelease}from'./lifecycle.mjs';import{prepareContext}from'./context.mjs';import{docker,inspectResources,assertOwnership}from'./docker.mjs';import{getRuntimeStatus}from'./status.mjs';import{prepareScenario,exerciseScenario,until,pause}from'./acceptance-scenario.mjs';import{coldBackup,restoreColdBackup,dataVolumes}from'./acceptance-backup.mjs';import{LocalClient}from'../local-client.mjs';
-import{requireRestoreIntegration}from'./restore-storage-budget.mjs';
+import {parseArgs} from 'node:util';
+import{RuntimeError,writePrivate,loadState}from'./state.mjs';import{initializeRuntime,operateRuntime,loadRelease}from'./lifecycle.mjs';import{prepareContext}from'./context.mjs';import{docker,inspectResources,assertOwnership,isLocalDockerEndpointBound}from'./docker.mjs';import{getRuntimeStatus}from'./status.mjs';import{prepareScenario,exerciseScenario,until,pause}from'./acceptance-scenario.mjs';import{coldBackup,restoreColdBackup,dataVolumes}from'./acceptance-backup.mjs';import{LocalClient}from'../local-client.mjs';
+import{requireRestoreIntegration,validateRestoreStorageBudget}from'./restore-storage-budget.mjs';
+import {configureRestoreStorage} from './restore-quota-provider.mjs';
 import{withRestoreTargetLock,cleanupDirectoryIdentity,assertCleanupDirectoryIdentity,cleanupParentWritable,assertTrustedRestoreParent}from'./restore-target-lock.mjs';
 import{assertRestoreComplete}from'../account-credential/clone-restore.mjs';
 import{scenarioFailure,scenarioFailureMessage,attachScenarioFailure,attachScenarioValue,collectScenarioFailure,describeScenarioFailures,withScenarioHandle}from'./scenario-failure.mjs';
@@ -20,7 +22,8 @@ export async function finishRuntimeAcceptance({proof,failed,primaryError,directo
  try{if(sampler)proof.resources=await sampler.stop();}catch(e){collectScenarioFailure(secondary,'resource-sampling',e);}
  proof.cleanup=failed||secondary.length?{retainedForInvestigation:true,directory,restoreDirectory}:{retainedForReview:true,directory,restoreDirectory};
  if(restoreDirectory)proof.restoreCleanup={retainedForReview:true,directory:restoreDirectory};
- try{const after=await(deps.oldSnapshot??oldSnapshot)();proof.preservedOldEnvironment={unchanged:JSON.stringify(before)===JSON.stringify(after),before,after};}
+ if(isLocalDockerEndpointBound())proof.preservedOldEnvironment={unchanged:false,status:'Unknown',reason:'Original Docker daemon is outside isolated acceptance scope.'};
+ else try{const after=await(deps.oldSnapshot??oldSnapshot)();proof.preservedOldEnvironment={unchanged:JSON.stringify(before)===JSON.stringify(after),before,after};}
  catch(e){proof.preservedOldEnvironment={unchanged:false,status:'Unknown'};collectScenarioFailure(secondary,'original-preservation',e);}
  proof.elapsedSeconds=Math.round((Date.now()-started)/1000);proof.reportPersistence='pending';
  if(secondary.length)proof.secondaryFailures=describeScenarioFailures(secondary);
@@ -57,9 +60,9 @@ export async function cleanupFixture(directory,fallbackRelease,deps={}){
  },{token:deps.targetLock,forceParent:parentWritable});
 }
 export async function runAcceptance({releaseManifest,directory,projectName,browser=false,restoreBudget,storageVerifier},deps={}){
- requireRestoreIntegration({restoreBudget,storageVerifier});
+ restoreBudget=requireRestoreIntegration({restoreBudget,storageVerifier});
  const snapshot=deps.oldSnapshot??oldSnapshot;
- validateFixture(projectName,directory);const started=Date.now(),before=await snapshot(),proof={complete:false,projectName,sourceRevision:releaseManifest.sourceRevision,classification:'actual-persistent-runtime-http-three-source-restart-and-cold-restore',limitations:['Linux ARM64 only','Short windows in disposable acceptance','No seven-day elapsed retention','No enterprise upstream/production TLS/HA/SLA/external notifications'],cleanup:null};let state,scenario,restoreDirectory,sampler,failed=false,primaryError;
+ validateFixture(projectName,directory);const started=Date.now(),before=isLocalDockerEndpointBound()?undefined:await snapshot(),proof={complete:false,projectName,sourceRevision:releaseManifest.sourceRevision,classification:'actual-persistent-runtime-http-three-source-restart-and-cold-restore',limitations:['Linux ARM64 only','Short windows in disposable acceptance','No seven-day elapsed retention','No enterprise upstream/production TLS/HA/SLA/external notifications'],cleanup:null};let state,scenario,restoreDirectory,sampler,failed=false,primaryError;
  const override=path.join(directory,'acceptance-override.json');const contextFactory=async(d,s,r)=>{const ctx=await prepareContext(d,s,r);await writePrivate(override,{services:{worker:{environment:{Alerts__IntervalSeconds:'2',Alerts__QueryDelaySeconds:'5'}},'control-plane':{environment:{Observability__TraceSampleRatio:'1'}},...(s.binding?{'gateway-a':{environment:{Observability__TraceSampleRatio:'1',Observability__MetricExportIntervalMs:'1000'}},'gateway-b':{environment:{Observability__TraceSampleRatio:'1',Observability__MetricExportIntervalMs:'1000'}}}:{})}});ctx.files.push('-f',override);return ctx;};
  try{
   if(deps.beforeScenario)await deps.beforeScenario();
@@ -76,4 +79,44 @@ export async function runAcceptance({releaseManifest,directory,projectName,brows
  finally{await finishRuntimeAcceptance({proof,failed,primaryError,directory,restoreDirectory,before,started,sampler,deps});}
  return finalizeAcceptance(proof);
 }
-if(process.argv[1]===fileURLToPath(import.meta.url)){const projectName='webapi-enterprise-local-test-'+randomUUID(),directory=path.resolve('.runtime/tests/'+projectName);try{const proof=await runAcceptance({releaseManifest:await loadRelease(path.resolve('.runtime/local-build/release.json')),projectName,directory,browser:process.argv.includes('--browser')});console.log('Runtime acceptance complete='+proof.complete);if(!proof.complete)process.exitCode=1;}catch(e){console.error('Runtime acceptance failed: '+e.message);process.exitCode=1;}}
+const budgetOptions={
+ maxSnapshotBytes:'max-snapshot-bytes',
+ minHostFreeBytes:'min-host-free-bytes',
+ maxTargetBytes:'max-target-bytes',
+ minTargetFreeBytes:'min-target-free-bytes'
+};
+
+export async function runRuntimeAcceptanceCli(args,deps={}){
+ const stringOptions=[...Object.values(budgetOptions),'restore-quota-socket','restore-docker-socket','release-file'];
+ const {values,tokens}=parseArgs({args,tokens:true,options:{
+  ...Object.fromEntries(stringOptions.map(name=>[name,{type:'string'}])),browser:{type:'boolean'}
+ }});
+ const optionNames=tokens.filter(token=>token.kind==='option').map(token=>token.name);
+ if(new Set(optionNames).size!==optionNames.length)throw Error('Duplicate runtime acceptance option.');
+ const restoreBudget=validateRestoreStorageBudget(Object.fromEntries(Object.entries(budgetOptions).map(([key,flag])=>{
+  const value=values[flag];
+  return [key,/^[1-9][0-9]*$/.test(value??'')?Number(value):NaN];
+ })));
+ const quotaSocket=values['restore-quota-socket'],dockerSocket=values['restore-docker-socket'];
+ if(!quotaSocket||!dockerSocket)throw Error('Restore target hard quota integration needs explicit verifier and Docker sockets.');
+ const integration=await(deps.configureStorage??configureRestoreStorage)({restoreBudget,quotaSocket,dockerSocket});
+ const projectName='webapi-enterprise-local-test-'+randomUUID(),directory=path.resolve('.runtime/tests',projectName);
+ return integration.withDocker(async()=>{
+  const releaseManifest=await(deps.loadRelease??loadRelease)(path.resolve(values['release-file']??'.runtime/local-build/release.json'));
+  return (deps.runAcceptance??runAcceptance)({
+   releaseManifest,projectName,directory,browser:values.browser??false,
+   restoreBudget:integration.restoreBudget,storageVerifier:integration.storageVerifier
+  });
+ });
+}
+
+if(process.argv[1]===fileURLToPath(import.meta.url)){
+ try{
+  const proof=await runRuntimeAcceptanceCli(process.argv.slice(2));
+  console.log('Runtime acceptance complete='+proof.complete);
+  if(!proof.complete)process.exitCode=1;
+ }catch(error){
+  console.error('Runtime acceptance failed: '+error.message);
+  process.exitCode=1;
+ }
+}
