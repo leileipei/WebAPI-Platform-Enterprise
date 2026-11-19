@@ -3142,8 +3142,12 @@ public sealed class Governance24MigrationTests
     {
         await using var database = new PostgresDatabase();
         await database.InitializeAsync();
+        string[] expectedHistory;
         await using (var setup = database.Context())
+        {
+            expectedHistory = setup.Database.GetMigrations().ToArray();
             await setup.GetService<IMigrator>().MigrateAsync("20261015020000_CredentialUsageTracking");
+        }
         NpgsqlConnection.ClearAllPools();
         var source = Environment.GetEnvironmentVariable("WEBAPI_SOURCE_ROOT") ?? throw new InvalidOperationException("Isolated source root is required.");
         var script = await File.ReadAllTextAsync(Path.Combine(source, "deploy", "initial-core.sql"));
@@ -3152,8 +3156,15 @@ public sealed class Governance24MigrationTests
         {
             await using var command = new NpgsqlCommand(script, connection);
             await command.ExecuteNonQueryAsync();
-            await using var verify = new NpgsqlCommand("SELECT pg_catalog.pg_my_temp_schema()<>0 AND (SELECT count(*) FROM public.\"__EFMigrationsHistory\")=39", connection);
-            Assert.True((bool)(await verify.ExecuteScalarAsync())!);
+            await using var temporarySchema = new NpgsqlCommand("SELECT pg_catalog.pg_my_temp_schema()<>0", connection);
+            Assert.True((bool)(await temporarySchema.ExecuteScalarAsync())!);
+            await using var history = new NpgsqlCommand("""
+                SELECT "MigrationId" FROM public."__EFMigrationsHistory" ORDER BY "MigrationId"
+                """, connection);
+            await using var rows = await history.ExecuteReaderAsync();
+            var installedHistory = new List<string>();
+            while (await rows.ReadAsync()) installedHistory.Add(rows.GetString(0));
+            Assert.Equal(expectedHistory, installedHistory);
         }
     }
 
