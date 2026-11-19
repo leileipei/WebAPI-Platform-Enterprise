@@ -63,7 +63,13 @@ public static class CredentialGovernanceRegistration
         {
             var coverage = sp.GetService<ICredentialRevocationCoverage>() ?? throw CredentialGovernanceEndpoints.Unavailable();
             var clients = sp.GetRequiredService<WitnessOwner>().Clients;
-            return new(ConnectionString(sp), clients.JournalId, clients.JournalWitness, coverage);
+            return new(ConnectionString(sp), clients.JournalId, clients.JournalWitness, coverage, sp.GetService<ICredentialArchivedIngressWitness>());
+        });
+        services.TryAddScoped<PostgresFormalRotationPreparation>(sp =>
+        {
+            var coverage = sp.GetService<ICredentialRevocationCoverage>() ?? throw CredentialGovernanceEndpoints.Unavailable();
+            var clients = sp.GetRequiredService<WitnessOwner>().Clients;
+            return new(ConnectionString(sp), clients.JournalId, coverage, sp.GetService<IFormalRotationLeaseHorizonWitness>());
         });
         return services;
     }

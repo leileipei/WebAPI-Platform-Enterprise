@@ -7,6 +7,7 @@ using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Releases;
+using WebApi.Infrastructure.Runtime;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Gateway;
 public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,HistoricalSnapshotService history,AuditedCommandExecutor commands)
@@ -75,6 +76,8 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
             if(Tag(node)!=etag) throw new ApiException(412,"stale_revision","节点实例或启用状态已变化。");
             if(node.Enabled!=enabled)
             {
+                if(enabled&&await RuntimeEnvironmentAccess.RetiredNodeIds(db).AnyAsync(retired=>retired==id,token))
+                    throw new ApiException(409,"gateway_archive_identity_retired","封存前的节点身份已退役，请使用新身份登记。");
                 if(enabled&&!SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,"2.4")&&
                     await GlobalCredentialPublicationGuard.HasLocalRevocationAsync(db,node.EnvironmentId,token))
                     throw new ApiException(409,"gateway_security_capability_required","当前环境要求节点声明兼容的快照和安全协议能力。");

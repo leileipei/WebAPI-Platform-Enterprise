@@ -5,11 +5,14 @@ using Microsoft.Extensions.DependencyInjection;
 using WebApi.Contracts.CredentialUsage;
 using WebApi.Contracts.Policies;
 using WebApi.Contracts.Runtime;
+using WebApi.Domain.Applications;
+using WebApi.Domain.CredentialSecurity;
 using WebApi.Domain.Policies;
 using WebApi.Gateway.Configuration;
 using WebApi.Gateway.CredentialUsage;
 using WebApi.Gateway.Policies;
 using WebApi.Gateway.Security;
+using WebApi.Gateway.Storage;
 using WebApi.Gateway.Tests.Support;
 using WebApi.Infrastructure.Security;
 using Xunit;
@@ -142,6 +145,80 @@ public sealed class GovernanceRequestAdmissionTests
         Assert.True(generation.PreparedSecurityValidation is { Valid: true, OnlyRouteMethodPermissions: true });
         AssertDenied(later, 503, "security_state_unavailable");
         Assert.Single(fixture.Usage);
+    }
+
+    [Fact]
+    public async Task TwoGatewaysStopAuthenticatingAtTheFormalDeadlineWithoutAWorker()
+    {
+        using var fixture = new RequestFixture("2.4");
+        fixture.Snapshot = fixture.Snapshot with { RequiredSecurityEpoch = 0 };
+        var security = fixture.Security;
+        var fastClock = new SecurityTestClock();
+        var peerNode = Guid.NewGuid();
+        var peerInstance = Guid.NewGuid();
+        var peerDisk = new SecurityLkgStore(Path.Combine(security.DirectoryPath, "peer"));
+        await using var peer = new SecurityStateStore(new(security.Env, () => peerNode, peerInstance), peerDisk, fastClock);
+        var slowProvider = fixture.ActiveState();
+        var fastProvider = new StateProvider(_ => peer);
+        var now = security.Clock.GetUtcNow();
+        var hardDeadline = now.AddSeconds(12);
+
+        var first = security.Pair(0, [], minimumSchema: "2.4");
+        var second = security.Pair(0, [], leaseNode: peerNode, leaseInstance: peerInstance, minimumSchema: "2.4");
+        var firstLease = Cap(first.Lease);
+        var secondLease = Cap(second.Lease);
+        security.Clock.ShiftUtc(-2);
+        fastClock.ShiftUtc(2);
+        Assert.True((await security.State.ApplyAsync(first.Checkpoint, firstLease)).Applied);
+        Assert.True((await peer.ApplyAsync(second.Checkpoint, secondLease)).Applied);
+
+        security.Clock.Advance(7.5);
+        fastClock.Advance(7.5);
+        Assert.Equal(204, (await fixture.SendAsync(stateProvider: slowProvider)).Status);
+        Assert.Equal(204, (await fixture.SendAsync(stateProvider: fastProvider, admissionClock: fastClock)).Status);
+
+        fastClock.Advance(0.5);
+        AssertDenied(await fixture.SendAsync(stateProvider: fastProvider, admissionClock: fastClock), 503, "security_state_unavailable");
+        await peer.DisposeAsync();
+        var replacementInstance = Guid.NewGuid();
+        await using var replacement = new SecurityStateStore(new(security.Env, () => peerNode, replacementInstance), peerDisk, fastClock);
+        var replacementProvider = new StateProvider(_ => replacement);
+        fastClock.ShiftUtc(-1);
+        Assert.True(await replacement.RestoreAsync(security.Keys));
+        AssertDenied(await fixture.SendAsync(stateProvider: replacementProvider, admissionClock: fastClock), 503, "security_state_unavailable");
+        fastClock.ShiftUtc(1);
+
+        security.Clock.Advance(4);
+        Assert.Equal(204, (await fixture.SendAsync(stateProvider: slowProvider)).Status);
+        security.Clock.Advance(0.5);
+        fastClock.Advance(4);
+        // At the physical deadline a backward wall shift cannot extend the slow gateway's monotonic lease.
+        security.Clock.ShiftUtc(-1);
+        AssertDenied(await fixture.SendAsync(stateProvider: slowProvider), 503, "security_state_unavailable");
+        AssertDenied(await fixture.SendAsync(stateProvider: replacementProvider, admissionClock: fastClock), 503, "security_state_unavailable");
+
+        security.Clock.ShiftUtc(3);
+        var retired = new[] { fixture.Credential.Id };
+        var fresh = security.Pair(1, retired, minimumSchema: "2.4");
+        var freshReplacement = security.Pair(1, retired, leaseNode: peerNode, leaseInstance: replacementInstance, minimumSchema: "2.4");
+        security.Clock.ShiftUtc(-2);
+        Assert.True((await security.State.ApplyAsync(fresh.Checkpoint, fresh.Lease)).Applied);
+        Assert.True((await replacement.ApplyAsync(freshReplacement.Checkpoint, freshReplacement.Lease)).Applied);
+        Assert.Equal(fresh.Lease.Payload.LeaseId, security.State.CurrentAdmissionLeaseId);
+        Assert.Equal(freshReplacement.Lease.Payload.LeaseId, replacement.CurrentAdmissionLeaseId);
+        AssertDenied(await fixture.SendAsync(stateProvider: slowProvider), 401, "invalid_api_key");
+        AssertDenied(await fixture.SendAsync(stateProvider: replacementProvider, admissionClock: fastClock), 401, "invalid_api_key");
+        Assert.Equal(3, fixture.Usage.Count);
+
+        VerifiedNodeLease Cap(VerifiedNodeLease original)
+        {
+            var payload = original.Payload;
+            var cap = RotationLeaseDeadlinePolicy.CapExpiry(hardDeadline, now, payload.FreshUntil, payload.FreshUntil,
+                TimeSpan.FromSeconds(payload.MaximumClockSkewSeconds), TimeSpan.FromSeconds(1));
+            Assert.Equal(now.AddSeconds(10), cap);
+            return SecurityCheckpointVerifier.VerifyNodeLease(new(security.Signer.SignNodeLease(payload with { FreshUntil = cap!.Value })),
+                security.Keys, security.Env, payload.NodeId, payload.InstanceId);
+        }
     }
 
     [Theory]
@@ -487,14 +564,14 @@ public sealed class GovernanceRequestAdmissionTests
         public async Task<(int Status, string? Code, TrafficExecutionContext Execution)> SendAsync(
             string method = "GET", IGovernanceAdmissionStateProvider? stateProvider = null,
             Func<HttpContext, Task>? onForward = null, string? bearer = null, int routeIndex = 0, Func<Task>? onWrite = null,
-            RuntimeGeneration? generation = null)
+            RuntimeGeneration? generation = null, TimeProvider? admissionClock = null)
         {
             var options = new CredentialUsageOptions(false, 15, 1000, 10000, 67108864, 1000, 1048576, 24);
             var services = new ServiceCollection();
             services.AddSingleton(new JwtTokenVerifier());
             services.AddSingleton(new CredentialUsageAccumulator(options));
             services.AddSingleton<ICredentialUsageRecorder>(this);
-            services.AddSingleton<TimeProvider>(Security.Clock);
+            services.AddSingleton<TimeProvider>(admissionClock ?? Security.Clock);
             services.AddSingleton<RuntimeGenerationStore>();
             if (stateProvider is not null) services.AddSingleton(stateProvider);
             await using var provider = services.BuildServiceProvider();

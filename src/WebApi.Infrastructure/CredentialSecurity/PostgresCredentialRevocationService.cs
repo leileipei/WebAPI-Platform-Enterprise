@@ -29,9 +29,10 @@ public sealed class PostgresCredentialRevocationService
     private readonly GovernanceJournalId journal;
     private readonly IGovernanceJournalWitness witness;
     private readonly ICredentialRevocationCoverage coverage;
+    private readonly ICredentialArchivedIngressWitness? archive;
 
     public PostgresCredentialRevocationService(string connectionString, GovernanceJournalId journal,
-        IGovernanceJournalWitness witness, ICredentialRevocationCoverage coverage)
+        IGovernanceJournalWitness witness, ICredentialRevocationCoverage coverage, ICredentialArchivedIngressWitness? archive = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
         GovernanceJournalProtocol.RequireJournal(journal);
@@ -39,6 +40,7 @@ public sealed class PostgresCredentialRevocationService
         this.journal = journal;
         this.witness = witness ?? throw new ArgumentNullException(nameof(witness));
         this.coverage = coverage ?? throw new ArgumentNullException(nameof(coverage));
+        this.archive = archive;
     }
 
     public async Task<RevocationOperationDto> RevokeAsync(Guid credentialId, RevokeCredentialRequest request,
@@ -56,7 +58,7 @@ public sealed class PostgresCredentialRevocationService
             new { journal, actor.UserId, credentialId, command.IdempotencyKey })).AsSpan(0, 16));
         var requestHash = Convert.ToHexStringLower(SHA256.HashData(CanonicalJson.Serialize(
             new { credentialId, request.ExpectedEnvironmentId, ifMatch, reason })));
-        var mutation = new CredentialRevocationMutation(actor, coverage, requireSession);
+        var mutation = new CredentialRevocationMutation(actor, coverage, requireSession, archive);
         var store = new PostgresGovernanceCommitStore(connectionString, mutation);
         var coordinator = new GovernanceCommitCoordinator(journal, store, witness);
 
@@ -105,7 +107,7 @@ public sealed class PostgresCredentialRevocationService
     public Task RecoverAsync(ActorContext actor, CancellationToken ct = default,
         Func<WebApiDbContext, CancellationToken, Task>? requireSession = null) =>
         new GovernanceCommitCoordinator(journal, new PostgresGovernanceCommitStore(connectionString,
-            new CredentialRevocationMutation(actor, coverage, requireSession)), witness).RecoverAsync(ct);
+            new CredentialRevocationMutation(actor, coverage, requireSession, archive)), witness).RecoverAsync(ct);
 
     private static ApiException Conflict() => new(409, "credential_revocation_conflict", "撤销请求与已记录的请求或当前状态冲突。");
 }

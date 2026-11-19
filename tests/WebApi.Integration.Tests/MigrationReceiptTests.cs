@@ -45,7 +45,7 @@ public sealed class MigrationReceiptTests
             actual.Add(await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
         }
         Assert.All(actual, fingerprint => Assert.Equal(actual[0], fingerprint));
-        Assert.True(GovernanceSchemaFingerprints.Expected.TryGetValue("20261118130000_CredentialGovernanceJournal", out var expected),
+        Assert.True(GovernanceSchemaFingerprints.Expected.TryGetValue(LegacyGlobalRevocationInheritance.Id, out var expected),
             "Missing new independently reproduced fingerprint: " + string.Join(",", actual));
         Assert.Equal(expected, actual[0]);
     }

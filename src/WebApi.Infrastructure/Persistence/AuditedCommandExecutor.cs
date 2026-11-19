@@ -29,7 +29,11 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             AfterJson=JsonSerializer.Serialize(new[]{new {Type=resourceType,Fields=after}})
         });
     }
-    public async Task<T> ExecuteAsync<T>(ActorContext actor,ScopeRef scope,string action,Func<WebApiDbContext,CancellationToken,Task<T>> command,CancellationToken cancellationToken=default)
+    public Task<T> ExecuteAsync<T>(ActorContext actor,ScopeRef scope,string action,Func<WebApiDbContext,CancellationToken,Task<T>> command,CancellationToken cancellationToken=default)
+        => ExecuteAsync(actor,scope,action,command,null,cancellationToken);
+
+    internal async Task<T> ExecuteAsync<T>(ActorContext actor,ScopeRef scope,string action,Func<WebApiDbContext,CancellationToken,Task<T>> command,
+        Func<T,CancellationToken,Task>? afterSave,CancellationToken cancellationToken)
     {
         var owned=db.Database.CurrentTransaction is null?await db.Database.BeginTransactionAsync(cancellationToken):null;
         try
@@ -49,6 +53,7 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
                 AfterJson=JsonSerializer.Serialize(changes.Where(e=>e.State!=EntityState.Deleted).Select(e=>Capture(e,false))),TraceId=actor.TraceId,Ip=metadata?.Ip
             });
             await db.SaveChangesAsync(cancellationToken);
+            if(afterSave is not null) await afterSave(value,cancellationToken);
             if(owned is not null) await owned.CommitAsync(cancellationToken);
             return value;
         }

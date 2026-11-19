@@ -45,6 +45,7 @@ internal static class GovernanceSchemaFingerprints
         ["20261104080000_Governance24DatabaseClock"] = "2ed7307ab78b49bd8c1cca47ed5af4a1567460bb2a2b4fb9214f6d5011f93aec",
         ["20261104090000_Governance24MigrationReceipts"] = "22543989e453281197c4f6e4ca568823de70b528e7abfd55efc0cdde83302309",
         ["20261118130000_CredentialGovernanceJournal"] = "c74639ddb36def9e61b123bd70e58647c84306431bbf3a33f7d77479f4f5a705",
+        ["20261119123000_LegacyGlobalRevocationInheritance"] = "e27916f774c0798661f069145ba10f96611c575ef53f77580b4067c29ee1f60f",
     };
 
     internal const string Query = """

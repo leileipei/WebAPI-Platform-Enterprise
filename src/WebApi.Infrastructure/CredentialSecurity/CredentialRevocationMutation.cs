@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Applications;
 using WebApi.Contracts.Common;
+using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Security;
 using WebApi.Domain.CredentialSecurity;
 using WebApi.Infrastructure.Gateway;
@@ -14,7 +15,7 @@ using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.CredentialSecurity;
 
 internal sealed class CredentialRevocationMutation(ActorContext actor, ICredentialRevocationCoverage coverage,
-    Func<WebApiDbContext, CancellationToken, Task>? requireSession = null) : IPostgresGovernanceMutation
+    Func<WebApiDbContext, CancellationToken, Task>? requireSession = null, ICredentialArchivedIngressWitness? archive = null) : IPostgresGovernanceMutation
 {
     internal sealed record Resource(ApplicationCredential Credential, ApplicationRecord Application, EnvironmentRecord[] Environments);
     private sealed record RevocationAuditFact(Guid OperationId, long Epoch, string EventHash);
@@ -30,7 +31,7 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
         var app = await db.Set<ApplicationRecord>().SingleAsync(x => x.Id == credential.ApplicationId, ct);
         if (credential.BindingMode == "LegacyGlobal" && recorded is null && coverage is ICredentialRevocationHistory history)
         {
-            var affected = await LegacyGlobalRevocationScope.ReadAsync(db, credential, app, expectedEnvironment, requester, history, ct);
+            var affected = await LegacyGlobalRevocationScope.ReadAsync(db, credential, app, expectedEnvironment, requester, history, ct, allowArchive: archive is not null);
             var environments = await db.Set<EnvironmentRecord>().Where(x => affected.Contains(x.Id)).ToArrayAsync(ct);
             if (environments.Length != affected.Count) throw LegacyGlobalRevocationScope.Unknown();
             return new(credential, app, environments.OrderBy(x => x.Id).ToArray());
@@ -50,12 +51,12 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
             var environments = new List<EnvironmentRecord>();
             foreach (var frozen in recorded.Environments())
             {
-                var scope = frozen.Coverage;
-                if (scope.OrganizationId != credential.OrganizationId || credentialProject is Guid project && project != scope.ProjectId)
+                if (frozen.OrganizationId != credential.OrganizationId || credentialProject is Guid project && project != frozen.ProjectId)
                     throw LegacyGlobalRevocationScope.Unknown();
-                await auth.RequireAsync(requester, "credential.revoke", new("credential", id,
-                    new(scope.OrganizationId, scope.ProjectId, scope.EnvironmentId)), ct);
-                environments.Add(await db.Set<EnvironmentRecord>().SingleAsync(x => x.Id == scope.EnvironmentId && x.ProjectId == scope.ProjectId, ct));
+                var target = new ResourceRef("credential", id, new(frozen.OrganizationId, frozen.ProjectId, frozen.EnvironmentId));
+                if (frozen.Archive is not null) await auth.RequireArchivedCredentialRevocationAsync(requester, target, ct);
+                else await auth.RequireAsync(requester, "credential.revoke", target, ct);
+                environments.Add(await db.Set<EnvironmentRecord>().SingleAsync(x => x.Id == frozen.EnvironmentId && x.ProjectId == frozen.ProjectId, ct));
             }
             return new(credential, app, [.. environments]);
         }
@@ -73,14 +74,16 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
     internal async Task<CredentialRevocationIntent> PlanAsync(WebApiDbContext db, Resource resource, string reason, string requestHash, CancellationToken ct)
     {
         var now = await SecurityDatabaseClock.ObserveAsync(db, ct);
-        var scopes = await ReadVerifiedCoverageAsync(db, resource, now, BoundedWitnessHttpClient.RequestTimeout, ct);
-        var environments = resource.Environments.Zip(scopes, (env, scope) => new CredentialRevocationEnvironmentIntent(
-            env.AuthorizationRevision, scope, scope.Nodes.Select(_ => Guid.NewGuid()).ToArray())).ToArray();
+        var coverageScopes = await ReadVerifiedCoverageAsync(db, resource, now, BoundedWitnessHttpClient.RequestTimeout, ct);
+        var environments = coverageScopes.Select(item => item with
+        {
+            Challenges = item.Coverage?.Nodes.Select(_ => Guid.NewGuid()).ToArray() ?? []
+        }).ToArray();
         var first = environments[0];
         return new(resource.Credential.Id, resource.Application.Id, actor.UserId, resource.Credential.Revision,
             resource.Application.Revision, resource.Application.AuthorizationRevision, first.AuthorizationRevision,
             reason, requestHash, now, first.Coverage, first.Challenges,
-            resource.Credential.BindingMode == "LegacyGlobal" ? environments[1..] : null);
+            resource.Credential.BindingMode == "LegacyGlobal" ? environments[1..] : null, first.Archive);
     }
 
     public async Task AuthorizeAsync(WebApiDbContext db, GovernanceWriteIntent intent, CancellationToken ct)
@@ -120,7 +123,7 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
     private static async Task AppendEnvironmentAsync(WebApiDbContext db, CredentialRevocationIntent plan, Guid operationId,
         EnvironmentRecord environment, CredentialRevocationEnvironmentIntent frozen, CancellationToken ct)
     {
-        var fact = plan.Event(operationId, frozen.Coverage);
+        var fact = plan.Event(operationId, frozen);
         var authority = await db.Set<EnvironmentSecurityState>().SingleAsync(x => x.EnvironmentId == fact.EnvironmentId, ct);
         authority.Epoch = fact.Epoch;
         authority.HeadHash = fact.EventHash;
@@ -136,7 +139,7 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
             new AuditLog { OrganizationId = fact.OrganizationId, ProjectId = fact.ProjectId, EnvironmentId = fact.EnvironmentId,
                 UserId = plan.ActorId, Action = "credential.revoke", ResourceType = "credential", ResourceId = plan.CredentialId.ToString(),
                 CreatedAt = plan.EventTime, AfterJson = JsonSerializer.Serialize(new RevocationAuditFact(operationId, fact.Epoch, fact.EventHash)) });
-        foreach (var (node, challenge) in frozen.Coverage.Nodes.Zip(frozen.Challenges))
+        foreach (var (node, challenge) in (frozen.Coverage?.Nodes ?? []).Zip(frozen.Challenges))
             db.Add(new SecurityOperationTarget { OperationId = operationId, EnvironmentId = fact.EnvironmentId, NodeId = node.NodeId,
                 InstanceGuid = node.InstanceId, ChallengeNonce = challenge, CreatedAt = plan.EventTime,
                 LastLeaseUntil = node.LastLeaseUntil, ProtocolSupportedAtFreeze = true });
@@ -151,37 +154,45 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
             resource.Application.Revision != plan.ApplicationRevision || resource.Application.AuthorizationRevision != plan.ApplicationAuthorizationRevision ||
             plan.IsGlobal != (resource.Credential.BindingMode == "LegacyGlobal") ||
             !resource.Environments.Select(x => (x.Id, x.AuthorizationRevision)).SequenceEqual(
-                frozen.Select(x => (x.Coverage.EnvironmentId, x.AuthorizationRevision))))
+                frozen.Select(x => (x.EnvironmentId, x.AuthorizationRevision))))
             throw new ApiException(409, "credential_revocation_changed", "撤销准备后数据已变更。");
         var now = await SecurityDatabaseClock.ObserveAsync(db, ct);
         var current = await ReadVerifiedCoverageAsync(db, resource, now, minimumRemaining, ct);
-        if (plan.EventTime > now || !CanonicalJson.Serialize(frozen.Select(x => x.Coverage).ToArray()).AsSpan().SequenceEqual(CanonicalJson.Serialize(current)))
+        if (plan.EventTime > now || !frozen.Zip(current).All(pair => pair.First.MatchesCoverage(pair.Second)))
             throw CoverageUnavailable();
         return resource;
     }
 
-    private async Task<CredentialRevocationCoverageScope[]> ReadVerifiedCoverageAsync(WebApiDbContext db, Resource resource,
+    private async Task<CredentialRevocationEnvironmentIntent[]> ReadVerifiedCoverageAsync(WebApiDbContext db, Resource resource,
         DateTimeOffset now, TimeSpan minimumRemaining, CancellationToken ct)
     {
-        var scopes = new List<CredentialRevocationCoverageScope>(resource.Environments.Length);
+        var scopes = new List<CredentialRevocationEnvironmentIntent>(resource.Environments.Length);
         if (await db.Set<SecurityOperation>().AnyAsync(o => o.Kind == "CredentialRevoke" && o.CredentialId == resource.Credential.Id, ct))
             throw new ApiException(409, "credential_revocation_changed", "已有安全撤销或账本范围不一致。");
         foreach (var environment in resource.Environments)
         {
-            var scope = await ReadCoverageAsync(db, resource.Credential, environment, now, ct);
-            if (!coverage.IsVerified(scope)) throw CoverageUnavailable();
-            scopes.Add(scope);
+            if (environment.Status == "Disabled")
+            {
+                var sealedIngress = await CredentialArchivedIngress.RequireAsync(db, environment, resource.Credential.OrganizationId, archive, now, ct);
+                scopes.Add(new(environment.AuthorizationRevision, null, [], sealedIngress));
+            }
+            else
+            {
+                var (scope, _, _) = await ReadRunningCoverageAsync(db, resource.Credential, environment, now, ct);
+                if (!coverage.IsVerified(scope)) throw CoverageUnavailable();
+                scopes.Add(new(environment.AuthorizationRevision, scope, []));
+            }
         }
+        // A witness preparation remains durable after a timeout. Require fresh
+        // exact coverage throughout the budget before preparing it.
         var finalSample = await SecurityDatabaseClock.ObserveAsync(db, ct);
-        // Once prepared, the independent intent cannot be dropped on timeout.
-        // Check before prepare that the evidence outlives its transport budget.
-        if (finalSample < now || scopes.Any(scope => scope.Nodes.Any(node => node.FreshUntil - finalSample <= minimumRemaining)))
+        if (finalSample < now || scopes.Any(item => item.FreshUntil - finalSample <= minimumRemaining))
             throw CoverageUnavailable();
         return [.. scopes];
     }
 
-    private static async Task<CredentialRevocationCoverageScope> ReadCoverageAsync(WebApiDbContext db, ApplicationCredential credential,
-        EnvironmentRecord env, DateTimeOffset now, CancellationToken ct)
+    internal static async Task<(CredentialRevocationCoverageScope Coverage, SecurityLedgerMaterial Ledger, RuntimeSnapshot Snapshot)>
+        ReadRunningCoverageAsync(WebApiDbContext db, ApplicationCredential credential, EnvironmentRecord env, DateTimeOffset now, CancellationToken ct)
     {
         SecurityLedgerMaterial ledger;
         try { ledger = await new SecurityLedgerReader(db).ReadCompleteLockedAsync(env.Id, ct); }
@@ -226,8 +237,8 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
             var instance = Guid.Parse(n.InstanceId);
             return proven.SingleOrDefault(l => l.NodeId == n.Id && l.InstanceId == instance) ?? throw CoverageUnavailable();
         }).ToArray();
-        return new(ledger.OrganizationId, ledger.ProjectId, env.Id, ledger.SecurityGeneration, ledger.Epoch, ledger.HeadHash,
-            deployment.Release.Id, deployment.Snapshot.Hash, env.DeploymentSequence, env.DesiredConfigVersion.Value, targets);
+        return (new(ledger.OrganizationId, ledger.ProjectId, env.Id, ledger.SecurityGeneration, ledger.Epoch, ledger.HeadHash,
+            deployment.Release.Id, deployment.Snapshot.Hash, env.DeploymentSequence, env.DesiredConfigVersion.Value, targets), ledger, published);
     }
 
     public async Task<bool> VerifyAsync(WebApiDbContext db, GovernanceWriteIntent intent, CancellationToken ct)
@@ -235,9 +246,9 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
         var plan = CredentialRevocationIntent.Read(intent);
         var environments = plan.Environments();
         var operationId = intent.OperationId;
-        if (await db.Set<SecurityEvent>().CountAsync(x => x.OperationId == operationId, ct) != environments.Length ||
+        if (await db.Set<SecurityEvent>().CountAsync(x => x.OperationId == operationId && x.EventType != CredentialRevocationEvents.Inherited, ct) != environments.Length ||
             !await db.Set<SecurityOperation>().AnyAsync(x => x.Id == operationId && x.Kind == "CredentialRevoke" &&
-                x.OrganizationId == plan.Coverage.OrganizationId && x.CredentialId == plan.CredentialId && x.CommittedAt == plan.EventTime &&
+                x.OrganizationId == plan.First.OrganizationId && x.CredentialId == plan.CredentialId && x.CommittedAt == plan.EventTime &&
                 x.ApplicationId == plan.ApplicationId && x.RequestedBy == plan.ActorId && x.Reason == plan.Reason, ct) ||
             !await db.Set<ApplicationCredential>().AnyAsync(x => x.Id == plan.CredentialId && x.Revision > plan.CredentialRevision &&
                 x.BindingMode == (plan.IsGlobal ? "LegacyGlobal" : "EnvironmentBound"), ct) ||
@@ -247,7 +258,7 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
         var targets = await db.Set<SecurityOperationTarget>().AsNoTracking().Where(x => x.OperationId == operationId).ToArrayAsync(ct);
         foreach (var frozen in environments)
         {
-            var fact = plan.Event(operationId, frozen.Coverage);
+            var fact = plan.Event(operationId, frozen);
             var ledger = await new SecurityLedgerReader(db).ReadCompleteLockedAsync(fact.EnvironmentId, ct);
             if (ledger.Events.SingleOrDefault(x => x.OperationId == operationId)?.EventHash != fact.EventHash ||
                 !await db.Set<SecurityOutboxMessage>().AnyAsync(x => x.Id == plan.OutboxId(operationId, fact.EnvironmentId) &&
@@ -260,7 +271,7 @@ internal sealed class CredentialRevocationMutation(ActorContext actor, ICredenti
                 x.ResourceType == "credential" && x.ResourceId == plan.CredentialId.ToString() && x.CreatedAt == fact.OccurredAt && x.AfterJson != null)
                 .Select(x => x.AfterJson!).ToArrayAsync(ct);
             if (!audit.Any(json => JsonSerializer.Deserialize<RevocationAuditFact>(json) == new RevocationAuditFact(operationId, fact.Epoch, fact.EventHash)) ||
-                !frozen.Coverage.Nodes.Zip(frozen.Challenges).All(pair => targets.Any(t => t.NodeId == pair.First.NodeId &&
+                !(frozen.Coverage?.Nodes ?? []).Zip(frozen.Challenges).All(pair => targets.Any(t => t.NodeId == pair.First.NodeId &&
                     t.InstanceGuid == pair.First.InstanceId && t.EnvironmentId == fact.EnvironmentId && t.ChallengeNonce == pair.Second &&
                     t.CreatedAt == fact.OccurredAt && t.ProtocolSupportedAtFreeze && t.LastLeaseUntil >= pair.First.LastLeaseUntil))) return false;
         }

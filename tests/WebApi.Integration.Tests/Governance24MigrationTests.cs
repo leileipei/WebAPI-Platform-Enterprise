@@ -11,6 +11,7 @@ using WebApi.Infrastructure.Gateway;
 using WebApi.Integration.Tests.Support;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Persistence.Migrations;
 using Xunit;
 
 namespace WebApi.Integration.Tests;
@@ -1140,7 +1141,7 @@ public sealed class Governance24MigrationTests
         await AssertPreflightBlockedAsync(database, sqlEntry);
 
         await using var check = database.Context();
-        Assert.Equal(37, (await check.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.Equal(38, (await check.Database.GetAppliedMigrationsAsync()).Count());
         Assert.True(await check.Database.SqlQueryRaw<bool>("""
             SELECT tgenabled = 'D' AS "Value"
                 FROM pg_catalog.pg_trigger
@@ -1158,10 +1159,11 @@ public sealed class Governance24MigrationTests
         await database.InitializeAsync();
         string[] migrations;
         await using (var discovery = database.Context()) migrations = discovery.Database.GetMigrations().ToArray();
-        Assert.Equal(37, migrations.Length);
+        Assert.Equal(38, migrations.Length);
         Assert.Equal("20261104080000_Governance24DatabaseClock", migrations[34]);
         Assert.Equal("20261104090000_Governance24MigrationReceipts", migrations[35]);
         Assert.Equal("20261118130000_CredentialGovernanceJournal", migrations[36]);
+        Assert.Equal(LegacyGlobalRevocationInheritance.Id, migrations[37]);
         var source = Environment.GetEnvironmentVariable("WEBAPI_SOURCE_ROOT") ?? throw new InvalidOperationException("Isolated source root is required.");
         var script = await File.ReadAllTextAsync(Path.Combine(source, "deploy", "initial-core.sql"));
         const string marker = "$WEBAPI_PREFLIGHT$;";
@@ -3148,7 +3150,7 @@ public sealed class Governance24MigrationTests
         {
             await using var command = new NpgsqlCommand(script, connection);
             await command.ExecuteNonQueryAsync();
-            await using var verify = new NpgsqlCommand("SELECT pg_catalog.pg_my_temp_schema()<>0 AND (SELECT count(*) FROM public.\"__EFMigrationsHistory\")=37", connection);
+            await using var verify = new NpgsqlCommand("SELECT pg_catalog.pg_my_temp_schema()<>0 AND (SELECT count(*) FROM public.\"__EFMigrationsHistory\")=38", connection);
             Assert.True((bool)(await verify.ExecuteScalarAsync())!);
         }
     }

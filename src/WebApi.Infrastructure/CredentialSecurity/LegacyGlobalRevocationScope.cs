@@ -46,7 +46,7 @@ internal static class LegacyGlobalRevocationScope
 
     internal static async Task<IReadOnlyList<Guid>> ReadAsync(WebApiDbContext db, ApplicationCredential credential,
         ApplicationRecord application, Guid? expectedEnvironment, ActorContext actor, ICredentialRevocationHistory history,
-        CancellationToken ct)
+        CancellationToken ct, bool allowArchive = false)
     {
         if (db.Database.CurrentTransaction is null || !await db.Database.SqlQueryRaw<bool>("""
             SELECT EXISTS (
@@ -144,12 +144,14 @@ internal static class LegacyGlobalRevocationScope
         foreach (var envId in result)
         {
             var env = byId[envId];
-            // Disabled rows cannot prove that the old ingress was isolated.
-            if (env.Status != "Active") throw Unknown();
+            // A disabled row may enter the candidate scope only when the
+            // mutation can subsequently verify a distinct archive seal.
+            if (env.Status != "Active" && !(allowArchive && env.Status == "Disabled")) throw Unknown();
             try
             {
-                await auth.RequireAsync(actor, "credential.revoke",
-                    new("credential", credential.Id, new(credential.OrganizationId, env.ProjectId, envId)), ct);
+                var target = new ResourceRef("credential", credential.Id, new(credential.OrganizationId, env.ProjectId, envId));
+                if (env.Status == "Disabled") await auth.RequireArchivedCredentialRevocationAsync(actor, target, ct);
+                else await auth.RequireAsync(actor, "credential.revoke", target, ct);
             }
             catch (ApiException error) when (error.Code == "inactive_scope") { throw Unknown(); }
         }

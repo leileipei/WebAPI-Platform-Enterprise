@@ -2,10 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using WebApi.Contracts.Common;
+using WebApi.Contracts.Governance;
 using WebApi.Contracts.Runtime;
 using WebApi.Domain.Runtime;
 using WebApi.Infrastructure.CredentialSecurity;
+using WebApi.Infrastructure.Gateway;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
@@ -15,6 +18,131 @@ namespace WebApi.Integration.Tests;
 
 public sealed class GlobalCredentialPublicationTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task NewEnvironmentAutomaticallyInheritsOnlyImmediateGlobalRevocation(bool immediate)
+    {
+        await using var scenario = new DeploymentScenario();
+        await scenario.InitializeAsync();
+        await RevokeAsync(scenario, immediate);
+        using var response = await scenario.Api.WriteAsync(HttpMethod.Post, $"/api/v1/projects/{scenario.Api.Project.Id}/environments",
+            new CreateEnvironmentRequest("INHERITED", "New environment"));
+        response.EnsureSuccessStatusCode();
+        var created = (await response.Content.ReadFromJsonAsync<EnvironmentDto>())!;
+        await using var db = scenario.Api.Context();
+        if (!immediate)
+        {
+            Assert.False(await db.Set<EnvironmentSecurityState>().AnyAsync(state => state.EnvironmentId == created.Id));
+            return;
+        }
+
+        var op = await db.Set<SecurityOperation>().SingleAsync(operation => operation.Kind == "CredentialRevoke");
+        var ledger = await new SecurityLedgerReader(db).ReadCompleteAsync(created.Id);
+        var tombstone = Assert.Single(ledger.Revocations);
+        Assert.Equal(op.Id, tombstone.OperationId);
+        Assert.Equal(op.CredentialId, tombstone.CredentialId);
+        Assert.Single(ledger.Events, item => item.EventType == "CredentialRevocationInherited");
+        Assert.Single(ledger.Events, item => item.EventType == "EnvironmentPolicyChanged");
+        Assert.Equal("2.4", ledger.MinimumSnapshotSchema);
+        Assert.Empty(await db.Set<SecurityOperationTarget>().Where(target => target.EnvironmentId == created.Id).ToArrayAsync());
+        Assert.Single(await db.Set<AuditLog>().Where(row => row.Action == "credential.revoke.inherit" && row.EnvironmentId == created.Id).ToArrayAsync());
+    }
+
+    [Fact]
+    public async Task DisabledEnvironmentWithGlobalFactRequiresIndependentlyProvenArchiveBeforeReactivation()
+    {
+        await using var scenario = new DeploymentScenario();
+        await scenario.InitializeAsync();
+        var original = scenario.Api.Environment;
+        var disabled = new EnvironmentRecord { Status = "Disabled", ProjectId = original.ProjectId, Code = "ARCHIVE", Name = "Archived" };
+        await using (var db = scenario.Api.Context())
+        {
+            db.Add(disabled);
+            await db.SaveChangesAsync();
+            await InitializeLedgerAsync(db, disabled.Id, scenario.Api.Organization.Id, disabled.ProjectId, DateTimeOffset.UtcNow);
+        }
+        await RevokeAsync(scenario, immediate: true);
+
+        using var response = await scenario.Api.WriteAsync(HttpMethod.Put, $"/api/v1/environments/{disabled.Id}",
+            new UpdateEnvironmentRequest(disabled.Code, disabled.Name, "Active", false, 0, null), etag: RevisionTag.Format(disabled.Revision));
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Contains("credential_revocation_archive_unverified", await response.Content.ReadAsStringAsync());
+        await using var check = scenario.Api.Context();
+        Assert.Equal("Disabled", await check.Set<EnvironmentRecord>().Where(x => x.Id == disabled.Id).Select(x => x.Status).SingleAsync());
+        Assert.Empty((await new SecurityLedgerReader(check).ReadCompleteAsync(disabled.Id)).Revocations);
+    }
+
+    [Fact]
+    public async Task ReactivationWithAProvenSealInheritsRevocationAndRetiresTheOldDesiredPointerAndIdentity()
+    {
+        await using var scenario = new DeploymentScenario();
+        var witness = new FixtureArchiveWitness();
+        await scenario.InitializeAsync(builder => builder.Services.AddSingleton<ICredentialArchivedIngressWitness>(witness));
+        var releaseId = await scenario.PublishAsync();
+        var original = scenario.Api.Environment;
+        var origin = new EnvironmentRecord { ProjectId = original.ProjectId, Code = "ORIGIN", Name = "Other origin" };
+        long revision;
+        long sequence;
+        byte[] bytes;
+        const string retiredSecret = "isolated-old-gateway-enrollment-secret";
+        await using (var db = scenario.Api.Context())
+        {
+            db.Add(origin);
+            var archived = await db.Set<EnvironmentRecord>().SingleAsync(item => item.Id == original.Id);
+            archived.Status = "Disabled";
+            revision = ++archived.Revision;
+            sequence = archived.DeploymentSequence;
+            await db.Set<GatewayNode>().Where(node => node.EnvironmentId == original.Id)
+                .ExecuteUpdateAsync(change => change.SetProperty(node => node.Enabled, false));
+            await db.Set<GatewayNode>().Where(node => node.Id == scenario.NodeIds[0])
+                .ExecuteUpdateAsync(change => change.SetProperty(node => node.IdentityHash, NodeIdentityService.Hash(retiredSecret)));
+            await db.SaveChangesAsync();
+            await InitializeLedgerAsync(db, original.Id, scenario.Api.Organization.Id, original.ProjectId, DateTimeOffset.UtcNow);
+            bytes = (await db.Set<GatewayConfigSnapshot>().SingleAsync()).PayloadBytes;
+        }
+        await RevokeAsync(scenario, immediate: true, originalEnvironmentId: origin.Id);
+
+        using var response = await scenario.Api.WriteAsync(HttpMethod.Put, $"/api/v1/environments/{original.Id}",
+            new UpdateEnvironmentRequest(original.Code, original.Name, "Active", original.IsProduction, original.SortOrder, original.ReleasePolicyId),
+            etag: RevisionTag.Format(revision));
+        Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
+        var enabled = (await response.Content.ReadFromJsonAsync<EnvironmentDto>())!;
+        Assert.Null(enabled.DesiredConfigVersion);
+        Assert.Equal(sequence, enabled.DeploymentSequence);
+        Assert.Equal("Active", enabled.Status);
+        Assert.Equal(original.Id, witness.Observed?.EnvironmentId);
+
+        await using var check = scenario.Api.Context();
+        var ledger = await new SecurityLedgerReader(check).ReadCompleteAsync(original.Id);
+        Assert.Equal("2.4", ledger.MinimumSnapshotSchema);
+        Assert.Single(ledger.Events, item => item.EventType == "CredentialRevocationInherited");
+        Assert.Equal(bytes, (await check.Set<GatewayConfigSnapshot>().SingleAsync()).PayloadBytes);
+        Assert.True(await check.Set<ReleaseRecord>().AnyAsync(record => record.Id == releaseId && record.Status == "Succeeded"));
+        using var staleNode = await scenario.Api.WriteAsync(HttpMethod.Put, $"/api/v1/gateway-nodes/{scenario.NodeIds[0]}/enabled",
+            new { enabled = true }, etag: $"\"{scenario.Instances[0]}:False\"");
+        Assert.Equal(HttpStatusCode.Conflict, staleNode.StatusCode);
+        Assert.Contains("gateway_archive_identity_retired", await staleNode.Content.ReadAsStringAsync());
+        const string replacementName = "old-identity-under-new-name";
+        var identity = new NodeIdentityService(check, new([new(original.Id, replacementName, NodeIdentityService.Hash(retiredSecret))]));
+        var registry = new NodeRegistry(check, identity);
+        var rejected = await Assert.ThrowsAsync<ApiException>(() => registry.RegisterAsync(new(original.Id, replacementName,
+            Guid.NewGuid(), "isolated-test", ["2.4"], ["security-ledger-v1"]), retiredSecret));
+        Assert.Equal(401, rejected.Status);
+        Assert.False(await check.Set<GatewayNode>().AnyAsync(node => node.NodeName == replacementName));
+    }
+
+    private sealed class FixtureArchiveWitness : ICredentialArchivedIngressWitness
+    {
+        public CredentialArchivedIngressScope? Observed { get; private set; }
+
+        public CredentialArchivedIngressSeal GetVerifiedSeal(CredentialArchivedIngressScope scope)
+        {
+            Observed = scope;
+            return new(scope, new string('e', 64), DateTimeOffset.UtcNow.AddSeconds(-10), DateTimeOffset.UtcNow.AddMinutes(2));
+        }
+    }
+
     [Theory]
     [InlineData("rollback", true)]
     [InlineData("retry", true)]

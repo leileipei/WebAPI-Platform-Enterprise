@@ -5599,7 +5599,16 @@ namespace WebApi.Infrastructure.Persistence.Migrations
 
                     b.ToTable("security_events", null, t =>
                         {
-                            t.HasCheckConstraint("ck_security_event", "epoch > 0 AND length(previous_hash)=64 AND length(event_hash)=64 AND ((event_type='CredentialRevoked' AND credential_id IS NOT NULL AND policy_json IS NULL) OR (event_type='EnvironmentPolicyChanged' AND credential_id IS NULL AND policy_json IS NOT NULL))");
+                            t.HasCheckConstraint("ck_security_event", """
+                                epoch > 0 AND length(previous_hash)=64 AND length(event_hash)=64 AND (
+                                    (event_type='CredentialRevoked' AND credential_id IS NOT NULL AND policy_json IS NULL)
+                                    OR (event_type='EnvironmentPolicyChanged' AND credential_id IS NULL AND policy_json IS NOT NULL)
+                                    OR (event_type='CredentialRevocationInherited' AND credential_id IS NOT NULL AND policy_json IS NULL)
+                                    OR (event_type='CredentialRevokedArchived' AND credential_id IS NOT NULL AND policy_json IS NOT NULL
+                                        AND pg_catalog.jsonb_typeof(policy_json)='string'
+                                        AND (policy_json #>> '{}') COLLATE "C" ~ '^[0-9a-f]{64}$')
+                                )
+                                """);
                         });
                 });
 

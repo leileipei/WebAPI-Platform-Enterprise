@@ -18,6 +18,7 @@ internal static class CredentialGovernanceEndpoints
     {
         var endpoints = app.MapGroup("/api/v1").RequireAuthorization().AddEndpointFilter<RequestValidationFilter>();
         endpoints.MapPost("/credentials/{id:guid}/revoke", RevokeAsync);
+        endpoints.MapPost("/credentials/{id:guid}/formal-rotation/preview", PreviewFormalRotationAsync);
         endpoints.MapGet("/credential-revocations/{id:guid}", ReadRevocationAsync);
         endpoints.MapPost("/credential-governance/journal/enroll", EnrollAsync);
         endpoints.MapPost("/credential-governance/journal/recover", RecoverAsync);
@@ -28,12 +29,7 @@ internal static class CredentialGovernanceEndpoints
     {
         context.Response.Headers.CacheControl = "no-store";
         var actor = context.Actor();
-        var scope = await (from credential in db.Set<ApplicationCredential>().AsNoTracking()
-                           join application in db.Set<ApplicationRecord>().AsNoTracking() on credential.ApplicationId equals application.Id
-                           where credential.Id == id && credential.OrganizationId == application.OrganizationId
-                           select new ScopeRef(credential.OrganizationId, credential.ProjectId ?? application.ProjectId, credential.EnvironmentId))
-            .SingleOrDefaultAsync(ct) ?? throw new ApiException(404, "credential_not_found", "找不到凭证。");
-        await authorization.RequireAsync(actor, "credential.revoke", new("credential", id, scope), ct);
+        await authorization.RequireAsync(actor, "credential.revoke", await ResolveCredentialAsync(db, id, ct), ct);
         // A user-supplied note could contain a sensitive value. The independently
         // persisted command receives only one of these public audit reasons.
         if (request.Reason is not ("compromised" or "owner_request" or "credential_retired" or "policy_change"))
@@ -50,6 +46,33 @@ internal static class CredentialGovernanceEndpoints
         {
             throw Unavailable();
         }
+    }
+
+    private static async Task<IResult> PreviewFormalRotationAsync(Guid id, FormalRotationPreviewRequest request, HttpContext context,
+        WebApiDbContext db, AuthorizationService authorization, CancellationToken ct)
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        var actor = context.Actor();
+        var target = await ResolveCredentialAsync(db, id, ct);
+        await authorization.RequireAsync(actor, "credential.manage", target, ct);
+        await authorization.RequireAsync(actor, "credential.revoke", target, ct);
+        var service = context.RequestServices.GetService<PostgresFormalRotationPreparation>() ?? throw Unavailable();
+        try
+        {
+            return Results.Ok(await service.PreviewAsync(id, request, context.Request.Headers.IfMatch, actor, ct,
+                RequireCurrentSession(context.User, actor)));
+        }
+        catch (InvalidDataException) { throw Unavailable(); }
+    }
+
+    private static async Task<ResourceRef> ResolveCredentialAsync(WebApiDbContext db, Guid id, CancellationToken ct)
+    {
+        var scope = await (from credential in db.Set<ApplicationCredential>().AsNoTracking()
+                           join application in db.Set<ApplicationRecord>().AsNoTracking() on credential.ApplicationId equals application.Id
+                           where credential.Id == id && credential.OrganizationId == application.OrganizationId
+                           select new ScopeRef(credential.OrganizationId, credential.ProjectId ?? application.ProjectId, credential.EnvironmentId))
+            .SingleOrDefaultAsync(ct) ?? throw new ApiException(404, "credential_not_found", "找不到凭证。");
+        return new("credential", id, scope);
     }
 
     private static async Task<IResult> ReadRevocationAsync(Guid id, HttpContext context, WebApiDbContext db, CancellationToken ct)

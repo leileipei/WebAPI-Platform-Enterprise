@@ -22,8 +22,8 @@ public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store
         }
         try
         {
-            var desired=await ReadCommittedAsync(deployment,ct);await store.PutAsync(deployment.EnvironmentId,desired.Envelope,desired.Payload,ct);
-            if(afterWrite is not null) await afterWrite();
+            var published = await PublishCurrentAsync(deployment.EnvironmentId, deployment, ct);
+            if(published && afterWrite is not null) await afterWrite();
             await db.Set<OutboxMessage>().Where(m=>m.Id==id&&m.Attempts==attempt&&m.ProcessedAt==null).ExecuteUpdateAsync(s=>s.SetProperty(m=>m.ProcessedAt,DateTimeOffset.UtcNow).SetProperty(m=>m.LeaseUntil,(DateTimeOffset?)null),ct);return true;
         }
         catch(Exception e) when(e is RedisException or TimeoutException)
@@ -31,6 +31,33 @@ public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store
             await db.Set<OutboxMessage>().Where(m=>m.Id==id&&m.Attempts==attempt&&m.ProcessedAt==null).ExecuteUpdateAsync(s=>s.SetProperty(m=>m.LeaseUntil,(DateTimeOffset?)null),ct);return false;
         }
     }
+
+    private async Task<bool> PublishCurrentAsync(Guid environmentId, DeploymentEvent? queued, CancellationToken ct)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock_shared(8901202)", ct);
+        var pointer = await RuntimeEnvironmentAccess.ActiveEnvironments(db).Where(env => env.Id == environmentId)
+            .Select(env => new { env.DesiredConfigVersion, env.DeploymentSequence }).SingleOrDefaultAsync(ct);
+        if (pointer is null || pointer.DesiredConfigVersion is not long version || pointer.DeploymentSequence <= 0 ||
+            queued is not null && (queued.TargetVersion != version || queued.DeploymentSequence != pointer.DeploymentSequence))
+            return false;
+
+        if (queued is null)
+        {
+            var releaseId = await db.Set<ReleaseRecord>().AsNoTracking()
+                .Where(release => release.EnvironmentId == environmentId && release.DeploymentSequence == pointer.DeploymentSequence &&
+                    release.ToConfigVersion == version).Select(release => release.Id).SingleAsync(ct);
+            queued = new(Guid.Empty, environmentId, pointer.DeploymentSequence, releaseId, version);
+        }
+
+        var desired = await ReadCommittedAsync(queued, ct);
+        ct.ThrowIfCancellationRequested();
+        // Keep the archive transition ordered behind the Redis attempt through the client response or timeout.
+        await store.PutAsync(environmentId, desired.Envelope, desired.Payload, CancellationToken.None);
+        await transaction.CommitAsync(ct);
+        return true;
+    }
+
     private async Task<DesiredConfigResponse> ReadCommittedAsync(DeploymentEvent e,CancellationToken ct)
     {
         var row=await (from r in db.Set<ReleaseRecord>().AsNoTracking() join v in db.Set<GatewayConfigVersion>().AsNoTracking() on new {r.EnvironmentId,VersionNo=r.ToConfigVersion} equals new {v.EnvironmentId,v.VersionNo} join s in db.Set<GatewayConfigSnapshot>().AsNoTracking() on v.Id equals s.ConfigVersionId where r.Id==e.ReleaseId&&r.EnvironmentId==e.EnvironmentId&&r.DeploymentSequence==e.DeploymentSequence&&v.VersionNo==e.TargetVersion select new {v.SnapshotHash,s.PayloadBytes,s.SizeBytes}).SingleAsync(ct);
@@ -38,22 +65,20 @@ public sealed class OutboxDispatcher(WebApiDbContext db,RedisSnapshotStore store
     }
     public async Task ReconcileDesiredAsync(CancellationToken ct=default)
     {
-        var environments=await db.Set<EnvironmentRecord>().AsNoTracking().Where(e=>e.DesiredConfigVersion!=null&&e.DeploymentSequence>0).ToArrayAsync(ct);
-        foreach(var env in environments)
+        var environmentIds=await db.Set<EnvironmentRecord>().AsNoTracking().Where(e=>e.Status=="Active"&&e.DesiredConfigVersion!=null&&e.DeploymentSequence>0)
+            .Select(env=>env.Id).ToArrayAsync(ct);
+        foreach(var environmentId in environmentIds)
         {
             ct.ThrowIfCancellationRequested();
             try
             {
-                var release=await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.EnvironmentId==env.Id&&r.DeploymentSequence==env.DeploymentSequence&&r.ToConfigVersion==env.DesiredConfigVersion,ct);
-                var e=new DeploymentEvent(Guid.Empty,env.Id,env.DeploymentSequence,release.Id,release.ToConfigVersion);
-                var desired=await ReadCommittedAsync(e,ct);
-                await store.PutAsync(env.Id,desired.Envelope,desired.Payload,ct);
+                await PublishCurrentAsync(environmentId, null, ct);
             }
             catch(OperationCanceledException) when(ct.IsCancellationRequested) {throw;}
             catch(Exception error)
             {
                 // Keep invalid snapshots rejected without starving unrelated environments.
-                log?.LogError("Desired reconciliation failed for {EnvironmentId}: {ErrorType}",env.Id,error.GetType().Name);
+                log?.LogError("Desired reconciliation failed for {EnvironmentId}: {ErrorType}",environmentId,error.GetType().Name);
             }
         }
     }

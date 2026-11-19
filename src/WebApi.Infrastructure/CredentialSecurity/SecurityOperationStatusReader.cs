@@ -22,15 +22,22 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
    await requireSession(db,token);
    var row=await db.Set<SecurityOperation>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==operation && x.Kind=="CredentialRevoke",token);
    if(row?.CredentialId is not Guid credential) throw RevocationMissing();
-   var facts=await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation).OrderBy(x=>x.EnvironmentId).ToArrayAsync(token);
-   if(facts.Length==0||facts.Any(x=>x.OrganizationId!=row.OrganizationId||x.CredentialId!=credential||x.EventType!="CredentialRevoked"))
+   var facts=await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation&&x.EventType!=CredentialRevocationEvents.Inherited)
+    .OrderBy(x=>x.EnvironmentId).ToArrayAsync(token);
+   if(facts.Length==0||facts.Any(x=>x.OrganizationId!=row.OrganizationId||x.CredentialId!=credential||
+    !CredentialRevocationEvents.IsRevocation(x.EventType)||!CredentialRevocationEvents.ValidMaterial(x)))
     throw RevocationMissing();
    var authorization=new AuthorizationService(db);
    foreach(var fact in facts)
-    await authorization.RequireAsync(actor,"credential.revoke",new("credential",credential,
-     new(fact.OrganizationId,fact.ProjectId,fact.EnvironmentId)),token);
+   {
+    var target=new ResourceRef("credential",credential,new(fact.OrganizationId,fact.ProjectId,fact.EnvironmentId));
+    if(fact.EventType==CredentialRevocationEvents.Archived)await authorization.RequireArchivedCredentialRevocationAsync(actor,target,token);
+    else await authorization.RequireAsync(actor,"credential.revoke",target,token);
+   }
    receipt=new(operation,credential,row.CommittedAt,row.Revision,"Unconfirmed",$"/api/v1/credential-revocations/{operation}",
-    facts.Select(fact=>new RevocationEnvironmentDto(fact.EnvironmentId,fact.SecurityGeneration,fact.Epoch,fact.EventHash)).ToArray(),[]);
+    facts.Select(fact=>new RevocationEnvironmentDto(fact.EnvironmentId,fact.SecurityGeneration,fact.Epoch,fact.EventHash,
+     CredentialRevocationEvents.CoverageState(fact))).ToArray(),[]);
+   return facts.Where(fact=>fact.EventType==CredentialRevocationEvents.Original).Select(fact=>fact.EnvironmentId).ToArray();
   },ct);
   // The poll view exposes recorded targets. Full coverage requires independently
   // reverified journal effects and current ingress isolation together.
@@ -43,7 +50,7 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
 
  private static ApiException RevocationMissing()=>new(404,"credential_revocation_not_found","找不到撤销操作。");
 
- private async Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadAsync(Guid operation,Func<CancellationToken,Task>? authorize,CancellationToken ct)
+ private async Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadAsync(Guid operation,Func<CancellationToken,Task<Guid[]>>? authorize,CancellationToken ct)
  {
   // An inherited repeatable-read snapshot may have been fixed before a
   // concurrent authority change. This diagnostic reader owns its transaction;
@@ -55,8 +62,10 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
   // wait. Cooperative authority writers use the same global/environment lock
   // order. Deployment must also fence non-cooperative database writers.
   await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
-  if(authorize is not null) await authorize(ct);
-  var environments=await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation).Select(x=>x.EnvironmentId)
+  // The public receipt is scoped to its original authorized running environments.
+  // Later inherited environments must not be locked or have expiry records written by this poll.
+  var visible=authorize is null?null:await authorize(ct);
+  var environments=visible??await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation).Select(x=>x.EnvironmentId)
    .Concat(db.Set<SecurityOperationTarget>().AsNoTracking().Where(x=>x.OperationId==operation).Select(x=>x.EnvironmentId))
    .Distinct().OrderBy(x=>x).ToArrayAsync(ct);
   foreach(var environment in environments)
@@ -68,15 +77,15 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
    if(!recordingExpiry){recordingExpiry=true;completionBudget.CancelAfter(TimeSpan.FromSeconds(5));}
    return completionBudget.Token;
   }
-  var result=await ReadCoreAsync(operation,ct,ExpiryToken);
+  var result=await ReadCoreAsync(operation,visible,ct,ExpiryToken);
   await snapshot.CommitAsync(recordingExpiry?completionBudget.Token:ct);
   return result;
  }
- private async Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadCoreAsync(Guid operation,CancellationToken ct,Func<CancellationToken> expiryToken)
+ private async Task<(string Status,IReadOnlyList<RevocationTargetDto> Targets,IReadOnlyList<RevocationCoverageGapDto> CoverageGaps,DateTimeOffset ObservedAt,DateTimeOffset? EarliestConfirmedLeaseExpiry)> ReadCoreAsync(Guid operation,Guid[]? visible,CancellationToken ct,Func<CancellationToken> expiryToken)
  {
-  var targets=await db.Set<SecurityOperationTarget>().AsNoTracking().Where(x=>x.OperationId==operation).OrderBy(x=>x.EnvironmentId).ThenBy(x=>x.NodeId).ThenBy(x=>x.CreatedAt).ToArrayAsync(ct);
-  var eventEnvironmentIds=await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation).Select(x=>x.EnvironmentId).Distinct().ToArrayAsync(ct);
-  var acks=await db.Set<SecurityAckVerification>().AsNoTracking().Where(x=>x.OperationId==operation).ToArrayAsync(ct);var ids=targets.Select(x=>x.NodeId).Distinct().ToArray();
+  var targets=await db.Set<SecurityOperationTarget>().AsNoTracking().Where(x=>x.OperationId==operation&&(visible==null||visible.Contains(x.EnvironmentId))).OrderBy(x=>x.EnvironmentId).ThenBy(x=>x.NodeId).ThenBy(x=>x.CreatedAt).ToArrayAsync(ct);
+  var eventEnvironmentIds=await db.Set<SecurityEvent>().AsNoTracking().Where(x=>x.OperationId==operation&&(visible==null||visible.Contains(x.EnvironmentId))).Select(x=>x.EnvironmentId).Distinct().ToArrayAsync(ct);
+  var acks=await db.Set<SecurityAckVerification>().AsNoTracking().Where(x=>x.OperationId==operation&&(visible==null||visible.Contains(x.EnvironmentId))).ToArrayAsync(ct);var ids=targets.Select(x=>x.NodeId).Distinct().ToArray();
   var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>ids.Contains(x.Id)||x.Enabled&&eventEnvironmentIds.Contains(x.EnvironmentId)).ToDictionaryAsync(x=>x.Id,ct);
   var environmentIds=targets.Select(x=>x.EnvironmentId).Concat(eventEnvironmentIds).Distinct().ToArray();
   var securityStates=await db.Set<EnvironmentSecurityState>().AsNoTracking().Where(x=>environmentIds.Contains(x.EnvironmentId)).ToDictionaryAsync(x=>x.EnvironmentId,ct);
@@ -88,8 +97,8 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
   var observedExpired=(await db.Set<GatewaySecurityLeaseExpiryObservation>().AsNoTracking().Where(x=>receiptLeaseIds.Contains(x.LeaseId)).Select(x=>x.LeaseId).ToArrayAsync(ct)).ToHashSet();
   var latestLeases=(await db.Set<GatewaySecurityLease>().AsNoTracking().Where(x=>ids.Contains(x.NodeId)&&instances.Contains(x.InstanceId)).ToArrayAsync(ct))
    .ToDictionary(x=>(x.NodeId,x.InstanceId));
-  var attempts=await db.Set<SecurityAckAttempt>().AsNoTracking().Where(x=>x.OperationId==operation).OrderByDescending(x=>x.ReceivedAt).ToArrayAsync(ct);
-  var latestFailures=await db.Set<SecurityAckFailureLatest>().AsNoTracking().Where(x=>x.OperationId==operation).ToArrayAsync(ct);
+  var attempts=await db.Set<SecurityAckAttempt>().AsNoTracking().Where(x=>x.OperationId==operation&&(visible==null||visible.Contains(x.EnvironmentId))).OrderByDescending(x=>x.ReceivedAt).ToArrayAsync(ct);
+  var latestFailures=await db.Set<SecurityAckFailureLatest>().AsNoTracking().Where(x=>x.OperationId==operation&&(visible==null||visible.Contains(x.EnvironmentId))).ToArrayAsync(ct);
   var acksByTarget=acks.ToDictionary(x=>(x.EnvironmentId,x.NodeId,x.InstanceGuid));
   var receiptsByInstance=acceptedReceipts.ToDictionary(x=>(x.NodeId,x.InstanceId));
   var attemptsByTarget=attempts.ToLookup(x=>(x.EnvironmentId,x.NodeId,x.InstanceGuid));
@@ -160,7 +169,7 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db)
   }
   var gaps=new List<RevocationCoverageGapDto>();
   if(clockRegressed)gaps.Add(new(null,null,"database_clock_regressed"));
-  if(eventEnvironmentIds.Length==0)gaps.Add(new(null,null,"operation_has_no_environment_events"));
+  if(eventEnvironmentIds.Length==0&&visible is not { Length: 0 })gaps.Add(new(null,null,"operation_has_no_environment_events"));
   var eventEnvironments=eventEnvironmentIds.ToHashSet();
   foreach(var environment in targets.Select(t=>t.EnvironmentId).Distinct().Where(id=>!eventEnvironments.Contains(id)))
    gaps.Add(new(environment,null,"target_without_environment_event"));

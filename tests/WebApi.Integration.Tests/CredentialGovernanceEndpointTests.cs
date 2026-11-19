@@ -103,6 +103,33 @@ public sealed class CredentialGovernanceEndpointTests
     }
 
     [Fact]
+    public async Task FormalRotationPreviewRequiresExplicitAuthorityAndAConfiguredProofProvider()
+    {
+        await using var fixture = new ApiFixture();
+        await fixture.InitializeAsync();
+        await fixture.SeedConsumerAsync();
+        using var login = await fixture.LoginAsync();
+        login.EnsureSuccessStatusCode();
+        var credential = await CreateCredentialAsync(fixture);
+        var now = DateTimeOffset.UtcNow;
+        var request = new FormalRotationPreviewRequest(fixture.Environment.Id, now, now.AddHours(2), now.AddMinutes(1), now.AddMinutes(2));
+        var path = $"/api/v1/credentials/{credential.Id}/formal-rotation/preview";
+        var tag = RevisionTag.Format(credential.Revision);
+
+        using var denied = await fixture.WriteAsync(HttpMethod.Post, path, request, tag);
+        await RequireProblemAsync(denied, HttpStatusCode.Forbidden, "permission_denied");
+        await AddPermissionAsync(fixture, "credential.revoke");
+        using var noWitness = await fixture.WriteAsync(HttpMethod.Post, path, request, tag);
+        await RequireProblemAsync(noWitness, HttpStatusCode.ServiceUnavailable, "credential_governance_unavailable");
+        Assert.True(noWitness.Headers.CacheControl?.NoStore);
+
+        await using var db = fixture.Context();
+        Assert.Equal(credential.Revision, await db.Set<ApplicationCredential>().Where(item => item.Id == credential.Id)
+            .Select(item => item.Revision).SingleAsync());
+        Assert.Empty(await db.Set<SecurityOperation>().ToArrayAsync());
+    }
+
+    [Fact]
     public async Task EnrollmentRequiresPlatformRecoveryPermissionAndReverifiesAnExactReplay()
     {
         await using var fixture = new ApiFixture();

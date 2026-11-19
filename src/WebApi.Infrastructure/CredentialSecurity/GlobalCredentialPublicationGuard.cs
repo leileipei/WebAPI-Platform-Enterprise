@@ -108,7 +108,7 @@ internal static class GlobalCredentialPublicationGuard
     private static HashSet<(Guid OperationId, Guid CredentialId, Guid ApplicationId)> TombstoneIdentities(SecurityLedgerMaterial ledger) =>
         ledger.Revocations.Select(item => (item.OperationId, item.CredentialId, item.ApplicationId)).ToHashSet();
 
-    private static IQueryable<SecurityOperation> GlobalOperations(WebApiDbContext db) =>
+    internal static IQueryable<SecurityOperation> GlobalOperations(WebApiDbContext db) =>
         from operation in db.Set<SecurityOperation>().AsNoTracking()
         join credential in db.Set<ApplicationCredential>().AsNoTracking()
             on new { operation.CredentialId, operation.ApplicationId, operation.OrganizationId }
@@ -122,6 +122,6 @@ internal static class GlobalCredentialPublicationGuard
         db.Set<CredentialRevocation>().Where(item => item.EnvironmentId == environmentId).Select(item => item.OperationId)
             .Union(db.Set<SecurityEvent>().Where(item => item.EnvironmentId == environmentId).Select(item => item.OperationId));
 
-    private static ApiException InheritanceRequired() => new(409, "global_revocation_inheritance_required",
+    internal static ApiException InheritanceRequired() => new(409, "global_revocation_inheritance_required",
         "目标环境须先完整继承当前安全账本中的全局凭证撤销事实。");
 }
