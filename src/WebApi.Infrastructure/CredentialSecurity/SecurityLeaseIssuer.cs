@@ -94,7 +94,8 @@ public sealed class SecurityLeaseIssuer(WebApiDbContext db, NodeIdentityService 
         var keys = signing.LoadTrustedKeys();
         var publicKey = signer.ExportPublicKey();
         if (!SecuritySignedEncoding.KeyId(signing.KeyId) || !keys.SubjectPublicKeys.TryGetValue(signing.KeyId!, out var pinnedKey) ||
-            publicKey != pinnedKey || publicKey == evidence.Trust.TimePublicKey || publicKey == evidence.Trust.HistoryPublicKey)
+            publicKey != pinnedKey || publicKey == evidence.Trust.TimePublicKey || publicKey == evidence.Trust.HistoryPublicKey ||
+            evidence.AdditionalIndependentPublicKeys?.Contains(publicKey) == true)
             throw Unavailable();
 
         var scope = new EvidenceScope("control-plane-issuance", environment.Id, node.Id, instanceId, authority.SecurityGeneration, authority.Epoch, authority.HeadHash);

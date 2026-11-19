@@ -28,13 +28,8 @@ public sealed class PostgresGovernanceRecoveryContinuity : IGovernanceRecoveryCo
         ct.ThrowIfCancellationRequested();
         try
         {
-            if (environmentId == Guid.Empty || db.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction tx ||
-                tx.IsolationLevel != IsolationLevel.ReadCommitted) throw Unavailable();
-
-            await RequireFenceAsync(db, tx, ct);
-            await db.Database.ExecuteSqlRawAsync("SET LOCAL search_path = pg_catalog, public, pg_temp", ct);
-            await RequirePermanentSecurityTablesAsync(db, ct);
-            var (position, entries) = await PostgresGovernanceCommitStore.ReadConfirmedHistoryAsync(db, tx, journal, ct);
+            if (environmentId == Guid.Empty) throw Unavailable();
+            var (tx, position, entries) = await ReadConfirmedJournalAsync(db, ct);
             foreach (var intent in entries)
                 if (!await FormalRotationMutation.VerifyCommittedAsync(db, journal, intent, ct)) throw Unavailable();
             var rotations = entries.Count(intent => FormalRotationJournalIntent.Kind(intent) == FormalRotationJournalIntent.Schedule);
@@ -42,20 +37,10 @@ public sealed class PostgresGovernanceRecoveryContinuity : IGovernanceRecoveryCo
             var decisions = entries.Count(intent => FormalRotationJournalIntent.Kind(intent) == FormalRotationJournalIntent.Decision);
             if (await db.Set<FormalRotationDecision>().CountAsync(ct) != decisions) throw Unavailable();
 
-            var ledger = await new SecurityLedgerReader(db).ReadCompleteLockedAsync(environmentId, ct);
-            var origin = await db.Set<EnvironmentSecurityInitialization>().AsNoTracking().SingleAsync(row => row.EnvironmentId == environmentId, ct);
-            var initializationHash = GovernanceEnvironmentHistoryProtocol.InitializationHash(new(origin.EnvironmentId, origin.ProjectId,
-                origin.OrganizationId, origin.State, origin.EvidenceHash, origin.FreshProofId, origin.ConfirmedBy, origin.ConfirmedAt,
-                origin.ConfirmationReason, origin.Revision));
-            var checkpoint = new GovernanceEnvironmentHistoryCheckpoint(ledger.OrganizationId, ledger.ProjectId, ledger.SecurityGeneration,
-                ledger.Epoch, ledger.HeadHash, initializationHash, ledger.RequireEnvironmentCredentials, ledger.MinimumSnapshotSchema,
-                ledger.InitialRequireEnvironmentCredentials);
-
             var observed = await journalWitness.ObserveAsync(journal, null, ct);
             if (observed is null || observed.Pending is not null || observed.OperationConfirmation is not null ||
                 observed.Confirmed != position) throw Unavailable();
-            var history = await historyWitness.ObserveAsync(journal, position, environmentId, ct);
-            if (history != new GovernanceEnvironmentHistory(journal, position, environmentId, "Confirmed", checkpoint)) throw Unavailable();
+            var ledger = await ObserveEnvironmentAsync(db, position, environmentId, ct);
 
             await RequireFenceAsync(db, tx, ct);
             return new(journal, position, ledger);
@@ -67,7 +52,43 @@ public sealed class PostgresGovernanceRecoveryContinuity : IGovernanceRecoveryCo
         }
     }
 
-    private static async Task RequireFenceAsync(WebApiDbContext db, NpgsqlTransaction tx, CancellationToken ct)
+    internal async Task<(NpgsqlTransaction Transaction, GovernanceJournalPosition Position, IReadOnlyList<GovernanceWriteIntent> Entries)>
+        ReadConfirmedJournalAsync(WebApiDbContext db, CancellationToken ct)
+    {
+        if (db.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction tx ||
+            tx.IsolationLevel != IsolationLevel.ReadCommitted) throw Unavailable();
+        await RequireFenceAsync(db, tx, ct);
+        await db.Database.ExecuteSqlRawAsync("SET LOCAL search_path = pg_catalog, public, pg_temp", ct);
+        await RequirePermanentSecurityTablesAsync(db, ct);
+        var (position, entries) = await PostgresGovernanceCommitStore.ReadConfirmedHistoryAsync(db, tx, journal, ct);
+        return (tx, position, entries);
+    }
+
+    internal async Task<SecurityLedgerMaterial> ObserveEnvironmentAsync(WebApiDbContext db, GovernanceJournalPosition position,
+        Guid environmentId, CancellationToken ct)
+    {
+        var (ledger, checkpoint) = await ReadEnvironmentCheckpointAsync(db, environmentId, ct);
+        var history = await historyWitness.ObserveAsync(journal, position, environmentId, ct);
+        if (history != new GovernanceEnvironmentHistory(journal, position, environmentId, "Confirmed", checkpoint)) throw Unavailable();
+        return ledger;
+    }
+
+    internal static async Task<(SecurityLedgerMaterial Ledger, GovernanceEnvironmentHistoryCheckpoint Checkpoint)>
+        ReadEnvironmentCheckpointAsync(WebApiDbContext db, Guid environmentId, CancellationToken ct)
+    {
+        if (environmentId == Guid.Empty) throw Unavailable();
+        var ledger = await new SecurityLedgerReader(db).ReadCompleteLockedAsync(environmentId, ct);
+        var origin = await db.Set<EnvironmentSecurityInitialization>().AsNoTracking().SingleAsync(row => row.EnvironmentId == environmentId, ct);
+        var initializationHash = GovernanceEnvironmentHistoryProtocol.InitializationHash(new(origin.EnvironmentId, origin.ProjectId,
+            origin.OrganizationId, origin.State, origin.EvidenceHash, origin.FreshProofId, origin.ConfirmedBy, origin.ConfirmedAt,
+            origin.ConfirmationReason, origin.Revision));
+        var checkpoint = new GovernanceEnvironmentHistoryCheckpoint(ledger.OrganizationId, ledger.ProjectId, ledger.SecurityGeneration,
+            ledger.Epoch, ledger.HeadHash, initializationHash, ledger.RequireEnvironmentCredentials, ledger.MinimumSnapshotSchema,
+            ledger.InitialRequireEnvironmentCredentials);
+        return (ledger, checkpoint);
+    }
+
+    internal static async Task RequireFenceAsync(WebApiDbContext db, NpgsqlTransaction tx, CancellationToken ct)
     {
         if (tx.Connection is not { } connection || !ReferenceEquals(connection, db.Database.GetDbConnection()) ||
             !ReferenceEquals(db.Database.CurrentTransaction?.GetDbTransaction(), tx)) throw Unavailable();
