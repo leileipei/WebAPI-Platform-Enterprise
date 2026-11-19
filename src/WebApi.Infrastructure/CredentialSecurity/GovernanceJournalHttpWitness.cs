@@ -10,16 +10,19 @@ public sealed class GovernanceJournalHttpWitness : IGovernanceJournalWitness, ID
     private readonly Uri endpoint;
     private readonly GovernanceWitnessTrust trust;
     private readonly BoundedWitnessHttpClient transport;
+    private readonly TimeProvider clock;
 
     public GovernanceJournalHttpWitness(Uri endpoint, GovernanceWitnessTrust trust, X509Certificate2 writerCertificate)
         : this(BoundedWitnessHttpClient.RequireEndpoint(endpoint), trust ?? throw new ArgumentNullException(nameof(trust)),
             CreateTransport(writerCertificate)) { }
 
-    internal GovernanceJournalHttpWitness(Uri endpoint, GovernanceWitnessTrust trust, BoundedWitnessHttpClient transport)
+    internal GovernanceJournalHttpWitness(Uri endpoint, GovernanceWitnessTrust trust, BoundedWitnessHttpClient transport,
+        TimeProvider? clock = null)
     {
         this.endpoint = endpoint;
         this.trust = trust;
         this.transport = transport;
+        this.clock = clock ?? TimeProvider.System;
     }
 
     private static BoundedWitnessHttpClient CreateTransport(X509Certificate2 writerCertificate)
@@ -37,6 +40,17 @@ public sealed class GovernanceJournalHttpWitness : IGovernanceJournalWitness, ID
 
     public Task<GovernanceWitnessState> ConfirmAsync(GovernanceJournalId journal, GovernanceWriteIntent intent, CancellationToken ct) =>
         SendAsync(GovernanceJournalProtocol.Confirm(journal, intent), ct);
+
+    internal async Task<VerifiedGovernanceLeaseReservation> ReserveAllowLeaseAsync(GovernanceJournalId journal,
+        GovernanceJournalPosition expectedConfirmed, GovernanceLeaseReservation reservation, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        var request = GovernanceLeaseReservationProtocol.Reserve(journal, expectedConfirmed, reservation);
+        // These local time checks can only reject. Issuance requires its own trusted time evidence.
+        var bytes = GovernanceLeaseReservationProtocol.EncodeRequest(request, clock.GetUtcNow());
+        var response = await transport.PostAsync(endpoint, bytes, GovernanceLeaseReservationProtocol.MaxWireBytes, ct);
+        return GovernanceLeaseReservationProtocol.VerifyResponse(request, response, trust, clock.GetUtcNow());
+    }
 
     private async Task<GovernanceWitnessState> SendAsync(GovernanceWitnessRequest request, CancellationToken ct)
     {

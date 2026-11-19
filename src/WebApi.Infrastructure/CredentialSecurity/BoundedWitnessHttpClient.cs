@@ -6,10 +6,11 @@ namespace WebApi.Infrastructure.CredentialSecurity;
 
 internal sealed class BoundedWitnessHttpClient : IDisposable
 {
+    internal static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(5);
     private readonly HttpClient client;
     private readonly TimeSpan timeout;
 
-    public BoundedWitnessHttpClient(X509Certificate2? certificate = null) : this(CreateHandler(certificate), TimeSpan.FromSeconds(5)) { }
+    public BoundedWitnessHttpClient(X509Certificate2? certificate = null) : this(CreateHandler(certificate), RequestTimeout) { }
 
     private static SocketsHttpHandler CreateHandler(X509Certificate2? certificate)
     {

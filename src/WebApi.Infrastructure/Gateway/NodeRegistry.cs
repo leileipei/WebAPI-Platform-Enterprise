@@ -41,6 +41,7 @@ public sealed class NodeRegistry(WebApiDbContext db,NodeIdentityService identiti
             .Where(e=>e.EnvironmentId==request.EnvironmentId&&!db.Set<SecurityOperationTarget>().Any(t=>t.OperationId==e.OperationId&&t.EnvironmentId==e.EnvironmentId&&t.NodeId==node.Id&&t.InstanceGuid==request.InstanceId))
             .Select(e=>e.OperationId).Distinct().ToArrayAsync(ct);
         var minimum=await db.Set<EnvironmentSecurityState>().AsNoTracking().Where(s=>s.EnvironmentId==request.EnvironmentId).Select(s=>s.MinimumSnapshotSchema).SingleOrDefaultAsync(ct);
+        if(await GlobalCredentialPublicationGuard.HasLocalRevocationAsync(db,request.EnvironmentId,ct)) minimum="2.4";
         var supported=SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,minimum);
         if((minimum is "2.3" or "2.4"||priorTargets.Length>0||missingOperations.Length>0)&&!supported)
             throw new ApiException(409,"gateway_security_capability_required","当前环境要求节点声明兼容的快照和安全协议能力。");
@@ -83,8 +84,18 @@ public sealed class NodeRegistry(WebApiDbContext db,NodeIdentityService identiti
         await using var tx=await db.Database.BeginTransactionAsync(ct);await LockAsync(identity.EnvironmentId,ct);var node=await identities.RevalidateAsync(identity,heartbeat.InstanceId,ct);
         if(heartbeat.Status is not ("Ready" or "NotReady" or "Degraded")||heartbeat.ConfigVersion<0||heartbeat.DeploymentSequence<0||(heartbeat.ConfigVersion==0)!=(heartbeat.DeploymentSequence==0)||heartbeat.DeploymentSequence<node.CurrentDeploymentSequence||heartbeat.Status=="Ready"&&heartbeat.ConfigVersion==0) throw new ApiException(409,"invalid_heartbeat","节点心跳状态或运行序列不合法。");
         if(heartbeat.DeploymentSequence>0&&!await db.Set<ReleaseRecord>().AnyAsync(r=>r.EnvironmentId==node.EnvironmentId&&r.DeploymentSequence==heartbeat.DeploymentSequence&&r.ToConfigVersion==heartbeat.ConfigVersion,ct)) throw new ApiException(409,"unknown_running_config","节点报告的运行版本没有对应发布事实。");
-        if(node.Status!=heartbeat.Status) db.Add(new GatewayNodeEvent {GatewayNodeId=node.Id,EventType="status",Message="节点状态更新",Detail=JsonSerializer.Serialize(new {status=heartbeat.Status,configVersion=heartbeat.ConfigVersion,deploymentSequence=heartbeat.DeploymentSequence})});
-        node.Metadata=SnapshotSchemaCapabilities.Merge(node.Metadata,heartbeat.InstanceId,heartbeat.SupportedSnapshotSchemas);node.Metadata=SecurityProtocolCapabilities.Merge(node.Metadata,heartbeat.InstanceId,heartbeat.SecurityCapabilities);node.CurrentConfigVersion=heartbeat.ConfigVersion;node.CurrentDeploymentSequence=heartbeat.DeploymentSequence;node.Status=heartbeat.Status;node.LastHeartbeatAt=DateTimeOffset.UtcNow;await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
+        node.Metadata=SnapshotSchemaCapabilities.Merge(node.Metadata,heartbeat.InstanceId,heartbeat.SupportedSnapshotSchemas);
+        node.Metadata=SecurityProtocolCapabilities.Merge(node.Metadata,heartbeat.InstanceId,heartbeat.SecurityCapabilities);
+        var status=heartbeat.Status;
+        if(!SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,"2.4")&&
+            await GlobalCredentialPublicationGuard.HasLocalRevocationAsync(db,node.EnvironmentId,ct))
+        {
+            status="NotReady";
+            node.Metadata=SecurityProtocolCapabilities.ClearReceipt(RuntimeApplicationReceipt.Clear(node.Metadata));
+        }
+        if(node.Status!=status) db.Add(new GatewayNodeEvent {GatewayNodeId=node.Id,EventType="status",Message="节点状态更新",Detail=JsonSerializer.Serialize(new {status,configVersion=heartbeat.ConfigVersion,deploymentSequence=heartbeat.DeploymentSequence})});
+        node.CurrentConfigVersion=heartbeat.ConfigVersion;node.CurrentDeploymentSequence=heartbeat.DeploymentSequence;node.Status=status;node.LastHeartbeatAt=DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
     }
     public async Task<DesiredConfigResponse?> DesiredAsync(NodeIdentity identity,CancellationToken ct=default)
     {

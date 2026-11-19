@@ -122,7 +122,7 @@ public sealed class LegacyGlobalRevocationScopeTests
     }
 
     [Fact]
-    public async Task ResolverRequiresTheWriterFenceAndDoesNotEnableTheActualMutation()
+    public async Task ResolverRequiresTheWriterFenceAndHistoryAloneCannotPrepareTheMutation()
     {
         await using var fixture = await Fixture.StartAsync();
         await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.ReadAsync(useWriterFence: false));
@@ -132,9 +132,11 @@ public sealed class LegacyGlobalRevocationScopeTests
         await using var tx = await db.Database.BeginTransactionAsync();
         await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)");
         var mutation = new CredentialRevocationMutation(fixture.Actor, fixture.History);
+        var resource = await mutation.RequireScopeAsync(db, fixture.Credential.Id, null, default);
+        Assert.Equal(fixture.Uses.Select(x => x.Id).Order(), resource.Environments.Select(x => x.Id));
         var denied = await Assert.ThrowsAsync<ApiException>(
-            () => mutation.RequireScopeAsync(db, fixture.Credential.Id, null, default));
-        Assert.Equal("credential_revocation_scope_unknown", denied.Code);
+            () => mutation.PlanAsync(db, resource, "Isolated test", new string('a', 64), default));
+        Assert.Equal("credential_revocation_coverage_unknown", denied.Code);
         Assert.NotNull(fixture.History.Observed);
         await tx.RollbackAsync();
         await fixture.AssertNoWritesAsync();

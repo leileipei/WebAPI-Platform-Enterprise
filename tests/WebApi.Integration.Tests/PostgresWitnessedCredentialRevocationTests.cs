@@ -3,6 +3,7 @@ using Npgsql;
 using System.Security.Cryptography;
 using WebApi.Contracts.Applications;
 using WebApi.Contracts.Common;
+using WebApi.Contracts.Releases;
 using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Security;
 using WebApi.Domain.CredentialSecurity;
@@ -10,8 +11,11 @@ using WebApi.Gateway.Security;
 using WebApi.Gateway.Storage;
 using WebApi.Infrastructure.CredentialSecurity;
 using WebApi.Infrastructure.Gateway;
+using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Releases;
+using WebApi.Infrastructure.Security;
 using WebApi.Integration.Tests.Support;
 using Xunit;
 
@@ -54,6 +58,173 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         Assert.Equal(409, changed.Status);
         await fixture.AssertFactsAsync(1);
         Assert.Equal(1, fixture.Witness.Preparations);
+    }
+
+    [Fact]
+    public async Task GlobalRevocationCommitsAllEnvironmentsAsOneFactAndReplays()
+    {
+        await using var fixture = await Fixture.StartAsync(global: true);
+        var replies = await Task.WhenAll(fixture.RevokeAsync(), fixture.RevokeAsync());
+        Assert.Equal(replies[0].OperationId, replies[1].OperationId);
+        Assert.Single(replies, x => !x.Replayed);
+        Assert.Equal(fixture.EnvironmentIds.Order(), replies[0].Environments.Select(x => x.EnvironmentId));
+        Assert.Equal(4, replies[0].Targets.Count);
+        await fixture.AssertFactsAsync(1);
+        Assert.Equal(1, fixture.Witness.Preparations);
+        Assert.Equal(1, fixture.Witness.Confirmations);
+    }
+
+    [Fact]
+    public async Task GlobalRevocationStillReplaysWhenTheIndependentInventoryMustBeRefreshed()
+    {
+        await using var fixture = await Fixture.StartAsync(global: true);
+        var committed = await fixture.RevokeAsync();
+        fixture.Coverage.HistoryApproved = false;
+
+        var replay = await fixture.RevokeAsync();
+        Assert.True(replay.Replayed);
+        Assert.Equal(committed.OperationId, replay.OperationId);
+        Assert.Equal(committed.Environments, replay.Environments);
+        await fixture.AssertFactsAsync(1);
+    }
+
+    [Fact]
+    public async Task GlobalRevocationCannotPrepareWhenCurrentProofCannotCoverTheWitnessRequest()
+    {
+        await using var fixture = await Fixture.StartAsync(global: true, leaseLifetime: TimeSpan.FromSeconds(4));
+        var error = await Assert.ThrowsAsync<ApiException>(() => fixture.RevokeAsync());
+        Assert.Equal("credential_revocation_coverage_unknown", error.Code);
+        Assert.Equal(0, fixture.Witness.Preparations);
+        await fixture.AssertFactsAsync(0);
+    }
+
+    [Theory]
+    [InlineData("2.3", false)]
+    [InlineData("2.4", true)]
+    public async Task GlobalRevocationRequiresModernReplacementNodes(string schema, bool accepted)
+    {
+        await using var fixture = await Fixture.StartAsync(global: true);
+        await fixture.RevokeAsync();
+        await using var db = fixture.Database.Context();
+        const string name = "isolated-replacement";
+        const string secret = "fixture-replacement-credential-identity";
+        var identity = new NodeIdentityService(db, new([new(fixture.EnvironmentId, name, NodeIdentityService.Hash(secret))]));
+        var registry = new NodeRegistry(db, identity);
+        var request = new WebApi.Contracts.Gateway.RegisterNodeRequest(fixture.EnvironmentId, name, Guid.NewGuid(),
+            "fixture", [schema], ["security-ledger-v1"]);
+        if (accepted)
+        {
+            var node = await registry.RegisterAsync(request, secret);
+            Assert.Single(await db.Set<SecurityOperationTarget>().Where(x => x.NodeId == node.NodeId).ToArrayAsync());
+        }
+        else
+        {
+            var error = await Assert.ThrowsAsync<ApiException>(() => registry.RegisterAsync(request, secret));
+            Assert.Equal("gateway_security_capability_required", error.Code);
+            Assert.False(await db.Set<GatewayNode>().AnyAsync(x => x.NodeName == name));
+        }
+    }
+
+    [Fact]
+    public async Task GlobalRevocationDoesNotLetAnOperatorReenableALegacyNode()
+    {
+        await using var fixture = await Fixture.StartAsync(global: true);
+        await fixture.RevokeAsync();
+        await using var db = fixture.Database.Context();
+        var legacyNode = new GatewayNode { EnvironmentId = fixture.EnvironmentId, InstanceId = Guid.NewGuid().ToString(),
+            NodeName = "isolated-disabled-legacy", Enabled = false };
+        var role = await db.Set<Role>().SingleAsync(x => x.Code == "SECURITY-FIXTURE");
+        var permission = new Permission { Code = "gateway.operate", Module = "gateway", Name = "Operate" };
+        db.AddRange(legacyNode, permission, new RolePermission { RoleId = role.Id, PermissionId = permission.Id });
+        await db.SaveChangesAsync();
+        var scope = new ScopeResolver(db);
+        var service = new GatewayReadService(db, new AuthorizationService(db), scope, new HistoricalSnapshotService(db, scope),
+            new AuditedCommandExecutor(db));
+
+        var error = await Assert.ThrowsAsync<ApiException>(() => service.SetEnabledAsync(legacyNode.Id, true,
+            $"\"{legacyNode.InstanceId}:False\"", fixture.Actor));
+        Assert.Equal("gateway_security_capability_required", error.Code);
+        Assert.False((await db.Set<GatewayNode>().AsNoTracking().SingleAsync(x => x.Id == legacyNode.Id)).Enabled);
+    }
+
+    [Fact]
+    public async Task GlobalRevocationKeepsAReportedCapabilityDowngradeOutOfReady()
+    {
+        await using var fixture = await Fixture.StartAsync(global: true);
+        await fixture.RevokeAsync();
+        await using var db = fixture.Database.Context();
+        var node = await db.Set<GatewayNode>().AsNoTracking().FirstAsync(x => x.EnvironmentId == fixture.EnvironmentId);
+        var registry = new NodeRegistry(db, new NodeIdentityService(db, new([])));
+        await registry.HeartbeatAsync(new(node.Id, node.EnvironmentId, node.IdentityHash),
+            new(Guid.Parse(node.InstanceId), 1, 1, "Ready", ["2.3"], ["security-ledger-v1"]));
+
+        var saved = await db.Set<GatewayNode>().AsNoTracking().SingleAsync(x => x.Id == node.Id);
+        Assert.Equal("NotReady", saved.Status);
+        Assert.Equal(["2.3"], SnapshotSchemaCapabilities.Read(saved));
+    }
+
+    [Fact]
+    public async Task EnvironmentBoundRecoveryKeepsTheOriginalJournalEncoding()
+    {
+        await using var fixture = await Fixture.StartAsync();
+        fixture.Witness.Fault = "prepare-reply-lost";
+        await Assert.ThrowsAsync<IOException>(() => fixture.RevokeAsync());
+        var original = Assert.IsType<GovernanceWriteIntent>(fixture.Witness.Pending);
+        var plan = CredentialRevocationIntent.Read(original);
+        var legacyBytes = CanonicalJson.Serialize(new
+        {
+            plan.CredentialId, plan.ApplicationId, plan.ActorId, plan.CredentialRevision,
+            plan.ApplicationRevision, plan.ApplicationAuthorizationRevision, plan.EnvironmentAuthorizationRevision,
+            plan.Reason, plan.RequestHash, plan.EventTime, plan.Coverage, plan.Challenges
+        });
+        Assert.Equal(System.Buffers.Text.Base64Url.EncodeToString(legacyBytes), original.RecoveryMaterial);
+
+        fixture.Witness.Fault = null;
+        await fixture.Service().RecoverAsync(fixture.Actor);
+        await fixture.AssertFactsAsync(1);
+    }
+
+    [Theory]
+    [InlineData("missing-current-receipt", "credential_revocation_coverage_unknown")]
+    [InlineData("scoped-request", "credential_revocation_scope_unknown")]
+    [InlineData("independent-coverage", "credential_revocation_coverage_unknown")]
+    public async Task GlobalRevocationNeverPreparesWithoutTheWholeProvenScope(string failure, string code)
+    {
+        await using var fixture = await Fixture.StartAsync(global: true, withCurrentProof: failure != "missing-current-receipt");
+        if (failure == "independent-coverage") fixture.Coverage.RejectedEnvironment = fixture.EnvironmentIds[1];
+        var error = await Assert.ThrowsAsync<ApiException>(() => fixture.RevokeAsync(
+            environment: failure == "scoped-request" ? fixture.EnvironmentId : null));
+        Assert.Equal(409, error.Status);
+        Assert.Equal(code, error.Code);
+        Assert.Equal(0, fixture.Witness.Preparations);
+        await fixture.AssertFactsAsync(0);
+    }
+
+    [Fact]
+    public async Task GlobalRevocationRollsBackEveryEnvironmentWhenOneTombstoneFails()
+    {
+        await using var fixture = await Fixture.StartAsync(global: true);
+        await using (var db = fixture.Database.Context())
+            await db.Database.ExecuteSqlRawAsync("""
+                CREATE FUNCTION credential_governance.fixture_reject_second_tombstone() RETURNS trigger LANGUAGE plpgsql AS $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM credential_revocations WHERE operation_id = NEW.operation_id) THEN
+                        RAISE EXCEPTION 'fixture_second_tombstone_failed' USING ERRCODE='23514';
+                    END IF;
+                    RETURN NEW;
+                END $$;
+                CREATE TRIGGER fixture_reject_second_tombstone BEFORE INSERT ON credential_revocations
+                    FOR EACH ROW EXECUTE FUNCTION credential_governance.fixture_reject_second_tombstone();
+                """);
+        var failure = await Assert.ThrowsAsync<DbUpdateException>(() => fixture.RevokeAsync());
+        Assert.Equal("fixture_second_tombstone_failed", Assert.IsType<PostgresException>(failure.InnerException).MessageText);
+        Assert.NotNull(fixture.Witness.Pending);
+        await fixture.AssertFactsAsync(0);
+        await using (var db = fixture.Database.Context())
+            await db.Database.ExecuteSqlRawAsync("DROP TRIGGER fixture_reject_second_tombstone ON credential_revocations");
+
+        await fixture.Service().RecoverAsync(fixture.Actor);
+        await fixture.AssertFactsAsync(1);
     }
 
     [Fact]
@@ -213,15 +384,17 @@ public sealed class PostgresWitnessedCredentialRevocationTests
         public Guid CredentialId { get; } = Guid.NewGuid();
         public Guid EnvironmentId { get; } = Guid.NewGuid();
         public Guid RevokePermission { get; } = Guid.NewGuid();
+        public Guid[] EnvironmentIds { get; private set; } = [];
 
-        public static async Task<Fixture> StartAsync(bool withCurrentProof = true, bool withGovernanceSnapshot = true)
+        public static async Task<Fixture> StartAsync(bool withCurrentProof = true, bool withGovernanceSnapshot = true, bool global = false,
+            TimeSpan? leaseLifetime = null)
         {
             var fixture = new Fixture();
-            try { await fixture.InitializeAsync(withCurrentProof, withGovernanceSnapshot); return fixture; }
+            try { await fixture.InitializeAsync(withCurrentProof, withGovernanceSnapshot, global, leaseLifetime ?? TimeSpan.FromSeconds(30)); return fixture; }
             catch { await fixture.DisposeAsync(); throw; }
         }
 
-        private async Task InitializeAsync(bool withCurrentProof, bool withGovernanceSnapshot)
+        private async Task InitializeAsync(bool withCurrentProof, bool withGovernanceSnapshot, bool global, TimeSpan leaseLifetime)
         {
             await Database.InitializeAsync();
             await using var db = Database.Context();
@@ -229,7 +402,7 @@ public sealed class PostgresWitnessedCredentialRevocationTests
             var org = new Organization { Code = "REVOKE", Name = "Isolated" };
             var project = new Project { OrganizationId = org.Id, Code = "REV-PROJECT", Name = "Isolated" };
             var environment = new EnvironmentRecord { Id = EnvironmentId, ProjectId = project.Id, Code = "TEST", Name = "Isolated", DeploymentSequence = 1, DesiredConfigVersion = 1 };
-            var app = new ApplicationRecord { OrganizationId = org.Id, ProjectId = project.Id, Code = "APP", Name = "Isolated" };
+            var app = new ApplicationRecord { OrganizationId = org.Id, ProjectId = global ? null : project.Id, Code = "APP", Name = "Isolated" };
             var role = new Role { OrganizationId = org.Id, Code = "SECURITY-FIXTURE", Name = "Isolated" };
             var permitRecovery = new Permission { Code = "credential.governance.recover", Module = "credential", Name = "Recover" };
             db.AddRange(org, project, environment, app, role, permitRecovery,
@@ -238,79 +411,123 @@ public sealed class PostgresWitnessedCredentialRevocationTests
                 new UserRole { UserId = Actor.UserId, RoleId = role.Id },
                 new RolePermission { RoleId = role.Id, PermissionId = RevokePermission },
                 new RolePermission { RoleId = role.Id, PermissionId = permitRecovery.Id },
-                new UserProjectScope { UserId = Actor.UserId, OrganizationId = org.Id, ProjectId = project.Id, EnvironmentId = EnvironmentId, AccessMode = "read_write" },
-                new ApplicationCredential { Id = CredentialId, ApplicationId = app.Id, OrganizationId = org.Id, ProjectId = project.Id,
-                    EnvironmentId = EnvironmentId, BindingMode = "EnvironmentBound", AccessKey = "isolated-access-key", SecretHash = "fixture-hash",
-                    ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) },
-                new EnvironmentSecurityInitialization { EnvironmentId = EnvironmentId, ProjectId = project.Id, OrganizationId = org.Id,
+                new UserProjectScope { UserId = Actor.UserId, OrganizationId = org.Id, ProjectId = global ? null : project.Id,
+                    EnvironmentId = global ? null : EnvironmentId, AccessMode = "read_write" });
+            var credential = new ApplicationCredential { Id = CredentialId, ApplicationId = app.Id, OrganizationId = org.Id,
+                ProjectId = global ? null : project.Id, EnvironmentId = global ? null : EnvironmentId,
+                BindingMode = global ? "LegacyGlobal" : "EnvironmentBound", AccessKey = "isolated-access-key",
+                SecretHash = new string('a', 64), ExpiresAt = DateTimeOffset.UtcNow.AddHours(1) };
+            db.Add(credential);
+            var environments = new List<EnvironmentRecord> { environment };
+            if (global)
+            {
+                var second = new Project { OrganizationId = org.Id, Code = "REV-SECOND", Name = "Isolated second project" };
+                var secondEnvironment = new EnvironmentRecord { ProjectId = second.Id, Code = "SECOND", Name = "Isolated second environment",
+                    DeploymentSequence = 1, DesiredConfigVersion = 1 };
+                db.AddRange(second, secondEnvironment);
+                environments.Add(secondEnvironment);
+            }
+            EnvironmentIds = environments.Select(x => x.Id).ToArray();
+            Coverage.EnvironmentIds = global ? EnvironmentIds : [];
+            foreach (var target in environments)
+                db.Add(new EnvironmentSecurityInitialization { EnvironmentId = target.Id, ProjectId = target.ProjectId, OrganizationId = org.Id,
                     State = "FreshNonStrict", FreshProofId = Guid.NewGuid() });
             await db.SaveChangesAsync();
             // Dedicated permission for automated recovery of already prepared work is platform-scoped.
             var recoveryRole = new Role { Code = "PlatformAdmin", Name = "Recovery", IsSystem = true };
-            var state = new EnvironmentSecurityState { EnvironmentId = EnvironmentId, ProjectId = project.Id, OrganizationId = org.Id };
             db.AddRange(recoveryRole, new UserRole { UserId = Actor.UserId, RoleId = recoveryRole.Id },
-                new RolePermission { RoleId = recoveryRole.Id, PermissionId = permitRecovery.Id },
-                state);
+                new RolePermission { RoleId = recoveryRole.Id, PermissionId = permitRecovery.Id });
+            foreach (var target in environments)
+                AddDeployment(db, org.Id, target, app, credential, withGovernanceSnapshot,
+                    target == environment && global || withCurrentProof, leaseLifetime);
+            await db.SaveChangesAsync();
+            await IsolatedGovernanceJournalSchema.InstallAsync(db, Journal);
+        }
+
+        private void AddDeployment(WebApiDbContext db, Guid organizationId, EnvironmentRecord environment, ApplicationRecord app,
+            ApplicationCredential credential, bool withGovernanceSnapshot, bool withCurrentProof, TimeSpan leaseLifetime)
+        {
+            var environmentId = environment.Id;
+            var projectId = environment.ProjectId;
+            var state = new EnvironmentSecurityState { EnvironmentId = environmentId, ProjectId = projectId, OrganizationId = organizationId };
+            db.Add(state);
             var snapshot = withGovernanceSnapshot
-                ? new RuntimeSnapshot("2.4", EnvironmentId, 1, DateTimeOffset.UtcNow, [], [], [], [], state.SecurityGeneration, 0, false, "2.0")
-                : new RuntimeSnapshot("2.3", EnvironmentId, 1, DateTimeOffset.UtcNow, [], [], [], []);
+                ? new RuntimeSnapshot("2.4", environmentId, 1, DateTimeOffset.UtcNow, [], [], [], [], state.SecurityGeneration, 0, false, "2.0")
+                : new RuntimeSnapshot("2.3", environmentId, 1, DateTimeOffset.UtcNow, [], [], [], []);
             var bytes = CanonicalJson.Serialize(snapshot);
             var snapshotHash = Convert.ToHexStringLower(SHA256.HashData(bytes));
-            var version = new GatewayConfigVersion { EnvironmentId = EnvironmentId, VersionNo = 1, CreatedBy = Actor.UserId,
+            var version = new GatewayConfigVersion { EnvironmentId = environmentId, VersionNo = 1, CreatedBy = Actor.UserId,
                 SnapshotHash = snapshotHash };
-            var release = new ReleaseRecord { EnvironmentId = EnvironmentId, ReleaseNo = "isolated-release", RequestedBy = Actor.UserId,
+            var release = new ReleaseRecord { EnvironmentId = environmentId, ReleaseNo = $"isolated-{environment.Code}", RequestedBy = Actor.UserId,
                 Status = "Succeeded", ReleaseType = "publish", ToConfigVersion = 1, DeploymentSequence = 1 };
+            if (credential.BindingMode == "LegacyGlobal")
+            {
+                var frozenKey = new FrozenCredential(credential.Id, credential.AccessKey, credential.SecretHash, "last", "Active",
+                    credential.ValidFrom, credential.ExpiresAt, credential.Revision);
+                var frozen = new FrozenReleaseCandidate(environmentId, organizationId, projectId, 0, [], [], [], [], [], [],
+                    [new(new(app.Id, organizationId, app.ProjectId, app.Code, app.Name, app.Owner, app.Status, app.Revision), [frozenKey], [])], []);
+                release.CandidateBytes = CanonicalJson.Serialize(frozen);
+            }
             db.AddRange(version, release, new GatewayConfigSnapshot { ConfigVersionId = version.Id, PayloadBytes = bytes, SizeBytes = bytes.Length });
             for (var number = 1; number <= 2; number++)
             {
                 var instance = Guid.NewGuid();
-                var node = new GatewayNode { EnvironmentId = EnvironmentId, NodeName = $"isolated-{number}", Status = "Ready", InstanceId = instance.ToString(),
+                var node = new GatewayNode { EnvironmentId = environmentId, NodeName = $"isolated-{environment.Code}-{number}", Status = "Ready", InstanceId = instance.ToString(),
                     IdentityHash = new string('a', 64), CurrentConfigVersion = 1, CurrentDeploymentSequence = 1, LastHeartbeatAt = DateTimeOffset.UtcNow,
                     Metadata = SecurityProtocolCapabilities.Merge(SnapshotSchemaCapabilities.Merge(null, instance, ["2.4"]), instance, ["security-ledger-v1"]) };
                 var issuedAt = DateTimeOffset.UtcNow.AddMilliseconds(-100);
-                var lease = new SecurityNodeLeasePayload(Guid.NewGuid(), SecuritySignedEncoding.Protocol, EnvironmentId, state.SecurityGeneration, 0,
-                    new string('b', 64), node.Id, instance, SecuritySignedEncoding.Audience, issuedAt, issuedAt.AddSeconds(30), "fixture");
+                var lease = new SecurityNodeLeasePayload(Guid.NewGuid(), SecuritySignedEncoding.Protocol, environmentId, state.SecurityGeneration, 0,
+                    new string('b', 64), node.Id, instance, SecuritySignedEncoding.Audience, issuedAt, issuedAt + leaseLifetime, "fixture");
                 db.AddRange(node, new ReleaseTarget { ReleaseId = release.Id, NodeId = node.Id, InstanceId = node.InstanceId },
                     new GatewayAck { ReleaseId = release.Id, NodeId = node.Id, InstanceId = node.InstanceId, ConfigVersion = 1,
                         DeploymentSequence = 1, PayloadHash = snapshotHash, Success = true },
-                    new GatewaySecurityLease { LeaseId = lease.LeaseId, NodeId = node.Id, InstanceId = instance, EnvironmentId = EnvironmentId,
-                        ProjectId = project.Id, OrganizationId = org.Id, SecurityGeneration = lease.SecurityGeneration, CheckpointHash = lease.CheckpointHash,
+                    new GatewaySecurityLease { LeaseId = lease.LeaseId, NodeId = node.Id, InstanceId = instance, EnvironmentId = environmentId,
+                        ProjectId = projectId, OrganizationId = organizationId, SecurityGeneration = lease.SecurityGeneration, CheckpointHash = lease.CheckpointHash,
                         IssuedAt = lease.IssuedAt, FreshUntil = lease.FreshUntil, LastIssuedLeaseUntil = lease.FreshUntil, SigningKeyId = lease.KeyId },
-                    SecurityLeaseIssuanceEvidence.Create(lease, org.Id, project.Id));
+                    SecurityLeaseIssuanceEvidence.Create(lease, organizationId, projectId));
                 if (withCurrentProof || number == 1)
-                    db.Add(new GatewaySecurityCurrentReceipt { LeaseId = lease.LeaseId, NodeId = node.Id, InstanceId = instance, EnvironmentId = EnvironmentId,
-                        ProjectId = project.Id, OrganizationId = org.Id, SecurityGeneration = lease.SecurityGeneration, CheckpointHash = lease.CheckpointHash,
+                    db.Add(new GatewaySecurityCurrentReceipt { LeaseId = lease.LeaseId, NodeId = node.Id, InstanceId = instance, EnvironmentId = environmentId,
+                        ProjectId = projectId, OrganizationId = organizationId, SecurityGeneration = lease.SecurityGeneration, CheckpointHash = lease.CheckpointHash,
                         HeadHash = state.HeadHash, FreshUntil = lease.FreshUntil, ReceivedAt = lease.IssuedAt });
             }
-            await db.SaveChangesAsync();
-            await IsolatedGovernanceJournalSchema.InstallAsync(db, Journal);
         }
 
         public PostgresCredentialRevocationService Service() => new(Database.ConnectionString, Journal, Witness, Coverage);
 
         public Task<RevocationOperationDto> RevokeAsync(string reason = "Retire isolated credential", Guid? environment = null, string tag = "\"1\"") =>
-            Service().RevokeAsync(CredentialId, new(reason, environment ?? EnvironmentId), tag, new("isolated-request"), Actor);
+            Service().RevokeAsync(CredentialId, new(reason, environment ?? (EnvironmentIds.Length == 1 ? EnvironmentId : null)),
+                tag, new("isolated-request"), Actor);
 
         public async Task AssertFactsAsync(int count)
         {
             await using var db = Database.Context();
-            var ledger = await new SecurityLedgerReader(db).ReadCompleteAsync(EnvironmentId);
-            Assert.Equal(count, ledger.Epoch);
-            Assert.Equal(count, ledger.Revocations.Count);
+            foreach (var environment in EnvironmentIds)
+            {
+                var ledger = await new SecurityLedgerReader(db).ReadCompleteAsync(environment);
+                Assert.Equal(count, ledger.Epoch);
+                Assert.Equal(count, ledger.Revocations.Count);
+            }
             Assert.Equal(count, await db.Set<SecurityOperation>().CountAsync());
-            Assert.Equal(count, await db.Set<SecurityOutboxMessage>().CountAsync());
-            Assert.Equal(count, await db.Set<AuditLog>().CountAsync(x => x.Action == "credential.revoke"));
-            Assert.Equal(count * 2, await db.Set<SecurityOperationTarget>().CountAsync());
+            Assert.Equal(count * EnvironmentIds.Length, await db.Set<SecurityOutboxMessage>().CountAsync());
+            Assert.Equal(count * EnvironmentIds.Length, await db.Set<AuditLog>().CountAsync(x => x.Action == "credential.revoke"));
+            Assert.Equal(count * EnvironmentIds.Length * 2, await db.Set<SecurityOperationTarget>().CountAsync());
             Assert.Equal(count == 0 ? "Active" : "Revoked", (await db.Set<ApplicationCredential>().SingleAsync()).Status);
         }
 
         public ValueTask DisposeAsync() => Database.DisposeAsync();
     }
 
-    private sealed class TestCoverage : ICredentialRevocationCoverage
+    private sealed class TestCoverage : ICredentialRevocationCoverage, ICredentialRevocationHistory
     {
         public bool Approved = true;
+        public bool HistoryApproved = true;
+        public Guid? RejectedEnvironment;
+        public Guid[] EnvironmentIds = [];
+        public bool IsVerified(CredentialRevocationHistoryScope scope) =>
+            HistoryApproved && EnvironmentIds.Length > 1 && scope.Environments.Select(x => x.EnvironmentId).SequenceEqual(EnvironmentIds.Order()) &&
+            scope.Artifacts.Count == EnvironmentIds.Length * 2;
         public bool IsVerified(CredentialRevocationCoverageScope scope) => Approved && scope.Nodes.Count == 2 && scope.ReleaseId != Guid.Empty &&
+            scope.EnvironmentId != RejectedEnvironment &&
             SecuritySignedEncoding.HexHash(scope.SnapshotHash) && scope.Nodes.All(x => x.LeaseId != Guid.Empty) &&
             scope.DeploymentSequence == 1 && scope.ConfigVersion == 1;
     }

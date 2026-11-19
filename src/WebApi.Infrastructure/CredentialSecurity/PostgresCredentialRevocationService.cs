@@ -62,21 +62,30 @@ public sealed class PostgresCredentialRevocationService
 
         Task<GovernanceWriteIntent> PrepareAsync() => store.InspectAsync(journal, operationId, async (db, local, saved, token) =>
         {
+            if (saved is not null)
+            {
+                await mutation.AuthorizeAsync(db, saved, token);
+                return RequireSameRequest(saved);
+            }
             if (requireSession is not null) await requireSession(db, token);
             var resource = await mutation.RequireScopeAsync(db, credentialId, request.ExpectedEnvironmentId, token);
             var observed = await witness.ObserveAsync(journal, operationId, token);
-            var prior = saved ?? (observed.Pending?.OperationId == operationId ? observed.Pending : null);
-            if (prior is not null)
-            {
-                if (CredentialRevocationIntent.Read(prior).RequestHash != requestHash) throw Conflict();
-                return prior;
-            }
+            if (observed.Pending?.OperationId == operationId) return RequireSameRequest(observed.Pending);
             if (local.AwaitingConfirmation is not null || observed.Pending is not null ||
                 observed.OperationConfirmation is not null || local.Position != observed.Confirmed)
                 throw new ApiException(503, "credential_governance_recovery_required", "安全账本正在等待恢复或独立确认。");
             RevisionTag.Require(ifMatch, resource.Credential.Revision);
             return (await mutation.PlanAsync(db, resource, reason, requestHash, token)).Create(operationId, local.Position);
         }, ct);
+
+        GovernanceWriteIntent RequireSameRequest(GovernanceWriteIntent saved)
+        {
+            var plan = CredentialRevocationIntent.Read(saved);
+            if (plan.RequestHash != requestHash || plan.CredentialId != credentialId || plan.ActorId != actor.UserId ||
+                plan.ExpectedEnvironmentId != request.ExpectedEnvironmentId || plan.Reason != reason)
+                throw Conflict();
+            return saved;
+        }
 
         var intent = await PrepareAsync();
         var result = await coordinator.ExecuteAsync(intent, ct);

@@ -17,7 +17,7 @@ public sealed record IndependentGovernanceWitnessOptions
 }
 
 /// <summary>Explicit host composition for the independent evidence and journal transports.</summary>
-public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitness, IDisposable
+public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitness, IGovernanceLeaseReservationWitness, IDisposable
 {
     private const string ClientAuthentication = "1.3.6.1.5.5.7.3.2";
     private const string AnyExtendedKeyUsage = "2.5.29.37.0";
@@ -27,6 +27,7 @@ public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitn
 
     public GovernanceJournalId JournalId { get; }
     public IGovernanceJournalWitness JournalWitness => this;
+    public IGovernanceLeaseReservationWitness LeaseReservationWitness => this;
 
     private IndependentGovernanceWitnessClients(IndependentEvidenceHttpClient evidence, IndependentEvidenceTrust evidenceTrust,
         GovernanceJournalHttpWitness journal, GovernanceJournalId journalId)
@@ -88,6 +89,10 @@ public sealed class IndependentGovernanceWitnessClients : IGovernanceJournalWitn
 
     Task<GovernanceWitnessState> IGovernanceJournalWitness.ConfirmAsync(GovernanceJournalId journalId, GovernanceWriteIntent intent,
         CancellationToken ct) => journal.ConfirmAsync(RequireConfiguredJournal(journalId), intent, ct);
+
+    Task<VerifiedGovernanceLeaseReservation> IGovernanceLeaseReservationWitness.ReserveAllowLeaseAsync(GovernanceJournalId journalId,
+        GovernanceJournalPosition expectedConfirmed, GovernanceLeaseReservation reservation, CancellationToken ct) =>
+        journal.ReserveAllowLeaseAsync(RequireConfiguredJournal(journalId), expectedConfirmed, reservation, ct);
 
     private GovernanceJournalId RequireConfiguredJournal(GovernanceJournalId journalId) => journalId == JournalId
         ? journalId

@@ -8,6 +8,7 @@ using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Security;
 using WebApi.Domain.Releases;
 using WebApi.Infrastructure.Commands;
+using WebApi.Infrastructure.CredentialSecurity;
 using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Messaging;
 using WebApi.Infrastructure.Persistence;
@@ -90,7 +91,8 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             var next=(await db.Set<GatewayConfigVersion>().Where(v=>v.EnvironmentId==env.Id).Select(v=>(long?)v.VersionNo).MaxAsync(ct)??0)+1;var frozen=Candidate(r);CompiledSnapshot compiled;
             if(r.ReleaseType is "rollback" or "retry") {next=r.ToConfigVersion;var artifact=await history.ReadAsync(env.Id,next,ct);ValidateBodyPolicies(artifact.Snapshot);compiled=new(artifact.Payload,artifact.Hash,artifact.Size);}
             else compiled=compiler.Compile(frozen,baseline,next,DateTimeOffset.UtcNow);
-            using(var document=JsonDocument.Parse(compiled.Payload)) SnapshotSchemaCapabilities.RequireSupported(nodes,document.RootElement.GetProperty("schemaVersion").GetString()!);
+            var schema=await GlobalCredentialPublicationGuard.ValidateAsync(db,env,scope.OrganizationId,compiled.Payload,ct);
+            SnapshotSchemaCapabilities.RequireSupported(nodes,schema);
             if(r.ReleaseType is not ("rollback" or "retry")) {var config=new GatewayConfigVersion {EnvironmentId=env.Id,VersionNo=next,Status="Publishing",CreatedBy=publisher,SnapshotHash=compiled.Hash};config.SnapshotKey=$"environment/{env.Id}/snapshot/{next}";db.Add(config);db.Add(new GatewayConfigSnapshot {ConfigVersionId=config.Id,PayloadBytes=compiled.Payload.ToArray(),Payload=Encoding.UTF8.GetString(compiled.Payload.Span),SizeBytes=compiled.Size});}
             env.DeploymentSequence=checked(env.DeploymentSequence+1);env.DesiredConfigVersion=next;r.ToConfigVersion=next;r.DeploymentSequence=env.DeploymentSequence;r.Status="Publishing";r.DeadlineAt=DateTimeOffset.UtcNow.AddSeconds(settings.AckTimeoutSeconds);
             if(r.ReleaseType=="publish")FrozenContractSource.Capture(db,r,frozen);

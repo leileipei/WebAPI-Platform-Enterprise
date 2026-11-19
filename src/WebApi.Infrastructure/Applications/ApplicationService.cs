@@ -1,4 +1,5 @@
 using WebApi.Infrastructure.CredentialUsage;
+using WebApi.Infrastructure.CredentialSecurity;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Infrastructure.Policies;
 using WebApi.Contracts.Common;
@@ -59,6 +60,7 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
             var affectedEnvironments=(id is null?new[]{request.EnvironmentId}:new[]{p.EnvironmentId,request.EnvironmentId}).Distinct().Order().ToArray();
             foreach(var affected in affectedEnvironments) await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={affected} FOR UPDATE",token);
             if(await db.Set<EnvironmentSecurityState>().AnyAsync(s=>affectedEnvironments.Contains(s.EnvironmentId)&&(s.MinimumSnapshotSchema=="2.3"||s.MinimumSnapshotSchema=="2.4"),token)) throw new ApiException(409,"legacy_permission_cutover","环境已切换严格授权，不能创建或修改旧版 API 授权。");
+            await GlobalCredentialPublicationGuard.RequireApplicationInheritanceAsync(db,envScope,applicationId,token);
             var from=request.ValidFrom.ToUniversalTime();var expires=request.ExpiresAt?.ToUniversalTime();
             if(id is not null&&(p.ApiId!=request.ApiId||p.EnvironmentId!=request.EnvironmentId))
             {
