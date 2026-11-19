@@ -199,10 +199,18 @@ public sealed class GovernanceLeaseIssuerIntegrationTests
             if (scenario is not ("valid" or "duplicate-timestamp" or "known-expiry-clock-regression" or "cross-environment-clock-regression" or "later-issuance-clock-regression" or "issuer-cross-expiry-read" or "future-issuance-forgery"))
             {
                 var error = await Assert.ThrowsAsync<ApiException>(() => issuer.IssueAsync(identity, scenario == "wrong-instance" ? Guid.NewGuid() : instance));
-                Assert.Equal(scenario is "wrong-instance" or "missing-capability" ? 409 : 503, error.Status);
+                Assert.Equal(scenario switch
+                {
+                    "wrong-instance" or "missing-capability" => 409,
+                    // Disabled scopes now fail node revalidation before this fixture can create a ledger root.
+                    "disabled-environment" => 401,
+                    _ => 503
+                }, error.Status);
+                if (scenario == "disabled-environment") Assert.Equal("node_authentication_required", error.Code);
                 var states = await db.Set<EnvironmentSecurityState>().AsNoTracking().ToArrayAsync();
                 Assert.Equal(scenario is "governed-origin" or "inconsistent-ledger" ? 1 : 0, states.Length);
                 Assert.Empty(await db.Set<GatewaySecurityLease>().AsNoTracking().ToArrayAsync());
+                Assert.Empty(await db.Set<GatewaySecurityLeaseIssuance>().AsNoTracking().ToArrayAsync());
                 return;
             }
             if (scenario == "future-issuance-forgery")
