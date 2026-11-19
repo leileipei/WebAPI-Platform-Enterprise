@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
@@ -112,7 +113,9 @@ public sealed class JwtApplicationBindingTests
         {
             var version=new GatewayConfigVersion {EnvironmentId=f.Environment.Id,VersionNo=1,CreatedBy=f.User.Id}; db.Add(version);
             var snapshot=new RuntimeSnapshot("2.2",f.Environment.Id,1,DateTimeOffset.UtcNow,[new(Guid.NewGuid(),oldApi,Guid.NewGuid(),clusterId,"/old-jwt",["GET"],1,30000,false,[new(runtimePolicy,0)],AuthenticationMode.JWT)],[new(clusterId,f.Environment.Id,"RoundRobin",false,"/health",30,[new(Guid.NewGuid(),"http://test-backend:8080/",1)])],[new(runtimePolicy,"authentication",config,runtimeSource,1)],[new(f.Application.Id,"Active",[],[])]);
-            db.Add(new GatewayConfigSnapshot {ConfigVersionId=version.Id,PayloadBytes=CanonicalJson.Serialize(snapshot)});
+            var bytes=CanonicalJson.Serialize(snapshot);
+            version.SnapshotHash=Convert.ToHexStringLower(SHA256.HashData(bytes));
+            db.Add(new GatewayConfigSnapshot {ConfigVersionId=version.Id,PayloadBytes=bytes,SizeBytes=bytes.LongLength});
             if(desired) (await db.Set<EnvironmentRecord>().SingleAsync()).DesiredConfigVersion=1;
             else db.Add(new GatewayNode {EnvironmentId=f.Environment.Id,NodeName="停用旧节点",InstanceId=Guid.NewGuid().ToString(),Enabled=false,CurrentConfigVersion=1});
             await db.SaveChangesAsync();

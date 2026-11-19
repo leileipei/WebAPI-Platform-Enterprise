@@ -34,6 +34,7 @@ public sealed class PipelineScenario : IAsyncDisposable
                     ReleasePolicyId=production||nonProductionApproval?Api.ApprovalFlow.Id:null,
                     GatewayPublicUrl=$"https://gateway-{i+1}.example",BasePath="/api"};
                 db.Add(target);environments.Add(target);
+                Api.AddFreshEnvironmentOrigin(db,target);
             }
             await db.SaveChangesAsync();Environments=environments.Select(e=>e.Id).ToArray();
             Definition=new("标准交付","测试宿主夹具",environments.Select((e,i)=>new PipelineStageDefinition(i+1,e.Id,

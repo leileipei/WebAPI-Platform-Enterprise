@@ -34,6 +34,7 @@ public sealed class TrafficExecutionContext(RuntimeGeneration generation,Runtime
     internal bool CacheOriginPartitioned {get;set;}
     internal string? CacheDisposition {get;set;}
     public VerifiedTrafficIdentity? VerifiedIdentity {get;internal set;}
+    internal FormalRotationAdmission? FormalRotationAdmission {get;set;}
     public IReadOnlyList<ForwardAttemptObservation> Attempts=>attempts.AsReadOnly();
     public void AddAttempt(ForwardAttemptObservation attempt){if(attempts.Count>=3||attempt.Number!=attempts.Count+1||!ForwardAttemptObservation.Valid(attempt))throw new InvalidOperationException("Forward observations are bounded to three physical attempts.");attempts.Add(attempt);}
     public IReadOnlyList<TrafficPolicyDecision> Decisions=>decisions.AsReadOnly();

@@ -1,4 +1,5 @@
 using WebApi.Infrastructure.CredentialUsage;
+using WebApi.Infrastructure.CredentialSecurity;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Infrastructure.Policies;
 using WebApi.Contracts.Common;
@@ -9,11 +10,12 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Applications;
-public sealed class ApplicationService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,JwtApplicationBindingService mappings,CollectionAuthorizationQuery visibility,CredentialUsageQuery? usage=null,CredentialImpactService? impacts=null,ApplicationOverviewQuery? overview=null)
+public sealed partial class ApplicationService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,JwtApplicationBindingService mappings,CollectionAuthorizationQuery visibility,CredentialUsageQuery? usage=null,CredentialImpactService? impacts=null,ApplicationOverviewQuery? overview=null)
 {
     public static ApplicationDto Dto(ApplicationRecord a)=>new(a.Id,a.OrganizationId,a.ProjectId,a.Code,a.Name,a.Owner,a.Status,a.Revision);
     public static ApplicationDto Dto(ApplicationRecord a,ApplicationSummaryDto? summary)=>Dto(a) with{Summary=summary};
-    public static CredentialDto Dto(ApplicationCredential c,DateTimeOffset? visibleLastUsed=null)=>new(c.Id,c.ApplicationId,c.AccessKey,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,visibleLastUsed,c.RevokedAt,c.Revision);
+    public static CredentialDto Dto(ApplicationCredential c,DateTimeOffset? visibleLastUsed=null)=>new(c.Id,c.ApplicationId,c.AccessKey,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,visibleLastUsed,c.RevokedAt,c.Revision,
+        EnvironmentId:c.EnvironmentId,BindingMode:c.BindingMode=="EnvironmentBound"?c.BindingMode:null);
     public static ApplicationPermissionDto Dto(ApplicationApiPermission p)=>new(p.Id,p.ApplicationId,p.ApiId,p.EnvironmentId,p.ValidFrom,p.ExpiresAt,p.Revision);
     private async Task<ScopeRef> InputScopeAsync(SaveApplicationRequest request,CancellationToken ct)
     {if(request.ProjectId is Guid id) {var actual=await scopes.ProjectAsync(id,ct);if(actual.OrganizationId!=request.OrganizationId) throw new ApiException(422,"foreign_project","应用项目不属于组织。");return actual;}if(!await db.Set<Organization>().AnyAsync(o=>o.Id==request.OrganizationId,ct)) throw new ApiException(422,"invalid_organization","组织不存在。");return new(request.OrganizationId);}
@@ -30,9 +32,9 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
     public async Task<ApplicationDetailDto> DetailAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
         var scope=await scopes.ApplicationAsync(id,ct);if(!await auth.CanAsync(actor,"app.read",new("application",id,scope),ct)) throw ScopeResolver.Missing();var app=await db.Set<ApplicationRecord>().AsNoTracking().SingleAsync(a=>a.Id==id,ct);
-        var credentialEntities=await db.Set<ApplicationCredential>().AsNoTracking().Where(c=>c.ApplicationId==id).ToArrayAsync(ct);var lastUsed=usage is null?new Dictionary<Guid,DateTimeOffset?>():await usage.VisibleLastUsedAsync(id,credentialEntities.Select(c=>c.Id).ToArray(),actor,ct);var credentials=credentialEntities.Select(c=>Dto(c,lastUsed.GetValueOrDefault(c.Id))).ToArray();var grants=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(p=>p.ApplicationId==id).Select(p=>Dto(p)).ToArrayAsync(ct);
-        var allowedGrants=new List<ApplicationPermissionDto>();var runtime=new Dictionary<Guid,long?>();foreach(var p in grants) {var envScope=await scopes.EnvironmentAsync(p.EnvironmentId,ct);if(!await auth.CanAsync(actor,"app.read",new("environment",p.EnvironmentId,envScope),ct)) continue;allowedGrants.Add(p);if(runtime.ContainsKey(p.EnvironmentId)) continue;var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(n=>n.EnvironmentId==p.EnvironmentId&&n.Enabled).ToArrayAsync(ct);runtime[p.EnvironmentId]=nodes.Length>0&&nodes.All(n=>n.LastHeartbeatAt>DateTimeOffset.UtcNow.AddSeconds(-30))&&nodes.Select(n=>n.CurrentConfigVersion).Distinct().Count()==1?nodes[0].CurrentConfigVersion:null;}
-        return new(Dto(app),credentials,allowedGrants,runtime);
+        var credentialEntities=await db.Set<ApplicationCredential>().AsNoTracking().Where(c=>c.ApplicationId==id).ToArrayAsync(ct);var lastUsed=usage is null?new Dictionary<Guid,DateTimeOffset?>():await usage.VisibleLastUsedAsync(id,credentialEntities.Select(c=>c.Id).ToArray(),actor,ct);var credentials=credentialEntities.Select(c=>Dto(c,lastUsed.GetValueOrDefault(c.Id))).ToArray();var grants=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(p=>p.ApplicationId==id).ToArrayAsync(ct);
+        var allowedGrants=new List<ApplicationApiPermission>();var runtime=new Dictionary<Guid,long?>();foreach(var p in grants) {var envScope=await scopes.EnvironmentAsync(p.EnvironmentId,ct);if(!await auth.CanAsync(actor,"app.read",new("environment",p.EnvironmentId,envScope),ct)) continue;allowedGrants.Add(p);if(runtime.ContainsKey(p.EnvironmentId)) continue;var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(n=>n.EnvironmentId==p.EnvironmentId&&n.Enabled).ToArrayAsync(ct);runtime[p.EnvironmentId]=nodes.Length>0&&nodes.All(n=>n.LastHeartbeatAt>DateTimeOffset.UtcNow.AddSeconds(-30))&&nodes.Select(n=>n.CurrentConfigVersion).Distinct().Count()==1?nodes[0].CurrentConfigVersion:null;}
+        return new(Dto(app),credentials,await ReadPermissionDetailsAsync(allowedGrants,ct),runtime);
     }
     public async Task<CommandResult<ApplicationDto>> CreateAsync(SaveApplicationRequest request,ActorContext actor,CancellationToken ct=default)
     {var scope=await InputScopeAsync(request,ct);return await commands.ExecuteAsync(actor,scope,"app.create",async(_,token)=>{await auth.RequireAsync(actor,"app.write",new("scope",request.ProjectId??request.OrganizationId,scope),token);Validate(request);var app=new ApplicationRecord {OrganizationId=request.OrganizationId,ProjectId=request.ProjectId,Code=request.Code,Name=request.Name,Owner=request.Owner,Status=request.Status};db.Add(app);return new CommandResult<ApplicationDto>(Dto(app),RevisionTag.Format(app.Revision));},ct);}
@@ -45,8 +47,13 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
     {var c=await db.Set<ApplicationCredential>().AsNoTracking().SingleOrDefaultAsync(c=>c.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.ApplicationAsync(c.ApplicationId,ct);if(!await auth.CanAsync(actor,"app.read",new("credential",id,scope),ct)) throw ScopeResolver.Missing();var last=usage is null?null:(await usage.VisibleLastUsedAsync(c.ApplicationId,[c.Id],actor,ct)).GetValueOrDefault(c.Id);return Dto(c,last);}
     public async Task<CommandResult<CredentialDto>> SaveCredentialAsync(Guid id,CredentialUpdateRequest request,string? tag,ActorContext actor,CancellationToken ct=default)
     {var existing=await db.Set<ApplicationCredential>().AsNoTracking().SingleOrDefaultAsync(c=>c.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.ApplicationAsync(existing.ApplicationId,ct);return await commands.ExecuteAsync(actor,scope,"credential.update",async(_,token)=>{await auth.RequireAsync(actor,"credential.manage",new("credential",id,scope),token);var c=await db.Set<ApplicationCredential>().SingleAsync(c=>c.Id==id,token);RevisionTag.Require(tag,c.Revision);ValidateWindow(request.ValidFrom,request.ExpiresAt);if(request.Status is not ("Active" or "Revoked")||c.Status=="Revoked"&&request.Status!="Revoked") throw new ApiException(409,"credential_revoked","已撤销凭证不能重新激活。");if(impacts is null)throw new InvalidOperationException("Credential impact service must be configured for writes.");await impacts.RequireConfirmationAsync(id,new(request.ValidFrom,request.ExpiresAt,request.Status),request.ImpactConfirmation,actor,token);c.ValidFrom=request.ValidFrom.ToUniversalTime();c.ExpiresAt=request.ExpiresAt.ToUniversalTime();c.Status=request.Status;if(c.Status=="Revoked") c.RevokedAt??=DateTimeOffset.UtcNow;c.Revision++;var app=await db.Set<ApplicationRecord>().SingleAsync(a=>a.Id==c.ApplicationId,token);app.Revision++;app.UpdatedAt=DateTimeOffset.UtcNow;var last=usage is null?null:(await usage.VisibleLastUsedAsync(c.ApplicationId,[c.Id],actor,token)).GetValueOrDefault(c.Id);return new CommandResult<CredentialDto>(Dto(c,last),RevisionTag.Format(c.Revision));},ct);}
-    public async Task<CommandResult<ApplicationPermissionDto>> SavePermissionAsync(Guid applicationId,Guid? id,PermissionSaveRequest request,string? tag,ActorContext actor,CancellationToken ct=default)
+    public async Task<CommandResult<ApplicationPermissionDto>> SavePermissionAsync(Guid applicationId,Guid? id,PermissionSaveRequest request,string? tag,ActorContext actor,CancellationToken ct=default,
+        Func<WebApiDbContext,CancellationToken,Task>? requireSession=null)
     {
+        if (request.Mode == "RouteMethod")
+            return await SaveRouteMethodPermissionAsync(applicationId,id,request,tag,actor,requireSession,ct);
+        if (request.Mode is not (null or "LegacyApi") || request.RouteMethods is not null)
+            throw InvalidRouteMethods();
         var appScope=await scopes.ApplicationAsync(applicationId,ct);var envScope=await scopes.EnvironmentAsync(request.EnvironmentId,ct);return await commands.ExecuteAsync(actor,envScope,"app.permission.save",async(_,token)=>{
             await auth.RequireAsync(actor,"app.permission.manage",new("application",applicationId,appScope),token);await auth.RequireAsync(actor,"app.permission.manage",new("environment",request.EnvironmentId,envScope),token);var apiScope=await scopes.ApiAsync(request.ApiId,token);
             if(apiScope.OrganizationId!=appScope.OrganizationId||apiScope.OrganizationId!=envScope.OrganizationId||apiScope.ProjectId!=envScope.ProjectId||appScope.ProjectId is Guid project&&project!=apiScope.ProjectId) throw new ApiException(422,"foreign_authorization","应用、API与环境范围不一致。");ValidateWindow(request.ValidFrom,request.ExpiresAt);
@@ -59,6 +66,7 @@ public sealed class ApplicationService(WebApiDbContext db,AuthorizationService a
             var affectedEnvironments=(id is null?new[]{request.EnvironmentId}:new[]{p.EnvironmentId,request.EnvironmentId}).Distinct().Order().ToArray();
             foreach(var affected in affectedEnvironments) await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={affected} FOR UPDATE",token);
             if(await db.Set<EnvironmentSecurityState>().AnyAsync(s=>affectedEnvironments.Contains(s.EnvironmentId)&&(s.MinimumSnapshotSchema=="2.3"||s.MinimumSnapshotSchema=="2.4"),token)) throw new ApiException(409,"legacy_permission_cutover","环境已切换严格授权，不能创建或修改旧版 API 授权。");
+            await GlobalCredentialPublicationGuard.RequireApplicationInheritanceAsync(db,envScope,applicationId,token);
             var from=request.ValidFrom.ToUniversalTime();var expires=request.ExpiresAt?.ToUniversalTime();
             if(id is not null&&(p.ApiId!=request.ApiId||p.EnvironmentId!=request.EnvironmentId))
             {

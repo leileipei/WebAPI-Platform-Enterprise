@@ -4,6 +4,13 @@ using WebApi.Infrastructure.Contracts;
 using Xunit;
 using Xunit.Abstractions;
 namespace WebApi.Domain.Tests;
+
+// These tests change process-wide environment variables and assert real
+// subprocess deadlines. Keep unrelated collections out of the measurement.
+[CollectionDefinition("Contract subprocesses", DisableParallelization = true)]
+public sealed class ContractSubprocessCollection;
+
+[Collection("Contract subprocesses")]
 public class SchemaProcessTests(ITestOutputHelper output)
 {
     private static ContractProcessRequest Request=>new("schema",JsonSerializer.SerializeToElement(new {value=1}));
@@ -73,11 +80,13 @@ public class SchemaProcessTests(ITestOutputHelper output)
             Assert.Equal(2,File.ReadAllLines(f.Pids).Length);var watch=Stopwatch.StartNew();
             var pending=runner.RunAsync(Request,TimeSpan.FromMilliseconds(200),default);
             var returned=watch.Elapsed;
+            var settled=pending.ContinueWith(_=>watch.Elapsed,CancellationToken.None,TaskContinuationOptions.ExecuteSynchronously,TaskScheduler.Default);
             var queued=await pending;
             var resumed=watch.Elapsed;
+            var settledAt=await settled;
             Assert.Contains(queued.Issues,x=>x.Code=="contract_process_timeout");
             var elapsed=watch.Elapsed;
-            var timing=FormattableString.Invariant($"QUEUE_DIAGNOSTIC total_ms={elapsed.TotalMilliseconds:F3}, call_return_ms={returned.TotalMilliseconds:F3}, caller_resume_ms={resumed.TotalMilliseconds:F3}, result_assert_ms={(elapsed-resumed).TotalMilliseconds:F3}");
+            var timing=FormattableString.Invariant($"QUEUE_DIAGNOSTIC total_ms={elapsed.TotalMilliseconds:F3}, call_return_ms={returned.TotalMilliseconds:F3}, task_observed_ms={settledAt.TotalMilliseconds:F3}, caller_resume_ms={resumed.TotalMilliseconds:F3}, result_assert_ms={(elapsed-resumed).TotalMilliseconds:F3}");
             output.WriteLine(timing);
             Assert.True(elapsed<TimeSpan.FromSeconds(1),timing);Assert.Equal(2,File.ReadAllLines(f.Pids).Length);
         }finally{cancel.Cancel();await Task.WhenAll(first,second);}

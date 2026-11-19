@@ -34,9 +34,47 @@ public sealed class SecurityLedgerReader(WebApiDbContext db)
   var revoked=await db.Set<CredentialRevocation>().AsNoTracking().Where(x=>x.EnvironmentId==environmentId).OrderBy(x=>x.CredentialId).ToArrayAsync(ct);
   var material=new SecurityLedgerMaterial(state.EnvironmentId,state.OrganizationId,state.ProjectId,state.SecurityGeneration,state.Epoch,state.HeadHash,state.RequireEnvironmentCredentials,state.MinimumSnapshotSchema,events,revoked,state.InitialRequireEnvironmentCredentials);Validate(material);
   var operations=await db.Set<SecurityOperation>().AsNoTracking().Where(x=>events.Select(e=>e.OperationId).Contains(x.Id)).ToDictionaryAsync(x=>x.Id,ct);
-  foreach(var e in events)if(!operations.TryGetValue(e.OperationId,out var op)||op.Kind!=(e.EventType=="CredentialRevoked"?"CredentialRevoke":"EnvironmentPolicyCutover")||op.CredentialId!=e.CredentialId||e.EventType=="EnvironmentPolicyChanged"&&op.ApplicationId is not null||op.OrganizationId!=e.OrganizationId||op.CommittedAt!=e.OccurredAt)throw new InvalidOperationException("Security event operation mismatch.");
-  var credentials=await (from c in db.Set<ApplicationCredential>().AsNoTracking() join a in db.Set<ApplicationRecord>().AsNoTracking() on c.ApplicationId equals a.Id where revoked.Select(r=>r.CredentialId).Contains(c.Id) select new {c.Id,c.ApplicationId,c.OrganizationId,c.Status,c.RevokedAt,c.BindingMode,c.EnvironmentId,a.ProjectId}).ToDictionaryAsync(x=>x.Id,ct);
-  foreach(var r in revoked)if(!credentials.TryGetValue(r.CredentialId,out var c)||c.Status!="Revoked"||c.RevokedAt==null||c.ApplicationId!=r.ApplicationId||c.OrganizationId!=r.OrganizationId||c.ProjectId is Guid project&&project!=r.ProjectId||c.BindingMode=="EnvironmentBound"&&c.EnvironmentId!=r.EnvironmentId)throw new InvalidOperationException("Security tombstone credential mismatch.");
+  foreach (var item in events)
+   if (!operations.TryGetValue(item.OperationId, out var op) ||
+       op.Kind != (CredentialRevocationEvents.IsRevocation(item.EventType) ? "CredentialRevoke" : "EnvironmentPolicyCutover") ||
+       op.CredentialId != item.CredentialId || item.EventType == "EnvironmentPolicyChanged" && op.ApplicationId is not null ||
+       op.OrganizationId != item.OrganizationId || op.CommittedAt != item.OccurredAt)
+    throw new InvalidOperationException("Security event operation mismatch.");
+
+  var credentials = await (from credential in db.Set<ApplicationCredential>().AsNoTracking()
+                           join application in db.Set<ApplicationRecord>().AsNoTracking() on credential.ApplicationId equals application.Id
+                           where revoked.Select(r => r.CredentialId).Contains(credential.Id)
+                           select new {credential.Id, credential.ApplicationId, credential.OrganizationId, credential.Status,
+                               credential.RevokedAt, credential.BindingMode, credential.EnvironmentId,
+                               CredentialProjectId = credential.ProjectId, ApplicationProjectId = application.ProjectId}).ToDictionaryAsync(x => x.Id, ct);
+  var byEpoch = events.ToDictionary(item => item.Epoch);
+  foreach (var tombstone in revoked)
+  {
+   var item = byEpoch[tombstone.Epoch];
+   if (!credentials.TryGetValue(tombstone.CredentialId, out var credential) || credential.Status != "Revoked" || credential.RevokedAt is null ||
+       credential.ApplicationId != tombstone.ApplicationId || credential.OrganizationId != tombstone.OrganizationId ||
+       credential.CredentialProjectId is Guid credentialProject && credentialProject != tombstone.ProjectId ||
+       credential.ApplicationProjectId is Guid applicationProject && applicationProject != tombstone.ProjectId ||
+       credential.BindingMode == "EnvironmentBound" && credential.EnvironmentId != tombstone.EnvironmentId ||
+       (item.EventType is CredentialRevocationEvents.Archived or CredentialRevocationEvents.Inherited) &&
+       (credential.BindingMode != "LegacyGlobal" || credential.EnvironmentId is not null))
+    throw new InvalidOperationException("Security tombstone credential mismatch.");
+  }
+
+  var inheritedIds = events.Where(item => item.EventType == CredentialRevocationEvents.Inherited).Select(item => item.OperationId).ToArray();
+  if (inheritedIds.Length > 0)
+  {
+   var anchored = await (from origin in db.Set<SecurityEvent>().AsNoTracking()
+                         join tombstone in db.Set<CredentialRevocation>().AsNoTracking()
+                           on new { origin.OperationId, origin.EnvironmentId, origin.SecurityGeneration, origin.Epoch }
+                           equals new { tombstone.OperationId, tombstone.EnvironmentId, tombstone.SecurityGeneration, tombstone.Epoch }
+                         where inheritedIds.Contains(origin.OperationId) &&
+                           (origin.EventType == CredentialRevocationEvents.Original || origin.EventType == CredentialRevocationEvents.Archived) &&
+                           origin.CredentialId == tombstone.CredentialId && origin.OrganizationId == tombstone.OrganizationId &&
+                           origin.ProjectId == tombstone.ProjectId && origin.OccurredAt == tombstone.RevokedAt
+                         select origin.OperationId).Distinct().CountAsync(ct);
+   if (anchored != inheritedIds.Length) throw new InvalidOperationException("Inherited security fact has no originating revocation.");
+  }
   return material;
  }
  public static void Validate(SecurityLedgerMaterial m)
@@ -46,11 +84,13 @@ public sealed class SecurityLedgerReader(WebApiDbContext db)
   foreach(var e in m.Events)
   {
    if(e.EnvironmentId!=m.EnvironmentId||e.OrganizationId!=m.OrganizationId||e.ProjectId!=m.ProjectId||e.SecurityGeneration!=m.SecurityGeneration||e.Epoch!=++epoch||e.PreviousHash!=previous||e.EventHash!=SecurityEventHash.Compute(e))throw new InvalidOperationException("Invalid security hash chain.");
-   if(e.EventType=="CredentialRevoked"){if(e.CredentialId is not Guid id||id==Guid.Empty||e.PolicyJson!=null||!facts.TryAdd(id,e))throw new InvalidOperationException("Invalid revocation event.");}
+   if(CredentialRevocationEvents.IsRevocation(e.EventType)){if(e.CredentialId is not Guid id||id==Guid.Empty||!CredentialRevocationEvents.ValidMaterial(e)||!facts.TryAdd(id,e))throw new InvalidOperationException("Invalid revocation event.");}
    else if(e.EventType=="EnvironmentPolicyChanged") {if(e.CredentialId is not null)throw new InvalidOperationException("Invalid policy event.");var next=SecurityPolicyRules.Parse(e.PolicyJson);if(!SecurityPolicyRules.Strengthens(next,policy??new(m.InitialRequireEnvironmentCredentials??false,"2.0")))throw new InvalidOperationException("Security policy regression.");policy=next;}
    else throw new InvalidOperationException("Unknown security event.");previous=e.EventHash;
   }
   if(m.HeadHash!=previous||m.Revocations.Count!=facts.Count)throw new InvalidOperationException("Incomplete security tombstones.");
+  if(m.Events.Any(item=>item.EventType==CredentialRevocationEvents.Inherited)&&m.MinimumSnapshotSchema!="2.4")
+   throw new InvalidOperationException("Inherited revocations require the governed snapshot floor.");
   if(policy is not null&&(m.RequireEnvironmentCredentials!=policy.RequireEnvironmentCredentials||m.MinimumSnapshotSchema!=policy.MinimumSnapshotSchema)||policy is null&&(m.MinimumSnapshotSchema!="2.0"||m.InitialRequireEnvironmentCredentials is bool initial&&m.RequireEnvironmentCredentials!=initial))throw new InvalidOperationException("Security policy authority mismatch.");
   var seen=new HashSet<Guid>();foreach(var r in m.Revocations)
    if(!seen.Add(r.CredentialId)||r.EnvironmentId!=m.EnvironmentId||r.OrganizationId!=m.OrganizationId||r.ProjectId!=m.ProjectId||r.SecurityGeneration!=m.SecurityGeneration||!facts.TryGetValue(r.CredentialId,out var e)||r.Epoch!=e.Epoch||r.OperationId!=e.OperationId||r.RevokedAt!=e.OccurredAt)throw new InvalidOperationException("Invalid security tombstone.");

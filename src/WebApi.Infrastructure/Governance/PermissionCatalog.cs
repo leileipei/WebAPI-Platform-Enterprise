@@ -4,11 +4,15 @@ using WebApi.Infrastructure.Persistence.Entities;
 namespace WebApi.Infrastructure.Governance;
 public static class PermissionCatalog
 {
+    public const string CredentialRevoke = "credential.revoke";
+    public const string CredentialGovernanceRecover = "credential.governance.recover";
+    private static readonly string[] CredentialGovernancePermissions = [CredentialRevoke, CredentialGovernanceRecover];
+
     public static readonly string[] Codes=[
         "organization.read","organization.write","project.read","project.write","environment.read","environment.write",
         "api.read","api.create","api.edit","api.version.read","api.version.write","api.schema.read","api.schema.write",
         "route.read","route.write","cluster.read","cluster.write","policy.read","policy.write",
-        "app.read","app.write","credential.manage","app.permission.manage",
+        "app.read","app.write","credential.manage","app.permission.manage",..CredentialGovernancePermissions,
         "pipeline.read","pipeline.manage","pipeline.run",
         "release.test.record","release.test.accept","release.verify","release.read","release.create","release.publish","release.rollback","approval.act","api.approve",
         "gateway.read","gateway.operate","gateway.config.read","audit.read","user.manage","role.manage","scope.manage","system.manage",
@@ -22,8 +26,8 @@ public static class PermissionCatalog
         var read=Codes.Where(c=>c.EndsWith(".read",StringComparison.Ordinal)&&!c.StartsWith("pipeline.",StringComparison.Ordinal)).ToArray();
         Dictionary<string,(string Name,string[] Permissions)> roles=new() {
             ["PlatformAdmin"]=("平台管理员",Codes),
-            ["OrganizationAdmin"]=("组织管理员",Codes.Except(["pipeline.read","pipeline.manage","pipeline.run","release.test.record","release.test.accept","release.verify","system.manage","system.sso.manage","user.manage","scope.manage"]).ToArray()),
-            ["ProjectAdmin"]=("项目管理员",Codes.Except(["pipeline.read","pipeline.manage","pipeline.run","release.test.record","release.test.accept","release.verify","organization.write","system.manage","system.sso.manage","user.manage","role.manage","scope.manage"]).ToArray()),
+            ["OrganizationAdmin"]=("组织管理员",Codes.Except(["pipeline.read","pipeline.manage","pipeline.run","release.test.record","release.test.accept","release.verify","system.manage","system.sso.manage","user.manage","scope.manage",..CredentialGovernancePermissions]).ToArray()),
+            ["ProjectAdmin"]=("项目管理员",Codes.Except(["pipeline.read","pipeline.manage","pipeline.run","release.test.record","release.test.accept","release.verify","organization.write","system.manage","system.sso.manage","user.manage","role.manage","scope.manage",..CredentialGovernancePermissions]).ToArray()),
             ["ApiDeveloper"]=("API开发人员",read.Concat(["api.create","api.edit","api.version.write","api.schema.write","route.write","cluster.write","policy.write","release.create","release.publish"]).Distinct().ToArray()),
             ["ApiApprover"]=("API审批人员",read.Concat(["approval.act","api.approve"]).ToArray()),
             ["SecurityReviewer"]=("安全审核人员",read.Concat(["approval.act"]).ToArray()),

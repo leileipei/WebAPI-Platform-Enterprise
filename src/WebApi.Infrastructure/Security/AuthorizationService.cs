@@ -7,7 +7,14 @@ using WebApi.Infrastructure.Persistence.Entities;
 namespace WebApi.Infrastructure.Security;
 public sealed class AuthorizationService(WebApiDbContext db) : IAuthorizationService
 {
-    public async Task RequireAsync(ActorContext actor, string permission, ResourceRef resource, CancellationToken cancellationToken = default)
+    public Task RequireAsync(ActorContext actor, string permission, ResourceRef resource, CancellationToken cancellationToken = default) =>
+        RequireAsync(actor, permission, resource, allowArchivedEnvironment: false, cancellationToken);
+
+    internal Task RequireArchivedCredentialRevocationAsync(ActorContext actor, ResourceRef resource, CancellationToken ct) =>
+        RequireAsync(actor, "credential.revoke", resource, allowArchivedEnvironment: true, ct);
+
+    private async Task RequireAsync(ActorContext actor, string permission, ResourceRef resource, bool allowArchivedEnvironment,
+        CancellationToken cancellationToken)
     {
         await new PasswordLifecycleGuard(db).RequireBusinessAccessAsync(actor,cancellationToken);
         var functional=await (from ur in db.Set<UserRole>() join r in db.Set<Role>() on ur.RoleId equals r.Id
@@ -27,7 +34,8 @@ public sealed class AuthorizationService(WebApiDbContext db) : IAuthorizationSer
         var governance=permission.StartsWith("organization.",StringComparison.Ordinal)||permission.StartsWith("project.",StringComparison.Ordinal)||permission.StartsWith("environment.",StringComparison.Ordinal);
         if(!governance && (!await db.Set<Organization>().AnyAsync(x=>x.Id==resource.Scope.OrganizationId && x.Status=="Active",cancellationToken) ||
             (resource.Scope.ProjectId is Guid project && !await db.Set<Project>().AnyAsync(x=>x.Id==project && x.OrganizationId==resource.Scope.OrganizationId && x.Status=="Active",cancellationToken)) ||
-            (resource.Scope.EnvironmentId is Guid env && !await db.Set<EnvironmentRecord>().AnyAsync(x=>x.Id==env && x.ProjectId==resource.Scope.ProjectId && x.Status=="Active",cancellationToken))))
+            (resource.Scope.EnvironmentId is Guid env && !await db.Set<EnvironmentRecord>().AnyAsync(x=>x.Id==env && x.ProjectId==resource.Scope.ProjectId &&
+                (x.Status=="Active" || allowArchivedEnvironment&&x.Status=="Disabled"),cancellationToken))))
             throw new ApiException(409,"inactive_scope","组织、项目或环境已停用。");
     }
     public async Task<bool> CanAsync(ActorContext actor,string permission,ResourceRef resource,CancellationToken ct=default)

@@ -52,7 +52,7 @@ public sealed class JwtAuthorizationPipelineTests
         using var created=await f.Control.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{f.Control.Environment.Id}/routes",f.Control.RouteBody("/other-orders"));created.EnsureSuccessStatusCode();var routeId=(await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
         var otherApp=new ApplicationRecord {OrganizationId=f.Control.Organization.Id,ProjectId=f.Control.Project.Id,Code="jwt-other",Name="JWT other",Status="Active"};
         await using(var db=f.Control.Context()) {
-            db.Add(otherApp);db.Add(new ApplicationApiPermission {ApplicationId=otherApp.Id,ApiId=f.Control.Api.Id,EnvironmentId=f.Control.Environment.Id,ValidFrom=DateTimeOffset.UtcNow.AddDays(-1),ExpiresAt=null,CreatedBy=(await db.Set<ApplicationApiPermission>().SingleAsync()).CreatedBy});
+            db.Add(otherApp);db.Add(new ApplicationApiPermission {ApplicationId=otherApp.Id,ApiId=f.Control.Api.Id,EnvironmentId=f.Control.Environment.Id,Mode="LegacyApi",ValidFrom=DateTimeOffset.UtcNow.AddDays(-1),ExpiresAt=null,CreatedBy=(await db.Set<ApplicationApiPermission>().SingleAsync()).CreatedBy});
             db.RemoveRange(await db.Set<RoutePolicyBinding>().Where(b=>b.RouteId==routeId).ToArrayAsync());
             var policy=new Policy {OrganizationId=f.Control.Organization.Id,ProjectId=f.Control.Project.Id,Name="JWT other",Type="authentication",Config=Config(key,otherApp.Id)};db.Add(policy);db.Add(new RoutePolicyBinding {RouteId=routeId,PolicyId=policy.Id});
             var rate=await db.Set<Policy>().SingleAsync(p=>p.Type=="rate_limit");db.Add(new RoutePolicyBinding {RouteId=routeId,PolicyId=rate.Id});await db.SaveChangesAsync();

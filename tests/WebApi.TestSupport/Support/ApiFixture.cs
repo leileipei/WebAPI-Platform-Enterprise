@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
@@ -59,11 +61,19 @@ public sealed class ApiFixture : IAsyncDisposable
     public HttpClient Client { get; private set; } = null!;
     public WebApiDbContext Context() => Database.Context();
     public IServiceScope Services() => app!.Services.CreateScope();
-    public async Task InitializeAsync(Action<WebApplicationBuilder>? configure=null)
+    public async Task InitializeAsync(Action<WebApplicationBuilder>? configure=null,string? targetMigration=null)
     {
+        if(databaseTemplate is not null && targetMigration is not null)
+            throw new ArgumentException("A historical migration requires a fresh fixture database.",nameof(targetMigration));
         if(databaseTemplate is null) await Database.InitializeAsync();
         else Database=await databaseTemplate.CreateDatabaseAsync();
-        await using(var db=Context()) { if(databaseTemplate is null) await db.Database.MigrateAsync(); User.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(User,Password); db.Add(User); await db.SaveChangesAsync(); }
+        await using(var db=Context())
+        {
+            if(databaseTemplate is null) await db.GetService<IMigrator>().MigrateAsync(targetMigration);
+            User.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(User,Password);
+            db.Add(User);
+            await db.SaveChangesAsync();
+        }
         serverConfiguration=configure;
         await StartServerAsync();
     }
@@ -124,10 +134,11 @@ public sealed class ApiFixture : IAsyncDisposable
     public Organization Organization { get; } = new() {Code="ORG",Name="组织"};
     public Project Project { get; } = new() {Code="PROJECT",Name="项目"};
     public EnvironmentRecord Environment { get; } = new() {Code="TEST",Name="测试",SortOrder=0};
-    public async Task SeedScopeAsync(string mode="read_write",bool platformAdmin=false)
+    public async Task SeedScopeAsync(string mode="read_write",bool platformAdmin=false,bool seedFreshEnvironment=false)
     {
         await using var db=Context();Project.OrganizationId=Organization.Id;Environment.ProjectId=Project.Id;
         db.AddRange(Organization,Project,Environment);
+        if(seedFreshEnvironment) AddFreshEnvironmentOrigin(db,Environment);
         var role=new Role {Code=platformAdmin?"PlatformAdmin":"ProjectAdmin",Name="测试角色",IsSystem=platformAdmin,OrganizationId=platformAdmin?null:Organization.Id};db.Add(role);
         db.Add(new UserRole {UserId=User.Id,RoleId=role.Id});
         string[] codes=["organization.read","organization.write","project.read","project.write","environment.read","environment.write","user.manage","role.manage","scope.manage","audit.read"];
@@ -143,31 +154,36 @@ public sealed class ApiFixture : IAsyncDisposable
     public ApiVersion Version { get; } = new() {Version="1.0.0",Status="Draft",ChangeType="compatible"};
     public UpstreamCluster Cluster { get; } = new() {Name="OrdersBackend",LoadBalancingPolicy="RoundRobin",HealthCheckPath="/health",HealthCheckIntervalSec=30};
     public UpstreamDestination Destination { get; } = new() {Name="backend",Address="http://test-backend:8080/",Weight=1};
-    public async Task SeedCatalogAsync()
+    public async Task SeedCatalogAsync(bool seedFreshEnvironment=false)
     {
-        await SeedScopeAsync();await using var db=Context();Api.OrganizationId=Organization.Id;Api.ProjectId=Project.Id;Api.OwnerUserId=User.Id;Version.ApiId=Api.Id;Version.CreatedBy=User.Id;Cluster.ProjectId=Project.Id;Cluster.EnvironmentId=Environment.Id;Destination.ClusterId=Cluster.Id;db.AddRange(Api,Version,Cluster,Destination);
+        await SeedScopeAsync(seedFreshEnvironment:seedFreshEnvironment);await using var db=Context();Api.OrganizationId=Organization.Id;Api.ProjectId=Project.Id;Api.OwnerUserId=User.Id;Version.ApiId=Api.Id;Version.CreatedBy=User.Id;Cluster.ProjectId=Project.Id;Cluster.EnvironmentId=Environment.Id;Destination.ClusterId=Cluster.Id;db.AddRange(Api,Version,Cluster,Destination);
         var roleId=await db.Set<UserRole>().Where(x=>x.UserId==User.Id).Select(x=>x.RoleId).SingleAsync();
         string[] codes=["api.read","api.create","api.edit","api.version.read","api.version.write","api.schema.read","api.schema.write","route.read","route.write","cluster.read","cluster.write"];
         foreach(var code in codes) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code};db.Add(p);db.Add(new RolePermission {RoleId=roleId,PermissionId=p.Id});}await db.SaveChangesAsync();
     }
     public object RouteBody(string path,string method="GET",Guid? cluster=null,Guid? id=null)=>new {id,apiVersionId=Version.Id,routeName="Orders",path,methods=new[]{method},clusterId=cluster??Cluster.Id,priority=100,enabled=true,timeoutMs=30000};
     public ApplicationRecord Application { get; } = new() {Code="CONSUMER",Name="消费方",Owner="测试所有者"};
-    public async Task SeedConsumerAsync()
+    public async Task SeedConsumerAsync(bool seedFreshEnvironment=false)
     {
-        await SeedCatalogAsync();await using var db=Context();Application.OrganizationId=Organization.Id;Application.ProjectId=Project.Id;db.Add(Application);
+        await SeedCatalogAsync(seedFreshEnvironment);await using var db=Context();Application.OrganizationId=Organization.Id;Application.ProjectId=Project.Id;db.Add(Application);
         var roleId=await db.Set<UserRole>().Where(x=>x.UserId==User.Id).Select(x=>x.RoleId).SingleAsync();string[] codes=["app.read","app.write","credential.manage","app.permission.manage"];
         foreach(var code in codes) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code};db.Add(p);db.Add(new RolePermission {RoleId=roleId,PermissionId=p.Id});}await db.SaveChangesAsync();
     }
     public ApprovalFlow ApprovalFlow {get;}=new() {Name="生产两级审批",ScopeType="environment"};
     private readonly List<HttpClient> extraClients=[];
-    public async Task SeedReleaseAsync()
+    public async Task SeedReleaseAsync(bool seedFreshEnvironment=true)
     {
-        await SeedConsumerAsync();await using var db=Context();ApprovalFlow.OrganizationId=Organization.Id;db.Add(ApprovalFlow);
+        await SeedConsumerAsync(seedFreshEnvironment);await using var db=Context();ApprovalFlow.OrganizationId=Organization.Id;db.Add(ApprovalFlow);
         db.Add(new ApprovalStep {FlowId=ApprovalFlow.Id,StepOrder=1,RoleCode="ApiApprover",RequiredCount=1});db.Add(new ApprovalStep {FlowId=ApprovalFlow.Id,StepOrder=2,RoleCode="SecurityReviewer",RequiredCount=1});
         var env=await db.Set<EnvironmentRecord>().SingleAsync();env.IsProduction=true;env.ReleasePolicyId=ApprovalFlow.Id;
         var roleId=await db.Set<UserRole>().Where(x=>x.UserId==User.Id).Select(x=>x.RoleId).SingleAsync();string[] codes=["release.read","release.create","release.publish","release.rollback","approval.act","api.approve"];
         foreach(var code in codes) {var p=new Permission {Code=code,Module=code.Split('.')[0],Name=code};db.Add(p);db.Add(new RolePermission {RoleId=roleId,PermissionId=p.Id});}await db.SaveChangesAsync();
     }
+    public void AddFreshEnvironmentOrigin(WebApiDbContext db,EnvironmentRecord environment) => db.Add(new EnvironmentSecurityInitialization
+    {
+        EnvironmentId=environment.Id,ProjectId=environment.ProjectId,OrganizationId=Organization.Id,
+        State="FreshNonStrict",FreshProofId=Guid.NewGuid()
+    });
     public async Task<(UserRecord User,HttpClient Client)> NewReviewerAsync(params string[] roleCodes)
     {
         var user=new UserRecord {Username="reviewer_"+Guid.NewGuid().ToString("N"),DisplayName="独立审核",SecurityStamp=Guid.NewGuid().ToString("N")};var password=Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));user.PasswordHash=new PasswordHasher<UserRecord>().HashPassword(user,password);

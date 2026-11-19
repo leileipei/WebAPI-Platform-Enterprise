@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using WebApi.Contracts.Releases;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
@@ -62,4 +63,63 @@ public sealed class ProductionVerificationTests
  [Fact] public async Task LastVerificationAndApprovedRollbackSerializeWithoutCompletingAfterSnapshotSwitch()
  {await using var s=new PromotionScenario();await s.InitializeAsync(authenticatedTargetReceipts:true);var p=await Deployed(s);var verifier=await Verifier(s);foreach(var type in Types.Take(2)){using var response=await Record(s,verifier.Client,type);response.EnsureSuccessStatusCode();}var hash=await ContextHash(s,verifier.Client);var rollback=await ReadyRollback(s,p.TargetReleaseId!.Value);
  var change=Task.Run(async()=>{using var started=await PromotionExecutionTests.Start(s,rollback);started.EnsureSuccessStatusCode();await s.Source.Deployment.BuildQueuedAsync();});using var last=await Record(s,verifier.Client,Types[2],expected:hash);await change;Assert.True(last.IsSuccessStatusCode||last.StatusCode==HttpStatusCode.Conflict);await using(var db=s.Api.Context()){var transition=await db.Set<OutboxMessage>().SingleAsync(m=>m.ReleaseId==rollback);Assert.False(await db.Set<ReleasePromotionEvent>().AnyAsync(e=>e.PromotionId==p.Id&&e.ToStatus=="Completed"&&e.OccurredAt>transition.CreatedAt));}await s.TargetAckAllAsync(rollback);await using var context=s.Api.Context();Assert.Equal("RolledBack",(await context.Set<ReleasePromotion>().SingleAsync(x=>x.Id==p.Id)).Status);}
+
+ [Fact]
+ public async Task LastVerificationReadsThePromotionAgainAfterAnApprovedRollbackIsQueued()
+ {
+     await using var scenario = new PromotionScenario();
+     await scenario.InitializeAsync(authenticatedTargetReceipts: true);
+     var promotion = await Deployed(scenario);
+     var verifier = await Verifier(scenario);
+     foreach (var type in Types.Take(2))
+     {
+         using var recorded = await Record(scenario, verifier.Client, type);
+         recorded.EnsureSuccessStatusCode();
+     }
+     var hash = await ContextHash(scenario, verifier.Client);
+     var rollback = await ReadyRollback(scenario, promotion.TargetReleaseId!.Value);
+
+     using var waitBudget = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+     await using var blocker = await scenario.Api.Database.OpenAsync();
+     await using var observer = await scenario.Api.Database.OpenAsync();
+     await using var fence = await blocker.BeginTransactionAsync(waitBudget.Token);
+     await using (var takeFence = new NpgsqlCommand("SELECT pg_catalog.pg_advisory_xact_lock(8901202)", blocker, fence))
+         await takeFence.ExecuteNonQueryAsync(waitBudget.Token);
+
+     // Queue rollback first while verification reads the unswitched deployment before its own lock request.
+     var starting = PromotionExecutionTests.Start(scenario, rollback);
+     await WaitForWriterFenceWaitersAsync(observer, 1, waitBudget.Token);
+     var recording = Record(scenario, verifier.Client, Types[2], expected: hash);
+     await WaitForWriterFenceWaitersAsync(observer, 2, waitBudget.Token);
+     await fence.CommitAsync(waitBudget.Token);
+
+     using var started = await starting;
+     started.EnsureSuccessStatusCode();
+     using var last = await recording;
+     var problem = await last.Content.ReadAsStringAsync();
+     Assert.True(last.StatusCode == HttpStatusCode.Conflict, $"Verification status {(int)last.StatusCode}, {problem}");
+     Assert.Contains("promotion_not_verifying", problem);
+     await using (var db = scenario.Api.Context())
+     {
+         Assert.Equal("Deploying", await db.Set<ReleasePromotion>().Where(item => item.Id == promotion.Id).Select(item => item.Status).SingleAsync());
+         Assert.False(await db.Set<ReleaseVerification>().AnyAsync(item => item.PromotionId == promotion.Id && item.Type == Types[2]));
+     }
+
+     await scenario.Source.Deployment.BuildQueuedAsync();
+     await scenario.TargetAckAllAsync(rollback);
+     await using var verified = scenario.Api.Context();
+     Assert.Equal("RolledBack", await verified.Set<ReleasePromotion>().Where(item => item.Id == promotion.Id).Select(item => item.Status).SingleAsync());
+ }
+
+ private static async Task WaitForWriterFenceWaitersAsync(NpgsqlConnection observer, long expected, CancellationToken ct)
+ {
+     await using var countWaiters = new NpgsqlCommand("""
+         SELECT pg_catalog.count(*) FROM pg_catalog.pg_locks
+          WHERE locktype = 'advisory' AND database = (SELECT oid FROM pg_catalog.pg_database WHERE datname = pg_catalog.current_database())
+            AND classid = 0 AND objid = 8901202 AND objsubid = 1 AND NOT granted
+         """, observer);
+     using var poll = new PeriodicTimer(TimeSpan.FromMilliseconds(20));
+     while (Assert.IsType<long>(await countWaiters.ExecuteScalarAsync(ct)) < expected)
+         await poll.WaitForNextTickAsync(ct);
+ }
 }

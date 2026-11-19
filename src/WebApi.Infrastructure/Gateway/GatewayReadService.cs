@@ -2,10 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Gateway;
 using WebApi.Contracts.Security;
+using WebApi.Infrastructure.CredentialSecurity;
 using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Releases;
+using WebApi.Infrastructure.Runtime;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Gateway;
 public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,HistoricalSnapshotService history,AuditedCommandExecutor commands)
@@ -66,6 +68,24 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
     public async Task<GatewayNodeDto> SetEnabledAsync(Guid id,bool enabled,string? etag,ActorContext actor,CancellationToken ct=default)
     {
         var original=await db.Set<GatewayNode>().AsNoTracking().SingleOrDefaultAsync(n=>n.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(original.EnvironmentId,ct);
-        return await commands.ExecuteAsync(actor,scope,"gateway.identity.enabled",async(_,token)=>{await auth.RequireAsync(actor,"gateway.operate",new("node",id,scope),token);await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={original.EnvironmentId} FOR UPDATE",token);var node=await db.Set<GatewayNode>().SingleAsync(n=>n.Id==id,token);if(Tag(node)!=etag) throw new ApiException(412,"stale_revision","节点实例或启用状态已变化。");if(node.Enabled!=enabled){node.Enabled=enabled;db.Add(new GatewayNodeEvent{GatewayNodeId=node.Id,EventType=enabled?"usage.node.enabled":"usage.node.disabled",Message=enabled?"节点采集来源启用":"节点采集来源停用",Detail=System.Text.Json.JsonSerializer.Serialize(new{instanceId=node.InstanceId})});}return Dto(node,await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==node.EnvironmentId,token));},ct);
+        return await commands.ExecuteAsync(actor,scope,"gateway.identity.enabled",async(_,token)=>
+        {
+            await auth.RequireAsync(actor,"gateway.operate",new("node",id,scope),token);
+            await db.Database.ExecuteSqlInterpolatedAsync($"SELECT id FROM environments WHERE id={original.EnvironmentId} FOR UPDATE",token);
+            var node=await db.Set<GatewayNode>().SingleAsync(n=>n.Id==id,token);
+            if(Tag(node)!=etag) throw new ApiException(412,"stale_revision","节点实例或启用状态已变化。");
+            if(node.Enabled!=enabled)
+            {
+                if(enabled&&await RuntimeEnvironmentAccess.RetiredNodeIds(db).AnyAsync(retired=>retired==id,token))
+                    throw new ApiException(409,"gateway_archive_identity_retired","封存前的节点身份已退役，请使用新身份登记。");
+                if(enabled&&!SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,"2.4")&&
+                    await GlobalCredentialPublicationGuard.RequiresGovernance24Async(db,node.EnvironmentId,token))
+                    throw new ApiException(409,"gateway_security_capability_required","当前环境要求节点声明兼容的快照和安全协议能力。");
+                node.Enabled=enabled;
+                db.Add(new GatewayNodeEvent{GatewayNodeId=node.Id,EventType=enabled?"usage.node.enabled":"usage.node.disabled",
+                    Message=enabled?"节点采集来源启用":"节点采集来源停用",Detail=System.Text.Json.JsonSerializer.Serialize(new{instanceId=node.InstanceId})});
+            }
+            return Dto(node,await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==node.EnvironmentId,token));
+        },ct);
     }
 }

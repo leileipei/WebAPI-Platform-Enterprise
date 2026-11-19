@@ -40,9 +40,9 @@ public sealed class OutboxFailureIsolationTests
     [InlineData("cache-conflict")]
     public async Task PoisonedEnvironmentDoesNotBlockHealthyReconciliation(string failure)
     {
-        await using var api = new ApiFixture(); await api.InitializeAsync(); await api.SeedScopeAsync();
+        await using var api = new ApiFixture(); await api.InitializeAsync(); await api.SeedScopeAsync(seedFreshEnvironment: true);
         var healthy = new EnvironmentRecord { ProjectId = api.Project.Id, Code = "HEALTHY", Name = "Healthy" };
-        await using (var db = api.Context()) { db.Add(healthy); await db.SaveChangesAsync(); }
+        await using (var db = api.Context()) { db.Add(healthy); api.AddFreshEnvironmentOrigin(db, healthy); await db.SaveChangesAsync(); }
         var bad = await SeedAsync(api, api.Environment.Id); var good = await SeedAsync(api, healthy.Id);
         using var redis = new RedisSnapshotStore("redis:6379", "isolation:" + Guid.NewGuid());
         SnapshotEnvelope? conflicting = null;
@@ -62,7 +62,7 @@ public sealed class OutboxFailureIsolationTests
     [Fact]
     public async Task FailedGlobalReconciliationStillDispatchesAndWaitsForNextReconciliationInterval()
     {
-        await using var api = new ApiFixture(); await api.InitializeAsync(); await api.SeedScopeAsync();
+        await using var api = new ApiFixture(); await api.InitializeAsync(); await api.SeedScopeAsync(seedFreshEnvironment: true);
         var seeded = await SeedAsync(api, api.Environment.Id, outbox: true);
         var failure = new ReconciliationQueryFailure();
         using var redis = new RedisSnapshotStore("redis:6379", "worker-isolation:" + Guid.NewGuid());
@@ -95,7 +95,11 @@ public sealed class OutboxFailureIsolationTests
         public int Attempts => Volatile.Read(ref attempts);
         public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
         {
-            if (command.CommandText.Contains("FROM environments", StringComparison.Ordinal)) { Interlocked.Increment(ref attempts); throw new InvalidOperationException("isolated reconciliation query failure"); }
+            if (command.CommandText.Contains("-- desired-deployment-reconciliation", StringComparison.Ordinal))
+            {
+                Interlocked.Increment(ref attempts);
+                throw new InvalidOperationException("isolated reconciliation query failure");
+            }
             return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
         }
     }

@@ -20,6 +20,66 @@ public sealed class HistoricalSnapshotService(WebApiDbContext db,ScopeResolver s
         var row=await(from v in db.Set<GatewayConfigVersion>().AsNoTracking() join s in db.Set<GatewayConfigSnapshot>().AsNoTracking() on v.Id equals s.ConfigVersionId where v.EnvironmentId==envId&&v.VersionNo==version select new {v.SnapshotHash,s.PayloadBytes,s.SizeBytes}).SingleOrDefaultAsync(ct)??throw ScopeResolver.Missing();
         if(row.PayloadBytes.LongLength!=row.SizeBytes||Convert.ToHexStringLower(SHA256.HashData(row.PayloadBytes))!=row.SnapshotHash) throw new ApiException(422,"corrupt_snapshot","历史快照完整性校验失败。");var snapshot=SnapshotValidator.ParsePayload(row.PayloadBytes,envId);if(snapshot.ConfigVersion!=version) throw new ApiException(422,"corrupt_snapshot","历史版本标识不一致。");return new(snapshot,row.PayloadBytes,row.SnapshotHash!,row.SizeBytes);
     }
+
+    internal async Task<HistoricalArtifact> ReadGovernedRollbackSourceAsync(Guid environmentId, long version,
+        SnapshotCompiler compiler, CancellationToken ct)
+    {
+        var artifact = await ReadAsync(environmentId, version, ct);
+        if (artifact.Snapshot.SchemaVersion != "2.4" ||
+            !artifact.Payload.AsSpan().SequenceEqual(CanonicalJson.Serialize(artifact.Snapshot)) ||
+            !await db.Set<GatewayConfigVersion>().AsNoTracking().AnyAsync(row => row.EnvironmentId == environmentId &&
+                row.VersionNo == version && row.Status == "Published" && row.PublishedAt != null, ct))
+            throw GovernedRollbackCandidate.HistoryUnavailable();
+
+        var origins = await db.Set<ReleaseRecord>().AsNoTracking().Where(row => row.EnvironmentId == environmentId &&
+            row.ToConfigVersion == version && row.DeploymentSequence > 0 &&
+            (row.ReleaseType == "publish" || row.ReleaseType == "rollback") &&
+            (row.Status == "Succeeded" || row.Status == "RolledBack") &&
+            row.ApprovalPolicy != null && row.CandidateBytes != null).Take(2).ToArrayAsync(ct);
+        if (origins.Length != 1) throw GovernedRollbackCandidate.HistoryUnavailable();
+        var origin = origins[0];
+        FrozenReleaseCandidate? candidate;
+        try { candidate = JsonSerializer.Deserialize<FrozenReleaseCandidate>(origin.CandidateBytes!, CanonicalJson.Options); }
+        catch (JsonException) { throw GovernedRollbackCandidate.HistoryUnavailable(); }
+        if (candidate?.Governance is not { Targets: { Count: >= 2 } } governance ||
+            candidate.EnvironmentId != environmentId || candidate.BaselineConfigVersion != origin.BaselineConfigVersion ||
+            origin.ReleaseType == "rollback" && candidate.GovernedRollback is null)
+            throw GovernedRollbackCandidate.HistoryUnavailable();
+
+        var targets = await db.Set<ReleaseTarget>().AsNoTracking().Where(row => row.ReleaseId == origin.Id)
+            .OrderBy(row => row.NodeId).Select(row => new { row.NodeId, row.InstanceId }).ToArrayAsync(ct);
+        var acks = await db.Set<GatewayAck>().AsNoTracking().Where(row => row.ReleaseId == origin.Id && row.Success &&
+            row.ConfigVersion == version && row.DeploymentSequence == origin.DeploymentSequence && row.PayloadHash == artifact.Hash)
+            .OrderBy(row => row.NodeId).Select(row => new { row.NodeId, row.InstanceId }).ToArrayAsync(ct);
+        if (!targets.SequenceEqual(acks) ||
+            !governance.Targets.Select(row => (row.NodeId, row.InstanceId)).SequenceEqual(targets.Select(row => (row.NodeId, row.InstanceId))))
+            throw GovernedRollbackCandidate.HistoryUnavailable();
+
+        var baseline = origin.BaselineConfigVersion > 0
+            ? (await ReadAsync(environmentId, origin.BaselineConfigVersion, ct)).Snapshot
+            : new RuntimeSnapshot("2.0", environmentId, 0, artifact.Snapshot.GeneratedAt, [], [], [], []);
+        var rebuilt = compiler.Compile(candidate, baseline, version, artifact.Snapshot.GeneratedAt);
+        if (rebuilt.Hash != artifact.Hash || !rebuilt.Payload.Span.SequenceEqual(artifact.Payload))
+            throw GovernedRollbackCandidate.HistoryUnavailable();
+        return artifact;
+    }
+
+    internal async Task RequireSealedRollbackContractsAsync(RuntimeSnapshot source, IReadOnlyList<FrozenApiVersion> current,
+        CancellationToken ct)
+    {
+        foreach (var version in current)
+        {
+            var frozen = await FrozenContractSource.ReadAsync(db, source.EnvironmentId, version.Api.Id, version.Version.Id,
+                source.ConfigVersion, includeBody: true, ct);
+            if (frozen is null || version.Version.SealedAt is null ||
+                (version.Version with { Status = frozen.Version.Status, SealedAt = frozen.Version.SealedAt }) != frozen.Version ||
+                !CanonicalJson.Serialize(version.Parameters.OrderBy(item => item.Id)).AsSpan()
+                    .SequenceEqual(CanonicalJson.Serialize(frozen.Parameters.OrderBy(item => item.Id))) ||
+                !CanonicalJson.Serialize(version.Schemas.OrderBy(item => item.Id)).AsSpan()
+                    .SequenceEqual(CanonicalJson.Serialize(frozen.Schemas.OrderBy(item => item.Id))))
+                throw GovernedRollbackCandidate.HistoryUnavailable();
+        }
+    }
     public async Task<FrozenReleaseCandidate> CandidateAsync(Guid envId,long version,long baseline,CancellationToken ct)
     {
         var artifact=await ReadAsync(envId,version,ct);var scope=await scopes.EnvironmentAsync(envId,ct);var runtime=artifact.Snapshot;var versions=new List<FrozenApiVersion>();

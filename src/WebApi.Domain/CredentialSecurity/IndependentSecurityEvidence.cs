@@ -59,20 +59,17 @@ public sealed record IndependentEvidenceLimits(TimeSpan MaximumTimeWidth, TimeSp
 // Inspection is intentionally not an authorization capability. In particular,
 // it cannot prove two-phase witness durability or gateway recovery provenance.
 public sealed record IndependentEvidenceInspection(DateTimeOffset LowerAtSource, DateTimeOffset UpperAtSource,
-    DateTimeOffset ConservativeUpperAtInspection, TimeSpan ProcessingElapsed, long HistorySequence);
+    DateTimeOffset ConservativeUpperAtInspection, TimeSpan ProcessingElapsed, long HistorySequence)
+{
+    public DateTimeOffset ValidUntil { get; internal init; }
+}
 
 public sealed class IndependentEvidenceSession
 {
     public const string TimeDomain = "webapi.independent-time-evidence.v1";
     public const string HistoryDomain = "webapi.security-history-evidence.v1";
-    internal const int MaxWireBytes = 32 * 1024;
-    private static readonly JsonSerializerOptions Strict = new(JsonSerializerDefaults.Web)
-    {
-        PropertyNameCaseInsensitive = false,
-        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
-        NumberHandling = JsonNumberHandling.Strict,
-        MaxDepth = 16
-    };
+    public const int MaxWireBytes = 32 * 1024;
+    private const string Unavailable = "independent_security_evidence_unavailable";
     private readonly TimeProvider clock;
     private readonly long start;
     private readonly long frequency;
@@ -109,8 +106,8 @@ public sealed class IndependentEvidenceSession
         if (Interlocked.Exchange(ref consumed, 1) != 0) throw Invalid();
         if (trust is null || !ValidLimits(limits)) throw Invalid();
 
-        var time = Read<SignedTimeEvidence>(timeWire);
-        var history = Read<SignedHistoryEvidence>(historyWire);
+        var time = IndependentEvidenceWire.Read<SignedTimeEvidence>(timeWire, MaxWireBytes, Unavailable);
+        var history = IndependentEvidenceWire.Read<SignedHistoryEvidence>(historyWire, MaxWireBytes, Unavailable);
         var t = time.Payload ?? throw Invalid();
         var h = history.Payload ?? throw Invalid();
         if (t.Challenge != Challenge || h.Challenge != Challenge ||
@@ -119,8 +116,8 @@ public sealed class IndependentEvidenceSession
             h.State != "Confirmed" || h.Sequence <= 0 ||
             !SecuritySignedEncoding.KeyId(t.SourceId) || !SecuritySignedEncoding.KeyId(t.KeyId) ||
             !SecuritySignedEncoding.KeyId(h.SourceId) || !SecuritySignedEncoding.KeyId(h.KeyId)) throw Invalid();
-        Verify(TimeDomain, t, time.Signature, trust.TimePublicKey);
-        Verify(HistoryDomain, h, history.Signature, trust.HistoryPublicKey);
+        IndependentEvidenceWire.Verify(TimeDomain, t, time.Signature, trust.TimePublicKey, Unavailable);
+        IndependentEvidenceWire.Verify(HistoryDomain, h, history.Signature, trust.HistoryPublicKey, Unavailable);
 
         if (t.Lower.Offset != TimeSpan.Zero || t.Upper.Offset != TimeSpan.Zero || t.ValidUntil.Offset != TimeSpan.Zero ||
             t.Lower <= DateTimeOffset.MinValue || t.Upper < t.Lower || t.ValidUntil <= t.Upper ||
@@ -137,7 +134,7 @@ public sealed class IndependentEvidenceSession
             if (elapsed < TimeSpan.Zero || elapsed > limits.MaximumProcessing || conservativeUpper >= t.ValidUntil) throw Invalid();
         }
         catch (Exception error) when (IsRecoverable(error)) { throw Invalid(error); }
-        return new(t.Lower, t.Upper, conservativeUpper, elapsed, h.Sequence);
+        return new(t.Lower, t.Upper, conservativeUpper, elapsed, h.Sequence) { ValidUntil = t.ValidUntil };
     }
 
     internal static bool ValidLimits(IndependentEvidenceLimits? limits) => limits is not null &&
@@ -146,57 +143,68 @@ public sealed class IndependentEvidenceSession
         limits.MaximumProcessing > TimeSpan.Zero && limits.MaximumProcessing <= TimeSpan.FromSeconds(10) &&
         limits.MaximumProcessing <= limits.MaximumValidity;
 
-    private static T Read<T>(byte[]? bytes)
+    private static bool IsRecoverable(Exception error) => error is not OutOfMemoryException and not StackOverflowException and not AccessViolationException;
+    private static InvalidDataException Invalid(Exception? inner = null) => new(Unavailable, inner);
+}
+
+internal static class IndependentEvidenceWire
+{
+    private static readonly JsonSerializerOptions Strict = new(JsonSerializerDefaults.Web)
     {
-        if (bytes is null || bytes.Length is < 2 or > MaxWireBytes) throw Invalid();
+        PropertyNameCaseInsensitive = false,
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        NumberHandling = JsonNumberHandling.Strict,
+        MaxDepth = 16
+    };
+
+    internal static T Read<T>(byte[]? bytes, int maximumBytes, string errorCode)
+    {
+        if (bytes is null || bytes.Length < 2 || bytes.Length > maximumBytes) throw new InvalidDataException(errorCode);
         try
         {
             // Decode a snapshot rather than retaining provider-owned mutable bytes.
             var copy = bytes.ToArray();
             using var document = JsonDocument.Parse(copy, new JsonDocumentOptions { MaxDepth = 16 });
-            RequireUniqueNames(document.RootElement);
-            var value = JsonSerializer.Deserialize<T>(copy, Strict) ?? throw Invalid();
-            if (!copy.AsSpan().SequenceEqual(CanonicalJson.Serialize(value))) throw Invalid();
+            RequireUniqueNames(document.RootElement, errorCode);
+            var value = JsonSerializer.Deserialize<T>(copy, Strict) ?? throw new InvalidDataException(errorCode);
+            if (!copy.AsSpan().SequenceEqual(CanonicalJson.Serialize(value))) throw new InvalidDataException(errorCode);
             return value;
         }
-        catch (JsonException error) { throw Invalid(error); }
+        catch (JsonException error) { throw new InvalidDataException(errorCode, error); }
     }
 
-    private static void RequireUniqueNames(JsonElement element)
+    private static void RequireUniqueNames(JsonElement element, string errorCode)
     {
         if (element.ValueKind == JsonValueKind.Object)
         {
             var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var property in element.EnumerateObject())
             {
-                if (!names.Add(property.Name)) throw Invalid();
-                RequireUniqueNames(property.Value);
+                if (!names.Add(property.Name)) throw new InvalidDataException(errorCode);
+                RequireUniqueNames(property.Value, errorCode);
             }
         }
         else if (element.ValueKind == JsonValueKind.Array)
-            foreach (var item in element.EnumerateArray()) RequireUniqueNames(item);
+            foreach (var item in element.EnumerateArray()) RequireUniqueNames(item, errorCode);
     }
 
-    private static void Verify<T>(string domain, T payload, string? signature, string? encodedKey)
+    internal static void Verify<T>(string domain, T payload, string? signature, string? encodedKey, string errorCode)
     {
-        if (string.IsNullOrEmpty(signature) || string.IsNullOrEmpty(encodedKey) || signature.Length > 256 || encodedKey.Length > 1024) throw Invalid();
+        if (string.IsNullOrEmpty(signature) || string.IsNullOrEmpty(encodedKey) || signature.Length > 256 || encodedKey.Length > 1024) throw new InvalidDataException(errorCode);
         try
         {
             using var key = ECDsa.Create();
             var publicKey = Convert.FromBase64String(encodedKey);
-            if (Convert.ToBase64String(publicKey) != encodedKey) throw Invalid();
+            if (Convert.ToBase64String(publicKey) != encodedKey) throw new InvalidDataException(errorCode);
             key.ImportSubjectPublicKeyInfo(publicKey, out var read);
-            if (read != publicKey.Length) throw Invalid();
+            if (read != publicKey.Length) throw new InvalidDataException(errorCode);
             SecuritySignedEncoding.RequireP256(key);
             var raw = Convert.FromBase64String(signature);
             if (Convert.ToBase64String(raw) != signature || raw.Length != 64 || !key.VerifyData(SecuritySignedEncoding.Unsigned(domain, payload), raw,
-                HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation)) throw Invalid();
+                HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation)) throw new InvalidDataException(errorCode);
         }
-        catch (Exception error) when (error is CryptographicException or FormatException or ArgumentException) { throw Invalid(error); }
+        catch (Exception error) when (error is CryptographicException or FormatException or ArgumentException) { throw new InvalidDataException(errorCode, error); }
     }
-
-    private static bool IsRecoverable(Exception error) => error is not OutOfMemoryException and not StackOverflowException and not AccessViolationException;
-    private static InvalidDataException Invalid(Exception? inner = null) => new("independent_security_evidence_unavailable", inner);
 }
 
 // Adapter coordination is likewise only an inspection. Neither a successful

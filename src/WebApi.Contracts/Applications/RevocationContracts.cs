@@ -1,6 +1,8 @@
+using System.Text.Json.Serialization;
 namespace WebApi.Contracts.Applications;
 public sealed record RevokeCredentialRequest(string Reason,Guid? ExpectedEnvironmentId=null);
-public sealed record RevocationEnvironmentDto(Guid EnvironmentId,Guid SecurityGeneration,long Epoch,string HeadHash);
+public sealed record RevocationEnvironmentDto(Guid EnvironmentId,Guid SecurityGeneration,long Epoch,string HeadHash,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? CoverageState=null);
 public sealed record RevocationTargetDto(Guid EnvironmentId,Guid NodeId,Guid InstanceGuid,string State,string? NodeName=null,Guid? CurrentInstanceGuid=null,string? Reason=null,DateTimeOffset? LastLeaseUntil=null,DateTimeOffset? LastHeartbeatAt=null,string? ErrorCode=null);
 public sealed record RevocationCoverageGapDto(Guid? EnvironmentId,Guid? NodeId,string Reason);
 public sealed record RevocationAlertDto(Guid EnvironmentId,string Severity,int ThresholdSeconds,int PendingTargets,DateTimeOffset ObservedAt);

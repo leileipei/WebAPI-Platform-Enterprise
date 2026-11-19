@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
+using WebApi.Domain.CredentialSecurity;
 using WebApi.Infrastructure.Persistence;
+using WebApi.Infrastructure.Persistence.Migrations;
 using WebApi.Integration.Tests.Support;
 using Xunit;
 
@@ -11,10 +13,11 @@ namespace WebApi.Integration.Tests;
 [Collection("MigrationIsolation")]
 public sealed class MigrationReceiptTests
 {
+    private const string ReceiptMigrationId = "20261104090000_Governance24MigrationReceipts";
     private static readonly MigrationBudget TestBudget = new(TimeSpan.FromMinutes(15), 65536, 16384, 100000, 67108864);
 
     private static MigrationReceipt Receipt(Guid id, int maxRows = 100000) => new(
-        id, MigrationReceiptEntry.Managed, null, "20261104090000_Governance24MigrationReceipts", null,
+        id, MigrationReceiptEntry.Managed, null, ReceiptMigrationId, null,
         null, new string('a', 64), MigrationReceiptValidation.Unknown, null, null, null,
         TestBudget, new string('b', 64), null, DateTimeOffset.UtcNow, maxRows);
 
@@ -42,7 +45,7 @@ public sealed class MigrationReceiptTests
             actual.Add(await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
         }
         Assert.All(actual, fingerprint => Assert.Equal(actual[0], fingerprint));
-        Assert.True(GovernanceSchemaFingerprints.Expected.TryGetValue("20261104090000_Governance24MigrationReceipts", out var expected),
+        Assert.True(GovernanceSchemaFingerprints.Expected.TryGetValue(FormalRotationDecisionProjection.Id, out var expected),
             "Missing new independently reproduced fingerprint: " + string.Join(",", actual));
         Assert.Equal(expected, actual[0]);
     }
@@ -164,18 +167,45 @@ public sealed class MigrationReceiptTests
         await using var database = new PostgresDatabase();
         await database.InitializeAsync();
         await using var db = database.Context();
-        await db.Database.MigrateAsync();
+        var migrator = db.GetService<IMigrator>();
+        await migrator.MigrateAsync(ReceiptMigrationId);
+        Assert.Equal(ReceiptMigrationId, (await db.Database.GetAppliedMigrationsAsync()).Last());
         var id = Guid.NewGuid();
         await using (var transaction = await db.Database.BeginTransactionAsync())
         {
             await MigrationReceiptStore.InsertAsync(db, Receipt(id), CancellationToken.None);
             await transaction.CommitAsync();
         }
-        var failure = await Assert.ThrowsAsync<PostgresException>(() => db.GetService<IMigrator>().MigrateAsync("20261104080000_Governance24DatabaseClock"));
+        var failure = await Assert.ThrowsAsync<PostgresException>(() => migrator.MigrateAsync("20261104080000_Governance24DatabaseClock"));
         Assert.Equal("23514", failure.SqlState);
         Assert.Contains("migration_receipts_down_blocked", failure.MessageText);
         Assert.True(await db.Database.SqlQuery<bool>($"SELECT EXISTS(SELECT 1 FROM public.migration_validation_receipts WHERE attempt_id={id}) AS \"Value\"").SingleAsync());
-        Assert.Contains("20261104090000_Governance24MigrationReceipts", await db.Database.GetAppliedMigrationsAsync());
+        Assert.Equal(ReceiptMigrationId, (await db.Database.GetAppliedMigrationsAsync()).Last());
+    }
+
+    [Fact]
+    public async Task DownMigrationCannotRemoveAnEnrolledJournal()
+    {
+        await using var database = new PostgresDatabase();
+        await database.InitializeAsync();
+        await using var db = database.Context();
+        var migrator = db.GetService<IMigrator>();
+        await migrator.MigrateAsync(CredentialGovernanceJournal.Id);
+        var journal = new GovernanceJournalId(Guid.NewGuid(), Guid.NewGuid());
+        await IsolatedGovernanceJournalSchema.InstallAsync(db, journal);
+        var applied = (await db.Database.GetAppliedMigrationsAsync()).ToArray();
+
+        var failure = await Assert.ThrowsAsync<PostgresException>(() => migrator.MigrateAsync(ReceiptMigrationId));
+
+        Assert.Equal(PostgresErrorCodes.CheckViolation, failure.SqlState);
+        Assert.Equal("credential_governance_journal_down_blocked", failure.MessageText);
+        Assert.Equal(applied, await db.Database.GetAppliedMigrationsAsync());
+        Assert.True(await db.Database.SqlQuery<bool>($"""
+            SELECT EXISTS(SELECT 1 FROM credential_governance.journal_root
+                    WHERE singleton AND authority_id = {journal.AuthorityId} AND generation = {journal.Generation}
+                        AND genesis_hash = {GovernanceJournalProtocol.Genesis.Hash})
+                AND pg_catalog.to_regclass('credential_governance.journal_entries') IS NOT NULL AS "Value"
+            """).SingleAsync());
     }
 
     [Fact]

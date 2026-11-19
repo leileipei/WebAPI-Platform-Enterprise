@@ -30,7 +30,12 @@ public sealed class RedisSnapshotStore(string connection,string keyPrefix="webap
         """;
     public async Task PutAsync(Guid envId,SnapshotEnvelope envelope,ReadOnlyMemory<byte> payload,CancellationToken ct=default)
     {
-        Validate(envId,envelope,payload.Span);var client=await ConnectionAsync(ct);var result=(long)await client.GetDatabase().ScriptEvaluateAsync(Script,[Key(envId)], [envelope.DeploymentSequence.ToString(CultureInfo.InvariantCulture),JsonSerializer.Serialize(envelope,CanonicalJson.Options),payload.ToArray(),Channel(envId)]).WaitAsync(ct);
+        Validate(envId,envelope,payload.Span);
+        await PutVerifiedAsync(envId,envelope,payload,ct);
+    }
+    internal async Task PutVerifiedAsync(Guid envId,SnapshotEnvelope envelope,ReadOnlyMemory<byte> payload,CancellationToken ct)
+    {
+        var client=await ConnectionAsync(ct);var result=(long)await client.GetDatabase().ScriptEvaluateAsync(Script,[Key(envId)], [envelope.DeploymentSequence.ToString(CultureInfo.InvariantCulture),JsonSerializer.Serialize(envelope,CanonicalJson.Options),payload.ToArray(),Channel(envId)]).WaitAsync(ct);
         if(result==-2) throw new InvalidOperationException("Same deployment sequence has conflicting snapshot content.");
     }
     public async Task<DesiredConfigResponse?> GetDesiredAsync(Guid envId,CancellationToken ct=default)
@@ -40,12 +45,18 @@ public sealed class RedisSnapshotStore(string connection,string keyPrefix="webap
     }
     public async Task SubscribeAsync(Guid envId,Action changed,CancellationToken ct=default)
     {var client=await ConnectionAsync(ct);await client.GetSubscriber().SubscribeAsync(RedisChannel.Literal(Channel(envId)),(_,_)=>changed()).WaitAsync(ct);}
-    public static void Validate(Guid envId,SnapshotEnvelope envelope,ReadOnlySpan<byte> payload)
+    public static void Validate(Guid envId,SnapshotEnvelope envelope,ReadOnlySpan<byte> payload) =>
+        _ = ReadArtifact(envId,envelope,payload,allowGovernance24:false);
+
+    // Wire validation only. The qualified delivery and activation paths
+    // separately verify continuity and current node-bound security state.
+    public static RuntimeSnapshot ReadArtifact(Guid envId,SnapshotEnvelope envelope,ReadOnlySpan<byte> payload,bool allowGovernance24)
     {
         if(envelope.ReleaseId==Guid.Empty||envelope.DeploymentSequence<=0||envelope.ConfigVersion<=0||payload.Length!=envelope.SizeBytes||payload.Length>16*1024*1024||Convert.ToHexStringLower(SHA256.HashData(payload))!=envelope.PayloadHash) throw new InvalidDataException("Invalid snapshot envelope or payload hash.");
-        // Fail closed until node-bound security admission is integrated; parsing alone is not authorization.
-        if(SnapshotDialectClassifier.Classify(payload) is SnapshotDialect.Governance23 or SnapshotDialect.Governance24) throw new InvalidDataException("Governance snapshot security admission is unavailable.");
+        var dialect=SnapshotDialectClassifier.Classify(payload);
+        if(dialect==SnapshotDialect.Governance23||dialect==SnapshotDialect.Governance24&&!allowGovernance24) throw new InvalidDataException("Governance snapshot security admission is unavailable.");
         var snapshot=SnapshotValidator.ParsePayload(payload,envId);if(snapshot.ConfigVersion!=envelope.ConfigVersion) throw new InvalidDataException("Snapshot version mismatch.");SnapshotValidator.Validate(snapshot,envId);
+        return snapshot;
     }
     public void Dispose() {mux?.Dispose();connectionLock.Dispose();}
 }

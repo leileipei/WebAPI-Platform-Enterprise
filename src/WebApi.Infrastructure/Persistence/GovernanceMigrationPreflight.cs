@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WebApi.Infrastructure.Persistence.Migrations;
 
 namespace WebApi.Infrastructure.Persistence;
 
@@ -38,30 +39,30 @@ public static class GovernanceMigrationPreflight
                     < pg_catalog.array_position(pg_catalog.current_schemas(true),'public'), false) AS "Value"
             """).SingleAsync(ct);
         if (!safeSearchPath) throw new InvalidOperationException("governance_migration_preflight_failed: unsupported search path");
-        // Keep historical hashes unchanged. Reject uncovered public routine
+        // Keep historical hashes unchanged. Reject uncovered routine
         // kinds, table policies and table rules until their baselines are known.
         var unverifiedSchemaObjects = await db.Database.SqlQueryRaw<bool>("""
             SELECT EXISTS (
                 SELECT 1 FROM pg_catalog.pg_proc p
                 JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
-                WHERE n.nspname='public' AND p.prokind IN ('p','a','w')
+                WHERE n.nspname IN ('public','credential_governance') AND p.prokind IN ('p','a','w')
             ) OR EXISTS (
                 SELECT 1 FROM pg_catalog.pg_policy p
                 JOIN pg_catalog.pg_class c ON c.oid=p.polrelid
                 JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-                WHERE n.nspname='public'
+                WHERE n.nspname IN ('public','credential_governance')
             ) OR EXISTS (
                 SELECT 1 FROM pg_catalog.pg_rewrite r
                 JOIN pg_catalog.pg_class c ON c.oid=r.ev_class
                 JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-                WHERE n.nspname='public' AND c.relkind IN ('r','p')
+                WHERE n.nspname IN ('public','credential_governance') AND c.relkind IN ('r','p')
             ) OR EXISTS (
                 SELECT 1 FROM pg_catalog.pg_inherits i
                 JOIN pg_catalog.pg_class child ON child.oid=i.inhrelid
                 JOIN pg_catalog.pg_class parent ON parent.oid=i.inhparent
                 JOIN pg_catalog.pg_namespace cn ON cn.oid=child.relnamespace
                 JOIN pg_catalog.pg_namespace pn ON pn.oid=parent.relnamespace
-                WHERE cn.nspname='public' OR pn.nspname='public'
+                WHERE cn.nspname IN ('public','credential_governance') OR pn.nspname IN ('public','credential_governance')
             ) AS "Value"
             """).SingleAsync(ct);
         if (unverifiedSchemaObjects) throw new InvalidOperationException("governance_migration_preflight_failed: unverified schema object");
@@ -69,6 +70,11 @@ public static class GovernanceMigrationPreflight
         var applied = await GovernanceMigrationHistory.ReadAppliedAsync(db, ct);
         if (applied.Length > known.Length || !applied.SequenceEqual(known.Take(applied.Length), StringComparer.Ordinal))
             throw new InvalidOperationException("governance_migration_preflight_failed: unsupported migration history");
+        var journalNamespace = await db.Database.SqlQueryRaw<bool>("""
+            SELECT pg_catalog.to_regnamespace('credential_governance') IS NOT NULL AS "Value"
+            """).SingleAsync(ct);
+        if (journalNamespace != applied.Contains(CredentialGovernanceJournal.Id, StringComparer.Ordinal))
+            throw new InvalidOperationException("governance_migration_preflight_failed: unverified credential governance schema");
         if (applied.Length > 0 && applied.Length < known.Length)
         {
             // pg_stat_activity hides fields belonging to other roles without
@@ -122,7 +128,7 @@ public static class GovernanceMigrationPreflight
                 SELECT EXISTS (
                     SELECT 1 FROM effective_roles r
                     JOIN pg_catalog.pg_class c ON c.relkind IN ('r','p','v','m','f','S')
-                    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace AND n.nspname='public'
+                    JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace AND n.nspname IN ('public','credential_governance')
                     JOIN pg_catalog.pg_database d ON d.datname=pg_catalog.current_database()
                     WHERE pg_catalog.pg_has_role(r.effective_oid,c.relowner,'USAGE')
                        OR pg_catalog.pg_has_role(r.effective_oid,n.nspowner,'USAGE')

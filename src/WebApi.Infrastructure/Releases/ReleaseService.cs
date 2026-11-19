@@ -15,8 +15,10 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Releases;
-public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseCandidateBuilder candidates,VersionRiskReviewService reviews,PublishSettings publishSettings,ApprovalEligibilityService approvalEligibility,ReleaseListReader listReader,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.DeliveryReleaseGuard deliveryGuard,HistoricalSnapshotService history)
+public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseCandidateBuilder candidates,VersionRiskReviewService reviews,PublishSettings publishSettings,ApprovalEligibilityService approvalEligibility,ReleaseListReader listReader,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.DeliveryReleaseGuard deliveryGuard,HistoricalSnapshotService history,SnapshotCompiler compiler)
 {
+    private readonly GovernedRollbackCandidate governedRollback = new(history, candidates, compiler);
+
     public async Task<ScopeRef> ReadScopeAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {var r=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.EnvironmentAsync(r.EnvironmentId,ct);if(!await auth.CanAsync(actor,"release.read",new("release",id,scope),ct)) throw ScopeResolver.Missing();return scope;}
     public async Task<ReleaseDto> DtoAsync(ReleaseRecord r,CancellationToken ct,ActorContext? actor=null)
@@ -31,7 +33,7 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
         var entry=await accessContexts.ProjectAsync(r,actor,ct);var environment=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(x=>x.Id==r.EnvironmentId,ct);
         return new(r.Id,r.EnvironmentId,r.ReleaseNo,r.Status,r.ReleaseType,r.RequestedBy,r.CreatedAt,r.BaselineConfigVersion,r.ToConfigVersion,r.DeploymentSequence,r.RollbackOf,view,hash,tasks.Select(t=>new ApprovalTaskDto(t.Id,t.StepOrder,rules.Single(x=>x.StepOrder==t.StepOrder).RoleCode,t.Status,t.AssigneeUserId,t.Comment,t.ActedAt)).ToArray(),targetEntities.Select(t=>{var ack=acks.SingleOrDefault(a=>a.NodeId==t.NodeId);return new ReleaseTargetDto(t.NodeId,t.InstanceId,ack?.Success==true,ack?.ConfigVersion,ack?.DeploymentSequence,ack?.ErrorCode);}).ToArray(),r.FailureCode is null?Array.Empty<string>():[r.FailureCode],r.RecoveryOf,eligibility,entry,environment.GatewayPublicUrl,entry is not null&&entry.AccessAddressRevision!=environment.AccessAddressRevision,environment.BasePath,await deliveryGuard.TraceAsync(r,actor,ct));
     }
-    internal static FrozenCandidateView SafeView(FrozenReleaseCandidate c)=>new(c.Versions,c.Routes,c.Clusters,c.Applications.Select(a=>new FrozenApplicationView(a.Application,a.Credentials.Select(k=>new CredentialDto(k.Id,a.Application.Id,k.AccessKey,k.SecretLast4,k.Status,k.ValidFrom,k.ExpiresAt,null,null,k.Revision)).ToArray(),a.Permissions)).ToArray(),c.ResourceRevisions,c.Policies,c.Bindings,RiskReviews:c.RiskReviewReferences?.Select(r=>r.Summary with {Comment=null}).ToArray(),SharedCredentialImpact:c.SharedCredentialImpact);
+    internal static FrozenCandidateView SafeView(FrozenReleaseCandidate c)=>new(c.Versions,c.Routes,c.Clusters,c.Applications.Select(a=>new FrozenApplicationView(a.Application,a.Credentials.Select(k=>new CredentialDto(k.Id,a.Application.Id,k.AccessKey,k.SecretLast4,k.Status,k.ValidFrom,k.ExpiresAt,null,null,k.Revision)).ToArray(),a.Permissions)).ToArray(),c.ResourceRevisions,c.Policies,c.Bindings,RiskReviews:c.RiskReviewReferences?.Select(r=>r.Summary with {Comment=null}).ToArray(),SharedCredentialImpact:c.SharedCredentialImpact,GovernedRollback:c.GovernedRollback);
     private async Task<FrozenCandidateView> AuthorizedViewAsync(FrozenReleaseCandidate c,ActorContext? actor,CancellationToken ct)
     {
         var view=SafeView(c);if(actor is null||c.RiskReviewReferences is not {Count:>0})return view;
@@ -99,7 +101,13 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
         var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==r.EnvironmentId,token);FrozenReleaseCandidate candidate;
         if(r.ReleaseType=="rollback") {if((env.DesiredConfigVersion??0)!=r.BaselineConfigVersion) throw new ApiException(409,"stale_baseline","回滚基线已变化。");candidate=JsonSerializer.Deserialize<FrozenReleaseCandidate>(r.CandidateBytes!,CanonicalJson.Options)!;}
         else {var input=JsonSerializer.Deserialize<CreateReleaseRequest>(r.CandidateBytes!,CanonicalJson.Options)!;candidate=await candidates.BuildAsync(r.EnvironmentId,input,token,actor);}
-        if(r.ReleaseType=="rollback") {
+        if (candidate.GovernedRollback is not null)
+        {
+            await auth.RequireAsync(actor, "release.rollback", new("release", id, scope), token);
+            await auth.RequireAsync(actor, "gateway.config.read", new("environment", env.Id, scope), token);
+            await governedRollback.RequireCurrentAsync(r, env, candidate, token);
+        }
+        else if(r.ReleaseType=="rollback") {
             var schema=(await history.ReadAsync(r.EnvironmentId,r.ToConfigVersion,token)).Snapshot.SchemaVersion;
             if(schema is "2.2" or "2.3") await SnapshotSchemaCapabilities.RequireOnlineSchemaAsync(db,publishSettings,r.EnvironmentId,schema,token);
         }
@@ -139,7 +147,18 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
         if(task.StepOrder!=step||release.CandidateBytes is null||Convert.ToHexStringLower(SHA256.HashData(release.CandidateBytes))!=hash)throw new ApiException(409,"approval_step_changed","审批步骤或冻结候选已变化，请重新核对后发起操作。");
     }
     public Task<ReleaseDto> ApproveAsync(Guid id,string comment,ActorContext actor,CancellationToken ct=default,int? expectedStepOrder=null,string? expectedCandidateHash=null)=>RunCommandAsync(id,actor,"release.approve","approval.act",expectedStepOrder is null&&expectedCandidateHash is null?(object)new{comment}:new{comment,expectedStepOrder,expectedCandidateHash},async(r,scope,token)=>{
-        if(comment.Length>10000) throw new ApiException(422,"comment_too_long","意见过长。");await deliveryGuard.RequireApprovalVisibilityAsync(r,actor,token);var task=await approvalEligibility.RequireTaskAsync(r,scope,actor,token);await deliveryGuard.RequireReadyAsync(r,actor,token);RequireExpectedApproval(r,task,expectedStepOrder,expectedCandidateHash);task.Status="Approved";task.AssigneeUserId=actor.UserId;task.Comment=comment;task.ActedAt=DateTimeOffset.UtcNow;
+        if(comment.Length>10000) throw new ApiException(422,"comment_too_long","意见过长。");
+        await deliveryGuard.RequireApprovalVisibilityAsync(r,actor,token);
+        var task=await approvalEligibility.RequireTaskAsync(r,scope,actor,token);
+        await deliveryGuard.RequireReadyAsync(r,actor,token);
+        RequireExpectedApproval(r,task,expectedStepOrder,expectedCandidateHash);
+        if (r.ReleaseType == "rollback" && r.CandidateBytes is { } bytes &&
+            JsonSerializer.Deserialize<FrozenReleaseCandidate>(bytes, CanonicalJson.Options) is { GovernedRollback: not null } frozen)
+        {
+            var environment = await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(item => item.Id == r.EnvironmentId, token);
+            await governedRollback.RequireCurrentAsync(r, environment, frozen, token);
+        }
+        task.Status="Approved";task.AssigneeUserId=actor.UserId;task.Comment=comment;task.ActedAt=DateTimeOffset.UtcNow;
         var all=await db.Set<ApprovalTask>().Where(t=>t.ReleaseId==id).ToArrayAsync(token);if(all.All(t=>t.Status=="Approved")) {r.Status="Ready";r.ApprovedBy=actor.UserId;}await deliveryGuard.ProjectApprovalAsync(r,actor.UserId,token);return await DtoAsync(r,token);
     },ct);
     public Task<ReleaseDto> RejectAsync(Guid id,string comment,ActorContext actor,CancellationToken ct=default,int? expectedStepOrder=null,string? expectedCandidateHash=null)=>RunCommandAsync(id,actor,"release.reject","approval.act",expectedStepOrder is null&&expectedCandidateHash is null?(object)new{comment}:new{comment,expectedStepOrder,expectedCandidateHash},async(r,scope,token)=>{if(comment.Length>10000) throw new ApiException(422,"comment_too_long","意见过长。");await deliveryGuard.RequireApprovalVisibilityAsync(r,actor,token);await deliveryGuard.RequirePipelineExecutionAsync(r.Id,actor,token);var task=await approvalEligibility.RequireTaskAsync(r,scope,actor,token);RequireExpectedApproval(r,task,expectedStepOrder,expectedCandidateHash);task.Status="Rejected";task.AssigneeUserId=actor.UserId;task.Comment=comment;task.ActedAt=DateTimeOffset.UtcNow;r.Status="Rejected";r.CompletedAt=DateTimeOffset.UtcNow;await deliveryGuard.ProjectApprovalAsync(r,actor.UserId,token);return await DtoAsync(r,token);},ct);

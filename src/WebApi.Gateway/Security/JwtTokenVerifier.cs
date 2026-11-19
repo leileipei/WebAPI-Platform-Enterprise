@@ -75,13 +75,15 @@ public sealed class JwtTokenVerifier
             var app = ReadString(p, configuration.ApplicationClaim, 256);
             if (issuer != configuration.Issuer || subject is null || app is null || !ExactAudience(p, configuration.Audiences)) return Invalid;
             if (!NumericDate(p, "iat", out var issued) || !NumericDate(p, "exp", out var expires)) return Invalid;
-            var current = now.ToUnixTimeMilliseconds() / 1000m;
-            var skew = configuration.ClockSkewSeconds;
-            if (expires <= issued || expires - issued > configuration.MaxTokenLifetimeSeconds
-                || issued > current + skew || expires <= current - skew) return Invalid;
-            if (p.TryGetProperty("nbf", out _) && (!NumericDate(p, "nbf", out var notBefore)
-                || notBefore > expires || notBefore > current + skew)) return Invalid;
-            return new(new(issuer, subject, app, token));
+            if (expires <= issued || expires - issued > configuration.MaxTokenLifetimeSeconds) return Invalid;
+            decimal? notBefore = null;
+            if (p.TryGetProperty("nbf", out _))
+            {
+                if (!NumericDate(p, "nbf", out var activation) || activation > expires) return Invalid;
+                notBefore = activation;
+            }
+            var claims = new JwtVerifiedClaims(issuer, subject, app, token, issued, expires, notBefore, configuration.ClockSkewSeconds);
+            return claims.IsValidAt(now) ? new(claims) : Invalid;
         }
         catch (Exception exception) when (exception is JsonException or FormatException or ArgumentException
             or InvalidOperationException or CryptographicException or SecurityTokenException or OverflowException)

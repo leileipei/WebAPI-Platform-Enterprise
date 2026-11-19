@@ -1,8 +1,40 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {promotionMaySubmit,promotionExecutionLabel,promotionUrl,mappingReady,confirmationRequired,mayRecordProduction,promotionReturnUrl,deliveryReducer,createDeliveryState} from '../src/delivery/delivery-state.mjs';
+import {promotionMaySubmit,promotionExecutionLabel,promotionUrl,mappingReady,promotionRouteChoices,confirmationRequired,mayRecordProduction,promotionReturnUrl,deliveryReducer,createDeliveryState} from '../src/delivery/delivery-state.mjs';
 test('actual environment identity guards public entry across source to target changes',()=>{const p={sourceEnvironmentId:'test',targetEnvironmentId:'prod'};assert.equal(promotionUrl(p,{id:'test',gatewayPublicUrl:'https://test.example',basePath:'/v1'},'target'),undefined);assert.equal(promotionUrl(p,{id:'prod',gatewayPublicUrl:'https://prod.example',basePath:'/v1'},'target'),'https://prod.example/v1');});
 test('submission needs server authority and current matching successful precheck',()=>{const p={status:'Draft',mappingRevision:2,candidateHash:'h',revision:5,eligibility:{canSubmit:true}},proof={canSubmit:true,mappingRevision:2,candidateHash:'h',revision:5};assert(promotionMaySubmit(p,proof));assert(!promotionMaySubmit(p,{...proof,canSubmit:false}));assert(!promotionMaySubmit(p,{...proof,mappingRevision:1}));assert(!promotionMaySubmit({...p,eligibility:{canSubmit:false}},proof));});
 test('missing target route can be prepared with an explicit target cluster and policy slots',()=>{assert(mappingReady({routes:[{artifactRouteKey:'r',targetRouteId:null,clusterId:'prod-c',timeoutMs:30000,policies:[]}],applications:[]}));assert(!mappingReady({routes:[{artifactRouteKey:'r',targetRouteId:null,clusterId:'',timeoutMs:30000,policies:[]}],applications:[]}));});
+const governedRoute={key:'r',apiId:'api',versionId:'v2',enabled:true,authenticationMode:'ApiKey'};
+const governedOptions={governedTarget:true,routes:[
+ {id:'matching',apiId:'api',apiVersionId:'v2'},
+ {id:'old-version',apiId:'api',apiVersionId:'v1'},
+ {id:'legacy-choice',apiId:'api'},
+ {id:'another-api',apiId:'other',apiVersionId:'v2'}
+]};
+const targetMapping=targetRouteId=>({routes:[{artifactRouteKey:'r',targetRouteId,clusterId:'prod-c',timeoutMs:30000,policies:[]}],applications:[]});
+
+test('governed protected routes block saving without an existing same-version target',()=>{
+ for(const authenticationMode of ['ApiKey','JWT']){
+  const artifact=[{...governedRoute,authenticationMode}];
+  for(const id of [null,'old-version','legacy-choice','another-api','removed-route'])
+   assert.equal(mappingReady(targetMapping(id),artifact,governedOptions),false);
+  assert.equal(mappingReady(targetMapping('matching'),artifact,governedOptions),true);
+ }
+});
+test('governed target proof cannot be satisfied by an omitted route or a restricted route list',()=>{
+ const artifact=[governedRoute,{...governedRoute,key:'another'}];
+ assert.equal(mappingReady(targetMapping('matching'),artifact,governedOptions),false);
+ assert.equal(mappingReady(targetMapping('matching'),[governedRoute],{...governedOptions,routes:null}),false);
+});
+test('the explicit new route option remains available in legacy, anonymous and disabled mappings',()=>{
+ assert.equal(mappingReady(targetMapping(null),[governedRoute],{routes:governedOptions.routes}),true);
+ assert.equal(mappingReady(targetMapping(null),[{...governedRoute,authenticationMode:'Anonymous'}],governedOptions),true);
+ assert.equal(mappingReady(targetMapping(null),[{...governedRoute,enabled:false}],governedOptions),true);
+});
+test('governed route options show only the source API and version while legacy options keep all API versions',()=>{
+ assert.deepEqual(promotionRouteChoices(governedRoute,governedOptions).map(x=>x.id),['matching']);
+ assert.deepEqual(promotionRouteChoices(governedRoute,{routes:governedOptions.routes}).map(x=>x.id),['matching','old-version','legacy-choice']);
+ assert.deepEqual(promotionRouteChoices({...governedRoute,versionId:undefined},governedOptions),[]);
+});
 test('shared credentials require visible explicit acknowledgment',()=>{assert(confirmationRequired({sharedAcrossEnvironments:true}));assert(confirmationRequired({requiredCredentialIds:['retained-key']}));assert(!confirmationRequired({sharedAcrossEnvironments:false,requiredCredentialIds:[]}));});
 test('all ACKs still means waiting for independent production verification',()=>{assert.match(promotionExecutionLabel({status:'Verifying',deployment:{nodes:[{status:'Applied'},{status:'Applied'}]}}),/待生产验证/);assert.match(promotionExecutionLabel({status:'VerificationFailed'}),/验证失败/);assert.match(promotionExecutionLabel({status:'DeploymentFailed'}),/下发失败/);assert.match(promotionExecutionLabel({status:'Completed'}),/历史交付完成/);});
 test('server production verification eligibility never permits applicant or actual publisher',()=>{const p={requestedBy:'applicant',status:'Verifying',eligibility:{canVerify:true,publisherId:'publisher'}};assert(!mayRecordProduction(p,'applicant'));assert(!mayRecordProduction(p,'publisher'));assert(mayRecordProduction(p,'independent'));assert(!mayRecordProduction({...p,eligibility:{canVerify:false}},'independent'));});

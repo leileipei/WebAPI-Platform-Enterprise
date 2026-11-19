@@ -1,21 +1,27 @@
 using System.Data.Common;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
+using WebApi.Contracts.Catalog;
 using WebApi.Contracts.Governance;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Releases;
+using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Security;
 using WebApi.Domain.Runtime;
+using WebApi.Infrastructure.Applications;
 using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Catalog;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Releases;
+using WebApi.Infrastructure.Routing;
 using System.Net.Http.Json;
 using WebApi.Integration.Tests.Support;
 using Xunit;
@@ -26,6 +32,7 @@ namespace WebApi.Integration.Tests;
 
 public sealed class RunningContractQueryTests
 {
+    private const string ReceiptMigrationId="20261104090000_Governance24MigrationReceipts";
     private const string Document="""{"openapi":"3.0.3","info":{"title":"Frozen orders","version":"1"},"paths":{"/orders":{"get":{"responses":{"200":{"description":"ok"}}}}}}""";
     private sealed class Capture : DbCommandInterceptor
     {
@@ -40,8 +47,78 @@ public sealed class RunningContractQueryTests
     private static async Task Configure(DeploymentScenario s,Capture capture)
     {
         await s.InitializeAsync(b=>b.Services.AddDbContext<WebApiDbContext>(o=>o.AddInterceptors(capture)));
-        await using var db=s.Api.Context();var v=await db.Set<ApiVersion>().SingleAsync();v.OpenapiDocument=Document;v.OpenapiSource=Document;
+        await using var db=s.Api.Context();
+        var v=await db.Set<ApiVersion>().SingleAsync();v.OpenapiDocument=Document;v.OpenapiSource=Document;
         var e=await db.Set<EnvironmentRecord>().SingleAsync();e.GatewayPublicUrl="https://api.test";await db.SaveChangesAsync();
+    }
+
+    private static async Task<Guid> SeedLegacyPublishedReleaseAsync(ApiFixture fixture)
+    {
+        // The receipt migration predates the tables used by current registration and publication.
+        await fixture.InitializeAsync(targetMigration: ReceiptMigrationId);
+        await fixture.SeedConsumerAsync();
+        await using var db = fixture.Context();
+        Assert.Equal(ReceiptMigrationId, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        await using var transaction = await db.Database.BeginTransactionAsync();
+
+        var environment = await db.Set<EnvironmentRecord>().SingleAsync();
+        var version = await db.Set<ApiVersion>().SingleAsync();
+        version.OpenapiDocument = version.OpenapiSource = Document;
+        var createdAt = DateTimeOffset.UtcNow;
+        var route = new ApiRoute { ApiId = fixture.Api.Id, ApiVersionId = version.Id, EnvironmentId = environment.Id,
+            ClusterId = fixture.Cluster.Id, RouteName = "Orders", Path = "/orders", NormalizedPath = "/orders", Methods = ["GET"],
+            Priority = 100, TimeoutMs = 30000 };
+        var credential = new ApplicationCredential { ApplicationId = fixture.Application.Id, OrganizationId = fixture.Organization.Id,
+            AccessKey = "ak_legacy_contract_fixture", SecretHash = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32)),
+            SecretLast4 = "test", ValidFrom = createdAt.AddMinutes(-1), ExpiresAt = createdAt.AddDays(1) };
+        var permission = new ApplicationApiPermission { ApplicationId = fixture.Application.Id, ApiId = fixture.Api.Id,
+            EnvironmentId = environment.Id, Mode = "LegacyApi", CreatedBy = fixture.User.Id,
+            ValidFrom = credential.ValidFrom, ExpiresAt = credential.ExpiresAt };
+        var cluster = fixture.Cluster;
+        var frozenCluster = new ClusterDto(cluster.Id, cluster.ProjectId, cluster.EnvironmentId, cluster.Name, cluster.LoadBalancingPolicy,
+            cluster.HealthCheckEnabled, cluster.HealthCheckPath, cluster.HealthCheckIntervalSec, cluster.Status, cluster.Revision,
+            [ClusterService.Dto(fixture.Destination)]);
+        var frozenCredential = new FrozenCredential(credential.Id, credential.AccessKey, credential.SecretHash, credential.SecretLast4,
+            credential.Status, credential.ValidFrom, credential.ExpiresAt, credential.Revision);
+        var application = new FrozenApplication(ApplicationService.Dto(fixture.Application), [frozenCredential], [ApplicationService.Dto(permission)]);
+        var candidate = new FrozenReleaseCandidate(environment.Id, fixture.Organization.Id, fixture.Project.Id, 0, [version.Id],
+            [new(CatalogService.Dto(fixture.Api), CatalogService.Dto(version), [], [])], [RouteService.Dto(route)], [frozenCluster],
+            [], [], [application], [new("version", version.Id, version.Revision)]);
+
+        const long configVersion = 1;
+        const long deploymentSequence = 1;
+        var baseline = new RuntimeSnapshot("2.0", environment.Id, 0, createdAt, [], [], [], []);
+        var compiled = new SnapshotCompiler().Compile(candidate, baseline, configVersion, createdAt);
+        var release = new ReleaseRecord { EnvironmentId = environment.Id, ReleaseNo = "REL-" + Guid.NewGuid().ToString("N"),
+            ReleaseType = "publish", Status = "Succeeded", RequestedBy = fixture.User.Id, PublishRequestedBy = fixture.User.Id,
+            ToConfigVersion = configVersion, DeploymentSequence = deploymentSequence, CreatedAt = createdAt, CompletedAt = createdAt,
+            CandidateBytes = CanonicalJson.Serialize(candidate), ApprovalPolicy = "[]" };
+        var config = new GatewayConfigVersion { EnvironmentId = environment.Id, VersionNo = configVersion, Status = "Published",
+            SnapshotKey = $"environment/{environment.Id}/snapshot/{configVersion}", SnapshotHash = compiled.Hash, CreatedBy = fixture.User.Id,
+            CreatedAt = createdAt, PublishedAt = createdAt };
+        var snapshot = new GatewayConfigSnapshot { ConfigVersionId = config.Id, PayloadBytes = compiled.Payload.ToArray(),
+            Payload = Encoding.UTF8.GetString(compiled.Payload.Span), SizeBytes = compiled.Size, CreatedAt = createdAt };
+        db.AddRange(route, credential, permission, release, config, snapshot,
+            new RouteMethod { RouteId = route.Id, EnvironmentId = environment.Id, Method = "GET", NormalizedPath = route.NormalizedPath });
+        FrozenContractSource.Capture(db, release, candidate);
+
+        for (var index = 0; index < 2; index++)
+        {
+            var node = new GatewayNode { EnvironmentId = environment.Id, NodeName = $"legacy-node-{index}", InstanceId = Guid.NewGuid().ToString(),
+                AppVersion = "fixture", IdentityHash = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32)), Status = "Ready",
+                CurrentConfigVersion = configVersion, CurrentDeploymentSequence = deploymentSequence, LastHeartbeatAt = createdAt };
+            db.AddRange(node, new ReleaseTarget { ReleaseId = release.Id, NodeId = node.Id, InstanceId = node.InstanceId, CreatedAt = createdAt },
+                new GatewayAck { ReleaseId = release.Id, NodeId = node.Id, InstanceId = node.InstanceId, ConfigVersion = configVersion,
+                    DeploymentSequence = deploymentSequence, PayloadHash = compiled.Hash, AppliedAt = createdAt, Success = true });
+        }
+        environment.GatewayPublicUrl = "https://api.test";
+        environment.DesiredConfigVersion = configVersion;
+        environment.DeploymentSequence = deploymentSequence;
+        version.Status = "Published";
+        version.SealedAt = createdAt;
+        await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+        return release.Id;
     }
     [Fact] public async Task RunningAddressDoesNotLoadCandidateBodies()
     {
@@ -58,7 +135,7 @@ public sealed class RunningContractQueryTests
     }
     [Fact] public async Task LegacyMigrationBackfillsWithoutRewritingCandidates()
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var releaseId=await s.PublishAsync();await using var db=s.Api.Context();
+        await using var fixture=new ApiFixture();var releaseId=await SeedLegacyPublishedReleaseAsync(fixture);await using var db=fixture.Context();
         var bytes=(await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==releaseId)).CandidateBytes!.ToArray();
         // The receipt ledger blocks the rollback this rehearsal used to perform;
         // the guard is the regression surface for the G boundary now.
@@ -70,7 +147,7 @@ public sealed class RunningContractQueryTests
     }
     [Fact] public async Task InvalidLegacyCandidateBlocksMigrationAtomically()
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var releaseId=await s.PublishAsync();await using var db=s.Api.Context();
+        await using var fixture=new ApiFixture();var releaseId=await SeedLegacyPublishedReleaseAsync(fixture);await using var db=fixture.Context();
         var migrator=db.GetService<IMigrator>();
         var bad=System.Text.Encoding.UTF8.GetBytes("{\"versions\":null}");await db.Set<ReleaseRecord>().Where(r=>r.Id==releaseId).ExecuteUpdateAsync(p=>p.SetProperty(r=>r.CandidateBytes,bad));
         var error=await Assert.ThrowsAnyAsync<Exception>(()=>migrator.MigrateAsync("20261010091247_GatewayQueryIndexes"));
@@ -89,9 +166,9 @@ public sealed class RunningContractQueryTests
     [InlineData("nullExample")]
     public async Task StrongTypeCorruptionBlocksBeforeLegacyMigrationCommit(string fault)
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();
+        await using var fixture=new ApiFixture();var id=await SeedLegacyPublishedReleaseAsync(fixture);await using var db=fixture.Context();var migrator=db.GetService<IMigrator>();
         var candidate=JsonNode.Parse((await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id)).CandidateBytes!)!;var frozen=candidate["versions"]![0]!;
-        JsonObject Parameter()=>new(){["id"]=Guid.NewGuid().ToString(),["apiVersionId"]=s.Api.Version.Id.ToString(),["location"]="query",["name"]="q",["dataType"]="string",["required"]=false};
+        JsonObject Parameter()=>new(){["id"]=Guid.NewGuid().ToString(),["apiVersionId"]=fixture.Version.Id.ToString(),["location"]="query",["name"]="q",["dataType"]="string",["required"]=false};
         switch(fault)
         {
             case "nullParameter":frozen["parameters"]=JsonNode.Parse("[null]");break;
@@ -101,7 +178,7 @@ public sealed class RunningContractQueryTests
             case "badCreatedAt":frozen["version"]!["createdAt"]="invalid-timestamp";break;
             case "stringRequired":var p=Parameter();p["required"]="false";frozen["parameters"]=new JsonArray(p);break;
             case "nullExample":var example=Parameter();example["examples"]=JsonNode.Parse("[null]");frozen["parameters"]=new JsonArray(example);break;
-            case "fractionalStatus":frozen["schemas"]=new JsonArray(new JsonObject{["id"]=Guid.NewGuid().ToString(),["apiVersionId"]=s.Api.Version.Id.ToString(),["schemaType"]="response",["name"]="ok",["statusCode"]=200.5,["contentType"]="application/json",["schemaJson"]="{}"});break;
+            case "fractionalStatus":frozen["schemas"]=new JsonArray(new JsonObject{["id"]=Guid.NewGuid().ToString(),["apiVersionId"]=fixture.Version.Id.ToString(),["schemaType"]="response",["name"]="ok",["statusCode"]=200.5,["contentType"]="application/json",["schemaJson"]="{}"});break;
         }
         var bad=System.Text.Encoding.UTF8.GetBytes(candidate.ToJsonString());await db.Set<ReleaseRecord>().Where(r=>r.Id==id).ExecuteUpdateAsync(p=>p.SetProperty(r=>r.CandidateBytes,bad));
         var error=await Assert.ThrowsAnyAsync<Exception>(()=>migrator.MigrateAsync("20261010091247_GatewayQueryIndexes"));Assert.Contains("migration_receipts_down_blocked",error.ToString());
@@ -110,14 +187,15 @@ public sealed class RunningContractQueryTests
     }
     [Fact] public async Task LegacyOmittedOptionalFieldsKeepConstructorDefaults()
     {
-        await using var s=new DeploymentScenario();await Configure(s,new Capture());var id=await s.PublishAsync();await using var db=s.Api.Context();var migrator=db.GetService<IMigrator>();
+        await using var fixture=new ApiFixture();var id=await SeedLegacyPublishedReleaseAsync(fixture);await using var db=fixture.Context();var migrator=db.GetService<IMigrator>();
         var node=JsonNode.Parse((await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==id)).CandidateBytes!)!.AsObject();node.Remove("riskReviewReferences");node.Remove("sharedCredentialImpact");
         node["versions"]![0]!["version"]!.AsObject().Remove("dialect");node["versions"]![0]!["version"]!.AsObject().Remove("sealedAt");
         foreach(var app in node["applications"]!.AsArray())app!["application"]!.AsObject().Remove("activation");
         var old=System.Text.Encoding.UTF8.GetBytes(node.ToJsonString());Assert.NotNull(JsonSerializer.Deserialize<FrozenReleaseCandidate>(old,CanonicalJson.Options));await db.Set<ReleaseRecord>().Where(r=>r.Id==id).ExecuteUpdateAsync(p=>p.SetProperty(r=>r.CandidateBytes,old));
         var error=await Assert.ThrowsAnyAsync<Exception>(()=>migrator.MigrateAsync("20261010091247_GatewayQueryIndexes"));Assert.Contains("migration_receipts_down_blocked",error.ToString());
         Assert.Equal(old,(await db.Set<ReleaseRecord>().AsNoTracking().SingleAsync(r=>r.Id==id)).CandidateBytes);Assert.Equal(1,await db.Set<ReleaseFrozenContract>().CountAsync());
-        using var response=await s.Api.Client.GetAsync($"/api/v1/environments/{s.Api.Environment.Id}/apis/{s.Api.Api.Id}/openapi");response.EnsureSuccessStatusCode();
+        using var login = await fixture.LoginAsync();login.EnsureSuccessStatusCode();
+        using var response=await fixture.Client.GetAsync($"/api/v1/environments/{fixture.Environment.Id}/apis/{fixture.Api.Id}/openapi");response.EnsureSuccessStatusCode();
     }
     [Fact] public async Task RunningOpenApiDoesNotLoadWholeEnvironmentCandidates()
     {

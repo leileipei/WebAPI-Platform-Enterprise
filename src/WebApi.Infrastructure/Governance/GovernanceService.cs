@@ -7,11 +7,12 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Governance;
 using WebApi.Contracts.Security;
+using WebApi.Infrastructure.CredentialSecurity;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Governance;
-public sealed class GovernanceService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IPasswordHasher<UserRecord> passwords,SystemSettingsReader settings,AuditAccessQuery auditAccess,LocalAdministratorGuard localAdministrators)
+public sealed class GovernanceService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IPasswordHasher<UserRecord> passwords,SystemSettingsReader settings,AuditAccessQuery auditAccess,LocalAdministratorGuard localAdministrators,ICredentialArchivedIngressWitness? archiveWitness=null)
 {
     private static readonly ScopeRef platform=new(Guid.Empty);
     private static OrganizationDto Dto(Organization x)=>new(x.Id,x.Code,x.Name,x.Status,x.Revision);
@@ -105,6 +106,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
     public Task<CommandResult<OrganizationDto>> SaveOrganizationAsync(Guid id,SaveResourceRequest request,string? tag,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,new(id),"organization.update",async(_,token)=>{
         var org=await db.Set<Organization>().SingleOrDefaultAsync(x=>x.Id==id,token)??throw ScopeResolver.Missing();await Require(actor,"organization.write",new(id),id,token);RevisionTag.Require(tag,org.Revision);Validate(request.Code,request.Name,request.Status);
         if(request.Status=="Disabled" && await ActiveReleaseAsync(db.Set<EnvironmentRecord>().Where(e=>db.Set<Project>().Any(p=>p.Id==e.ProjectId&&p.OrganizationId==id)).Select(e=>e.Id),token)) throw new ApiException(409,"release_in_progress","组织中存在进行中的发布。");
+        if(org.Status=="Disabled"&&request.Status=="Active") await GlobalCredentialInheritance.RequireSafeParentActivationAsync(db,id,null,token);
         org.Code=request.Code;org.Name=request.Name;org.Status=request.Status;org.Revision++;org.UpdatedAt=DateTimeOffset.UtcNow;return new CommandResult<OrganizationDto>(Dto(org),RevisionTag.Format(org.Revision));
     },ct);
     public async Task<CommandResult<ProjectDto>> CreateProjectAsync(Guid orgId,SaveResourceRequest request,ActorContext actor,CancellationToken ct=default)=>await commands.ExecuteAsync(actor,new(orgId),"project.create",async(_,token)=>{
@@ -115,6 +117,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         var scope=await scopes.ProjectAsync(id,ct);return await commands.ExecuteAsync(actor,scope,"project.update",async(_,token)=>{
             var p=await db.Set<Project>().SingleAsync(x=>x.Id==id,token);await Require(actor,"project.write",scope,id,token);RevisionTag.Require(tag,p.Revision);Validate(request.Code,request.Name,request.Status);
             if(request.Status=="Disabled" && await ActiveReleaseAsync(db.Set<EnvironmentRecord>().Where(e=>e.ProjectId==id).Select(e=>e.Id),token)) throw new ApiException(409,"release_in_progress","项目中存在进行中的发布。");
+            if(p.Status=="Disabled"&&request.Status=="Active") await GlobalCredentialInheritance.RequireSafeParentActivationAsync(db,scope.OrganizationId,id,token);
             p.Code=request.Code;p.Name=request.Name;p.Status=request.Status;p.Revision++;p.UpdatedAt=DateTimeOffset.UtcNow;return new CommandResult<ProjectDto>(Dto(p),RevisionTag.Format(p.Revision));
         },ct);
     }
@@ -128,14 +131,15 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
             // used to infer the origin of an environment that already existed.
             db.Add(new EnvironmentSecurityInitialization {EnvironmentId=e.Id,ProjectId=projectId,OrganizationId=scope.OrganizationId,State="FreshNonStrict",FreshProofId=Guid.NewGuid()});
             return new CommandResult<EnvironmentDto>(Dto(e),RevisionTag.Format(e.Revision));
-        },ct);
+        },(created,token)=>GlobalCredentialInheritance.InitializeNewAsync(db,created.Value.Id,scope,actor,token),ct);
     }
     public async Task<CommandResult<EnvironmentDto>> SaveEnvironmentAsync(Guid id,UpdateEnvironmentRequest request,string? tag,ActorContext actor,CancellationToken ct=default)
     {
         var scope=await scopes.EnvironmentAsync(id,ct);return await commands.ExecuteAsync(actor,scope,"environment.update",async(_,token)=>{
-            await Require(actor,"environment.write",scope,id,token);var e=await db.Set<EnvironmentRecord>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,e.Revision);Validate(request.Code,request.Name,request.Status);await ValidateFlowAsync(request.ReleasePolicyId,scope.OrganizationId,token);
+            await Require(actor,"environment.write",scope,id,token);var e=await db.Set<EnvironmentRecord>().FromSqlInterpolated($"SELECT * FROM environments WHERE id={id} FOR UPDATE").SingleAsync(token);RevisionTag.Require(tag,e.Revision);Validate(request.Code,request.Name,request.Status);await ValidateFlowAsync(request.ReleasePolicyId,scope.OrganizationId,token);
             if(request.Code.Length>32||request.Name.Length>64) throw new ApiException(422,"invalid_fields","环境编码或名称过长。");
             if((request.Status=="Disabled"||request.IsProduction!=e.IsProduction||request.ReleasePolicyId!=e.ReleasePolicyId) && await ActiveReleaseAsync(db.Set<EnvironmentRecord>().Where(x=>x.Id==id).Select(x=>x.Id),token)) throw new ApiException(409,"release_in_progress","发布进行中，不能停用环境或更改审批规则。");
+            if(e.Status=="Disabled"&&request.Status=="Active") await GlobalCredentialInheritance.ReactivateAsync(db,e,scope.OrganizationId,actor,archiveWitness,token);
             ApplyAccess(e,request.GatewayPublicUrl,request.GatewayInternalUrl,request.BasePath,request.IsProduction);
             e.Code=request.Code;e.Name=request.Name;e.Status=request.Status;e.IsProduction=request.IsProduction;e.SortOrder=request.SortOrder;e.ReleasePolicyId=request.ReleasePolicyId;e.Revision++;return new CommandResult<EnvironmentDto>(Dto(e),RevisionTag.Format(e.Revision));
         },ct);

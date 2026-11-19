@@ -4,10 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Gateway;
 using WebApi.Contracts.Releases;
+using WebApi.Contracts.Runtime;
+using WebApi.Infrastructure.CredentialSecurity;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Releases;
 namespace WebApi.Infrastructure.Gateway;
-public sealed class AckService(WebApiDbContext db,NodeIdentityService identities,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution)
+public sealed class AckService(WebApiDbContext db,NodeIdentityService identities,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution,
+    IGovernanceRecoveryContinuity? continuity=null,GovernanceDeliverySettings? governanceDelivery=null,PublishSettings? publication=null)
 {
     private static readonly HashSet<string> errorCodes=["invalid_snapshot","yarp_rejected_config","lkg_write_denied","activation_timeout","storage_failure","environment_mismatch","unsupported_schema","invalid_hash","node_shutdown"];
     public async Task<AckResult> RecordAsync(Guid nodeId,NodeAck ack,NodeIdentity identity,CancellationToken ct=default)
@@ -16,7 +20,17 @@ public sealed class AckService(WebApiDbContext db,NodeIdentityService identities
         var node=await identities.RevalidateAsync(identity,ack.InstanceId,ct);var r=await db.Set<ReleaseRecord>().SingleOrDefaultAsync(r=>r.Id==ack.ReleaseId&&r.EnvironmentId==identity.EnvironmentId,ct)??throw new ApiException(409,"ack_release_mismatch","确认不属于该环境发布。");
         var target=await db.Set<ReleaseTarget>().SingleOrDefaultAsync(t=>t.ReleaseId==r.Id&&t.NodeId==nodeId,ct);var config=await db.Set<GatewayConfigVersion>().SingleOrDefaultAsync(v=>v.EnvironmentId==r.EnvironmentId&&v.VersionNo==r.ToConfigVersion,ct);
         if(target is null||ack.ConfigVersion!=r.ToConfigVersion||ack.DeploymentSequence!=r.DeploymentSequence||config?.SnapshotHash!=ack.PayloadHash) throw new ApiException(409,"ack_target_mismatch","实例、版本、序列或摘要不匹配冻结目标。");
-        if(ack.Success) {var bytes=await db.Set<GatewayConfigSnapshot>().Where(s=>s.ConfigVersionId==config!.Id).Select(s=>s.PayloadBytes).SingleAsync(ct);using var snapshot=JsonDocument.Parse(bytes);SnapshotSchemaCapabilities.RequireSupported([node],snapshot.RootElement.GetProperty("schemaVersion").GetString()!);}
+        if(ack.Success)
+        {
+            var artifact=await db.Set<GatewayConfigSnapshot>().Where(s=>s.ConfigVersionId==config!.Id).Select(s=>new{s.PayloadBytes,s.SizeBytes}).SingleAsync(ct);
+            using var snapshot=JsonDocument.Parse(artifact.PayloadBytes);
+            var schema=snapshot.RootElement.GetProperty("schemaVersion").GetString()!;
+            SnapshotSchemaCapabilities.RequireSupported([node],schema);
+            var envelope=new SnapshotEnvelope(r.Id,ack.DeploymentSequence,ack.ConfigVersion,ack.PayloadHash,artifact.SizeBytes);
+            if(await GovernanceSnapshotDelivery.RequireAsync(db,r.EnvironmentId,new(envelope,artifact.PayloadBytes),continuity,governanceDelivery,ct,
+                published:r.Status=="Succeeded"&&config!.Status=="Published",publication:publication))
+                await RequireCurrentSecurityAsync(node,ack.InstanceId,ct);
+        }
         if(ack.AppliedAt.Offset!=TimeSpan.Zero||ack.AppliedAt>DateTimeOffset.UtcNow.AddMinutes(5)||ack.AppliedAt<r.CreatedAt.AddMinutes(-5)||ack.Success&&ack.ErrorCode is not null||!ack.Success&&(ack.ErrorCode is null||!errorCodes.Contains(ack.ErrorCode))) throw new ApiException(422,"invalid_ack","确认时间或错误代码不合法。");
         if(target.InstanceId!=ack.InstanceId.ToString())
         {
@@ -51,5 +65,29 @@ public sealed class AckService(WebApiDbContext db,NodeIdentityService identities
             db.Add(new AuditLog {EnvironmentId=r.EnvironmentId,ProjectId=project,OrganizationId=org,UserId=r.PublishRequestedBy,Action="release.succeeded",ResourceType="ReleaseRecord",ResourceId=r.Id.ToString(),TraceId=r.PublishTraceId,AfterJson=JsonSerializer.Serialize(new {configVersion=r.ToConfigVersion,deploymentSequence=r.DeploymentSequence})});
         }
         await deliveryExecution.RecordDeploymentStateAsync(r,ct);await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);return new(r.Status,false);
+    }
+
+    private async Task RequireCurrentSecurityAsync(GatewayNode node,Guid instanceId,CancellationToken ct)
+    {
+        var now=await SecurityDatabaseClock.ObserveAsync(db,ct);
+        var accepted=await (from state in db.Set<EnvironmentSecurityState>().AsNoTracking()
+            join receipt in db.Set<GatewaySecurityCurrentReceipt>().AsNoTracking() on state.EnvironmentId equals receipt.EnvironmentId
+            join issuance in db.Set<GatewaySecurityLeaseIssuance>().AsNoTracking() on receipt.LeaseId equals issuance.LeaseId
+            join current in db.Set<GatewaySecurityLease>().AsNoTracking() on receipt.LeaseId equals current.LeaseId
+            where state.EnvironmentId==node.EnvironmentId&&receipt.NodeId==node.Id&&receipt.InstanceId==instanceId&&
+                state.SecurityGeneration==receipt.SecurityGeneration&&state.Epoch==receipt.Epoch&&state.HeadHash==receipt.HeadHash&&
+                receipt.ProjectId==state.ProjectId&&receipt.OrganizationId==state.OrganizationId&&receipt.ReceivedAt<=now&&receipt.FreshUntil>now&&
+                issuance.NodeId==receipt.NodeId&&issuance.InstanceId==receipt.InstanceId&&issuance.EnvironmentId==state.EnvironmentId&&
+                issuance.ProjectId==state.ProjectId&&issuance.OrganizationId==state.OrganizationId&&issuance.SecurityGeneration==state.SecurityGeneration&&
+                issuance.Epoch==state.Epoch&&issuance.CheckpointHash==receipt.CheckpointHash&&issuance.FreshUntil==receipt.FreshUntil&&
+                issuance.IssuedAt<=receipt.ReceivedAt&&current.InstanceId==instanceId&&current.NodeId==node.Id&&
+                current.EnvironmentId==state.EnvironmentId&&current.SecurityGeneration==state.SecurityGeneration&&current.Epoch==state.Epoch&&
+                current.CheckpointHash==receipt.CheckpointHash&&current.FreshUntil==receipt.FreshUntil&&
+                !db.Set<GatewaySecurityLeaseExpiryObservation>().Any(expired=>expired.LeaseId==receipt.LeaseId)
+            select receipt).SingleOrDefaultAsync(ct);
+        if(accepted is null||!SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,"2.4")||
+            SecurityApplicationReceipt.Read(node) is not { } reported||!SecurityApplicationReceipt.MatchesAccepted(reported,accepted)||
+            await SecurityDatabaseClock.ObserveAsync(db,ct)>=accepted.FreshUntil)
+            throw CurrentSecurityProofService.Invalid();
     }
 }

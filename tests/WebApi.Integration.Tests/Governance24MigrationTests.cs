@@ -11,6 +11,7 @@ using WebApi.Infrastructure.Gateway;
 using WebApi.Integration.Tests.Support;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Persistence.Migrations;
 using Xunit;
 
 namespace WebApi.Integration.Tests;
@@ -1100,6 +1101,56 @@ public sealed class Governance24MigrationTests
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task PreflightRejectsAnUnregisteredJournalNamespace(bool sqlEntry, bool upgrade)
+    {
+        await using var database = new PostgresDatabase();
+        await database.InitializeAsync();
+        await using (var setup = database.Context())
+        {
+            if (upgrade) await setup.GetService<IMigrator>().MigrateAsync("20261104090000_Governance24MigrationReceipts");
+            await setup.Database.ExecuteSqlRawAsync("CREATE SCHEMA credential_governance");
+        }
+
+        await AssertPreflightBlockedAsync(database, sqlEntry);
+
+        await using var check = database.Context();
+        Assert.Equal(upgrade ? 36 : 0, (await check.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.True(await check.Database.SqlQueryRaw<bool>("""
+            SELECT pg_catalog.to_regnamespace('credential_governance') IS NOT NULL
+                AND pg_catalog.to_regclass('credential_governance.journal_root') IS NULL AS "Value"
+            """).SingleAsync());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PreflightRejectsAnInstalledJournalWithADisabledGuard(bool sqlEntry)
+    {
+        await using var database = new PostgresDatabase();
+        await database.InitializeAsync();
+        await using (var setup = database.Context())
+        {
+            await setup.Database.MigrateAsync();
+            await setup.Database.ExecuteSqlRawAsync("ALTER TABLE credential_governance.journal_entries DISABLE TRIGGER entries_in_sequence");
+        }
+
+        await AssertPreflightBlockedAsync(database, sqlEntry);
+
+        await using var check = database.Context();
+        Assert.Equal(40, (await check.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.True(await check.Database.SqlQueryRaw<bool>("""
+            SELECT tgenabled = 'D' AS "Value"
+                FROM pg_catalog.pg_trigger
+                WHERE tgrelid = 'credential_governance.journal_entries'::pg_catalog.regclass
+                  AND tgname = 'entries_in_sequence'
+            """).SingleAsync());
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task EverySupportedMigrationPrefixPassesBothPreflights(bool sqlSeed)
@@ -1108,9 +1159,13 @@ public sealed class Governance24MigrationTests
         await database.InitializeAsync();
         string[] migrations;
         await using (var discovery = database.Context()) migrations = discovery.Database.GetMigrations().ToArray();
-        Assert.Equal(36, migrations.Length);
+        Assert.Equal(40, migrations.Length);
         Assert.Equal("20261104080000_Governance24DatabaseClock", migrations[34]);
         Assert.Equal("20261104090000_Governance24MigrationReceipts", migrations[35]);
+        Assert.Equal("20261118130000_CredentialGovernanceJournal", migrations[36]);
+        Assert.Equal(LegacyGlobalRevocationInheritance.Id, migrations[37]);
+        Assert.Equal(FormalCredentialRotationSchedule.Id, migrations[38]);
+        Assert.Equal(FormalRotationDecisionProjection.Id, migrations[39]);
         var source = Environment.GetEnvironmentVariable("WEBAPI_SOURCE_ROOT") ?? throw new InvalidOperationException("Isolated source root is required.");
         var script = await File.ReadAllTextAsync(Path.Combine(source, "deploy", "initial-core.sql"));
         const string marker = "$WEBAPI_PREFLIGHT$;";
@@ -3087,8 +3142,12 @@ public sealed class Governance24MigrationTests
     {
         await using var database = new PostgresDatabase();
         await database.InitializeAsync();
+        string[] expectedHistory;
         await using (var setup = database.Context())
+        {
+            expectedHistory = setup.Database.GetMigrations().ToArray();
             await setup.GetService<IMigrator>().MigrateAsync("20261015020000_CredentialUsageTracking");
+        }
         NpgsqlConnection.ClearAllPools();
         var source = Environment.GetEnvironmentVariable("WEBAPI_SOURCE_ROOT") ?? throw new InvalidOperationException("Isolated source root is required.");
         var script = await File.ReadAllTextAsync(Path.Combine(source, "deploy", "initial-core.sql"));
@@ -3097,8 +3156,15 @@ public sealed class Governance24MigrationTests
         {
             await using var command = new NpgsqlCommand(script, connection);
             await command.ExecuteNonQueryAsync();
-            await using var verify = new NpgsqlCommand("SELECT pg_catalog.pg_my_temp_schema()<>0 AND (SELECT count(*) FROM public.\"__EFMigrationsHistory\")=36", connection);
-            Assert.True((bool)(await verify.ExecuteScalarAsync())!);
+            await using var temporarySchema = new NpgsqlCommand("SELECT pg_catalog.pg_my_temp_schema()<>0", connection);
+            Assert.True((bool)(await temporarySchema.ExecuteScalarAsync())!);
+            await using var history = new NpgsqlCommand("""
+                SELECT "MigrationId" FROM public."__EFMigrationsHistory" ORDER BY "MigrationId"
+                """, connection);
+            await using var rows = await history.ExecuteReaderAsync();
+            var installedHistory = new List<string>();
+            while (await rows.ReadAsync()) installedHistory.Add(rows.GetString(0));
+            Assert.Equal(expectedHistory, installedHistory);
         }
     }
 
@@ -4239,7 +4305,10 @@ public sealed class Governance24MigrationTests
                 await using (var create = new NpgsqlCommand("CREATE ROLE " + role + " NOLOGIN", admin))
                     await create.ExecuteNonQueryAsync();
                 roleCreated = true;
-                await using var prepare = new NpgsqlCommand("GRANT pg_read_all_stats TO " + role + "; ALTER SCHEMA public OWNER TO " + role + "; REVOKE EXECUTE ON FUNCTION pg_catalog.pg_control_system() FROM PUBLIC", admin);
+                var databaseName = builder.QuoteIdentifier(admin.Database);
+                await using var prepare = new NpgsqlCommand(
+                    $"GRANT CREATE ON DATABASE {databaseName} TO {role}; GRANT pg_read_all_stats TO {role}; "
+                    + $"ALTER SCHEMA public OWNER TO {role}; REVOKE EXECUTE ON FUNCTION pg_catalog.pg_control_system() FROM PUBLIC", admin);
                 await prepare.ExecuteNonQueryAsync();
             }
             NpgsqlConnection.ClearAllPools();
@@ -4251,6 +4320,7 @@ public sealed class Governance24MigrationTests
                     assume.CommandText = "SET ROLE " + role;
                     await assume.ExecuteNonQueryAsync();
                 }
+                Assert.True(await setup.Database.SqlQueryRaw<bool>("SELECT pg_catalog.has_database_privilege(current_user,pg_catalog.current_database(),'CREATE') AS \"Value\"").SingleAsync());
                 Assert.False(await setup.Database.SqlQueryRaw<bool>("SELECT pg_catalog.has_function_privilege(current_user,'pg_catalog.pg_control_system()','EXECUTE') AS \"Value\"").SingleAsync());
                 await setup.GetService<IMigrator>().MigrateAsync("20261015020000_CredentialUsageTracking");
                 await setup.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO organizations(id,code,name,status,created_at,updated_at) VALUES({organization},'KEEP','Keep','Active',now(),now())");

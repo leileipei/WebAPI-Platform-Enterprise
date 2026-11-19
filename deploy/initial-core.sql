@@ -141,7 +141,11 @@ DECLARE
         '20261104060000_Governance24FailureObservation',
         '20261104070000_Governance24LeaseExpiryObservation',
         '20261104080000_Governance24DatabaseClock',
-        '20261104090000_Governance24MigrationReceipts'
+        '20261104090000_Governance24MigrationReceipts',
+        '20261118130000_CredentialGovernanceJournal',
+        '20261119123000_LegacyGlobalRevocationInheritance',
+        '20261119140000_FormalCredentialRotation',
+        '20261119150000_FormalRotationDecision'
     ];
     expected_fingerprints CONSTANT text[] := ARRAY[
         'fe52425b83f9af0a549474b72f66d9fa289e21439476cad5c55b3915d186abf7',
@@ -179,7 +183,11 @@ DECLARE
         '7024ec9146dee7db4543876aec46ec14d0ac89dec7833888fc44b7c9b65ddff4',
         '3f978fb52f0009a5ccde4aa35c91e32755913ec1568dec2676c267a366383ea0',
         '2ed7307ab78b49bd8c1cca47ed5af4a1567460bb2a2b4fb9214f6d5011f93aec',
-        '22543989e453281197c4f6e4ca568823de70b528e7abfd55efc0cdde83302309'
+        '22543989e453281197c4f6e4ca568823de70b528e7abfd55efc0cdde83302309',
+        'c74639ddb36def9e61b123bd70e58647c84306431bbf3a33f7d77479f4f5a705',
+        'e27916f774c0798661f069145ba10f96611c575ef53f77580b4067c29ee1f60f',
+        'ebcfb6d59e33e69c00d447897f707b3b874b7bbbac1a5e3b499f7816fdbbfec0',
+        '32a2230df07e54a40c3233c265c71abbb65fed42aacc7d9776f0245acba5e677'
     ];
     applied text[] := ARRAY[]::text[];
     actual_fingerprint text;
@@ -190,6 +198,9 @@ DECLARE
     fence_target record;
     fence_timeout_ms integer;
 BEGIN
+    IF expected_fingerprints[pg_catalog.cardinality(known)] IS NULL THEN
+        RAISE EXCEPTION 'governance_migration_preflight_failed: unverified target schema version';
+    END IF;
     IF pg_catalog.current_setting('server_encoding') IS DISTINCT FROM 'UTF8' THEN
         RAISE EXCEPTION 'governance_migration_preflight_failed: unsupported database encoding';
     END IF;
@@ -228,23 +239,23 @@ BEGIN
         FOR fence_target IN
             SELECT n.nspname, c.relname FROM pg_catalog.pg_class c
             JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-            WHERE n.nspname='public' AND c.relkind IN ('r','p')
-            ORDER BY c.relname COLLATE "C"
+            WHERE n.nspname IN ('public','credential_governance') AND c.relkind IN ('r','p')
+            ORDER BY n.nspname COLLATE "C", c.relname COLLATE "C"
         LOOP
             EXECUTE pg_catalog.format('LOCK TABLE ONLY %I.%I IN SHARE MODE',fence_target.nspname,fence_target.relname);
         END LOOP;
     END IF;
-    -- These public objects are outside the historical fingerprint.
+    -- These objects are outside the historical fingerprint.
     IF EXISTS (SELECT 1 FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
-               WHERE n.nspname='public' AND p.prokind IN ('p','a','w'))
+               WHERE n.nspname IN ('public','credential_governance') AND p.prokind IN ('p','a','w'))
        OR EXISTS (SELECT 1 FROM pg_catalog.pg_policy p JOIN pg_catalog.pg_class c ON c.oid=p.polrelid
-                  JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public')
+                  JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','credential_governance'))
        OR EXISTS (SELECT 1 FROM pg_catalog.pg_rewrite r JOIN pg_catalog.pg_class c ON c.oid=r.ev_class
-                  JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p'))
+                  JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','credential_governance') AND c.relkind IN ('r','p'))
        OR EXISTS (SELECT 1 FROM pg_catalog.pg_inherits i
                   JOIN pg_catalog.pg_class child ON child.oid=i.inhrelid JOIN pg_catalog.pg_class parent ON parent.oid=i.inhparent
                   JOIN pg_catalog.pg_namespace cn ON cn.oid=child.relnamespace JOIN pg_catalog.pg_namespace pn ON pn.oid=parent.relnamespace
-                  WHERE cn.nspname='public' OR pn.nspname='public') THEN
+                  WHERE cn.nspname IN ('public','credential_governance') OR pn.nspname IN ('public','credential_governance')) THEN
         RAISE EXCEPTION 'governance_migration_preflight_failed: unverified schema object';
     END IF;
     IF pg_catalog.to_regclass('public."__EFMigrationsHistory"') IS NOT NULL THEN
@@ -303,7 +314,7 @@ BEGIN
             )
             SELECT 1 FROM effective_roles r
             JOIN pg_catalog.pg_class c ON c.relkind IN ('r','p','v','m','f','S')
-            JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace AND n.nspname='public'
+            JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace AND n.nspname IN ('public','credential_governance')
             JOIN pg_catalog.pg_database d ON d.datname=pg_catalog.current_database()
             WHERE pg_catalog.pg_has_role(r.effective_oid,c.relowner,'USAGE')
                OR pg_catalog.pg_has_role(r.effective_oid,n.nspowner,'USAGE')
@@ -366,44 +377,51 @@ BEGIN
     ) AND NOT ('20261103183543_Governance24CredentialCore' = ANY(applied)) THEN
         RAISE EXCEPTION 'governance_migration_preflight_failed: unverified governance objects';
     END IF;
+    IF (pg_catalog.to_regnamespace('credential_governance') IS NOT NULL)
+        IS DISTINCT FROM ('20261118130000_CredentialGovernanceJournal' = ANY(applied)) THEN
+        RAISE EXCEPTION 'governance_migration_preflight_failed: unverified credential governance schema';
+    END IF;
     -- Only two exact, reviewed SQL-installer function bodies are mapped to the
     -- equivalent EF indentation; no general function-body normalization is allowed.
     WITH facts(fact) AS (
-        SELECT pg_catalog.jsonb_build_array('relation',c.relname,c.relkind::text,c.relpersistence::text,c.relrowsecurity,c.relforcerowsecurity)::text
-        FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-        WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','f')
+        SELECT pg_catalog.jsonb_build_array('schema',nspname)::text
+        FROM pg_catalog.pg_namespace WHERE nspname='credential_governance'
         UNION ALL
-        SELECT pg_catalog.jsonb_build_array('column',c.relname,a.attnum,a.attname,pg_catalog.format_type(a.atttypid,a.atttypmod),
+        SELECT pg_catalog.jsonb_build_array('relation',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,c.relkind::text,c.relpersistence::text,c.relrowsecurity,c.relforcerowsecurity)::text
+        FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+        WHERE n.nspname IN ('public','credential_governance') AND c.relkind IN ('r','p','v','m','f')
+        UNION ALL
+        SELECT pg_catalog.jsonb_build_array('column',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,a.attnum,a.attname,pg_catalog.format_type(a.atttypid,a.atttypmod),
             a.attnotnull,a.attidentity::text,a.attgenerated::text,pg_catalog.pg_get_expr(d.adbin,d.adrelid))::text
         FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid=a.attrelid
         JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
         LEFT JOIN pg_catalog.pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
-        WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','f') AND a.attnum>0 AND NOT a.attisdropped
+        WHERE n.nspname IN ('public','credential_governance') AND c.relkind IN ('r','p','v','m','f') AND a.attnum>0 AND NOT a.attisdropped
         UNION ALL
-        SELECT pg_catalog.jsonb_build_array('constraint',c.relname,k.conname,k.contype::text,pg_catalog.pg_get_constraintdef(k.oid,true),
+        SELECT pg_catalog.jsonb_build_array('constraint',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,k.conname,k.contype::text,pg_catalog.pg_get_constraintdef(k.oid,true),
             k.convalidated,k.condeferrable,k.condeferred)::text
         FROM pg_catalog.pg_constraint k JOIN pg_catalog.pg_class c ON c.oid=k.conrelid
-        JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'
+        JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','credential_governance')
         UNION ALL
-        SELECT pg_catalog.jsonb_build_array('index',c.relname,i.relname,pg_catalog.pg_get_indexdef(i.oid),x.indisunique,x.indisprimary,x.indisvalid)::text
+        SELECT pg_catalog.jsonb_build_array('index',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,i.relname,pg_catalog.pg_get_indexdef(i.oid),x.indisunique,x.indisprimary,x.indisvalid)::text
         FROM pg_catalog.pg_index x JOIN pg_catalog.pg_class c ON c.oid=x.indrelid
         JOIN pg_catalog.pg_class i ON i.oid=x.indexrelid JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-        WHERE n.nspname='public'
+        WHERE n.nspname IN ('public','credential_governance')
         UNION ALL
-        SELECT pg_catalog.jsonb_build_array('trigger',c.relname,t.tgname,pg_catalog.pg_get_triggerdef(t.oid,true),t.tgenabled::text)::text
+        SELECT pg_catalog.jsonb_build_array('trigger',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,t.tgname,pg_catalog.pg_get_triggerdef(t.oid,true),t.tgenabled::text)::text
         FROM pg_catalog.pg_trigger t JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid
-        JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND NOT t.tgisinternal
+        JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','credential_governance') AND NOT t.tgisinternal
         UNION ALL
-        SELECT pg_catalog.jsonb_build_array('function',p.proname,pg_catalog.pg_get_function_identity_arguments(p.oid),CASE WHEN p.proname='forbid_notification_profile_mutation' AND pg_catalog.pg_get_function_identity_arguments(p.oid)='' AND pg_catalog.pg_get_functiondef(p.oid)=pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLmZvcmJpZF9ub3RpZmljYXRpb25fcHJvZmlsZV9tdXRhdGlvbigpCiBSRVRVUk5TIHRyaWdnZXIKIExBTkdVQUdFIHBscGdzcWwKQVMgJGZ1bmN0aW9uJAogICAgQkVHSU4gUkFJU0UgRVhDRVBUSU9OICdOb3RpZmljYXRpb24gcHJvZmlsZXMgYXJlIGltbXV0YWJsZScgVVNJTkcgRVJSQ09ERT0nMjM1MTQnOyBFTkQgJGZ1bmN0aW9uJAo=','base64'),'UTF8') THEN pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLmZvcmJpZF9ub3RpZmljYXRpb25fcHJvZmlsZV9tdXRhdGlvbigpCiBSRVRVUk5TIHRyaWdnZXIKIExBTkdVQUdFIHBscGdzcWwKQVMgJGZ1bmN0aW9uJApCRUdJTiBSQUlTRSBFWENFUFRJT04gJ05vdGlmaWNhdGlvbiBwcm9maWxlcyBhcmUgaW1tdXRhYmxlJyBVU0lORyBFUlJDT0RFPScyMzUxNCc7IEVORCAkZnVuY3Rpb24kCg==','base64'),'UTF8') WHEN p.proname='pipeline_immutable_fact' AND pg_catalog.pg_get_function_identity_arguments(p.oid)='' AND pg_catalog.pg_get_functiondef(p.oid)=pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLnBpcGVsaW5lX2ltbXV0YWJsZV9mYWN0KCkKIFJFVFVSTlMgdHJpZ2dlcgogTEFOR1VBR0UgcGxwZ3NxbApBUyAkZnVuY3Rpb24kCiAgICBCRUdJTgogICAgICAgIFJBSVNFIEVYQ0VQVElPTiAnUGlwZWxpbmUgdmVyc2lvbnMgYW5kIGV2ZW50cyBhcmUgYXBwZW5kLW9ubHknIFVTSU5HIEVSUkNPREU9JzIzNTE0JzsKICAgIEVORDsKICAgICRmdW5jdGlvbiQK','base64'),'UTF8') THEN pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLnBpcGVsaW5lX2ltbXV0YWJsZV9mYWN0KCkKIFJFVFVSTlMgdHJpZ2dlcgogTEFOR1VBR0UgcGxwZ3NxbApBUyAkZnVuY3Rpb24kCkJFR0lOCiAgICBSQUlTRSBFWENFUFRJT04gJ1BpcGVsaW5lIHZlcnNpb25zIGFuZCBldmVudHMgYXJlIGFwcGVuZC1vbmx5JyBVU0lORyBFUlJDT0RFPScyMzUxNCc7CkVORDsKJGZ1bmN0aW9uJAo=','base64'),'UTF8') ELSE pg_catalog.pg_get_functiondef(p.oid) END)::text
-        FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.prokind='f'
+        SELECT pg_catalog.jsonb_build_array('function',CASE WHEN n.nspname='public' THEN p.proname::text ELSE n.nspname::text||'.'||p.proname::text END,pg_catalog.pg_get_function_identity_arguments(p.oid),CASE WHEN p.proname='forbid_notification_profile_mutation' AND pg_catalog.pg_get_function_identity_arguments(p.oid)='' AND pg_catalog.pg_get_functiondef(p.oid)=pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLmZvcmJpZF9ub3RpZmljYXRpb25fcHJvZmlsZV9tdXRhdGlvbigpCiBSRVRVUk5TIHRyaWdnZXIKIExBTkdVQUdFIHBscGdzcWwKQVMgJGZ1bmN0aW9uJAogICAgQkVHSU4gUkFJU0UgRVhDRVBUSU9OICdOb3RpZmljYXRpb24gcHJvZmlsZXMgYXJlIGltbXV0YWJsZScgVVNJTkcgRVJSQ09ERT0nMjM1MTQnOyBFTkQgJGZ1bmN0aW9uJAo=','base64'),'UTF8') THEN pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLmZvcmJpZF9ub3RpZmljYXRpb25fcHJvZmlsZV9tdXRhdGlvbigpCiBSRVRVUk5TIHRyaWdnZXIKIExBTkdVQUdFIHBscGdzcWwKQVMgJGZ1bmN0aW9uJApCRUdJTiBSQUlTRSBFWENFUFRJT04gJ05vdGlmaWNhdGlvbiBwcm9maWxlcyBhcmUgaW1tdXRhYmxlJyBVU0lORyBFUlJDT0RFPScyMzUxNCc7IEVORCAkZnVuY3Rpb24kCg==','base64'),'UTF8') WHEN p.proname='pipeline_immutable_fact' AND pg_catalog.pg_get_function_identity_arguments(p.oid)='' AND pg_catalog.pg_get_functiondef(p.oid)=pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLnBpcGVsaW5lX2ltbXV0YWJsZV9mYWN0KCkKIFJFVFVSTlMgdHJpZ2dlcgogTEFOR1VBR0UgcGxwZ3NxbApBUyAkZnVuY3Rpb24kCiAgICBCRUdJTgogICAgICAgIFJBSVNFIEVYQ0VQVElPTiAnUGlwZWxpbmUgdmVyc2lvbnMgYW5kIGV2ZW50cyBhcmUgYXBwZW5kLW9ubHknIFVTSU5HIEVSUkNPREU9JzIzNTE0JzsKICAgIEVORDsKICAgICRmdW5jdGlvbiQK','base64'),'UTF8') THEN pg_catalog.convert_from(pg_catalog.decode('Q1JFQVRFIE9SIFJFUExBQ0UgRlVOQ1RJT04gcHVibGljLnBpcGVsaW5lX2ltbXV0YWJsZV9mYWN0KCkKIFJFVFVSTlMgdHJpZ2dlcgogTEFOR1VBR0UgcGxwZ3NxbApBUyAkZnVuY3Rpb24kCkJFR0lOCiAgICBSQUlTRSBFWENFUFRJT04gJ1BpcGVsaW5lIHZlcnNpb25zIGFuZCBldmVudHMgYXJlIGFwcGVuZC1vbmx5JyBVU0lORyBFUlJDT0RFPScyMzUxNCc7CkVORDsKJGZ1bmN0aW9uJAo=','base64'),'UTF8') ELSE pg_catalog.pg_get_functiondef(p.oid) END)::text
+        FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname IN ('public','credential_governance') AND p.prokind='f'
         UNION ALL
-        SELECT pg_catalog.jsonb_build_array('sequence',c.relname,s.seqstart,s.seqincrement,s.seqmax,s.seqmin,s.seqcache,s.seqcycle)::text
+        SELECT pg_catalog.jsonb_build_array('sequence',CASE WHEN n.nspname='public' THEN c.relname::text ELSE n.nspname::text||'.'||c.relname::text END,s.seqstart,s.seqincrement,s.seqmax,s.seqmin,s.seqcache,s.seqcycle)::text
         FROM pg_catalog.pg_sequence s JOIN pg_catalog.pg_class c ON c.oid=s.seqrelid
-        JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public'
+        JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('public','credential_governance')
         UNION ALL
-        SELECT pg_catalog.jsonb_build_array('type',t.typname,t.typtype::text,pg_catalog.format_type(t.oid,NULL))::text
+        SELECT pg_catalog.jsonb_build_array('type',CASE WHEN n.nspname='public' THEN t.typname::text ELSE n.nspname::text||'.'||t.typname::text END,t.typtype::text,pg_catalog.format_type(t.oid,NULL))::text
         FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON n.oid=t.typnamespace
-        WHERE n.nspname='public' AND t.typtype IN ('e','d','r','m')
+        WHERE n.nspname IN ('public','credential_governance') AND t.typtype IN ('e','d','r','m')
     )
     SELECT pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(COALESCE(pg_catalog.string_agg(fact,E'\n' ORDER BY fact COLLATE "C"),''),'UTF8')),'hex') INTO actual_fingerprint FROM facts;
     IF pg_catalog.cardinality(applied) > 0 AND actual_fingerprint IS DISTINCT FROM expected_fingerprints[pg_catalog.cardinality(applied)] THEN
@@ -6863,6 +6881,320 @@ BEGIN
 END $EF$;
 -- WEBAPI_MIGRATION_END 36
 
+-- WEBAPI_MIGRATION_START 37
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261118130000_CredentialGovernanceJournal') THEN
+CREATE SCHEMA credential_governance;
+CREATE TABLE credential_governance.journal_root (
+    singleton boolean PRIMARY KEY CHECK (singleton),
+    authority_id uuid NOT NULL CHECK (authority_id <> '00000000-0000-0000-0000-000000000000'),
+    generation uuid NOT NULL CHECK (generation <> '00000000-0000-0000-0000-000000000000'),
+    genesis_hash varchar(64) NOT NULL CHECK (genesis_hash COLLATE "C" ~ '^[0-9a-f]{64}$')
+);
+CREATE TABLE credential_governance.journal_entries (
+    sequence bigint NOT NULL CHECK (sequence > 0),
+    is_confirmation boolean NOT NULL,
+    operation_id uuid NOT NULL CHECK (operation_id <> '00000000-0000-0000-0000-000000000000'),
+    previous_hash varchar(64) NOT NULL CHECK (previous_hash COLLATE "C" ~ '^[0-9a-f]{64}$'),
+    position_hash varchar(64) NOT NULL CHECK (position_hash COLLATE "C" ~ '^[0-9a-f]{64}$'),
+    recovery_material varchar(349528),
+    PRIMARY KEY (sequence, is_confirmation),
+    UNIQUE (operation_id, is_confirmation),
+    CHECK ((is_confirmation AND recovery_material IS NULL) OR
+           (NOT is_confirmation AND recovery_material IS NOT NULL AND
+            pg_catalog.length(recovery_material) >= 2 AND recovery_material COLLATE "C" ~ '^[A-Za-z0-9_-]+$'))
+);
+
+CREATE FUNCTION credential_governance.reject_journal_change() RETURNS trigger
+    LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+BEGIN
+    RAISE EXCEPTION 'credential_governance_journal_immutable' USING ERRCODE = '23514';
+END;
+$$;
+CREATE TRIGGER root_no_change BEFORE UPDATE OR DELETE ON credential_governance.journal_root
+    FOR EACH ROW EXECUTE FUNCTION credential_governance.reject_journal_change();
+CREATE TRIGGER root_no_truncate BEFORE TRUNCATE ON credential_governance.journal_root
+    FOR EACH STATEMENT EXECUTE FUNCTION credential_governance.reject_journal_change();
+CREATE TRIGGER entries_no_change BEFORE UPDATE OR DELETE ON credential_governance.journal_entries
+    FOR EACH ROW EXECUTE FUNCTION credential_governance.reject_journal_change();
+CREATE TRIGGER entries_no_truncate BEFORE TRUNCATE ON credential_governance.journal_entries
+    FOR EACH STATEMENT EXECUTE FUNCTION credential_governance.reject_journal_change();
+
+CREATE FUNCTION credential_governance.require_next_entry() RETURNS trigger
+    LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+DECLARE
+    previous credential_governance.journal_entries%ROWTYPE;
+    genesis text;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_locks WHERE pid = pg_catalog.pg_backend_pid()
+            AND locktype = 'advisory' AND mode = 'ExclusiveLock' AND classid = 0
+            AND objid = 8901202 AND objsubid = 1 AND granted) THEN
+        RAISE EXCEPTION 'credential_governance_journal_fence_required' USING ERRCODE = '23514';
+    END IF;
+    -- Keep the append serialized until commit even if the caller drops
+    -- the session-level advisory lock while its transaction is open.
+    PERFORM pg_catalog.pg_advisory_xact_lock(8901202);
+    IF TG_TABLE_NAME = 'journal_root' THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT * INTO previous FROM credential_governance.journal_entries ORDER BY sequence DESC, is_confirmation DESC LIMIT 1;
+    IF NOT FOUND THEN
+        SELECT genesis_hash INTO genesis FROM credential_governance.journal_root WHERE singleton;
+        IF NOT FOUND OR NEW.is_confirmation OR NEW.sequence <> 1 OR NEW.previous_hash <> genesis THEN
+            RAISE EXCEPTION 'credential_governance_journal_sequence_mismatch' USING ERRCODE = '23514';
+        END IF;
+    ELSIF NEW.is_confirmation THEN
+        IF previous.is_confirmation OR ROW(NEW.sequence, NEW.operation_id, NEW.previous_hash, NEW.position_hash)
+            IS DISTINCT FROM ROW(previous.sequence, previous.operation_id, previous.previous_hash, previous.position_hash) THEN
+            RAISE EXCEPTION 'credential_governance_journal_confirmation_mismatch' USING ERRCODE = '23514';
+        END IF;
+    ELSIF NOT previous.is_confirmation OR NEW.sequence - 1 <> previous.sequence OR NEW.previous_hash <> previous.position_hash THEN
+        RAISE EXCEPTION 'credential_governance_journal_sequence_mismatch' USING ERRCODE = '23514';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+CREATE TRIGGER root_requires_fence BEFORE INSERT ON credential_governance.journal_root
+    FOR EACH ROW EXECUTE FUNCTION credential_governance.require_next_entry();
+CREATE TRIGGER entries_in_sequence BEFORE INSERT ON credential_governance.journal_entries
+    FOR EACH ROW EXECUTE FUNCTION credential_governance.require_next_entry();
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261118130000_CredentialGovernanceJournal') THEN
+        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+        VALUES ('20261118130000_CredentialGovernanceJournal', '10.0.12');
+    END IF;
+END $EF$;
+-- WEBAPI_MIGRATION_END 37
+
+-- WEBAPI_MIGRATION_START 38
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119123000_LegacyGlobalRevocationInheritance') THEN
+ALTER TABLE public.security_events DROP CONSTRAINT ck_security_event;
+ALTER TABLE public.security_events ADD CONSTRAINT ck_security_event CHECK (
+epoch > 0 AND length(previous_hash)=64 AND length(event_hash)=64 AND (
+    (event_type='CredentialRevoked' AND credential_id IS NOT NULL AND policy_json IS NULL)
+    OR (event_type='EnvironmentPolicyChanged' AND credential_id IS NULL AND policy_json IS NOT NULL)
+    OR (event_type='CredentialRevocationInherited' AND credential_id IS NOT NULL AND policy_json IS NULL)
+    OR (event_type='CredentialRevokedArchived' AND credential_id IS NOT NULL AND policy_json IS NOT NULL
+        AND pg_catalog.jsonb_typeof(policy_json)='string'
+        AND (policy_json #>> '{}') COLLATE "C" ~ '^[0-9a-f]{64}$')
+)
+);
+
+CREATE OR REPLACE FUNCTION public.credential_tombstone_matches_event() RETURNS trigger
+    LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.security_events e
+            WHERE e.environment_id=NEW.environment_id AND e.security_generation=NEW.security_generation
+              AND e.epoch=NEW.epoch AND e.operation_id=NEW.operation_id AND e.credential_id=NEW.credential_id
+              AND e.organization_id=NEW.organization_id AND e.project_id=NEW.project_id AND e.occurred_at=NEW.revoked_at
+              AND e.event_type IN ('CredentialRevoked','CredentialRevocationInherited','CredentialRevokedArchived')) THEN
+        RAISE EXCEPTION 'credential_tombstone_event_mismatch';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE FUNCTION public.security_legacy_global_revocation_guard() RETURNS trigger
+    LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_locks WHERE pid=pg_catalog.pg_backend_pid()
+            AND locktype='advisory' AND mode='ExclusiveLock' AND classid=0 AND objid=8901202 AND objsubid=1 AND granted) THEN
+        RAISE EXCEPTION 'security_legacy_global_revocation_fence_required' USING ERRCODE='23514';
+    END IF;
+    PERFORM pg_catalog.pg_advisory_xact_lock(8901202);
+
+    IF NOT EXISTS (SELECT 1
+            FROM public.security_operations o
+            JOIN public.application_credentials c ON c.id=o.credential_id AND c.application_id=o.application_id
+                AND c.organization_id=o.organization_id
+            JOIN public.applications a ON a.id=c.application_id AND a.organization_id=c.organization_id
+            WHERE o.id=NEW.operation_id AND o.organization_id=NEW.organization_id AND o.credential_id=NEW.credential_id
+              AND o.kind='CredentialRevoke' AND o.committed_at=NEW.occurred_at
+              AND c.binding_mode='LegacyGlobal' AND c.environment_id IS NULL
+              AND (c.project_id IS NULL OR c.project_id=NEW.project_id)
+              AND (a.project_id IS NULL OR a.project_id=NEW.project_id)) THEN
+        RAISE EXCEPTION 'security_legacy_global_revocation_scope_mismatch' USING ERRCODE='23514';
+    END IF;
+
+    IF NEW.event_type='CredentialRevocationInherited' THEN
+        IF NOT EXISTS (SELECT 1 FROM public.security_events origin
+                WHERE origin.operation_id=NEW.operation_id AND origin.organization_id=NEW.organization_id
+                  AND origin.credential_id=NEW.credential_id AND origin.occurred_at=NEW.occurred_at
+                  AND origin.environment_id<>NEW.environment_id
+                  AND origin.event_type IN ('CredentialRevoked','CredentialRevokedArchived')) THEN
+            RAISE EXCEPTION 'security_legacy_global_revocation_origin_missing' USING ERRCODE='23514';
+        END IF;
+    ELSE
+        -- A fresh statement snapshot is required after locking the environment
+        -- and its nodes so an older snapshot cannot hide a newly registered node.
+        IF pg_catalog.current_setting('transaction_isolation')<>'read committed' THEN
+            RAISE EXCEPTION 'security_archived_revocation_requires_read_committed' USING ERRCODE='23514';
+        END IF;
+        PERFORM id FROM public.environments
+            WHERE id=NEW.environment_id AND project_id=NEW.project_id AND status='Disabled' FOR UPDATE;
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'security_archived_revocation_ingress_unsealed' USING ERRCODE='23514';
+        END IF;
+        PERFORM id FROM public.gateway_nodes WHERE environment_id=NEW.environment_id ORDER BY id FOR UPDATE;
+        IF EXISTS (SELECT 1 FROM public.gateway_nodes WHERE environment_id=NEW.environment_id AND enabled) THEN
+            RAISE EXCEPTION 'security_archived_revocation_ingress_unsealed' USING ERRCODE='23514';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+CREATE TRIGGER security_legacy_global_revocation_event_guard BEFORE INSERT ON public.security_events
+    FOR EACH ROW WHEN (NEW.event_type IN ('CredentialRevocationInherited','CredentialRevokedArchived'))
+    EXECUTE FUNCTION public.security_legacy_global_revocation_guard();
+
+CREATE OR REPLACE FUNCTION public.gateway_registration_history_immutable() RETURNS trigger
+    LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+BEGIN
+    IF TG_OP='TRUNCATE' THEN
+        RAISE EXCEPTION 'gateway_registration_history_immutable' USING ERRCODE='23514';
+    END IF;
+    IF OLD.event_type='registered' THEN
+        RAISE EXCEPTION 'gateway_registration_history_immutable' USING ERRCODE='23514';
+    END IF;
+    IF TG_OP='UPDATE' AND NEW.event_type='registered' THEN
+        RAISE EXCEPTION 'gateway_registration_history_immutable' USING ERRCODE='23514';
+    END IF;
+    IF OLD.event_type='environment_archive_retired' OR
+            (TG_OP='UPDATE' AND NEW.event_type='environment_archive_retired') THEN
+        RAISE EXCEPTION 'gateway_archive_retirement_immutable' USING ERRCODE='23514';
+    END IF;
+    IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+    RETURN NEW;
+END;
+$$;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119123000_LegacyGlobalRevocationInheritance') THEN
+        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+        VALUES ('20261119123000_LegacyGlobalRevocationInheritance', '10.0.12');
+    END IF;
+END $EF$;
+-- WEBAPI_MIGRATION_END 38
+
+-- WEBAPI_MIGRATION_START 39
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119140000_FormalCredentialRotation') THEN
+CREATE TABLE public.formal_credential_rotations (
+    id uuid NOT NULL,
+    credential_id uuid NOT NULL,
+    replacement_credential_id uuid NOT NULL,
+    environment_id uuid NOT NULL,
+    hard_deadline timestamp with time zone NOT NULL,
+    recorded_at timestamp with time zone NOT NULL,
+    intent_hash character varying(64) NOT NULL,
+    CONSTRAINT "PK_formal_credential_rotations" PRIMARY KEY (id),
+    CONSTRAINT "FK_formal_credential_rotations_old_credential" FOREIGN KEY (credential_id)
+        REFERENCES public.application_credentials (id) ON DELETE RESTRICT,
+    CONSTRAINT "FK_formal_credential_rotations_replacement_credential" FOREIGN KEY (replacement_credential_id)
+        REFERENCES public.application_credentials (id) ON DELETE RESTRICT,
+    CONSTRAINT "FK_formal_credential_rotations_environment" FOREIGN KEY (environment_id)
+        REFERENCES public.environments (id) ON DELETE RESTRICT,
+    CONSTRAINT ck_formal_credential_rotation CHECK (
+id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND credential_id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND replacement_credential_id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND environment_id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND credential_id <> replacement_credential_id
+AND pg_catalog.isfinite(hard_deadline) AND pg_catalog.isfinite(recorded_at)
+AND hard_deadline > recorded_at
+AND intent_hash COLLATE "C" ~ '^[0-9a-f]{64}$'
+    )
+);
+CREATE INDEX "IX_formal_credential_rotations_credential_id"
+    ON public.formal_credential_rotations (credential_id);
+CREATE INDEX "IX_formal_credential_rotations_replacement_credential_id"
+    ON public.formal_credential_rotations (replacement_credential_id);
+CREATE INDEX "IX_formal_credential_rotations_hard_deadline_id"
+    ON public.formal_credential_rotations (hard_deadline, id);
+CREATE INDEX "IX_formal_credential_rotations_environment_id_hard_deadline"
+    ON public.formal_credential_rotations (environment_id, hard_deadline);
+
+CREATE FUNCTION public.formal_credential_rotation_immutable() RETURNS trigger
+    LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+BEGIN
+    RAISE EXCEPTION 'formal_credential_rotation_immutable' USING ERRCODE='23514';
+END;
+$$;
+CREATE TRIGGER formal_credential_rotation_no_change BEFORE UPDATE OR DELETE ON public.formal_credential_rotations
+    FOR EACH ROW EXECUTE FUNCTION public.formal_credential_rotation_immutable();
+CREATE TRIGGER formal_credential_rotation_no_truncate BEFORE TRUNCATE ON public.formal_credential_rotations
+    FOR EACH STATEMENT EXECUTE FUNCTION public.formal_credential_rotation_immutable();
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119140000_FormalCredentialRotation') THEN
+        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+        VALUES ('20261119140000_FormalCredentialRotation', '10.0.12');
+    END IF;
+END $EF$;
+-- WEBAPI_MIGRATION_END 39
+
+-- WEBAPI_MIGRATION_START 40
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119150000_FormalRotationDecision') THEN
+CREATE TABLE public.formal_rotation_decisions (
+    id uuid NOT NULL,
+    schedule_id uuid NOT NULL,
+    kind text COLLATE "C" NOT NULL,
+    recorded_at timestamp with time zone NOT NULL,
+    intent_hash text NOT NULL,
+    CONSTRAINT "PK_formal_rotation_decisions" PRIMARY KEY (id),
+    CONSTRAINT "FK_formal_rotation_decisions_schedule" FOREIGN KEY (schedule_id)
+        REFERENCES public.formal_credential_rotations (id) ON DELETE RESTRICT,
+    CONSTRAINT ck_formal_rotation_decision CHECK (
+id <> '00000000-0000-0000-0000-000000000000'::uuid
+AND kind IN ('Complete', 'AbortRequested', 'AbortConfirmed')
+AND pg_catalog.isfinite(recorded_at)
+AND intent_hash COLLATE "C" ~ '^[0-9a-f]{64}$'
+    )
+);
+CREATE UNIQUE INDEX "IX_formal_rotation_decisions_schedule_id_kind"
+    ON public.formal_rotation_decisions (schedule_id, kind);
+CREATE UNIQUE INDEX "IX_formal_rotation_decisions_schedule_complete_or_abort"
+    ON public.formal_rotation_decisions (schedule_id) WHERE kind IN ('Complete', 'AbortRequested');
+
+CREATE TRIGGER formal_rotation_decision_no_change BEFORE UPDATE OR DELETE ON public.formal_rotation_decisions
+    FOR EACH ROW EXECUTE FUNCTION public.formal_credential_rotation_immutable();
+CREATE TRIGGER formal_rotation_decision_no_truncate BEFORE TRUNCATE ON public.formal_rotation_decisions
+    FOR EACH STATEMENT EXECUTE FUNCTION public.formal_credential_rotation_immutable();
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "MigrationId" = '20261119150000_FormalRotationDecision') THEN
+        INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+        VALUES ('20261119150000_FormalRotationDecision', '10.0.12');
+    END IF;
+END $EF$;
+-- WEBAPI_MIGRATION_END 40
+
+
+
 DO $WEBAPI_MIGRATION_RECEIPT$
 DECLARE
     attempt uuid := pg_catalog.current_setting('webapi.migration_attempt_id')::uuid;
@@ -6893,7 +7225,7 @@ BEGIN
         historical_sql_hash,build_hash,recorded_at)
     VALUES(
         attempt,'Sql',NULLIF(pg_catalog.current_setting('webapi.migration_source_version'),''),
-        '20261104090000_Governance24MigrationReceipts',
+        '20261119150000_FormalRotationDecision',
         CASE WHEN cluster IS NULL OR database_oid IS NULL THEN 'Unknown' ELSE 'Observed' END,
         CASE WHEN database_oid IS NULL THEN NULL ELSE cluster END,
         CASE WHEN cluster IS NULL OR database_oid IS NULL THEN NULL ELSE pg_catalog.current_database() END,

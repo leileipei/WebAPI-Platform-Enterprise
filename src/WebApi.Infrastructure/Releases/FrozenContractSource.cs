@@ -11,7 +11,9 @@ internal static class FrozenContractSource
 {
     public static void Capture(WebApiDbContext db,ReleaseRecord release,FrozenReleaseCandidate candidate)
     {
-        if(db.Database.CurrentTransaction is null||release.ReleaseType!="publish"||release.ToConfigVersion<=0||candidate.EnvironmentId!=release.EnvironmentId)
+        if(db.Database.CurrentTransaction is null||
+            (release.ReleaseType!="publish" && (release.ReleaseType!="rollback" || candidate.GovernedRollback is null))||
+            release.ToConfigVersion<=0||candidate.EnvironmentId!=release.EnvironmentId)
             throw new InvalidOperationException("Frozen contract capture requires the compiled publish transaction.");
         for(var i=0;i<candidate.Versions.Count;i++)
         {
@@ -32,7 +34,7 @@ internal static class FrozenContractSource
               AND EXISTS (
                 SELECT 1 FROM release_records r
                 WHERE r.id=c.release_id AND r.environment_id=c.environment_id
-                  AND r.to_config_version=c.config_version AND r.release_type='publish'
+                  AND r.to_config_version=c.config_version AND r.release_type IN ('publish','rollback')
                   AND r.candidate_bytes IS NOT NULL AND r.approval_policy IS NOT NULL
                 OFFSET 0)
             ORDER BY c.config_version DESC,c.release_id,c.ordinal

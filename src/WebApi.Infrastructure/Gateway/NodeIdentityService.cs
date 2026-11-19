@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using WebApi.Contracts.Common;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Runtime;
 namespace WebApi.Infrastructure.Gateway;
 public sealed record NodeIdentity(Guid NodeId,Guid EnvironmentId,string Hash);
 public sealed record NodeEnrollment(Guid EnvironmentId,string NodeName,string Hash);
@@ -27,11 +28,19 @@ public sealed class NodeIdentityService(WebApiDbContext db,NodeEnrollmentSetting
     public string EnrollmentHash(Guid env,string name,string secret)
     {var enrollment=settings.Enrollments.SingleOrDefault(e=>e.EnvironmentId==env&&e.NodeName==name);if(enrollment is null||!Matches(secret,enrollment.Hash)) throw Denied();return enrollment.Hash;}
     public async Task<NodeIdentity> AuthenticateAsync(Guid id,string secret,CancellationToken ct=default)
-    {var node=await db.Set<GatewayNode>().AsNoTracking().SingleOrDefaultAsync(n=>n.Id==id&&n.Enabled,ct);if(node is null||!Matches(secret,node.IdentityHash)) throw Denied();return new(node.Id,node.EnvironmentId,node.IdentityHash);}
+    {var node=await ActiveNodes().AsNoTracking().SingleOrDefaultAsync(n=>n.Id==id,ct);if(node is null||!Matches(secret,node.IdentityHash)) throw Denied();return new(node.Id,node.EnvironmentId,node.IdentityHash);}
     public async Task<GatewayNode> RevalidateAsync(NodeIdentity identity,Guid? instance,CancellationToken ct)
     {
-        var valid=await db.Set<GatewayNode>().AsNoTracking().SingleOrDefaultAsync(n=>n.Id==identity.NodeId&&n.EnvironmentId==identity.EnvironmentId&&n.Enabled&&n.IdentityHash==identity.Hash,ct)??throw Denied();
+        var valid=await ActiveNodes().AsNoTracking().SingleOrDefaultAsync(n=>n.Id==identity.NodeId&&n.EnvironmentId==identity.EnvironmentId&&n.IdentityHash==identity.Hash,ct)??throw Denied();
         if(instance is Guid id&&valid.InstanceId!=id.ToString()) throw new ApiException(409,"node_instance_changed","节点实例已改变。");return await db.Set<GatewayNode>().SingleAsync(n=>n.Id==identity.NodeId,ct);
     }
+
+    private IQueryable<GatewayNode> ActiveNodes()
+    {
+        var active = RuntimeEnvironmentAccess.ActiveEnvironments(db);
+        var retired = RuntimeEnvironmentAccess.RetiredNodeIds(db);
+        return db.Set<GatewayNode>().Where(node => node.Enabled && !retired.Contains(node.Id) && active.Any(environment => environment.Id == node.EnvironmentId));
+    }
+
     public static ApiException Denied()=>new(401,"node_authentication_required","节点身份无效或已停用。");
 }

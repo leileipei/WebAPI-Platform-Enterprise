@@ -114,7 +114,7 @@ public sealed class ReleaseArtifactService(WebApiDbContext db, ScopeResolver sco
         if (candidate.EnvironmentId != release.EnvironmentId || candidate.OrganizationId != scope.OrganizationId || candidate.ProjectId != scope.ProjectId || candidate.VersionIds.Count == 0) throw Invalid();
         var baseline = candidate.BaselineConfigVersion > 0 ? (await history.ReadAsync(release.EnvironmentId, candidate.BaselineConfigVersion, ct)).Snapshot : new WebApi.Contracts.Runtime.RuntimeSnapshot("2.0", release.EnvironmentId, 0, deployment.Snapshot.Snapshot.GeneratedAt, [], [], [], []);
         // Recovery reuses an existing exact snapshot: validate its original publish candidate.
-        if (release.ReleaseType is "retry" or "rollback")
+        if (release.ReleaseType is ("retry" or "rollback") && candidate.GovernedRollback is null)
         {
             var origin = await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r => r.EnvironmentId == release.EnvironmentId && r.ReleaseType == "publish" && r.ToConfigVersion == release.ToConfigVersion, ct) ?? throw Invalid();
             try { candidate = JsonSerializer.Deserialize<FrozenReleaseCandidate>(origin.CandidateBytes ?? [], CanonicalJson.Options) ?? throw Invalid(); } catch (JsonException) { throw Invalid(); }
