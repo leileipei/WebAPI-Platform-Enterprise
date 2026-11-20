@@ -50,9 +50,18 @@ test('only a verified fixed archive and matching database can clear an evidence 
   const frozen={path:path.join(directory,'migration-evidence-input-'+randomUUID()+'.tar'),sha256:hash,identity:{}};
   const inspection={schemaVersion:1,attempts:1,pendingAttempts:0,sha256:hash,contentHash};
   const calls=[];
+  let postgresRunning=false;
   const ctx={directory,state,migrationEvidenceSupported:true,
-    compose:async(...args)=>calls.push(['compose',...args]),
-    raw:async(args)=>{calls.push(['raw',...args]);return {exitCode:0,stdout:JSON.stringify({schemaVersion:1,attempts:1,committedAttempts:1,contentHash:'c'.repeat(64),continuity:'Unknown'})};}};
+    compose:async(...args)=>{
+      calls.push(['compose',...args]);
+      if(args[0]==='up')postgresRunning=true;
+      if(args[0]==='stop')postgresRunning=false;
+    },
+    raw:async(args)=>{
+      assert.ok(postgresRunning);
+      calls.push(['raw',...args]);
+      return {exitCode:0,stdout:JSON.stringify({schemaVersion:1,attempts:1,committedAttempts:1,contentHash:'c'.repeat(64),continuity:'Unknown'})};
+    }};
   const options={inspect:async()=>[],verifyFrozen:async value=>{assert.equal(value,frozen);calls.push(['verify']);}};
   assert.equal(await backup.finishMigrationEvidenceRestore(directory,state,inspection,{ownerId:state.ownerId}),false);
   assert.ok((await fs.stat(file)).isFile());
@@ -62,6 +71,11 @@ test('only a verified fixed archive and matching database can clear an evidence 
   assert.ok(command.includes('WEBAPI_MIGRATION_ARCHIVE_CONTENT_SHA256='+contentHash));
   assert.ok(!command.includes('--volume'));
   assert.equal(calls.filter(call=>call[0]==='verify').length,2);
+  assert.deepEqual(calls.filter(call=>call[0]==='compose'),[
+    ['compose','up','-d','--wait','postgres'],
+    ['compose','stop','postgres']
+  ]);
+  assert.equal(postgresRunning,false,'Restore rebind must be able to proceed with PostgreSQL stopped');
   assert.equal(await backup.finishMigrationEvidenceRestore(directory,state,inspection,verified),true);
   await assert.rejects(fs.stat(file),{code:'ENOENT'});
 });
@@ -75,9 +89,20 @@ test('mismatched restored database or changed archive leaves the restore marker 
   await fs.writeFile(file,JSON.stringify({schemaVersion:1,ownerId:state.ownerId,projectName:state.projectName}),{mode:0o600});
   const frozen={path:path.join(directory,'migration-evidence-input-'+randomUUID()+'.tar'),sha256:hash,identity:{}};
   const inspection={schemaVersion:1,attempts:1,pendingAttempts:0,sha256:hash,contentHash};
-  const ctx={directory,state,migrationEvidenceSupported:true,compose:async()=>{},raw:async()=>({exitCode:0,stdout:JSON.stringify({schemaVersion:1,attempts:1,committedAttempts:0,contentHash:'c'.repeat(64),continuity:'Unknown'})})};
-  await assert.rejects(backup.verifyRestoredMigrationEvidence(ctx,frozen,inspection,{inspect:async()=>[],verifyFrozen:async()=>{}}));
-  await assert.rejects(backup.verifyRestoredMigrationEvidence(ctx,frozen,inspection,{inspect:async()=>[],verifyFrozen:async()=>{throw Error('archive changed');}}));
+  const calls=[];
+  const ctx={directory,state,migrationEvidenceSupported:true,compose:async(...args)=>calls.push(args),
+    raw:async()=>({exitCode:0,stdout:JSON.stringify({schemaVersion:1,attempts:1,committedAttempts:0,contentHash:'c'.repeat(64),continuity:'Unknown'})})};
+  const options={inspect:async()=>[],verifyFrozen:async()=>{}};
+  await assert.rejects(backup.verifyRestoredMigrationEvidence(ctx,frozen,inspection,options),/Invalid migration evidence verification result/);
+  assert.deepEqual(calls,[['up','-d','--wait','postgres'],['stop','postgres']]);
+  const stopFailed={...ctx,compose:async(action)=>{if(action==='stop')throw Error('PostgreSQL stop failed');}};
+  await assert.rejects(backup.verifyRestoredMigrationEvidence(stopFailed,frozen,inspection,options),
+    error=>error.message==='Invalid migration evidence verification result'&&error.cleanupError?.message==='PostgreSQL stop failed');
+  const verifiedButRunning={...stopFailed,raw:async()=>({
+    exitCode:0,stdout:JSON.stringify({schemaVersion:1,attempts:1,committedAttempts:1,contentHash,continuity:'Unknown'})
+  })};
+  await assert.rejects(backup.verifyRestoredMigrationEvidence(verifiedButRunning,frozen,inspection,options),/PostgreSQL stop failed/);
+  await assert.rejects(backup.verifyRestoredMigrationEvidence(ctx,frozen,inspection,{...options,verifyFrozen:async()=>{throw Error('archive changed');}}));
   assert.ok((await fs.stat(file)).isFile());
 });
 
