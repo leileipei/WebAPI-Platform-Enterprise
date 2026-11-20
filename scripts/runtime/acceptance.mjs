@@ -59,11 +59,27 @@ export async function cleanupFixture(directory,fallbackRelease,deps={}){
  await ctx.compose('--profile','tools','down','--volumes','--remove-orphans');const remaining=await inspect(state);validateCleanupResources(state,remaining);if(remaining.length)throw Error('Disposable resources remain');await recheck();await fs.rm(directory,{recursive:true,force:true});return{containersRemaining:0,volumesRemaining:0,secretFilesRemaining:0};
  },{token:deps.targetLock,forceParent:parentWritable});
 }
+export async function prepareAcceptanceContext(directory,state,release){
+ const ctx=await prepareContext(directory,state,release);
+ const override=path.join(ctx.directory,'acceptance-override.json');
+ const services={
+  worker:{environment:{Alerts__IntervalSeconds:'2',Alerts__QueryDelaySeconds:'5'}},
+  'control-plane':{environment:{Observability__TraceSampleRatio:'1'}}
+ };
+ if(ctx.state.binding){
+  for(const name of ['gateway-a','gateway-b']){
+   services[name]={environment:{Observability__TraceSampleRatio:'1',Observability__MetricExportIntervalMs:'1000'}};
+  }
+ }
+ await writePrivate(override,{services});
+ ctx.files.push('-f',override);
+ return ctx;
+}
 export async function runAcceptance({releaseManifest,directory,projectName,browser=false,restoreBudget,storageVerifier},deps={}){
  restoreBudget=requireRestoreIntegration({restoreBudget,storageVerifier});
  const snapshot=deps.oldSnapshot??oldSnapshot;
  validateFixture(projectName,directory);const started=Date.now(),before=isLocalDockerEndpointBound()?undefined:await snapshot(),proof={complete:false,projectName,sourceRevision:releaseManifest.sourceRevision,classification:'actual-persistent-runtime-http-three-source-restart-and-cold-restore',limitations:['Linux ARM64 only','Short windows in disposable acceptance','No seven-day elapsed retention','No enterprise upstream/production TLS/HA/SLA/external notifications'],cleanup:null};let state,scenario,restoreDirectory,sampler,failed=false,primaryError;
- const override=path.join(directory,'acceptance-override.json');const contextFactory=async(d,s,r)=>{const ctx=await prepareContext(d,s,r);await writePrivate(override,{services:{worker:{environment:{Alerts__IntervalSeconds:'2',Alerts__QueryDelaySeconds:'5'}},'control-plane':{environment:{Observability__TraceSampleRatio:'1'}},...(s.binding?{'gateway-a':{environment:{Observability__TraceSampleRatio:'1',Observability__MetricExportIntervalMs:'1000'}},'gateway-b':{environment:{Observability__TraceSampleRatio:'1',Observability__MetricExportIntervalMs:'1000'}}}:{})}});ctx.files.push('-f',override);return ctx;};
+ const contextFactory=prepareAcceptanceContext;
  try{
   if(deps.beforeScenario)await deps.beforeScenario();
   await fs.mkdir(path.dirname(directory),{recursive:true});const releaseFile=path.join(path.dirname(directory),projectName+'-release.json');await writePrivate(releaseFile,releaseManifest);
