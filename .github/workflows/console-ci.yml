@@ -39,7 +39,7 @@ jobs:
           package-manager-cache: false
 
       - name: Test restore storage safeguards
-        run: node --test tests/runtime/restore-storage-budget.test.mjs tests/runtime/restore-quota-provider.test.mjs
+        run: node --test tests/runtime/restore-storage-budget.test.mjs tests/runtime/restore-quota-provider.test.mjs tests/runtime/migration-evidence-inspection.test.mjs
 
       - name: Install pnpm
         run: npm install --global pnpm@11.25.0 --ignore-scripts --no-audit --no-fund

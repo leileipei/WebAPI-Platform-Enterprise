@@ -17,6 +17,7 @@ import {createRestoreIntent,writeRestoreReference,writeRestoreCompletion} from '
 import {ensureDirectoryDurable,withRestoreTargetLock} from './restore-target-lock.mjs';
 import {resolveRestoreReleaseCapabilities,verifyRestoreRevisionIdentity} from './restore-release-capabilities.mjs';
 import {validateRestoreStorageBudget,requireRestoreIntegration,requireBoundRestoreProof,requireRestoreStorageProof,persistRestoreStorageProof} from './restore-storage-budget.mjs';
+import {attachScenarioFailure} from './scenario-failure.mjs';
 const verifiedMigrationRestores=new WeakSet();
 const initializerPermits=new WeakMap();
 export async function inspectMigrationEvidenceArchive(file,imageId,{validate=validateMigrationEvidenceArchive,hash=hashMigrationEvidenceArchive,run=docker,openInput=async name=>fs.open(name,constants.O_RDONLY|constants.O_NOFOLLOW),expectedHash}={}){
@@ -74,16 +75,27 @@ export async function verifyRestoredMigrationEvidence(ctx,frozen,inspection,{ins
     inspection.pendingAttempts!==0||!/^[a-f0-9]{64}$/.test(inspection.contentHash??'')||!frozen||frozen.sha256!==inspection.sha256||!/^[a-f0-9]{64}$/.test(frozen.sha256??'')||
     path.dirname(frozen.path??'')!==directory||/[\u0000\r\n,:]/.test(frozen.path??''))throw Error('Invalid restored migration evidence identity');
  await verifyFrozen(frozen);assertOwnership(ctx.state,await inspect(ctx.state));
- await ctx.compose('up','-d','--wait','postgres');assertOwnership(ctx.state,await inspect(ctx.state));
- const result=await ctx.raw(['run','--rm','-T','--no-deps','-e','WEBAPI_MIGRATION_ARCHIVE_CONTENT_SHA256='+inspection.contentHash,
-  '-e','WEBAPI_MIGRATION_ARCHIVE_ATTEMPTS='+inspection.attempts,'-e','WEBAPI_MIGRATION_ARCHIVE_PENDING=0',
-  'migrator','dotnet','/app/migrator/WebApi.Migrator.dll','--verify-evidence-restore-digest'],{allowFailure:true});
- if(result.exitCode!==0||typeof result.stdout!=='string'||result.stdout.length>4096)throw Error('Restored migration evidence database verification failed');
- let report;try{report=JSON.parse(result.stdout);}catch{throw Error('Invalid migration evidence verification result');}
- if(!report||JSON.stringify(Object.keys(report).sort())!==JSON.stringify(['attempts','committedAttempts','contentHash','continuity','schemaVersion'])||
-    report.schemaVersion!==1||report.attempts!==inspection.attempts||!Number.isSafeInteger(report.committedAttempts)||
-    report.committedAttempts<1||report.committedAttempts>report.attempts||report.contentHash!==inspection.contentHash||report.continuity!=='Unknown')
-  throw Error('Invalid migration evidence verification result');
+ let report,verificationError;
+ try{
+  await ctx.compose('up','-d','--wait','postgres');
+  assertOwnership(ctx.state,await inspect(ctx.state));
+  const result=await ctx.raw(['run','--rm','-T','--no-deps','-e','WEBAPI_MIGRATION_ARCHIVE_CONTENT_SHA256='+inspection.contentHash,
+   '-e','WEBAPI_MIGRATION_ARCHIVE_ATTEMPTS='+inspection.attempts,'-e','WEBAPI_MIGRATION_ARCHIVE_PENDING=0',
+   'migrator','dotnet','/app/migrator/WebApi.Migrator.dll','--verify-evidence-restore-digest'],{allowFailure:true});
+  if(result.exitCode!==0||typeof result.stdout!=='string'||result.stdout.length>4096)throw Error('Restored migration evidence database verification failed');
+  try{report=JSON.parse(result.stdout);}catch{throw Error('Invalid migration evidence verification result');}
+  if(!report||JSON.stringify(Object.keys(report).sort())!==JSON.stringify(['attempts','committedAttempts','contentHash','continuity','schemaVersion'])||
+     report.schemaVersion!==1||report.attempts!==inspection.attempts||!Number.isSafeInteger(report.committedAttempts)||
+     report.committedAttempts<1||report.committedAttempts>report.attempts||report.contentHash!==inspection.contentHash||report.continuity!=='Unknown')
+   throw Error('Invalid migration evidence verification result');
+ }catch(error){
+  verificationError=error;
+  throw error;
+ }finally{
+  // The isolated verifier's database must be stopped before clone usage can be rebound.
+  try{await ctx.compose('stop','postgres');}
+  catch(error){throw verificationError?attachScenarioFailure(verificationError,'cleanupError',error):error;}
+ }
  await verifyFrozen(frozen);
  const markerFile=path.join(directory,'restore-pending.json');await safeFile(markerFile);const marker=await fs.lstat(markerFile);
  if(marker.nlink!==1)throw Error('Restore pending identity changed');
