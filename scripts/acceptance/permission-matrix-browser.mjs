@@ -306,6 +306,8 @@ async function main() {
       const newCell = grant(movedMatrix, fixture.apiId, fixture.prodId);
       assert.equal(newCell.id, legacy.id);
       assert.equal(newCell.revision, legacy.revision + 1);
+      await button(page, '上一页').click();
+      await button(page, '编辑授权 订单 · 生产环境').waitFor();
       await checkpoint(page, 'B02-legacy-move-readback', {sourceGone:true, sameId:true, advancedRevision:true});
 
       phase = 'organization-shared-application';
@@ -357,7 +359,13 @@ async function main() {
       await eventually(async () => assert.equal((await jsonGet(session, '/api/v1/auth/me')).permissions.includes('app.permission.manage'), false));
       await eventually(async () => assert.equal(await save(page).count(), 0));
       assert.equal(grant(await readMatrix(session), fixture.apiId, fixture.environmentId), undefined);
-      await checkpoint(page, 'B02-revoked-current-session', {status:403, editClosed:true, absentAfter:true});
+      phase = 'read-refresh-after-permission-revocation';
+      await button(page, 'API 授权').click();
+      await button(page, '重新读取矩阵').click();
+      await table(page).waitFor();
+      await eventually(async () => assert.equal(await choice(page, '订单', '测试环境').isDisabled(), true));
+      assert.equal(await button(page, '新增授权 订单 · 测试环境').count(), 0);
+      await checkpoint(page, 'B02-revoked-current-session', {status:403, editClosed:true, absentAfter:true, reloadedReadOnly:true});
     });
 
     results.passed = true;

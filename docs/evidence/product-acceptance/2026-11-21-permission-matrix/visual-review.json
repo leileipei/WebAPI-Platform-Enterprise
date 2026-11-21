@@ -1,0 +1,162 @@
+{
+  "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+  "reviewedAt": "2026-11-21T14:49:19.159612+00:00",
+  "reviewed": 14,
+  "passed": true,
+  "cases": [
+    {
+      "id": "B02-matrix-and-window-states",
+      "file": "B02-matrix-and-window-states.png",
+      "sha256": "bc8d485e7846366a07c7d381f187c801fbf328f740ad94ad5dc45bcee3998e44",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "两个环境列及生产标识清晰，历史授权的已过期和待生效分开显示。"
+    },
+    {
+      "id": "B02-cross-page-selection",
+      "file": "B02-cross-page-selection.png",
+      "sha256": "6363b53c07f8b58cbabd7c704b2292139c4e61609ed5c7b6006e9401faef40e4",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "第 2 页和总数 55 可读，上一页选择计入两项，末页单元已选。"
+    },
+    {
+      "id": "B02-batch-grant-preview",
+      "file": "B02-batch-grant-preview.png",
+      "sha256": "dfcc1b2f38d26807daf4ef81627ee9093e58c63ef7715aafab9bb4953e365014",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "两个目标都展示工作配置前后及未确认运行依据。"
+    },
+    {
+      "id": "B02-batch-grant-readback",
+      "file": "B02-batch-grant-readback.png",
+      "sha256": "b9a3cbf6323b3327f903a90db8e41125582a6fc4c1b0b776ddf6da4854b61993",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "回执确认两项工作变更，末页单元已取得旧版授权。"
+    },
+    {
+      "id": "B02-production-confirmation",
+      "file": "B02-production-confirmation.png",
+      "sha256": "728a400224b03040e17de27caee565870fdb34f82444979509bfbf8ba56c8c1d",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "1280 像素窗口内路由和方法清晰，未确认时提交禁用。"
+    },
+    {
+      "id": "B02-window-preview",
+      "file": "B02-window-preview.png",
+      "sha256": "9592319e83ba8e7953ff4328df42f00c18c0cd2cfc33bcf61de48882a7fc940a",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "两种授权模式、原生效时间、更新失效时间和生产确认可核对。"
+    },
+    {
+      "id": "B02-revoke-preview",
+      "file": "B02-revoke-preview.png",
+      "sha256": "773e471826f1ae32707fd398e5e19bf0fd19e5abbea5cff69351212314d02a16",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "两项授权变更后的未授权状态清晰，生产操作带确认。"
+    },
+    {
+      "id": "B02-revoke-readback",
+      "file": "B02-revoke-readback.png",
+      "sha256": "d6826055435fb0103d0dc6ab82e782b11ad03a64019f7d5a0135768458c8d438",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "两个订单单元回到未授权，历史授权仍显示。"
+    },
+    {
+      "id": "B02-legacy-move-preview",
+      "file": "B02-legacy-move-preview.png",
+      "sha256": "4c45701f587ce29d788fc3c41fc9be1b1d91d27537dddad6c3ce1e996d2b3ca3",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "来源和目标标题明确，工作前后差异和生产确认均可见。"
+    },
+    {
+      "id": "B02-legacy-move-readback",
+      "file": "B02-legacy-move-readback.png",
+      "sha256": "3d1dc38d7857c438cd2e75b75dd0ce7de7d9156e593aa2763fcc8dafe9694830",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "一项提交回执和生产环境目标授权可见，后端已核对保持 ID。"
+    },
+    {
+      "id": "B02-shared-project-scope",
+      "file": "B02-shared-project-scope.png",
+      "sha256": "ffe0b3d22779bcec773c8420a52a57ad13f448975134bc4e20168cd404c0878e",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "共享应用选择项目 B 后只显示联调环境和该项目 API。"
+    },
+    {
+      "id": "B02-read-only-scope",
+      "file": "B02-read-only-scope.png",
+      "sha256": "0c0435e536aa8125030f917c98fc5d0425f083499f601e4230c73498d0b766e8",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "可读历史和当前授权，选择与写操作控件禁用。"
+    },
+    {
+      "id": "B02-no-environment-read",
+      "file": "B02-no-environment-read.png",
+      "sha256": "2a875db4e476ceea75dbf45367daa65136e23a148d58afa272c7e4b1fd38ad12",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "没有环境列，顶部环境控件显示无可访问环境。"
+    },
+    {
+      "id": "B02-revoked-current-session",
+      "file": "B02-revoked-current-session.png",
+      "sha256": "7aa5f7fc3192ab5029994151ec47968e8ec3efb5fb35ed08f5a4ecfee5ae0280",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visuallyInspected": true,
+      "observation": "同会话重新读取后只读矩阵稳定显示，权限操作禁用，原草稿不再显示。"
+    }
+  ]
+}

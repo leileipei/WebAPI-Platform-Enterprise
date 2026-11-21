@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "reviewedMainRevision": "1ead23c6f8f2778f1547264533622a759962b729",
-  "updatedAt": "2026-11-21T14:18:46.254323+00:00",
+  "updatedAt": "2026-11-21T14:49:19.159612+00:00",
   "historicalLedger": {
     "path": "docs/evidence/work-package4/requirements-closeout.json",
     "sha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
@@ -14,10 +14,10 @@
     },
     "modified": false
   },
-  "countingRule": "当前验收独立于历史状态；13 个浏览器观察和10项HTTP测试共享于3个需求，不能相加为需求完成数。",
+  "countingRule": "分批保留固定产品版本、原需求 ID 与实际证据。浏览器观察、测试和重复运行不累计为需求数。历史状态独立保留。",
   "currentStatusCounts": {
-    "隔离验收通过": 3,
-    "待复验": 451
+    "隔离验收通过": 14,
+    "待复验": 440
   },
   "batches": [
     {
@@ -38,7 +38,7 @@
     {
       "id": "B02",
       "name": "API 授权矩阵",
-      "status": "实现与验证进行中",
+      "status": "隔离验收通过；分支检查另行记录",
       "requirementIds": [
         "P21-C01",
         "P21-C02",
@@ -51,7 +51,9 @@
         "P21-S01",
         "P21-S02",
         "P21-P01"
-      ]
+      ],
+      "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+      "evidenceRef": "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md"
     },
     {
       "id": "B03",
@@ -4023,11 +4025,19 @@
       "historicalStatus": "部分",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-C01",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-matrix-and-window-states",
+          "B02-batch-grant-readback"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-matrix-and-window-states",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-batch-grant-readback",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4038,11 +4048,21 @@
       "historicalStatus": "部分",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-C02",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-matrix-and-window-states",
+          "B02-shared-project-scope",
+          "B02-no-environment-read"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-matrix-and-window-states",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-shared-project-scope",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-no-environment-read",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4053,11 +4073,19 @@
       "historicalStatus": "待复验",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-C03",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-matrix-and-window-states",
+          "B02-window-preview"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-matrix-and-window-states",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-window-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4068,11 +4096,21 @@
       "historicalStatus": "缺失",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-C04",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-cross-page-selection",
+          "B02-batch-grant-preview",
+          "B02-legacy-move-preview"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-cross-page-selection",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-batch-grant-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-legacy-move-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4083,11 +4121,23 @@
       "historicalStatus": "部分",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-C05",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-batch-grant-preview",
+          "B02-window-preview",
+          "B02-legacy-move-preview",
+          "B02-revoke-preview"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-batch-grant-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-window-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-legacy-move-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-revoke-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4098,11 +4148,19 @@
       "historicalStatus": "待复验",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-A01",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-batch-grant-readback",
+          "B02-production-confirmation"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-batch-grant-readback",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-production-confirmation",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4113,11 +4171,19 @@
       "historicalStatus": "部分",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-A02",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-revoke-preview",
+          "B02-revoke-readback"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-revoke-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-revoke-readback",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4128,11 +4194,17 @@
       "historicalStatus": "待复验",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-A03",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-window-preview"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-window-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4143,11 +4215,19 @@
       "historicalStatus": "部分",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-S01",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-production-confirmation",
+          "B02-legacy-move-preview"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-production-confirmation",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-legacy-move-preview",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4158,11 +4238,17 @@
       "historicalStatus": "待复验",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-S02",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-matrix-and-window-states"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-matrix-and-window-states",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
@@ -4173,11 +4259,21 @@
       "historicalStatus": "待复验",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P21-P01",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+        "verifiedAt": "2026-11-21T14:47:31.700Z",
+        "scenarioIds": [
+          "B02-read-only-scope",
+          "B02-no-environment-read",
+          "B02-revoked-current-session"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/README.md",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-read-only-scope",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-no-environment-read",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/browser-results.json#B02-revoked-current-session",
+          "docs/evidence/product-acceptance/2026-11-21-permission-matrix/verification-manifest.json"
+        ]
       }
     },
     {
