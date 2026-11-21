@@ -1,5 +1,31 @@
 # 当前源码与验证状态
 
+## 2026-11-21 PR #22 合并后主线复跑及 P12
+
+
+PR #22 于 2026-11-21 14:33:31（北京时间）合入 `main`。受测候选为 `6b0cf2c9be7a03d8e03042fb5188f5db4a438b0f`，合并提交为 `1ead23c6f8f2778f1547264533622a759962b729`，两者的文件树一致。该修订补齐了撤销回执的退役实例覆盖，以及一致备份恢复时网关对已验证拒绝状态的正常交接。 [PR #22](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/22) · [合并提交](https://github.com/leileipei/WebAPI-Platform-Enterprise/commit/1ead23c6f8f2778f1547264533622a759962b729)
+
+合并前本机全量 **5,199 项通过、0 项失败、0 项跳过**，包括 Domain 1,426、Gateway 639、PostgreSQL Integration 2,671 和 Console 463 项。实际运行记录位于本机 `deliverables/credential-preproduction-followup-20261121.ugh4tZ/final-ci/local-gates.json`。
+
+以下两条工作流由 `main` 的 push 触发，均绑定合并提交 `1ead23c6f8f2778f1547264533622a759962b729`。四项必需检查均在首次执行中通过。最后一个作业于 2026-11-21 15:36:03（北京时间）完成。 [Console CI 44876113139](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113139) · [Contracts CI 44876113132](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113132)
+
+| 必需检查 | 结果 | 通过项 | 失败项 | 跳过项 | GitHub 原始日志 |
+| --- | --- | ---: | ---: | ---: | --- |
+| `console` | 通过 | 463 | 0 | 0 | [作业 136761053418 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113139/job/136761053418) |
+| `contracts-domain` | 通过 | 1,426 | 0 | 0 | [作业 136761053447 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113132/job/136761053447) |
+| `contracts-gateway` | 通过 | 639 | 0 | 0 | [作业 136761053253 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113132/job/136761053253) |
+| `contracts-integration` | 通过 | 2,671 | 0 | 0 | [作业 136761053648 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113132/job/136761053648) |
+
+### P12 项目主管批准结项
+
+本轮凭证治理专属预生产 P01–P11 技术复验通过。项目主管于 2026-11-21 直接批准 P12 结项，P12 登记为 `completed_by_project_supervisor_approval`，本轮预生产整体验收为 `accepted_preproduction`。
+
+运维和业务两角色的可核验具名确认仍为 **0/2**。双方同意的转达、OA 流程编号和项目主管的直接批准已随本地结项回执归档。纸质原件、签名附件和重签均已免除。
+
+回执绑定本节所列候选提交及 PR #22 合并提交。原技术资格 SHA-256 为 `b47cacad1cae23cbddf01bb4f7761b763a7f2c7512316db3bca97e5a1e7b4582`，结项回执 SHA-256 为 `d6db4673c32040bc70f1659c92693ee37f03ee4d8a14bfade9021dbaa710b2d0`。结项时逐项校验了原技术封存的 34,068 项文件，并引用本节所列四项必需检查的主线复跑记录。
+
+实际生产登记为 `awaiting_target`。
+
 ## 2026-11-21：项目计数首批隔离验收
 
 本轮从已核对的 GitHub main `1ead23c6f8f2778f1547264533622a759962b729`（PR #22）建立独立分支。该主线的 console、contracts-domain、contracts-gateway、contracts-integration 四项 Actions 均已通过；本批分支的合并门槛另行执行。
