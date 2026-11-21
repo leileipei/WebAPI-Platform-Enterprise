@@ -1,5 +1,9 @@
 # 当前源码与验证状态
 
+## 2026-11-21 API 授权矩阵隔离验收
+
+产品候选 `9f45b97` 完成原第 21 页 11 项隔离验收。API 与环境矩阵支持跨页选择、批量授权、有效期、撤权和旧版授权原子移动。所有矩阵变更有影响预览，生产环境需要确认。真实 HTTP 定向回归 34 通过，固定源码浏览器观察点和截图复核 14 通过。首批项目计数和本批合计 14 项隔离验收通过，其余 440 项待复验。分支全量和 GitHub 检查单列回执。[矩阵验收](../evidence/product-acceptance/2026-11-21-permission-matrix/README.md) · [当前逐项台账](requirements-acceptance-current.json)
+
 ## 2026-11-21 本地主线同步与归档核对
 
 PR #19–#23 已合入，合并身份、实际主线复跑和旧未提交资料的取舍见[合并归档](main-merge-archive-20261121.md)。本地主线先从 `b569add` 快进到 `3b8a672`，再接续 P12 合并提交 `323e0dc`，旧工作树、两份 stash、通知恢复桥及性能对照分支均保留。后续同步及本次文档 PR 的结果按各自运行回执追加到本机最终报告。
@@ -51,6 +55,8 @@ PR #22 于 2026-11-21 14:33:31（北京时间）合入 `main`。受测候选为 
 实际生产登记为 `awaiting_target`。
 
 ## 2026-11-21：项目计数首批隔离验收
+
+[PR #23](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/23) 已合入 main `3b8a672a99d84e17ea9ff887b35267bdaf326eba`，与已检查 PR 提交文件树一致。main 自动复跑四项共 5,204 通过、0 失败、0 跳过。本批产品浏览器证据仍绑定原产品提交。[主线复跑回执](../evidence/product-acceptance/2026-11-21-project-counts/post-merge-main.json)
 
 本轮从已核对的 GitHub main `1ead23c6f8f2778f1547264533622a759962b729`（PR #22）建立独立分支。该主线的 console、contracts-domain、contracts-gateway、contracts-integration 四项 Actions 均已通过；本批分支的合并门槛另行执行。
 
