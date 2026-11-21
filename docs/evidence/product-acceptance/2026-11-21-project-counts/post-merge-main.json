@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-21T14:18:46.254323+00:00",
+  "pullRequest": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/23",
+  "mergedAt": "2026-11-21T13:07:31Z",
+  "productRevision": "1ead23c6f8f2778f1547264533622a759962b729",
+  "checkedPullRequestHead": "fb96ffbfa88fb08ab0d64e71578111882a486e01",
+  "mainRevision": "3b8a672a99d84e17ea9ff887b35267bdaf326eba",
+  "mainTree": "707d31f561cd340eaa907d3d355dc09c8cf96917",
+  "mainTreeMatchesCheckedHead": true,
+  "workflows": [
+    {
+      "id": 44907282212,
+      "name": "Console CI",
+      "head_branch": "main",
+      "event": "push",
+      "run_attempt": 1,
+      "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907282212",
+      "head_sha": "3b8a672a99d84e17ea9ff887b35267bdaf326eba",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 44907282252,
+      "name": "Contracts CI",
+      "head_branch": "main",
+      "event": "push",
+      "run_attempt": 1,
+      "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907282252",
+      "head_sha": "3b8a672a99d84e17ea9ff887b35267bdaf326eba",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "checks": [
+    {
+      "id": 136855451877,
+      "name": "console",
+      "head_sha": "3b8a672a99d84e17ea9ff887b35267bdaf326eba",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907282212/job/136855451877",
+      "started_at": "2026-11-21T13:07:37Z",
+      "completed_at": "2026-11-21T13:08:13Z",
+      "passed": 468,
+      "failed": 0,
+      "skipped": 0,
+      "components": {
+        "consoleNode": 339,
+        "python": 94,
+        "runtimeAndAcceptanceGuards": 35
+      },
+      "build": "success",
+      "log": {
+        "file": "pr23-main-job-136855451877.log",
+        "sha256": "eaffe216f6135eada6725f13b88af55ad9829fef18fc97acb6ecaf6724438614"
+      }
+    },
+    {
+      "id": 136855452062,
+      "name": "contracts-domain",
+      "head_sha": "3b8a672a99d84e17ea9ff887b35267bdaf326eba",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907282252/job/136855452062",
+      "started_at": "2026-11-21T13:07:39Z",
+      "completed_at": "2026-11-21T13:10:12Z",
+      "passed": 1426,
+      "failed": 0,
+      "skipped": 0,
+      "log": {
+        "file": "pr23-main-job-136855452062.log",
+        "sha256": "c53d7c715e23d1c45d30a751f1a347f19e1a1ebc1bac420cd4b13fc974540750"
+      }
+    },
+    {
+      "id": 136855452241,
+      "name": "contracts-gateway",
+      "head_sha": "3b8a672a99d84e17ea9ff887b35267bdaf326eba",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907282252/job/136855452241",
+      "started_at": "2026-11-21T13:07:39Z",
+      "completed_at": "2026-11-21T13:19:10Z",
+      "passed": 639,
+      "failed": 0,
+      "skipped": 0,
+      "log": {
+        "file": "pr23-main-job-136855452241.log",
+        "sha256": "01fbc64eba6ae619946f287e80a997368072f69f8875922aea319acd3b9a0ce2"
+      }
+    },
+    {
+      "id": 136855452250,
+      "name": "contracts-integration",
+      "head_sha": "3b8a672a99d84e17ea9ff887b35267bdaf326eba",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907282252/job/136855452250",
+      "started_at": "2026-11-21T13:07:39Z",
+      "completed_at": "2026-11-21T14:17:27Z",
+      "passed": 2671,
+      "failed": 0,
+      "skipped": 0,
+      "log": {
+        "file": "pr23-main-job-136855452250.log",
+        "sha256": "6f8afabebc00a8f78843a48baca253ddafa4925eb516f9c994ca9b5c9749a2c1"
+      }
+    }
+  ],
+  "totals": {
+    "passed": 5204,
+    "failed": 0,
+    "skipped": 0
+  },
+  "succeeded": true,
+  "rawArtifacts": {
+    "pr23-main-check-runs.raw.json": "c3b15c578f4d4ac1a1fe7c788b91566278375bb5cc064cdc829f985b9263f090",
+    "pr23-main-workflow-runs.raw.json": "6811f77347e2b3f8e5183c6e2bf73f957c97c26fa08070ca05e755cfc1096576"
+  },
+  "scope": "GitHub main push rerun; browser acceptance remains bound to the first batch product revision and isolated fixture."
+}

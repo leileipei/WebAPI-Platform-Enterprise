@@ -2,6 +2,8 @@
 
 ## 2026-11-21：项目计数首批隔离验收
 
+[PR #23](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/23) 已合入 main `3b8a672a99d84e17ea9ff887b35267bdaf326eba`，与已检查 PR 提交文件树一致。main 自动复跑四项共 5,204 通过、0 失败、0 跳过。本批产品浏览器证据仍绑定原产品提交。[主线复跑回执](../evidence/product-acceptance/2026-11-21-project-counts/post-merge-main.json)
+
 本轮从已核对的 GitHub main `1ead23c6f8f2778f1547264533622a759962b729`（PR #22）建立独立分支。该主线的 console、contracts-domain、contracts-gateway、contracts-integration 四项 Actions 均已通过；本批分支的合并门槛另行执行。
 
 `P04-C03`、`P04-C04`、`P04-C05` 已补齐真实后端与 1440px 浏览器证据：现有 HTTP 回归 10 项通过，10 类账号/范围组合的 13 个浏览器观察点通过，13 张截图逐张复核。覆盖三类计数、0 与无权限空值、共享应用排除、多版本和重叠 Scope、仅环境范围、其他项目隔离及已有会话撤权。运行容器的 1,077 份后端输入及实际返回的 3 份静态资源均已核对摘要。[首批验收记录](../evidence/product-acceptance/2026-11-21-project-counts/README.md)

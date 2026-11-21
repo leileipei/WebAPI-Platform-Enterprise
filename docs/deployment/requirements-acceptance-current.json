@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "reviewedMainRevision": "1ead23c6f8f2778f1547264533622a759962b729",
-  "updatedAt": "2026-11-21T09:14:16.855477+00:00",
+  "updatedAt": "2026-11-21T14:18:46.254323+00:00",
   "historicalLedger": {
     "path": "docs/evidence/work-package4/requirements-closeout.json",
     "sha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
@@ -23,17 +23,22 @@
     {
       "id": "B01",
       "name": "项目列表计数",
-      "status": "隔离验收通过；合并门槛待完成",
+      "status": "隔离验收通过；已合并且 main 复跑通过",
       "requirementIds": [
         "P04-C03",
         "P04-C04",
         "P04-C05"
-      ]
+      ],
+      "integration": {
+        "pullRequest": "https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/23",
+        "revision": "3b8a672a99d84e17ea9ff887b35267bdaf326eba",
+        "evidenceRef": "docs/evidence/product-acceptance/2026-11-21-project-counts/post-merge-main.json"
+      }
     },
     {
       "id": "B02",
       "name": "API 授权矩阵",
-      "status": "待按原需求逐项核对",
+      "status": "实现与验证进行中",
       "requirementIds": [
         "P21-C01",
         "P21-C02",
