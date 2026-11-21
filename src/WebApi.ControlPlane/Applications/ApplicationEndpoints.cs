@@ -34,6 +34,24 @@ public static class ApplicationEndpoints
         g.MapPost("/credentials/{id:guid}/impact",async(Guid id,CredentialImpactRequest request,HttpContext ctx,CredentialImpactService service,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await service.PreviewAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct));});
         g.MapPut("/credentials/{id:guid}",async(Guid id,CredentialUpdateRequest request,HttpContext ctx,ApplicationService service,CancellationToken ct)=>GovernanceEndpoints.Command(ctx,await service.SaveCredentialAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct)));
         g.MapGet("/applications/{id:guid}/permissions",async(Guid id,HttpContext ctx,ApplicationService service,CancellationToken ct)=>Results.Ok((await service.DetailAsync(id,ctx.Actor(),ct)).Permissions));
+        var matrix = g.MapGroup("/applications/{id:guid}/permission-matrix");
+        matrix.MapGet("", async (Guid id, Guid projectId, int? page, int? pageSize, HttpContext ctx, PermissionMatrixService service, CancellationToken ct) =>
+        {
+            ctx.Response.Headers.CacheControl = "no-store";
+            return Results.Ok(await service.ReadAsync(id, projectId, page ?? 1, pageSize ?? 50, ctx.Actor(), ct));
+        });
+        matrix.MapPost("/preview", async (Guid id, MatrixPreviewRequest request, HttpContext ctx, PermissionMatrixService service, CancellationToken ct) =>
+        {
+            ctx.Response.Headers.CacheControl = "no-store";
+            var actor = ctx.Actor();
+            return Results.Ok(await service.PreviewAsync(id, request, actor, CredentialGovernanceEndpoints.RequireCurrentSession(ctx.User, actor), ct));
+        });
+        matrix.MapPost("/commit", async (Guid id, MatrixCommitRequest request, HttpContext ctx, CommandRequestContext command, PermissionMatrixService service, CancellationToken ct) =>
+        {
+            ctx.Response.Headers.CacheControl = "no-store";
+            var actor = ctx.Actor();
+            return Results.Ok(await service.CommitAsync(id, request, command, actor, CredentialGovernanceEndpoints.RequireCurrentSession(ctx.User, actor), ct));
+        });
         g.MapGet("/applications/{id:guid}/route-method-options", async (Guid id, Guid environmentId, Guid apiId,
             HttpContext ctx, ApplicationService service, CancellationToken ct) =>
         {
@@ -54,6 +72,6 @@ public static class ApplicationEndpoints
             return GovernanceEndpoints.Command(ctx, await service.SavePermissionAsync(appId, id, request, ctx.Request.Headers.IfMatch, actor, ct,
                 CredentialGovernanceEndpoints.RequireCurrentSession(ctx.User, actor)));
         });
-        g.MapDelete("/application-permissions/{id:guid}",async(Guid id,HttpContext ctx,ApplicationService service,CancellationToken ct)=>{await service.DeletePermissionAsync(id,ctx.Request.Headers.IfMatch,ctx.Actor(),ct);return Results.NoContent();});
+        g.MapDelete("/application-permissions/{id:guid}",async(Guid id,HttpContext ctx,ApplicationService service,CancellationToken ct)=>{var actor=ctx.Actor();await service.DeletePermissionAsync(id,ctx.Request.Headers.IfMatch,actor,ct,CredentialGovernanceEndpoints.RequireCurrentSession(ctx.User,actor));return Results.NoContent();});
     }
 }

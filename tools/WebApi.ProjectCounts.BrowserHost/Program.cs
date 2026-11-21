@@ -8,7 +8,7 @@ using WebApi.Integration.Tests.Support;
 
 // Test-only host. Never included in a product image. Uses a new test database and
 // the actual control plane and console host. There are no HTTP fixture controls.
-var owner = Environment.GetEnvironmentVariable("WEBAPI_PRODUCT_ACCEPTANCE_OWNER");
+var owner = Environment.GetEnvironmentVariable("WEBAPI_PRODUCT_ACCEPTANCE_OWNER") ?? throw new InvalidOperationException("An explicit acceptance owner is required.");
 if (!Guid.TryParse(owner, out _)) throw new InvalidOperationException("An explicit acceptance owner is required.");
 var directory = Path.GetFullPath(args.Single());
 if (!directory.EndsWith("product-counts-" + owner, StringComparison.Ordinal))
@@ -18,9 +18,16 @@ Directory.CreateDirectory(Path.Combine(directory, "commands"));
 if (File.Exists(Path.Combine(directory, "context.json"))) throw new InvalidOperationException("Never overwrite an existing fixture.");
 var revision = Environment.GetEnvironmentVariable("WEBAPI_PRODUCT_REVISION") ?? throw new InvalidOperationException("Fixed product revision required.");
 if (revision.Length != 40 || revision.Any(c => !Uri.IsHexDigit(c))) throw new InvalidOperationException("Full product SHA required.");
+var scenario = Environment.GetEnvironmentVariable("WEBAPI_PRODUCT_ACCEPTANCE_SCENARIO") ?? "project-counts";
+if (scenario is not ("project-counts" or "permission-matrix")) throw new InvalidOperationException("Invalid acceptance scenario.");
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web) { WriteIndented = true };
 await using var api = new ApiFixture();
 await api.InitializeAsync();
+if (scenario == "permission-matrix")
+{
+    await PermissionMatrixFixture.RunAsync(api, directory, owner, revision, Write);
+    return;
+}
 await api.SeedConsumerAsync();
 var accounts = new List<Account>();
 var empty = new Project { OrganizationId = api.Organization.Id, Code = "A_EMPTY", Name = "空项目" };

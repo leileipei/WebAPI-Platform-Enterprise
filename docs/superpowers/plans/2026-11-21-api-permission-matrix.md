@@ -15,8 +15,8 @@
 | 请求 | 契约 |
 | --- | --- |
 | `GET ?projectId=&page=&pageSize=` | 返回 `applicationId, projectId, evaluatedAt, environments, items, total, page, pageSize`。环境为 `id, code, name, isProduction, canManage, canGrantLegacy, canGrantRouteMethods`。API 行为 `id, code, name, grants`。grant 为 `id, environmentId, mode, validFrom, expiresAt, revision, state, routeMethods`。`state` 为 `Pending`, `Active` 或 `Expired`，`routeMethods` 使用现有路由方法类型。 |
-| `POST /preview` | `projectId, changes`；每项为 `apiId, environmentId, action, permissionId?, revision?, validFrom?, expiresAt?, mode?, routeMethods?`。`Save` 使用模式 `LegacyApi` 或 `RouteMethod` 以及起止时间，后者包含显式方法。创建不传授权 ID/修订，更新传两项。`SetWindow` 保持现有模式及方法，只提供 ID、修订和窗口。`Revoke` 只提供 ID 和修订。 |
-| 预览结果 | `previewToken, expiresAt, requiresProductionConfirmation, items`。影响项为 `apiId, environmentId, isProduction, before, after, running`。before/after 为 null 或 `mode, state, validFrom, expiresAt, methodCount, methods`。`methods` 为 null 或 `routeId, path, authorizationRevision, methods` 列表，path 可空。运行依据为 `status, configVersion, deploymentSequence, grant`，状态 `Confirmed`, `Unconfirmed`, `NotVisible`。每项按传入单元身份匹配。 |
+| `POST /preview` | `projectId, changes`。`Save` 使用 `apiId, environmentId, action, permissionId?, revision?, validFrom, expiresAt?, mode, routeMethods?`。创建不传授权 ID/修订，更新传两项。`SetWindow` 保持现有模式及方法，只提供标识、修订和窗口。`Revoke` 只提供标识和修订。`MoveLegacy` 单次仅一项，提供源单元、原授权 ID/修订、有效期和目标 `destinationApiId, destinationEnvironmentId`。 |
+| 预览结果 | `previewToken, expiresAt, requiresProductionConfirmation, items`。影响项为 `apiId, environmentId, isProduction, before, after, running`。before/after 为 null 或 `mode, state, validFrom, expiresAt, methodCount, methods`。`methods` 为 null 或 `routeId, path, authorizationRevision, methods, matchesRoute` 列表。运行依据为 `status, configVersion, deploymentSequence, grant`，状态 `Confirmed`, `Unconfirmed`, `NotVisible`。每项按传入单元身份匹配，移动包含源和目标单元。 |
 | `POST /commit` | 原预览请求另带 `previewToken, confirmProduction`，请求头 `Idempotency-Key`。回执 `appliedCount, activation`，activation 为 `WorkingConfiguration`。生产确认缺失和旧预览用 409，授权修订过期用 412。 |
 
 保留 `GET /applications/{id}/route-method-options?environmentId=&apiId=`。所有生产、并发及权限约束由后端作最终判断。
@@ -28,6 +28,7 @@
 - [ ] 用现有 `ApiFixture` 增加真实 HTTP 失败回归并记录 RED。覆盖矩阵跨页及应用/项目/环境读取权限，PROD 明确确认，同键重放不重复写入，跨 Scope 整批拒绝，预览/路由修订失效，父子撤权和故障整批回滚。保留本机日志。
 - [ ] 实现 GET 和预览/提交。复用 `ApplicationService`、`AuthorizationService`、`IdempotentCommandExecutor`、`RunningDeploymentReader` 与 Data Protection。批次操作共用事务，逐环境审计。锁按环境 ID 顺序获取。预览内验证与提交相同的约束。
 - [ ] 修复旧撤权路径的路由子记录删除及安全版本推进，验证原有授权移动、显式模式和严格切换行为。
+- [ ] 独立审查回归覆盖应用详情和旧列表读取掩码、已失效路由修订的预览、移动两侧原子写和生产确认。
 - [ ] 优先运行 `bash scripts/check-contracts.sh integration --filter 'FullyQualifiedName~ApplicationPermissionMatrixTests|FullyQualifiedName~RouteMethodAuthoringTests|FullyQualifiedName~GovernanceLegacyApplicationCompatibilityTests|FullyQualifiedName~AuditPermissionMoveScopeTests'`。独立子网用 `10.251.219.0/24`，运行前只读核对。
 
 ## Task 2 控制台矩阵及预览

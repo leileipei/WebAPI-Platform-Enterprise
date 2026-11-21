@@ -1,201 +1,161 @@
-import {useEffect, useState} from 'react';
-import {useWorkspace} from '../Shell';
+import {useEffect,useRef,useState} from 'react';
+import {allowNavigation,useWorkspace} from '../Shell';
 import {useSession} from '../auth/SessionProvider';
-import {apiRequest, ApiError} from '../api/client';
-import {Editor, Feedback, Table, useRemote, type Field} from '../ui';
-import {
-  readRouteMethodOptions, routeMethodSelection, toggleRouteMethod, type RouteMethodGrant, type RouteMethodOptions
-} from '../applications/route-method-permissions.mjs';
+import {Feedback,Pagination,useRemote} from '../ui';
+import {matrixBatchLimit,matrixLegacyMoveCells,matrixPageSize} from '../applications/permission-matrix-model.mjs';
+import {allowedModes,keyForCell,MatrixGrid,selectableCell} from '../applications/permission-matrix-view';
+import {PermissionMatrixDialog} from '../applications/permission-matrix-dialog';
+import type {MatrixAction,MatrixCell,MatrixDraft,MatrixPage,MatrixReceipt} from '../applications/permission-matrix-types';
 
-type Permission = {
-  id:string; apiId:string; environmentId:string; validFrom:string; expiresAt?:string|null; revision:number;
-  mode?:'LegacyApi'|'RouteMethod'; routeMethods?:RouteMethodGrant[]|null;
-};
-type PermissionEdit = {record?:Permission; mode:'LegacyApi'|'RouteMethod'};
+type Application = {id:string; organizationId:string; projectId:string|null};
 
-function local(value: string) {
-  const date = new Date(value);
-  return new Date(+date - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-}
+export function ApplicationPermissions({application,reload}:{application:Application; reload:()=>void}) {
+  const ws = useWorkspace();
+  const {user,can,error} = useSession();
+  const [chosenProject,setChosenProject] = useState('');
+  const canReadApp = can('app.read',{organizationId:application.organizationId,projectId:application.projectId});
+  const canReadProject = (projectId:string) => can('api.read',{organizationId:application.organizationId,projectId});
+  const projects = ws.tree.projects.filter(project => project.organizationId === application.organizationId && canReadProject(project.id));
+  const sharedProjectId = [chosenProject,ws.projectId,projects[0]?.id].find(id => projects.some(project => project.id === id));
+  const projectId = application.projectId ?? sharedProjectId;
+  const projectName = projects.find(project => project.id === projectId)?.name;
+  const authority = JSON.stringify([application.id,projectId,user?.id,user?.permissions,user?.scopes,error]);
 
-function initialPermission(record: Permission|undefined, environmentId: string) {
-  return record ? {...record, validFrom:local(record.validFrom), expiresAt:record.expiresAt ? local(record.expiresAt) : '',
-    routeMethods:record.mode === 'RouteMethod' ? record.routeMethods ?? [] : []}
-    : {environmentId, validFrom:local(new Date().toISOString()), expiresAt:'', routeMethods:[]};
-}
-
-export function ApplicationPermissions({application, rows, reload}: {application:any; rows:Permission[]; reload:()=>void}) {
-  const ws = useWorkspace(), {can} = useSession();
-  const [edit, setEdit] = useState<PermissionEdit>();
-  const projectId = application.projectId || ws.projectId;
-  const apis = useRemote<any>(projectId ? `/projects/${projectId}/apis` : null, 0, true);
-  const allowed = can('app.permission.manage', {organizationId:application.organizationId, projectId:application.projectId}, true);
-  const environments = ws.tree.environments.filter(environment => environment.projectId === projectId);
-  const canWriteEnvironment = (id: string) => environments.some(environment => environment.id === id) &&
-    can('app.permission.manage', {organizationId:application.organizationId, projectId, environmentId:id}, true);
-  const fields: Field[] = [
-    {key:'apiId', label:'API', required:true, options:(apis.data?.items || []).map((api:any) => ({value:api.id, label:api.name}))},
-    {key:'environmentId', label:'环境', required:true, options:environments.map(environment => ({value:environment.id, label:environment.name}))},
-    {key:'validFrom', label:'授权生效时间', type:'datetime-local', required:true},
-    {key:'expiresAt', label:'授权失效时间', type:'datetime-local', help:'留空表示无固定失效时间'}
-  ];
-  const close = () => setEdit(undefined);
-
-  return <>
-    <div className="filter-bar">
-      <button className="btn primary" disabled={!allowed || !apis.data?.items.length}
-        onClick={() => setEdit({mode:'LegacyApi'})}>＋ 新增授权</button>
-      <button className="btn" disabled={!allowed || !apis.data?.items.length || !environments.some(environment => canWriteEnvironment(environment.id))}
-        onClick={() => setEdit({mode:'RouteMethod'})}>＋ 新增路由方法授权</button>
-    </div>
-    <Table rows={rows.map(row => ({...row, modeLabel:row.mode === 'RouteMethod' ? '路由方法' : '旧版 API',
-      methodCount:row.mode === 'RouteMethod' ? row.routeMethods?.reduce((count, grant) => count + grant.methods.length, 0) : undefined}))}
-      columns={[['apiId','API ID'],['environmentId','环境 ID'],['modeLabel','授权模式'],['methodCount','方法数'],
-        ['validFrom','生效'],['expiresAt','失效'],['revision','修订']]}
-      actions={(row:Permission) => <>
-        <button disabled={!allowed || row.mode === 'RouteMethod' && !canWriteEnvironment(row.environmentId)} className="text-btn"
-          onClick={() => setEdit({record:row, mode:row.mode ?? 'LegacyApi'})}>编辑授权</button>
-        {row.mode !== 'RouteMethod' && <button disabled={!allowed || !canWriteEnvironment(row.environmentId)} className="text-btn"
-          onClick={() => setEdit({record:row, mode:'RouteMethod'})}>改为路由方法授权</button>}
-      </>}/>
-    {edit?.mode === 'LegacyApi' && <Editor title="API 授权" fields={fields}
-      initial={initialPermission(edit.record, ws.environmentId)} allowed={allowed} close={close}
-      save={async (value,key) => {
-        await savePermission(application.id, edit.record, {apiId:value.apiId, environmentId:value.environmentId,
-          validFrom:value.validFrom, expiresAt:value.expiresAt || null}, key, edit.record?.revision);
-        reload();
-      }}/>}
-    {edit?.mode === 'RouteMethod' && <RouteMethodEditor applicationId={application.id} original={edit.record}
-      environmentId={ws.environmentId} fields={fields} allowed={allowed} canWriteEnvironment={canWriteEnvironment} close={close} reload={reload}/>}
-  </>;
-}
-
-async function savePermission(applicationId: string, original: Permission|undefined, body: unknown, key: string, revision?:number) {
-  await apiRequest(`/applications/${applicationId}/permissions${original ? '/' + original.id : ''}`, {
-    method:original ? 'PUT' : 'POST', body, etag:original ? `"${revision}"` : undefined, idempotencyKey:key
-  });
-}
-
-function RouteMethodEditor({applicationId, original, environmentId, fields, allowed, canWriteEnvironment, close, reload}: {
-  applicationId:string; original?:Permission; environmentId:string; fields:Field[]; allowed:boolean;
-  canWriteEnvironment:(environmentId:string)=>boolean; close:()=>void; reload:()=>void;
-}) {
-  const [initial] = useState(() => initialPermission(original, canWriteEnvironment(environmentId) ? environmentId : ''));
-  const [options, setOptions] = useState<RouteMethodOptions|null>(null);
-  const [refreshRequired, setRefreshRequired] = useState(false);
-  const [apiField, environmentField, ...timeFields] = fields;
-  const routeFields = [apiField, {...environmentField, options:environmentField.options?.filter(option => canWriteEnvironment(option.value))}];
-
-  function selected(value:Record<string,any>) {
-    if (!canWriteEnvironment(value.environmentId) || refreshRequired || options?.apiId !== value.apiId ||
-        options?.environmentId !== value.environmentId ||
-        original && (original.apiId !== value.apiId || original.environmentId !== value.environmentId)) return [];
-    const valid = routeMethodSelection(value.routeMethods, options);
-    return valid.length === value.routeMethods?.length ? valid : [];
-  }
-
-  async function readLatest() {
-    const latest = (await apiRequest<Permission[]>(`/applications/${applicationId}/permissions`))
-      .find(row => row.id === original?.id);
-    if (!original || !latest || latest.apiId !== original.apiId || latest.environmentId !== original.environmentId)
-      throw new Error('授权范围已变化，请关闭表单并重新读取应用授权。');
-    return latest;
-  }
-
-  return <Editor title={original?.mode === 'RouteMethod' ? '编辑路由方法授权' : original ? '改为路由方法授权' : '新增路由方法授权'}
-    fields={fields} initial={initial} allowed={allowed} close={close} explicitSubmitOnly loadLatest={original ? readLatest : undefined}
-    maySave={value => selected(value).length > 0}
-    help="保存至工作配置，经 2.4 发布和节点确认后才影响网关。"
-    renderFields={(value,change) => <>
-      {routeFields.map(field => <label key={field.key}>{field.label}
-        <select aria-label={field.label} required disabled={!!original} value={value[field.key] ?? ''} onChange={event => {
-          setOptions(null);
-          change(field.key,event.target.value);
-          change('routeMethods',[]);
+  return <section aria-labelledby="access-matrix-title">
+    <h2 id="access-matrix-title">API 授权矩阵</h2>
+    {canReadApp && (application.projectId ?
+      (projectName && <p>所属项目 <strong>{projectName}</strong></p>) :
+      <label className="access-matrix-project">授权项目
+        <select value={projectId ?? ''} onChange={event => {
+          if (allowNavigation()) setChosenProject(event.target.value);
         }}>
-          <option value="">请选择</option>
-          {field.options?.map(option => <option value={option.value} key={option.value}>{option.label}</option>)}
+          {!projects.length && <option value="">无可读取项目</option>}
+          {projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}
         </select>
       </label>)}
-      {timeFields.map(field => <label key={field.key}>{field.label}
-        <input aria-label={field.label} type="datetime-local" required={field.required} value={value[field.key] ?? ''}
-          onChange={event => change(field.key,event.target.value)}/>
-        {field.help && <small>{field.help}</small>}
-      </label>)}
-      <RouteMethodFields applicationId={applicationId} environmentId={value.environmentId || ''} apiId={value.apiId || ''}
-        allowed={allowed && canWriteEnvironment(value.environmentId)} methods={value.routeMethods}
-        refreshRequired={refreshRequired} onOptions={setOptions} onRefresh={() => setRefreshRequired(false)}
-        onChange={methods => change('routeMethods', methods)}/>
-    </>}
-    save={async (value,key,fresh) => {
-      const routeMethods = selected(value);
-      if (!routeMethods.length) throw new Error('请基于当前路由修订选择需要授权的方法。');
-      const sameTime = (field:'validFrom'|'expiresAt') => !!initial[field] && value[field] === new Date(initial[field]).toISOString();
-      try {
-        await savePermission(applicationId, original, {mode:'RouteMethod', apiId:value.apiId, environmentId:value.environmentId,
-          validFrom:original && sameTime('validFrom') ? original.validFrom : value.validFrom,
-          expiresAt:original && sameTime('expiresAt') ? original.expiresAt : value.expiresAt || null, routeMethods}, key, fresh?.revision ?? original?.revision);
-        reload();
-      } catch (error) {
-        if (error instanceof ApiError && (error.status === 409 || error.status === 412)) {
-          setOptions(null);
-          setRefreshRequired(true);
-          throw new ApiError(error.status,error.status === 412
-            ? '授权修订已变化。请查看最新授权修订，重新读取目标路由，再核对要授权的方法。'
-            : '目标路由或方法授权已变化。请重新读取目标路由并选择方法。',error.traceId,error.issues,error.code);
-        }
-        if (!(error instanceof ApiError) || error.status >= 500) {
-          setOptions(null);
-          setRefreshRequired(true);
-          throw new Error('提交结果待核对。请先核对应用授权记录，再重新读取目标路由。');
-        }
-        if (error.status === 401 || error.status === 403) {
-          setOptions(null);
-          setRefreshRequired(true);
-        }
-        throw error;
-      }
-    }}/>
+    {projectId && canReadApp && canReadProject(projectId)
+      ? <ProjectPermissionMatrix key={authority} applicationId={application.id} projectId={projectId} reloadApplication={reload}/>
+      : <p className="notice">当前会话无法读取应用及目标项目的 API 授权。</p>}
+  </section>;
 }
 
-function RouteMethodFields({applicationId, environmentId, apiId, allowed, methods, refreshRequired, onOptions, onRefresh, onChange}: {
-  applicationId:string; environmentId:string; apiId:string; allowed:boolean; methods:unknown; refreshRequired:boolean;
-  onOptions:(options:RouteMethodOptions|null)=>void; onRefresh:()=>void; onChange:(methods:RouteMethodGrant[])=>void;
+function ProjectPermissionMatrix({applicationId,projectId,reloadApplication}:{
+  applicationId:string; projectId:string; reloadApplication:()=>void;
 }) {
-  const query = allowed && environmentId && apiId ? new URLSearchParams({environmentId, apiId}) : null;
-  const path = query && !refreshRequired ? `/applications/${applicationId}/route-method-options?${query}` : null;
-  const remote = useRemote<unknown>(path);
-  const verified = path && !remote.loading && !remote.error ? readRouteMethodOptions(remote.data,environmentId,apiId) : null;
-  const invalidResponse = !!path && !remote.loading && !remote.error && !!remote.updated && !verified;
-  const chosen = routeMethodSelection(methods, verified);
-  useEffect(() => {
-    onOptions(verified);
-    if (!Array.isArray(methods) || !methods.length) return;
-    const current = routeMethodSelection(methods, verified);
-    if (refreshRequired || remote.error || invalidResponse || verified && current.length !== methods.length) onChange(current);
-  }, [verified, methods, refreshRequired, remote.error, invalidResponse, onOptions, onChange]);
+  const [page,setPage] = useState(1);
+  const [selected,setSelected] = useState(new Map<string,MatrixCell>());
+  const [draft,setDraft] = useState<MatrixDraft>();
+  const [accessLost,setAccessLost] = useState(false);
+  const [targetsMoved,setTargetsMoved] = useState(false);
+  const [receipt,setReceipt] = useState<{result:MatrixReceipt; previousData?:MatrixPage}>();
+  const summary = useRef<HTMLSpanElement>(null);
+  const basePath = '/applications/' + applicationId + '/permission-matrix';
+  const query = new URLSearchParams({projectId,page:String(page),pageSize:String(matrixPageSize)});
+  const remote = useRemote<MatrixPage>(basePath + '?' + query);
+  const data = !remote.error && !accessLost && remote.data?.applicationId === applicationId &&
+    remote.data.projectId === projectId && remote.data.page === page ? remote.data : undefined;
+  const picked = [...selected.values()];
+  const legacyMove = matrixLegacyMoveCells(picked);
+  const readingAfterWrite = !!receipt && !remote.error && remote.data === receipt.previousData;
+  const blocked = remote.loading || !data || !!draft || readingAfterWrite;
 
-  return <section aria-label="目标路由及方法" style={{gridColumn:'1/-1'}}>
-    <h3>目标路由及方法</h3>
-    {!query && <p className="muted">选择可写目标环境和 API 后读取当前路由。</p>}
-    {query && <button type="button" className="btn" disabled={!!path && remote.loading} onClick={() => {
-      onOptions(null);
-      onChange([]);
-      if (refreshRequired) onRefresh();
-      else remote.reload();
-    }}>重新读取目标路由</button>}
-    {path && <Feedback {...remote} error={remote.error && !remote.errorStatus ? '目标路由读取失败，请重试。' : remote.error}/>}
-    {invalidResponse && <p className="error" role="alert">目标路由数据与所选环境、API 或修订不匹配。请重新读取。</p>}
-    {verified?.routes.length === 0 && <p className="notice">该环境和 API 暂无可授权的路由方法。</p>}
-    {verified?.routes.map(route => <fieldset className="promotion-route" key={route.routeId}>
-      <legend>{route.path} · 授权修订 {route.authorizationRevision}</legend>
-      <div className="actions" style={{flexWrap:'wrap'}}>
-        {route.methods.map(method => <label className="checkline" key={method}>
-          <input type="checkbox" aria-label={method + ' ' + route.path}
-            checked={chosen.some(grant => grant.routeId === route.routeId && grant.methods.includes(method))}
-            onChange={event => onChange(toggleRouteMethod(chosen, route, method, event.target.checked))}/>{method}
-        </label>)}
-      </div>
-    </fieldset>)}
-  </section>;
+  function clearAccess() {
+    setSelected(new Map());
+    setDraft(undefined);
+    setReceipt(undefined);
+    setTargetsMoved(false);
+    setAccessLost(true);
+  }
+
+  useEffect(() => {
+    if (remote.errorStatus === 401 || remote.errorStatus === 403 || remote.errorStatus === 404) clearAccess();
+  },[remote.errorStatus]);
+
+  useEffect(() => {
+    if (!data) return;
+    if (page > Math.max(1, Math.ceil(data.total / data.pageSize))) {
+      setPage(1);
+      return;
+    }
+    setSelected(previous => {
+      if (!previous.size) return previous;
+      const next = new Map(previous);
+      for (const [key,cell] of previous) {
+        const environment = data.environments.find(item => item.id === cell.environment.id);
+        if (!environment || !environment.canManage ||
+            environment.canGrantLegacy !== cell.environment.canGrantLegacy ||
+            environment.canGrantRouteMethods !== cell.environment.canGrantRouteMethods) return new Map();
+        const api = data.items.find(item => item.id === cell.api.id);
+        if (api) {
+          const grant = api.grants.find(item => item.environmentId === environment.id);
+          if (grant?.id !== cell.grant?.id) next.delete(key);
+          else next.set(key,{api,environment,grant});
+        }
+      }
+      return next;
+    });
+  },[data,page]);
+
+  function toggle(cell:MatrixCell) {
+    setSelected(previous => {
+      const key = keyForCell(cell);
+      const next = new Map(previous);
+      if (next.has(key)) next.delete(key);
+      else if (next.size < matrixBatchLimit && selectableCell(cell)) next.set(key,cell);
+      return next;
+    });
+  }
+
+  function open(action:MatrixAction,cells:MatrixCell[]) {
+    setReceipt(undefined);
+    setTargetsMoved(false);
+    setDraft({action,cells});
+  }
+
+  function refresh() {
+    setAccessLost(false);
+    setTargetsMoved(false);
+    remote.reload();
+  }
+
+  return <>
+    <div className="filter-bar access-matrix-toolbar">
+      <span ref={summary} tabIndex={-1} role="status">已选 {picked.length} 项 / 最多 {matrixBatchLimit} 项</span>
+      <button type="button" className="btn primary" disabled={blocked || !picked.length || picked.some(cell => cell.grant || !selectableCell(cell))}
+        onClick={() => open('Save',picked)}>批量授权</button>
+      <button type="button" className="btn" disabled={blocked || !picked.length ||
+        picked.some(cell => !cell.grant || !selectableCell(cell) || !allowedModes(cell).includes(cell.grant.mode))}
+        onClick={() => open('SetWindow',picked)}>修改有效期</button>
+      <button type="button" className="btn" disabled={blocked || !legacyMove}
+        title="选择一个旧版授权和一个允许旧版授权的空单元"
+        onClick={() => {if (legacyMove) open('MoveLegacy',legacyMove);}}>移动旧版授权</button>
+      <button type="button" className="btn danger" disabled={blocked || !picked.length || picked.some(cell => !cell.grant || !selectableCell(cell))}
+        onClick={() => open('Revoke',picked)}>撤销授权</button>
+      {!!picked.length && <button type="button" className="text-btn" onClick={() => setSelected(new Map())}>清除选择</button>}
+      <button type="button" className="text-btn" disabled={remote.loading || !!draft} onClick={refresh}>重新读取矩阵</button>
+    </div>
+    {receipt && !remote.loading && !readingAfterWrite && <p className="notice" role="status">
+      <span>已提交 {receipt.result.appliedCount} 项授权变更至工作配置。</span> 发布和节点确认后才影响网关。
+    </p>}
+    {accessLost && <p className="error" role="alert">授权范围或资源已失效，已清除选择和草稿。请重新读取矩阵。</p>}
+    {targetsMoved && <p className="notice" role="status">授权记录或操作范围已变化。请在刷新后的矩阵中重新选择。</p>}
+    <Feedback {...remote} error={accessLost ? '' : remote.error}/>
+    {data && <MatrixGrid data={data} selected={selected} blocked={blocked} toggle={toggle}
+      edit={cell => {if (allowedModes(cell).length) open('Save',[cell]);}}/>}
+    {!accessLost && (data || page > 1) && <Pagination remote={{data,page,setPage,loading:blocked}}/>}
+    {draft && <PermissionMatrixDialog basePath={basePath} applicationId={applicationId} projectId={projectId} draft={draft}
+      close={() => setDraft(undefined)} accessLost={clearAccess} restoreFocus={() => summary.current?.focus()}
+      targetsChanged={() => {
+        setDraft(undefined);
+        setSelected(new Map());
+        setTargetsMoved(true);
+        remote.reload();
+      }} applied={result => {
+        setDraft(undefined);
+        setSelected(new Map());
+        setReceipt({result,previousData:remote.data});
+        remote.reload();
+        reloadApplication();
+      }}/>}
+  </>;
 }
