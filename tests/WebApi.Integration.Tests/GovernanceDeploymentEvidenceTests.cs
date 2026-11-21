@@ -9,7 +9,7 @@ using Xunit;
 
 namespace WebApi.Integration.Tests;
 
-public sealed class GovernanceDeploymentEvidenceTests
+public sealed partial class GovernanceDeploymentEvidenceTests
 {
     [Theory]
     [InlineData("good", true)]

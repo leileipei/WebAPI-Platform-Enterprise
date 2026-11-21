@@ -101,7 +101,8 @@ public static class CredentialGovernanceServiceRegistration
                 var ingress = sp.GetService<ICredentialRunningIngressWitness>() ?? throw Unavailable();
                 var clients = sp.GetRequiredService<WitnessOwner>().Clients;
                 var history = sp.GetService<IGovernanceEnvironmentHistoryWitness>() ?? clients.RecoveryHistoryWitness ?? throw Unavailable();
-                return new(clients.JournalId, clients.JournalWitness, history, ingress, sp.GetService<ICredentialArchivedIngressWitness>());
+                return new(clients.JournalId, clients.JournalWitness, history, ingress, sp.GetService<ICredentialArchivedIngressWitness>(),
+                    sp.GetService<ICredentialRetiredTargetWitness>());
             }));
         }
         services.TryAddScoped<PostgresGovernanceJournalEnrollment>(sp =>
@@ -170,6 +171,7 @@ public static class CredentialGovernanceServiceRegistration
         services.TryAddSingleton<ICredentialRunningIngressWitness>(sp => sp.GetRequiredService<GovernanceDeploymentEvidenceCache>());
         services.TryAddSingleton<ICredentialArchivedIngressWitness>(sp => sp.GetRequiredService<GovernanceDeploymentEvidenceCache>());
         services.TryAddSingleton<IFormalRotationLeaseHorizonWitness>(sp => sp.GetRequiredService<GovernanceDeploymentEvidenceCache>());
+        services.TryAddSingleton<ICredentialRetiredTargetWitness>(sp => sp.GetRequiredService<GovernanceDeploymentEvidenceCache>());
         services.AddHostedService<GovernanceDeploymentEvidenceRefreshWorker>();
     }
 

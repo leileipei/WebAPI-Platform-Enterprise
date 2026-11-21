@@ -31,7 +31,7 @@ using Xunit;
 
 namespace WebApi.Integration.Tests;
 
-public sealed class PostgresWitnessedCredentialRevocationTests
+public sealed partial class PostgresWitnessedCredentialRevocationTests
 {
     [Theory]
     [InlineData("all", "FullyApplied", 2)]
@@ -1440,10 +1440,12 @@ public sealed class PostgresWitnessedCredentialRevocationTests
             new(Database.ConnectionString, Journal, Witness, Coverage, new TestRotationHorizon { Approved = true }, Archive, proofs)
             { DeadlineClock = clock ?? SecurityDatabaseClock.ObserveAsync };
 
-        public async Task ApplyAbortProofsAsync(Guid operation, int ackCount)
+        public async Task ApplyAbortProofsAsync(Guid operation, int ackCount, bool currentOnly = false)
         {
             await using var db = Database.Context();
             var targets = await db.Set<SecurityOperationTarget>().AsNoTracking().Where(x => x.OperationId == operation).OrderBy(x => x.NodeId).ToArrayAsync();
+            var nodes = await db.Set<GatewayNode>().AsNoTracking().ToDictionaryAsync(x => x.Id);
+            if (currentOnly) targets = targets.Where(target => nodes[target.NodeId].InstanceId == target.InstanceGuid.ToString()).ToArray();
             Assert.Equal(2, targets.Length);
             var state = await db.Set<EnvironmentSecurityState>().AsNoTracking().SingleAsync(x => x.EnvironmentId == EnvironmentId);
             var fact = await db.Set<SecurityEvent>().AsNoTracking().SingleAsync(x => x.OperationId == operation && x.EnvironmentId == EnvironmentId);
@@ -1457,7 +1459,7 @@ public sealed class PostgresWitnessedCredentialRevocationTests
             for (var index = 0; index < targets.Length; index++)
             {
                 var target = targets[index];
-                if (await db.Set<SecurityAckVerification>().AnyAsync(x => x.OperationId == operation && x.NodeId == target.NodeId)) continue;
+                if (await db.Set<SecurityAckVerification>().AnyAsync(x => x.OperationId == operation && x.NodeId == target.NodeId && x.InstanceGuid == target.InstanceGuid)) continue;
                 var created = DateTimeOffset.UtcNow;
                 var issued = created.AddTicks(-(created.Ticks % 10));
                 var expires = issued.AddSeconds(30);
@@ -1469,7 +1471,14 @@ public sealed class PostgresWitnessedCredentialRevocationTests
                     state.SecurityGeneration, state.Epoch, checkpointHash, target.NodeId, target.InstanceGuid,
                     SecuritySignedEncoding.Audience, issued, expires, keyId,
                     AckChallenges: [new(operation, target.ChallengeNonce, fact.Epoch, fact.CredentialId)]);
-                var horizon = await db.Set<GatewaySecurityLease>().SingleAsync(x => x.NodeId == target.NodeId);
+                var horizon = await db.Set<GatewaySecurityLease>().SingleOrDefaultAsync(x => x.NodeId == target.NodeId && x.InstanceId == target.InstanceGuid);
+                if (horizon is null)
+                {
+                    horizon = new GatewaySecurityLease { NodeId = target.NodeId, InstanceId = target.InstanceGuid,
+                        EnvironmentId = EnvironmentId, ProjectId = state.ProjectId, OrganizationId = state.OrganizationId,
+                        SecurityGeneration = state.SecurityGeneration };
+                    db.Add(horizon);
+                }
                 horizon.LeaseId = lease.LeaseId;
                 horizon.Epoch = lease.Epoch;
                 horizon.CheckpointHash = checkpointHash;
@@ -1480,7 +1489,7 @@ public sealed class PostgresWitnessedCredentialRevocationTests
                 db.Add(SecurityLeaseIssuanceEvidence.Create(lease, state.OrganizationId, state.ProjectId));
                 await db.SaveChangesAsync();
 
-                var identity = new NodeIdentity(target.NodeId, EnvironmentId, new string('a', 64));
+                var identity = new NodeIdentity(target.NodeId, EnvironmentId, nodes[target.NodeId].IdentityHash);
                 var signedCheckpoint = signer.SignCheckpoint(checkpoint);
                 var signedLease = signer.SignNodeLease(lease);
                 var proof = new CurrentSecurityProof(target.InstanceGuid, signedCheckpoint, signedLease, issued, true, true);
