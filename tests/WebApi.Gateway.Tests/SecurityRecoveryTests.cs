@@ -14,6 +14,104 @@ public sealed class SecurityRecoveryTests
  {
   using var f=new SecurityFixture();var revoked=Guid.NewGuid();var pair=f.Pair(1,[revoked]);await f.State.ApplyAsync(pair.Checkpoint,pair.Lease);await f.State.DisposeAsync();await using var restarted=new SecurityStateStore(new(f.Env,()=>f.Node,Guid.NewGuid()),f.Disk,f.Clock);Assert.True(await restarted.RestoreAsync(f.Keys));Assert.Equal(1,restarted.CurrentEpoch);Assert.False(restarted.IsReady);Assert.Equal(SecurityAdmissionDecision.KnownRevoked,restarted.CanAdmit(revoked,f.Clock.GetUtcNow()));Assert.Equal(SecurityAdmissionDecision.Unavailable,restarted.CanAdmit(Guid.NewGuid(),f.Clock.GetUtcNow()));Assert.False(File.Exists(f.Disk.FilePath+".previous"));
  }
+ [Fact]
+ public async Task DeniedRestoreCanHandOffTheVerifiedHighWaterAfterGracefulStop()
+ {
+  using var f=new SecurityFixture();
+  var revoked=Guid.NewGuid();
+  var old=f.Pair(1,[revoked]);
+  Assert.True((await f.State.ApplyAsync(old.Checkpoint,old.Lease)).Applied);
+  await f.State.DisposeAsync();
+  var persisted=await File.ReadAllBytesAsync(f.Disk.FilePath);
+  var marker=Path.Combine(f.DirectoryPath,".security-running");
+  f.Clock.Advance(31);
+
+  Guid? registeredNode=null;
+  await using var denied=new SecurityStateStore(new(f.Env,()=>registeredNode,Guid.NewGuid()),f.Disk,f.Clock);
+  Assert.True(await denied.RestoreAsync(f.Keys));
+  registeredNode=f.Node;
+  Assert.True(File.Exists(marker));
+  Assert.Equal(1,denied.CurrentEpoch);
+  Assert.Equal(Guid.Empty,denied.CurrentAdmissionLeaseId);
+  Assert.Equal(SecurityAdmissionDecision.KnownRevoked,denied.CanAdmit(revoked,f.Clock.GetUtcNow()));
+  Assert.Equal(SecurityAdmissionDecision.Unavailable,denied.CanAdmit(Guid.NewGuid(),f.Clock.GetUtcNow()));
+  var nextInstance=Guid.NewGuid();
+  await using var successor=new SecurityStateStore(new(f.Env,()=>f.Node,nextInstance),new SecurityLkgStore(f.DirectoryPath),f.Clock);
+  Assert.False(await successor.RestoreAsync(f.Keys));
+
+  // As with the old database restore, the denied process never receives a new material response.
+  await denied.DisposeAsync();
+  Assert.False(File.Exists(marker));
+  Assert.Equal(persisted,await File.ReadAllBytesAsync(f.Disk.FilePath));
+  Assert.True(await successor.RestoreAsync(f.Keys));
+  Assert.False(successor.IsReady);
+  Assert.False((await successor.ApplyAsync(old.Checkpoint,old.Lease)).Applied);
+  var stale=f.Pair(0,[],leaseInstance:nextInstance);
+  Assert.False((await successor.ApplyAsync(stale.Checkpoint,stale.Lease)).Applied);
+  Assert.False(successor.IsReady);
+  f.Clock.Advance(1);
+  var fresh=f.Pair(2,[revoked],leaseInstance:nextInstance);
+  Assert.True((await successor.ApplyAsync(fresh.Checkpoint,fresh.Lease)).Applied);
+  Assert.Equal(fresh.Lease.Payload.LeaseId,successor.CurrentAdmissionLeaseId);
+  Assert.Equal(SecurityAdmissionDecision.KnownRevoked,successor.CanAdmit(revoked,f.Clock.GetUtcNow()));
+  Assert.Equal(SecurityAdmissionDecision.Allow,successor.CanAdmit(Guid.NewGuid(),f.Clock.GetUtcNow()));
+ }
+
+ [Theory]
+ [InlineData("lkg-changed")]
+ [InlineData("marker-changed")]
+ [InlineData("node-mismatch")]
+ [InlineData("node-unregistered")]
+ [InlineData("clock-regressed")]
+ [InlineData("higher-not-persisted")]
+ [InlineData("checkpoint-conflict")]
+ public async Task DeniedRestoreRetainsMarkerWhenTheHandoffCannotBeVerified(string failure)
+ {
+  using var f=new SecurityFixture();
+  var revoked=Guid.NewGuid();
+  var old=f.Pair(1,[revoked]);
+  Assert.True((await f.State.ApplyAsync(old.Checkpoint,old.Lease)).Applied);
+  await f.State.DisposeAsync();
+
+  var instance=Guid.NewGuid();
+  Guid? registeredNode=null;
+  await using var denied=new SecurityStateStore(new(f.Env,()=>registeredNode,instance),f.Disk,f.Clock);
+  Assert.True(await denied.RestoreAsync(f.Keys));
+  registeredNode=f.Node;
+  switch(failure)
+  {
+   case "lkg-changed":
+    // Valid JSON with the same signed material, but different on-disk bytes.
+    await File.AppendAllTextAsync(f.Disk.FilePath," ");
+    break;
+   case "marker-changed":
+    await File.WriteAllBytesAsync(Path.Combine(f.DirectoryPath,".security-running"),Guid.NewGuid().ToByteArray());
+    break;
+   case "node-mismatch":
+    registeredNode=Guid.NewGuid();
+    break;
+   case "node-unregistered":
+    registeredNode=null;
+    break;
+   case "clock-regressed":
+    f.Clock.Advance(1);
+    f.Clock.ShiftUtc(-8);
+    break;
+   case "higher-not-persisted":
+    var higher=f.Pair(2,[revoked,Guid.NewGuid()],leaseInstance:instance);
+    Assert.Equal("security_lease_revalidation_required",(await denied.ApplyAsync(higher.Checkpoint,higher.Lease)).ErrorCode);
+    break;
+   case "checkpoint-conflict":
+    var conflict=f.Pair(1,[revoked],head:new string('c',64),leaseInstance:instance);
+    Assert.Equal("security_observed_checkpoint_conflict",(await denied.ApplyAsync(conflict.Checkpoint,conflict.Lease)).ErrorCode);
+    break;
+  }
+  Assert.False(denied.IsReady);
+  await denied.DisposeAsync();
+  Assert.True(File.Exists(Path.Combine(f.DirectoryPath,".security-running")));
+  await using var successor=new SecurityStateStore(new(f.Env,()=>f.Node,Guid.NewGuid()),new SecurityLkgStore(f.DirectoryPath),f.Clock);
+  Assert.False(await successor.RestoreAsync(f.Keys));
+ }
  [Fact] public async Task CorruptSecurityFileFailsClosed()
  {
   using var f=new SecurityFixture();Directory.CreateDirectory(f.DirectoryPath);await File.WriteAllTextAsync(f.Disk.FilePath,"corrupt");if(!OperatingSystem.IsWindows()){File.SetUnixFileMode(f.DirectoryPath,UnixFileMode.UserRead|UnixFileMode.UserWrite|UnixFileMode.UserExecute);File.SetUnixFileMode(f.Disk.FilePath,UnixFileMode.UserRead|UnixFileMode.UserWrite);}Assert.False(await f.State.RestoreAsync(f.Keys));Assert.False(f.State.IsReady);Assert.Equal(SecurityAdmissionDecision.Unavailable,f.State.CanAdmit(Guid.NewGuid(),f.Clock.GetUtcNow()));
