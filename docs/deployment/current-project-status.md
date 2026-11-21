@@ -415,3 +415,16 @@ Gateway20项、`155de03`三套无过滤检查及后续`62f90b4`独立Integration
 - 原 4192 安装记录从[运维目录](README.md)查找；仅凭源码提交或旧 `Ready` 记录不能推断今天的运行状态。
 - 四个旧 ZIP 下载入口的文件当前缺失，已改成不可用的历史包名；历史归档和计划中其余失效引用在[资料清单](../documentation-index.json)登记，不补造文件。
 - 旧资源清单中的一个历史容器缺失，原因及发生时间未确认；后续关联验证以自己的起始清单核对 185 个容器、473 个卷和 36 个网络均保留，不倒填旧清单。
+
+
+## 2026-11-21 PR #23、#24 合入与主线复跑
+
+PR #23 于 2026-11-21 21:07:31（北京时间）合入 `3b8a672`。PR #23 的主线复跑和 PR #24 的四项必需检查均通过后，PR #24 于 2026-11-21 22:19:19（北京时间）合入 `323e0dc`；合并提交与受测候选 `404321b` 的文件树一致。[PR #23](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/23) · [PR #24](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/24)
+
+| 验证 | 提交 | 完成时间（北京时间） | 通过 | 失败 | 跳过 | GitHub Actions |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| PR #23 合并后 main | `3b8a672` | 2026-11-21 22:17:27 | 5,204 | 0 | 0 | [Console](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907282212) · [Contracts](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907282252) |
+| PR #24 合并前必需检查 | `404321b` | 2026-11-21 22:18:25 | 5,204 | 0 | 0 | [Console](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907548884) · [Contracts](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44907548907) |
+| PR #24 合并后 main | `323e0dc` | 2026-11-21 23:26:03 | 5,204 | 0 | 0 | [Console](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44913320422) · [Contracts](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44913320430) |
+
+三轮均为首次执行通过。每轮通过数为控制台 468（Python 94、运行工具 35、前端 339）、Domain 1,426、Gateway 639、Integration 2,671。合并后的主线四项复跑绑定 `323e0dc9f4066570b0c050097bb318a288ba758a`。P12 的批准依据及实际生产状态见本页对应记录。
