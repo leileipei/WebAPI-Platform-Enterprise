@@ -453,7 +453,7 @@ PR #23 于 2026-11-21 21:07:31（北京时间）合入 `3b8a672`。PR #23 的主
 
 三轮均为首次执行通过。每轮通过数为控制台 468（Python 94、运行工具 35、前端 339）、Domain 1,426、Gateway 639、Integration 2,671。合并后的主线四项复跑绑定 `323e0dc9f4066570b0c050097bb318a288ba758a`。P12 的批准依据及实际生产状态见本页对应记录。
 
-### PR #25 合并后的主线复跑
+## 2026-11-22 PR #25 合并后的主线复跑
 
 PR #25 于 2026-11-21 23:31:43（北京时间）合入 `39bf3f1ee518c1d7da399cf58f01841b8fb32d3b`。合并提交与受测候选 `7469dd6505c4bb8cd150a41065e3d43f1e57c96f` 的文件树一致。两条 `main` push 工作流首次执行即通过，最后一项于 2026-11-22 00:40:27（北京时间）完成。四项必需检查合计 **5,204 项通过、0 项失败、0 项跳过**。[PR #25](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/25) · [Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44919654355) · [Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44919654305)
 
