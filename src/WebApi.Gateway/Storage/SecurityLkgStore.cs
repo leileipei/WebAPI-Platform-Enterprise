@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using Microsoft.Win32.SafeHandles;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -14,6 +15,8 @@ public interface ISecurityLkgOwner:IAsyncDisposable
  Task<SecurityNodeMaterial?> ReadAsync(CancellationToken ct=default);
  Task WriteAtomicAsync(SecurityNodeMaterial material,CancellationToken ct=default);
  Task CompleteCleanlyAsync(CancellationToken ct=default);
+ // Owners without an exact disk read-back check cannot complete a read-only handoff.
+ Task CompleteUnchangedRestoreAsync(CancellationToken ct=default)=>Task.CompletedTask;
 }
 public sealed class SecurityLkgStore(string inputDirectory):ISecurityLkgStore
 {
@@ -63,37 +66,90 @@ public sealed class SecurityLkgStore(string inputDirectory):ISecurityLkgStore
     anchor=new FileStream(lockPath,FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
    }
    else throw new PlatformNotSupportedException("Security directory ownership is unsupported on this platform.");
-   try{CreateRunningMarker();ownership=anchor;return new Ownership(this,anchor);}
+   try{var markerId=CreateRunningMarker();ownership=anchor;return new Ownership(this,anchor,markerId);}
    catch{anchor.Dispose();throw;}
   }
  }
  private void ReleaseOwnership(IDisposable anchor){lock(ownerSync){if(ReferenceEquals(ownership,anchor)){ownership=null;anchor.Dispose();}}}
  private sealed class UnixOwnership(int descriptor):IDisposable
  {
+  internal int Descriptor=>descriptor;
   private readonly SafeFileHandle handle=new((IntPtr)descriptor,true);
   public void Dispose()=>handle.Dispose();
  }
- private sealed class Ownership(SecurityLkgStore owner,IDisposable anchor):ISecurityLkgOwner
+ private sealed class Ownership(SecurityLkgStore owner,IDisposable anchor,Guid markerId):ISecurityLkgOwner
  {
   private readonly SemaphoreSlim operations=new(1,1);private bool released;private bool completed;
+  private byte[]? readFingerprint;
   public async Task<SecurityNodeMaterial?> ReadAsync(CancellationToken ct=default)
-  {await operations.WaitAsync(ct);try{ObjectDisposedException.ThrowIf(released||completed,this);return await owner.ReadOwnedAsync(ct);}finally{operations.Release();}}
+  {
+   await operations.WaitAsync(ct);
+   try
+   {
+    ObjectDisposedException.ThrowIf(released||completed,this);
+    readFingerprint=null;
+    var snapshot=await owner.ReadOwnedAsync(ct);
+    readFingerprint=snapshot?.Fingerprint;
+    return snapshot?.Material;
+   }
+   finally{operations.Release();}
+  }
   public async Task WriteAtomicAsync(SecurityNodeMaterial material,CancellationToken ct=default)
-  {await operations.WaitAsync(ct);try{ObjectDisposedException.ThrowIf(released||completed,this);await owner.WriteOwnedAsync(material,ct);}finally{operations.Release();}}
+  {await operations.WaitAsync(ct);try{ObjectDisposedException.ThrowIf(released||completed,this);readFingerprint=null;await owner.WriteOwnedAsync(material,ct);}finally{operations.Release();}}
   public async Task CompleteCleanlyAsync(CancellationToken ct=default)
   {await operations.WaitAsync(ct);try{ObjectDisposedException.ThrowIf(released,this);if(completed)return;owner.RemoveRunningMarker();completed=true;}finally{operations.Release();}}
+  public async Task CompleteUnchangedRestoreAsync(CancellationToken ct=default)
+  {
+   await operations.WaitAsync(ct);
+   try
+   {
+    ObjectDisposedException.ThrowIf(released,this);
+    if(completed||readFingerprint is not { } expected)return;
+    OwnedSnapshot? snapshot;
+    try{snapshot=await owner.ReadOwnedAsync(ct);}
+    catch(Exception error)when(error is IOException or UnauthorizedAccessException or InvalidDataException or JsonException or ArgumentException){return;}
+    if(snapshot is null||!expected.AsSpan().SequenceEqual(snapshot.Fingerprint))return;
+    completed=owner.RemoveRestoredRunningMarker(anchor,markerId);
+   }
+   finally{operations.Release();}
+  }
   public async ValueTask DisposeAsync()
   {await operations.WaitAsync();try{if(!released){released=true;owner.ReleaseOwnership(anchor);}}finally{operations.Release();}}
  }
- private string RunningMarkerPath=>Path.Combine(directory,".security-running");
- private void CreateRunningMarker()
+ private const string RunningMarkerName=".security-running";
+ private string RunningMarkerPath=>Path.Combine(directory,RunningMarkerName);
+ private Guid CreateRunningMarker()
  {
   // A marker is durable before this owner may observe or admit any state.
   // A prior unclean stop leaves it in place and requires controlled recovery.
+  var markerId=Guid.NewGuid();
   CheckLinks(RunningMarkerPath);
   using(var marker=new FileStream(RunningMarkerPath,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.WriteThrough))
-  {if(!OperatingSystem.IsWindows())File.SetUnixFileMode(RunningMarkerPath,UnixFileMode.UserRead|UnixFileMode.UserWrite);marker.WriteByte(1);marker.Flush(true);}
+  {if(!OperatingSystem.IsWindows())File.SetUnixFileMode(RunningMarkerPath,UnixFileMode.UserRead|UnixFileMode.UserWrite);marker.Write(markerId.ToByteArray());marker.Flush(true);}
   SyncDirectory(directory);
+  return markerId;
+ }
+ private bool RemoveRestoredRunningMarker(IDisposable anchor,Guid markerId)
+ {
+  // A substituted directory or marker must not inherit this process's handoff.
+  try
+  {
+   CheckLinks(RunningMarkerPath);
+   using var marker=new FileStream(RunningMarkerPath,FileMode.Open,FileAccess.Read,FileShare.Read);
+   Span<byte> contents=stackalloc byte[16];
+   if(marker.Length!=contents.Length)return false;
+   marker.ReadExactly(contents);
+   if(new Guid(contents)!=markerId)return false;
+  }
+  catch(Exception error)when(error is IOException or UnauthorizedAccessException){return false;}
+  if(anchor is UnixOwnership unix)
+  {
+   // Remove relative to the same directory inode we still have locked.
+   if(unlinkat(unix.Descriptor,RunningMarkerName,0)!=0)throw new IOException("Cannot remove security running marker.");
+   if(fsync(unix.Descriptor)!=0)throw new IOException("Cannot flush security directory.");
+  }
+  else RemoveRunningMarker();
+  return true;
  }
  private void RemoveRunningMarker()
  {
@@ -107,7 +163,8 @@ public sealed class SecurityLkgStore(string inputDirectory):ISecurityLkgStore
   foreach(var part in full[current.Length..].Split(Path.DirectorySeparatorChar,StringSplitOptions.RemoveEmptyEntries))
   {current=Path.Combine(current,part);if(new DirectoryInfo(current).LinkTarget is not null||new FileInfo(current).LinkTarget is not null)throw new IOException("Security directory symbolic links are not allowed.");}
  }
- private async Task<SecurityNodeMaterial?> ReadOwnedAsync(CancellationToken ct=default)
+ private sealed record OwnedSnapshot(SecurityNodeMaterial Material,byte[] Fingerprint);
+ private async Task<OwnedSnapshot?> ReadOwnedAsync(CancellationToken ct=default)
  {
   try
   {
@@ -115,8 +172,11 @@ public sealed class SecurityLkgStore(string inputDirectory):ISecurityLkgStore
    if(!OperatingSystem.IsWindows()&&(File.GetUnixFileMode(FilePath)&(UnixFileMode.GroupRead|UnixFileMode.GroupWrite|UnixFileMode.OtherRead|UnixFileMode.OtherWrite))!=0)throw new UnauthorizedAccessException("Security LKG must remain private.");
    await using var stream=new FileStream(FilePath,FileMode.Open,FileAccess.Read,FileShare.Read,4096,FileOptions.Asynchronous);
    if(stream.Length>MaximumEncodedBytes)throw new InvalidDataException("security_lkg_invalid_file");
-   using var bounded=new BoundedReadStream(stream,MaximumEncodedBytes);
-   var material=await JsonSerializer.DeserializeAsync<SecurityNodeMaterial>(bounded,Strict,ct)??throw new InvalidDataException("security_lkg_empty");if(material.Checkpoint is null||material.Lease is null)throw new InvalidDataException("security_lkg_empty");return material;
+   using var fingerprint=IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+   using var bounded=new BoundedReadStream(stream,MaximumEncodedBytes,fingerprint);
+   var material=await JsonSerializer.DeserializeAsync<SecurityNodeMaterial>(bounded,Strict,ct)??throw new InvalidDataException("security_lkg_empty");
+   if(material.Checkpoint is null||material.Lease is null)throw new InvalidDataException("security_lkg_empty");
+   return new(material,fingerprint.GetHashAndReset());
   }
   catch(FileNotFoundException){return null;}
   catch(DirectoryNotFoundException){return null;}
@@ -140,17 +200,29 @@ public sealed class SecurityLkgStore(string inputDirectory):ISecurityLkgStore
  }
  // The file may grow after its initial length check, so cap bytes actually
  // read from the already-open handle as well as its initial reported size.
- internal sealed class BoundedReadStream(Stream inner,long limit):Stream
+ internal sealed class BoundedReadStream(Stream inner,long limit,IncrementalHash? fingerprint=null):Stream
  {
   private long consumed;
   public override bool CanRead=>true;public override bool CanSeek=>false;public override bool CanWrite=>false;
   public override long Length=>throw new NotSupportedException();public override long Position {get=>consumed;set=>throw new NotSupportedException();}
   private int Allowed(int count)=>count==0?0:(int)Math.Min(count,limit-consumed+1);
-  private int Accept(int count){if(count>limit-consumed)throw new InvalidDataException("security_lkg_size_invalid");consumed+=count;return count;}
-  public override int Read(byte[] buffer,int offset,int count)=>Accept(inner.Read(buffer,offset,Allowed(count)));
-  public override int Read(Span<byte> buffer)=>Accept(inner.Read(buffer[..Allowed(buffer.Length)]));
+  private int Accept(ReadOnlySpan<byte> bytes)
+  {
+   if(bytes.Length>limit-consumed)throw new InvalidDataException("security_lkg_size_invalid");
+   consumed+=bytes.Length;fingerprint?.AppendData(bytes);return bytes.Length;
+  }
+  public override int Read(byte[] buffer,int offset,int count)=>Read(buffer.AsSpan(offset,count));
+  public override int Read(Span<byte> buffer)
+  {
+   var count=inner.Read(buffer[..Allowed(buffer.Length)]);
+   return Accept(buffer[..count]);
+  }
   public override Task<int> ReadAsync(byte[] buffer,int offset,int count,CancellationToken ct)=>ReadAsync(buffer.AsMemory(offset,count),ct).AsTask();
-  public override async ValueTask<int> ReadAsync(Memory<byte> buffer,CancellationToken ct=default)=>Accept(await inner.ReadAsync(buffer[..Allowed(buffer.Length)],ct));
+  public override async ValueTask<int> ReadAsync(Memory<byte> buffer,CancellationToken ct=default)
+  {
+   var count=await inner.ReadAsync(buffer[..Allowed(buffer.Length)],ct);
+   return Accept(buffer.Span[..count]);
+  }
   public override void Flush()=>throw new NotSupportedException();public override long Seek(long offset,SeekOrigin origin)=>throw new NotSupportedException();
   public override void SetLength(long value)=>throw new NotSupportedException();public override void Write(byte[] buffer,int offset,int count)=>throw new NotSupportedException();
  }
@@ -192,5 +264,6 @@ public sealed class SecurityLkgStore(string inputDirectory):ISecurityLkgStore
  [DllImport("libc",SetLastError=true)]private static extern int open(string path,int flags);
  [DllImport("libc",SetLastError=true)]private static extern int flock(int descriptor,int operation);
  [DllImport("libc",SetLastError=true)]private static extern int fsync(int descriptor);
+ [DllImport("libc",SetLastError=true)]private static extern int unlinkat(int descriptor,string path,int flags);
  [DllImport("libc",SetLastError=true)]private static extern int close(int descriptor);
 }

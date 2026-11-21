@@ -112,13 +112,20 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db,PostgresRev
     gaps.Add(new(env.EnvironmentId,null,"independent_coverage_unverified"));
   var previouslyApplied=first?.Targets.Where(target=>target.State=="Applied")
    .Select(target=>(target.EnvironmentId,target.NodeId,target.InstanceGuid)).ToHashSet()??[];
-  var targets=runtime.Targets.Select(target=>covered.TryGetValue(target.EnvironmentId,out var valid)&&
-   valid.CurrentInstances.Contains((target.NodeId,target.InstanceGuid))&&
-   target.LastHeartbeatAt is DateTimeOffset heartbeat&&heartbeat<=runtime.ObservedAt&&runtime.ObservedAt-heartbeat<=HeartbeatGrace&&
-   (target.State!="Applied"||previouslyApplied.Contains((target.EnvironmentId,target.NodeId,target.InstanceGuid)))
-   ?target
-   :target with {State="Pending",Reason="independent_coverage_unverified",ErrorCode=null}).ToArray();
-  var applied=targets.Count(target=>target.State=="Applied");
+  var targets=runtime.Targets.Select(target=>
+  {
+   if(covered.TryGetValue(target.EnvironmentId,out var valid))
+   {
+    if(valid.CurrentInstances.Contains((target.NodeId,target.InstanceGuid))&&
+     target.LastHeartbeatAt is DateTimeOffset heartbeat&&heartbeat<=runtime.ObservedAt&&runtime.ObservedAt-heartbeat<=HeartbeatGrace&&
+     (target.State!="Applied"||previouslyApplied.Contains((target.EnvironmentId,target.NodeId,target.InstanceGuid))))return target;
+    if(!valid.CurrentInstances.Contains((target.NodeId,target.InstanceGuid))&&
+     valid.RetiredInstances.TryGetValue((target.NodeId,target.InstanceGuid),out var retired)&&retired.ValidUntil>runtime.ObservedAt)
+     return target with {State="SafeSuperseded",Reason=null,ErrorCode=null};
+   }
+   return target with {State="Pending",Reason="independent_coverage_unverified",ErrorCode=null};
+  }).ToArray();
+  var applied=targets.Count(target=>target.State is "Applied" or "SafeSuperseded");
   var confirmed=gaps.Count==0&&applied==targets.Length;
   return receipt with {Status=confirmed?"FullyApplied":applied>0?"Partial":"Unconfirmed",Targets=targets,CoverageGaps=gaps};
  }
@@ -192,9 +199,9 @@ public sealed class SecurityOperationStatusReader(WebApiDbContext db,PostgresRev
    if(nodes.TryGetValue(target.NodeId,out var node)&&Guid.TryParse(node.InstanceId,out var current))
    {
     if(current==target.InstanceGuid&&Confirmed(target,current))state="Applied";
-    // A matching recorded horizon does not establish completeness after a
-    // restore or unknown legacy history. Replacement stays pending until an
-    // independently verified history/isolation proof is implemented.
+    // Raw diagnostics cannot establish retired-instance coverage. The public
+    // receipt may project SafeSuperseded only after independently authenticated
+    // complete history and isolation/expiry survive both authorized samples.
    }
    nodes.TryGetValue(target.NodeId,out var details);
    Guid? currentInstance=Guid.TryParse(details?.InstanceId,out var parsed)?parsed:null;

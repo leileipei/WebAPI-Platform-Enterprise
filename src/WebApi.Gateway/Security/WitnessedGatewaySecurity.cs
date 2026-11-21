@@ -115,6 +115,7 @@ internal sealed class WitnessedGatewaySecurity : IGovernanceAdmissionStateProvid
             restored = true;
         }
         var material = await nodes.SecurityMaterialAsync(ct);
+        state.InvalidateReadOnlyHandoff();
         var nodeId = nodes.NodeId ?? throw Unavailable();
         var checkpoint = SecurityCheckpointVerifier.VerifyCheckpoint(new(material.Checkpoint), evidence.LeaseKeys, settings.EnvironmentId);
         var lease = SecurityCheckpointVerifier.VerifyNodeLease(new(material.Lease), evidence.LeaseKeys, settings.EnvironmentId, nodeId, settings.InstanceId);

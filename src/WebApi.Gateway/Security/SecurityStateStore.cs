@@ -21,10 +21,12 @@ public sealed class SecurityStateStore(SecurityNodeAudience audience,ISecurityLk
  }
  private sealed record ObservedHead(string Head,bool RequireEnvironment,string MinimumSchema,LinkedListNode<long> Order);
  private sealed record ClockAnchor(DateTimeOffset Utc,long Start,long End,long Frequency);
+ private sealed record ReadOnlyHandoff(ClockAnchor Anchor,int MaximumClockSkewSeconds);
  private sealed record State(VerifiedCheckpoint Checkpoint,VerifiedNodeLease? Lease,FrozenDictionary<Guid,SecurityRevocationProof> Revocations,ClockAnchor Anchor,long ReceivedAt,long ExpiresAt,bool Blocked,LeaseLifetime Lifetime);
  private const int MaximumObservedHeads=4096;
  private readonly long observedFactBudget=maximumObservedFactBytes is >0 and <=24L*1024*1024?maximumObservedFactBytes:throw new ArgumentOutOfRangeException(nameof(maximumObservedFactBytes));
  private long observedFactBytes;private bool factCapacityExceeded;
+ private ReadOnlyHandoff? readOnlyHandoff;
  private readonly SecurityAdmissionGate admission=new();private readonly SemaphoreSlim updates=new(1,1);private readonly object timestampSync=new();private readonly Dictionary<Guid,SecurityRevocationProof> observedRevocations=[];private readonly Dictionary<long,ObservedHead> observedHeads=[];private readonly LinkedList<long> headObservationOrder=[];private State? current;private long requiredEpoch;private Guid? observedGeneration;private bool generationConflict;private long conflictEpoch=-1;private bool recoveryRequired;private bool recoveryChecked;private bool clockRegressed;private bool hasTimestamp;private long highestTimestamp;private long observedCheckpointEpoch=-1;private long observedFullEpoch=-1;private string? observedHead;private string observedMinimumSchema="2.0";private bool observedEnvironmentRequired;private bool disposed;private ISecurityLkgOwner? ownership;private DateTimeOffset? restoredLeaseIssuedAt;private DateTimeOffset? observedLeaseIssuedAt;private long observedLeaseEpoch=-1;private string? observedLeaseHash;private DateTimeOffset? conflictingLeaseIssuedAt;private long conflictingLeaseEpoch=-1;private Guid? restoredLeaseNode;
  public bool IsReady=>CanAdmitCore(Guid.Empty,null)==SecurityAdmissionDecision.Allow;
  public Guid CurrentAdmissionLeaseId=>Volatile.Read(ref current)?.Lease?.Payload.LeaseId??Guid.Empty;
@@ -97,6 +99,9 @@ public sealed class SecurityStateStore(SecurityNodeAudience audience,ISecurityLk
  }
  private SecurityApplyResult Block(string code,bool needsFull=false)
  {if(current is not null)Volatile.Write(ref current,current with {Blocked=true});return new(false,needsFull,code);}
+ // Even a candidate that the live verification path rejects may have observed
+ // a new or conflicting floor. Only a strictly read-only restore can hand off.
+ internal void InvalidateReadOnlyHandoff()=>Volatile.Write(ref readOnlyHandoff,null);
  private bool TryTimestamp(State? state,DateTimeOffset? requestUtc,out long start,out long stamp,out DateTimeOffset utc,out long frequency,bool closing=false)
  {
   // Bracket each wall-clock reading with monotonic readings under one lock.
@@ -114,6 +119,9 @@ public sealed class SecurityStateStore(SecurityNodeAudience audience,ISecurityLk
     {
      if(stamp<state.ReceivedAt||state.Lease is not null&&!ClockAligned(state.Anchor,state.Lease.Payload.MaximumClockSkewSeconds,start,stamp,utc,frequency))Volatile.Write(ref clockRegressed,true);
      if(state.Lease is not null&&(requestUtc>=state.Lease.Payload.FreshUntil||requestUtc>=state.Checkpoint.Payload.FreshUntil||utc>=state.Lease.Payload.FreshUntil||utc>=state.Checkpoint.Payload.FreshUntil||stamp>=state.ExpiresAt))state.Lifetime.MarkExpired();
+     if(state.Lease is null&&Volatile.Read(ref readOnlyHandoff) is { } restored&&
+        (utc.Offset!=TimeSpan.Zero||!ClockAligned(restored.Anchor,restored.MaximumClockSkewSeconds,start,stamp,utc,frequency)))
+      InvalidateReadOnlyHandoff();
     }
     return !Volatile.Read(ref clockRegressed);
    }
@@ -185,6 +193,7 @@ public sealed class SecurityStateStore(SecurityNodeAudience audience,ISecurityLk
  {
   using var ticket=await admission.EnterWriteAsync(ct);var p=checkpoint.Payload;var l=lease.Payload;var prior=current;
   if(Volatile.Read(ref disposed))return new(false,ErrorCode:"security_store_disposed");
+  InvalidateReadOnlyHandoff();
   if(Volatile.Read(ref clockRegressed))return Block("security_monotonic_clock_regressed");
   if(Volatile.Read(ref recoveryRequired))return Block("security_lkg_recovery_required");
   try{ownership??=disk.AcquireOwnership();}
@@ -291,6 +300,15 @@ public sealed class SecurityStateStore(SecurityNodeAudience audience,ISecurityLk
    {Volatile.Write(ref recoveryRequired,true);return false;}
    // Never restore freshness from a former process instance, even if its old lease is still parseable.
    if(!ObserveCheckpoint(checkpoint.Payload)){Volatile.Write(ref recoveryRequired,true);return false;}
+   // The clock sample is only used to qualify the read-only shutdown below.
+   // Starting with it does not load a lease or authorize a request.
+   if(TryTimestamp(null,null,out var start,out var stamp,out var utc,out var frequency)&&utc.Offset==TimeSpan.Zero&&
+      l.IssuedAt-utc<=TimeSpan.FromSeconds(l.MaximumClockSkewSeconds))
+   {
+    var anchor=new ClockAnchor(utc,start,stamp,frequency);
+    if(ClockAligned(anchor,l.MaximumClockSkewSeconds,start,stamp,utc,frequency))
+     Volatile.Write(ref readOnlyHandoff,new(anchor,l.MaximumClockSkewSeconds));
+   }
    recoveryChecked=true;restoredLeaseIssuedAt=l.IssuedAt;observedLeaseIssuedAt=l.IssuedAt;observedLeaseEpoch=l.Epoch;observedLeaseHash=SecuritySignedEncoding.LeaseHash(l);restoredLeaseNode=l.NodeId;observedGeneration=checkpoint.Payload.SecurityGeneration;Volatile.Write(ref requiredEpoch,checkpoint.Payload.Epoch);Volatile.Write(ref current,new(checkpoint,null,checkpoint.Payload.Revocations.ToFrozenDictionary(x=>x.CredentialId),new ClockAnchor(DateTimeOffset.MinValue,0,0,0),0,0,true,new LeaseLifetime()));return true;
   }
   catch(Exception error)when(error is IOException or UnauthorizedAccessException or InvalidDataException or JsonException or ArgumentException){Volatile.Write(ref recoveryRequired,true);return false;}
@@ -302,10 +320,21 @@ public sealed class SecurityStateStore(SecurityNodeAudience audience,ISecurityLk
    // readiness read cannot start a new clock observation after the snapshot.
    lock(timestampSync){if(Volatile.Read(ref disposed))return;Volatile.Write(ref disposed,true);}
    if(current is not null&&!TryTimestamp(current,null,out _,out _,out _,out _,closing:true))Volatile.Write(ref clockRegressed,true);
+   var safe=current is not null&&!Volatile.Read(ref recoveryRequired)&&!Volatile.Read(ref clockRegressed)&&!Volatile.Read(ref generationConflict)&&current.Checkpoint.Payload.Epoch>=Volatile.Read(ref requiredEpoch);
    var leasePersisted=observedLeaseIssuedAt is not DateTimeOffset leaseFloor||current?.Lease?.Payload.IssuedAt>=leaseFloor;
-   var clean=current is not null&&!current.Blocked&&!Volatile.Read(ref recoveryRequired)&&!Volatile.Read(ref clockRegressed)&&!Volatile.Read(ref generationConflict)&&current.Checkpoint.Payload.Epoch>=Volatile.Read(ref requiredEpoch)&&leasePersisted;
+   var clean=safe&&!current!.Blocked&&leasePersisted;
+   var readOnly=safe&&current!.Lease is null&&Volatile.Read(ref readOnlyHandoff) is not null;
    if(current is not null)Volatile.Write(ref current,current with{Blocked=true});
-   if(ownership is not null){try{if(clean)await ownership.CompleteCleanlyAsync();}finally{await ownership.DisposeAsync();ownership=null;}}
+   if(ownership is not null)
+   {
+    try
+    {
+     if(clean)await ownership.CompleteCleanlyAsync();
+     else if(readOnly&&restoredLeaseNode is Guid node&&node==audience.NodeId())
+      await ownership.CompleteUnchangedRestoreAsync();
+    }
+    finally{await ownership.DisposeAsync();ownership=null;}
+   }
   }finally{updates.Release();}
  }
 }

@@ -15,7 +15,8 @@ public sealed record GovernanceDeploymentHorizon(string ScopeHash, string ProofH
 
 public sealed record GovernanceDeploymentEvidencePayload(string RequestHash, string SourceId, string KeyId,
     DateTimeOffset ObservedAt, DateTimeOffset ValidUntil, IReadOnlyList<GovernanceDeploymentClaim> Claims,
-    IReadOnlyList<GovernanceDeploymentHorizon> Horizons);
+    IReadOnlyList<GovernanceDeploymentHorizon> Horizons,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<GovernanceRetiredTargetCoverage>? RetiredTargets = null);
 
 public sealed record SignedGovernanceDeploymentEvidenceResponse([property: JsonRequired] GovernanceDeploymentEvidencePayload Payload,
     [property: JsonRequired] string Signature);
@@ -65,7 +66,12 @@ public static class GovernanceDeploymentEvidenceProtocol
             payload.ValidUntil - payload.ObservedAt > MaximumValidity || payload.Claims is null || payload.Horizons is null ||
             payload.Claims.Any(claim => !ValidClaim(claim, payload)) || payload.Horizons.Any(horizon => !ValidHorizon(horizon, payload)) ||
             payload.Claims.Select(x => (x.Purpose, x.ScopeHash)).Distinct().Count() != payload.Claims.Count ||
-            payload.Horizons.Select(x => x.ScopeHash).Distinct(StringComparer.Ordinal).Count() != payload.Horizons.Count)
+            payload.Horizons.Select(x => x.ScopeHash).Distinct(StringComparer.Ordinal).Count() != payload.Horizons.Count ||
+            payload.RetiredTargets is { } retired && (retired.Any(proof =>
+                !GovernanceRetiredTargetProtocol.Valid(proof) || proof.Scope.Journal != request.Journal ||
+                proof.Lower > payload.ObservedAt || proof.Upper < payload.ObservedAt || proof.ValidUntil > payload.ValidUntil) ||
+                retired.Select(proof => ScopeHash(GovernanceRetiredTargetProtocol.Purpose, proof.Scope))
+                    .Distinct(StringComparer.Ordinal).Count() != retired.Count))
             throw Invalid();
         return payload;
     }

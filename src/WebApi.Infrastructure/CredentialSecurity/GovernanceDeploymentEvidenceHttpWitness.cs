@@ -47,17 +47,20 @@ internal sealed class GovernanceDeploymentEvidenceHttpWitness(Uri endpoint, Gove
 }
 
 internal sealed class GovernanceDeploymentEvidenceCache(TimeProvider clock) : ICredentialRevocationCoverage, ICredentialRunningIngressWitness,
-    ICredentialRevocationHistory, ICredentialArchivedIngressWitness, IFormalRotationLeaseHorizonWitness
+    ICredentialRevocationHistory, ICredentialArchivedIngressWitness, IFormalRotationLeaseHorizonWitness, ICredentialRetiredTargetWitness
 {
     private sealed record Snapshot(DateTimeOffset ObservedAt, DateTimeOffset ValidUntil, long Start, long Frequency,
         IReadOnlyDictionary<(string Purpose, string ScopeHash), GovernanceDeploymentClaim> Claims,
-        IReadOnlyDictionary<string, GovernanceDeploymentHorizon> Horizons);
+        IReadOnlyDictionary<string, GovernanceDeploymentHorizon> Horizons,
+        IReadOnlyDictionary<string, GovernanceRetiredTargetCoverage> RetiredTargets);
 
     private Snapshot? latest;
 
     public void Replace(GovernanceDeploymentEvidencePayload payload, long start, long frequency) =>
         Volatile.Write(ref latest, new(payload.ObservedAt, payload.ValidUntil, start, frequency,
-            payload.Claims.ToDictionary(x => (x.Purpose, x.ScopeHash)), payload.Horizons.ToDictionary(x => x.ScopeHash, StringComparer.Ordinal)));
+            payload.Claims.ToDictionary(x => (x.Purpose, x.ScopeHash)), payload.Horizons.ToDictionary(x => x.ScopeHash, StringComparer.Ordinal),
+            (payload.RetiredTargets ?? []).ToDictionary(x => GovernanceDeploymentEvidenceProtocol.ScopeHash(
+                GovernanceRetiredTargetProtocol.Purpose, x.Scope), StringComparer.Ordinal)));
 
     public void Clear() => Volatile.Write(ref latest, null);
 
@@ -87,6 +90,19 @@ internal sealed class GovernanceDeploymentEvidenceCache(TimeProvider clock) : IC
             return null;
         return new(scope, proof.ProofHash, proof.Complete, proof.HasPendingWrite, proof.Lower, proof.Upper,
             now + (proof.ValidUntil - upper.Value), proof.LatestAllowExpiry);
+    }
+
+    public GovernanceRetiredTargetCoverage? GetVerifiedCoverage(GovernanceRetiredTargetScope scope)
+    {
+        var snapshot = Volatile.Read(ref latest);
+        var now = clock.GetUtcNow();
+        var upper = CurrentUpper(snapshot, now);
+        if (snapshot is null || upper is null || !snapshot.RetiredTargets.TryGetValue(
+                GovernanceDeploymentEvidenceProtocol.ScopeHash(GovernanceRetiredTargetProtocol.Purpose, scope), out var proof) ||
+            upper >= proof.ValidUntil || proof.IngressIsolated &&
+                upper.Value - proof.Upper > GovernanceRetiredTargetProtocol.MaximumObservationAge)
+            return null;
+        return proof with { ValidUntil = now + (proof.ValidUntil - upper.Value) };
     }
 
     private (GovernanceDeploymentClaim Claim, DateTimeOffset Bound)? Claim<T>(string purpose, T scope, DateTimeOffset now)
