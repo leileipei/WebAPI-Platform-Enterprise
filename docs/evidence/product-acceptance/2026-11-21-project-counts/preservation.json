@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-11-21T09:35:35.119978+00:00",
+  "originalWorktree": {
+    "headBefore": "b569addb6bec037119be0ddd3c1976c24832abdb",
+    "headAfter": "b569addb6bec037119be0ddd3c1976c24832abdb",
+    "trackedFilesChecked": 4552,
+    "changedFiles": [],
+    "statusUnchanged": true
+  },
+  "priorDockerResourceCounts": {
+    "containers": 525,
+    "volumes": 1151,
+    "networks": 133
+  },
+  "missingPriorDockerIdentities": {
+    "containers": [],
+    "volumes": [],
+    "networks": []
+  },
+  "ownedFixtures": [
+    {
+      "owner": "dee6e374-5669-447e-9f61-ab282733325d",
+      "containers": 3,
+      "allStopped": true,
+      "retained": true
+    },
+    {
+      "owner": "9590f9ad-0c5a-4cd6-a7ca-ea322f34790d",
+      "containers": 3,
+      "allStopped": true,
+      "retained": true
+    },
+    {
+      "owner": "d26be39a-bde9-4200-b51b-b330167f32a3",
+      "containers": 3,
+      "allStopped": true,
+      "retained": true
+    },
+    {
+      "owner": "270cb385-a634-4143-ac98-ef8e16327b0c",
+      "containers": 3,
+      "allStopped": true,
+      "retained": true
+    }
+  ],
+  "allOriginalTrackedFilesUnchanged": true,
+  "allPriorDockerIdentitiesPresent": true,
+  "historicalFailuresAndDatabasesRetained": true
+}

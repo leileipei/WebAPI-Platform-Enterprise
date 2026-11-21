@@ -45,6 +45,7 @@ jobs:
           tests/runtime/restore-quota-provider.test.mjs
           tests/runtime/migration-evidence-inspection.test.mjs
           tests/runtime/acceptance-context.test.mjs
+          tests/runtime/project-counts-acceptance-guards.test.mjs
 
       - name: Install pnpm
         run: npm install --global pnpm@11.25.0 --ignore-scripts --no-audit --no-fund

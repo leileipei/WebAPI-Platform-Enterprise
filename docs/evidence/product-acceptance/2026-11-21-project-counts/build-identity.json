@@ -1,0 +1,19 @@
+{
+  "productRevision": "1ead23c6f8f2778f1547264533622a759962b729",
+  "backendInputFilesVerified": 1077,
+  "backendInputManifestSha256": "b25b3485f3f7eef531d92bfdae7d1242b77165f6be20d4e71405dda58f6d3305",
+  "frontendStaticFilesVerified": {
+    "index.html": "2840e5c193379a69c8b2d1418fe37284be1060bfedc0298e7b93d49b6a715eb2",
+    "assets/index-DEw4ls4J.css": "4fcce3ac76567ebb63c6263d3daf1e26245d47ff0b050522bff9f242c7b83002",
+    "assets/index-C-xwajHZ.js": "a772db1012a9e8d27fdfb16cd468c5d670f4fde3d79ac89128d29983fdd03ef1"
+  },
+  "binaryHashes": [
+    "e3bf6ea745d55157069bfaf131f33cd017eec129fb5aab895c028a14016b6d5c  /test-src/tools/WebApi.ProjectCounts.BrowserHost/bin/Release/net10.0/WebApi.ControlPlane.dll",
+    "84f1c6a93acb8b07bc06ee627f1eac8dee98fe5fde5fd16f31e87e7b90450795  /test-src/tools/WebApi.ProjectCounts.BrowserHost/bin/Release/net10.0/WebApi.Infrastructure.dll",
+    "5ea82847f43c4025bd52896ef44f0e9f47e225bb2b2b91ee0a8c2bf3366cd5d4  /test-src/tools/WebApi.ProjectCounts.BrowserHost/bin/Release/net10.0/WebApi.ConsoleHost.dll",
+    "ee3e8fe4eeb50e3ab3b3cdb97fee31a77c04e1196e6ef60b7d2258ac7b36d6f9  /test-src/tools/WebApi.ProjectCounts.BrowserHost/bin/Release/net10.0/WebApi.ProjectCounts.BrowserHost.dll"
+  ],
+  "owner": "dee6e374-5669-447e-9f61-ab282733325d",
+  "containerId": "706fd5043cf92a568804b16b5570640cffea49598bbd3e8bc2806ee0428f1c6c",
+  "browserResultsSha256": "5e0359edb24645eb254269b54badb3b8b4665c62963d882a4f43403f4e4284e5"
+}

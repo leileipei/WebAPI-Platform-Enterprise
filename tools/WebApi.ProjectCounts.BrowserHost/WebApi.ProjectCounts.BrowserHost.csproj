@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../tests/WebApi.TestSupport/WebApi.TestSupport.csproj" /></ItemGroup>
+</Project>

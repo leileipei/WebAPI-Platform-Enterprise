@@ -1,0 +1,112 @@
+{
+  "productRevision": "1ead23c6f8f2778f1547264533622a759962b729",
+  "originalLedgerSha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
+  "historicalStatusCounts": {
+    "已关闭": 36,
+    "部分": 40,
+    "缺失": 18,
+    "待复验": 360,
+    "经确认延期": 0
+  },
+  "localRawLogs": [
+    {
+      "path": ".runtime/product-acceptance-20261121/baseline-project-counts.log",
+      "sha256": "bcf3c6bb0e241d6d32c4529462a1283bdcadc609239536543751abd86525bb8a"
+    },
+    {
+      "path": ".runtime/product-acceptance-20261121/baseline-console.log",
+      "sha256": "8b3d220d8098675c634c3271418027c0fc25b1e0c8d20c2441ffc77658271428"
+    },
+    {
+      "path": ".runtime/product-acceptance-20261121/baseline-console-standard-node.log",
+      "sha256": "037667ffb4c006336e1a744f308923766de2b42327116cb96f2ebbe0ce76ad24"
+    },
+    {
+      "path": ".runtime/product-acceptance-20261121/browser-fixture-build.log",
+      "sha256": "cf4aa21aa7e56623559bc863bcfcc263da9777539e4b5713d1addce37a4431e9"
+    },
+    {
+      "path": ".runtime/product-acceptance-20261121/browser-fixture-build-second.log",
+      "sha256": "66b74ee1c97aa5ee5d6031b5a7c26656c612392eb6690c77dd4845df0137c5ea"
+    },
+    {
+      "path": ".runtime/product-acceptance-20261121/browser-attempt-1.log",
+      "sha256": "4e532fe8883e8cb0e158e8ded2a239240c23c0467442a165904e5ca24ca12ade"
+    },
+    {
+      "path": ".runtime/product-acceptance-20261121/local-full-domain.log",
+      "sha256": "0718962eb86be2d88109d9816ba4137477e5a47ca8a235a5e5c7f655034521de"
+    },
+    {
+      "path": ".runtime/product-acceptance-20261121/local-python.log",
+      "sha256": "299254ba6f7895c3d56f6fdcf1a471a140b202aef930ba65822e8c53f4516648"
+    },
+    {
+      "path": ".runtime/product-acceptance-20261121/local-runtime-safeguards.log",
+      "sha256": "1530af691ae42d36071a96316a02a7fda269249776ab6d56cfea50869addf8ca"
+    }
+  ],
+  "toolSourceFiles": [
+    {
+      "path": "tools/WebApi.ProjectCounts.BrowserHost/Program.cs",
+      "sha256": "8d3f5850dee1f696289d5fe46c91f8fab5b4e5bc498c720782900172952e32c2"
+    },
+    {
+      "path": "tools/WebApi.ProjectCounts.BrowserHost/WebApi.ProjectCounts.BrowserHost.csproj",
+      "sha256": "0c5e478df97c13dafb0415120fd570b826431d5e8c4d5261126e6032f643d1a0"
+    },
+    {
+      "path": "tools/WebApi.ProjectCounts.BrowserHost/packages.lock.json",
+      "sha256": "e68ac28ba1bfc9305e25786817a8e8872bc45cd74dfb0f8d74c4ec9178a78918"
+    },
+    {
+      "path": "scripts/acceptance/project-counts-browser.mjs",
+      "sha256": "cc0e36d14efcfb37946ad4f926043fd0200af34124a0c4014d5078c04a142572"
+    },
+    {
+      "path": "scripts/acceptance/project-counts-fixture.mjs",
+      "sha256": "9377dafdd948ce9db8c5a04c7c15df69a8433600dc83d9153a21fd90a154b5d5"
+    }
+  ],
+  "qualification": "isolated real HTTP + PostgreSQL + production frontend; not customer or production acceptance",
+  "failuresRetained": [
+    {
+      "kind": "runner",
+      "log": "baseline-console.log",
+      "reason": "ChatGPT.app Node library validation rejects Rollup Team ID; standard installed Node used in a separately logged run."
+    },
+    {
+      "kind": "fixture-build",
+      "log": "browser-fixture-build.log",
+      "reason": "CA1416 in test-only file permissions; platform guard added."
+    },
+    {
+      "kind": "fixture-seed",
+      "log": "browser-fixture-build-second.log",
+      "database": "test_b64e5edda31641fca04f1dd5a61e0de9",
+      "reason": "Synthetic application codes must be unique per organization. Failed database retained; corrected fixture used new random database."
+    }
+  ],
+  "currentToolSourceFiles": [
+    {
+      "path": "scripts/acceptance/project-counts-browser.mjs",
+      "sha256": "c0ca47ddf169cf83ba23263cab4df08fba8ec860c9fa4dc261a1b19f62afdfe4"
+    },
+    {
+      "path": "scripts/acceptance/project-counts-fixture.mjs",
+      "sha256": "edb3d6a7d89d4123a8caf817ea83619557b7b19c80696a4d8287261158731648"
+    },
+    {
+      "path": "scripts/acceptance/project-counts-guards.mjs",
+      "sha256": "599e189e43ab80449c10930d7e794fe857f80012394e797cb9f5c1ac5aa20d73"
+    },
+    {
+      "path": "tests/runtime/project-counts-acceptance-guards.test.mjs",
+      "sha256": "3a1df804557e860b39b1115109a405795dcb31cc63c79abd364e45f4ce6f876f"
+    }
+  ],
+  "initialBrowserSourceArchived": {
+    "path": ".runtime/product-acceptance-20261121/tool-history/project-counts-browser.pre-review.mjs",
+    "sha256": "cc0e36d14efcfb37946ad4f926043fd0200af34124a0c4014d5078c04a142572"
+  }
+}
