@@ -1,6 +1,12 @@
 # 当前需求追溯与交付缺口复核
 
+## 2026-11-21 API 授权矩阵隔离验收
+
+原第 21 页 11 个 ID 在固定产品候选 `9f45b97` 逐项更新。34 项真实 HTTP 回归和 14 个浏览器观察点支撑矩阵、范围、有效期、批量选择、影响预览、授权、撤权、生产确认、过期和权限。读取规则修正覆盖应用详情和旧授权列表，旧版移动保留原授权 ID。原历史的部分、缺失和待复验状态仍按当时的源码与结果记录。[矩阵验收](../evidence/product-acceptance/2026-11-21-permission-matrix/README.md) · [当前逐项台账](requirements-acceptance-current.json)
+
 ## 2026-11-21：项目计数首批隔离验收
+
+[PR #23](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/23) 已合入 main `3b8a672a99d84e17ea9ff887b35267bdaf326eba`，与已检查 PR 提交文件树一致。main 自动复跑四项共 5,204 通过、0 失败、0 跳过。本批产品浏览器证据仍绑定原产品提交。[主线复跑回执](../evidence/product-acceptance/2026-11-21-project-counts/post-merge-main.json)
 
 本轮从已核对的 GitHub main `1ead23c6f8f2778f1547264533622a759962b729`（PR #22）建立独立分支。该主线的 console、contracts-domain、contracts-gateway、contracts-integration 四项 Actions 均已通过；本批分支的合并门槛另行执行。
 

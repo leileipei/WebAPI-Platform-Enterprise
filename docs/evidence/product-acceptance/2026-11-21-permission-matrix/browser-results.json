@@ -1,0 +1,224 @@
+{
+  "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+  "owner": "343cd464-1aaf-4c16-add2-0c694bd043d3",
+  "classification": "isolated-real-http-postgres-production-console",
+  "beforeLoginIdentity": {
+    "sourceManifestSha256": "b3484c8c194601e60404ca54e4d6f6228f15170172b9edfbffcad22378c38fe5",
+    "staticCount": 3
+  },
+  "startedAt": "2026-11-21T14:47:23.726Z",
+  "cases": [
+    {
+      "id": "B02-matrix-and-window-states",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "apiCount": 55,
+      "environments": 2,
+      "windowStates": [
+        "Expired",
+        "Pending"
+      ],
+      "screenshot": "B02-matrix-and-window-states.png",
+      "screenshotSha256": "bc8d485e7846366a07c7d381f187c801fbf328f740ad94ad5dc45bcee3998e44",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:25.586Z",
+      "passed": true
+    },
+    {
+      "id": "B02-cross-page-selection",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "selected": 2,
+      "page": 2,
+      "screenshot": "B02-cross-page-selection.png",
+      "screenshotSha256": "6363b53c07f8b58cbabd7c704b2292139c4e61609ed5c7b6006e9401faef40e4",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:25.800Z",
+      "passed": true
+    },
+    {
+      "id": "B02-batch-grant-preview",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "changeCount": 2,
+      "running": "Unconfirmed",
+      "screenshot": "B02-batch-grant-preview.png",
+      "screenshotSha256": "dfcc1b2f38d26807daf4ef81627ee9093e58c63ef7715aafab9bb4953e365014",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:26.015Z",
+      "passed": true
+    },
+    {
+      "id": "B02-batch-grant-readback",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "changeCount": 2,
+      "actualModes": [
+        "LegacyApi",
+        "LegacyApi"
+      ],
+      "screenshot": "B02-batch-grant-readback.png",
+      "screenshotSha256": "b9a3cbf6323b3327f903a90db8e41125582a6fc4c1b0b776ddf6da4854b61993",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:26.442Z",
+      "passed": true
+    },
+    {
+      "id": "B02-production-confirmation",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "requiresProductionConfirmation": true,
+      "buttonDisabled": true,
+      "method": "POST",
+      "screenshot": "B02-production-confirmation.png",
+      "screenshotSha256": "728a400224b03040e17de27caee565870fdb34f82444979509bfbf8ba56c8c1d",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:26.784Z",
+      "passed": true
+    },
+    {
+      "id": "B02-window-preview",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "changes": 2,
+      "expiryUtc": "2028-04-18T06:25:37.000Z",
+      "modePreserved": true,
+      "screenshot": "B02-window-preview.png",
+      "screenshotSha256": "9592319e83ba8e7953ff4328df42f00c18c0cd2cfc33bcf61de48882a7fc940a",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:27.319Z",
+      "passed": true
+    },
+    {
+      "id": "B02-revoke-preview",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "changes": 2,
+      "production": true,
+      "screenshot": "B02-revoke-preview.png",
+      "screenshotSha256": "773e471826f1ae32707fd398e5e19bf0fd19e5abbea5cff69351212314d02a16",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:27.751Z",
+      "passed": true
+    },
+    {
+      "id": "B02-revoke-readback",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "revoked": 2,
+      "unrelatedGrantPreserved": true,
+      "deploymentStateUnchanged": true,
+      "screenshot": "B02-revoke-readback.png",
+      "screenshotSha256": "d6826055435fb0103d0dc6ab82e782b11ad03a64019f7d5a0135768458c8d438",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:27.982Z",
+      "passed": true
+    },
+    {
+      "id": "B02-legacy-move-preview",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "changes": 2,
+      "production": true,
+      "screenshot": "B02-legacy-move-preview.png",
+      "screenshotSha256": "4c45701f587ce29d788fc3c41fc9be1b1d91d27537dddad6c3ce1e996d2b3ca3",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:28.251Z",
+      "passed": true
+    },
+    {
+      "id": "B02-legacy-move-readback",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sourceGone": true,
+      "sameId": true,
+      "advancedRevision": true,
+      "screenshot": "B02-legacy-move-readback.png",
+      "screenshotSha256": "3d1dc38d7857c438cd2e75b75dd0ce7de7d9156e593aa2763fcc8dafe9694830",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:28.633Z",
+      "passed": true
+    },
+    {
+      "id": "B02-shared-project-scope",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "environments": 1,
+      "apis": 1,
+      "foreignProjectStatus": 404,
+      "screenshot": "B02-shared-project-scope.png",
+      "screenshotSha256": "ffe0b3d22779bcec773c8420a52a57ad13f448975134bc4e20168cd404c0878e",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:28.828Z",
+      "passed": true
+    },
+    {
+      "id": "B02-read-only-scope",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "readable": true,
+      "mutable": false,
+      "screenshot": "B02-read-only-scope.png",
+      "screenshotSha256": "0c0435e536aa8125030f917c98fc5d0425f083499f601e4230c73498d0b766e8",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:29.516Z",
+      "passed": true
+    },
+    {
+      "id": "B02-no-environment-read",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "visibleEnvironments": 0,
+      "detailAndPermissionsMasked": true,
+      "screenshot": "B02-no-environment-read.png",
+      "screenshotSha256": "2a875db4e476ceea75dbf45367daa65136e23a148d58afa272c7e4b1fd38ad12",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:30.248Z",
+      "passed": true
+    },
+    {
+      "id": "B02-revoked-current-session",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": 403,
+      "editClosed": true,
+      "absentAfter": true,
+      "reloadedReadOnly": true,
+      "screenshot": "B02-revoked-current-session.png",
+      "screenshotSha256": "7aa5f7fc3192ab5029994151ec47968e8ec3efb5fb35ed08f5a4ecfee5ae0280",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T14:47:31.550Z",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "finishedAt": "2026-11-21T14:47:31.700Z"
+}

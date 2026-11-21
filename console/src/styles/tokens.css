@@ -76,3 +76,29 @@ fieldset.form-grid{border:0;padding:0;margin:0;min-width:0}.form-grid .checkline
 
 .advanced-policy-fields>.card>fieldset{border:0;margin:0;padding:0;min-width:0;display:grid;gap:12px}.advanced-policy-fields>.card>fieldset label{display:grid;gap:6px;min-width:0}.advanced-policy-fields>.card>fieldset label:has(>input[type=checkbox]){display:flex;align-items:center;gap:8px}.advanced-policy-fields>.card>fieldset input[type=checkbox]{width:auto;margin:0}.advanced-policy-fields>.card>fieldset label>small{line-height:1.55;color:var(--muted)}.json-mapping-preview .preview-sample{grid-column:1/-1}.json-mapping-preview textarea{width:100%;resize:vertical;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}.json-mapping-preview .actions{margin-top:12px}
 .wp4-subline{display:block;margin-top:4px;color:var(--text-muted,#697586);font-size:11px;line-height:1.45}.wp4-credential-table{min-width:1040px}.wp4-credential-table td{vertical-align:top}.wp4-credential-table td:nth-child(3){white-space:nowrap}.wp4-rotation{margin-top:20px;outline:none}.wp4-rotation-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.wp4-rotation-grid>section{padding:18px;min-width:0}.wp4-rotation-grid label{display:block;margin:14px 0}.wp4-rotation-grid select{width:100%;margin-top:6px}.wp4-rotation-grid label:has(input[type=checkbox]){display:flex;gap:8px;align-items:flex-start}.wp4-rotation-grid a{display:block;margin:10px 0}.wp4-rotation-grid dl>div{display:flex;gap:16px;border-bottom:1px solid var(--border,#e5e9f0);padding:8px 0}.wp4-rotation-grid dd{margin:0}.wp4-rotation-grid .notice{overflow-wrap:anywhere}@media(max-width:1050px){.wp4-rotation-grid{grid-template-columns:1fr}}
+
+.access-matrix-project{display:flex;align-items:center;gap:12px;margin:12px 0}
+.access-matrix-toolbar{align-items:center;flex-wrap:wrap}
+.access-matrix th small,.access-matrix-grant small{display:block;color:var(--muted);font-weight:400;margin-top:4px}
+.access-matrix td,.access-matrix tbody th{vertical-align:top}
+.access-matrix tbody th{background:#fff}
+.access-matrix-cell{min-width:160px}
+.access-matrix-cell-actions,.access-matrix-methods{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.access-matrix-cell-actions{min-height:28px}
+.access-matrix-grant .badge{margin-left:4px}
+.access-matrix-grant ul{padding-left:18px;overflow-wrap:anywhere}
+.access-matrix-dialog{width:min(860px,calc(100vw - 32px))}
+.access-matrix-dialog-content{border:0;padding:0;margin:0;min-width:0}
+.access-matrix-dialog-content h3,.access-matrix-dialog-content h4{margin:0 0 8px}
+.access-matrix-window,.access-matrix-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.access-matrix-window label:not(.checkline),.access-matrix-target>label{display:flex;flex-direction:column;gap:6px}
+.access-matrix-target{min-width:0}
+.access-matrix-target>label{max-width:300px}
+.access-matrix-target>section{margin-top:16px}
+.access-matrix-comparison{grid-template-columns:repeat(3,minmax(0,1fr))}
+.access-matrix-comparison section+section{border-left:1px solid var(--border);padding-left:12px}
+.access-matrix-production .checkline{color:#8e2631}
+@media(max-width:680px){
+ .access-matrix-window,.access-matrix-comparison{grid-template-columns:minmax(0,1fr)}
+ .access-matrix-comparison section+section{border-left:0;border-top:1px solid var(--border);padding:12px 0 0}
+}

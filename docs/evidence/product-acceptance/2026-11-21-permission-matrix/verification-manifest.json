@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-21T14:49:19.159612+00:00",
+  "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+  "baseMain": "323e0dc9f4066570b0c050097bb318a288ba758a",
+  "targetedHttp": {
+    "passed": 34,
+    "failed": 0,
+    "skipped": 0,
+    "log": "http-green-final.log",
+    "sourceIdentity": "http-final-source.sha256"
+  },
+  "browserAttempts": [
+    {
+      "directory": "browser-attempt-1",
+      "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+      "owner": "907eb98c-8f9f-45ae-b789-149cb37f5eae",
+      "passed": true,
+      "observationsRecorded": 14,
+      "failure": null,
+      "resultsSha256": "684a2e5679e9e36befd927ba120fcbf11a82926c32e15f413d4666c791f301dc"
+    },
+    {
+      "directory": "browser-visual-final",
+      "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+      "owner": "aba44ff8-c6ce-4789-968e-7b1d28bacb4c",
+      "passed": false,
+      "observationsRecorded": 13,
+      "failure": {
+        "name": "BrowserAcceptanceError",
+        "phase": "revoke-management-after-preview",
+        "scenario": "revoked",
+        "reason": "Acceptance stage did not complete; private exception details were not recorded."
+      },
+      "resultsSha256": "23ab7f8a533ef74fe11870d89d827aab98bb6c0e3e4097fc1ec582ce22340417"
+    },
+    {
+      "directory": "browser-refreshed",
+      "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+      "owner": "343cd464-1aaf-4c16-add2-0c694bd043d3",
+      "passed": true,
+      "observationsRecorded": 14,
+      "failure": null,
+      "resultsSha256": "a2c2d859a2939e7b473678a9c66aae40bb8cbb6f264f88a47b46f510e588a21a"
+    }
+  ],
+  "fixtures": [
+    {
+      "run": "smoke",
+      "owner": "9b519d47-274f-4034-bbbf-6d676e378f78",
+      "productRevision": "3b8a672a99d84e17ea9ff887b35267bdaf326eba",
+      "sourceManifestSha256": "6b39984fc290ff101e00c89f9ab71d200cac7530e379efca1cb6c14cf8965c2c",
+      "checkedBackendInputs": 1081,
+      "staticFiles": {
+        "assets/index-C-xwajHZ.js": "a772db1012a9e8d27fdfb16cd468c5d670f4fde3d79ac89128d29983fdd03ef1",
+        "assets/index-DEw4ls4J.css": "4fcce3ac76567ebb63c6263d3daf1e26245d47ff0b050522bff9f242c7b83002",
+        "index.html": "2840e5c193379a69c8b2d1418fe37284be1060bfedc0298e7b93d49b6a715eb2"
+      },
+      "toolFiles": {
+        "tools/WebApi.ProjectCounts.BrowserHost/Program.cs": "4d289689fd616a0e730a7490cf7e1afeb439bd93fddfcbe956f0a9ce28898a09",
+        "tools/WebApi.ProjectCounts.BrowserHost/PermissionMatrixFixture.cs": "a59d612d930dfac6b9ab14500da45b8873c6608817b387be86449059794e3cc6",
+        "tools/WebApi.ProjectCounts.BrowserHost/WebApi.ProjectCounts.BrowserHost.csproj": "0c5e478df97c13dafb0415120fd570b826431d5e8c4d5261126e6032f643d1a0",
+        "tools/WebApi.ProjectCounts.BrowserHost/packages.lock.json": "e68ac28ba1bfc9305e25786817a8e8872bc45cd74dfb0f8d74c4ec9178a78918"
+      },
+      "stopped": true,
+      "retainedDatabase": true,
+      "retainedContainers": 3
+    },
+    {
+      "run": "final",
+      "owner": "907eb98c-8f9f-45ae-b789-149cb37f5eae",
+      "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+      "sourceManifestSha256": "b3484c8c194601e60404ca54e4d6f6228f15170172b9edfbffcad22378c38fe5",
+      "checkedBackendInputs": 1086,
+      "staticFiles": {
+        "assets/index-D-v04YXO.js": "8087ea171f6a07cb68d1a6bb92cc846107ea31c50496877606674e13fda31bbb",
+        "assets/index-cfzwTYLY.css": "f410f2b67c7716c84694b628f8d3a749d41d5e632e6d29f8548a7108fced8bc9",
+        "index.html": "0c70d143b3e4b5627356e76f25943cbd9b1fbb876dd4c3ec152178ea32c60c73"
+      },
+      "toolFiles": {
+        "tools/WebApi.ProjectCounts.BrowserHost/Program.cs": "4d289689fd616a0e730a7490cf7e1afeb439bd93fddfcbe956f0a9ce28898a09",
+        "tools/WebApi.ProjectCounts.BrowserHost/PermissionMatrixFixture.cs": "a59d612d930dfac6b9ab14500da45b8873c6608817b387be86449059794e3cc6",
+        "tools/WebApi.ProjectCounts.BrowserHost/WebApi.ProjectCounts.BrowserHost.csproj": "0c5e478df97c13dafb0415120fd570b826431d5e8c4d5261126e6032f643d1a0",
+        "tools/WebApi.ProjectCounts.BrowserHost/packages.lock.json": "e68ac28ba1bfc9305e25786817a8e8872bc45cd74dfb0f8d74c4ec9178a78918"
+      },
+      "stopped": true,
+      "retainedDatabase": true,
+      "retainedContainers": 3
+    },
+    {
+      "run": "visual",
+      "owner": "aba44ff8-c6ce-4789-968e-7b1d28bacb4c",
+      "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+      "sourceManifestSha256": "b3484c8c194601e60404ca54e4d6f6228f15170172b9edfbffcad22378c38fe5",
+      "checkedBackendInputs": 1086,
+      "staticFiles": {
+        "assets/index-D-v04YXO.js": "8087ea171f6a07cb68d1a6bb92cc846107ea31c50496877606674e13fda31bbb",
+        "assets/index-cfzwTYLY.css": "f410f2b67c7716c84694b628f8d3a749d41d5e632e6d29f8548a7108fced8bc9",
+        "index.html": "0c70d143b3e4b5627356e76f25943cbd9b1fbb876dd4c3ec152178ea32c60c73"
+      },
+      "toolFiles": {
+        "tools/WebApi.ProjectCounts.BrowserHost/Program.cs": "4d289689fd616a0e730a7490cf7e1afeb439bd93fddfcbe956f0a9ce28898a09",
+        "tools/WebApi.ProjectCounts.BrowserHost/PermissionMatrixFixture.cs": "a59d612d930dfac6b9ab14500da45b8873c6608817b387be86449059794e3cc6",
+        "tools/WebApi.ProjectCounts.BrowserHost/WebApi.ProjectCounts.BrowserHost.csproj": "0c5e478df97c13dafb0415120fd570b826431d5e8c4d5261126e6032f643d1a0",
+        "tools/WebApi.ProjectCounts.BrowserHost/packages.lock.json": "e68ac28ba1bfc9305e25786817a8e8872bc45cd74dfb0f8d74c4ec9178a78918"
+      },
+      "stopped": true,
+      "retainedDatabase": true,
+      "retainedContainers": 3
+    },
+    {
+      "run": "refreshed",
+      "owner": "343cd464-1aaf-4c16-add2-0c694bd043d3",
+      "productRevision": "9f45b97c73873088ebe58280025d10d39e121f0b",
+      "sourceManifestSha256": "b3484c8c194601e60404ca54e4d6f6228f15170172b9edfbffcad22378c38fe5",
+      "checkedBackendInputs": 1086,
+      "staticFiles": {
+        "assets/index-D-v04YXO.js": "8087ea171f6a07cb68d1a6bb92cc846107ea31c50496877606674e13fda31bbb",
+        "assets/index-cfzwTYLY.css": "f410f2b67c7716c84694b628f8d3a749d41d5e632e6d29f8548a7108fced8bc9",
+        "index.html": "0c70d143b3e4b5627356e76f25943cbd9b1fbb876dd4c3ec152178ea32c60c73"
+      },
+      "toolFiles": {
+        "tools/WebApi.ProjectCounts.BrowserHost/Program.cs": "4d289689fd616a0e730a7490cf7e1afeb439bd93fddfcbe956f0a9ce28898a09",
+        "tools/WebApi.ProjectCounts.BrowserHost/PermissionMatrixFixture.cs": "a59d612d930dfac6b9ab14500da45b8873c6608817b387be86449059794e3cc6",
+        "tools/WebApi.ProjectCounts.BrowserHost/WebApi.ProjectCounts.BrowserHost.csproj": "0c5e478df97c13dafb0415120fd570b826431d5e8c4d5261126e6032f643d1a0",
+        "tools/WebApi.ProjectCounts.BrowserHost/packages.lock.json": "e68ac28ba1bfc9305e25786817a8e8872bc45cd74dfb0f8d74c4ec9178a78918"
+      },
+      "stopped": true,
+      "retainedDatabase": true,
+      "retainedContainers": 3
+    }
+  ],
+  "browserDriverSha256": {
+    "attempt1": "1253d9a0cf1f8d39c63a9bc54497e6c90365331638527811b91c1c6683b1eaa9",
+    "attempt2": "1fa9035f6b366113349532244793199f6c151da89a941a5688d6ae89a385aced",
+    "final": "eee07a6837e56ac9471df0c37d655ff51fd32e12acb2bf3320a1277cf172ffcd"
+  },
+  "localEvidenceRoot": ".runtime/permission-matrix-20261121",
+  "retainedLogs": [
+    {
+      "file": "http-detail-red.log",
+      "sha256": "eb44896b44d9370cfa1220952474da2e95315a32ca22cf935d78506c09a3de29"
+    },
+    {
+      "file": "http-green-01.log",
+      "sha256": "e5e5d1055e436472b3baaa79bdd052d7d74f7da0943252d9c5f65b6100da3157"
+    },
+    {
+      "file": "http-green-02.log",
+      "sha256": "fa3740b70e5ab7ff034ea86843f3fc4a9075be1a8f35238a8a514de3a565a8cb"
+    },
+    {
+      "file": "http-green-03.log",
+      "sha256": "a834c63649a1acebb05253d9523ff32007b92e13b3eba4dadce510d785278011"
+    },
+    {
+      "file": "http-green-final.log",
+      "sha256": "0091d6472d5c1d1736b243528fb40b3acfb0d2d8b9e228a9124454cd852fa580"
+    },
+    {
+      "file": "http-move-red.log",
+      "sha256": "59f6af6ab657200779e8c6694b8074634b69011f4d6004984e3af6b486571e24"
+    },
+    {
+      "file": "http-options-red.log",
+      "sha256": "862d21e952b04071c781b52c24f13ef801336a9520b341259a40209c47386a9d"
+    },
+    {
+      "file": "http-red-02.log",
+      "sha256": "9d97879bb88abb9e72da441b2edc3859767a1c2424ce6c01e3810edf8b12ca7f"
+    },
+    {
+      "file": "http-red-03.log",
+      "sha256": "a28bd4d2bdbc78c17cca4c7872a45cdc01001c9891fe9f8fd8b3806dc0535ac2"
+    },
+    {
+      "file": "http-red.log",
+      "sha256": "1e3568560eed53bb27052520379243ef375e1e3a17f77c453fbe76d678f8248a"
+    },
+    {
+      "file": "http-snapshot-red.log",
+      "sha256": "d7f5744e8f773cde723daea93b7672b8172aa0f2dcbcfb958b2a5730b556c489"
+    },
+    {
+      "file": "console-conflict-browser.log",
+      "sha256": "5b37ab43f92e42160889a8ec52fc1b90ee1ff8a4b1e0aedfc8fdace9098a2e1e"
+    },
+    {
+      "file": "console-move-browser.log",
+      "sha256": "5d558e26c2317e9d6dd95d4bd7dd7bd4e0678f5b8b19b69a67a3dffc904111ad"
+    },
+    {
+      "file": "console-test.log",
+      "sha256": "bdf440288641474d11262a7b18acdcf6571c9ac33302c14e2c67967f249c0254"
+    },
+    {
+      "file": "console-test-with-move.log",
+      "sha256": "8ba78615312131e143d5758153d907d3f9ebe2ee079b01df226a74d52ff47ec4"
+    },
+    {
+      "file": "fixture-guards.log",
+      "sha256": "ec59a9c13ab3e0fbabef4516cf9466476faf6311eea6da14bf7aa2979984737e"
+    },
+    {
+      "file": "fixture-final-host.log",
+      "sha256": "04589ddf4ee0ab278212a28192d000dcc1e7f3f72abb4d99e455e1f661b5413b"
+    },
+    {
+      "file": "fixture-refreshed-host.log",
+      "sha256": "b198b38cb1caa3a9c093da1b895038c48cf0915a334b8ab3ce58878cf6219c31"
+    },
+    {
+      "file": "fixture-smoke-host.log",
+      "sha256": "7af1d53443fc341fe58deb773e2c62def1d84eaa26be778be2b5aea88a7d62a1"
+    },
+    {
+      "file": "fixture-visual-host.log",
+      "sha256": "89ea13fbe3dfc12380a0bf0f3d9aba96c3e9a68cf796995cde3b6a92631d6493"
+    },
+    {
+      "file": "http-final-source.sha256",
+      "sha256": "a38554f8a87a2ab2199df5d4e926e5328005ec7645753b20a895a0e4a34ea60e"
+    }
+  ],
+  "independentReview": {
+    "initialConcernCount": 3,
+    "closedOnSourceReview": 3,
+    "issues": [
+      "旧应用详情和授权列表的权限裁剪一致性",
+      "路由授权修订与路径匹配",
+      "保持原授权 ID 的旧版移动"
+    ]
+  },
+  "verificationBoundary": "真实本地 HTTP、隔离 PostgreSQL 与构建后控制台。生产标签为合成，浏览器未触发发布。"
+}

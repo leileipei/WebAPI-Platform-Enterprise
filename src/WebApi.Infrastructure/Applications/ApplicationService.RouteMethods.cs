@@ -16,6 +16,10 @@ public sealed partial class ApplicationService
         ActorContext actor, CancellationToken ct = default)
     {
         var env = await scopes.EnvironmentAsync(environmentId, ct);
+        await RequireReadablePermissionProjectAsync(applicationId, env.ProjectId!.Value, actor, ct);
+        if (!await ReadablePermissionEnvironments(actor).AnyAsync(e => e.Id == environmentId, ct) ||
+            !await db.Set<Api>().AnyAsync(a => a.Id == apiId && a.ProjectId == env.ProjectId && a.OrganizationId == env.OrganizationId, ct))
+            throw ScopeResolver.Missing();
         await RequireRoutePermissionScopeAsync(applicationId, apiId, environmentId, env, actor, ct);
         var choices = await db.Set<ApiRoute>().AsNoTracking().Where(x =>
                 x.EnvironmentId == environmentId && x.ApiId == apiId && x.Enabled)
@@ -41,15 +45,7 @@ public sealed partial class ApplicationService
                 $"SELECT * FROM environments WHERE id={request.EnvironmentId} FOR UPDATE").SingleAsync(token);
             await GlobalCredentialPublicationGuard.RequireApplicationInheritanceAsync(db, envScope, applicationId, token);
 
-            var routeIds = requested.Keys.ToArray();
-            var routes = await db.Set<ApiRoute>().AsNoTracking().Where(x => routeIds.Contains(x.Id) && x.ApiId == request.ApiId &&
-                x.EnvironmentId == environment.Id && x.Enabled).ToDictionaryAsync(x => x.Id, token);
-            foreach (var grant in requested.Values)
-            {
-                if (!routes.TryGetValue(grant.RouteId, out var route)) throw InvalidRouteMethods();
-                RevisionTag.Require(RevisionTag.Format(grant.AuthorizationRevision), route.AuthorizationRevision);
-                if (grant.Methods.Except(route.Methods, StringComparer.Ordinal).Any()) throw InvalidRouteMethods();
-            }
+            await RequireCurrentRoutesAsync(request.ApiId, environment.Id, requested, token);
 
             ApplicationApiPermission permission;
             if (permissionId is Guid id)
@@ -94,6 +90,19 @@ public sealed partial class ApplicationService
         }, ct);
     }
 
+    internal async Task RequireCurrentRoutesAsync(Guid apiId, Guid environmentId, Dictionary<Guid, RuntimeRouteMethodGrant> requested, CancellationToken ct)
+    {
+        var routeIds = requested.Keys.ToArray();
+        var routes = await db.Set<ApiRoute>().AsNoTracking().Where(x => routeIds.Contains(x.Id) && x.ApiId == apiId &&
+            x.EnvironmentId == environmentId && x.Enabled).ToDictionaryAsync(x => x.Id, ct);
+        foreach (var grant in requested.Values)
+        {
+            if (!routes.TryGetValue(grant.RouteId, out var route)) throw InvalidRouteMethods();
+            RevisionTag.Require(RevisionTag.Format(grant.AuthorizationRevision), route.AuthorizationRevision);
+            if (grant.Methods.Except(route.Methods, StringComparer.Ordinal).Any()) throw InvalidRouteMethods();
+        }
+    }
+
     private async Task RequireRoutePermissionScopeAsync(Guid applicationId, Guid apiId, Guid environmentId, ScopeRef env,
         ActorContext actor, CancellationToken ct)
     {
@@ -107,7 +116,7 @@ public sealed partial class ApplicationService
         await auth.RequireAsync(actor, "route.read", new("environment", environmentId, env), ct);
     }
 
-    private async Task<ApplicationPermissionDto[]> ReadPermissionDetailsAsync(List<ApplicationApiPermission> permissions, CancellationToken ct)
+    internal async Task<ApplicationPermissionDto[]> ReadPermissionDetailsAsync(List<ApplicationApiPermission> permissions, CancellationToken ct)
     {
         var governed = permissions.Where(x => x.Mode == "RouteMethod").Select(x => x.Id).ToArray();
         if (governed.Length == 0) return permissions.Select(Dto).ToArray();
@@ -121,7 +130,7 @@ public sealed partial class ApplicationService
             : Dto(permission)).ToArray();
     }
 
-    private static Dictionary<Guid, RuntimeRouteMethodGrant> ValidateMethods(IReadOnlyList<RuntimeRouteMethodGrant>? grants)
+    internal static Dictionary<Guid, RuntimeRouteMethodGrant> ValidateMethods(IReadOnlyList<RuntimeRouteMethodGrant>? grants)
     {
         if (grants is not { Count: >= 1 and <= 1000 }) throw InvalidRouteMethods();
         var result = new Dictionary<Guid, RuntimeRouteMethodGrant>();

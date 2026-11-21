@@ -8,10 +8,11 @@ import {randomBytes,randomUUID,createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {sourceHashes,verifySourceManifest} from './project-counts-guards.mjs';
 const exec=promisify(execFile),root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const [mode,argument,portArgument,subnet]=process.argv.slice(2);
+const [mode,argument,portArgument,subnet,scenario='project-counts']=process.argv.slice(2);
 const run=async(command,args,options={})=>(await exec(command,args,{cwd:root,maxBuffer:8*1024*1024,...options})).stdout;
 const write=async(file,value)=>fs.writeFile(file,typeof value==='string'?value:JSON.stringify(value,null,2)+'\n',{flag:'wx',mode:0o600});
 if(mode==='prepare') {
+  assert.ok(['project-counts','permission-matrix'].includes(scenario),'Unknown acceptance scenario.');
   assert.match(argument??'',/^[a-f0-9]{40}$/);
   const port=Number(portArgument);assert.ok(Number.isInteger(port)&&port>=1024&&port<=65535&&!['4192','4194','4196','4197'].includes(portArgument));
   assert.match(subnet??'',/^10\.251\.(?:[0-9]{1,2}|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.0\/24$/);
@@ -29,7 +30,7 @@ if(mode==='prepare') {
   await run('git',['archive','--format=tar','--output='+path.join(directory,'product-input.tar'),argument,...inputs]);
   await run('tar',['-xf',path.join(directory,'product-input.tar'),'-C',source]);
   const tool='tools/WebApi.ProjectCounts.BrowserHost';await fs.mkdir(path.join(source,tool),{recursive:true});
-  const toolFiles={};for(const name of ['Program.cs','WebApi.ProjectCounts.BrowserHost.csproj','packages.lock.json']) {
+  const toolFiles={};for(const name of ['Program.cs','PermissionMatrixFixture.cs','WebApi.ProjectCounts.BrowserHost.csproj','packages.lock.json']) {
     const relative=tool+'/'+name,bytes=await fs.readFile(path.join(root,relative));await fs.writeFile(path.join(source,relative),bytes,{flag:'wx'});
     toolFiles[relative]=createHash('sha256').update(bytes).digest('hex');
   }
@@ -46,13 +47,13 @@ if(mode==='prepare') {
   await write(path.join(directory,'backend-files.list'),backendFiles.join('\0')+'\0');
   await write(path.join(directory,'backend-sha256.txt'),backendFiles.map(file=>files[file]+'  '+file).join('\n')+'\n');
   const dist=path.join(source,'console/dist'),staticFiles=await sourceHashes(dist);
-  await write(path.join(dist,'acceptance-identity.json'),{owner,productRevision:argument,sourceManifestSha256,staticFiles});
+  await write(path.join(dist,'acceptance-identity.json'),{owner,scenario,productRevision:argument,sourceManifestSha256,staticFiles});
   const target='/evidence/'+name;
   const limits={WEBAPI_MIGRATION_TRANSACTION_SECONDS:'900',WEBAPI_MIGRATION_SETTINGS_MAX_BYTES:'65536',WEBAPI_MIGRATION_RULE_MAX_BYTES:'16384',WEBAPI_MIGRATION_RULE_MAX_COUNT:'100000',WEBAPI_MIGRATION_TOTAL_MAX_BYTES:'67108864',WEBAPI_MIGRATION_RECEIPT_MAX_ROWS:'100000'};
   const config={name:project,services:{
     postgres:{image:images.postgres,environment:{POSTGRES_USER:'webapi',POSTGRES_DB:'webapi',POSTGRES_PASSWORD_FILE:'/run/secrets/postgres-password'},secrets:['postgres-password'],volumes:['pg:/var/lib/postgresql/data'],healthcheck:{test:['CMD-SHELL','pg_isready -U webapi -d webapi'],interval:'2s',timeout:'3s',retries:30}},
     redis:{image:images.redis,healthcheck:{test:['CMD','redis-cli','ping'],interval:'2s',timeout:'3s',retries:30}},
-    host:{image:images.sdk,working_dir:'/test-src',volumes:[source+':/source:ro',directory+':'+target,dist+':/console-dist:ro','build:/test-src','nuget:/root/.nuget/packages','seed:/nuget-seed:ro'],secrets:['postgres-password'],ports:[`127.0.0.1:${port}:18080`],environment:{...limits,DOTNET_CLI_TELEMETRY_OPTOUT:'1',WEBAPI_PRODUCT_ACCEPTANCE_OWNER:owner,WEBAPI_PRODUCT_REVISION:argument,WEBAPI_TEST_DB_HOST:'postgres',WEBAPI_TEST_RETAIN_DATABASES:'1',WEBAPI_TEST_SQL_MIGRATION_LIMITS:'1'},command:['bash','-c',[
+    host:{image:images.sdk,working_dir:'/test-src',volumes:[source+':/source:ro',directory+':'+target,dist+':/console-dist:ro','build:/test-src','nuget:/root/.nuget/packages','seed:/nuget-seed:ro'],secrets:['postgres-password'],ports:[`127.0.0.1:${port}:18080`],environment:{...limits,DOTNET_CLI_TELEMETRY_OPTOUT:'1',WEBAPI_PRODUCT_ACCEPTANCE_OWNER:owner,WEBAPI_PRODUCT_ACCEPTANCE_SCENARIO:scenario,WEBAPI_PRODUCT_REVISION:argument,WEBAPI_TEST_DB_HOST:'postgres',WEBAPI_TEST_RETAIN_DATABASES:'1',WEBAPI_TEST_SQL_MIGRATION_LIMITS:'1'},command:['bash','-c',[
       'set -euo pipefail',
       'tar -C /source --null -T '+target+'/backend-files.list -cf - | tar -xf - -C /test-src',
       'sha256sum --check '+target+'/backend-sha256.txt > '+target+'/backend-source-verified.log',
@@ -64,7 +65,7 @@ if(mode==='prepare') {
   },secrets:{'postgres-password':{file:path.join(directory,'postgres-password')}},volumes:{pg:{},build:{},nuget:{},seed:{external:true,name:seed}},networks:{default:{ipam:{config:[{subnet}]}}}};
   for(const service of Object.values(config.services))service.labels={'com.webapi.product-acceptance.owner':owner};
   await write(path.join(directory,'compose.json'),config);
-  await write(path.join(directory,'fixture.json'),{owner,directory,project,url:`http://127.0.0.1:${port}`,productRevision:argument,sourceManifestSha256,staticFiles,toolFiles});
+  await write(path.join(directory,'fixture.json'),{owner,scenario,directory,project,url:`http://127.0.0.1:${port}`,productRevision:argument,sourceManifestSha256,staticFiles,toolFiles});
   console.log(directory);
 } else if(['start','stop'].includes(mode)) {
   const directory=path.resolve(argument),fixture=JSON.parse(await fs.readFile(path.join(directory,'fixture.json')));
@@ -88,4 +89,4 @@ if(mode==='prepare') {
     await write(path.join(directory,'retention.json'),{owner:fixture.owner,stopped:true,containersRetained:ids,volumesRetained:true});
   }
   console.log(mode+': '+fixture.project);
-} else throw new Error('Usage: project-counts-fixture.mjs prepare <full SHA> <loopback port> <free 10.251.x.0/24> | start|stop <owned directory>');
+} else throw new Error('Usage: project-counts-fixture.mjs prepare <full SHA> <loopback port> <free 10.251.x.0/24> [project-counts|permission-matrix] | start|stop <owned directory>');

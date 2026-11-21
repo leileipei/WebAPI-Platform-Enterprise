@@ -44,7 +44,9 @@ public sealed class AuditedCommandExecutor(WebApiDbContext db,AuditRequestMetada
             var value=await command(db,cancellationToken);
             db.ChangeTracker.DetectChanges();
             var changes=db.ChangeTracker.Entries().Where(e=>e.Entity is not AuditLog && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted).ToArray();
-            var first=changes.FirstOrDefault(e=>e.Entity is SsoProvider or SsoProviderTest)??changes.FirstOrDefault(e=>e.Entity is SystemSetting)??changes.FirstOrDefault(e=>e.Entity is not IdempotencyRecord);
+            var permissionChange = action.StartsWith("app.permission.", StringComparison.Ordinal)
+                ? changes.FirstOrDefault(e => e.Entity is ApplicationApiPermission) : null;
+            var first=permissionChange??changes.FirstOrDefault(e=>e.Entity is SsoProvider or SsoProviderTest)??changes.FirstOrDefault(e=>e.Entity is SystemSetting)??changes.FirstOrDefault(e=>e.Entity is not IdempotencyRecord);
             if(changes.Length>0) db.Add(new AuditLog {
                 UserId=actor.UserId,OrganizationId=scope.OrganizationId==Guid.Empty?null:scope.OrganizationId,ProjectId=scope.ProjectId,EnvironmentId=scope.EnvironmentId,
                 Action=action,ResourceType=first?.Entity is SsoProviderTest?nameof(SsoProvider):first?.Metadata.ClrType.Name??action.Split('.')[0],
