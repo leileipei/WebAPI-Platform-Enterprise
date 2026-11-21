@@ -1,0 +1,103 @@
+{
+  "productRevision": "1ead23c6f8f2778f1547264533622a759962b729",
+  "inspectedAt": "2026-11-21T09:14:16.848812+00:00",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "passed": true,
+  "findings": "13 张截图逐张核对：表头和三列完整、计数与接口一致、无数字截断或横向溢出。只读编辑/新建禁用；合成长用户名可换行。未出现密码、Cookie 或令牌。",
+  "screenshots": [
+    {
+      "caseId": "PC-all",
+      "file": "PC-all.png",
+      "sha256": "c2b5f283296f4b246dcba54f0cfbad4469660a521b5ddd8c7cee2317dfd217c7",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-no-environment",
+      "file": "PC-no-environment.png",
+      "sha256": "4b1d1f0c9df4e5da8dba8aea0a94a2a65adeedfaff0c941dd97a60ef5d230d08",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-no-api",
+      "file": "PC-no-api.png",
+      "sha256": "efb88f1b57f854152c7197239448a6359556bd6a6dcb01fb9e8cf3d6fc5bee78",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-no-app",
+      "file": "PC-no-app.png",
+      "sha256": "034e3a8849390801306f15248087679f887f4659d293b97ba74f73f0ded39143",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-no-count-reads",
+      "file": "PC-no-count-reads.png",
+      "sha256": "dce1dc4060d1c08d65aba636a9a28a0a29b832c6994e6399c7347d81ebfcaa59",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-project-only",
+      "file": "PC-project-only.png",
+      "sha256": "0581abc8bc0ab1c2f830eedc18fe3c529007d893d0e75fc2358c5985449735c5",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-environment-only",
+      "file": "PC-environment-only.png",
+      "sha256": "7ccf20689d9ab9faad75bc2aaa3bf17d368d186fb70e1fd9e974543f363d05e2",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-no-project-read",
+      "file": "PC-no-project-read.png",
+      "sha256": "cb0f8b25a5831ed599b3d00c5db2416fec5f6cbd858bbf5b9bac58f7cede69f8",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-no-governance-read",
+      "file": "PC-no-governance-read.png",
+      "sha256": "867dae552c9f13782ececc35c84bf97b81c92438fbd7609eaf281f362f414138",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-revoke",
+      "file": "PC-revoke.png",
+      "sha256": "e017e64d9d58d4fe642633fa9bd7fbdff2034b4b04cfa8f509a9429768c37c23",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-revoke-environment",
+      "file": "PC-revoke-environment.png",
+      "sha256": "01d77e4f0c5cdb198c089be79bae671ae29347522f684b92ef13a161a32bc0b1",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-revoke-api",
+      "file": "PC-revoke-api.png",
+      "sha256": "f905f88cb50b0b25c0f976af9b369e2211df1c3ff479da19b8605089d21efd3e",
+      "visuallyInspected": true,
+      "passed": true
+    },
+    {
+      "caseId": "PC-revoke-app",
+      "file": "PC-revoke-app.png",
+      "sha256": "d9e893e3ff3fded99ceccdb7692eda9ddc3a0390f93ef5ba7b69f2aaddb45243",
+      "visuallyInspected": true,
+      "passed": true
+    }
+  ]
+}

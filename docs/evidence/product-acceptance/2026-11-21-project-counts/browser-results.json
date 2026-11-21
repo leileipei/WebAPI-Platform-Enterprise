@@ -1,0 +1,505 @@
+{
+  "productRevision": "1ead23c6f8f2778f1547264533622a759962b729",
+  "owner": "dee6e374-5669-447e-9f61-ab282733325d",
+  "classification": "isolated-real-http-postgres-production-console",
+  "startedAt": "2026-11-21T08:51:11.422Z",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "cases": [
+    {
+      "id": "PC-all",
+      "scenario": "多资源、空项目、停用资源、版本与重叠范围不重复、共享应用排除",
+      "httpStatus": 200,
+      "total": 4,
+      "rows": [
+        {
+          "id": "2c03e0df-28c2-4c51-8118-1973b806a754",
+          "code": "A_EMPTY",
+          "counts": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "code": "PROJECT",
+          "counts": [
+            2,
+            2,
+            2
+          ]
+        },
+        {
+          "id": "a394243c-949c-48e2-8afa-942cc0959eb7",
+          "code": "Z_DISABLED",
+          "counts": [
+            1,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "710dbe13-6cc1-42d2-b631-4b909cbb3d90",
+          "code": "Z_OTHER",
+          "counts": [
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-all.png",
+      "screenshotSha256": "c2b5f283296f4b246dcba54f0cfbad4469660a521b5ddd8c7cee2317dfd217c7",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:13.617Z",
+      "passed": true
+    },
+    {
+      "id": "PC-no-environment",
+      "scenario": "缺 environment.read",
+      "httpStatus": 200,
+      "total": 4,
+      "rows": [
+        {
+          "id": "2c03e0df-28c2-4c51-8118-1973b806a754",
+          "code": "A_EMPTY",
+          "counts": [
+            null,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "code": "PROJECT",
+          "counts": [
+            null,
+            2,
+            2
+          ]
+        },
+        {
+          "id": "a394243c-949c-48e2-8afa-942cc0959eb7",
+          "code": "Z_DISABLED",
+          "counts": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "710dbe13-6cc1-42d2-b631-4b909cbb3d90",
+          "code": "Z_OTHER",
+          "counts": [
+            null,
+            1,
+            1
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-no-environment.png",
+      "screenshotSha256": "4b1d1f0c9df4e5da8dba8aea0a94a2a65adeedfaff0c941dd97a60ef5d230d08",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:14.133Z",
+      "passed": true
+    },
+    {
+      "id": "PC-no-api",
+      "scenario": "缺 api.read",
+      "httpStatus": 200,
+      "total": 4,
+      "rows": [
+        {
+          "id": "2c03e0df-28c2-4c51-8118-1973b806a754",
+          "code": "A_EMPTY",
+          "counts": [
+            0,
+            null,
+            0
+          ]
+        },
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "code": "PROJECT",
+          "counts": [
+            2,
+            null,
+            2
+          ]
+        },
+        {
+          "id": "a394243c-949c-48e2-8afa-942cc0959eb7",
+          "code": "Z_DISABLED",
+          "counts": [
+            1,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "710dbe13-6cc1-42d2-b631-4b909cbb3d90",
+          "code": "Z_OTHER",
+          "counts": [
+            1,
+            null,
+            1
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-no-api.png",
+      "screenshotSha256": "efb88f1b57f854152c7197239448a6359556bd6a6dcb01fb9e8cf3d6fc5bee78",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:14.639Z",
+      "passed": true
+    },
+    {
+      "id": "PC-no-app",
+      "scenario": "缺 app.read",
+      "httpStatus": 200,
+      "total": 4,
+      "rows": [
+        {
+          "id": "2c03e0df-28c2-4c51-8118-1973b806a754",
+          "code": "A_EMPTY",
+          "counts": [
+            0,
+            0,
+            null
+          ]
+        },
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "code": "PROJECT",
+          "counts": [
+            2,
+            2,
+            null
+          ]
+        },
+        {
+          "id": "a394243c-949c-48e2-8afa-942cc0959eb7",
+          "code": "Z_DISABLED",
+          "counts": [
+            1,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "710dbe13-6cc1-42d2-b631-4b909cbb3d90",
+          "code": "Z_OTHER",
+          "counts": [
+            1,
+            1,
+            null
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-no-app.png",
+      "screenshotSha256": "034e3a8849390801306f15248087679f887f4659d293b97ba74f73f0ded39143",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:15.136Z",
+      "passed": true
+    },
+    {
+      "id": "PC-no-count-reads",
+      "scenario": "三类读取权限均缺失",
+      "httpStatus": 200,
+      "total": 4,
+      "rows": [
+        {
+          "id": "2c03e0df-28c2-4c51-8118-1973b806a754",
+          "code": "A_EMPTY",
+          "counts": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "code": "PROJECT",
+          "counts": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "a394243c-949c-48e2-8afa-942cc0959eb7",
+          "code": "Z_DISABLED",
+          "counts": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "710dbe13-6cc1-42d2-b631-4b909cbb3d90",
+          "code": "Z_OTHER",
+          "counts": [
+            null,
+            null,
+            null
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-no-count-reads.png",
+      "screenshotSha256": "dce1dc4060d1c08d65aba636a9a28a0a29b832c6994e6399c7347d81ebfcaa59",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:15.661Z",
+      "passed": true
+    },
+    {
+      "id": "PC-project-only",
+      "scenario": "仅项目范围与其他项目隔离",
+      "httpStatus": 200,
+      "total": 1,
+      "rows": [
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "code": "PROJECT",
+          "counts": [
+            2,
+            2,
+            2
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-project-only.png",
+      "screenshotSha256": "0581abc8bc0ab1c2f830eedc18fe3c529007d893d0e75fc2358c5985449735c5",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:16.326Z",
+      "passed": true
+    },
+    {
+      "id": "PC-environment-only",
+      "scenario": "仅环境范围",
+      "httpStatus": 200,
+      "total": 1,
+      "rows": [
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "code": "PROJECT",
+          "counts": [
+            1,
+            null,
+            null
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-environment-only.png",
+      "screenshotSha256": "7ccf20689d9ab9faad75bc2aaa3bf17d368d186fb70e1fd9e974543f363d05e2",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:16.909Z",
+      "passed": true
+    },
+    {
+      "id": "PC-no-project-read",
+      "scenario": "环境读取可见性继承",
+      "httpStatus": 200,
+      "total": 3,
+      "rows": [
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "code": "PROJECT",
+          "counts": [
+            2,
+            2,
+            2
+          ]
+        },
+        {
+          "id": "a394243c-949c-48e2-8afa-942cc0959eb7",
+          "code": "Z_DISABLED",
+          "counts": [
+            1,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "710dbe13-6cc1-42d2-b631-4b909cbb3d90",
+          "code": "Z_OTHER",
+          "counts": [
+            1,
+            1,
+            1
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-no-project-read.png",
+      "screenshotSha256": "cb0f8b25a5831ed599b3d00c5db2416fec5f6cbd858bbf5b9bac58f7cede69f8",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:17.429Z",
+      "passed": true
+    },
+    {
+      "id": "PC-no-governance-read",
+      "scenario": "无项目和环境读取权限",
+      "httpStatus": 200,
+      "total": 0,
+      "rows": [],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-no-governance-read.png",
+      "screenshotSha256": "867dae552c9f13782ececc35c84bf97b81c92438fbd7609eaf281f362f414138",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:17.922Z",
+      "passed": true
+    },
+    {
+      "id": "PC-revoke",
+      "scenario": "已有会话逐项撤销读取权限",
+      "httpStatus": 200,
+      "total": 1,
+      "rows": [
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "code": "PROJECT",
+          "counts": [
+            2,
+            2,
+            2
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-revoke.png",
+      "screenshotSha256": "e017e64d9d58d4fe642633fa9bd7fbdff2034b4b04cfa8f509a9429768c37c23",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:18.435Z",
+      "passed": true
+    },
+    {
+      "id": "PC-revoke-environment",
+      "scenario": "同一会话撤销 environment.read",
+      "reauthenticated": false,
+      "httpStatus": 200,
+      "rows": [
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "counts": [
+            null,
+            2,
+            2
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-revoke-environment.png",
+      "screenshotSha256": "01d77e4f0c5cdb198c089be79bae671ae29347522f684b92ef13a161a32bc0b1",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:18.685Z",
+      "passed": true
+    },
+    {
+      "id": "PC-revoke-api",
+      "scenario": "同一会话撤销 api.read",
+      "reauthenticated": false,
+      "httpStatus": 200,
+      "rows": [
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "counts": [
+            null,
+            null,
+            2
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-revoke-api.png",
+      "screenshotSha256": "f905f88cb50b0b25c0f976af9b369e2211df1c3ff479da19b8605089d21efd3e",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:18.935Z",
+      "passed": true
+    },
+    {
+      "id": "PC-revoke-app",
+      "scenario": "同一会话撤销 app.read",
+      "reauthenticated": false,
+      "httpStatus": 200,
+      "rows": [
+        {
+          "id": "862b52da-b7a2-49cf-8dce-45b5ed9482fd",
+          "counts": [
+            null,
+            null,
+            null
+          ]
+        }
+      ],
+      "requirements": [
+        "P04-C03",
+        "P04-C04",
+        "P04-C05"
+      ],
+      "screenshot": "PC-revoke-app.png",
+      "screenshotSha256": "d9e893e3ff3fded99ceccdb7692eda9ddc3a0390f93ef5ba7b69f2aaddb45243",
+      "visuallyInspected": false,
+      "observedAt": "2026-11-21T08:51:19.184Z",
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "finishedAt": "2026-11-21T08:51:19.248Z"
+}

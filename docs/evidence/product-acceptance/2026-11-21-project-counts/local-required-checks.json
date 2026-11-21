@@ -1,0 +1,63 @@
+{
+  "testedProductRevision": "1ead23c6f8f2778f1547264533622a759962b729",
+  "checkedAt": "2026-11-21T09:34:28.664454+00:00",
+  "suites": [
+    {
+      "name": "contracts-domain",
+      "passed": 1426,
+      "failed": 0,
+      "skipped": 0,
+      "productRevision": "1ead23c6f8f2778f1547264533622a759962b729",
+      "log": "local-full-domain.log",
+      "sha256": "0718962eb86be2d88109d9816ba4137477e5a47ca8a235a5e5c7f655034521de"
+    },
+    {
+      "name": "contracts-gateway",
+      "passed": 639,
+      "failed": 0,
+      "skipped": 0,
+      "productRevision": "1ead23c6f8f2778f1547264533622a759962b729",
+      "log": "local-full-gateway.log",
+      "sha256": "2478e70b56960c6312a5a53c31d28a4f2b13de7dd2e5dbcb9f936632bf24824a"
+    },
+    {
+      "name": "contracts-integration",
+      "passed": 2671,
+      "failed": 0,
+      "skipped": 0,
+      "productRevision": "1ead23c6f8f2778f1547264533622a759962b729",
+      "log": "local-full-integration.log",
+      "sha256": "c786678c82616f2fd18d8d4590facc08c01c15b9401c419baad9d12b7f0a1d20"
+    },
+    {
+      "name": "console",
+      "passed": 468,
+      "failed": 0,
+      "skipped": 0,
+      "components": {
+        "consoleNode": 339,
+        "python": 94,
+        "runtimeAndAcceptanceGuards": 35
+      },
+      "build": "TypeScript and Vite passed",
+      "logs": [
+        {
+          "path": "baseline-console-standard-node.log",
+          "sha256": "037667ffb4c006336e1a744f308923766de2b42327116cb96f2ebbe0ce76ad24"
+        },
+        {
+          "path": "local-python.log",
+          "sha256": "299254ba6f7895c3d56f6fdcf1a471a140b202aef930ba65822e8c53f4516648"
+        },
+        {
+          "path": "local-runtime-final.log",
+          "sha256": "891cc1faa4b7664476f649f50a7623b4d9ab5230785bfe9d590d4c02ac2ec3e9"
+        }
+      ]
+    }
+  ],
+  "totalPassed": 5204,
+  "totalFailed": 0,
+  "totalSkipped": 0,
+  "note": "10 targeted project count tests are included in integration; repeated browser observations and negative tool scenario are not added to this total."
+}

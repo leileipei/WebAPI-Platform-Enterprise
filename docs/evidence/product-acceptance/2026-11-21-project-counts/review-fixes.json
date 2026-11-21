@@ -1,0 +1,56 @@
+{
+  "reviewType": "independent read-only subagent review",
+  "initialVerdict": "fixes required",
+  "critical": 0,
+  "important": 4,
+  "fixVerification": {
+    "unitRegression": {
+      "passed": 5,
+      "failed": 0,
+      "redLogSha256": "e8741e2fcb0e598194169b410554533a40121572875f20778fa85305d54737cd",
+      "greenLogSha256": "db0fdd6f5878b060d608b67af687f8447580723192d8b21b4255cc1fdb53a908"
+    },
+    "actualBrowserPasswordFillTimeout": {
+      "passed": true,
+      "classification": "tool-negative-check",
+      "realChromiumFillTimeout": true,
+      "passwordAbsentFromPublicOutput": true,
+      "loginWasNotSent": true,
+      "resultFile": "/Users/leo.cui/.codex/worktrees/product-acceptance-20261121/enterprise/.runtime/product-counts-c8f6de30-ae2a-4034-8eb2-93780f7890e4-public-failure/results.json"
+    }
+  },
+  "fixed": [
+    {
+      "issue": "Unfrozen live inputs and old dist could be labeled fixed SHA",
+      "resolution": "Export product source from Git object; build archived frontend; enumerate and hash frozen backend inputs before start and after container copy; verify served identity/static hashes before login."
+    },
+    {
+      "issue": "Browser could send fixture credentials to a different loopback service",
+      "resolution": "Bind command URL, owner and product SHA to private fixture manifest and served identity; reject other origins and redirects before filling credentials."
+    },
+    {
+      "issue": "Playwright error messages could contain fill password",
+      "resolution": "Public failures contain only fixed category, known stage and scenario; real disabled-password-input timeout verified with no secret in stdout/results."
+    },
+    {
+      "issue": "Parallel/interrupted output could overwrite screenshots",
+      "resolution": "Exclusively create new output directory and started receipt; atomic result replacement; tests cover concurrent claim and interrupted screenshot preservation."
+    }
+  ],
+  "minorDeferred": [
+    {
+      "issue": "The no-project-read automated assertion checks total 3 but does not independently assert the full set of 3 project IDs.",
+      "boundary": "Saved result IDs and screenshot were manually verified; this is a future automation-strengthening item."
+    },
+    {
+      "issue": "backendInputManifestSha256 is a canonicalized JSON digest, not the raw backend-inputs.json file digest.",
+      "boundary": "Current algorithm is SHA256(json.dumps(manifest, sort_keys=True).encode()); the independent reviewer reproduced it."
+    }
+  ],
+  "reviewerBoundaries": [
+    "Role permission removal is a private fixture operation; role governance mutation authorization/audit belongs to its later batch.",
+    "Customer and production environment acceptance is excluded.",
+    "Required CI and post-merge main checks are separate gates."
+  ],
+  "secondIndependentReview": false
+}
