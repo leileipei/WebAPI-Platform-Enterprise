@@ -1,5 +1,24 @@
 # 当前源码与验证状态
 
+## 2026-11-21 PR #22 合并后主线复跑及 P12
+
+PR #22 于 2026-11-21 14:33:31（北京时间）合入 `main`。受测候选为 `6b0cf2c9be7a03d8e03042fb5188f5db4a438b0f`，合并提交为 `1ead23c6f8f2778f1547264533622a759962b729`，两者的文件树一致。该修订补齐了撤销回执的退役实例覆盖，以及一致备份恢复时网关对已验证拒绝状态的正常交接。 [PR #22](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/22) · [合并提交](https://github.com/leileipei/WebAPI-Platform-Enterprise/commit/1ead23c6f8f2778f1547264533622a759962b729)
+
+合并前本机全量 **5,199 项通过、0 项失败、0 项跳过**，包括 Domain 1,426、Gateway 639、PostgreSQL Integration 2,671 和 Console 463 项。实际运行记录位于本机 `deliverables/credential-preproduction-followup-20261121.ugh4tZ/final-ci/local-gates.json`。
+
+以下两条工作流由 `main` 的 push 触发，均绑定合并提交 `1ead23c6f8f2778f1547264533622a759962b729`。四项必需检查均在首次执行中通过。最后一个作业于 2026-11-21 15:36:03（北京时间）完成。 [Console CI 44876113139](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113139) · [Contracts CI 44876113132](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113132)
+
+| 必需检查 | 结果 | 通过项 | 失败项 | 跳过项 | GitHub 原始日志 |
+| --- | --- | ---: | ---: | ---: | --- |
+| `console` | 通过 | 463 | 0 | 0 | [作业 136761053418 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113139/job/136761053418) |
+| `contracts-domain` | 通过 | 1,426 | 0 | 0 | [作业 136761053447 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113132/job/136761053447) |
+| `contracts-gateway` | 通过 | 639 | 0 | 0 | [作业 136761053253 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113132/job/136761053253) |
+| `contracts-integration` | 通过 | 2,671 | 0 | 0 | [作业 136761053648 日志](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44876113132/job/136761053648) |
+
+专属预生产 P01–P11 技术复验通过，P08 的独立策略历史在预生产见证中完成验证。运维和业务两份实际签署均未收到，P12 保持 `awaiting_authorized_signatures`，预生产整体验收待签核。签核材料绑定原技术资格 SHA-256 `b47cacad1cae23cbddf01bb4f7761b763a7f2c7512316db3bca97e5a1e7b4582`。实际生产继续为 `awaiting_target`。原始日志及签核收件状态位于本机 `deliverables/credential-p12-main-followup-20261121.H465eT/`。
+
+## 历史核对记录
+
 核对日期：2026-11-20。本页按固定提交分别记录主干与候选的验证状态；下文历史轮次仍绑定各自版本。源码合并不表示已更新原安装环境。 [c65a0c0 合并与复跑补记](#2026-11-19-核对pr-18-已合并main-复跑全部通过)
 
 历史本地验证和“尚未公开”“未推送”等表述仍绑定`9d01066`及各轮具名输入时点；新增GitHub运行单列真实提交与运行号，不回填旧记录。实际发布及合并状态应核对本仓库PR和对应CI，历史失败、Unknown及累计保全incomplete不会因发布而解除。
