@@ -1,8 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseApprovalQuery,approvalQuery,createInboxState,inboxReducer,approvalMayAct,safeApprovalReturnTo,approvalScope,switchApprovalView,approvalAuthority} from '../src/approvals/inbox-state.mjs';
-
-import * as inbox from '../src/approvals/inbox-state.mjs';
+import {parseApprovalQuery,approvalQuery,createInboxState,inboxReducer,approvalMayAct,approvalOperationMatches,safeApprovalReturnTo,approvalScope,switchApprovalView,approvalAuthority} from '../src/approvals/inbox-state.mjs';
 const org='10000000-0000-4000-8000-000000000001',project='20000000-0000-4000-8000-000000000002',env='30000000-0000-4000-8000-000000000003';
 const item={id:'r',state:'WaitingApproval',organization:{id:org},project:{id:project},environment:{id:env},approvalEligibility:{canAct:true,currentStepOrder:1}};
 const payload={page:{items:[item],total:1,page:1,pageSize:50},counts:{pendingMine:1,handledMine:0,allVisible:1}};
@@ -27,12 +25,18 @@ test('lateFilterAndPollingResponsesCannotReplaceNewRequest',()=>{
  const current=inboxReducer(s,{type:'result',authority:'actor',epoch:1,requestId:3,payload});assert.equal(current.rows.length,1);
 });
 test('conflictKeepsCommentButLostReadClearsIt',()=>{
- let s=inboxReducer(loaded(),{type:'open',item,action:'approve',key:'one-operation'});
- assert.ok(s.dialog);
- s=inboxReducer(s,{type:'comment',comment:'未提交批注'});
- for(const status of [409,412]){s=inboxReducer(s,{type:'action-error',status,message:'抢先办理'});assert.equal(s.dialog.comment,'未提交批注');assert.equal(s.dialog.key,'one-operation');}
- s=inboxReducer(s,{type:'lost-read',message:'读取权限已撤销'});
- assert.equal(s.dialog,null);assert.deepEqual(s.rows,[]);assert.equal(s.counts,null);
+ for(const status of [409,412]){
+   let s=inboxReducer(loaded(),{type:'open',item,action:'approve',key:'one-operation'});
+   s=inboxReducer(s,{type:'comment',comment:'未提交批注'});
+   s=inboxReducer(s,{type:'action-error',status,message:'抢先办理'});
+   assert.equal(s.dialog.comment,'未提交批注');assert.equal(s.dialog.key,'one-operation');
+   s=inboxReducer(s,{type:'comment',comment:'原步骤的补充意见',key:'edited-operation'});
+   assert.equal(s.dialog.conflict,true);
+   s=inboxReducer(s,{type:'action-error',status:0,message:'仍有未提交批注'});
+   assert.equal(s.dialog.conflict,true,'only a new dialog may act after a conflict');
+   s=inboxReducer(s,{type:'lost-read',message:'读取权限已撤销'});
+   assert.equal(s.dialog,null);assert.deepEqual(s.rows,[]);assert.equal(s.counts,null);
+ }
 });
 test('serverEligibilityControlsBothListAndDetail',()=>{
  assert.equal(approvalMayAct(item),true);
@@ -62,4 +66,11 @@ test('authorityIncludesScopeModesAndIgnoresIrrelevantOrdering',()=>{
  assert.notEqual(approvalAuthority(user),approvalAuthority({...user,scopes:[{scope:{organizationId:org},accessMode:'read_write'}]}));
 });
 
-test('dialog cannot carry an operation into a later step despite retained eligibility',()=>{assert.equal(typeof inbox.approvalOperationMatches,'function','dialog requires an immutable operation boundary');const approvalOperationMatches=inbox.approvalOperationMatches;const opened={stepOrder:1,candidateHash:'a'.repeat(64)},detail={...item,candidateHash:'a'.repeat(64)};assert.equal(approvalOperationMatches(opened,detail),true);assert.equal(approvalOperationMatches(opened,{...detail,approvalEligibility:{canAct:true,currentStepOrder:2}}),false);assert.equal(approvalOperationMatches(opened,{...detail,candidateHash:'b'.repeat(64)}),false);assert.equal(approvalOperationMatches(opened,undefined),false);});
+test('an approval belongs to the eligible release, step and candidate seen on opening',()=>{
+ const opened={releaseId:'r',stepOrder:1,candidateHash:'a'.repeat(64)},detail={...item,candidateHash:'a'.repeat(64)};
+ assert.equal(approvalOperationMatches(opened,detail),true);
+ for(const changed of [{...detail,id:'another-release'},{...detail,approvalEligibility:{canAct:true,currentStepOrder:2}},
+   {...detail,candidateHash:'b'.repeat(64)},{...detail,state:'Ready'},{...detail,approvalEligibility:{canAct:false,currentStepOrder:1}},undefined])
+   assert.equal(approvalOperationMatches(opened,changed),false);
+ assert.equal(approvalOperationMatches({...opened,stepOrder:0},{...detail,approvalEligibility:{canAct:true,currentStepOrder:0}}),false);
+});

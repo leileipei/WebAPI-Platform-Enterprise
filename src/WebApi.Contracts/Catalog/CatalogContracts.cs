@@ -4,6 +4,7 @@ public sealed record ApiDto(Guid Id,Guid OrganizationId,Guid ProjectId,Guid? Gro
 public sealed record ApiDetailDto(ApiDto Api,long WorkingRevision,IReadOnlyDictionary<Guid,long?> RunningConfigVersion,Guid? PendingReleaseId,IReadOnlyList<VersionDto> Versions)
 {
     public bool CanReadSchemas { get; init; }
+    public bool CanReadVersions { get; init; }
     public bool CanWriteSchemas { get; init; }
     public bool CanWriteVersions { get; init; }
 }

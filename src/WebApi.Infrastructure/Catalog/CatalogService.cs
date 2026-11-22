@@ -33,28 +33,35 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
         var visible=new Dictionary<Guid,long?>();var envs=await db.Set<EnvironmentRecord>().AsNoTracking().Where(e=>e.ProjectId==scope.ProjectId).ToArrayAsync(ct);
         foreach(var e in envs) if(await auth.CanAsync(actor,"api.read",new("environment",e.Id,scope with {EnvironmentId=e.Id}),ct))
         {var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(n=>n.EnvironmentId==e.Id&&n.Enabled).ToArrayAsync(ct);visible[e.Id]=nodes.Length>0&&nodes.All(n=>n.LastHeartbeatAt>DateTimeOffset.UtcNow.AddSeconds(-30))&&nodes.Select(n=>n.CurrentConfigVersion).Distinct().Count()==1?nodes[0].CurrentConfigVersion:null;}
-        var versions=await WorkingVersionsAsync(id,ct);
-        var environments = visible.Keys.Where(key => environmentId == null || key == environmentId).ToArray();
-        var pending = await PendingReleaseAsync(api, versions, environments, actor, ct);
         Task<bool> CanAtProject(string permission) => visibility.Scopes(actor, permission).AnyAsync(s =>
             s.OrganizationId == api.OrganizationId && s.ProjectId == api.ProjectId && s.EnvironmentId == null, ct);
+        var canReadSchemas = await CanAtProject("api.schema.read");
+        var canReadVersions = await CanAtProject("api.version.read");
+        var versions = await WorkingVersionsAsync(id, canReadSchemas || canReadVersions, ct);
+        var environments = visible.Keys.Where(key => environmentId == null || key == environmentId).ToArray();
+        var pending = await PendingReleaseAsync(api, versions, environments, actor, ct);
         return new(Dto(api),api.VersionNo,visible,pending,versions)
         {
-            CanReadSchemas = await CanAtProject("api.schema.read"),
+            CanReadSchemas = canReadSchemas,
+            CanReadVersions = canReadVersions,
             CanWriteSchemas = await CanAtProject("api.schema.write"),
             CanWriteVersions = await CanAtProject("api.version.write")
         };
     }
 
-    private Task<VersionDto[]> WorkingVersionsAsync(Guid id, CancellationToken ct) =>
-        db.Set<ApiVersion>().AsNoTracking().Where(v => v.ApiId == id)
-            .OrderByDescending(v => v.CreatedAt).Select(v => Dto(v)).ToArrayAsync(ct);
+    private Task<VersionDto[]> WorkingVersionsAsync(Guid id, bool includeContract, CancellationToken ct)
+    {
+        var versions = db.Set<ApiVersion>().AsNoTracking().Where(v => v.ApiId == id).OrderByDescending(v => v.CreatedAt);
+        if (includeContract) return versions.Select(v => Dto(v)).ToArrayAsync(ct);
+        return versions.Select(v => new VersionDto(v.Id, v.ApiId, v.Version, v.Status, v.ChangeType,
+            null, null, v.SourceFormat, v.SchemaHash, v.CreatedBy, v.CreatedAt, v.SealedAt, v.Revision, null)).ToArrayAsync(ct);
+    }
 
     public async Task<VersionDto[]> VersionsAsync(Guid id, ActorContext actor, CancellationToken ct)
     {
         var scope = await ReadAsync(id, "api.version.read", actor, ct);
         if (!await auth.CanAsync(actor, "api.read", new("api", id, scope), ct)) throw ScopeResolver.Missing();
-        return await WorkingVersionsAsync(id, ct);
+        return await WorkingVersionsAsync(id, true, ct);
     }
 
     // Read only the identity fields from the two persisted candidate formats.
@@ -127,18 +134,32 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
         if(string.IsNullOrWhiteSpace(request.Version)||request.Version.Length>32||request.ChangeType is not ("compatible" or "breaking" or "unknown")) throw new ApiException(422,"invalid_version","版本号或变更类型不合法。");
         if(request.SourceFormat is not (null or "json" or "yaml")) throw new ApiException(422,"unsupported_format","来源格式必须为JSON或YAML。");JsonFields.Validate(request.OpenapiDocument);
     }
+    private async Task<CommandResult<VersionDto>> VersionWriteResultAsync(ApiVersion version, string? dialect, ScopeRef scope, ActorContext actor, CancellationToken ct)
+    {
+        var result = Dto(version) with { Dialect = dialect };
+        if (!await sources.CanReadAsync(actor, new("version", version.Id, scope), ct))
+            result = result with { OpenapiDocument = null, OpenapiSource = null };
+        return new(result, RevisionTag.Format(version.Revision));
+    }
     public async Task<CommandResult<VersionDto>> CreateVersionAsync(Guid apiId,CreateVersionRequest request,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.ApiAsync(apiId,ct);return await commands.ExecuteAsync(actor,scope,"api.version.create",async(_,token)=>{
-        await auth.RequireAsync(actor,"api.version.write",new("api",apiId,scope),token);ValidateVersion(request);var v=new ApiVersion {ApiId=apiId,Version=request.Version,ChangeType=request.ChangeType,OpenapiDocument=request.OpenapiDocument,OpenapiSource=request.OpenapiSource,SourceFormat=request.SourceFormat,SchemaHash=request.OpenapiDocument is null?null:Hash(request.OpenapiDocument),CreatedBy=actor.UserId,Status="Draft"};var bundle=VersionContractSourceService.Prepare(v.Id,request,token,out var document,out var source,out var format);v.OpenapiDocument=document;v.OpenapiSource=source;v.SourceFormat=format;v.SchemaHash=document is null?null:Hash(document);db.Add(v);await sources.SaveDraftAsync(v.Id,bundle,token);return new CommandResult<VersionDto>(Dto(v) with{Dialect=VersionContractSourceService.DialectName(bundle.Documents[0].Dialect)},RevisionTag.Format(v.Revision));},ct);}
+        await auth.RequireAsync(actor,"api.version.write",new("api",apiId,scope),token);ValidateVersion(request);var v=new ApiVersion {ApiId=apiId,Version=request.Version,ChangeType=request.ChangeType,OpenapiDocument=request.OpenapiDocument,OpenapiSource=request.OpenapiSource,SourceFormat=request.SourceFormat,SchemaHash=request.OpenapiDocument is null?null:Hash(request.OpenapiDocument),CreatedBy=actor.UserId,Status="Draft"};var bundle=VersionContractSourceService.Prepare(v.Id,request,token,out var document,out var source,out var format);v.OpenapiDocument=document;v.OpenapiSource=source;v.SourceFormat=format;v.SchemaHash=document is null?null:Hash(document);db.Add(v);await sources.SaveDraftAsync(v.Id,bundle,token);return await VersionWriteResultAsync(v,VersionContractSourceService.DialectName(bundle.Documents[0].Dialect),scope,actor,token);},ct);}
     public static void RequireDraft(ApiVersion version) {if(version.Status!="Draft"||version.SealedAt is not null) throw new ApiException(409,"version_immutable","已发布或冻结的版本不能覆盖修改，请创建新版本。");}
     public async Task<VersionDto> VersionAsync(Guid id,ActorContext actor,CancellationToken ct=default)
-    {var v=await db.Set<ApiVersion>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw ScopeResolver.Missing();await ReadAsync(v.ApiId,"api.version.read",actor,ct);var dialect=await db.Set<ApiVersionContractSources>().AsNoTracking().Where(x=>x.ApiVersionId==id).Select(x=>x.Dialect).SingleOrDefaultAsync(ct);return Dto(v) with{Dialect=dialect=="Oas30"?"oas-3.0":dialect=="Oas31"?"oas-3.1":null};}
+    {
+        var scope = await scopes.VersionAsync(id, ct);
+        if (!await auth.CanAsync(actor, "api.version.read", new("version", id, scope), ct)) throw ScopeResolver.Missing();
+        var v = await db.Set<ApiVersion>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw ScopeResolver.Missing();
+        var dialect = await db.Set<ApiVersionContractSources>().Where(x => x.ApiVersionId == id).Select(x => x.Dialect).SingleOrDefaultAsync(ct);
+        return Dto(v) with { Dialect = dialect == "Oas30" ? "oas-3.0" : dialect == "Oas31" ? "oas-3.1" : null };
+    }
     public async Task<CommandResult<VersionDto>> SaveVersionAsync(Guid id,CreateVersionRequest request,string? tag,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.VersionAsync(id,ct);return await commands.ExecuteAsync(actor,scope,"api.version.update",async(_,token)=>{
         await auth.RequireAsync(actor,"api.version.write",new("version",id,scope),token);var v=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,v.Revision);RequireDraft(v);ValidateVersion(request);
-        var replacement = request.OpenapiDocument is not null && request.OpenapiDocument != v.OpenapiDocument
+        var suppliesContract = request.OpenapiDocument is not null || request.OpenapiSource is not null;
+        var replacement = suppliesContract && (request.OpenapiDocument is not null && request.OpenapiDocument != v.OpenapiDocument
             || request.OpenapiSource is not null && request.OpenapiSource != v.OpenapiSource
-            || request.SourceFormat is not null && request.SourceFormat != v.SourceFormat;
+            || request.SourceFormat is not null && request.SourceFormat != v.SourceFormat);
         string? dialect;
         if (replacement) {
             var bundle=VersionContractSourceService.Prepare(v.Id,request,token,out var document,out var source,out var format);
@@ -150,7 +171,7 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
             if(request.Dialect is not null && request.Dialect!=dialect)throw new ApiException(422,"contract_dialect_mismatch","修改方言需显式替换契约来源。");
         }
         v.Version=request.Version;v.ChangeType=request.ChangeType;v.Revision++;
-        return new CommandResult<VersionDto>(Dto(v) with{Dialect=dialect},RevisionTag.Format(v.Revision));},ct);}
+        return await VersionWriteResultAsync(v,dialect,scope,actor,token);},ct);}
     public async Task DeleteVersionAsync(Guid id,string? tag,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.VersionAsync(id,ct);await commands.ExecuteAsync(actor,scope,"api.version.delete",async(_,token)=>{await auth.RequireAsync(actor,"api.version.write",new("version",id,scope),token);var v=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,v.Revision);RequireDraft(v);if(await db.Set<ApiRoute>().AnyAsync(r=>r.ApiVersionId==id,token)) throw new ApiException(409,"version_in_use","版本已被路由引用。");db.RemoveRange(await db.Set<ApiParameter>().Where(p=>p.ApiVersionId==id).ToArrayAsync(token));db.RemoveRange(await db.Set<ApiSchema>().Where(s=>s.ApiVersionId==id).ToArrayAsync(token));db.Remove(v);return true;},ct);}
     public async Task<IReadOnlyList<GroupDto>> GroupsAsync(Guid projectId,ActorContext actor,CancellationToken ct=default)

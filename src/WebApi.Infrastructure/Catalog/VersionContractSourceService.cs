@@ -37,11 +37,36 @@ public sealed class VersionContractSourceService(WebApiDbContext db,Authorizatio
         root??=reader.Read(new(uri,EmptyRoot(request.Dialect=="oas-3.0"?ContractDialect.Oas30:ContractDialect.Oas31),"json"),limits,ct);
         return ContractBundleCodec.Create(uri,[root],limits);
     }
-    public async Task<ContractBundle> ReadAsync(Guid versionId,ActorContext actor,CancellationToken ct)
+    internal async Task<bool> CanReadAsync(ActorContext actor, ResourceRef resource, CancellationToken ct) =>
+        await auth.CanAsync(actor, "api.schema.read", resource, ct) || await auth.CanAsync(actor, "api.version.read", resource, ct);
+
+    private async Task RequireReadAsync(Guid versionId, ActorContext actor, CancellationToken ct)
     {
         var scope=await scopes.VersionAsync(versionId,ct);
-        if(!await auth.CanAsync(actor,"api.schema.read",new("version",versionId,scope),ct)&&!await auth.CanAsync(actor,"api.version.read",new("version",versionId,scope),ct))throw ScopeResolver.Missing();
-        var version=await db.Set<ApiVersion>().AsNoTracking().SingleAsync(x=>x.Id==versionId,ct);return(await LoadAsync(version,ct)).Bundle;
+        if (!await CanReadAsync(actor, new("version", versionId, scope), ct)) throw ScopeResolver.Missing();
+    }
+
+    public async Task<(string Content, string MediaType)> OpenApiAsync(Guid versionId, string? representation, ActorContext actor, CancellationToken ct)
+    {
+        await RequireReadAsync(versionId, actor, ct);
+        if (representation is not (null or "source" or "json"))
+            throw new ApiException(422, "invalid_representation", "文档表示必须为source或json。");
+
+        var version = db.Set<ApiVersion>().AsNoTracking().Where(v => v.Id == versionId);
+        if (representation == "json")
+        {
+            var json = await version.Select(v => new { v.OpenapiDocument }).SingleOrDefaultAsync(ct) ?? throw ScopeResolver.Missing();
+            return (json.OpenapiDocument ?? "{}", "application/json");
+        }
+        var raw = await version.Select(v => new { v.OpenapiSource, v.SourceFormat,
+            LegacyDocument = v.OpenapiSource == null ? v.OpenapiDocument : null }).SingleOrDefaultAsync(ct) ?? throw ScopeResolver.Missing();
+        return (raw.OpenapiSource ?? raw.LegacyDocument ?? "{}", raw.SourceFormat == "yaml" ? "application/yaml" : "application/json");
+    }
+
+    public async Task<ContractBundle> ReadAsync(Guid versionId,ActorContext actor,CancellationToken ct)
+    {
+        await RequireReadAsync(versionId, actor, ct);
+        var version=await db.Set<ApiVersion>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==versionId,ct)??throw ScopeResolver.Missing();return(await LoadAsync(version,ct)).Bundle;
     }
     internal async Task<VersionContractState> LoadAsync(ApiVersion version,CancellationToken ct)
     {

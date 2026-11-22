@@ -1,7 +1,12 @@
 import {ApiAccessPanel} from '../environments/ApiAccessPanel';
-import {useState} from 'react';import {apiRequest} from '../api/client';import {apiDetailPath,isEditableVersion,type ApiDetail,type Version} from '../api/catalog';import {useWorkspace,Link,allowNavigation} from '../Shell';import {useSession} from '../auth/SessionProvider';import {Editor,Table,Feedback,useRemote,Details,type Field} from '../ui';import {apiFields} from './ApiCatalog';import {SchemaEditor} from './SchemaEditor';
-export const versionFields:Field[]=[{key:'version',label:'版本号',required:true},{key:'changeType',label:'变更类型',options:['compatible','breaking'].map(value=>({value,label:value}))},{key:'openapiDocument',label:'OpenAPI 文档 JSON',type:'textarea'},{key:'openapiSource',label:'原始文档',type:'textarea'},{key:'sourceFormat',label:'原文格式',options:[{value:'json',label:'JSON'}]}];
-type EditTarget = {kind:'api';revision:number}|{kind:'new-version'}|{kind:'version';versionId:string;revision:number};
+import {useEffect,useState} from 'react';import {apiRequest} from '../api/client';import {apiDetailPath,isEditableVersion,type ApiDetail,type Version} from '../api/catalog';import {useWorkspace,Link,allowNavigation} from '../Shell';import {useSession} from '../auth/SessionProvider';import {Editor,Table,Feedback,useRemote,Details,type Field} from '../ui';import {apiFields} from './ApiCatalog';import {SchemaEditor} from './SchemaEditor';
+const versionMetadataFields:Field[]=[{key:'version',label:'版本号',required:true},{key:'changeType',label:'变更类型',options:['compatible','breaking','unknown'].map(value=>({value,label:value}))}];
+export const versionFields:Field[]=[...versionMetadataFields,{key:'openapiDocument',label:'OpenAPI 文档 JSON',type:'textarea'},{key:'openapiSource',label:'原始文档',type:'textarea'},{key:'sourceFormat',label:'原文格式',options:[{value:'json',label:'JSON'},{value:'yaml',label:'YAML'}]}];
+function versionInput(version:Version,readable:boolean){
+ return {version:version.version,changeType:version.changeType,openapiDocument:readable?version.openapiDocument:undefined,
+  openapiSource:readable?version.openapiSource:undefined,sourceFormat:readable?version.sourceFormat:undefined};
+}
+type EditTarget = {kind:'api';revision:number}|{kind:'new-version'}|{kind:'version';versionId:string;revision:number;readable:boolean;initial:ReturnType<typeof versionInput>};
 type WizardVersion = {
   remote:ReturnType<typeof useRemote<ApiDetail>>;
   version?:Version;
@@ -24,6 +29,14 @@ export function ApiDetailPage({id,wizard}:{id:string;wizard?:WizardVersion}){
  const editedVersion=edit?.kind==='version'?d?.versions.find(row=>row.id===edit.versionId&&row.apiId===id):undefined;
  const mayEditApi=detailCurrent&&can('api.edit',scope,true);
  const editAllowed=edit?.kind==='api'?mayEditApi:mayWriteVersions&&(edit?.kind==='new-version'||isEditableVersion(editedVersion));
+ function readsContract(detail?:ApiDetail){
+   if(!detail||detail.api.id!==id)return false;
+   const owner={organizationId:detail.api.organizationId,projectId:detail.api.projectId};
+   return !!((detail.canReadVersions&&can('api.version.read',owner))||(detail.canReadSchemas&&can('api.schema.read',owner)));
+ }
+ const readable=readsContract(d);
+ const editorCurrent=edit?.kind!=='version'||(edit.readable===readable&&!!editedVersion);
+ useEffect(()=>{if(!editorCurrent)setEdit(undefined);},[editorCurrent]);
 
  const pendingReleaseId=ws.environmentId&&ws.scope&&d?.api.id===id&&d.api.projectId===ws.projectId&&
    d.api.organizationId===ws.organizationId&&!remote.loading&&!remote.error&&can('release.read',ws.scope)
@@ -50,30 +63,39 @@ return <><div className="breadcrumb"><Link to="/apis">API 目录</Link> / 详情
    <Table rows={d.versions} columns={[['version','版本号'],['status','状态'],['changeType','变更类型'],['revision','修订'],['sealedAt','封存时间']]} actions={row=><>
     <button className="text-btn" disabled={!canSelect(row)} onClick={()=>{if(chooseVersion(row))setTab('parameters');}}>定义</button>
     <button className="text-btn" disabled={!mayWriteVersions||!canSelect(row)||!isEditableVersion(row)}
-     onClick={()=>{if(chooseVersion(row))setEdit({kind:'version',versionId:row.id,revision:row.revision});}}>编辑</button>
+     onClick={()=>{if(chooseVersion(row))setEdit({kind:'version',versionId:row.id,revision:row.revision,readable,initial:versionInput(row,readable)});}}>编辑</button>
    </>}/>
  </>:v?<>
    {!wizard&&<div className="filter-bar"><label>API 版本 <select value={v.id} onChange={e=>{if(allowNavigation())setSelected(e.target.value);}}>
     {d.versions.map(x=><option key={x.id} value={x.id}>{x.version} · {x.status}</option>)}
    </select></label></div>}
-   {tab==='openapi'?<Details value={v.openapiSource||v.openapiDocument||'尚未保存 OpenAPI 文档'}/>:
+   {tab==='openapi'?(detailCurrent&&(readable&&v.apiId===id?<Details value={v.openapiSource||v.openapiDocument||'尚未保存 OpenAPI 文档'}/>:<p className="notice">缺少此 API 的契约读取权限。</p>)):
     <SchemaEditor key={v.id+tab} version={v} kind={tab as 'parameters'|'schemas'} detail={d} checking={!detailCurrent} reloadVersion={reloadVersion}/>}
  </>:<div className="empty">请先创建 API 版本</div>}
  </div></>}
- {edit&&d&&<Editor title={edit.kind==='api'?'编辑 API':edit.kind==='new-version'?'新建版本':'编辑版本'} allowed={editAllowed}
-  fields={edit.kind==='api'?apiFields:versionFields}
-  initial={edit.kind==='api'?d.api:editedVersion??{changeType:'compatible',sourceFormat:'json'}}
+ {edit&&d&&editorCurrent&&<Editor title={edit.kind==='api'?'编辑 API':edit.kind==='new-version'?'新建版本':'编辑版本'} allowed={editAllowed}
+  fields={edit.kind==='api'?apiFields:edit.kind==='version'&&!detailCurrent?versionMetadataFields:versionFields}
+  initial={edit.kind==='api'?d.api:edit.kind==='version'?edit.initial:{changeType:'compatible',sourceFormat:'json'}}
   close={()=>setEdit(undefined)}
-  loadLatest={edit.kind==='api'?()=>apiRequest(`/apis/${id}`):editedVersion?async()=>{
-   const latest=await apiRequest<Version>(`/versions/${editedVersion.id}`);
+  loadLatest={edit.kind!=='new-version'?async()=>{
+   const latest=await apiRequest<ApiDetail>(apiDetailPath(id,ws.environmentId));
    remote.reload();
-   return latest;
+   if(latest.api.id!==id)throw new Error('API 已变化，请刷新后重新打开。');
+   if(edit.kind==='api')return {...latest.api,workingRevision:latest.workingRevision};
+   const current=latest.versions.find(row=>row.id===edit.versionId&&row.apiId===id);
+   if(!current)throw new Error('此版本已不可读取。');
+   return {...versionInput(current,readsContract(latest)),revision:current.revision,status:current.status};
   }:undefined}
   save={async(value,key,fresh)=>{
    const path=edit.kind==='api'?`/apis/${id}`:edit.kind==='version'?`/versions/${edit.versionId}`:`/apis/${id}/versions`;
+   const initial=edit.kind==='version'?edit.initial:undefined;
+   const document=value.openapiDocument&&value.openapiDocument!==initial?.openapiDocument?value.openapiDocument:undefined;
+   const source=value.openapiSource&&(value.openapiSource!==initial?.openapiSource||value.sourceFormat!==initial?.sourceFormat)?value.openapiSource:undefined;
+   const body=edit.kind==='api'?{...value,groupId:value.groupId||null}:
+    {version:value.version,changeType:value.changeType,openapiDocument:document,openapiSource:source,sourceFormat:source?value.sourceFormat||undefined:undefined};
    const saved=await apiRequest<Version|undefined>(path,{
     method:edit.kind==='new-version'?'POST':'PUT',
-    body:{...value,groupId:value.groupId||null,openapiDocument:value.openapiDocument||null,openapiSource:value.openapiSource||null,sourceFormat:value.sourceFormat||null},
+    body,
     etag:edit.kind==='new-version'?undefined:`"${fresh?.revision??edit.revision}"`,idempotencyKey:key
    });
    const createdId=edit.kind==='new-version'&&saved?.apiId===id&&saved.status!=='Retired'?saved.id:undefined;

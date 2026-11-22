@@ -17,11 +17,11 @@ before(async () => { browser = await chromium.launch({executablePath:process.env
 after(async () => { await browser?.close(); });
 
 async function fixture(t, {entry='detail', permissions=allPermissions, mode='read_write',
-  canReadSchemas=true, canWriteSchemas=true, canWriteVersions=true, versionChanges={}}={}) {
+  canReadSchemas=true, canReadVersions=false, canWriteSchemas=true, canWriteVersions=true, versionChanges={}}={}) {
   const page = await browser.newPage();
   t.after(() => page.close());
   page.setDefaultTimeout(4000);
-  const state = {permissions,mode,canReadSchemas,canWriteSchemas,canWriteVersions,version:{...version,...versionChanges},
+  const state = {permissions,mode,canReadSchemas,canReadVersions,canWriteSchemas,canWriteVersions,version:{...version,...versionChanges},
     parameters:[{id:'filter',apiVersionId:version.id,name:'筛选条件',location:'query',dataType:'string',required:false,schema:'{"type":"string"}'}],
     schemas:[{id:'body',apiVersionId:version.id,name:'响应内容',schemaType:'response',statusCode:200,contentType:'application/json',schemaJson:'{"type":"object"}'}]};
   const requests = [];
@@ -44,7 +44,7 @@ async function fixture(t, {entry='detail', permissions=allPermissions, mode='rea
       if (state.detailWait) await state.detailWait;
       if (state.detailStatus) return reply({detail:'API 不可用'},state.detailStatus);
       return reply({api,workingRevision:1,versions:[state.version],runningConfigVersion:{},pendingReleaseId:null,
-        canReadSchemas:state.canReadSchemas,canWriteSchemas:state.canWriteSchemas,canWriteVersions:state.canWriteVersions});
+        canReadSchemas:state.canReadSchemas,canReadVersions:state.canReadVersions,canWriteSchemas:state.canWriteSchemas,canWriteVersions:state.canWriteVersions});
     }
     if (resource===versionPath && method==='GET')
       return state.permissions.includes('api.version.read')?reply(state.version):reply({detail:'缺少版本读取权限'},404);
@@ -78,6 +78,62 @@ async function fixture(t, {entry='detail', permissions=allPermissions, mode='rea
   const writes=()=>requests.filter(r=>r.method==='PUT'||r.method==='POST'&&!r.resource.endsWith('/schema-validation'));
   return {page,state,requests,tab,dialog,writes};
 }
+
+const contract = {openapiSource:'openapi: 3.1.0\n# fixture source',openapiDocument:'{"openapi":"3.1.0","info":{"title":"fixture document"}}',sourceFormat:'yaml'};
+
+for (const entry of ['detail','wizard']) {
+  test(entry+' restricts both OpenAPI representations to readers of the current project',async t=>{
+    const {page,state}=await fixture(t,{entry,permissions:[...read,'api.version.read'],canReadSchemas:false,versionChanges:contract});
+    await button(page,'OpenAPI').click();
+    await page.getByText(/缺少.*契约.*读取权限/).waitFor();
+    assert.equal(await page.locator('pre').filter({hasText:'fixture'}).count(),0);
+
+    async function refresh() {
+      const loaded=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/v1'+path);
+      await button(page,'刷新会话与权限').click();
+      await loaded;
+    }
+    state.canReadVersions=true;
+    await refresh();
+    await page.locator('pre').filter({hasText:'fixture source'}).waitFor();
+    state.canReadVersions=false;
+    state.canReadSchemas=true;
+    state.version={...state.version,openapiSource:null};
+    await refresh();
+    await page.locator('pre').filter({hasText:'fixture document'}).waitFor();
+    state.canReadSchemas=false;
+    await refresh();
+    await page.getByText(/缺少.*契约.*读取权限/).waitFor();
+    assert.equal(await page.locator('pre').filter({hasText:'fixture'}).count(),0);
+  });
+}
+
+test('version editor clears stored source when read access changes and preserves it on a metadata-only save',async t=>{
+  const {page,state,dialog,writes}=await fixture(t,{versionChanges:contract});
+  await button(page,'编辑').click();
+  assert.equal(await dialog.getByLabel('原始文档').inputValue(),contract.openapiSource);
+  state.canReadSchemas=false;
+  const loaded=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/v1'+path);
+  await page.evaluate(()=>window.dispatchEvent(new Event('permission-refresh')));
+  await loaded;
+  await page.waitForFunction(()=>[...document.querySelectorAll('[role=dialog] textarea')].every(input=>!input.value));
+  if (!await dialog.count()) await button(page,'编辑').click();
+  await dialog.getByLabel('版本号').fill('1.1');
+  await button(dialog,'保存').click();
+  await page.getByRole('cell',{name:'1.1'}).waitFor();
+  const [write]=writes();
+  for (const key of ['openapiSource','openapiDocument','sourceFormat']) assert.equal(Object.hasOwn(write.body,key),false,key);
+
+  await button(page,'编辑').click();
+  const replacement='openapi: 3.1.0\n# replacement fixture';
+  await dialog.getByLabel('原始文档').fill(replacement);
+  await dialog.getByLabel('原文格式').selectOption('yaml');
+  await button(dialog,'保存').click();
+  await dialog.waitFor({state:'hidden'});
+  assert.equal(writes()[1].body.openapiSource,replacement);
+  assert.equal(writes()[1].body.sourceFormat,'yaml');
+  assert.equal(Object.hasOwn(writes()[1].body,'openapiDocument'),false);
+});
 
 for (const entry of ['detail','wizard']) {
   for (const kind of ['parameters','schemas']) {
