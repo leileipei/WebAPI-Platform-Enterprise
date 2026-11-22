@@ -25,11 +25,12 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
     public async Task<bool> RequiresKeyAsync(Guid routeId,CancellationToken ct)=>(await EffectiveAsync(routeId,ct)).RequireApiKey;
     private async Task<RouteDto> EffectiveDtoAsync(ApiRoute route,CancellationToken ct)
     {var effective=await EffectiveAsync(route.Id,ct);return Dto(route,effective.RequireApiKey) with {EffectiveTimeoutMs=effective.TimeoutMs??route.TimeoutMs,EffectiveAuthenticationMode=effective.Authentication?.Mode==AuthenticationMode.JWT?"JWT":null};}
-    public async Task<PageResult<RouteDto>> ListAsync(Guid environmentId,ActorContext actor,int page,int size,CancellationToken ct=default)
+    public async Task<PageResult<RouteDto>> ListAsync(Guid environmentId,ActorContext actor,int page,int size,CancellationToken ct=default,Guid? apiVersionId=null)
     {
         var scope=await scopes.EnvironmentAsync(environmentId,ct);if(!await auth.CanAsync(actor,"route.read",new("environment",environmentId,scope),ct)) throw ScopeResolver.Missing();
         page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
         var query=db.Set<ApiRoute>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId);
+        if(apiVersionId is Guid versionId)query=query.Where(r=>r.ApiVersionId==versionId);
         // Preserve the legacy CurrentCulture path comparer, including Unicode-equal ties.
         // Approved exception: read all lightweight keys; full records and bindings stay page-local.
         var keys=await query.Select(r=>new {r.Id,r.Path,r.Priority}).ToArrayAsync(ct);
