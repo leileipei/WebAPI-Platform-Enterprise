@@ -22,7 +22,7 @@ function release(id,candidateHash=hashA,stepOrder=1){
 }
 async function fixture(t){
   const page=await browser.newPage(),errors=[],writes=[];
-  const state={releases:{one:release('one')},writeResponse:null};
+  const state={releases:{one:release('one')},writeResponse:null,permissions:['release.read','approval.act'],snapshotStatus:200,snapshotReads:[]};
   t.after(()=>page.close());
   t.after(()=>assert.deepEqual(errors,[]));
   page.setDefaultTimeout(5500);
@@ -33,11 +33,15 @@ async function fixture(t){
     if(!path.startsWith('/api/v1/'))return route.fulfill({path:join(dist,'index.html')});
     const endpoint=path.slice('/api/v1'.length),reply=(json,status=200)=>route.fulfill({status,json});
     if(endpoint==='/auth/me')return reply({id:'reviewer',username:'reviewer',displayName:'测试审批人',authSource:'local',
-      permissions:['release.read','approval.act'],scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
+      permissions:state.permissions,scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
     if(endpoint==='/auth/csrf')return reply({token:'fixture-csrf'});
     if(endpoint==='/scope-tree')return reply({organizations:[{id:'org',name:'组织'}],
       projects:[{id:'project',organizationId:'org',name:'项目'}],environments:[{id:'env',projectId:'project',name:'环境'}]});
-    if(endpoint==='/environments/env/snapshots')return reply({items:[],total:0,page:1,pageSize:50});
+    if(endpoint==='/environments/env/snapshots'||endpoint==='/environments/env/snapshots/4'){
+      state.snapshotReads.push(endpoint);
+      if(state.snapshotStatus!==200)return reply({detail:'无法读取快照。'},state.snapshotStatus);
+      return reply(endpoint.endsWith('/4')?{configVersion:4,policies:[]}:{items:[],total:0,page:1,pageSize:50});
+    }
     if(endpoint==='/approvals'){
       const {id,releaseNo,state:status,releaseType,requestedBy,createdAt,approvalEligibility}=state.releases.one;
       const item={id,releaseNo,state:status,releaseType,requestedBy,createdAt,approvalEligibility,applicantDisplayName:'申请人',
@@ -74,6 +78,25 @@ async function fixture(t){
   };
   return {page,state,writes,openPage,open};
 }
+
+for(const access of ['not-granted','denied-by-server','granted'])test('optional snapshots preserve the release approval when '+access,async t=>{
+  const {page,state,writes,openPage,open}=await fixture(t);
+  state.releases.one.baselineConfigVersion=4;
+  if(access!=='not-granted')state.permissions.push('gateway.config.read');
+  if(access!=='granted')state.snapshotStatus=404;
+  const expected=access==='not-granted'?[]:['/environments/env/snapshots','/environments/env/snapshots/4'];
+  const [responses]=await Promise.all([
+    Promise.all(expected.map(path=>page.waitForResponse(r=>new URL(r.url()).pathname==='/api/v1'+path))),
+    openPage()
+  ]);
+  const {comment,confirm}=await open('approve');
+  await comment.fill('核对第一步');
+  await confirm.click();
+  await page.getByRole('dialog').waitFor({state:'hidden'});
+  assert.deepEqual(writes.map(x=>[x.body.expectedStepOrder,x.body.expectedCandidateHash]),[[1,hashA]]);
+  assert.deepEqual([...new Set(state.snapshotReads)].sort(),expected);
+  assert.ok(responses.every(response=>response.status()===state.snapshotStatus));
+});
 
 for(const action of ['approve','reject'])test('release detail binds '+action+' and sends it only once',async t=>{
   const {state,writes,openPage,open}=await fixture(t);
