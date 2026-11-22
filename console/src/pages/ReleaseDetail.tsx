@@ -5,7 +5,9 @@ import type {ApiError} from '../api/client';
 import {AdvancedPolicyReview} from '../policies/PolicyReleaseReview';
 import {ReleaseRiskReview} from '../comparisons/ReleaseRiskReview';import {useReducer,useState,useEffect} from 'react';import {useSession} from '../auth/SessionProvider';import {useWorkspace,Link,navigate} from '../Shell';import {releases} from '../api/releases';import {useRemote,Feedback,Table,Status,Details,Editor} from '../ui';
 export function ReleaseDetail({id,search=''}:{id:string;search?:string}){const{can,user}=useSession(),ws=useWorkspace(),remote=usePipelineResource('release:'+id,signal=>apiRequest<any>(`/releases/${id}`,{signal}),3000),r=remote.data,[error,setError]=useState(''),[busy,setBusy]=useState(false),[action,setAction]=useState<'retry'|'rollback'|'cancel'>(),[tab,setTab]=useState('progress');const env=ws.tree.environments.find(e=>e.id===r?.environmentId),project=ws.tree.projects.find(p=>p.id===env?.projectId),scope=env&&project?.organizationId?{organizationId:project.organizationId,projectId:project.id,environmentId:env.id}:undefined;
- const snapshotPath=scope&&r&&can('gateway.config.read',scope)?`/environments/${r.environmentId}/snapshots`:null;
+ // Snapshot access is checked against the release environment by the server,
+ // including when the workspace tree does not disclose that environment.
+ const snapshotPath=r?.environmentId&&can('gateway.config.read',scope)?`/environments/${r.environmentId}/snapshots`:null;
  const snapshots=useRemote<any>(snapshotPath,0,true,true);
  const baseline=useRemote<any>(snapshotPath&&r.baselineConfigVersion?`${snapshotPath}/${r.baselineConfigVersion}`:null,0,false,true);
  const preview=useRemote<any>(r?.state==='Draft'?`/releases/${id}/preview`:null);const candidate=r?.frozenCandidate||preview.data,applicant=r?.requestedBy===user?.id,approved=(r?.targets||[]).filter((t:any)=>t.acknowledged).length;

@@ -16,7 +16,7 @@ const newDestination = {weight:1,enabled:true};
 
 export function Clusters({id}:{id?:string}) {
   const ws=useWorkspace(), {can}=useSession();
-  const detail=useRemote<Cluster>(id && ws.organizationId ? '/clusters/'+id : null,0,false,true);
+  const detail=useRemote<Cluster>(id && can('cluster.read') && (ws.environmentId || ws.scopeReady) ? '/clusters/'+id : null,0,false,true);
   const list=usePaged(!id && ws.environmentId ? '/environments/'+ws.environmentId+'/clusters' : null);
   const remote=id?detail:list;
   const [edit,setEdit]=useState<EditTarget>();
@@ -26,12 +26,15 @@ export function Clusters({id}:{id?:string}) {
   }
   const readable=!!ws.scope && can('cluster.read',ws.scope);
   const requested=id && detail.data?.id?.toLowerCase()===id.toLowerCase() ? detail.data : undefined;
-  const cluster=requested && readable && inWorkspace(requested) ? requested : undefined;
+  const matchingWorkspace=requested && readable && inWorkspace(requested);
+  const readOnlyDetail=!!requested && ws.scopeReady && !detail.loading && !detail.error &&
+    !ws.tree.environments.some(environment=>environment.id===requested.environmentId) && can('cluster.read');
+  const cluster=matchingWorkspace || readOnlyDetail ? requested : undefined;
   const listRows:Cluster[]=readable ? (list.data?.items??[]).filter(inWorkspace) : [];
   const destinations=cluster?.destinations?.filter(row=>!!row.id && row.clusterId===cluster.id)??[];
   const writable=ws.scopeReady && !!ws.environmentId && can('cluster.write',ws.scope,true);
   const rowsWritable=writable && !remote.loading && !remote.error;
-  const detailWritable=rowsWritable && !!cluster;
+  const detailWritable=rowsWritable && !!matchingWorkspace;
 
   const ownerEnvironment=ws.tree.environments.find(env=>env.id===requested?.environmentId && env.projectId===requested?.projectId);
   const ownerProject=ownerEnvironment && ws.tree.projects.find(project=>project.id===ownerEnvironment.projectId);
@@ -81,6 +84,7 @@ export function Clusters({id}:{id?:string}) {
       </> : <button className="btn primary" disabled={!writable} onClick={()=>setEdit({type:'cluster',environmentId:ws.environmentId})}>＋ 新建集群</button>}</div>
     </div>
     <div className="notice">工作配置保存后仍需发布。正在运行的后端地址来自已激活 Snapshot。</div>
+    {cluster && readOnlyDetail && <p className="notice" role="status">此详情由服务端授权读取。环境未在工作区目录显示，当前仅可查看。</p>}
     {id && detail.data && !cluster && !detail.loading && !detail.error && ws.scopeReady && <div className="notice" role="status">
       {ownerScope && can('cluster.read',ownerScope)
         ? <>此集群属于{ownerEnvironment?.name}。 <button className="text-btn" onClick={()=>ws.selectScope(ownerScope)}>切换到{ownerEnvironment?.name}查看集群</button></>

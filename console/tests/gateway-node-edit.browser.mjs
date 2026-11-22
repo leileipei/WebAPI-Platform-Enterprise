@@ -80,6 +80,19 @@ async function fixture(t){
   return {page,nodes,state,writes,open,editor};
 }
 
+test('an authorized node opens its events read-only when its environment is hidden from the scope tree',async t=>{
+  const {page,state,writes,open}=await fixture(t);
+  state.tree={...tree,environments:tree.environments.filter(item=>item.id==='qa')};
+  const [events]=await Promise.all([
+    page.waitForResponse(response=>new URL(response.url()).pathname.endsWith(detailPath(first)+'/events')),
+    open(),
+  ]);
+  assert.equal(events.status(),200);
+  await page.getByRole('heading',{name:'节点 '+first}).waitFor();
+  assert.equal(await editButton(page).isEnabled(),false);
+  assert.deepEqual(writes,[]);
+});
+
 test('polling a newly disabled node cannot re-enable it with the old draft and a new ETag',async t=>{
   const {page,nodes,writes,open,editor}=await fixture(t);
   await open();

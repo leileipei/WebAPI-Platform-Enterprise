@@ -41,10 +41,10 @@ async function fixture(t, options={}) {
     requests.push({method,path,body,etag:request.headers()['if-match']});
     const reply = (json,status=200) => route.fulfill({json,status});
     if (path==='/auth/me') return reply({id:'operator',username:'test',displayName:'测试用户',
-      permissions:['cluster.read','cluster.write'],scopes:state.grants??tree.organizations.map(org=>({
+      permissions:state.permissions??['cluster.read','cluster.write'],scopes:state.grants??tree.organizations.map(org=>({
         scope:{organizationId:org.id},accessMode:'read_write'}))});
     if (path==='/auth/csrf') return reply({token:'test-csrf'});
-    if (path==='/scope-tree') return state.treeFailure?reply({detail:'范围暂不可用'},503):reply(tree);
+    if (path==='/scope-tree') return state.treeFailure?reply({detail:'范围暂不可用'},503):reply(state.tree??tree);
     const [,resource,id,collection] = path.split('/');
     if (resource==='environments' && collection==='clusters') {
       if (method==='GET') {
@@ -88,6 +88,32 @@ async function fixture(t, options={}) {
   const writes = () => requests.filter(request=>request.method!=='GET');
   return {page,state,open,requests,writes,clusters};
 }
+
+test('a server-authorized cluster has a read-only deep link without environment directory access',async t=>{
+  const {page,open,writes}=await fixture(t,{
+    permissions:['cluster.read'],
+    tree:{organizations:[],projects:[],environments:[]},
+  });
+  await open('/clusters/dev-cluster');
+  await page.getByRole('heading',{name:'开发环境集群'}).waitFor();
+  await page.getByRole('cell',{name:'开发环境实例'}).waitFor();
+  assert.equal(await button(page,'编辑集群').isEnabled(),false);
+  assert.equal(await button(page,'＋ 新增实例').isEnabled(),false);
+  assert.deepEqual(writes(),[]);
+});
+
+test('a server-authorized hidden cluster remains read-only with another selected environment',async t=>{
+  const {page,open,writes}=await fixture(t,{
+    permissions:['cluster.read'],selected:'qa',
+    tree:{...tree,environments:tree.environments.filter(row=>row.id!=='dev')},
+  });
+  await open('/clusters/dev-cluster');
+  await page.getByRole('heading',{name:'开发环境集群'}).waitFor();
+  assert.equal(await environment(page).inputValue(),'qa');
+  assert.equal(await button(page,'编辑集群').isEnabled(),false);
+  assert.equal(await button(page,'＋ 新增实例').isEnabled(),false);
+  assert.deepEqual(writes(),[]);
+});
 
 test('switching environment from a cluster discards only a confirmed draft and writes to the newly opened cluster',async t=>{
   const {page,open,writes,requests}=await fixture(t);

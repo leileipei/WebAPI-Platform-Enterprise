@@ -22,7 +22,7 @@ function release(id,candidateHash=hashA,stepOrder=1){
 }
 async function fixture(t){
   const page=await browser.newPage(),errors=[],writes=[];
-  const state={releases:{one:release('one')},writeResponse:null,permissions:['release.read','approval.act'],snapshotStatus:200,snapshotReads:[]};
+  const state={releases:{one:release('one')},writeResponse:null,permissions:['release.read','approval.act'],snapshotStatus:200,snapshotReads:[],snapshotItems:[],showEnvironments:true};
   t.after(()=>page.close());
   t.after(()=>assert.deepEqual(errors,[]));
   page.setDefaultTimeout(5500);
@@ -36,11 +36,11 @@ async function fixture(t){
       permissions:state.permissions,scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
     if(endpoint==='/auth/csrf')return reply({token:'fixture-csrf'});
     if(endpoint==='/scope-tree')return reply({organizations:[{id:'org',name:'组织'}],
-      projects:[{id:'project',organizationId:'org',name:'项目'}],environments:[{id:'env',projectId:'project',name:'环境'}]});
+      projects:[{id:'project',organizationId:'org',name:'项目'}],environments:state.showEnvironments?[{id:'env',projectId:'project',name:'环境'}]:[]});
     if(endpoint==='/environments/env/snapshots'||endpoint==='/environments/env/snapshots/4'){
       state.snapshotReads.push(endpoint);
       if(state.snapshotStatus!==200)return reply({detail:'无法读取快照。'},state.snapshotStatus);
-      return reply(endpoint.endsWith('/4')?{configVersion:4,policies:[]}:{items:[],total:0,page:1,pageSize:50});
+      return reply(endpoint.endsWith('/4')?{configVersion:4,policies:[]}:{items:state.snapshotItems,total:state.snapshotItems.length,page:1,pageSize:50});
     }
     if(endpoint==='/approvals'){
       const {id,releaseNo,state:status,releaseType,requestedBy,createdAt,approvalEligibility}=state.releases.one;
@@ -96,6 +96,21 @@ for(const access of ['not-granted','denied-by-server','granted'])test('optional 
   assert.deepEqual(writes.map(x=>[x.body.expectedStepOrder,x.body.expectedCandidateHash]),[[1,hashA]]);
   assert.deepEqual([...new Set(state.snapshotReads)].sort(),expected);
   assert.ok(responses.every(response=>response.status()===state.snapshotStatus));
+});
+
+test('authorized rollback reads versions when the environment is absent from the workspace tree',async t=>{
+  const {page,state}=await fixture(t);
+  state.showEnvironments=false;
+  state.permissions=['release.read','release.rollback','gateway.config.read'];
+  state.releases.one={...state.releases.one,state:'Succeeded',targetConfigVersion:5};
+  state.snapshotItems=[{configVersion:4}];
+  await page.goto(origin+'/releases/one');
+  await button(page,'申请历史回滚').click();
+  const select=page.getByRole('dialog').getByLabel('历史配置版本',{exact:false});
+  await select.getByRole('option',{name:'配置版本 4'}).waitFor({state:'attached'});
+  await select.selectOption('4');
+  assert.equal(await select.inputValue(),'4');
+  assert.ok(state.snapshotReads.includes('/environments/env/snapshots'));
 });
 
 for(const action of ['approve','reject'])test('release detail binds '+action+' and sends it only once',async t=>{

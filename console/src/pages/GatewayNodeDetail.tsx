@@ -20,7 +20,9 @@ export function GatewayNodeDetail({id}:{id:string}) {
   const project=environment && ws.tree.projects.find(item=>item.id===environment.projectId);
   const scope=environment && project?.organizationId && ws.tree.organizations.some(org=>org.id===project.organizationId)
     ? {organizationId:project.organizationId,projectId:project.id,environmentId:environment.id} : undefined;
-  const node=scope && can('gateway.read',scope) ? requested : undefined;
+  const mayRead=scope ? can('gateway.read',scope) :
+    ws.scopeReady && !remote.loading && !remote.error && can('gateway.read');
+  const node=mayRead ? requested : undefined;
   const events=usePaged(node?'/gateway-nodes/'+node.id+'/events':null,5000);
   const [edit,setEdit]=useState<GatewayNode>();
   const writable=!!scope && ws.scopeReady && !remote.loading && !remote.error && hasIdentityRevision(node) && can('gateway.operate',scope,true);
