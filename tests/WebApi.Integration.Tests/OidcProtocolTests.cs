@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using WebApi.Contracts.Policies;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Sso;
 using WebApi.Integration.Tests.Support;
@@ -14,6 +15,51 @@ namespace WebApi.Integration.Tests;
 public sealed class OidcProtocolTests
 {
     private static bool HasSession(HttpResponseMessage response)=>response.Headers.TryGetValues("Set-Cookie",out var values)&&values.Any(value=>value.StartsWith("WebApi.Session=",StringComparison.Ordinal));
+    [Theory]
+    [InlineData("/dashboard")]
+    [InlineData("/policies/new?type=timeout&scope=project")]
+    public async Task LoginReturnsToRequestedConsolePage(string returnPath)
+    {
+        await using var fixture=new OidcProtocolFixture();
+        await fixture.InitializeAsync();
+        await LoginToConsolePage(fixture,returnPath);
+    }
+
+    [Fact] public async Task LoginReturnsToAnExistingPolicyWithItsOriginalReadScope()
+    {
+        await using var fixture=new OidcProtocolFixture();
+        await fixture.InitializeAsync();
+        var api=fixture.Api;
+        var policy=new Policy{OrganizationId=api.Organization.Id,ProjectId=api.Project.Id,Name="订单接口超时",Type="timeout",Config="""{"timeoutMs":5000}"""};
+        await using(var db=api.Context())
+        {
+            var reader=await db.Set<UserExternalIdentity>().Where(x=>x.ProviderId==fixture.Provider.Id).Select(x=>x.UserId).SingleAsync();
+            var role=new Role{OrganizationId=api.Organization.Id,Name="策略读者",Code="PolicyReader"};
+            var permission=new Permission{Code="policy.read",Name="读取策略",Module="policy"};
+            db.AddRange(policy,role,permission,new RolePermission{RoleId=role.Id,PermissionId=permission.Id},new UserRole{UserId=reader,RoleId=role.Id},
+                new UserProjectScope{UserId=reader,OrganizationId=api.Organization.Id,ProjectId=api.Project.Id,AccessMode="read"});
+            await db.SaveChangesAsync();
+        }
+        var path=$"/policies/{policy.Id}/";
+        await LoginToConsolePage(fixture,path);
+        var result=await fixture.Browser.GetFromJsonAsync<PolicyDto>("/api/v1"+path);
+        Assert.Equal(policy.Id,result!.Id);
+        using var missing=await fixture.Browser.GetAsync($"/api/v1/policies/{Guid.NewGuid()}");
+        Assert.Equal(HttpStatusCode.NotFound,missing.StatusCode);
+    }
+
+    private static async Task LoginToConsolePage(OidcProtocolFixture fixture,string returnPath)
+    {
+        using var start=await fixture.StartAsync(returnPath);
+        Assert.Equal(HttpStatusCode.Redirect,start.StatusCode);
+        using var authorized=await fixture.Browser.GetAsync(start.Headers.Location);
+        Assert.Equal(HttpStatusCode.Redirect,authorized.StatusCode);
+        using var completed=await fixture.Browser.GetAsync(authorized.Headers.Location);
+        Assert.Equal(HttpStatusCode.SeeOther,completed.StatusCode);
+        Assert.Equal("/auth/sso/complete?returnPath="+Uri.EscapeDataString(returnPath),completed.Headers.Location!.OriginalString);
+        using var identity=await fixture.Browser.GetAsync("/api/v1/auth/me");
+        Assert.Equal(HttpStatusCode.OK,identity.StatusCode);
+    }
     [Fact] public async Task IdentityProviderCancellationIsAuditedAndAttemptIsFailed()
     {
         await using var fixture=new OidcProtocolFixture();await fixture.InitializeAsync();fixture.Identity.Failure="cancelled";

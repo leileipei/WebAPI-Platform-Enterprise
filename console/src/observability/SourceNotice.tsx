@@ -1,6 +1,6 @@
 import {observationErrorLabel} from './investigation-state.mjs';import type {ObservationEnvelope,SourceState} from '../api/observability';
 import {useWorkspace} from '../Shell';
-export const sourceNames:Record<SourceState,string>={Available:'采集正常',NoData:'暂无请求样本',Partial:'数据覆盖不完整',Unavailable:'采集源不可用',Stale:'采集已过期',NotApplicable:'尚未启用'};
+export const sourceNames:Record<SourceState,string>={Available:'采集正常',NoData:'暂无请求样本',Partial:'数据覆盖不完整',Unavailable:'采集源不可用',Stale:'采集已过期',NotApplicable:'该维度暂不支持'};
 const reasonNames:Record<string,string>={missing_or_stale_nodes:'节点采集缺失或过期',incomplete_window:'所选历史窗口尚未完整覆盖',environments_without_collection_nodes:'部分环境尚未接入采集节点',telemetry_loss:'检测到指标丢弃或导出失败',no_collection_nodes:'尚未接入采集节点'};
 export function SourceNotice({value,error,errorStatus,loading,retry,noun='指标'}:{value?:ObservationEnvelope<unknown>;error?:string;errorStatus?:number;loading?:boolean;retry:()=>void;noun?:'指标'|'日志'|'链路'}){
  const workspace=useWorkspace();
