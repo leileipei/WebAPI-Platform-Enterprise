@@ -14,11 +14,11 @@ const permission=(code)=>({code,name:code,module:code.split('.')[0]});
 const permissions=['role.manage','api.read','route.read','system.manage'];
 const role=(id,name,organizationId,isSystem=false,grants=['api.read'])=>({id,name,code:id,organizationId,isSystem,revision:1,permissions:grants});
 
-async function openDirectory(t,{path='/roles',platform=false,tree=organizations,managed=[a],mode='read_write',denyRoleOnce=false}={}) {
+async function openDirectory(t,{path='/roles',platform=false,tree=organizations,managed=[a],mode='read_write',denyRoleReads=false}={}) {
   const page=await browser.newPage();
   t.after(()=>page.close());
   page.setDefaultTimeout(4500);
-  const f={managed,platform,tree,mode,denyRoleOnce,identityReads:0,reads:[],writes:[],conflict:false,
+  const f={managed,platform,tree,mode,denyRoleReads,identityReads:0,reads:[],writes:[],conflict:false,
     roles:[role('alpha','甲方角色',a),role('kept','保留既有授权',a,false,['api.read','system.manage']),
       role('beta','乙方角色',b),role('builtin','系统角色',null,true),role('global','平台自定义角色',null)]};
   await page.route('**/*',async route=>{
@@ -36,7 +36,7 @@ async function openDirectory(t,{path='/roles',platform=false,tree=organizations,
     const org=url.searchParams.get('organizationId');
     if(req.method()==='GET' && (endpoint==='/roles'||endpoint==='/permissions')) {
       f.reads.push({endpoint,org});
-      if(endpoint==='/roles'&&f.denyRoleOnce){f.denyRoleOnce=false;return reply({detail:'角色读取已拒绝'},403);}
+      if(endpoint==='/roles'&&f.denyRoleReads)return reply({detail:'角色读取已拒绝'},403);
       if(org ? !f.managed.includes(org) : !f.platform) return reply({detail:'无权读取该目录'},403);
       if(endpoint==='/roles') return reply(f.roles.filter(r=>!org||r.organizationId===org));
       return reply((org ? permissions.slice(0,3) : permissions).map(permission));
@@ -171,11 +171,12 @@ test('read-only scope cannot create or edit and does not issue platform director
 });
 
 test('rejected directory reads wait for a deliberate refresh and expose no stale write controls',async t=>{
-  const {page,f,row}=await openDirectory(t,{denyRoleOnce:true});
+  const {page,f,row}=await openDirectory(t,{denyRoleReads:true});
   await page.getByRole('alert').filter({hasText:'角色读取已拒绝'}).waitFor();
   assert.equal(f.identityReads,1,'an authorization read must not trigger another session and directory read');
   assert.equal(await page.getByRole('button',{name:'＋ 新建',exact:true}).isDisabled(),true);
   assert.equal(await row('甲方角色').count(),0);
+  f.denyRoleReads=false;
   await page.getByRole('button',{name:'刷新',exact:true}).click();
   await row('甲方角色').waitFor();
   assert.equal(await page.getByRole('button',{name:'＋ 新建',exact:true}).isEnabled(),true);
