@@ -13,6 +13,13 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[2]
 ARCHIVE = "WebAPI_Enterprise_核心闭环源码与验收.zip"
 RECEIPT = "docs/evidence/core-loop/verification.json"
+REFERENCE_PATHS = (
+    "docs/evidence/m4-console/verification.json",
+    "docs/evidence/m4-console/final-review-qa.json",
+    "docs/evidence/core-loop/final-review.md",
+    "docs/evidence/core-loop/scenarios.json",
+    "docs/evidence/core-loop/faults.json",
+)
 BUILD = """import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 if (existsSync('dist') || existsSync('node_modules/poison') || existsSync('untracked')) process.exit(3);
 mkdirSync('dist');
@@ -35,6 +42,7 @@ class CorePackageTests(unittest.TestCase):
                 self.write("scripts/" + script, source.read_text())
         self.write("README.md", "first")
         self.write("package-evidence/core-loop/verification.json", "source namespace")
+        self.write(REFERENCE_PATHS[2], "historical review still pending")
         self.package_data = {"name": "package-fixture", "version": "1.0.0",
                              "scripts": {"build": "node build.mjs"}}
         self.write("console/package.json", json.dumps(self.package_data))
@@ -59,6 +67,13 @@ class CorePackageTests(unittest.TestCase):
         target = self.repo / name
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content)
+
+    def write_evidence_files(self):
+        for path in REFERENCE_PATHS:
+            content = (ROOT / path).read_text()
+            if path == REFERENCE_PATHS[1]:
+                content = json.dumps({**json.loads(content), "testedSourceRevision": self.first})
+            self.write(path, content)
 
     def git(self, *args):
         return subprocess.check_output(["git", *args], cwd=self.repo, text=True).strip()
@@ -109,6 +124,7 @@ class CorePackageTests(unittest.TestCase):
         proof = json.loads((ROOT / RECEIPT).read_text())
         proof["testedSourceRevision"] = self.first[:9]
         self.write(RECEIPT, json.dumps(proof))
+        self.write_evidence_files()
         evidence = self.commit("test results")
         manifest = self.package(self.first, "--evidence-revision", evidence)
         self.assertEqual(manifest["sourceRevision"], self.first)
@@ -126,6 +142,12 @@ class CorePackageTests(unittest.TestCase):
             self.assertEqual(info["sha256"], hashlib.sha256(included).hexdigest())
             self.assertEqual(json.loads(archive.read("enterprise/" + RECEIPT))["testedSourceRevision"], "badcafe")
             self.assertEqual(archive.read("enterprise/package-evidence/core-loop/verification.json"), b"source namespace")
+            self.assertEqual(archive.read("enterprise/" + REFERENCE_PATHS[2]), b"historical review still pending")
+            for path in REFERENCE_PATHS:
+                expected = (self.repo / path).read_bytes()
+                self.assertEqual(archive.read("package-evidence/" + path), expected)
+                self.assertEqual(info["references"][path]["sha256"], hashlib.sha256(expected).hexdigest())
+
         self.assertIs(self.package(self.second, "--evidence-revision", evidence)["acceptanceComplete"], False)
         for invalid in ({"complete": 1}, {"testsComplete": False},
                         {"checks": {}}, {"checks": {"automatedRegressionTotal": {"passed": 1, "failed": 1, "skipped": 0}}},
@@ -135,6 +157,24 @@ class CorePackageTests(unittest.TestCase):
                 self.write(RECEIPT, json.dumps({**proof, **invalid}))
                 bad = self.commit("invalid receipt")
                 self.assertIs(self.package(self.first, "--evidence-revision", bad)["acceptanceComplete"], False)
+
+    def test_acceptance_requires_all_regression_counts_and_linked_evidence(self):
+        proof = json.loads((ROOT / RECEIPT).read_text())
+        proof["testedSourceRevision"] = self.first
+        self.write(RECEIPT, json.dumps(proof))
+        missing_evidence = self.commit("receipt without evidence")
+        self.assertIs(self.package(self.first, "--evidence-revision", missing_evidence)["acceptanceComplete"], False)
+
+        self.write_evidence_files()
+        for checks in (
+            {"automatedRegressionTotal": {"passed": 1, "failed": 0, "skipped": 0}},
+            {**proof["checks"], "automatedRegressionTotal": {"passed": 1, "failed": 0, "skipped": 0}},
+            {**proof["checks"], "browser": "docs/evidence/m4-console"},
+        ):
+            with self.subTest(checks=checks):
+                self.write(RECEIPT, json.dumps({**proof, "checks": checks}))
+                evidence = self.commit("incomplete regression")
+                self.assertIs(self.package(self.first, "--evidence-revision", evidence)["acceptanceComplete"], False)
 
     def test_missing_or_malformed_receipt_still_packages_unaccepted(self):
         (self.repo / RECEIPT).unlink()

@@ -18,6 +18,9 @@ ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE = "WebAPI_Enterprise_核心闭环源码与验收.zip"
 RECEIPT = "docs/evidence/core-loop/verification.json"
 EXTERNAL_RECEIPT = "package-evidence/core-loop/verification.json"
+REGRESSION_GROUPS = ("domain", "integration", "gateway", "consoleTransport", "consolePaging", "consoleNavigation")
+SCENARIOS = "docs/evidence/core-loop/scenarios.json"
+FAULTS = "docs/evidence/core-loop/faults.json"
 BLOCKED = {".git", ".worktrees", "worktrees", ".superpowers", ".runtime", ".secrets",
            "secrets", "backup", "backups", "node_modules", "bin", "obj", "testresults",
            "deliverables", "__pycache__", ".pnpm-store", ".cache", ".aws", ".ssh", ".gnupg"}
@@ -77,41 +80,98 @@ def completed_checks(proof):
     cleanup = proof.get("temporaryFixtureCleanup")
     if not isinstance(checks, dict) or not isinstance(cleanup, dict):
         return False
+    counts = [checks.get(group) for group in REGRESSION_GROUPS]
+    if not all(isinstance(group, dict) and type(group.get("passed")) is int
+               and group["passed"] > 0 and zero(group, "failed") for group in counts):
+        return False
     total = checks.get("automatedRegressionTotal")
+    release = checks.get("lockedReleaseBuild")
     return (proof.get("complete") is True and proof.get("testsComplete") is True
-            and isinstance(total, dict) and type(total.get("passed")) is int and total["passed"] > 0
+            and isinstance(total, dict) and type(total.get("passed")) is int
+            and total["passed"] == sum(group["passed"] for group in counts)
             and zero(total, "failed") and zero(total, "skipped")
+            and all(zero(checks[group], "skipped") for group in ("domain", "integration", "gateway"))
             and all(zero(group, key) for group in checks.values() if isinstance(group, dict)
                     for key in ("failed", "errors", "skipped") if key in group)
+            and checks.get("consoleBuild") == "TypeScript + Vite passed"
+            and isinstance(release, dict) and zero(release, "warnings") and zero(release, "errors")
             and cleanup.get("complete") is True
             and all(zero(cleanup, key) for key in ("containersRemaining", "volumesRemaining",
                                                    "secretFilesRemaining")))
 
 
-def acceptance(evidence, revision):
-    result = subprocess.run(["git", "--no-replace-objects", "cat-file", "blob",
-                             evidence + ":" + RECEIPT], cwd=ROOT, capture_output=True)
-    metadata = {"revision": evidence, "path": RECEIPT}
-    if result.returncode:
-        return False, metadata
-    metadata["sha256"] = hashlib.sha256(result.stdout).hexdigest()
+def read_json(data):
     try:
-        proof = json.loads(result.stdout)
-    except (UnicodeDecodeError, ValueError):
-        return False, metadata
-    if not isinstance(proof, dict):
-        return False, metadata
+        document = json.loads(data)
+    except (TypeError, ValueError):
+        return {}
+    return document if isinstance(document, dict) else {}
+
+
+def matches_revision(tested, revision):
+    return (isinstance(tested, str) and re.fullmatch("[0-9a-f]{7,64}", tested)
+            and revision.startswith(tested)
+            and git("rev-parse", "--disambiguate=" + tested).decode().splitlines() == [revision])
+
+
+def evidence_blob(revision, name):
+    path = PurePosixPath(name)
+    if (path.parts[:2] != ("docs", "evidence") or name != str(path)
+            or ".." in path.parts or chr(92) in name or excluded(path)):
+        return None
+    entry = git("--literal-pathspecs", "ls-tree", "-z", revision, "--", name)
+    if not entry.startswith((b"100644 blob ", b"100755 blob ")):
+        return None
+    return git("cat-file", "blob", revision + ":" + name)
+
+
+def verified_references(proof, evidence, revision):
+    checks = proof["checks"]
+    paths = [checks.get("browser"), checks.get("browserFinalReview"), proof.get("reviewRecord"), SCENARIOS, FAULTS]
+    if not all(isinstance(path, str) and path for path in paths) or len(set(paths)) != len(paths):
+        return {}
+    blobs = {path: evidence_blob(evidence, path) for path in paths}
+    if not all(blobs.values()):
+        return {}
+    browser = read_json(blobs[paths[1]])
+    if (not read_json(blobs[paths[0]]).get("checks") or browser.get("complete") is not True
+            or not browser.get("checks") or not matches_revision(browser.get("testedSourceRevision"), revision)):
+        return {}
+    for path, minimum in ((SCENARIOS, 3), (FAULTS, 7)):
+        result = read_json(blobs[path])
+        cases = result.get("checks")
+        if result.get("complete") is not True or not isinstance(cases, list) or len(cases) < minimum:
+            return {}
+    return blobs
+
+
+def acceptance(evidence, revision):
+    metadata = {"revision": evidence, "path": RECEIPT}
+    data = evidence_blob(evidence, RECEIPT)
+    if data is None:
+        return False, metadata, {}
+    metadata["sha256"] = hashlib.sha256(data).hexdigest()
+    proof = read_json(data)
     tested = proof.get("testedSourceRevision")
-    if not isinstance(tested, str) or not re.fullmatch("[0-9a-f]{7,64}", tested):
-        return False, metadata
-    metadata["testedSourceRevision"] = tested
-    valid = (completed_checks(proof) and revision.startswith(tested)
-             and git("rev-parse", "--disambiguate=" + tested).decode().splitlines() == [revision])
+    if isinstance(tested, str):
+        metadata["testedSourceRevision"] = tested
     if evidence == revision:
         metadata["archivePath"] = "enterprise/" + RECEIPT
-    elif valid:
+    if not matches_revision(tested, revision) or not completed_checks(proof):
+        return False, metadata, {}
+    references = verified_references(proof, evidence, revision)
+    if not references:
+        return False, metadata, {}
+    attachments = {}
+    prefix = "enterprise/"
+    if evidence != revision:
         metadata["archivePath"] = EXTERNAL_RECEIPT
-    return valid, metadata
+        attachments[EXTERNAL_RECEIPT] = data
+        prefix = "package-evidence/"
+        attachments.update((prefix + name, blob) for name, blob in references.items())
+    metadata["references"] = {name: {"archivePath": prefix + name, "sha256": hashlib.sha256(blob).hexdigest()}
+                              for name, blob in references.items()}
+    return True, metadata, attachments
 
 
 def build(console):
@@ -144,7 +204,7 @@ def zip_entry(archive, path, mode, data):
     archive.writestr(entry, data, compress_type=zipfile.ZIP_DEFLATED)
 
 
-def make_archive(target, console, revision, receipt):
+def make_archive(target, console, revision, attachments):
     with zipfile.ZipFile(target, "w") as archive:
         for path, mode, data in source_blobs(revision):
             zip_entry(archive, "enterprise/" + str(path), mode, data)
@@ -155,9 +215,8 @@ def make_archive(target, console, revision, receipt):
                 local.chmod(mode & 0o777)
         for path, data in build(console):
             zip_entry(archive, "enterprise/" + str(path), 0o100644, data)
-        if receipt.get("archivePath") == EXTERNAL_RECEIPT:
-            proof = git("cat-file", "blob", receipt["revision"] + ":" + RECEIPT)
-            zip_entry(archive, EXTERNAL_RECEIPT, 0o100644, proof)
+        for name, data in attachments.items():
+            zip_entry(archive, name, 0o100644, data)
     with zipfile.ZipFile(target) as archive:
         if archive.testzip() or "enterprise/README.md" not in archive.namelist():
             raise ValueError("Archive verification failed")
@@ -200,7 +259,7 @@ def main():
     args = parser.parse_args()
     revision = commit(args.commit)
     evidence = commit(args.evidence_revision) if args.evidence_revision else revision
-    accepted, receipt = acceptance(evidence, revision)
+    accepted, receipt, attachments = acceptance(evidence, revision)
     out = ROOT / "deliverables"
     if out.is_symlink():
         raise ValueError("Invalid delivery directory")
@@ -209,7 +268,7 @@ def main():
             tempfile.TemporaryDirectory(prefix="core-console-") as checkout:
         staging = Path(staging_dir)
         target = staging / ARCHIVE
-        count = make_archive(target, Path(checkout) / "console", revision, receipt)
+        count = make_archive(target, Path(checkout) / "console", revision, attachments)
         digest = hashlib.sha256()
         with target.open("rb") as stream:
             for block in iter(lambda: stream.read(1024 * 1024), b""):
