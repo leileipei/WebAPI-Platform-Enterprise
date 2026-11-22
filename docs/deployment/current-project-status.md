@@ -469,3 +469,17 @@ PR #25 于 2026-11-21 23:31:43（北京时间）合入 `39bf3f1ee518c1d7da399cf5
 | `contracts-domain` | 1,426 | 0 | 0 | [作业 136892703878](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44919654305/job/136892703878) |
 | `contracts-gateway` | 639 | 0 | 0 | [作业 136892703648](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44919654305/job/136892703648) |
 | `contracts-integration` | 2,671 | 0 | 0 | [作业 136892703889](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44919654305/job/136892703889) |
+
+
+## 2026-11-22 PR #26 合并后的主线复跑
+
+API 授权矩阵与逐项验收由 PR #26 于 2026-11-22 04:30:29（北京时间）合入 `13a7724f3ddd8b97bd27ae4289cbae936e34c8ab`。合并提交与受测候选 `6a6a07382e855c5123471cca50bd1f1376cc4571` 的文件树一致。两条 `main` push 工作流首次执行均通过，最后一项于 2026-11-22 05:35:40（北京时间）完成。共 **5,225 项通过、0 项失败、0 项跳过**。[PR #26](https://github.com/leileipei/WebAPI-Platform-Enterprise/pull/26) · [Console CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44946638533) · [Contracts CI](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44946638524)
+
+| 必需检查 | 通过 | 失败 | 跳过 | GitHub 作业 |
+| --- | ---: | ---: | ---: | --- |
+| `console` | 475 | 0 | 0 | [作业 136975295350](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44946638533/job/136975295350) |
+| `contracts-domain` | 1,426 | 0 | 0 | [作业 136975295167](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44946638524/job/136975295167) |
+| `contracts-gateway` | 639 | 0 | 0 | [作业 136975295464](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44946638524/job/136975295464) |
+| `contracts-integration` | 2,685 | 0 | 0 | [作业 136975295250](https://github.com/leileipei/WebAPI-Platform-Enterprise/actions/runs/44946638524/job/136975295250) |
+
+第 21 页 11 项需求的隔离验收证据见[权限矩阵验收记录](../evidence/product-acceptance/2026-11-21-permission-matrix/README.md)，当前逐项状态以[454 项台账](requirements-acceptance-current.json)为准。
