@@ -116,6 +116,36 @@ public sealed class OrganizationAdministratorGuardTests
     }
 
     [Fact]
+    public async Task DisabledSsoProviderCannotReplaceTheLastUsableAdministrator()
+    {
+        await using var api = await OpenAsync();
+        await using var db = api.Context();
+        var organization = api.Organization.Id;
+        var role = await db.Set<Role>().SingleAsync(row => row.Code == "OrganizationAdmin");
+        var local = AddMember(db, api, role, Grant(organization));
+        var external = AddMember(db, api, role, Grant(organization));
+        external.AuthSource = "sso";
+        external.PasswordHash = null;
+        var provider = new SsoProvider
+        {
+            OrganizationId = organization, Issuer = "https://administrator-id.example.test", Name = "Administrator SSO",
+            ClientId = "synthetic", SecretRef = "file://sso/synthetic"
+        };
+        db.AddRange(provider, new UserExternalIdentity
+        {
+            UserId = external.Id, ProviderId = provider.Id, Issuer = provider.Issuer, Subject = "replacement"
+        });
+        await db.SaveChangesAsync();
+
+        await AssertConflictAsync(WriteAsync(api, local, "/roles", new AssignRolesRequest([])));
+
+        provider.Enabled = true;
+        await db.SaveChangesAsync();
+        using var handover = await WriteAsync(api, local, "/roles", new AssignRolesRequest([]));
+        Assert.Equal(HttpStatusCode.OK, handover.StatusCode);
+    }
+
+    [Fact]
     public async Task ConcurrentRoleAndScopeRemovalsCommitOnlyOneHandover()
     {
         await using var api = await OpenAsync();

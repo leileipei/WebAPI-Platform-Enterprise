@@ -181,6 +181,13 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
     private async Task ProtectOrganizationAdministratorsAsync(Guid userId, CancellationToken ct,
         Guid[]? retainedRoleIds = null, Guid[]? retainedOrganizationIds = null)
     {
+        var activeGrants = SsoAdmission.ActiveOrganizationGrants(db);
+        var usableSsoAccounts = from identity in db.Set<UserExternalIdentity>()
+                                join provider in db.Set<SsoProvider>() on identity.ProviderId equals provider.Id
+                                where identity.Enabled && provider.Enabled && identity.Issuer == provider.Issuer &&
+                                    (provider.OrganizationId == null || activeGrants.Any(grant =>
+                                        grant.UserId == identity.UserId && grant.OrganizationId == provider.OrganizationId))
+                                select identity.UserId;
         var administrators = from grant in db.Set<UserProjectScope>()
                              join user in db.Set<UserRecord>() on grant.UserId equals user.Id
                              join assignment in db.Set<UserRole>() on user.Id equals assignment.UserId
@@ -188,7 +195,12 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
                              where user.Status == "Active" && grant.ProjectId == null && grant.EnvironmentId == null
                                  && grant.AccessMode == "read_write" && role.IsSystem && role.OrganizationId == null
                                  && role.Code == "OrganizationAdmin"
-                             select new { grant.UserId, grant.OrganizationId, assignment.RoleId, user.MustChangePassword };
+                             select new
+                             {
+                                 grant.UserId, grant.OrganizationId, assignment.RoleId, user.MustChangePassword,
+                                 CanSignIn = user.AuthSource == "local" && user.PasswordHash != null && user.PasswordHash != ""
+                                     || user.AuthSource == "sso" && user.PasswordHash == null && usableSsoAccounts.Contains(user.Id)
+                             };
 
         // The governance transaction lock covers both the old assignments and the pending write.
         var lost = administrators.Where(member => member.UserId == userId);
@@ -200,7 +212,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         // A ready administrator needs a ready successor. An administrator who can recover
         // by changing their password may hand over to another recoverable administrator.
         if (await lost.AnyAsync(member => !administrators.Any(other => other.UserId != userId
-                && other.OrganizationId == member.OrganizationId
+                && other.OrganizationId == member.OrganizationId && other.CanSignIn
                 && (member.MustChangePassword || !other.MustChangePassword)), ct))
             throw new ApiException(409, "last_organization_admin", "请先为该组织指定另一名可以履职的组织管理员。");
     }
