@@ -2,7 +2,7 @@ import {apiRequest} from './client';
 export type SourceState='Available'|'NoData'|'Partial'|'Unavailable'|'Stale'|'NotApplicable';
 export type TimeRange={start:string;end:string};
 export type ObservationScopeRequest={organizationId:string;projectId:string;environmentId:string|null;allAccessibleEnvironments:boolean};
-export type ObservationEnvelope<T>={sourceState:SourceState;range:TimeRange;observedAt:string|null;coverage:{complete:boolean;missingNodes:string[];reason:string|null;truncated:boolean};sampling:{ratio:number;mode:string}|null;data:T|null};
+export type ObservationEnvelope<T>={sourceState:SourceState;range:TimeRange;observedAt:string|null;coverage:{complete:boolean;missingNodes:string[];missingNodeIdentities?:{environmentId:string;nodeName:string}[];reason:string|null;truncated:boolean};sampling:{ratio:number;mode:string}|null;data:T|null};
 export type MetricFilter={apiId?:string;applicationId?:string;destinationId?:string;groupBy?:string;page?:number;pageSize?:number;sortBy?:string};
 export type MetricValue={metric:string;value:number|null;unit:string;sampleCount:number;state:SourceState};
 export type MetricPoint={time:string;value:number|null};

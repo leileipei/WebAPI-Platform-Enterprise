@@ -1,7 +1,12 @@
 namespace WebApi.Contracts.Catalog;
 public sealed record SaveApiRequest(string Code,string Name,string? Description=null,Guid? GroupId=null,Guid? OwnerUserId=null,string LifecycleStatus="Draft");
 public sealed record ApiDto(Guid Id,Guid OrganizationId,Guid ProjectId,Guid? GroupId,string Code,string Name,string? Description,string LifecycleStatus,Guid OwnerUserId,long WorkingRevision);
-public sealed record ApiDetailDto(ApiDto Api,long WorkingRevision,IReadOnlyDictionary<Guid,long?> RunningConfigVersion,Guid? PendingReleaseId,IReadOnlyList<VersionDto> Versions);
+public sealed record ApiDetailDto(ApiDto Api,long WorkingRevision,IReadOnlyDictionary<Guid,long?> RunningConfigVersion,Guid? PendingReleaseId,IReadOnlyList<VersionDto> Versions)
+{
+    public bool CanReadSchemas { get; init; }
+    public bool CanWriteSchemas { get; init; }
+    public bool CanWriteVersions { get; init; }
+}
 public sealed record CreateVersionRequest(string Version,string ChangeType="compatible",string? OpenapiDocument=null,string? OpenapiSource=null,string? SourceFormat=null,string? Dialect=null);
 public sealed record VersionDto(Guid Id,Guid ApiId,string Version,string Status,string ChangeType,string? OpenapiDocument,string? OpenapiSource,string? SourceFormat,string? SchemaHash,Guid CreatedBy,DateTimeOffset CreatedAt,DateTimeOffset? SealedAt,long Revision,[property: System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? Dialect=null);
 public sealed record SaveGroupRequest(string Name,Guid? ParentId=null,int SortOrder=0);

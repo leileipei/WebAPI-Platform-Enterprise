@@ -10,6 +10,12 @@
 
 全局用户治理、整体角色和 Scope 分配由平台管理员处理；组织资源及组织自定义角色按相应权限管理。系统角色不能任意编辑，自定义角色不能授予操作者未持有的功能权限。最后一位可用本地平台管理员受[恢复保护](../src/WebApi.Infrastructure/Sso/LocalAdministratorGuard.cs)约束。
 
+### 角色目录
+
+`GET /api/v1/role-directories` 返回平台角色管理能力 `canManagePlatformRoles`，以及当前可管理角色的组织 ID 和名称。组织目录需要该组织有效的 `role.manage`、组织级 `read_write` 授权及启用状态。单独授予角色管理权限的用户也可以从此入口找到组织。
+
+对 `GET /api/v1/roles` 和 `GET /api/v1/permissions` 传入 `organizationId`，分别得到该组织的角色以及操作者在该组织可授予的权限字典。每个角色的 `permissions` 包含全部已分配代码，包括操作者当前无法授予的代码。配置权限通过 `PUT /api/v1/roles/{id}/permissions` 提交完整代码集合，并使用角色修订作为 `If-Match`。省略 `organizationId` 时，两项读取均要求平台角色管理权限，返回全平台目录供用户角色分配等平台操作使用。
+
 ## 命令、并发和审计
 
 关键业务命令使用数据库事务和统一授权锁，事务内重新检查身份与权限，授权变更与受保护写入按同一锁协调。修订冲突通常返回 `412`，写权限不足返回 `403`；无权详情可能按资源接口映射为 `404`，不能将所有接口的错误处理简化为同一规则。

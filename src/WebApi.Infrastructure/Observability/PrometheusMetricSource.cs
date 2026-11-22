@@ -70,7 +70,7 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
             (await latencyTrendTask).Where(TrendVisible).ToArray(),missing));
         var policyPoints=(await policyTrendTask).Where(x=>PolicySeriesValid(x.Labels,scope)).SelectMany(x=>x.Points.Select(p=>(x.Labels,p.Time,p.Value))).GroupBy(x=>x.Time).OrderBy(x=>x.Key).Take(600).ToArray();
         foreach(var key in PolicyKpiKeys) trends[key]=policyPoints.Select(g=>new MetricPointDto(g.Key,missing||!applicable?null:g.Where(x=>PolicyMatches(x.Labels,key)).Sum(x=>x.Value))).ToArray();
-        var nodes=NodeHealth(scope,health,observed.Coverage.MissingNodes);
+        var nodes=NodeHealth(scope,health,observed.MissingNodes);
         if(filter.ApiId is not null||filter.ApplicationId is not null)nodes=nodes.Select(n=>n with{Destinations=[]}).ToArray();
         else if(filter.DestinationId is Guid destination)nodes=nodes.Select(n=>n with{Destinations=n.Destinations.Where(d=>d.DestinationId==destination).ToArray()}).ToArray();
         var total=requests.Sum(x=>x.Value);var state=observed.State==SourceState.Available&&total==0?SourceState.NoData:observed.State;
@@ -141,7 +141,7 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         }
         return count;
     }
-    private static IReadOnlyList<NodeHealthDto> NodeHealth(TrustedObservationScope scope,IReadOnlyList<PrometheusSeries> health,IReadOnlyList<string> missing)=>scope.ExpectedNodes.Select(node=>new NodeHealthDto(node.NodeName,missing.Contains(node.NodeName)?"Stale":"Available",scope.Destinations.Values.Where(d=>d.EnvironmentId==node.EnvironmentId).Select(d=>{
+    private static IReadOnlyList<NodeHealthDto> NodeHealth(TrustedObservationScope scope,IReadOnlyList<PrometheusSeries> health,IReadOnlySet<ExpectedObservationNode> missing)=>scope.ExpectedNodes.Select(node=>new NodeHealthDto(node.NodeName,missing.Contains(node)?"Stale":"Available",scope.Destinations.Values.Where(d=>d.EnvironmentId==node.EnvironmentId).Select(d=>{
         var row=health.FirstOrDefault(x=>x.Labels.GetValueOrDefault("webapi_environment_id")==node.EnvironmentId.ToString()&&x.Labels.GetValueOrDefault("service_instance_id")==node.NodeName&&x.Labels.GetValueOrDefault("webapi_destination_id")==d.Id.ToString());return new DestinationHealthDto(d.ClusterId,d.Id,!d.Enabled?"Disabled":row?.Value switch{1=>"Healthy",0=>"Unhealthy",_=>"Unknown"});
     }).ToArray(),node.EnvironmentId)).ToArray();
     private static string Name(TrustedObservationScope scope,string dimension,string key)

@@ -1,19 +1,25 @@
 import {tabFocusTarget,recoveryFocusTarget} from './editor-focus.mjs';
-import {editorMaySubmit,editorMayImplicitlySubmit} from './editor-state.mjs';import {useEffect,useRef,useState,type ReactNode,type FormEvent} from 'react';import {apiRequest,ApiError} from './api/client';import {useSession} from './auth/SessionProvider';import {readAllPages,withPage} from './api/paging.mjs';
-export function useRemote<T>(path:string|null,interval=0,allPages=false){
+import {editorMaySubmit,editorMayImplicitlySubmit} from './editor-state.mjs';import {useEffect,useMemo,useRef,useState,type ReactNode,type FormEvent} from 'react';import {apiRequest,ApiError} from './api/client';import {useSession} from './auth/SessionProvider';import {readAllPages,withPage} from './api/paging.mjs';
+export function useRemote<T>(path:string|null,interval=0,allPages=false,revalidateOnSessionRefresh=false,resourceRevision?:number){
  const {user}=useSession();const authority=user?user.id+JSON.stringify(user.permissions)+JSON.stringify(user.scopes):'anonymous';
+ const sessionToVerify=revalidateOnSessionRefresh?user:null;
+ const requested=useMemo(()=>({sessionToVerify,resourceRevision}),[sessionToVerify,resourceRevision]);
+ const [verified,setVerified]=useState(requested);
  const[data,setData]=useState<T>(),[error,setError]=useState(''),[errorStatus,setErrorStatus]=useState<number>(),[loading,setLoading]=useState(true),[updated,setUpdated]=useState<Date>(),[tick,setTick]=useState(0);
  const previous=useRef<string|undefined>(undefined);
  useEffect(()=>{
   const identity=JSON.stringify([path,authority]);const controller=new AbortController();
   if(previous.current!==identity){setData(undefined);setUpdated(undefined);previous.current=identity;}
-  setError('');setErrorStatus(undefined);setLoading(true);if(!path){setLoading(false);return;}
-  const load=async()=>{try{const result=await (allPages?readAllPages(apiRequest,path,{signal:controller.signal}):apiRequest<T>(path,{signal:controller.signal}));if(!controller.signal.aborted){setData(result);setError('');setErrorStatus(undefined);setUpdated(new Date());}}
+  setError('');setErrorStatus(undefined);setLoading(true);if(!path){setLoading(false);setVerified(requested);return;}
+  // Reads triggered by a session refresh consume their own denial without starting another refresh.
+  const options={signal:controller.signal,refreshPermissionsOnDenied:!revalidateOnSessionRefresh};
+  const load=async()=>{try{const result=await (allPages?readAllPages(apiRequest,path,options):apiRequest<T>(path,options));if(!controller.signal.aborted){setData(result);setError('');setErrorStatus(undefined);setUpdated(new Date());}}
    catch(e){if(!controller.signal.aborted){if(e instanceof ApiError&&[401,403,404].includes(e.status)){setData(undefined);setUpdated(undefined);}setError((e as Error).message);setErrorStatus(e instanceof ApiError?e.status:undefined);}}
-   finally{if(!controller.signal.aborted)setLoading(false);}};
+   finally{if(!controller.signal.aborted){setLoading(false);setVerified(requested);}}};
   void load();const timer=interval?setInterval(load,interval):undefined;
   return()=>{controller.abort();if(timer)clearInterval(timer);};
- },[path,tick,interval,authority,allPages]);return{data,error,errorStatus,loading,updated,reload:()=>setTick(t=>t+1)};
+ },[path,tick,interval,authority,allPages,revalidateOnSessionRefresh,requested]);
+ return{data,error,errorStatus,loading:loading||requested!==verified,updated,reload:()=>setTick(t=>t+1)};
 }
 export function usePaged(path:string|null,interval=0){
  const[page,setPage]=useState(1);useEffect(()=>setPage(1),[path]);

@@ -3,7 +3,12 @@ namespace WebApi.Contracts.Observability;
 [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SourceState>))]
 public enum SourceState { Available, NoData, Partial, Unavailable, Stale, NotApplicable }
 
-public sealed record CoverageDto(bool Complete, IReadOnlyList<string> MissingNodes, string? Reason, bool Truncated);
+public sealed record ObservationNodeIdentityDto(Guid EnvironmentId, string NodeName);
+public sealed record CoverageDto(bool Complete, IReadOnlyList<string> MissingNodes, string? Reason, bool Truncated)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ObservationNodeIdentityDto>? MissingNodeIdentities { get; init; }
+}
 public sealed record SamplingDto(double Ratio, string Mode);
 public sealed record ObservationEnvelope<T>(SourceState SourceState, TimeRange Range, DateTimeOffset? ObservedAt,
     CoverageDto Coverage, SamplingDto? Sampling, T? Data);

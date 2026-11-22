@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using WebApi.Contracts.Observability;
+using WebApi.Infrastructure.Observability;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
@@ -170,6 +171,8 @@ public sealed class ObservationMetricsTests
         var body=(await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
         Assert.Equal(SourceState.Partial,body.SourceState);Assert.False(body.Coverage.Complete);Assert.Null(Value(body,"request_rps").Value);
         Assert.Equal("time_window_coverage_incomplete",body.Coverage.Reason);
+        Assert.Empty(body.Coverage.MissingNodes);
+        Assert.Equal("Available", Assert.Single(body.Data!.NodeHealth).Health);
         Assert.Contains(source.Requests,x=>Uri.UnescapeDataString(x.Query).Contains("max_over_time((time()",StringComparison.Ordinal));
     }
     [Fact] public async Task AllRequiredTrendSeriesUseRealSamplesAndUnknownStaysNull()
@@ -200,6 +203,88 @@ public sealed class ObservationMetricsTests
         using var response=await s.Client.GetAsync(Url(s,source,all:true));response.EnsureSuccessStatusCode();var body=await response.Content.ReadFromJsonAsync<JsonElement>();var nodes=body.GetProperty("data").GetProperty("nodeHealth").EnumerateArray().ToArray();
         var available=Assert.Single(nodes,x=>x.GetProperty("health").GetString()=="Available");Assert.Equal(s.Environment.Id,available.GetProperty("environmentId").GetGuid());
         var stale=Assert.Single(nodes,x=>x.GetProperty("health").GetString()=="Stale");Assert.Equal(sibling.Id,stale.GetProperty("environmentId").GetGuid());
+        var coverage = body.GetProperty("coverage");
+        Assert.Equal("Partial", body.GetProperty("sourceState").GetString());
+        Assert.False(coverage.GetProperty("complete").GetBoolean());
+        Assert.Equal("second-node", Assert.Single(coverage.GetProperty("missingNodes").EnumerateArray()).GetString());
+        Assert.False(coverage.TryGetProperty("missingNodeIdentities", out _));
+    }
+    [Fact]
+    public async Task SameNamedCollectorsKeepIndependentHealthAndRecoverAcrossEnvironments()
+    {
+        var source = new MetricProtocolHandler();
+        await using var fixture = await FixtureAsync(source);
+        var sibling = new EnvironmentRecord { ProjectId = fixture.Project.Id, Code = "SECOND", Name = "第二环境" };
+        await using (var db = fixture.Context())
+        {
+            db.AddRange(sibling, new GatewayNode { EnvironmentId = sibling.Id, NodeName = "second-node", Enabled = true });
+            await db.SaveChangesAsync();
+        }
+        using var services = fixture.Services();
+        var resolver = services.ServiceProvider.GetRequiredService<ObservationScopeResolver>();
+        var metrics = services.ServiceProvider.GetRequiredService<PrometheusMetricSource>();
+        async Task<TrustedObservationScope> Resolve(Guid? environment = null)
+        {
+            var authorized = await resolver.ResolveAsync(new(fixture.User.Id, "node-health"), "metrics.read",
+                new(fixture.Organization.Id, fixture.Project.Id, environment, environment is null), null, null, null, default);
+            // Registration enforces globally unique names. Exercise a name collision at the observation boundary.
+            return authorized with { ExpectedNodes = authorized.ExpectedNodes.Select(n => n with { NodeName = "node-0" }).ToArray() };
+        }
+        var scope = await Resolve();
+        var range = new TimeRange(source.Start, source.End);
+        Task<ObservationEnvelope<MetricsDto>> Query() => metrics.QueryAsync(scope, range, new(null, null, null), default);
+        var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        void AssertSiblingIdentity(CoverageDto coverage)
+        {
+            var json = JsonSerializer.SerializeToElement(coverage, jsonOptions);
+            Assert.True(json.TryGetProperty("missingNodeIdentities", out var identities));
+            var missing = Assert.Single(identities.EnumerateArray());
+            Assert.Equal("node-0", missing.GetProperty("nodeName").GetString());
+            Assert.Equal(sibling.Id, missing.GetProperty("environmentId").GetGuid());
+        }
+        void AssertOnlySiblingStale(ObservationEnvelope<MetricsDto> result)
+        {
+            var nodes = result.Data!.NodeHealth;
+            Assert.Equal(2, nodes.Count);
+            Assert.All(nodes, node => Assert.Equal("node-0", node.NodeName));
+            var fresh = Assert.Single(nodes, node => node.EnvironmentId == fixture.Environment.Id);
+            Assert.Equal("Available", fresh.Health);
+            Assert.Equal("Healthy", Assert.Single(fresh.Destinations).Health);
+            var stale = Assert.Single(nodes, node => node.EnvironmentId == sibling.Id);
+            Assert.Equal("Stale", stale.Health);
+            Assert.Empty(stale.Destinations);
+            Assert.Equal(SourceState.Partial, result.SourceState);
+            Assert.Equal("missing_or_stale_nodes", result.Coverage.Reason);
+            Assert.Equal(["node-0"], result.Coverage.MissingNodes);
+            Assert.Null(Value(result, "request_rps").Value);
+            AssertSiblingIdentity(result.Coverage);
+        }
+        AssertOnlySiblingStale(await Query());
+        var signals = services.ServiceProvider.GetRequiredService<ObservationSignalCoverage>();
+        foreach (var signal in new[] { "logs", "traces" })
+        {
+            var collection = await signals.QueryAsync(scope, range, signal, default);
+            Assert.Equal(SourceState.Partial, collection.State);
+            AssertSiblingIdentity(collection.Coverage);
+        }
+        var isolated = await metrics.QueryAsync(await Resolve(sibling.Id), range, new(null, null, null), default);
+        var onlyNode = Assert.Single(isolated.Data!.NodeHealth);
+        Assert.Equal(sibling.Id, onlyNode.EnvironmentId);
+        Assert.Equal("Stale", onlyNode.Health);
+        Assert.Equal(["node-0"], isolated.Coverage.MissingNodes);
+        Assert.Equal(0, Value(isolated, "request_count").SampleCount);
+        Assert.Empty(isolated.Data.Trends["request_rps"]);
+        Assert.False(JsonSerializer.SerializeToElement(isolated.Coverage, jsonOptions).TryGetProperty("missingNodeIdentities", out _));
+        source.PeerHeartbeat = (sibling.Id, 60);
+        AssertOnlySiblingStale(await Query());
+        source.PeerHeartbeat = (sibling.Id, 2);
+        var recovered = await Query();
+        Assert.Equal(SourceState.Available, recovered.SourceState);
+        Assert.True(recovered.Coverage.Complete);
+        Assert.Empty(recovered.Coverage.MissingNodes);
+        Assert.False(JsonSerializer.SerializeToElement(recovered.Coverage, jsonOptions).TryGetProperty("missingNodeIdentities", out _));
+        Assert.All(recovered.Data!.NodeHealth, node => Assert.Equal("Available", node.Health));
+        Assert.Equal(200, Value(recovered, "request_count").Value);
     }
     [Fact] public async Task DestinationLabelMustBelongToItsReportedEnvironment()
     {
@@ -236,6 +321,7 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
     public Guid? UnhealthyDestinationId,UnhealthyClusterId;public Guid EnvironmentId,ApiId,ApplicationId,DestinationId,ClusterId;
     public Guid? ForeignEnvironmentId,SecondApiId,PolicyId;
     public string DefaultNodeName = "node-0";
+    public (Guid EnvironmentId, int AgeSeconds)? PeerHeartbeat;
     public bool MissingSecondNode,ResetWindow,MiddleGap,NoDestination;
     public int Status=200;
     public DateTimeOffset End {get;set;}=DateTimeOffset.UtcNow.AddSeconds(-1);
@@ -250,7 +336,16 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
         if(query.Contains("otelcol_",StringComparison.Ordinal))Add(new(),0);
         else if(query.Contains("last_loss_timestamp",StringComparison.Ordinal))Add(Labels(),0);
         else if(query.Contains("last_observed_timestamp",StringComparison.Ordinal))
-        {var time=query.Contains("min_over_time",StringComparison.Ordinal)?Start.AddSeconds(5):End.AddSeconds(-2);var value=query.Contains("max_over_time",StringComparison.Ordinal)?MiddleGap?90:5:time.ToUnixTimeMilliseconds()/1000d;Add(Labels(),value);if(!MissingSecondNode)Add(Labels("node-1"),value);}
+        {
+            var time=query.Contains("min_over_time",StringComparison.Ordinal)?Start.AddSeconds(5):End.AddSeconds(-2);var value=query.Contains("max_over_time",StringComparison.Ordinal)?MiddleGap?90:5:time.ToUnixTimeMilliseconds()/1000d;Add(Labels(),value);if(!MissingSecondNode)Add(Labels("node-1"),value);
+            if (PeerHeartbeat is { } peer)
+            {
+                var labels = Labels();
+                labels["webapi_environment_id"] = peer.EnvironmentId.ToString();
+                Add(labels, query.StartsWith("webapi_telemetry_last_observed_timestamp_seconds", StringComparison.Ordinal)
+                    ? stamp - peer.AgeSeconds : value);
+            }
+        }
         else if(query.Contains("webapi_gateway_policy_decisions_total",StringComparison.Ordinal))
         {if(PolicyId is Guid policy){Add(new(){["webapi_environment_id"]=EnvironmentId.ToString(),["webapi_policy_id"]=policy.ToString(),["webapi_policy_type"]="rate_limit",["webapi_policy_decision"]="Bypass"},7);Add(new(){["webapi_environment_id"]=EnvironmentId.ToString(),["webapi_policy_id"]=policy.ToString(),["webapi_policy_type"]="circuit_breaker",["webapi_policy_decision"]="OpenRejected"},3);}}
         else if(query.Contains("_bucket",StringComparison.Ordinal))

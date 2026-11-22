@@ -45,7 +45,7 @@ async function fixture(t) {
           state.detailDelay=null;
           await delay.wait;
         }
-        return reply({api,versions:vv,runningConfigVersion:{},pendingReleaseId:state.pending?.[environment||'legacy']??null});
+        return reply({api,versions:vv,canReadSchemas:false,canWriteSchemas:false,canWriteVersions:true,runningConfigVersion:{},pendingReleaseId:state.pending?.[environment||'legacy']??null});
       }
       if(path==='/apis/'+api.id+'/versions'){
         if(method==='POST'){

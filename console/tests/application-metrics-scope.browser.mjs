@@ -15,7 +15,7 @@ let browser;
 before(async () => { browser = await chromium.launch({executablePath:process.env.WEBAPI_CHROMIUM_EXECUTABLE}); });
 after(async () => { await browser?.close(); });
 
-async function openMetrics(t, projectId, environmentId) {
+async function metricsPage(t, projectId, environmentId) {
   const page = await browser.newPage();
   t.after(() => page.close());
   page.setDefaultTimeout(6000);
@@ -46,6 +46,11 @@ async function openMetrics(t, projectId, environmentId) {
     if (path === '/api/v1/observability/logs') return reply(envelope({items:[], nextCursor:null, truncated:false}));
     return reply({items:[], total:0, page:1, pageSize:50});
   });
+  return page;
+}
+
+async function openMetrics(t, projectId, environmentId) {
+  const page = await metricsPage(t, projectId, environmentId);
   await page.goto('http://127.0.0.1/applications/' + app);
   await page.getByLabel('当前项目').getByRole('option', {name:projectId, exact:true}).waitFor({state:'attached'});
   await page.getByRole('button', {name:'Metrics', exact:true}).click();
@@ -69,4 +74,30 @@ test('opening access logs carries the project, environment and shared applicatio
   const params = new URL(request.url()).searchParams;
   assert.deepEqual([params.get('projectId'), params.get('environmentId'), params.get('applicationId')],
     ['beta', 'beta-qa', app]);
+});
+
+test('project-wide node health maps equal node names to their own environment and health', async t => {
+  const page = await metricsPage(t, 'alpha', 'alpha-dev');
+  const range = {start:'2026-11-01T01:00:00Z', end:'2026-11-01T02:00:00Z'};
+  const missing = {nodeName:'node-0', environmentId:'alpha-qa'};
+  const healthy = {nodeName:'node-0', environmentId:'alpha-dev'};
+  await page.route('**/api/v1/observability/metrics?*', route => route.fulfill({json:{
+    sourceState:'Partial', range, observedAt:range.end, sampling:null,
+    coverage:{complete:false, missingNodes:['node-0'], missingNodeIdentities:[missing], reason:'missing_or_stale_nodes', truncated:false},
+    data:{kpis:[], trends:{}, groups:[], totalGroups:0, page:1, pageSize:50, nodeHealth:[
+      {...missing, health:'Stale', destinations:[]},
+      {...healthy, health:'Available', destinations:[{clusterId:'cluster', destinationId:'dest', health:'Healthy'}]}
+    ]}
+  }}));
+  await page.goto('http://127.0.0.1/observability/metrics?all=true&end=' + range.end);
+  const rows = page.locator('.ob-nodes tbody tr');
+  await rows.first().waitFor();
+  assert.equal(await rows.count(), 2);
+  assert.deepEqual(await rows.filter({hasText:'alpha dev'}).getByRole('cell').allTextContents(),
+    ['node-0', 'alpha dev', '新鲜', '1', '0', '0']);
+  assert.deepEqual(await rows.filter({hasText:'alpha qa'}).getByRole('cell').allTextContents(),
+    ['node-0', 'alpha qa', '缺失 / 过期', '0', '0', '0']);
+  const notice = await page.locator('.ob-source').textContent();
+  assert.match(notice, /node-0.*alpha qa/);
+  assert.doesNotMatch(notice, /alpha dev/);
 });

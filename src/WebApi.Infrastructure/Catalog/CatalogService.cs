@@ -36,7 +36,14 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
         var versions=await WorkingVersionsAsync(id,ct);
         var environments = visible.Keys.Where(key => environmentId == null || key == environmentId).ToArray();
         var pending = await PendingReleaseAsync(api, versions, environments, actor, ct);
-        return new(Dto(api),api.VersionNo,visible,pending,versions);
+        Task<bool> CanAtProject(string permission) => visibility.Scopes(actor, permission).AnyAsync(s =>
+            s.OrganizationId == api.OrganizationId && s.ProjectId == api.ProjectId && s.EnvironmentId == null, ct);
+        return new(Dto(api),api.VersionNo,visible,pending,versions)
+        {
+            CanReadSchemas = await CanAtProject("api.schema.read"),
+            CanWriteSchemas = await CanAtProject("api.schema.write"),
+            CanWriteVersions = await CanAtProject("api.version.write")
+        };
     }
 
     private Task<VersionDto[]> WorkingVersionsAsync(Guid id, CancellationToken ct) =>
