@@ -133,15 +133,21 @@ def verified_references(proof, evidence, revision):
     blobs = {path: evidence_blob(evidence, path) for path in paths}
     if not all(blobs.values()):
         return {}
-    browser = read_json(blobs[paths[1]])
-    if (not read_json(blobs[paths[0]]).get("checks") or browser.get("complete") is not True
-            or not browser.get("checks") or not matches_revision(browser.get("testedSourceRevision"), revision)):
+    browser_initial = read_json(blobs[paths[0]])
+    browser_final = read_json(blobs[paths[1]])
+    if (not browser_initial.get("checks") or browser_initial.get("pending") != []
+            or browser_final.get("complete") is not True or not browser_final.get("checks")
+            or not matches_revision(browser_final.get("testedSourceRevision"), revision)):
         return {}
-    for path, minimum in ((SCENARIOS, 3), (FAULTS, 7)):
-        result = read_json(blobs[path])
-        cases = result.get("checks")
-        if result.get("complete") is not True or not isinstance(cases, list) or len(cases) < minimum:
-            return {}
+    scenarios = read_json(blobs[SCENARIOS])
+    faults = read_json(blobs[FAULTS])
+    green_cases = scenarios.get("checks")
+    fault_cases = faults.get("checks")
+    if (scenarios.get("complete") is not True or not isinstance(green_cases, list) or len(green_cases) < 3
+            or faults.get("complete") is not True or not isinstance(fault_cases, list) or len(fault_cases) < 7
+            or type(checks.get("containerFaults")) is not int or checks["containerFaults"] != len(fault_cases)
+            or not all(isinstance(case, dict) and case.get("result") == "passed" for case in fault_cases)):
+        return {}
     return blobs
 
 

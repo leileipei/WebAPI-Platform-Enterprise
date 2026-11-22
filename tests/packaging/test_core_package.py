@@ -176,6 +176,25 @@ class CorePackageTests(unittest.TestCase):
                 evidence = self.commit("incomplete regression")
                 self.assertIs(self.package(self.first, "--evidence-revision", evidence)["acceptanceComplete"], False)
 
+    def test_one_failed_fault_or_pending_browser_check_blocks_acceptance(self):
+        proof = json.loads((ROOT / RECEIPT).read_text())
+        proof["testedSourceRevision"] = self.first
+        self.write(RECEIPT, json.dumps(proof))
+        self.write_evidence_files()
+        for path in (REFERENCE_PATHS[4], REFERENCE_PATHS[0]):
+            with self.subTest(path=path):
+                original = (self.repo / path).read_text()
+                attachment = json.loads(original)
+                if path == REFERENCE_PATHS[4]:
+                    attachment["checks"][0]["result"] = "failed"
+                else:
+                    attachment["pending"] = ["browser user flow still pending"]
+                self.write(path, json.dumps(attachment))
+                evidence = self.commit("contradictory acceptance attachment")
+                manifest = self.package(self.first, "--evidence-revision", evidence)
+                self.assertIs(manifest["acceptanceComplete"], False)
+                self.write(path, original)
+
     def test_missing_or_malformed_receipt_still_packages_unaccepted(self):
         (self.repo / RECEIPT).unlink()
         self.commit("missing receipt")
