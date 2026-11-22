@@ -3,7 +3,7 @@ import {useRemote,Feedback,Details,Table} from '../ui';
 import {useWorkspace,Link,navigate,allowNavigation} from '../Shell';
 import {useSession} from '../auth/SessionProvider';
 import {apiRequest} from '../api/client';
-import type {Api,ApiDetail,Version} from '../api/catalog';
+import {apiDetailPath,type Api,type ApiDetail,type Version} from '../api/catalog';
 import {ApiDetailPage} from './ApiDetail';
 import {SchemaEditor} from './SchemaEditor';
 import {Routes} from './Routes';
@@ -22,7 +22,7 @@ function Wizard({id,search}:{id:string;search:string}){
  const [versionId,setVersion]=useState<string>(),[draft,setDraft]=useState<any>(),[handoff,setHandoff]=useState<any>();
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[handoffLoading,setHandoffLoading]=useState(!!reviewId);
  const controller=useRef(new AbortController()),createKey=useRef<string|undefined>(undefined),submitKey=useRef<string|undefined>(undefined);
- const remote=useRemote<ApiDetail>(`/apis/${id}`),d=remote.data;
+ const remote=useRemote<ApiDetail>(apiDetailPath(id,ws.environmentId)),d=remote.data;
  const version=d?.versions.find(v=>v.id===versionId&&v.apiId===id&&v.status!=='Retired');
  const scope=d?{organizationId:d.api.organizationId,projectId:d.api.projectId}:undefined;
  const environment=ws.tree.environments.find(e=>e.id===ws.environmentId);

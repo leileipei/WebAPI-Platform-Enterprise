@@ -17,7 +17,7 @@ public sealed class AdvancedPolicyObservationTests
     private static readonly Guid Env=Guid.NewGuid(),Destination=Guid.NewGuid();
     private static readonly string[] Types=["authentication","rate_limit","circuit_breaker","retry","cache"];
     private static readonly Dictionary<string,Guid> Policies=Types.ToDictionary(x=>x,_=>Guid.NewGuid());
-    private static TrustedObservationScope Scope()=>new(Guid.NewGuid(),Guid.NewGuid(),[Env],[],new Dictionary<Guid,string>(),new Dictionary<Guid,string>(),new Dictionary<Guid,ObservationDestination>{{Destination,new(Destination,Guid.NewGuid(),Env,"visible",true)}},new Dictionary<Guid,IReadOnlySet<Guid>>{{Env,Policies.Values.ToHashSet()}});
+    private static TrustedObservationScope Scope()=>new(Guid.NewGuid(),Guid.NewGuid(),[Env],[],new Dictionary<Guid,string>(),new Dictionary<Guid,ObservationApplication>(),new Dictionary<Guid,ObservationDestination>{{Destination,new(Destination,Guid.NewGuid(),Env,"visible",true)}},new Dictionary<Guid,IReadOnlySet<Guid>>{{Env,Policies.Values.ToHashSet()}});
     private static Dictionary<string,string> Attributes()
     {
         var a=new Dictionary<string,string>();foreach(var type in Types){var prefix="webapi.policy."+type+".";a[prefix+"id"]=Policies[type].ToString();a[prefix+"revision"]="1";a[prefix+"type"]=type;a[prefix+"decision"]=type switch{"retry"=>"Retried","cache"=>"Stored",_=>"Allowed"};}

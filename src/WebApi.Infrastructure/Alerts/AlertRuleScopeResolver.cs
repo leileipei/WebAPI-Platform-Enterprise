@@ -55,7 +55,7 @@ public sealed class AlertRuleScopeResolver(WebApiDbContext db,AuthorizationServi
     {
         var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(x=>x.Id==environmentId,ct);
         var apis=await db.Set<Api>().AsNoTracking().Where(x=>x.OrganizationId==organizationId&&x.ProjectId==env.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
-        var apps=await db.Set<ApplicationRecord>().AsNoTracking().Where(x=>x.OrganizationId==organizationId&&x.ProjectId==env.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
+        var apps = await ObservationApplicationQuery.ReadAsync(db, organizationId, env.ProjectId, [env.Id], ct);
         var destinations=await(from d in db.Set<UpstreamDestination>().AsNoTracking() join c in db.Set<UpstreamCluster>().AsNoTracking() on d.ClusterId equals c.Id where c.ProjectId==env.ProjectId&&c.EnvironmentId==env.Id select new ObservationDestination(d.Id,c.Id,c.EnvironmentId,d.Name,d.Enabled)).ToDictionaryAsync(x=>x.Id,ct);
         var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>x.EnvironmentId==env.Id&&x.Enabled).Select(x=>new ExpectedObservationNode(x.EnvironmentId,x.NodeName)).ToArrayAsync(ct);
         return new(organizationId,env.ProjectId,[env.Id],nodes,apis,apps,destinations);

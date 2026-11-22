@@ -13,7 +13,7 @@ public sealed class ObservationQueryService(ObservationScopeResolver resolver,Pr
         var trusted=await resolver.ResolveAsync(actor,"metrics.read",scope,filter.ApiId,filter.ApplicationId,filter.DestinationId,ct);
         var result=await source.QueryAsync(trusted,range,filter,ct);
         var current=await resolver.ResolveAsync(actor,"metrics.read",scope,filter.ApiId,filter.ApplicationId,filter.DestinationId,ct);
-        if(!trusted.EnvironmentIds.SequenceEqual(current.EnvironmentIds))throw new ApiException(403,"scope_changed","数据范围已变更，请刷新。");
+        if(!current.RetainsAccessTo(trusted))throw new ApiException(403,"scope_changed","数据范围已变更，请刷新。");
         return result;
     }
 }

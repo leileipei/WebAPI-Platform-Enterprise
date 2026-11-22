@@ -39,9 +39,15 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
     {
         var environments=await ResolveEnvironmentIdsAsync(actor,permission,scope,ct);
         var apis=await db.Set<Api>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
-        var apps=await db.Set<ApplicationRecord>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
+        var apps = await ObservationApplicationQuery.ReadAsync(db, scope.OrganizationId, scope.ProjectId, environments, ct);
+        if (appId is Guid applicationId)
+        {
+            if (!apps.TryGetValue(applicationId, out var app)) throw ScopeResolver.Missing();
+            if (app.SharedEnvironmentIds is { } allowed) environments = environments.Where(allowed.Contains).ToArray();
+            apps = new Dictionary<Guid, ObservationApplication> { [applicationId] = app };
+        }
         var destinations=await(from d in db.Set<UpstreamDestination>().AsNoTracking() join c in db.Set<UpstreamCluster>().AsNoTracking() on d.ClusterId equals c.Id where c.ProjectId==scope.ProjectId&&environments.Contains(c.EnvironmentId) select new ObservationDestination(d.Id,c.Id,c.EnvironmentId,d.Name,d.Enabled)).ToDictionaryAsync(x=>x.Id,ct);
-        if(apiId is Guid api&&!apis.ContainsKey(api)||appId is Guid app&&!apps.ContainsKey(app)||destinationId is Guid destination&&!destinations.ContainsKey(destination))throw ScopeResolver.Missing();
+        if(apiId is Guid api&&!apis.ContainsKey(api)||destinationId is Guid destination&&!destinations.ContainsKey(destination))throw ScopeResolver.Missing();
         var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>environments.Contains(x.EnvironmentId)&&x.Enabled).Select(x=>new ExpectedObservationNode(x.EnvironmentId,x.NodeName)).ToArrayAsync(ct);
         var workingIds=await db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==scope.OrganizationId&&(p.ProjectId==null||p.ProjectId==scope.ProjectId)).Select(p=>p.Id).ToArrayAsync(ct);
         var policyIds=environments.ToDictionary(env=>env,_=>new HashSet<Guid>(workingIds));

@@ -37,11 +37,12 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var failedTask=V($"sum by (webapi_environment_id) (increase(webapi_telemetry_export_failures_total{Matcher(scope,null,"signal=\"metrics\"")}[{window}]))");
         var lastLossTask=V($"max_over_time(webapi_telemetry_last_loss_timestamp_seconds{Matcher(scope,null,"signal=\"metrics\"")}[{window}])");
         var collectorTask=collector.HasGapAsync(range,"metrics",ct);
-        var ratesTask=M($"sum by (webapi_environment_id,http_response_status_code,webapi_outcome,webapi_success) (clamp_min(rate(webapi_gateway_requests_total{matcher}[{bucket}]),0))");
-        var latencyTrendTask=M($"sum by (webapi_environment_id,le) (clamp_min(rate(webapi_gateway_request_duration_seconds_bucket{matcher}[{bucket}]),0))");
+        var ratesTask=M($"sum by (webapi_environment_id,webapi_application_id,http_response_status_code,webapi_outcome,webapi_success) (clamp_min(rate(webapi_gateway_requests_total{matcher}[{bucket}]),0))");
+        var latencyTrendTask=M($"sum by (webapi_environment_id,webapi_application_id,le) (clamp_min(rate(webapi_gateway_request_duration_seconds_bucket{matcher}[{bucket}]),0))");
         await Task.WhenAll(latestTask,firstTask,ageTask,requestTask,histogramTask,healthTask,droppedTask,failedTask,ratesTask,latencyTrendTask,lastLossTask,collectorTask,policyTask,policyTrendTask);
-        var requests=(await requestTask).Where(x=>ResourcesValid(x.Labels,scope)&&Matches(x.Labels,filter)).ToArray();
-        var histogram=(await histogramTask).Where(x=>ResourcesValid(x.Labels,scope)&&Matches(x.Labels,filter)).ToArray();
+        bool Visible(IReadOnlyDictionary<string,string> labels) => ResourcesValid(labels, scope) && Matches(labels, filter);
+        var requests=(await requestTask).Where(x=>Visible(x.Labels)).ToArray();
+        var histogram=(await histogramTask).Where(x=>Visible(x.Labels)).ToArray();
         var health=await healthTask;
         var observed=coverage.Evaluate(scope,range,await latestTask,await firstTask,(await droppedTask).Sum(x=>x.Value)+(await failedTask).Sum(x=>x.Value)+(await lastLossTask).Count(x=>x.Value>=range.Start.ToUnixTimeMilliseconds()/1000d&&x.Value<range.End.ToUnixTimeMilliseconds()/1000d),await ageTask);
         if(observed.Coverage.Complete&&await collectorTask)observed=observed with{State=SourceState.Partial,Coverage=observed.Coverage with{Complete=false,Reason="collector_metrics_collection_gap"}};
@@ -62,7 +63,11 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
             }
         }
         var ordered=groups.OrderByDescending(x=>x.Values.First(v=>v.Metric==filter.SortBy).Value??double.NegativeInfinity).ThenBy(x=>x.Key,StringComparer.Ordinal).ToArray();
-        var trends=new Dictionary<string,IReadOnlyList<MetricPointDto>>(Trends(await ratesTask,await latencyTrendTask,missing));
+        bool TrendVisible(PrometheusMatrix series) => ApplicationValid(series.Labels, scope) &&
+            (filter.ApplicationId is null || series.Labels.GetValueOrDefault("webapi_application_id") == filter.ApplicationId.ToString());
+        var trends=new Dictionary<string,IReadOnlyList<MetricPointDto>>(Trends(
+            (await ratesTask).Where(TrendVisible).ToArray(),
+            (await latencyTrendTask).Where(TrendVisible).ToArray(),missing));
         var policyPoints=(await policyTrendTask).Where(x=>PolicySeriesValid(x.Labels,scope)).SelectMany(x=>x.Points.Select(p=>(x.Labels,p.Time,p.Value))).GroupBy(x=>x.Time).OrderBy(x=>x.Key).Take(600).ToArray();
         foreach(var key in PolicyKpiKeys) trends[key]=policyPoints.Select(g=>new MetricPointDto(g.Key,missing||!applicable?null:g.Where(x=>PolicyMatches(x.Labels,key)).Sum(x=>x.Value))).ToArray();
         var nodes=NodeHealth(scope,health,observed.Coverage.MissingNodes);
@@ -142,7 +147,7 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
     private static string Name(TrustedObservationScope scope,string dimension,string key)
     {
         if(!Guid.TryParse(key,out var id))return key switch{"Unmatched"=>"未匹配 API","Unknown"=>"未知应用","Anonymous"=>"匿名请求","None"=>"未选择后端",_=>"未知资源"};
-        return dimension switch{"Api"=>scope.ApiNames.GetValueOrDefault(id)??"未知 API","Application"=>scope.ApplicationNames.GetValueOrDefault(id)??"未知应用",_=>scope.Destinations.GetValueOrDefault(id)?.Name??"未知后端"};
+        return dimension switch{"Api"=>scope.ApiNames.GetValueOrDefault(id)??"未知 API","Application"=>scope.Applications.GetValueOrDefault(id)?.Name??"未知应用",_=>scope.Destinations.GetValueOrDefault(id)?.Name??"未知后端"};
     }
     private static string Matcher(TrustedObservationScope scope,MetricFilter? filter,string? extra=null)
     {
@@ -153,8 +158,16 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
     private static bool ResourcesValid(IReadOnlyDictionary<string,string> labels,TrustedObservationScope scope)
     {
         bool Valid(string label,IEnumerable<Guid> ids,params string[] system)=>labels.TryGetValue(label,out var value)&&(system.Contains(value)||Guid.TryParse(value,out var id)&&ids.Contains(id));
-        if(!Valid("webapi_api_id",scope.ApiNames.Keys,"Unmatched")||!Valid("webapi_application_id",scope.ApplicationNames.Keys,"Unknown","Anonymous")||!Valid("webapi_destination_id",scope.Destinations.Keys,"None"))return false;
+        if(!Valid("webapi_api_id",scope.ApiNames.Keys,"Unmatched")||!Valid("webapi_destination_id",scope.Destinations.Keys,"None"))return false;
+        if (!ApplicationValid(labels, scope)) return false;
         return !Guid.TryParse(labels.GetValueOrDefault("webapi_destination_id"),out var destination)||scope.Destinations[destination].EnvironmentId.ToString()==labels.GetValueOrDefault("webapi_environment_id");
+    }
+    private static bool ApplicationValid(IReadOnlyDictionary<string,string> labels, TrustedObservationScope scope)
+    {
+        var application = labels.GetValueOrDefault("webapi_application_id");
+        return application is "Unknown" or "Anonymous" || Guid.TryParse(application, out var appId) &&
+            Guid.TryParse(labels.GetValueOrDefault("webapi_environment_id"), out var environment) &&
+            scope.ContainsApplication(environment, appId);
     }
     private async Task<IReadOnlyList<PrometheusSeries>> VectorAsync(string query,string time,TrustedObservationScope scope,CancellationToken ct)
     {

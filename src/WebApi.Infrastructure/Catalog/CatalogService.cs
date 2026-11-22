@@ -1,5 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Text.Unicode;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Catalog;
@@ -9,7 +11,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Catalog;
-public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,VersionContractSourceService sources,SchemaValidationService validation)
+public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,CollectionAuthorizationQuery visibility,AuditedCommandExecutor commands,VersionContractSourceService sources,SchemaValidationService validation)
 {
     public static ApiDto Dto(Api a)=>new(a.Id,a.OrganizationId,a.ProjectId,a.GroupId,a.Code,a.Name,a.Description,a.LifecycleStatus,a.OwnerUserId,a.VersionNo);
     public static VersionDto Dto(ApiVersion v)=>new(v.Id,v.ApiId,v.Version,v.Status,v.ChangeType,v.OpenapiDocument,v.OpenapiSource,v.SourceFormat,v.SchemaHash,v.CreatedBy,v.CreatedAt,v.SealedAt,v.Revision);
@@ -25,14 +27,77 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
         var rows=await query.OrderBy(x=>x.Code).ThenBy(x=>x.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
         return new(rows.Select(Dto).ToArray(),total,page,size);
     }
-    public async Task<ApiDetailDto> DetailAsync(Guid id,ActorContext actor,CancellationToken ct=default)
+    public async Task<ApiDetailDto> DetailAsync(Guid id,ActorContext actor,CancellationToken ct=default,Guid? environmentId=null)
     {
         var scope=await ReadAsync(id,"api.read",actor,ct);var api=await db.Set<Api>().AsNoTracking().SingleAsync(x=>x.Id==id,ct);
         var visible=new Dictionary<Guid,long?>();var envs=await db.Set<EnvironmentRecord>().AsNoTracking().Where(e=>e.ProjectId==scope.ProjectId).ToArrayAsync(ct);
         foreach(var e in envs) if(await auth.CanAsync(actor,"api.read",new("environment",e.Id,scope with {EnvironmentId=e.Id}),ct))
         {var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(n=>n.EnvironmentId==e.Id&&n.Enabled).ToArrayAsync(ct);visible[e.Id]=nodes.Length>0&&nodes.All(n=>n.LastHeartbeatAt>DateTimeOffset.UtcNow.AddSeconds(-30))&&nodes.Select(n=>n.CurrentConfigVersion).Distinct().Count()==1?nodes[0].CurrentConfigVersion:null;}
-        var envIds=visible.Keys.ToArray();var pending=await db.Set<ReleaseRecord>().Where(r=>envIds.Contains(r.EnvironmentId)&&r.Status!="Succeeded"&&r.Status!="Failed"&&r.Status!="Cancelled"&&r.Status!="Rejected"&&r.Status!="RolledBack").OrderByDescending(r=>r.CreatedAt).Select(r=>(Guid?)r.Id).FirstOrDefaultAsync(ct);
-        var versions=await db.Set<ApiVersion>().AsNoTracking().Where(v=>v.ApiId==id).OrderByDescending(v=>v.CreatedAt).Select(v=>Dto(v)).ToArrayAsync(ct);return new(Dto(api),api.VersionNo,visible,pending,versions);
+        var versions=await WorkingVersionsAsync(id,ct);
+        var environments = visible.Keys.Where(key => environmentId == null || key == environmentId).ToArray();
+        var pending = await PendingReleaseAsync(api, versions, environments, actor, ct);
+        return new(Dto(api),api.VersionNo,visible,pending,versions);
+    }
+
+    private Task<VersionDto[]> WorkingVersionsAsync(Guid id, CancellationToken ct) =>
+        db.Set<ApiVersion>().AsNoTracking().Where(v => v.ApiId == id)
+            .OrderByDescending(v => v.CreatedAt).Select(v => Dto(v)).ToArrayAsync(ct);
+
+    public async Task<VersionDto[]> VersionsAsync(Guid id, ActorContext actor, CancellationToken ct)
+    {
+        var scope = await ReadAsync(id, "api.version.read", actor, ct);
+        if (!await auth.CanAsync(actor, "api.read", new("api", id, scope), ct)) throw ScopeResolver.Missing();
+        return await WorkingVersionsAsync(id, ct);
+    }
+
+    // Read only the identity fields from the two persisted candidate formats.
+    private sealed record CandidateMembership(Guid? EnvironmentId, Guid? OrganizationId, Guid? ProjectId,
+        Guid[]? VersionIds, FrozenMember?[]? Versions);
+    private sealed record FrozenMember(ApiIdentity? Api, VersionIdentity? Version);
+    private sealed record ApiIdentity(Guid Id);
+    private sealed record VersionIdentity(Guid Id, Guid ApiId);
+
+    private static bool CandidateIncludesApi(byte[] bytes, bool workingDraft, Guid environmentId, Api api, HashSet<Guid> versionIds)
+    {
+        if (!Utf8.IsValid(bytes)) return false;
+        CandidateMembership? candidate;
+        try { candidate = JsonSerializer.Deserialize<CandidateMembership>(bytes, CanonicalJson.Options); }
+        catch (JsonException) { return false; }
+        if (candidate is null) return false;
+        if (workingDraft) return candidate.VersionIds?.Any(versionIds.Contains) == true;
+        return candidate.EnvironmentId == environmentId && candidate.OrganizationId == api.OrganizationId &&
+            candidate.ProjectId == api.ProjectId && candidate.Versions?.Any(v =>
+                v?.Api?.Id == api.Id && v.Version is { } version && version.Id != Guid.Empty && version.ApiId == api.Id) == true;
+    }
+
+    private async Task<Guid?> PendingReleaseAsync(Api api, VersionDto[] versions, Guid[] environments, ActorContext actor, CancellationToken ct)
+    {
+        if (environments.Length == 0) return null;
+        var readable = visibility.Scopes(actor, "release.read");
+        var pending = db.Set<ReleaseRecord>().AsNoTracking().Where(r =>
+            environments.Contains(r.EnvironmentId) && readable.Any(s => s.EnvironmentId == r.EnvironmentId) &&
+            r.CandidateBytes != null && (r.Status == "Draft" || r.Status == "WaitingApproval" || r.Status == "Ready" ||
+                r.Status == "Building" || r.Status == "Publishing"));
+        var versionIds = versions.Select(v => v.Id).ToHashSet();
+        const int batchSize = 16;
+        (DateTimeOffset CreatedAt, Guid Id)? before = null;
+        while (true)
+        {
+            var page = pending;
+            if (before is { } cursor)
+                page = page.Where(r => r.CreatedAt < cursor.CreatedAt || r.CreatedAt == cursor.CreatedAt && r.Id.CompareTo(cursor.Id) < 0);
+            var rows = page.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id).Take(batchSize)
+                .Select(r => new { r.Id, r.CreatedAt, r.EnvironmentId, r.CandidateBytes,
+                    WorkingDraft = r.ReleaseType == "publish" && r.Status == "Draft" && r.ApprovalPolicy == null });
+            int count = 0;
+            await foreach (var row in rows.AsAsyncEnumerable().WithCancellation(ct))
+            {
+                if (CandidateIncludesApi(row.CandidateBytes!, row.WorkingDraft, row.EnvironmentId, api, versionIds)) return row.Id;
+                before = (row.CreatedAt, row.Id);
+                count++;
+            }
+            if (count < batchSize) return null;
+        }
     }
     private async Task ValidateApiAsync(SaveApiRequest request,ScopeRef scope,Guid owner,CancellationToken ct)
     {

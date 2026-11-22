@@ -22,6 +22,30 @@ public sealed class ObservationTraceTests
         var body=(await r.Content.ReadFromJsonAsync<ObservationEnvelope<TraceDetailDto>>())!;
         Assert.False(body.Coverage.Complete);Assert.Equal("time_window_coverage_incomplete",body.Coverage.Reason);
     }
+    [Fact]
+    public async Task SharedApplicationTraceRetainsAuthorizedSpanAndRemovesUnauthorizedSibling()
+    {
+        var (f, source) = await FixtureAsync();
+        await using var fixture = f;
+        var shared = await SharedObservationFixture.AddApplicationAsync(f);
+        var sibling = new EnvironmentRecord { ProjectId = f.Project.Id, Code = "SIBLING", Name = "其他环境" };
+        await using (var db = f.Context())
+        {
+            db.Add(sibling);
+            await db.SaveChangesAsync();
+        }
+        source.ApplicationLabel = shared.Id.ToString();
+        source.ForeignEnvironmentId = sibling.Id;
+        var url = Url(f, source, source.TraceId) + "&allAccessibleEnvironments=true";
+        using var response = await f.Client.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        var body = (await response.Content.ReadFromJsonAsync<ObservationEnvelope<TraceDetailDto>>())!;
+        var span = Assert.Single(body.Data!.Spans);
+        Assert.True(body.Data.PartialTrace);
+        Assert.Equal(f.Environment.Id.ToString(), span.Tags["webapi.environment.id"]);
+        Assert.Equal(shared.Id.ToString(), span.Tags["webapi.application.id"]);
+    }
+
     [Fact]public async Task SameTraceIdAcrossEnvironmentsDoesNotLeak()
     {
         var(f,source)=await FixtureAsync();await using var fixture=f;source.ForeignEnvironmentId=Guid.NewGuid();using var r=await f.Client.GetAsync(Url(f,source,source.TraceId));r.EnsureSuccessStatusCode();var json=await r.Content.ReadAsStringAsync();var detail=JsonSerializer.Deserialize<ObservationEnvelope<TraceDetailDto>>(json,new JsonSerializerOptions(JsonSerializerDefaults.Web))!.Data!;
@@ -64,14 +88,14 @@ public sealed class ObservationTraceTests
 }
 public sealed class TraceProtocolHandler:HttpMessageHandler
 {
-    public Guid EnvironmentId,ApiId;public Guid? ForeignEnvironmentId;public bool Unscoped,IncludeClient,MiddleGap,FirstLoss,CollectorLoss;public int Status=200;public int CandidateCount=1;
+    public string ApplicationLabel="Unknown";public Guid EnvironmentId,ApiId;public Guid? ForeignEnvironmentId;public bool Unscoped,IncludeClient,MiddleGap,FirstLoss,CollectorLoss;public int Status=200;public int CandidateCount=1;
     public string TraceId="1234567890abcdef1234567890abcdef";public ConcurrentQueue<Uri> Requests{get;}=new();
     public DateTimeOffset End{get;}=DateTimeOffset.UtcNow.AddSeconds(-1);public DateTimeOffset Start=>End.AddHours(-1);public DateTimeOffset SpanStart=>End.AddSeconds(-5);
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
     {
         var uri=request.RequestUri!;Requests.Enqueue(uri);object Attr(string key,string value)=>new{key,value=new{stringValue=value}};
         long Nano(DateTimeOffset time)=>(time.UtcTicks-DateTimeOffset.UnixEpoch.UtcTicks)*100;
-        object Span(string id,string parent,string name,DateTimeOffset start,int duration,int kind)=>new{traceId=uri.AbsolutePath.StartsWith("/api/traces/",StringComparison.Ordinal)?uri.AbsolutePath.Split('/').Last():TraceId,spanId=id,parentSpanId=parent,name,kind,startTimeUnixNano=Nano(start).ToString(CultureInfo.InvariantCulture),endTimeUnixNano=Nano(start.AddMilliseconds(duration)).ToString(CultureInfo.InvariantCulture),status=new{code=1},attributes=new[]{Attr("webapi.api.id",ApiId.ToString()),Attr("webapi.outcome","Completed"),Attr("http.request.method","GET"),Attr("url.template","/orders"),Attr("url.full","https://secret.invalid/?credential=foreign-private-marker"),Attr("http.request.header.authorization","foreign-private-marker")}};
+        object Span(string id,string parent,string name,DateTimeOffset start,int duration,int kind)=>new{traceId=uri.AbsolutePath.StartsWith("/api/traces/",StringComparison.Ordinal)?uri.AbsolutePath.Split('/').Last():TraceId,spanId=id,parentSpanId=parent,name,kind,startTimeUnixNano=Nano(start).ToString(CultureInfo.InvariantCulture),endTimeUnixNano=Nano(start.AddMilliseconds(duration)).ToString(CultureInfo.InvariantCulture),status=new{code=1},attributes=new[]{Attr("webapi.api.id",ApiId.ToString()),Attr("webapi.application.id",ApplicationLabel),Attr("webapi.outcome","Completed"),Attr("http.request.method","GET"),Attr("url.template","/orders"),Attr("url.full","https://secret.invalid/?credential=foreign-private-marker"),Attr("http.request.header.authorization","foreign-private-marker")}};
         object Batch(Guid? env,object[] spans)=>new{resource=new{attributes=env is Guid environment?new[]{Attr("webapi.environment.id",environment.ToString()),Attr("service.name","webapi-gateway")}:new[]{Attr("service.name","backend-without-trusted-scope")}},scopeSpans=new[]{new{scope=new{name="owned-test-source"},spans}}};
         if(uri.AbsolutePath.StartsWith("/api/traces/",StringComparison.Ordinal)){
             var rows=new List<object>{Batch(EnvironmentId,new[]{Span("2222222222222222",ForeignEnvironmentId is not null?"1111111111111111":"","gateway.request",SpanStart,200,2)})};
@@ -91,7 +115,7 @@ public sealed class TraceProjectionBoundaryTests
     {
         using var document=JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"Fixtures/tempo-3.1.0-synthetic-trace.json")));var root=document.RootElement;var traceId=root.GetProperty("traceId").GetString()!;var env=root.GetProperty("environmentId").GetGuid();var api=root.GetProperty("apiId").GetGuid();var dest=root.GetProperty("destinationId").GetGuid();
         var source=WebApi.Infrastructure.Observability.TempoTraceSource.Parse(root.GetProperty("payload"),traceId);Assert.False(source.Rejected);
-        var scope=new WebApi.Infrastructure.Observability.TrustedObservationScope(Guid.NewGuid(),Guid.NewGuid(),[env],[],new Dictionary<Guid,string>{{api,"synthetic-api"}},new Dictionary<Guid,string>(),new Dictionary<Guid,WebApi.Infrastructure.Observability.ObservationDestination>{{dest,new(dest,Guid.NewGuid(),env,"synthetic-destination",true)}});
+        var scope=new WebApi.Infrastructure.Observability.TrustedObservationScope(Guid.NewGuid(),Guid.NewGuid(),[env],[],new Dictionary<Guid,string>{{api,"synthetic-api"}},new Dictionary<Guid,WebApi.Infrastructure.Observability.ObservationApplication>(),new Dictionary<Guid,WebApi.Infrastructure.Observability.ObservationDestination>{{dest,new(dest,Guid.NewGuid(),env,"synthetic-destination",true)}});
         var detail=WebApi.Infrastructure.Observability.TraceProjection.Project(traceId,source.Spans,scope);Assert.False(detail.PartialTrace);var server=Assert.Single(detail.Spans,x=>x.Kind=="Server");var client=Assert.Single(detail.Spans,x=>x.Kind=="Client");Assert.Equal(server.SpanId,client.ParentSpanId);Assert.Equal(200,server.DurationMs);Assert.Equal(140,client.DurationMs);Assert.Equal(server.Start.AddMilliseconds(20),client.Start);
     }
 

@@ -42,6 +42,6 @@ public sealed class AccessLogQueryService(ObservationScopeResolver resolver,Loki
         }catch(OperationCanceledException)when(!ct.IsCancellationRequested){throw ObservationSourceSettings.Unavailable("logs");}
     }
     private async Task Reauthorize(ActorContext actor,ObservationScopeRequest scope,LogFilter filter,TrustedObservationScope previous,CancellationToken ct)
-    {var current=await resolver.ResolveAsync(actor,"log.read",scope,filter.ApiId,filter.ApplicationId,filter.DestinationId,ct);if(!current.EnvironmentIds.SequenceEqual(previous.EnvironmentIds))throw new ApiException(403,"scope_changed","数据范围已变更，请重新查询。");}
+    {var current=await resolver.ResolveAsync(actor,"log.read",scope,filter.ApiId,filter.ApplicationId,filter.DestinationId,ct);if(!current.RetainsAccessTo(previous))throw new ApiException(403,"scope_changed","数据范围已变更，请重新查询。");}
     private static void Validate(ObservationScopeRequest scope,TimeRange range,LogFilter filter){try{ArgumentNullException.ThrowIfNull(scope);ArgumentNullException.ThrowIfNull(filter);ObservationQueryValidator.Validate(range,filter.Limit,DateTimeOffset.UtcNow);_ = LokiLogSource.Nano(range.Start);_ = LokiLogSource.Nano(range.End);}catch(Exception e)when(e is ArgumentException or OverflowException){throw new ApiException(422,"invalid_observation_query","查询范围或分页参数不合法。");}}
 }

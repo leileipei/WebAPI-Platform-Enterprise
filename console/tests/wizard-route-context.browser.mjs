@@ -35,10 +35,18 @@ async function fixture(t) {
     const paged=(items,size=50)=>{const n=Number(url.searchParams.get('page')||1);return reply({items:items.slice((n-1)*size,n*size),total:items.length,page:n,pageSize:size});};
     if(path==='/auth/me')return reply({id:'tester',username:'fixture',displayName:'向导测试',authSource:'local',permissions:state.permissions||['api.read','api.version.read','api.version.write','environment.read','route.read','route.write','policy.write','release.read','release.create'],scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
     if(path==='/auth/csrf')return reply({token:'synthetic'});
-    if(path==='/scope-tree')return reply({organizations:[{id:'org',name:'组织'}],projects:[{id:project,organizationId:'org',name:'选定项目'},{id:foreign,organizationId:'org',name:'其他项目'}],environments:[{id:env,projectId:project,name:'预发'},{id:alt,projectId:project,name:'联调'},{id:'foreign-env',projectId:foreign,name:'其他环境'}]});
+    if(path==='/scope-tree')return reply({organizations:[{id:'org',name:'组织'}],projects:[{id:project,organizationId:'org',name:'选定项目'},{id:foreign,organizationId:'org',name:'其他项目'}],environments:state.noEnvironments?[]:[{id:env,projectId:project,name:'预发'},{id:alt,projectId:project,name:'联调'},{id:'foreign-env',projectId:foreign,name:'其他环境'}]});
     for(const api of apis){
       const vv=api.id===apiB?state.versions:versions(api.id);
-      if(path==='/apis/'+api.id)return reply({api,versions:vv,runningConfigVersion:{}});
+      if(path==='/apis/'+api.id){
+        const environment=url.searchParams.get('environmentId');
+        if(state.detailDelay?.environment===environment){
+          const delay=state.detailDelay;
+          state.detailDelay=null;
+          await delay.wait;
+        }
+        return reply({api,versions:vv,runningConfigVersion:{},pendingReleaseId:state.pending?.[environment||'legacy']??null});
+      }
       if(path==='/apis/'+api.id+'/versions'){
         if(method==='POST'){
           const created={id:'created-version',apiId:api.id,version:body.version,status:'Draft',revision:1};
@@ -81,6 +89,8 @@ async function fixture(t) {
       }
       return reply(path.endsWith('/policies')?{routeId:selected.id,bindings:[],revision:selected.revision}:selected);
     }
+    if(path==='/releases/qa-pending')return reply({id:'qa-pending',releaseNo:'QA-待审批',environmentId:alt,state:'Ready',approvalSteps:[],targets:[],errors:[]});
+    if(path==='/environments/'+alt+'/snapshots')return paged([]);
     if(path==='/releases/draft/preview')return reply(state.previewOverride||state.frozen);
     if(path==='/releases/draft/submit')return reply({id:'draft'});
     return reply({detail:'Unexpected fixture request '+path},404);
@@ -304,4 +314,49 @@ test('a read-only user cannot open route or policy editors or create a release',
   await step(page,6).click();
   assert.equal(await button(page,'创建发布草稿并预览').isDisabled(),true);
   assert.deepEqual(writes(),[]);
+});
+
+test('API details follow the workspace through delayed environment switches and open the selected release',async t=>{
+  const {page,state}=await fixture(t);
+  state.pending={legacy:'global-latest',[env]:'staging-pending',[alt]:'qa-pending'};
+  await page.goto(new URL('/apis/'+apiB,base).href);
+  const environment=page.getByRole('combobox',{name:'当前环境'});
+  const link=page.getByRole('link',{name:'查看发布',exact:true});
+  await link.waitFor();
+  assert.equal(await link.getAttribute('href'),'/releases/staging-pending');
+  let resume;
+  const waiting=page.waitForRequest(req=>{
+    const url=new URL(req.url());
+    return url.pathname==='/api/v1/apis/'+apiB&&url.searchParams.get('environmentId')===alt;
+  },{timeout:4500});
+  state.detailDelay={environment:alt,wait:new Promise(resolve=>{resume=resolve;})};
+  try{
+    await environment.selectOption(alt);
+    await waiting;
+    assert.equal(await link.count(),0);
+    state.pending[env]=null;
+    await environment.selectOption(env);
+    await page.getByText('待处理发布',{exact:true}).waitFor();
+  }finally{resume();}
+  await page.waitForLoadState('networkidle');
+  assert.equal(await link.count(),0);
+  await environment.selectOption(alt);
+  await link.click();
+  await page.getByText('QA-待审批',{exact:true}).waitFor();
+  assert.equal(new URL(page.url()).pathname,'/releases/qa-pending');
+});
+
+test('API details without a selected environment or release read access keep versions and omit the release link',async t=>{
+  const {page,state}=await fixture(t);
+  state.pending={legacy:'global-latest',[env]:'staging-pending'};
+  state.noEnvironments=true;
+  await page.goto(new URL('/apis/'+apiB,base).href);
+  await page.getByRole('cell',{name:'2.0',exact:true}).waitFor();
+  const link=page.getByRole('link',{name:'查看发布',exact:true});
+  assert.equal(await link.count(),0);
+  state.noEnvironments=false;
+  state.permissions=['api.read','api.version.read'];
+  await page.reload();
+  await page.getByRole('cell',{name:'2.0',exact:true}).waitFor();
+  assert.equal(await link.count(),0);
 });
