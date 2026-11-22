@@ -37,8 +37,10 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var failedTask=V($"sum by (webapi_environment_id) (increase(webapi_telemetry_export_failures_total{Matcher(scope,null,"signal=\"metrics\"")}[{window}]))");
         var lastLossTask=V($"max_over_time(webapi_telemetry_last_loss_timestamp_seconds{Matcher(scope,null,"signal=\"metrics\"")}[{window}])");
         var collectorTask=collector.HasGapAsync(range,"metrics",ct);
-        var ratesTask=M($"sum by (webapi_environment_id,webapi_application_id,http_response_status_code,webapi_outcome,webapi_success) (clamp_min(rate(webapi_gateway_requests_total{matcher}[{bucket}]),0))");
-        var latencyTrendTask=M($"sum by (webapi_environment_id,webapi_application_id,le) (clamp_min(rate(webapi_gateway_request_duration_seconds_bucket{matcher}[{bucket}]),0))");
+        var ratesTask = TrafficMatrixAsync("webapi_gateway_requests_total", "http_response_status_code,webapi_outcome,webapi_success",
+            scope, range, filter, step, bucket, ct);
+        var latencyTrendTask = TrafficMatrixAsync("webapi_gateway_request_duration_seconds_bucket", "le",
+            scope, range, filter, step, bucket, ct);
         await Task.WhenAll(latestTask,firstTask,ageTask,requestTask,histogramTask,healthTask,droppedTask,failedTask,ratesTask,latencyTrendTask,lastLossTask,collectorTask,policyTask,policyTrendTask);
         bool Visible(IReadOnlyDictionary<string,string> labels) => ResourcesValid(labels, scope) && Matches(labels, filter);
         var requests=(await requestTask).Where(x=>Visible(x.Labels)).ToArray();
@@ -63,11 +65,7 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
             }
         }
         var ordered=groups.OrderByDescending(x=>x.Values.First(v=>v.Metric==filter.SortBy).Value??double.NegativeInfinity).ThenBy(x=>x.Key,StringComparer.Ordinal).ToArray();
-        bool TrendVisible(PrometheusMatrix series) => ApplicationValid(series.Labels, scope) &&
-            (filter.ApplicationId is null || series.Labels.GetValueOrDefault("webapi_application_id") == filter.ApplicationId.ToString());
-        var trends=new Dictionary<string,IReadOnlyList<MetricPointDto>>(Trends(
-            (await ratesTask).Where(TrendVisible).ToArray(),
-            (await latencyTrendTask).Where(TrendVisible).ToArray(),missing));
+        var trends=new Dictionary<string,IReadOnlyList<MetricPointDto>>(Trends(await ratesTask, await latencyTrendTask, missing));
         var policyPoints=(await policyTrendTask).Where(x=>PolicySeriesValid(x.Labels,scope)).SelectMany(x=>x.Points.Select(p=>(x.Labels,p.Time,p.Value))).GroupBy(x=>x.Time).OrderBy(x=>x.Key).Take(600).ToArray();
         foreach(var key in PolicyKpiKeys) trends[key]=policyPoints.Select(g=>new MetricPointDto(g.Key,missing||!applicable?null:g.Where(x=>PolicyMatches(x.Labels,key)).Sum(x=>x.Value))).ToArray();
         var nodes=NodeHealth(scope,health,observed.MissingNodes);
@@ -174,6 +172,37 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         using var document=await client.GetAsync(settings.PrometheusUrl,"api/v1/query",new Dictionary<string,string>{{"query",query},{"time",time}},ct);var rows=Result(document,"vector");var result=new List<PrometheusSeries>();
         foreach(var row in rows.EnumerateArray()){var labels=Labels(row,scope);if(labels is null)continue;var value=Number(row.GetProperty("value")[1]);result.Add(new(labels,value));}return result;
     }
+    private async Task<IReadOnlyList<PrometheusMatrix>> TrafficMatrixAsync(string metric, string groupLabels,
+        TrustedObservationScope scope, TimeRange range, MetricFilter filter, int step, string bucket, CancellationToken ct)
+    {
+        const int applicationsPerQuery = 64;
+        IEnumerable<string> AllowedApplications(Guid environment) => filter.ApplicationId is Guid application
+            ? scope.ContainsApplication(environment, application) ? [application.ToString()] : []
+            : scope.Applications.Where(pair => pair.Value.SharedEnvironmentIds?.Contains(environment) != false)
+                .Select(pair => pair.Key.ToString()).Concat(["Anonymous", "Unknown"]);
+
+        var batches = scope.EnvironmentIds
+            .SelectMany(environment => AllowedApplications(environment).Chunk(applicationsPerQuery)
+                .Select(applications => (Environment: environment, Applications: applications)))
+            .ToArray();
+        var results = new IReadOnlyList<PrometheusMatrix>[batches.Length];
+        var options = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = 4 };
+        await Parallel.ForEachAsync(Enumerable.Range(0, batches.Length), options, async (index, token) =>
+        {
+            var (environment, applications) = batches[index];
+            var scoped = scope with { EnvironmentIds = [environment] };
+            // Apply the allowlist before aggregation to keep each returned matrix within the
+            // existing response budget, even when a project has many applications.
+            var applicationMatch = "webapi_application_id=~\"" + string.Join('|', applications) + "\"";
+            var matcher = Matcher(scoped, filter with { ApplicationId = null }, applicationMatch);
+            var query = $"sum by (webapi_environment_id,{groupLabels}) (clamp_min(rate({metric}{matcher}[{bucket}]),0))";
+            var rows = await MatrixAsync(query, range, step, scoped, token);
+            results[index] = rows.Where(row => !row.Labels.TryGetValue("webapi_application_id", out var id)
+                || applications.Contains(id, StringComparer.Ordinal)).ToArray();
+        });
+        return results.SelectMany(rows => rows).ToArray();
+    }
+
     private async Task<IReadOnlyList<PrometheusMatrix>> MatrixAsync(string query,TimeRange range,int step,TrustedObservationScope scope,CancellationToken ct)
     {
         using var document=await client.GetAsync(settings.PrometheusUrl,"api/v1/query_range",new Dictionary<string,string>{{"query",query},{"start",Seconds(range.Start)},{"end",Seconds(range.End.AddTicks(-1))},{"step",step.ToString(CultureInfo.InvariantCulture)}},ct);var rows=Result(document,"matrix");var result=new List<PrometheusMatrix>();

@@ -183,6 +183,57 @@ public sealed class ObservationMetricsTests
         foreach(var metric in new[]{"request_rps","success_ratio","error_4xx_ratio","error_5xx_ratio","latency_p50_ms","latency_p95_ms","latency_p99_ms"})Assert.NotEmpty(body.Data!.Trends[metric]);
         Assert.All(body.Data!.Trends["success_ratio"],x=>Assert.Equal(1,x.Value));Assert.All(body.Data.Trends["error_4xx_ratio"],x=>Assert.Equal(0,x.Value));
     }
+    [Fact]
+    public async Task LongRangeTrendsStayAvailableWithManyApplications()
+    {
+        var source = new MetricProtocolHandler { WindowHours = 24 * 7 };
+        await using var fixture = await FixtureAsync(source);
+        using var services = fixture.Services();
+        var resolver = services.ServiceProvider.GetRequiredService<ObservationScopeResolver>();
+        var metrics = services.ServiceProvider.GetRequiredService<PrometheusMetricSource>();
+        var scope = await resolver.ResolveAsync(new(fixture.User.Id, "many-apps"), "metrics.read",
+            new(fixture.Organization.Id, fixture.Project.Id, fixture.Environment.Id, false), null, null, null, default);
+        var authorized = Enumerable.Range(0, 99).Select(_ => Guid.NewGuid()).Append(source.ApplicationId).ToArray();
+        source.RangeApplications = [.. authorized, Guid.NewGuid()];
+        scope = scope with { Applications = authorized.ToDictionary(id => id, _ => new ObservationApplication("Application", null)) };
+
+        var result = await metrics.QueryAsync(scope, new(source.Start, source.End), new(null, null, null), default);
+
+        Assert.Equal(SourceState.Available, result.SourceState);
+        var traffic = result.Data!.Trends["request_rps"];
+        Assert.NotEmpty(traffic);
+        Assert.All(traffic, point => Assert.Equal((double)authorized.Length, point.Value));
+        Assert.All(result.Data.Trends["latency_p95_ms"], point => Assert.NotNull(point.Value));
+        Assert.NotEmpty(result.Data.Trends["latency_p95_ms"]);
+    }
+
+    [Fact]
+    public async Task EnvironmentTrendQueriesCanMakeProgressTogetherWithinTheSharedDeadline()
+    {
+        var simultaneous = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var pending = 0;
+        var source = new MetricProtocolHandler
+        {
+            BeforeLatencyRange = async token =>
+            {
+                if (Interlocked.Increment(ref pending) == 2) simultaneous.TrySetResult();
+                await simultaneous.Task.WaitAsync(TimeSpan.FromSeconds(3), token);
+            }
+        };
+        await using var fixture = await FixtureAsync(source);
+        using var services = fixture.Services();
+        var resolver = services.ServiceProvider.GetRequiredService<ObservationScopeResolver>();
+        var metrics = services.ServiceProvider.GetRequiredService<PrometheusMetricSource>();
+        var scope = await resolver.ResolveAsync(new(fixture.User.Id, "parallel-trends"), "metrics.read",
+            new(fixture.Organization.Id, fixture.Project.Id, fixture.Environment.Id, false), null, null, null, default);
+        scope = scope with { EnvironmentIds = [fixture.Environment.Id, Guid.NewGuid()] };
+
+        var result = await metrics.QueryAsync(scope, new(source.Start, source.End), new(null, null, null), default);
+
+        Assert.Equal(2, pending);
+        Assert.NotEmpty(result.Data!.Trends["latency_p95_ms"]);
+    }
+
     [Fact] public async Task SourceFailureReturns503()
     {
         var source=new MetricProtocolHandler{Status=503};await using var s=await FixtureAsync(source);using var response=await s.Client.GetAsync(Url(s,source));Assert.Equal(HttpStatusCode.ServiceUnavailable,response.StatusCode);
@@ -325,11 +376,59 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
     public bool MissingSecondNode,ResetWindow,MiddleGap,NoDestination;
     public int Status=200;
     public DateTimeOffset End {get;set;}=DateTimeOffset.UtcNow.AddSeconds(-1);
-    public DateTimeOffset Start=>End.AddHours(-1);
+    public int WindowHours = 1;
+    public Guid[] RangeApplications = [];
+    public Func<CancellationToken, Task>? BeforeLatencyRange;
+    public DateTimeOffset Start=>End.AddHours(-WindowHours);
     public ConcurrentQueue<Uri> Requests {get;}=new();
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
+    private HttpResponseMessage ManyApplications(string query, bool histogram)
+    {
+        var apps = RangeApplications.Where(id => !query.Contains("webapi_application_id=~", StringComparison.Ordinal)
+            || query.Contains(id.ToString(), StringComparison.Ordinal)).ToArray();
+        var groupsByApp = query[..query.IndexOf(')')].Contains("webapi_application_id", StringComparison.Ordinal);
+        const int responseLimit = 8 * 1024 * 1024;
+        if (histogram && groupsByApp && apps.Length * 14 * 599 * 20 > responseLimit)
+            return new(HttpStatusCode.OK) { Content = new ByteArrayContent(new byte[responseLimit + 1]) };
+
+        var points = new[] { Start.AddSeconds(30).ToUnixTimeSeconds(), End.AddSeconds(-1).ToUnixTimeSeconds() };
+        var rows = new List<object>();
+        var labels = new Dictionary<string, string> { ["webapi_environment_id"] = EnvironmentId.ToString() };
+        if (histogram)
+        {
+            foreach (var boundary in new[] { "0.1", "+Inf" })
+                Add(new(labels) { ["le"] = boundary });
+        }
+        else
+        {
+            labels["webapi_success"] = "true";
+            labels["http_response_status_code"] = "200";
+            Add(labels);
+        }
+        return new(HttpStatusCode.OK) { Content = JsonContent.Create(new
+        {
+            status = "success",
+            data = new { resultType = "matrix", result = rows }
+        }) };
+
+        void Add(Dictionary<string, string> metric)
+        {
+            if (apps.Length != 0)
+                rows.Add(new { metric, values = points.Select(point => new object[] { point, apps.Length.ToString(CultureInfo.InvariantCulture) }) });
+        }
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
     {
         Requests.Enqueue(request.RequestUri!);var query=QueryHelpers.ParseQuery(request.RequestUri!.Query)["query"].ToString();
+        var range = request.RequestUri.AbsolutePath.EndsWith("query_range", StringComparison.Ordinal);
+        if (range && BeforeLatencyRange is not null && query.Contains("webapi_gateway_request_duration_seconds_bucket", StringComparison.Ordinal))
+            await BeforeLatencyRange(ct);
+        if (RangeApplications.Length != 0 && range)
+        {
+            var histogram = query.Contains("webapi_gateway_request_duration_seconds_bucket", StringComparison.Ordinal);
+            if (histogram || query.Contains("webapi_gateway_requests_total", StringComparison.Ordinal))
+                return ManyApplications(query, histogram);
+        }
         var rows=new List<object>();Dictionary<string,string> Labels(string? node=null)=>new(){["webapi_environment_id"]=EnvironmentId.ToString(),["service_instance_id"]=node??DefaultNodeName,["webapi_api_id"]=ApiId.ToString(),["webapi_application_id"]=ApplicationId.ToString(),["webapi_destination_id"]=NoDestination?"None":DestinationId.ToString(),["webapi_cluster_id"]=ClusterId.ToString(),["http_response_status_code"]="200",["webapi_outcome"]="Completed",["webapi_success"]="true"};
         var stamp=End.ToUnixTimeMilliseconds()/1000d;
         void Add(Dictionary<string,string> labels,double value)=>rows.Add(new{metric=labels,value=new object[]{stamp,value.ToString(CultureInfo.InvariantCulture)}});
@@ -354,7 +453,7 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
         else if(query.Contains("dropped_total",StringComparison.Ordinal)||query.Contains("export_failures_total",StringComparison.Ordinal)){}
         else if(query.Contains("webapi_gateway_requests_total",StringComparison.Ordinal)){Add(Labels(),ResetWindow?6:200);if(SecondApiId is Guid second){var fast=Labels();fast["webapi_api_id"]=second.ToString();Add(fast,400);}if(ForeignEnvironmentId is Guid foreign){var labels=Labels();labels["webapi_environment_id"]=foreign.ToString();Add(labels,999999);}}
         if(request.RequestUri.AbsolutePath.EndsWith("query_range",StringComparison.Ordinal))
-        {var matrix=rows.Select(row=>JsonSerializer.SerializeToElement(row)).Select(row=>new{metric=row.GetProperty("metric"),values=new[]{new object[]{Start.AddSeconds(30).ToUnixTimeMilliseconds()/1000d,"0.5"},new object[]{End.AddSeconds(-1).ToUnixTimeMilliseconds()/1000d,"1"}}});return Task.FromResult(new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="matrix",result=matrix}})});}
-        return Task.FromResult(new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=rows}})});
+        {var matrix=rows.Select(row=>JsonSerializer.SerializeToElement(row)).Select(row=>new{metric=row.GetProperty("metric"),values=new[]{new object[]{Start.AddSeconds(30).ToUnixTimeMilliseconds()/1000d,"0.5"},new object[]{End.AddSeconds(-1).ToUnixTimeMilliseconds()/1000d,"1"}}});return new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="matrix",result=matrix}})};}
+        return new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=rows}})};
     }
 }
