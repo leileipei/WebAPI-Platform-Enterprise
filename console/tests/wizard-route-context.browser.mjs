@@ -15,6 +15,9 @@ const apis=[{id:apiA,name:'甲 API'},{id:apiB,name:'乙 API'}].map(a=>({...a,org
 const versions=api=>['1.0','2.0'].map((version,i)=>({apiId:api,id:api+'-'+(i+1),version,status:'Draft',revision:1}));
 const v1=apiB+'-1', v2=apiB+'-2';
 const row=(id,apiVersionId,environmentId=env)=>({id,environmentId,apiVersionId,routeName:id,path:'/'+id,methods:['GET'],clusterId:environmentId+'-cluster',priority:100,enabled:true,timeoutMs:2500,revision:7,requireApiKey:true});
+const cluster=(environmentId,id=environmentId+'-cluster',status='Active')=>({
+  id,name:id,status,environmentId,projectId:environmentId==='foreign-env'?foreign:project
+});
 const button=(scope,name)=>scope.getByRole('button',{name,exact:true});
 const step=(page,n)=>page.locator('.wizard-steps button').nth(n-1);
 const selection=page=>page.getByRole('combobox',{name:'向导 API 版本'});
@@ -62,7 +65,7 @@ async function fixture(t) {
     for(const e of [env,alt,'foreign-env']){
       const prefix='/environments/'+e;
       if(path===prefix)return reply({id:e,desiredConfigVersion:9});
-      if(path===prefix+'/clusters')return paged([{id:e+'-cluster',name:e}]);
+      if(path===prefix+'/clusters')return paged(state.clusters?.[e]??[cluster(e)]);
       if(path===prefix+'/route-defaults')return reply({timeoutMs:2500,source:'Saved'});
       if(path===prefix+'/routes'&&method==='GET'){
         const target=url.searchParams.get('apiVersionId');
@@ -243,6 +246,56 @@ test('standalone routes retain the API and version selectors and environment pag
   assert.equal(await version.inputValue(),v1);
   await version.selectOption(v2);
   assert.equal(await version.inputValue(),v2);
+});
+
+test('a route on a disabled cluster can be switched off in place and needs an active cluster to restart',async t=>{
+  const {page,state,writes,openWizard}=await fixture(t);
+  const original=cluster(env,env+'-cluster','Disabled'),replacement=cluster(env,'replacement');
+  state.clusters={[env]:[original,cluster(env,'another-disabled','Disabled'),replacement]};
+  await openWizard();
+  await routeRow(page,'selected-first').waitFor();
+  await button(page,'下一页').click();
+  const route=routeRow(page,'selected-second'),editor=dialog(page);
+  await button(route,'编辑').click();
+  const backend=editor.getByRole('combobox',{name:'后端集群'}),enabled=editor.getByRole('checkbox',{name:'启用路由'});
+  const save=button(editor,'保存');
+  assert.equal(await backend.inputValue(),original.id);
+  assert.equal(await save.isDisabled(),true);
+  assert.equal(await backend.locator('option[value="another-disabled"]').count(),0);
+  await enabled.uncheck();
+  await save.click();
+  await editor.waitFor({state:'hidden'});
+  const [update]=writes().filter(r=>r.path==='/routes/selected-second');
+  assert.deepEqual([update.etag,update.body.clusterId,update.body.enabled],['"7"',original.id,false]);
+  await route.getByRole('cell',{name:'否',exact:true}).waitFor();
+  await button(route,'编辑').click();
+  assert.equal(await save.isDisabled(),true);
+  await enabled.check();
+  assert.equal(await save.isDisabled(),true);
+  await backend.selectOption(replacement.id);
+  await save.click();
+  await editor.waitFor({state:'hidden'});
+  const restarted=writes().filter(r=>r.path==='/routes/selected-second').at(-1);
+  assert.deepEqual([restarted.etag,restarted.body.clusterId,restarted.body.enabled],['"8"',replacement.id,true]);
+});
+
+test('route creation selects an active local cluster and is unavailable when there are none',async t=>{
+  const {page,state,openWizard}=await fixture(t);
+  const disabled=cluster(env,'first-disabled','Disabled'),active=cluster(env,'active');
+  const otherEnvironment=cluster(alt),otherProject={...cluster(env,'other-project'),projectId:foreign};
+  state.clusters={[env]:[disabled,otherEnvironment,otherProject,active]};
+  await openWizard();
+  const create=button(page,'＋ 新建路由'),editor=dialog(page);
+  await create.click();
+  const backend=editor.getByRole('combobox',{name:'后端集群'});
+  assert.equal(await backend.inputValue(),active.id);
+  assert.deepEqual(await backend.locator('option').evaluateAll(options=>options.map(option=>option.value)),['',active.id]);
+  await button(editor,'关闭').click();
+  state.clusters[env]=[disabled,otherEnvironment,otherProject];
+  await openWizard();
+  await routeRow(page,'selected-first').waitFor();
+  await page.waitForLoadState('networkidle');
+  assert.equal(await create.isDisabled(),true);
 });
 
 test('a route moved after opening the editor cannot be rebound or restored with a newer ETag',async t=>{
