@@ -33,13 +33,20 @@ async function fixture(t) {
     requests.push({path,method,body,etag,query:url.searchParams});
     const reply=(value,status=200)=>r.fulfill({status,json:value});
     const paged=(items,size=50)=>{const n=Number(url.searchParams.get('page')||1);return reply({items:items.slice((n-1)*size,n*size),total:items.length,page:n,pageSize:size});};
-    if(path==='/auth/me')return reply({id:'tester',username:'fixture',displayName:'向导测试',authSource:'local',permissions:state.permissions||['api.read','api.version.read','environment.read','route.read','route.write','policy.write','release.read','release.create'],scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
+    if(path==='/auth/me')return reply({id:'tester',username:'fixture',displayName:'向导测试',authSource:'local',permissions:state.permissions||['api.read','api.version.read','api.version.write','environment.read','route.read','route.write','policy.write','release.read','release.create'],scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
     if(path==='/auth/csrf')return reply({token:'synthetic'});
     if(path==='/scope-tree')return reply({organizations:[{id:'org',name:'组织'}],projects:[{id:project,organizationId:'org',name:'选定项目'},{id:foreign,organizationId:'org',name:'其他项目'}],environments:[{id:env,projectId:project,name:'预发'},{id:alt,projectId:project,name:'联调'},{id:'foreign-env',projectId:foreign,name:'其他环境'}]});
     for(const api of apis){
       const vv=api.id===apiB?state.versions:versions(api.id);
       if(path==='/apis/'+api.id)return reply({api,versions:vv,runningConfigVersion:{}});
-      if(path==='/apis/'+api.id+'/versions')return reply(vv);
+      if(path==='/apis/'+api.id+'/versions'){
+        if(method==='POST'){
+          const created={id:'created-version',apiId:api.id,version:body.version,status:'Draft',revision:1};
+          state.versions.push(created);
+          return reply(created,201);
+        }
+        return reply(vv);
+      }
     }
     if(path==='/projects/'+project+'/apis')return paged(apis,1);
     if(path==='/projects/'+project+'/policies')return paged([{id:'selected-policy',type:'timeout',projectId:project,name:'超时策略',enabled:true}]);
@@ -86,6 +93,39 @@ async function fixture(t) {
   const writes=()=>requests.filter(r=>['PUT','POST'].includes(r.method));
   return {page,requests,errors,state,writes,openWizard};
 }
+
+test('the version definition opened in step two determines the route and release target',async t=>{
+  const {page,requests,writes}=await fixture(t);
+  await page.goto(new URL('/apis/'+apiB+'/wizard',base).href);
+  await step(page,2).click();
+  const versionRow=page.getByRole('row').filter({has:page.getByRole('cell',{name:'2.0',exact:true})});
+  await button(versionRow,'定义').click();
+  assert.equal(await selection(page).inputValue(),v2);
+  await step(page,5).click();
+  await routeRow(page,'selected-first').waitFor();
+  assert.equal(await routeRow(page,'other-version').count(),0);
+  assert.ok(requests.some(r=>r.path==='/environments/staging/routes'&&r.query.get('apiVersionId')===v2));
+  await step(page,6).click();
+  await button(page,'创建发布草稿并预览').click();
+  await page.getByRole('cell',{name:v2,exact:true}).waitFor();
+  assert.deepEqual(writes().find(r=>r.path.endsWith('/releases/preview')).body.versionIds,[v2]);
+});
+
+test('creating the first version immediately makes it the route target',async t=>{
+  const {page,requests,state}=await fixture(t);
+  state.versions=[];
+  await page.goto(new URL('/apis/'+apiB+'/wizard',base).href);
+  await step(page,2).click();
+  await button(page,'＋ 新建版本').click();
+  await dialog(page).getByLabel('版本号',{exact:false}).fill('3.0');
+  await button(dialog(page),'保存').click();
+  await dialog(page).waitFor({state:'hidden'});
+  await selection(page).locator('option[value="created-version"]').waitFor({state:'attached'});
+  assert.equal(await selection(page).inputValue(),'created-version');
+  await step(page,5).click();
+  await button(page,'＋ 新建路由').waitFor();
+  assert.ok(requests.some(r=>r.path==='/environments/staging/routes'&&r.query.get('apiVersionId')==='created-version'));
+});
 
 test('the selected API version owns new routes, paged edits, bindings and the submitted release',async t=>{
   const {page,requests,errors,state,writes,openWizard}=await fixture(t);

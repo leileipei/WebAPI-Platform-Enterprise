@@ -36,6 +36,16 @@ function Wizard({id,search}:{id:string;search:string}){
   createKey.current=undefined;
   submitKey.current=undefined;
  }
+ function selectVersion(id:string){
+  setVersion(id);
+  clearDraft();
+  setError('');
+ }
+ function refreshVersion(createdId?:string){
+  if(createdId&&!reviewId)selectVersion(createdId);
+  else clearDraft();
+  remote.reload();
+ }
  useEffect(()=>{
   if(reviewId)void resolveReviewHandoff(id,reviewId,apiRequest,controller.current.signal)
    .then(result=>{if(active()){setHandoff(result);setVersion(result.targetVersionId);}})
@@ -49,10 +59,7 @@ function Wizard({id,search}:{id:string;search:string}){
    const first=d.versions.find(v=>v.apiId===id&&v.status!=='Retired');
    if(first)setVersion(first.id);
   }
-  if(!version||!inScope||remote.error){
-   clearDraft();
-   if(!reviewId&&!version&&versionId&&d&&!remote.error)setVersion('');
-  }
+  if(!version||!inScope||remote.error)clearDraft();
  },[d,versionId,inScope,remote.loading,remote.error,reviewId,id,version]);
  async function create(){
   if(!mayRelease||!version)return;
@@ -107,7 +114,7 @@ function Wizard({id,search}:{id:string;search:string}){
   {d&&<>
    {step>=1&&<div className="filter-bar"><label>API 版本 <select aria-label="向导 API 版本" disabled={busy||!!reviewId||remote.loading} value={version?.id||''} onChange={e=>{
     if(!allowNavigation())return;
-    setVersion(e.target.value);clearDraft();setError('');
+    selectVersion(e.target.value);
    }}>
     <option value="">请选择可用版本</option>
     {d.versions.filter(v=>v.apiId===id&&v.status!=='Retired').map(v=><option key={v.id} value={v.id}>{v.version} · {v.status}</option>)}
@@ -115,8 +122,10 @@ function Wizard({id,search}:{id:string;search:string}){
    <button className="btn" disabled={busy} onClick={remote.reload}>刷新工作数据</button>
    {reviewId&&<button className="btn" disabled={busy||!!draft} onClick={()=>navigate(`/apis/${id}/wizard?step=review`)}>退出评审关联并重新选择版本</button>}
    </div>}
-   {step===0||step===1?<ApiDetailPage id={id}/>:step===2||step===3?<div className="card">
-    {version?<SchemaEditor key={version.id+step} version={version} kind={step===2?'parameters':'schemas'} allowed={can(step===2?'api.version.write':'api.schema.write',scope,true)} reloadVersion={remote.reload}/>:<div className="empty">请先选择版本</div>}
+   {step===0||step===1?<ApiDetailPage id={id} wizard={{
+    remote,version,locked:busy||!!reviewId||remote.loading||!!remote.error,onSelect:selectVersion,onSaved:refreshVersion,
+   }}/>:step===2||step===3?<div className="card">
+    {version?<SchemaEditor key={version.id+step} version={version} kind={step===2?'parameters':'schemas'} allowed={can(step===2?'api.version.write':'api.schema.write',scope,true)} reloadVersion={refreshVersion}/>:<div className="empty">请先选择版本</div>}
    </div>:step===4?(ready&&version?
     <Routes key={JSON.stringify([id,version.id,ws.environmentId])} target={{api:d.api,version,environmentId:ws.environmentId}} onChanged={clearDraft}/>:
     <p className="notice">请选择此 API 的可用版本与所属项目下的环境。</p>
