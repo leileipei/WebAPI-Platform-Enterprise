@@ -1,5 +1,14 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {fetchLoginProviders,createSsoStartForm,completeSsoLogin,ssoErrorMessage,safeSsoReturnPath} from '../src/sso/login.mjs';
+for(const path of ['/dashboard','/policies','/policies/19aea78b-3259-4fa5-b1a4-667e7a57e1be','/policies/new?type=timeout&scope=project']){
+ test('login accepts the console destination '+path,()=>assert.equal(safeSsoReturnPath(path),path));
+}
+test('workbench and policy login destinations keep their route and length boundaries',()=>{
+ for(const path of ['/dashboard/reports','/policies/unknown-page'])assert.equal(safeSsoReturnPath(path),'/organizations');
+ const path='/policies?search='.padEnd(2048,'a');
+ assert.equal(safeSsoReturnPath(path),path);
+ assert.equal(safeSsoReturnPath(path+'a'),'/organizations');
+});
 test('provider discovery is same origin and never automatically redirects',async()=>{const calls=[];globalThis.fetch=async(path,options)=>{calls.push({path,options});return new Response(JSON.stringify([{id:'a',name:'企业',isDefault:true}]),{status:200});};const rows=await fetchLoginProviders();assert.equal(rows[0].isDefault,true);assert.equal(calls.length,1);assert.equal(calls[0].path,'/api/v1/auth/sso/providers');assert.equal(calls[0].options.credentials,'same-origin');});
 test('failed provider read exposes retry error independently of local login',async()=>{globalThis.fetch=async()=>new Response('{}',{status:503});await assert.rejects(fetchLoginProviders(),/企业登录/);});
 test('start uses same origin native POST hidden CSRF and only controlled parameters',()=>{const document={createElement:tag=>({tag,children:[],appendChild(item){this.children.push(item);}})};const id='12345678-1234-1234-1234-123456789abc',form=createSsoStartForm(id,'/users','csrf',true,document);assert.equal(form.method,'post');assert.equal(form.action,'/api/v1/auth/sso/'+id+'/start');assert.deepEqual(form.children.map(x=>[x.name,x.value]),[['__RequestVerificationToken','csrf'],['returnPath','/users'],['reauthenticate','true']]);assert.equal(form.children.every(x=>x.type==='hidden'),true);assert.throws(()=>createSsoStartForm('//foreign','/users','csrf',false,document));});

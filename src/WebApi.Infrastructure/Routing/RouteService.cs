@@ -59,9 +59,12 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
             var verbs=request.Methods.Select(m=>m.ToUpperInvariant()).Distinct().OrderBy(m=>m,StringComparer.Ordinal).ToArray();
             var versionScope=await scopes.VersionAsync(request.ApiVersionId,token);var version=await db.Set<ApiVersion>().AsNoTracking().SingleAsync(v=>v.Id==request.ApiVersionId,token);
             if(versionScope.ProjectId!=scope.ProjectId||versionScope.OrganizationId!=scope.OrganizationId||version.Status=="Retired") throw new ApiException(422,"foreign_version","版本不属于环境所在项目或已停用。");
-            if(!await db.Set<UpstreamCluster>().AnyAsync(c=>c.Id==request.ClusterId&&c.EnvironmentId==environmentId&&c.ProjectId==scope.ProjectId&&c.Status=="Active",token)) throw new ApiException(422,"foreign_cluster","后端集群不属于当前环境或已停用。");
             var r=request.Id is Guid id?await db.Set<ApiRoute>().SingleOrDefaultAsync(r=>r.Id==id&&r.EnvironmentId==environmentId,token)??throw ScopeResolver.Missing():new ApiRoute {EnvironmentId=environmentId};
             if(request.Id is not null) RevisionTag.Require(ifMatch,r.Revision);
+            var turningOffOnCurrentCluster = request.Id is not null && r.Enabled && !request.Enabled && r.ClusterId == request.ClusterId;
+            if (!await db.Set<UpstreamCluster>().AnyAsync(c => c.Id == request.ClusterId && c.EnvironmentId == environmentId &&
+                c.ProjectId == scope.ProjectId && (c.Status == "Active" || (turningOffOnCurrentCluster && c.Status == "Disabled")), token))
+                throw new ApiException(422,"foreign_cluster","后端集群不属于当前环境或已停用。");
             var oldBindings=request.Id is null?Array.Empty<PolicyBindingConfiguration>():await RoutePolicyService.LoadAsync(db,r.Id,token);
             if(request.AuthenticationChange is not null && (request.AuthenticationChange is not ("ApiKey" or "Anonymous") || (request.AuthenticationChange=="ApiKey")!=request.RequireApiKey))
                 throw new ApiException(422,"invalid_authentication_change","认证模式与API Key字段不一致。");

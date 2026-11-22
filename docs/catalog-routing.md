@@ -6,7 +6,7 @@ API、分组、版本、参数、Schema、Route、Cluster和Destination均持久
 
 基础认证通过实际Policy及RoutePolicyBinding保存，默认API Key；显式匿名需policy.write。基础超时1到300000毫秒；后端必须HTTP(S)、无userinfo、查询或片段，按Upstream:AllowedOrigins的精确origin允许列表校验，默认仅http://test-backend:8080。允许列表由部署管理员配置，业务用户不能任意探测内网。
 
-API详情中workingRevision为工作区版本；runningConfigVersion只在启用节点近期心跳且共同版本一致时提供，否则未知（null）。pendingReleaseId展示当前环境待处理发布。desired pointer不冒充节点真实运行版本。
+API详情中workingRevision为工作区版本；runningConfigVersion只在启用节点近期心跳且共同版本一致时提供，否则未知（null）。详情和向导读取 `GET /api/v1/apis/{id}?environmentId={environmentId}`。其中 `pendingReleaseId` 为所选环境内涉及该 API 且用户具有 `release.read` 权限的最新待处理发布单，无匹配时为 null。普通发布草稿按所选版本归属匹配，已冻结的发布单按候选内记录的 API 身份匹配。旧客户端省略环境参数时，仍可取得所有可读环境中符合相同条件的最新一单。desired pointer不冒充节点真实运行版本。
 
 最后启用Destination不能删除或禁用；被引用Cluster和版本拒绝删除。字段结构问题返回422，授权不足403，业务冲突409，旧ETag412。请求限制8MiB，单文本4MiB，结构深度16，子项最多5000。
 

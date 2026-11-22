@@ -11,13 +11,35 @@ export function parseApprovalQuery(search=''){
 export function approvalQuery(filter){const query=new URLSearchParams();for(const key of ['view','organizationId','projectId','environmentId','status','page','pageSize'])if(filter[key]!==null&&filter[key]!==undefined)query.set(key,String(filter[key]));return '?'+query;}
 export function approvalAuthority(user){if(!user)return 'anonymous';return JSON.stringify([user.id,[...user.permissions].sort(),user.scopes.map(g=>JSON.stringify(g)).sort()]);}
 export function approvalScope(item){return {organizationId:item.organization.id,projectId:item.project.id,environmentId:item.environment.id};}
-export function approvalMayAct(item){return item?.state==='WaitingApproval'&&item?.approvalEligibility?.canAct===true;}
+export function approvalMayAct(item){
+ const step=item?.approvalEligibility?.currentStepOrder;
+ return item?.state==='WaitingApproval'&&item.approvalEligibility?.canAct===true&&Number.isInteger(step)&&step>0;
+}
+export function approvalOperation(item){
+ return {releaseId:item.id,stepOrder:item.approvalEligibility?.currentStepOrder??null,candidateHash:item.candidateHash??null};
+}
+export function approvalOperationMatches(opened,detail){
+ return approvalMayAct(detail)&&!!opened?.releaseId&&opened.releaseId===detail.id&&opened.stepOrder===detail.approvalEligibility.currentStepOrder&&
+   typeof opened.candidateHash==='string'&&/^[a-f0-9]{64}$/.test(opened.candidateHash)&&opened.candidateHash===detail.candidateHash;
+}
 export function safeApprovalReturnTo(value){
  if(typeof value!=='string'||!/^\/approvals(?:\?[^#\\]*)?$/.test(value))return null;
  try{return '/approvals'+approvalQuery(parseApprovalQuery(value.slice('/approvals'.length)));}catch{return null;}
 }
 export function switchApprovalView(filter,view){if(!views.includes(view))throw Error('审批标签无效。');return {...filter,view,status:null,page:1};}
 export function createInboxState(authority,filter){return {authority,filter,epoch:0,requestId:0,rows:[],counts:null,page:null,dialog:null,error:'',loading:false,updatedAt:null};}
+export function approvalDialogReducer(dialog,event){
+ switch(event.type){
+  case 'open':return approvalMayAct(event.item)?{item:event.item,action:event.action,comment:'',key:event.key,error:'',conflict:false}:dialog;
+  case 'close':return null;
+  case 'comment':
+   if(!dialog)return null;
+   if(event.comment.length>10000)throw Error('审批意见不能超过 10000 字符。');
+   return {...dialog,comment:event.comment,key:event.key??dialog.key,error:dialog.conflict?dialog.error:''};
+  case 'action-error':return dialog?{...dialog,error:event.message,conflict:dialog.conflict||[409,412].includes(event.status)}:null;
+  default:return dialog;
+ }
+}
 export function inboxReducer(state,event){
  if(event.type==='authority')return event.authority===state.authority?state:{...createInboxState(event.authority,state.filter),epoch:state.epoch+1};
  if(event.type==='filter')return {...createInboxState(state.authority,event.filter),epoch:state.epoch+1};
@@ -27,13 +49,11 @@ export function inboxReducer(state,event){
   case 'request':return {...state,loading:true,error:'',requestId:event.requestId};
   case 'result':return {...state,loading:false,error:'',rows:event.payload.page.items,counts:event.payload.counts,page:event.payload.page,updatedAt:event.updatedAt??Date.now()};
   case 'request-error':return [401,403,404].includes(event.status)?{...state,rows:[],counts:null,page:null,dialog:null,loading:false,error:event.message}:{...state,loading:false,error:event.message};
-  case 'open':return approvalMayAct(event.item)?{...state,dialog:{item:event.item,action:event.action,comment:'',key:event.key,error:'',conflict:false},error:''}:state;
-  case 'close':return {...state,dialog:null};
-  case 'comment':if(!state.dialog)return state;if(event.comment.length>10000)throw Error('审批意见不能超过 10000 字符。');return {...state,dialog:{...state.dialog,comment:event.comment,key:event.key??state.dialog.key,error:'',conflict:false}};
-  case 'action-error':return state.dialog?{...state,dialog:{...state.dialog,error:event.message,conflict:[409,412].includes(event.status)}}:state;
+  case 'open':case 'close':case 'comment':case 'action-error':{
+   const dialog=approvalDialogReducer(state.dialog,event);
+   return dialog===state.dialog?state:{...state,dialog,error:event.type==='open'?'':state.error};
+  }
   case 'lost-read':return {...state,rows:[],counts:null,page:null,dialog:null,error:event.message,loading:false,epoch:state.epoch+1};
   default:return state;
  }
 }
-
-export function approvalOperationMatches(opened,detail){return approvalMayAct(detail)&&Number.isInteger(opened?.stepOrder)&&opened.stepOrder===detail.approvalEligibility.currentStepOrder&&typeof opened.candidateHash==='string'&&/^[a-f0-9]{64}$/.test(opened.candidateHash)&&opened.candidateHash===detail.candidateHash;}

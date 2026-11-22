@@ -28,6 +28,40 @@ public sealed class ObservationLogsTests
     }
     private static string Url(LogFixture f,int limit=2,string? cursor=null,Guid? environment=null)=>$"/api/v1/observability/logs?organizationId={f.Api.Organization.Id}&projectId={f.Api.Project.Id}&environmentId={environment??f.Api.Environment.Id}&start={Uri.EscapeDataString(f.Source.Start.ToString("O"))}&end={Uri.EscapeDataString(f.Source.End.ToString("O"))}&limit={limit}"+(cursor is null?"":"&cursor="+Uri.EscapeDataString(cursor));
     private static async Task<ObservationEnvelope<CursorPage<AccessLogDto>>> PageAsync(HttpClient client,string url){using var r=await client.GetAsync(url);r.EnsureSuccessStatusCode();return (await r.Content.ReadFromJsonAsync<ObservationEnvelope<CursorPage<AccessLogDto>>>())!;}
+    [Fact]
+    public async Task SharedApplicationLogsRequireEnvironmentIdentityIncludingAtExportCompletion()
+    {
+        await using var s = await FixtureAsync(1);
+        var shared = await SharedObservationFixture.AddApplicationAsync(s.Api);
+        s.Source.ApplicationId = shared.Id;
+        var url = Url(s);
+        var page = await PageAsync(s.Api.Client, url + "&applicationId=" + shared.Id);
+        Assert.Equal(shared.Id.ToString(), Assert.Single(page.Data!.Items).ApplicationKey);
+        var sibling = new EnvironmentRecord { ProjectId = s.Api.Project.Id, Code = "SIBLING", Name = "同项目未授权环境" };
+        var cluster = new UpstreamCluster { ProjectId = s.Api.Project.Id, EnvironmentId = sibling.Id, Name = "Sibling", LoadBalancingPolicy = "RoundRobin", HealthCheckPath = "/health" };
+        var destination = new UpstreamDestination { ClusterId = cluster.Id, Name = "Sibling", Address = "http://sibling:8080", Weight = 1 };
+        await using (var db = s.Api.Context())
+        {
+            db.AddRange(sibling, cluster, destination);
+            await db.SaveChangesAsync();
+        }
+        s.Source.EnvironmentId = sibling.Id;
+        s.Source.DestinationId = destination.Id;
+        Assert.Empty((await PageAsync(s.Api.Client, url + "&allAccessibleEnvironments=true")).Data!.Items);
+
+        s.Source.EnvironmentId = s.Api.Environment.Id;
+        s.Source.DestinationId = s.Api.Destination.Id;
+        s.Source.OnLogRequest = async _ =>
+        {
+            await using var db = s.Api.Context();
+            db.Remove(await db.Set<ApplicationApiPermission>().SingleAsync());
+            await db.SaveChangesAsync();
+        };
+        using var export = await s.Api.Client.GetAsync(url.Replace("/logs?", "/logs/export?"));
+        Assert.Equal(HttpStatusCode.Forbidden, export.StatusCode);
+        Assert.False(export.Headers.Contains("X-WebApi-Export-Rows"));
+    }
+
     [Fact]public async Task EqualNanosecondRowsCrossBoundaryWithoutLoss()
     {
         await using var s=await FixtureAsync();s.Source.Rows.Add(s.Source.Rows[0]);var ids=new List<Guid>();string? cursor=null;var pages=0;

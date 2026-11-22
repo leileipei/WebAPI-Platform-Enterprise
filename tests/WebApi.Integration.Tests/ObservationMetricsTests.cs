@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using WebApi.Contracts.Observability;
+using WebApi.Infrastructure.Observability;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
@@ -26,6 +27,77 @@ public sealed class ObservationMetricsTests
     private static string Url(ApiFixture fixture,MetricProtocolHandler source,Guid? environment=null,bool all=false,string? suffix=null)=>
         $"/api/v1/observability/metrics?organizationId={fixture.Organization.Id}&projectId={fixture.Project.Id}&environmentId={environment??fixture.Environment.Id}&allAccessibleEnvironments={all.ToString().ToLowerInvariant()}&start={Uri.EscapeDataString(source.Start.ToString("O"))}&end={Uri.EscapeDataString(source.End.ToString("O"))}{suffix}";
     private static MetricValueDto Value(ObservationEnvelope<MetricsDto> envelope,string key)=>Assert.Single(envelope.Data!.Kpis,x=>x.Metric==key);
+    [Fact]
+    public async Task SharedApplicationMetricsFollowEachAuthorizedEnvironmentAcrossProjects()
+    {
+        var source = new MetricProtocolHandler();
+        await using var f = await FixtureAsync(source);
+        var shared = await SharedObservationFixture.AddApplicationAsync(f);
+        var (project, api, allowed, denied) = await SharedObservationFixture.AddSecondProjectAsync(f, shared.Id);
+        source.ApplicationId = shared.Id;
+        string Query(Guid projectId, Guid env, bool all = false) => Url(f, source, env, all,
+            $"&applicationId={shared.Id}&groupBy=Application").Replace($"projectId={f.Project.Id}", $"projectId={projectId}");
+        async Task AssertVisible(string url)
+        {
+            using var response = await f.Client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            var result = (await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+            Assert.Equal(200, Value(result, "request_count").Value);
+            Assert.Equal(shared.Name, Assert.Single(result.Data!.Groups).Name);
+        }
+        await AssertVisible(Query(f.Project.Id, f.Environment.Id));
+        source.EnvironmentId = allowed.Id;
+        source.ApiId = api.Id;
+        source.DefaultNodeName = "allowed-node";
+        source.NoDestination = true;
+        await AssertVisible(Query(project.Id, allowed.Id));
+        await AssertVisible(Query(project.Id, allowed.Id, all: true));
+        using var absent = await f.Client.GetAsync(Query(project.Id, denied.Id));
+        Assert.Equal(HttpStatusCode.NotFound, absent.StatusCode);
+
+        // The provider returns only a sibling environment's rows with otherwise valid labels.
+        source.EnvironmentId = denied.Id;
+        source.DefaultNodeName = "denied-node";
+        var allApplications = Url(f, source, allowed.Id, all: true, suffix: "&groupBy=Application")
+            .Replace($"projectId={f.Project.Id}", $"projectId={project.Id}");
+        using var aggregate = await f.Client.GetAsync(allApplications);
+        aggregate.EnsureSuccessStatusCode();
+        var body = (await aggregate.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+        Assert.Empty(body.Data!.Groups);
+        Assert.Equal(0, Value(body, "request_count").SampleCount);
+        Assert.Empty(body.Data.Trends["request_rps"]);
+        Assert.Empty(body.Data.Trends["latency_p95_ms"]);
+    }
+
+    [Fact]
+    public async Task SharedApplicationMetricsKeepOnlyRuntimeIdentitiesFromTheScopedOrganizationAndEnvironment()
+    {
+        var source = new MetricProtocolHandler();
+        await using var f = await FixtureAsync(source);
+        var shared = await SharedObservationFixture.AddApplicationAsync(f);
+        var other = new Organization { Code = "OTHER", Name = "其他组织" };
+        var foreign = new ApplicationRecord { OrganizationId = other.Id, Code = "OTHER_APP", Name = "其他组织应用" };
+        var sibling = new EnvironmentRecord { ProjectId = f.Project.Id, Code = "SIBLING", Name = "其他环境" };
+        var version = new GatewayConfigVersion { EnvironmentId = f.Environment.Id, VersionNo = 1, CreatedBy = f.User.Id };
+        var payload = JsonSerializer.Serialize(new { environmentId = f.Environment.Id, applications = new[] {
+            new { id = shared.Id }, new { id = foreign.Id } } });
+        await using (var db = f.Context())
+        {
+            db.Remove(await db.Set<ApplicationApiPermission>().SingleAsync());
+            db.AddRange(other, foreign, sibling, version, new GatewayConfigSnapshot { ConfigVersionId = version.Id,
+                Payload = payload, PayloadBytes = System.Text.Encoding.UTF8.GetBytes(payload), SizeBytes = System.Text.Encoding.UTF8.GetByteCount(payload) });
+            await db.SaveChangesAsync();
+        }
+        source.ApplicationId = shared.Id;
+        using var historical = await f.Client.GetAsync(Url(f, source, suffix: $"&applicationId={shared.Id}"));
+        historical.EnsureSuccessStatusCode();
+        Assert.Equal(200, Value((await historical.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!, "request_count").Value);
+        using var missing = await f.Client.GetAsync(Url(f, source, sibling.Id, suffix: $"&applicationId={shared.Id}"));
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        using var outside = await f.Client.GetAsync(Url(f, source, suffix: $"&applicationId={foreign.Id}"));
+        Assert.Equal(HttpStatusCode.NotFound, outside.StatusCode);
+    }
+
     [Fact] public async Task EnvironmentOnlyGrantCannotReadSiblingMetrics()
     {
         var source=new MetricProtocolHandler();await using var s=await FixtureAsync(source);var sibling=new EnvironmentRecord{ProjectId=s.Project.Id,Code="SIBLING",Name="另一个环境"};
@@ -99,6 +171,8 @@ public sealed class ObservationMetricsTests
         var body=(await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
         Assert.Equal(SourceState.Partial,body.SourceState);Assert.False(body.Coverage.Complete);Assert.Null(Value(body,"request_rps").Value);
         Assert.Equal("time_window_coverage_incomplete",body.Coverage.Reason);
+        Assert.Empty(body.Coverage.MissingNodes);
+        Assert.Equal("Available", Assert.Single(body.Data!.NodeHealth).Health);
         Assert.Contains(source.Requests,x=>Uri.UnescapeDataString(x.Query).Contains("max_over_time((time()",StringComparison.Ordinal));
     }
     [Fact] public async Task AllRequiredTrendSeriesUseRealSamplesAndUnknownStaysNull()
@@ -109,6 +183,57 @@ public sealed class ObservationMetricsTests
         foreach(var metric in new[]{"request_rps","success_ratio","error_4xx_ratio","error_5xx_ratio","latency_p50_ms","latency_p95_ms","latency_p99_ms"})Assert.NotEmpty(body.Data!.Trends[metric]);
         Assert.All(body.Data!.Trends["success_ratio"],x=>Assert.Equal(1,x.Value));Assert.All(body.Data.Trends["error_4xx_ratio"],x=>Assert.Equal(0,x.Value));
     }
+    [Fact]
+    public async Task LongRangeTrendsStayAvailableWithManyApplications()
+    {
+        var source = new MetricProtocolHandler { WindowHours = 24 * 7 };
+        await using var fixture = await FixtureAsync(source);
+        using var services = fixture.Services();
+        var resolver = services.ServiceProvider.GetRequiredService<ObservationScopeResolver>();
+        var metrics = services.ServiceProvider.GetRequiredService<PrometheusMetricSource>();
+        var scope = await resolver.ResolveAsync(new(fixture.User.Id, "many-apps"), "metrics.read",
+            new(fixture.Organization.Id, fixture.Project.Id, fixture.Environment.Id, false), null, null, null, default);
+        var authorized = Enumerable.Range(0, 99).Select(_ => Guid.NewGuid()).Append(source.ApplicationId).ToArray();
+        source.RangeApplications = [.. authorized, Guid.NewGuid()];
+        scope = scope with { Applications = authorized.ToDictionary(id => id, _ => new ObservationApplication("Application", null)) };
+
+        var result = await metrics.QueryAsync(scope, new(source.Start, source.End), new(null, null, null), default);
+
+        Assert.Equal(SourceState.Available, result.SourceState);
+        var traffic = result.Data!.Trends["request_rps"];
+        Assert.NotEmpty(traffic);
+        Assert.All(traffic, point => Assert.Equal((double)authorized.Length, point.Value));
+        Assert.All(result.Data.Trends["latency_p95_ms"], point => Assert.NotNull(point.Value));
+        Assert.NotEmpty(result.Data.Trends["latency_p95_ms"]);
+    }
+
+    [Fact]
+    public async Task EnvironmentTrendQueriesCanMakeProgressTogetherWithinTheSharedDeadline()
+    {
+        var simultaneous = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var pending = 0;
+        var source = new MetricProtocolHandler
+        {
+            BeforeLatencyRange = async token =>
+            {
+                if (Interlocked.Increment(ref pending) == 2) simultaneous.TrySetResult();
+                await simultaneous.Task.WaitAsync(TimeSpan.FromSeconds(3), token);
+            }
+        };
+        await using var fixture = await FixtureAsync(source);
+        using var services = fixture.Services();
+        var resolver = services.ServiceProvider.GetRequiredService<ObservationScopeResolver>();
+        var metrics = services.ServiceProvider.GetRequiredService<PrometheusMetricSource>();
+        var scope = await resolver.ResolveAsync(new(fixture.User.Id, "parallel-trends"), "metrics.read",
+            new(fixture.Organization.Id, fixture.Project.Id, fixture.Environment.Id, false), null, null, null, default);
+        scope = scope with { EnvironmentIds = [fixture.Environment.Id, Guid.NewGuid()] };
+
+        var result = await metrics.QueryAsync(scope, new(source.Start, source.End), new(null, null, null), default);
+
+        Assert.Equal(2, pending);
+        Assert.NotEmpty(result.Data!.Trends["latency_p95_ms"]);
+    }
+
     [Fact] public async Task SourceFailureReturns503()
     {
         var source=new MetricProtocolHandler{Status=503};await using var s=await FixtureAsync(source);using var response=await s.Client.GetAsync(Url(s,source));Assert.Equal(HttpStatusCode.ServiceUnavailable,response.StatusCode);
@@ -129,6 +254,88 @@ public sealed class ObservationMetricsTests
         using var response=await s.Client.GetAsync(Url(s,source,all:true));response.EnsureSuccessStatusCode();var body=await response.Content.ReadFromJsonAsync<JsonElement>();var nodes=body.GetProperty("data").GetProperty("nodeHealth").EnumerateArray().ToArray();
         var available=Assert.Single(nodes,x=>x.GetProperty("health").GetString()=="Available");Assert.Equal(s.Environment.Id,available.GetProperty("environmentId").GetGuid());
         var stale=Assert.Single(nodes,x=>x.GetProperty("health").GetString()=="Stale");Assert.Equal(sibling.Id,stale.GetProperty("environmentId").GetGuid());
+        var coverage = body.GetProperty("coverage");
+        Assert.Equal("Partial", body.GetProperty("sourceState").GetString());
+        Assert.False(coverage.GetProperty("complete").GetBoolean());
+        Assert.Equal("second-node", Assert.Single(coverage.GetProperty("missingNodes").EnumerateArray()).GetString());
+        Assert.False(coverage.TryGetProperty("missingNodeIdentities", out _));
+    }
+    [Fact]
+    public async Task SameNamedCollectorsKeepIndependentHealthAndRecoverAcrossEnvironments()
+    {
+        var source = new MetricProtocolHandler();
+        await using var fixture = await FixtureAsync(source);
+        var sibling = new EnvironmentRecord { ProjectId = fixture.Project.Id, Code = "SECOND", Name = "第二环境" };
+        await using (var db = fixture.Context())
+        {
+            db.AddRange(sibling, new GatewayNode { EnvironmentId = sibling.Id, NodeName = "second-node", Enabled = true });
+            await db.SaveChangesAsync();
+        }
+        using var services = fixture.Services();
+        var resolver = services.ServiceProvider.GetRequiredService<ObservationScopeResolver>();
+        var metrics = services.ServiceProvider.GetRequiredService<PrometheusMetricSource>();
+        async Task<TrustedObservationScope> Resolve(Guid? environment = null)
+        {
+            var authorized = await resolver.ResolveAsync(new(fixture.User.Id, "node-health"), "metrics.read",
+                new(fixture.Organization.Id, fixture.Project.Id, environment, environment is null), null, null, null, default);
+            // Registration enforces globally unique names. Exercise a name collision at the observation boundary.
+            return authorized with { ExpectedNodes = authorized.ExpectedNodes.Select(n => n with { NodeName = "node-0" }).ToArray() };
+        }
+        var scope = await Resolve();
+        var range = new TimeRange(source.Start, source.End);
+        Task<ObservationEnvelope<MetricsDto>> Query() => metrics.QueryAsync(scope, range, new(null, null, null), default);
+        var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        void AssertSiblingIdentity(CoverageDto coverage)
+        {
+            var json = JsonSerializer.SerializeToElement(coverage, jsonOptions);
+            Assert.True(json.TryGetProperty("missingNodeIdentities", out var identities));
+            var missing = Assert.Single(identities.EnumerateArray());
+            Assert.Equal("node-0", missing.GetProperty("nodeName").GetString());
+            Assert.Equal(sibling.Id, missing.GetProperty("environmentId").GetGuid());
+        }
+        void AssertOnlySiblingStale(ObservationEnvelope<MetricsDto> result)
+        {
+            var nodes = result.Data!.NodeHealth;
+            Assert.Equal(2, nodes.Count);
+            Assert.All(nodes, node => Assert.Equal("node-0", node.NodeName));
+            var fresh = Assert.Single(nodes, node => node.EnvironmentId == fixture.Environment.Id);
+            Assert.Equal("Available", fresh.Health);
+            Assert.Equal("Healthy", Assert.Single(fresh.Destinations).Health);
+            var stale = Assert.Single(nodes, node => node.EnvironmentId == sibling.Id);
+            Assert.Equal("Stale", stale.Health);
+            Assert.Empty(stale.Destinations);
+            Assert.Equal(SourceState.Partial, result.SourceState);
+            Assert.Equal("missing_or_stale_nodes", result.Coverage.Reason);
+            Assert.Equal(["node-0"], result.Coverage.MissingNodes);
+            Assert.Null(Value(result, "request_rps").Value);
+            AssertSiblingIdentity(result.Coverage);
+        }
+        AssertOnlySiblingStale(await Query());
+        var signals = services.ServiceProvider.GetRequiredService<ObservationSignalCoverage>();
+        foreach (var signal in new[] { "logs", "traces" })
+        {
+            var collection = await signals.QueryAsync(scope, range, signal, default);
+            Assert.Equal(SourceState.Partial, collection.State);
+            AssertSiblingIdentity(collection.Coverage);
+        }
+        var isolated = await metrics.QueryAsync(await Resolve(sibling.Id), range, new(null, null, null), default);
+        var onlyNode = Assert.Single(isolated.Data!.NodeHealth);
+        Assert.Equal(sibling.Id, onlyNode.EnvironmentId);
+        Assert.Equal("Stale", onlyNode.Health);
+        Assert.Equal(["node-0"], isolated.Coverage.MissingNodes);
+        Assert.Equal(0, Value(isolated, "request_count").SampleCount);
+        Assert.Empty(isolated.Data.Trends["request_rps"]);
+        Assert.False(JsonSerializer.SerializeToElement(isolated.Coverage, jsonOptions).TryGetProperty("missingNodeIdentities", out _));
+        source.PeerHeartbeat = (sibling.Id, 60);
+        AssertOnlySiblingStale(await Query());
+        source.PeerHeartbeat = (sibling.Id, 2);
+        var recovered = await Query();
+        Assert.Equal(SourceState.Available, recovered.SourceState);
+        Assert.True(recovered.Coverage.Complete);
+        Assert.Empty(recovered.Coverage.MissingNodes);
+        Assert.False(JsonSerializer.SerializeToElement(recovered.Coverage, jsonOptions).TryGetProperty("missingNodeIdentities", out _));
+        Assert.All(recovered.Data!.NodeHealth, node => Assert.Equal("Available", node.Health));
+        Assert.Equal(200, Value(recovered, "request_count").Value);
     }
     [Fact] public async Task DestinationLabelMustBelongToItsReportedEnvironment()
     {
@@ -164,21 +371,80 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
 {
     public Guid? UnhealthyDestinationId,UnhealthyClusterId;public Guid EnvironmentId,ApiId,ApplicationId,DestinationId,ClusterId;
     public Guid? ForeignEnvironmentId,SecondApiId,PolicyId;
-    public bool MissingSecondNode,ResetWindow,MiddleGap;
+    public string DefaultNodeName = "node-0";
+    public (Guid EnvironmentId, int AgeSeconds)? PeerHeartbeat;
+    public bool MissingSecondNode,ResetWindow,MiddleGap,NoDestination;
     public int Status=200;
     public DateTimeOffset End {get;set;}=DateTimeOffset.UtcNow.AddSeconds(-1);
-    public DateTimeOffset Start=>End.AddHours(-1);
+    public int WindowHours = 1;
+    public Guid[] RangeApplications = [];
+    public Func<CancellationToken, Task>? BeforeLatencyRange;
+    public DateTimeOffset Start=>End.AddHours(-WindowHours);
     public ConcurrentQueue<Uri> Requests {get;}=new();
-    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
+    private HttpResponseMessage ManyApplications(string query, bool histogram)
+    {
+        var apps = RangeApplications.Where(id => !query.Contains("webapi_application_id=~", StringComparison.Ordinal)
+            || query.Contains(id.ToString(), StringComparison.Ordinal)).ToArray();
+        var groupsByApp = query[..query.IndexOf(')')].Contains("webapi_application_id", StringComparison.Ordinal);
+        const int responseLimit = 8 * 1024 * 1024;
+        if (histogram && groupsByApp && apps.Length * 14 * 599 * 20 > responseLimit)
+            return new(HttpStatusCode.OK) { Content = new ByteArrayContent(new byte[responseLimit + 1]) };
+
+        var points = new[] { Start.AddSeconds(30).ToUnixTimeSeconds(), End.AddSeconds(-1).ToUnixTimeSeconds() };
+        var rows = new List<object>();
+        var labels = new Dictionary<string, string> { ["webapi_environment_id"] = EnvironmentId.ToString() };
+        if (histogram)
+        {
+            foreach (var boundary in new[] { "0.1", "+Inf" })
+                Add(new(labels) { ["le"] = boundary });
+        }
+        else
+        {
+            labels["webapi_success"] = "true";
+            labels["http_response_status_code"] = "200";
+            Add(labels);
+        }
+        return new(HttpStatusCode.OK) { Content = JsonContent.Create(new
+        {
+            status = "success",
+            data = new { resultType = "matrix", result = rows }
+        }) };
+
+        void Add(Dictionary<string, string> metric)
+        {
+            if (apps.Length != 0)
+                rows.Add(new { metric, values = points.Select(point => new object[] { point, apps.Length.ToString(CultureInfo.InvariantCulture) }) });
+        }
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
     {
         Requests.Enqueue(request.RequestUri!);var query=QueryHelpers.ParseQuery(request.RequestUri!.Query)["query"].ToString();
-        var rows=new List<object>();Dictionary<string,string> Labels(string? node=null)=>new(){["webapi_environment_id"]=EnvironmentId.ToString(),["service_instance_id"]=node??"node-0",["webapi_api_id"]=ApiId.ToString(),["webapi_application_id"]=ApplicationId.ToString(),["webapi_destination_id"]=DestinationId.ToString(),["webapi_cluster_id"]=ClusterId.ToString(),["http_response_status_code"]="200",["webapi_outcome"]="Completed",["webapi_success"]="true"};
+        var range = request.RequestUri.AbsolutePath.EndsWith("query_range", StringComparison.Ordinal);
+        if (range && BeforeLatencyRange is not null && query.Contains("webapi_gateway_request_duration_seconds_bucket", StringComparison.Ordinal))
+            await BeforeLatencyRange(ct);
+        if (RangeApplications.Length != 0 && range)
+        {
+            var histogram = query.Contains("webapi_gateway_request_duration_seconds_bucket", StringComparison.Ordinal);
+            if (histogram || query.Contains("webapi_gateway_requests_total", StringComparison.Ordinal))
+                return ManyApplications(query, histogram);
+        }
+        var rows=new List<object>();Dictionary<string,string> Labels(string? node=null)=>new(){["webapi_environment_id"]=EnvironmentId.ToString(),["service_instance_id"]=node??DefaultNodeName,["webapi_api_id"]=ApiId.ToString(),["webapi_application_id"]=ApplicationId.ToString(),["webapi_destination_id"]=NoDestination?"None":DestinationId.ToString(),["webapi_cluster_id"]=ClusterId.ToString(),["http_response_status_code"]="200",["webapi_outcome"]="Completed",["webapi_success"]="true"};
         var stamp=End.ToUnixTimeMilliseconds()/1000d;
         void Add(Dictionary<string,string> labels,double value)=>rows.Add(new{metric=labels,value=new object[]{stamp,value.ToString(CultureInfo.InvariantCulture)}});
         if(query.Contains("otelcol_",StringComparison.Ordinal))Add(new(),0);
         else if(query.Contains("last_loss_timestamp",StringComparison.Ordinal))Add(Labels(),0);
         else if(query.Contains("last_observed_timestamp",StringComparison.Ordinal))
-        {var time=query.Contains("min_over_time",StringComparison.Ordinal)?Start.AddSeconds(5):End.AddSeconds(-2);var value=query.Contains("max_over_time",StringComparison.Ordinal)?MiddleGap?90:5:time.ToUnixTimeMilliseconds()/1000d;Add(Labels(),value);if(!MissingSecondNode)Add(Labels("node-1"),value);}
+        {
+            var time=query.Contains("min_over_time",StringComparison.Ordinal)?Start.AddSeconds(5):End.AddSeconds(-2);var value=query.Contains("max_over_time",StringComparison.Ordinal)?MiddleGap?90:5:time.ToUnixTimeMilliseconds()/1000d;Add(Labels(),value);if(!MissingSecondNode)Add(Labels("node-1"),value);
+            if (PeerHeartbeat is { } peer)
+            {
+                var labels = Labels();
+                labels["webapi_environment_id"] = peer.EnvironmentId.ToString();
+                Add(labels, query.StartsWith("webapi_telemetry_last_observed_timestamp_seconds", StringComparison.Ordinal)
+                    ? stamp - peer.AgeSeconds : value);
+            }
+        }
         else if(query.Contains("webapi_gateway_policy_decisions_total",StringComparison.Ordinal))
         {if(PolicyId is Guid policy){Add(new(){["webapi_environment_id"]=EnvironmentId.ToString(),["webapi_policy_id"]=policy.ToString(),["webapi_policy_type"]="rate_limit",["webapi_policy_decision"]="Bypass"},7);Add(new(){["webapi_environment_id"]=EnvironmentId.ToString(),["webapi_policy_id"]=policy.ToString(),["webapi_policy_type"]="circuit_breaker",["webapi_policy_decision"]="OpenRejected"},3);}}
         else if(query.Contains("_bucket",StringComparison.Ordinal))
@@ -187,7 +453,7 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
         else if(query.Contains("dropped_total",StringComparison.Ordinal)||query.Contains("export_failures_total",StringComparison.Ordinal)){}
         else if(query.Contains("webapi_gateway_requests_total",StringComparison.Ordinal)){Add(Labels(),ResetWindow?6:200);if(SecondApiId is Guid second){var fast=Labels();fast["webapi_api_id"]=second.ToString();Add(fast,400);}if(ForeignEnvironmentId is Guid foreign){var labels=Labels();labels["webapi_environment_id"]=foreign.ToString();Add(labels,999999);}}
         if(request.RequestUri.AbsolutePath.EndsWith("query_range",StringComparison.Ordinal))
-        {var matrix=rows.Select(row=>JsonSerializer.SerializeToElement(row)).Select(row=>new{metric=row.GetProperty("metric"),values=new[]{new object[]{Start.AddSeconds(30).ToUnixTimeMilliseconds()/1000d,"0.5"},new object[]{End.AddSeconds(-1).ToUnixTimeMilliseconds()/1000d,"1"}}});return Task.FromResult(new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="matrix",result=matrix}})});}
-        return Task.FromResult(new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=rows}})});
+        {var matrix=rows.Select(row=>JsonSerializer.SerializeToElement(row)).Select(row=>new{metric=row.GetProperty("metric"),values=new[]{new object[]{Start.AddSeconds(30).ToUnixTimeMilliseconds()/1000d,"0.5"},new object[]{End.AddSeconds(-1).ToUnixTimeMilliseconds()/1000d,"1"}}});return new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="matrix",result=matrix}})};}
+        return new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=rows}})};
     }
 }

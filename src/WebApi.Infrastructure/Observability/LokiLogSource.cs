@@ -40,7 +40,7 @@ public sealed class LokiLogSource(ObservationSourceClient client,ObservationSour
         var id=Id("webapi_log_id");if(id is null)return null;
         var environmentText=Text("webapi_environment_id");if(environmentText is not null&&environmentText!=environment.ToString())return null;
         var apiKey=Text("webapi_api_id");var api=Id("webapi_api_id");if(api is Guid a&&!scope.ApiNames.ContainsKey(a)||api is null&&apiKey!="Unmatched")return null;
-        var app=Text("webapi_application_id");if(app is null)return null;if(Guid.TryParse(app,out var appId)){if(!scope.ApplicationNames.ContainsKey(appId))return null;}else if(app is not("Unknown" or "Anonymous"))return null;
+        var app=Text("webapi_application_id");if(app is null)return null;if(Guid.TryParse(app,out var appId)){if(!scope.ContainsApplication(environment,appId))return null;}else if(app is not("Unknown" or "Anonymous"))return null;
         var destinationKey=Text("webapi_destination_id");var destination=Id("webapi_destination_id");if(destination is Guid d&&(!scope.Destinations.TryGetValue(d,out var target)||target.EnvironmentId!=environment)||destination is null&&destinationKey!="None")return null;
         var path=Text("url_template",512);if(path is null||path!="[unmatched]"&&(!path.StartsWith('/')||path.Any(c=>c is '?' or '#')))return null;
         var method=Text("http_request_method",16);if(method is null||!method.All(char.IsAsciiLetter))return null;

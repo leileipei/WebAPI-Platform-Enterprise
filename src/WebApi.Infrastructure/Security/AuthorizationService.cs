@@ -13,13 +13,19 @@ public sealed class AuthorizationService(WebApiDbContext db) : IAuthorizationSer
     internal Task RequireArchivedCredentialRevocationAsync(ActorContext actor, ResourceRef resource, CancellationToken ct) =>
         RequireAsync(actor, "credential.revoke", resource, allowArchivedEnvironment: true, ct);
 
+    internal IQueryable<Permission> FunctionalPermissions(ActorContext actor, ScopeRef scope) =>
+        from membership in db.Set<UserRole>()
+        join role in db.Set<Role>() on membership.RoleId equals role.Id
+        join grant in db.Set<RolePermission>() on role.Id equals grant.RoleId
+        join permission in db.Set<Permission>() on grant.PermissionId equals permission.Id
+        where membership.UserId == actor.UserId && (role.OrganizationId == null || role.OrganizationId == scope.OrganizationId)
+        select permission;
+
     private async Task RequireAsync(ActorContext actor, string permission, ResourceRef resource, bool allowArchivedEnvironment,
         CancellationToken cancellationToken)
     {
         await new PasswordLifecycleGuard(db).RequireBusinessAccessAsync(actor,cancellationToken);
-        var functional=await (from ur in db.Set<UserRole>() join r in db.Set<Role>() on ur.RoleId equals r.Id
-            join rp in db.Set<RolePermission>() on r.Id equals rp.RoleId join p in db.Set<Permission>() on rp.PermissionId equals p.Id
-            where ur.UserId==actor.UserId && p.Code==permission && (r.OrganizationId==null || r.OrganizationId==resource.Scope.OrganizationId) select p.Id).AnyAsync(cancellationToken);
+        var functional=await FunctionalPermissions(actor,resource.Scope).AnyAsync(p=>p.Code==permission,cancellationToken);
         if(!functional) throw new ApiException(403,"permission_denied","缺少操作权限。");
         if(resource.Scope.OrganizationId==Guid.Empty)
         {

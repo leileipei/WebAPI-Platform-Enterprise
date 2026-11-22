@@ -35,6 +35,10 @@ public static class SsoProviderValidator
     {
         if(string.IsNullOrEmpty(path)||path.Length>2048||!path.StartsWith('/')||path.StartsWith("//",StringComparison.Ordinal)||path.Any(char.IsControl)||path.Contains('\\')||path.Contains('#'))return false;
         var route=path.Split('?',2)[0];if(route.Contains('%')||route.Split('/').Any(s=>s is "." or ".."))return false;
+        var page=route.EndsWith('/')?route[..^1]:route;
+        if(page is "/dashboard" or "/policies" or "/policies/new")return true;
+        const string policyPrefix="/policies/";
+        if(page.StartsWith(policyPrefix,StringComparison.Ordinal)&&page.Length==policyPrefix.Length+36&&Guid.TryParseExact(page.AsSpan(policyPrefix.Length),"D",out _))return true;
         string[] roots=["delivery","organizations","projects","environments","apis","imports","routes","clusters","applications","releases","approvals","snapshots","nodes","observability","users","roles","permissions","scopes","audit","settings","coverage"];
         return roots.Any(root=>route=="/"+root||route.StartsWith("/"+root+"/",StringComparison.Ordinal));
     }

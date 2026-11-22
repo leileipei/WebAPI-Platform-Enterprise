@@ -1,4 +1,5 @@
 using WebApi.Domain.Governance;
+using WebApi.Domain.Security;
 using WebApi.Infrastructure.Sso;
 using WebApi.Infrastructure.Settings;
 using System.Text.RegularExpressions;
@@ -164,7 +165,11 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
     public Task<CommandResult<UserDto>> SaveUserAsync(Guid id,UpdateUserRequest request,string? tag,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,platform,"user.update",async(_,token)=>{
         await Require(actor,"user.manage",platform,id,token);var user=await db.Set<UserRecord>().SingleOrDefaultAsync(x=>x.Id==id,token)??throw ScopeResolver.Missing();RevisionTag.Require(tag,user.Revision);
         if(string.IsNullOrWhiteSpace(request.DisplayName)||request.DisplayName.Length>128||request.Status is not ("Active" or "Disabled")||request.Email?.Length>256) throw new ApiException(422,"invalid_fields","用户字段不合法。");
-        if(request.Status=="Disabled") await ProtectAdminAsync(id,token);
+        if(request.Status=="Disabled")
+        {
+            await ProtectAdminAsync(id,token);
+            await ProtectOrganizationAdministratorsAsync(id,token);
+        }
         user.DisplayName=request.DisplayName;user.Email=request.Email;user.Status=request.Status;user.Revision++;user.UpdatedAt=DateTimeOffset.UtcNow;if(user.Status=="Disabled") user.SecurityStamp=Guid.NewGuid().ToString("N");return new CommandResult<UserDto>(await UserDtoAsync(user,token),RevisionTag.Format(user.Revision));
     },ct);
     private async Task ProtectAdminAsync(Guid id,CancellationToken ct)
@@ -173,10 +178,49 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         if(await admins.AnyAsync(x=>x==id,ct)&&!await admins.AnyAsync(x=>x!=id,ct)) throw new ApiException(409,"last_platform_admin","不能停用或撤销最后一位平台管理员。");
         await localAdministrators.ProtectRemovalAsync(id,ct);
     }
+    private async Task ProtectOrganizationAdministratorsAsync(Guid userId, CancellationToken ct,
+        Guid[]? retainedRoleIds = null, Guid[]? retainedOrganizationIds = null)
+    {
+        var activeGrants = SsoAdmission.ActiveOrganizationGrants(db);
+        var usableSsoAccounts = from identity in db.Set<UserExternalIdentity>()
+                                join provider in db.Set<SsoProvider>() on identity.ProviderId equals provider.Id
+                                where identity.Enabled && provider.Enabled && identity.Issuer == provider.Issuer &&
+                                    (provider.OrganizationId == null || activeGrants.Any(grant =>
+                                        grant.UserId == identity.UserId && grant.OrganizationId == provider.OrganizationId))
+                                select identity.UserId;
+        var administrators = from grant in db.Set<UserProjectScope>()
+                             join user in db.Set<UserRecord>() on grant.UserId equals user.Id
+                             join assignment in db.Set<UserRole>() on user.Id equals assignment.UserId
+                             join role in db.Set<Role>() on assignment.RoleId equals role.Id
+                             where user.Status == "Active" && grant.ProjectId == null && grant.EnvironmentId == null
+                                 && grant.AccessMode == "read_write" && role.IsSystem && role.OrganizationId == null
+                                 && role.Code == "OrganizationAdmin"
+                             select new
+                             {
+                                 grant.UserId, grant.OrganizationId, assignment.RoleId, user.MustChangePassword,
+                                 CanSignIn = user.AuthSource == "local" && user.PasswordHash != null && user.PasswordHash != ""
+                                     || user.AuthSource == "sso" && user.PasswordHash == null && usableSsoAccounts.Contains(user.Id)
+                             };
+
+        // The governance transaction lock covers both the old assignments and the pending write.
+        var lost = administrators.Where(member => member.UserId == userId);
+        if (retainedRoleIds is { Length: > 0 })
+            lost = lost.Where(member => !retainedRoleIds.Contains(member.RoleId));
+        if (retainedOrganizationIds is { Length: > 0 })
+            lost = lost.Where(member => !retainedOrganizationIds.Contains(member.OrganizationId));
+
+        // A ready administrator needs a ready successor. An administrator who can recover
+        // by changing their password may hand over to another recoverable administrator.
+        if (await lost.AnyAsync(member => !administrators.Any(other => other.UserId != userId
+                && other.OrganizationId == member.OrganizationId && other.CanSignIn
+                && (member.MustChangePassword || !other.MustChangePassword)), ct))
+            throw new ApiException(409, "last_organization_admin", "请先为该组织指定另一名可以履职的组织管理员。");
+    }
     public Task<CommandResult<UserDto>> AssignRolesAsync(Guid id,AssignRolesRequest request,string? tag,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,platform,"user.roles",async(_,token)=>{
         await Require(actor,"user.manage",platform,id,token);var user=await db.Set<UserRecord>().SingleOrDefaultAsync(x=>x.Id==id,token)??throw ScopeResolver.Missing();RevisionTag.Require(tag,user.Revision);
         var ids=request.RoleIds.Distinct().ToArray();var roles=await db.Set<Role>().Where(r=>ids.Contains(r.Id)).ToArrayAsync(token);if(roles.Length!=ids.Length) throw new ApiException(422,"invalid_role","角色不存在。");
         if(!roles.Any(r=>r.Code=="PlatformAdmin"&&r.IsSystem&&r.OrganizationId==null)) await ProtectAdminAsync(id,token);
+        await ProtectOrganizationAdministratorsAsync(id, token, retainedRoleIds: ids);
         db.RemoveRange(await db.Set<UserRole>().Where(x=>x.UserId==id&&!ids.Contains(x.RoleId)).ToArrayAsync(token));var old=await db.Set<UserRole>().Where(x=>x.UserId==id).Select(x=>x.RoleId).ToArrayAsync(token);
         foreach(var role in ids.Except(old)) db.Add(new UserRole {UserId=id,RoleId=role});user.Revision++;return new CommandResult<UserDto>(new(user.Id,user.Username,user.DisplayName,user.Email,user.Status,user.AuthSource,user.Revision,ids),RevisionTag.Format(user.Revision));
     },ct);
@@ -190,11 +234,52 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
             if(s.ProjectId is Guid p && (await scopes.ProjectAsync(p,token)).OrganizationId!=s.OrganizationId) throw new ApiException(422,"invalid_scope","项目不属于组织。");
             if(s.EnvironmentId is Guid e && (await scopes.EnvironmentAsync(e,token))!=s) throw new ApiException(422,"invalid_scope","环境不属于项目。");
         }
+        var retainedOrganizations = request.Scopes
+            .Where(grant => grant.Scope.ProjectId == null && grant.Scope.EnvironmentId == null && ScopeMatcher.CanWrite(grant.AccessMode))
+            .Select(grant => grant.Scope.OrganizationId).Distinct().ToArray();
+        await ProtectOrganizationAdministratorsAsync(id, token, retainedOrganizationIds: retainedOrganizations);
         db.RemoveRange(await db.Set<UserProjectScope>().Where(x=>x.UserId==id).ToArrayAsync(token));foreach(var g in request.Scopes.Distinct()) db.Add(new UserProjectScope {UserId=id,OrganizationId=g.Scope.OrganizationId,ProjectId=g.Scope.ProjectId,EnvironmentId=g.Scope.EnvironmentId,AccessMode=g.AccessMode});user.Revision++;
         return new CommandResult<IReadOnlyList<ScopeGrantDto>>(request.Scopes,RevisionTag.Format(user.Revision));
     },ct);
-    public async Task<IReadOnlyList<RoleDto>> RolesAsync(ActorContext actor,CancellationToken ct=default)
-    {await Require(actor,"role.manage",platform,Guid.Empty,ct);var list=await db.Set<Role>().AsNoTracking().OrderBy(x=>x.Name).ToArrayAsync(ct);var result=new List<RoleDto>();foreach(var r in list) result.Add(await RoleDtoAsync(r,ct));return result;}
+    public async Task<RoleDirectoriesDto> RoleDirectoriesAsync(ActorContext actor, CancellationToken ct = default)
+    {
+        var canManagePlatformRoles = await auth.CanAsync(actor, "role.manage", new("role", Guid.Empty, platform), ct);
+        var scopes = new CollectionAuthorizationQuery(db).Scopes(actor, "role.manage")
+            .Where(s => s.ProjectId == null && s.EnvironmentId == null);
+        var organizations = await db.Set<Organization>().AsNoTracking()
+            .Where(org => scopes.Any(s => s.OrganizationId == org.Id))
+            .OrderBy(org => org.Name).ThenBy(org => org.Id)
+            .Select(org => new RoleDirectoryOrganizationDto(org.Id, org.Name)).ToArrayAsync(ct);
+        return new(canManagePlatformRoles, organizations);
+    }
+
+    private async Task<ScopeRef> RequireRoleCatalogAsync(ActorContext actor, Guid? organizationId, CancellationToken ct)
+    {
+        if (organizationId == Guid.Empty)
+            throw new ApiException(422, "invalid_scope", "组织 ID 无效。");
+        var scope = organizationId is Guid id ? new ScopeRef(id) : platform;
+        await Require(actor, "role.manage", scope, scope.OrganizationId, ct);
+        return scope;
+    }
+
+    public Task<IReadOnlyList<RoleDto>> RolesAsync(ActorContext actor, CancellationToken ct = default) =>
+        RolesAsync(actor, null, ct);
+
+    public async Task<IReadOnlyList<RoleDto>> RolesAsync(ActorContext actor, Guid? organizationId, CancellationToken ct)
+    {
+        await RequireRoleCatalogAsync(actor, organizationId, ct);
+        var roles = db.Set<Role>().AsNoTracking();
+        if (organizationId.HasValue)
+            roles = roles.Where(r => r.OrganizationId == organizationId);
+
+        var permissions = from grant in db.Set<RolePermission>()
+                          join permission in db.Set<Permission>() on grant.PermissionId equals permission.Id
+                          select new { grant.RoleId, permission.Code };
+        return await roles.OrderBy(r => r.Name).ThenBy(r => r.Id)
+            .Select(r => new RoleDto(r.Id, r.Code, r.Name, r.OrganizationId, r.IsSystem, r.Revision,
+                permissions.Where(p => p.RoleId == r.Id).OrderBy(p => p.Code).Select(p => p.Code).ToArray()))
+            .ToArrayAsync(ct);
+    }
     private async Task<RoleDto> RoleDtoAsync(Role r,CancellationToken ct)=>new(r.Id,r.Code,r.Name,r.OrganizationId,r.IsSystem,r.Revision,await(from rp in db.Set<RolePermission>() join p in db.Set<Permission>() on rp.PermissionId equals p.Id where rp.RoleId==r.Id select p.Code).ToArrayAsync(ct));
     public Task<CommandResult<RoleDto>> CreateRoleAsync(SaveRoleRequest request,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,request.OrganizationId is Guid o?new(o):platform,"role.create",async(_,token)=>{
         var scope=request.OrganizationId is Guid org?new ScopeRef(org):platform;await Require(actor,"role.manage",scope,Guid.Empty,token);Validate(request.Code,request.Name);
@@ -222,7 +307,18 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         var r=await db.Set<Role>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw ScopeResolver.Missing();var scope=r.OrganizationId is Guid org?new ScopeRef(org):platform;
         await commands.ExecuteAsync(actor,scope,"role.delete",async(_,token)=>{await Require(actor,"role.manage",scope,id,token);var role=await db.Set<Role>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,role.Revision);if(role.IsSystem||await db.Set<UserRole>().AnyAsync(x=>x.RoleId==id,token)) throw new ApiException(409,"role_in_use","系统角色或已分配角色不能删除。");db.RemoveRange(await db.Set<RolePermission>().Where(x=>x.RoleId==id).ToArrayAsync(token));db.Remove(role);return true;},ct);
     }
-    public async Task<object> PermissionDictionaryAsync(ActorContext actor,CancellationToken ct=default) {await Require(actor,"role.manage",platform,Guid.Empty,ct);return await db.Set<Permission>().AsNoTracking().OrderBy(x=>x.Module).ThenBy(x=>x.Code).Select(x=>new {x.Id,x.Code,x.Module,x.Name,x.Description}).ToArrayAsync(ct);}
+    public async Task<object> PermissionDictionaryAsync(ActorContext actor, CancellationToken ct = default) =>
+        await PermissionDictionaryAsync(actor, null, ct);
+
+    public async Task<IReadOnlyList<PermissionDefinitionDto>> PermissionDictionaryAsync(ActorContext actor, Guid? organizationId, CancellationToken ct)
+    {
+        var scope = await RequireRoleCatalogAsync(actor, organizationId, ct);
+        // role.manage already requires writable access at the organization level.
+        var permissions = organizationId.HasValue ? auth.FunctionalPermissions(actor, scope).Distinct() : db.Set<Permission>();
+        return await permissions.AsNoTracking().OrderBy(p => p.Module).ThenBy(p => p.Code)
+            .Select(p => new PermissionDefinitionDto(p.Id, p.Code, p.Module, p.Name, p.Description))
+            .ToArrayAsync(ct);
+    }
     public async Task<AuditPageDto> AuditAsync(ActorContext actor,int page=1,int pageSize=50,CancellationToken ct=default,string? traceId=null,string? resourceId=null)
     {
         page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var query=await auditAccess.QueryAsync(actor,traceId,resourceId,ct);

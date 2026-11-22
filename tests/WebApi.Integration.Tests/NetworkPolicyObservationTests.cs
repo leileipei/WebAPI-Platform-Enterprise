@@ -15,7 +15,7 @@ public sealed class NetworkPolicyObservationTests
 {
     private static readonly Guid Env=Guid.NewGuid();
     private static readonly Dictionary<string,Guid> Ids=PolicyDecisionValues.Types.ToDictionary(t=>t,_=>Guid.NewGuid());
-    private static TrustedObservationScope Scope()=>new(Guid.NewGuid(),Guid.NewGuid(),[Env],[],new Dictionary<Guid,string>(),new Dictionary<Guid,string>(),new Dictionary<Guid,ObservationDestination>(),new Dictionary<Guid,IReadOnlySet<Guid>>{{Env,Ids.Values.ToHashSet()}});
+    private static TrustedObservationScope Scope()=>new(Guid.NewGuid(),Guid.NewGuid(),[Env],[],new Dictionary<Guid,string>(),new Dictionary<Guid,ObservationApplication>(),new Dictionary<Guid,ObservationDestination>(),new Dictionary<Guid,IReadOnlySet<Guid>>{{Env,Ids.Values.ToHashSet()}});
     private static Dictionary<string,string> Attributes()
     {var attributes=new Dictionary<string,string>();foreach(var type in Ids.Keys){var prefix="webapi.policy."+type+".";attributes[prefix+"id"]=Ids[type].ToString();attributes[prefix+"type"]=type;attributes[prefix+"revision"]="1";attributes[prefix+"decision"]=type switch{"cache"=>"Miss","retry"=>"Bypass","transform"=>"Rejected",_=>"Allowed"};if(type=="retry")attributes[prefix+"rejection_reason"]="single_attempt";if(type=="transform"){attributes[prefix+"rejection_reason"]="transform_json_operation_failed";attributes[prefix+"operation_index"]="2";attributes[prefix+"body_operation_count"]="0";}}return attributes;}
     [Fact]

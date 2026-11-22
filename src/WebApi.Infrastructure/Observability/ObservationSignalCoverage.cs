@@ -20,7 +20,7 @@ public sealed class ObservationSignalCoverage(ObservationSourceClient client,Obs
             await Task.WhenAll(latest,first,lost,failed,maxAge,lastLoss,downstream);var result=coverage.Evaluate(scope,range,await latest,await first,(await lost).Sum(x=>x.Value)+(await failed).Sum(x=>x.Value)+(await lastLoss).Count(x=>x.Value>=range.Start.ToUnixTimeMilliseconds()/1000d&&x.Value<range.End.ToUnixTimeMilliseconds()/1000d),await maxAge);
             if(result.Coverage.Complete&&await downstream)result=result with{State=SourceState.Partial,Coverage=result.Coverage with{Complete=false,Reason="collector_"+signal+"_collection_gap"}};
             return result.Coverage.Reason=="known_metrics_collection_gap"?result with{Coverage=result.Coverage with{Reason="known_"+signal+"_collection_gap"}}:result;
-        }catch(ApiException){return new(SourceState.Partial,null,new(false,scope.ExpectedNodes.Select(x=>x.NodeName).ToArray(),"collection_coverage_source_unavailable",false));}
-        catch(Exception e)when(e is JsonException or FormatException or ArgumentException or InvalidOperationException or KeyNotFoundException){return new(SourceState.Partial,null,new(false,[],"collection_coverage_source_unavailable",false));}
+        }catch(ApiException){return ObservationCoverage.Create(scope,SourceState.Partial,null,scope.ExpectedNodes,"collection_coverage_source_unavailable");}
+        catch(Exception e)when(e is JsonException or FormatException or ArgumentException or InvalidOperationException or KeyNotFoundException){return ObservationCoverage.Create(scope,SourceState.Partial,null,[],"collection_coverage_source_unavailable");}
     }
 }

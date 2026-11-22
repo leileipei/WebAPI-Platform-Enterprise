@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using WebApi.Contracts.Catalog;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
 using Xunit;
@@ -44,6 +45,96 @@ public sealed class CatalogTests(MigratedDatabaseTemplateFixture template) : ICl
         var foreignEnv=new EnvironmentRecord {ProjectId=api.Project.Id,Code="OTHER",Name="其他"};var foreign=new UpstreamCluster {ProjectId=api.Project.Id,EnvironmentId=foreignEnv.Id,Name="OtherBackend",LoadBalancingPolicy="RoundRobin",HealthCheckPath="/",HealthCheckIntervalSec=30};await using(var db=api.Context()) {db.AddRange(foreignEnv,foreign);await db.SaveChangesAsync();}
         using var result=await api.WriteAsync(HttpMethod.Post,$"/api/v1/environments/{api.Environment.Id}/routes",api.RouteBody("/orders",cluster:foreign.Id));Assert.Equal(HttpStatusCode.UnprocessableEntity,result.StatusCode);
         await using var check=api.Context();Assert.Empty(await check.Set<ApiRoute>().ToListAsync());
+        using var created = await api.WriteAsync(HttpMethod.Post, $"/api/v1/environments/{api.Environment.Id}/routes", api.RouteBody("/orders"));
+        created.EnsureSuccessStatusCode();
+        var route = (await created.Content.ReadFromJsonAsync<RouteDto>())!;
+        var turnOff = new SaveRouteRequest(route.Id, api.Version.Id, route.RouteName, route.Path, route.Methods, foreign.Id,
+            Enabled: false, TimeoutMs: route.TimeoutMs);
+        using var rebind = await api.WriteAsync(HttpMethod.Put, $"/api/v1/routes/{route.Id}", turnOff, created.Headers.ETag!.Tag);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, rebind.StatusCode);
+        Assert.Contains("foreign_cluster", await rebind.Content.ReadAsStringAsync());
+        Assert.True((await check.Set<ApiRoute>().SingleAsync()).Enabled);
+    }
+    [Fact]
+    public async Task DisabledClusterAllowsItsExistingRouteToBeTurnedOff()
+    {
+        await using var api = new ApiFixture(template.Template);
+        await api.InitializeAsync();
+        await api.SeedCatalogAsync();
+        using var login = await api.LoginAsync();
+        var routes = $"/api/v1/environments/{api.Environment.Id}/routes";
+        var request = new SaveRouteRequest(null, api.Version.Id, "Orders", "/orders", ["GET", "POST"], api.Cluster.Id, TimeoutMs: 30000);
+        using var created = await api.WriteAsync(HttpMethod.Post, routes, request);
+        created.EnsureSuccessStatusCode();
+        var route = (await created.Content.ReadFromJsonAsync<RouteDto>())!;
+        var path = $"/api/v1/routes/{route.Id}";
+        using var stopCluster = await api.WriteAsync(HttpMethod.Put, $"/api/v1/clusters/{api.Cluster.Id}",
+            new SaveClusterRequest(api.Cluster.Name, Status: "Disabled"), "\"1\"");
+        stopCluster.EnsureSuccessStatusCode();
+
+        var turnOff = request with { Enabled = false };
+        using var stale = await api.WriteAsync(HttpMethod.Put, path, turnOff, "\"0\"");
+        Assert.Equal(HttpStatusCode.PreconditionFailed, stale.StatusCode);
+        using var stopped = await api.WriteAsync(HttpMethod.Put, path, turnOff, created.Headers.ETag!.Tag);
+        Assert.True(stopped.IsSuccessStatusCode, await stopped.Content.ReadAsStringAsync());
+        var saved = (await api.Client.GetFromJsonAsync<RouteDto>(path))!;
+        Assert.False(saved.Enabled);
+        Assert.Equal(api.Cluster.Id, saved.ClusterId);
+        Assert.Equal(route.Revision + 1, saved.Revision);
+        await using var db = api.Context();
+        Assert.False(await db.Set<RouteMethod>().AnyAsync(x => x.RouteId == saved.Id));
+
+        using var retry = await api.WriteAsync(HttpMethod.Put, path, turnOff, created.Headers.ETag!.Tag);
+        Assert.Equal(HttpStatusCode.PreconditionFailed, retry.StatusCode);
+        foreach (var invalid in new[] { request, turnOff with { RouteName = "Changed" } })
+        {
+            using var result = await api.WriteAsync(HttpMethod.Put, path, invalid, stopped.Headers.ETag!.Tag);
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, result.StatusCode);
+            Assert.Contains("foreign_cluster", await result.Content.ReadAsStringAsync());
+        }
+        Assert.False((await api.Client.GetFromJsonAsync<RouteDto>(path))!.Enabled);
+
+        using var createReplacement = await api.WriteAsync(HttpMethod.Post, $"/api/v1/environments/{api.Environment.Id}/clusters",
+            new SaveClusterRequest("Replacement"));
+        createReplacement.EnsureSuccessStatusCode();
+        var replacement = (await createReplacement.Content.ReadFromJsonAsync<ClusterDto>())!;
+        using var restart = await api.WriteAsync(HttpMethod.Put, path, request with { ClusterId = replacement.Id }, stopped.Headers.ETag!.Tag);
+        restart.EnsureSuccessStatusCode();
+        Assert.Equal(new[] { "GET", "POST" }, await db.Set<RouteMethod>().Where(x => x.RouteId == route.Id)
+            .OrderBy(x => x.Method).Select(x => x.Method).ToArrayAsync());
+    }
+
+    [Fact]
+    public async Task DisabledClustersRejectNewRoutesAndRebindingEvenWhenTheRouteIsOff()
+    {
+        await using var api = new ApiFixture(template.Template);
+        await api.InitializeAsync();
+        await api.SeedCatalogAsync();
+        using var login = await api.LoginAsync();
+        var environment = $"/api/v1/environments/{api.Environment.Id}";
+        using var createCluster = await api.WriteAsync(HttpMethod.Post, environment + "/clusters",
+            new SaveClusterRequest("Unavailable", Status: "Disabled"));
+        createCluster.EnsureSuccessStatusCode();
+        var disabled = (await createCluster.Content.ReadFromJsonAsync<ClusterDto>())!;
+        var request = new SaveRouteRequest(null, api.Version.Id, "Orders", "/orders", ["GET"], disabled.Id, TimeoutMs: 30000);
+        foreach (var enabled in new[] { true, false })
+        {
+            using var create = await api.WriteAsync(HttpMethod.Post, environment + "/routes", request with { Enabled = enabled });
+            Assert.Equal(HttpStatusCode.UnprocessableEntity, create.StatusCode);
+            Assert.Contains("foreign_cluster", await create.Content.ReadAsStringAsync());
+        }
+
+        using var valid = await api.WriteAsync(HttpMethod.Post, environment + "/routes", request with { ClusterId = api.Cluster.Id });
+        valid.EnsureSuccessStatusCode();
+        var route = (await valid.Content.ReadFromJsonAsync<RouteDto>())!;
+        var path = $"/api/v1/routes/{route.Id}";
+        using var rebind = await api.WriteAsync(HttpMethod.Put, path, request with { Enabled = false }, valid.Headers.ETag!.Tag);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, rebind.StatusCode);
+        Assert.Contains("foreign_cluster", await rebind.Content.ReadAsStringAsync());
+        var unchanged = (await api.Client.GetFromJsonAsync<RouteDto>(path))!;
+        Assert.True(unchanged.Enabled);
+        Assert.Equal(api.Cluster.Id, unchanged.ClusterId);
+        Assert.Equal(route.Revision, unchanged.Revision);
     }
     [Fact] public async Task LastDestinationProtected()
     {

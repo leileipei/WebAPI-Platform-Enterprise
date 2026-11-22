@@ -11,7 +11,7 @@ public static class TraceProjection
         {
             if(span.EnvironmentId is not Guid env||!scope.EnvironmentIds.Contains(env)){partial=true;continue;}
             var attrs=span.Attributes;var tags=new Dictionary<string,string>{{"webapi.environment.id",env.ToString()}};
-            if(!Resource("webapi.api.id",scope.ApiNames.ContainsKey,["Unmatched"])||!Resource("webapi.application.id",scope.ApplicationNames.ContainsKey,["Anonymous","Unknown"])||!Resource("webapi.destination.id",id=>scope.Destinations.TryGetValue(id,out var dest)&&dest.EnvironmentId==env,["None"])) {partial=true;continue;}
+            if(!Resource("webapi.api.id",scope.ApiNames.ContainsKey,["Unmatched"])||!Resource("webapi.application.id",id=>scope.ContainsApplication(env,id),["Anonymous","Unknown"])||!Resource("webapi.destination.id",id=>scope.Destinations.TryGetValue(id,out var dest)&&dest.EnvironmentId==env,["None"])) {partial=true;continue;}
             bool Resource(string key,Func<Guid,bool> exists,string[] placeholders){if(!attrs.TryGetValue(key,out var value))return true;if(Guid.TryParse(value,out var id)&&exists(id)){tags[key]=id.ToString();return true;}if(placeholders.Contains(value)){tags[key]=value;return true;}return false;}
             if(!seen.Add(span.SpanId)){partial=true;continue;}
             if(attrs.TryGetValue("http.request.method",out var method)&&method.Length<=16&&method.All(c=>c is >= 'A' and <= 'Z'))tags["http.request.method"]=method;

@@ -12,6 +12,7 @@ import type {Page} from '../api/types';
 
 type RouteTarget={api:Api;version:Version;environmentId:string};
 type RoutesProps={target?:RouteTarget;onChanged?:()=>void};
+type RouteCluster={id:string;name:string;status:string;projectId:string;environmentId:string};
 
 export function Routes({target,onChanged}:RoutesProps){
  const ws=useWorkspace(),{user}=useSession();
@@ -35,7 +36,11 @@ function RouteTable({api,target,selector,list,onChanged}:RoutesProps&{api?:Api;s
  useEffect(()=>()=>lifetime.abort(),[lifetime]);
  const versions=useRemote<Version[]>(api&&!target?`/apis/${api.id}/versions`:null);
  const choices=target?[target.version]:versions.data||[];
- const clusters=useRemote<Page<any>>(ws.environmentId?`/environments/${ws.environmentId}/clusters`:null,0,true);
+ const clusters=useRemote<Page<RouteCluster>>(ws.environmentId?`/environments/${ws.environmentId}/clusters`:null,0,true);
+ const clusterChoices=(clusters.data?.items??[]).filter(c=>c.environmentId===ws.environmentId&&c.projectId===ws.projectId&&
+  (c.status==='Active'||(c.status==='Disabled'&&edit?.id&&c.id===edit.clusterId)));
+ const firstActiveCluster=clusterChoices.find(c=>c.status==='Active');
+ const currentClusterDisabled=clusterChoices.some(c=>c.status==='Disabled');
  const allowed=!!ws.environmentId&&can('route.write',ws.scope,true)&&(!target||can('api.version.read',{organizationId:target.api.organizationId,projectId:target.api.projectId}));
  const defaults=useRemote<{timeoutMs:number;source:string}>(allowed?`/environments/${ws.environmentId}/route-defaults`:null);
  const matches=(row:any)=>!target||(row.apiVersionId===target.version.id&&row.environmentId===target.environmentId);
@@ -45,7 +50,9 @@ function RouteTable({api,target,selector,list,onChanged}:RoutesProps&{api?:Api;s
   ...(!target?[{key:'apiVersionId',label:'API 版本',required:true,options:choices.map(v=>({value:v.id,label:v.version+' · '+v.status}))}]:[]),
   {key:'path',label:'请求路径',required:true,help:'支持整段 {id} 与末尾 {*rest}，静态路由优先'},
   {key:'methodsText',label:'HTTP 方法',required:true,help:'多个方法以逗号分隔'},
-  {key:'clusterId',label:'后端集群',required:true,options:clusters.data?.items.map(c=>({value:c.id,label:c.name}))||[]},
+  {key:'clusterId',label:'后端集群',required:true,
+   options:clusterChoices.map(c=>({value:c.id,label:c.status==='Disabled'?c.name+'（已停用）':c.name})),
+   help:currentClusterDisabled?(edit.enabled?'当前集群已停用。可关闭路由，或选择启用的集群。':'当前集群已停用，请选择启用的集群。'):undefined},
   {key:'priority',label:'优先级',type:'number',required:true},
   {key:'timeoutMs',label:'基础超时 / 毫秒',type:'number',required:true,help:(edit?.id?'编辑保留原路由基础值':`新路由来源：${defaults.data?.source==='Saved'?'已保存平台默认':'兼容默认'}`)+'；显式值优先，启用的超时策略仍可覆盖'},
   {key:'enabled',label:'启用路由',type:'checkbox'},
@@ -67,8 +74,8 @@ function RouteTable({api,target,selector,list,onChanged}:RoutesProps&{api?:Api;s
  return <>
   <div className="breadcrumb">API 管理 / 路由配置</div>
   <div className="page-head"><div><h1>路由配置</h1><p>API 版本保持全局定义，路由单独关联当前环境</p></div>
-   <button className="btn primary" disabled={!allowed||!defaults.data||!choices.length||!clusters.data?.items.length} onClick={()=>setEdit({
-    apiVersionId:choices[0].id,clusterId:clusters.data!.items[0].id,methodsText:'GET',priority:100,
+   <button className="btn primary" disabled={!allowed||!defaults.data||!choices.length||!firstActiveCluster} onClick={()=>firstActiveCluster&&setEdit({
+    apiVersionId:choices[0].id,clusterId:firstActiveCluster.id,methodsText:'GET',priority:100,
     timeoutMs:routeDefaultInput({timeoutMs:30000,touched:false},defaults.data!),enabled:true,requireApiKey:true,authenticationSelection:'ApiKey'
    })}>＋ 新建路由</button>
   </div>
@@ -88,6 +95,7 @@ function RouteTable({api,target,selector,list,onChanged}:RoutesProps&{api?:Api;s
     if(latest.revision!==revision)throw new ApiError(412,'路由修订已变化，请核对最新绑定。');
    }:undefined} signal={lifetime.signal} close={()=>setBinding(undefined)} saved={()=>{setBinding(undefined);changed();}}/>}
   {edit&&<Editor explicitSubmitOnly allowed={allowed} title={edit.id?'编辑路由':'新建路由'} fields={fields} initial={edit}
+   maySave={value=>clusterChoices.some(c=>c.id===value.clusterId&&(c.status==='Active'||(edit.enabled===true&&value.enabled===false)))}
    close={()=>setEdit(undefined)} loadLatest={edit.id?()=>latestRoute(edit.id):undefined} save={async(value,key,fresh)=>{
     if(!allowed||lifetime.signal.aborted)throw Error('当前范围没有路由写权限');
     const body=routePolicyPayload(value,edit.id?edit:undefined);

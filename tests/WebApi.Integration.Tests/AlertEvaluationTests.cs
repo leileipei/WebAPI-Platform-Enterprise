@@ -55,6 +55,59 @@ public sealed class AlertEvaluationTests
         Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"operational"))));
         await using var read=f.Context();Assert.Equal("Open",(await read.Set<AlertEvent>().SingleAsync()).Status);
     }
+    [Fact]
+    public async Task SharedApplicationTrafficTriggersEnvironmentAlertOnlyWhileInScope()
+    {
+        var setup = await Setup();
+        await using var f = setup.Fixture;
+        var shared = await SharedObservationFixture.AddApplicationAsync(f);
+        setup.Handler.Inner.ApplicationId = shared.Id;
+        Assert.True(await Evaluate(f, Assert.Single(await ClaimCurrent(f, "shared"))));
+        await using (var db = f.Context())
+        {
+            Assert.Equal("Open", (await db.Set<AlertEvent>().SingleAsync()).Status);
+            db.Remove(await db.Set<ApplicationApiPermission>().SingleAsync());
+            await db.SaveChangesAsync();
+        }
+        Assert.True(await Evaluate(f, await Next(f)));
+        await using var read = f.Context();
+        Assert.Equal("Resolved", (await read.Set<AlertEvent>().SingleAsync()).Status);
+    }
+
+    [Fact]
+    public async Task SharedApplicationOrganizationAlertCountsOnlyTheTwoGrantedEnvironments()
+    {
+        var setup = await Setup();
+        await using var f = setup.Fixture;
+        var shared = await SharedObservationFixture.AddApplicationAsync(f);
+        var (_, api, allowed, denied) = await SharedObservationFixture.AddSecondProjectAsync(f, shared.Id);
+        using var existing = await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");
+        var rule = (await existing.Content.ReadFromJsonAsync<AlertRuleDto>())!;
+        using var saved = await f.WriteAsync(HttpMethod.Put, $"/api/v1/observability/alert-rules/{setup.Rule}",
+            rule.Definition with { ProjectId = null, EnvironmentId = null }, "\"1\"");
+        saved.EnsureSuccessStatusCode();
+
+        var source = setup.Handler.Inner;
+        source.ApplicationId = shared.Id;
+        source.NoDestination = true;
+        var leases = await ClaimCurrent(f, "organization-rule");
+        Assert.Equal(3, leases.Count);
+        foreach (var lease in leases)
+        {
+            source.EnvironmentId = lease.EnvironmentId;
+            source.ApiId = lease.EnvironmentId == f.Environment.Id ? f.Api.Id : api.Id;
+            source.DefaultNodeName = lease.EnvironmentId == f.Environment.Id ? "node-0" :
+                lease.EnvironmentId == allowed.Id ? "allowed-node" : "denied-node";
+            Assert.True(await Evaluate(f, lease));
+        }
+        await using var read = f.Context();
+        var events = await read.Set<AlertEvent>().Where(e => e.Status == "Open").Select(e => e.EnvironmentId).ToArrayAsync();
+        Assert.Equal(new[] { f.Environment.Id, allowed.Id }.Order(), events.Order());
+        var isolated = await read.Set<AlertEvaluationState>().SingleAsync(s => s.EnvironmentId == denied.Id);
+        Assert.Equal("Known", isolated.EvaluationState);
+        Assert.False(isolated.LastCondition);
+    }
+
     [Fact] public async Task TwoWorkersSameSlotCreateOneEvent()
     {
         var setup=await Setup();await using var f=setup.Fixture;var slot=await Slot(f);var claimed=await ClaimSameSlot(f,slot);var lease=Assert.Single(claimed.SelectMany(x=>x));

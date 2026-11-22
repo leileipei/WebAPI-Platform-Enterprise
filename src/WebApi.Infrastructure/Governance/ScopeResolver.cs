@@ -14,7 +14,13 @@ public sealed class ScopeResolver(WebApiDbContext db)
     public async Task<ScopeRef> ApiAsync(Guid id,CancellationToken ct=default)
     {var a=await db.Set<Api>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw Missing();return new(a.OrganizationId,a.ProjectId);}
     public async Task<ScopeRef> VersionAsync(Guid id,CancellationToken ct=default)
-    {var v=await db.Set<ApiVersion>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw Missing();return await ApiAsync(v.ApiId,ct);}
+    {
+        var scope = from version in db.Set<ApiVersion>()
+                    join api in db.Set<Api>() on version.ApiId equals api.Id
+                    where version.Id == id
+                    select new ScopeRef(api.OrganizationId, api.ProjectId, null);
+        return await scope.SingleOrDefaultAsync(ct) ?? throw Missing();
+    }
     public async Task<ScopeRef> ApplicationAsync(Guid id,CancellationToken ct=default)
     {var a=await db.Set<ApplicationRecord>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw Missing();return new(a.OrganizationId,a.ProjectId);}
 }

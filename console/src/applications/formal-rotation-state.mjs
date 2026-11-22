@@ -1,3 +1,5 @@
+import {credentialInstantTicks as instant} from './application-state.mjs';
+
 const receiptStates = new Set(['Scheduled', 'ManualRevocationRecorded', 'AbortPending', 'Aborted', 'RevocationRecorded']);
 const verificationStates = new Set(['Verified', 'AwaitingProof', 'Unavailable', 'Closed']);
 const positiveRevision = value => Number.isSafeInteger(value) && value > 0;
@@ -21,18 +23,6 @@ export function formalRotationScope(application, credential, tree, can) {
 export function formalRotationCandidates(old, credentials) {
   return credentials.filter(item => item.id !== old.id && rotationGuid(item.id) && item.status === 'Active' &&
     item.bindingMode === 'EnvironmentBound' && item.environmentId === old.environmentId && item.applicationId === old.applicationId);
-}
-
-// Compare instants without losing the database precision of the selected credential.
-function instant(value) {
-  if (typeof value !== 'string') return null;
-  const parts = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,7}))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
-  if (!parts) return null;
-  const utcMillis = Date.parse(parts[1] + parts[3]);
-  const localMillis = Date.parse(parts[1] + 'Z');
-  if (!Number.isFinite(utcMillis) || !Number.isFinite(localMillis) ||
-      new Date(localMillis).toISOString().slice(0,19) !== parts[1]) return null;
-  return BigInt(utcMillis) * 10000n + BigInt((parts[2] || '').padEnd(7, '0'));
 }
 
 function fromUtcInput(value) {

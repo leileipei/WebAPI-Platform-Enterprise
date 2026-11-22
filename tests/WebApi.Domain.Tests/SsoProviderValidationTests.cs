@@ -39,5 +39,21 @@ public sealed class SsoProviderValidationTests
     [InlineData("/delivery/artifacts/artifact-a",true)]
     [InlineData("/delivery/policy",true)]
     [InlineData("/delivery%2fother",false)]
+    [InlineData("/dashboard",true)]
+    [InlineData("/dashboard/",true)]
+    [InlineData("/policies",true)]
+    [InlineData("/policies/",true)]
+    [InlineData("/policies/19aea78b-3259-4fa5-b1a4-667e7a57e1be",true)]
+    [InlineData("/policies/19aea78b-3259-4fa5-b1a4-667e7a57e1be/",true)]
+    [InlineData("/policies/new?type=timeout&scope=project",true)]
+    [InlineData("/dashboard/reports",false)]
+    [InlineData("/policies/unknown-page",false)]
     public void ReturnPathCannotEscapeProductNavigation(string path,bool expected)=>Assert.Equal(expected,SsoProviderValidator.IsSafeReturnPath(path));
+
+    [Fact] public void PolicyReturnPathKeepsTheExistingLengthLimit()
+    {
+        var path="/policies?search=".PadRight(2048,'a');
+        Assert.True(SsoProviderValidator.IsSafeReturnPath(path));
+        Assert.False(SsoProviderValidator.IsSafeReturnPath(path+"a"));
+    }
 }

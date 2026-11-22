@@ -9,7 +9,7 @@
 |range.start/end|UTC ISO时间，[start,end)，最大7天|
 |sourceState|Available/NoData/Partial/Unavailable/Stale/NotApplicable；不能以0替代未知|
 |observedAt|真实源观测事实；显示年龄，不当作当前健康证明|
-|coverage|complete、missingNodes、reason、truncated；预期集合是启用的已登记节点|
+|coverage|complete、missingNodes、reason、truncated。预期集合是已启用的登记节点。missingNodes 列出缺失或过期的节点名。若其中一个名称对应查询范围内的多个环境，missingNodeIdentities 额外列出各缺失节点的 environmentId 和 nodeName。|
 |sampling|部署比例及模式；只影响Trace，远端未采样父节点仍受尊重|
 |KPI value/unit/sampleCount/state|可空数值、单位、样本与独立状态|
 

@@ -3,7 +3,7 @@ import {useRemote,Feedback,Details,Table} from '../ui';
 import {useWorkspace,Link,navigate,allowNavigation} from '../Shell';
 import {useSession} from '../auth/SessionProvider';
 import {apiRequest} from '../api/client';
-import type {Api,ApiDetail,Version} from '../api/catalog';
+import {apiDetailPath,type Api,type ApiDetail,type Version} from '../api/catalog';
 import {ApiDetailPage} from './ApiDetail';
 import {SchemaEditor} from './SchemaEditor';
 import {Routes} from './Routes';
@@ -22,9 +22,8 @@ function Wizard({id,search}:{id:string;search:string}){
  const [versionId,setVersion]=useState<string>(),[draft,setDraft]=useState<any>(),[handoff,setHandoff]=useState<any>();
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[handoffLoading,setHandoffLoading]=useState(!!reviewId);
  const controller=useRef(new AbortController()),createKey=useRef<string|undefined>(undefined),submitKey=useRef<string|undefined>(undefined);
- const remote=useRemote<ApiDetail>(`/apis/${id}`),d=remote.data;
+ const remote=useRemote<ApiDetail>(apiDetailPath(id,ws.environmentId),0,false,true),d=remote.data;
  const version=d?.versions.find(v=>v.id===versionId&&v.apiId===id&&v.status!=='Retired');
- const scope=d?{organizationId:d.api.organizationId,projectId:d.api.projectId}:undefined;
  const environment=ws.tree.environments.find(e=>e.id===ws.environmentId);
  const inScope=!!d&&d.api.id===id&&d.api.organizationId===ws.organizationId&&d.api.projectId===ws.projectId&&environment?.projectId===d.api.projectId;
  const ready=!!version&&inScope&&!remote.loading&&!remote.error&&!handoffLoading&&(!reviewId||handoff?.targetVersionId===version.id);
@@ -125,7 +124,7 @@ function Wizard({id,search}:{id:string;search:string}){
    {step===0||step===1?<ApiDetailPage id={id} wizard={{
     remote,version,locked:busy||!!reviewId||remote.loading||!!remote.error,onSelect:selectVersion,onSaved:refreshVersion,
    }}/>:step===2||step===3?<div className="card">
-    {version?<SchemaEditor key={version.id+step} version={version} kind={step===2?'parameters':'schemas'} allowed={can(step===2?'api.version.write':'api.schema.write',scope,true)} reloadVersion={refreshVersion}/>:<div className="empty">请先选择版本</div>}
+    {version?<SchemaEditor key={version.id+step} version={version} kind={step===2?'parameters':'schemas'} detail={d} checking={remote.loading||!!remote.error||d.api.id!==id} reloadVersion={refreshVersion}/>:<div className="empty">请先选择版本</div>}
    </div>:step===4?(ready&&version?
     <Routes key={JSON.stringify([id,version.id,ws.environmentId])} target={{api:d.api,version,environmentId:ws.environmentId}} onChanged={clearDraft}/>:
     <p className="notice">请选择此 API 的可用版本与所属项目下的环境。</p>
