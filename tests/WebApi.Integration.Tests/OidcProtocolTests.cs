@@ -4,9 +4,12 @@ using System.Text.Json;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using WebApi.Contracts.Common;
 using WebApi.Contracts.Policies;
+using WebApi.Contracts.Sso;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Sso;
 using WebApi.Integration.Tests.Support;
@@ -67,6 +70,74 @@ public sealed class OidcProtocolTests
         Assert.Equal(HttpStatusCode.SeeOther,response.StatusCode);Assert.False(HasSession(response));Assert.Contains("ssoError=cancelled",response.Headers.Location!.ToString());Assert.Equal(0,fixture.Identity.Redemptions);
         await using var db=fixture.Api.Context();Assert.Equal(1,await db.Set<SsoLoginAttempt>().CountAsync(x=>x.State=="Failed"&&x.FailureCode=="cancelled"));
         Assert.Equal(1,await db.Set<AuditLog>().CountAsync(x=>x.Action=="auth.sso.failed"));
+    }
+    [Theory]
+    [InlineData(true,false,false)]
+    [InlineData(true,true,false)]
+    [InlineData(true,true,true)]
+    [InlineData(false,true,true)]
+    public async Task CancellationRestoresTheEntryDirectoryAndLocalDestination(bool organizationEntry,bool platformEnabled,bool selectPlatform)
+    {
+        await using var fixture=new OidcProtocolFixture();
+        await fixture.InitializeAsync();
+        var organization=fixture.Api.Organization.Id;
+        var platform=fixture.Provider;
+        var scoped=await fixture.AddProviderAsync("organization-client",organization);
+        if(!platformEnabled)
+        {
+            using var disabled=await fixture.Api.WriteAsync(HttpMethod.Post,$"/api/v1/settings/sso/providers/{platform.Id}/disable",new{},RevisionTag.Format(platform.Revision));
+            disabled.EnsureSuccessStatusCode();
+        }
+        async Task<Guid[]> DirectoryIds(string? entry)
+        {
+            var path="/api/v1/auth/sso/providers";
+            if(entry is not null)path=QueryHelpers.AddQueryString(path,"organizationId",entry);
+            var rows=await fixture.Browser.GetFromJsonAsync<PublicSsoProviderDto[]>(path);
+            return rows!.Select(row=>row.Id).Order().ToArray();
+        }
+        Guid? entry=organizationEntry?organization:null;
+        var expected=new List<Guid>();
+        if(organizationEntry)expected.Add(scoped.Id);
+        if(platformEnabled)expected.Add(platform.Id);
+        Assert.Equal(expected.Order(),await DirectoryIds(entry?.ToString()));
+
+        const string destination="/policies/new?type=timeout&scope=project";
+        fixture.Identity.Failure="cancelled";
+        using var start=await fixture.StartAsync(destination,providerId:selectPlatform?platform.Id:scoped.Id,organizationId:entry);
+        Assert.Equal(HttpStatusCode.Redirect,start.StatusCode);
+        using var authorization=await fixture.Browser.GetAsync(start.Headers.Location);
+        Assert.Equal(HttpStatusCode.Redirect,authorization.StatusCode);
+        var callback=QueryHelpers.AddQueryString(authorization.Headers.Location!.AbsoluteUri,"organizationId",Guid.NewGuid().ToString());
+        using var cancelled=await fixture.Browser.GetAsync(QueryHelpers.AddQueryString(callback,"returnPath","/users"));
+        Assert.Equal(HttpStatusCode.SeeOther,cancelled.StatusCode);
+        Assert.False(HasSession(cancelled));
+        Assert.Equal(0,fixture.Identity.Redemptions);
+        var redirect=cancelled.Headers.Location!;
+        Assert.False(redirect.IsAbsoluteUri);
+        var login=new Uri(fixture.Browser.BaseAddress!,redirect);
+        Assert.Equal("/login",login.AbsolutePath);
+        var query=QueryHelpers.ParseQuery(login.Query);
+        Assert.Equal("cancelled",query["ssoError"].ToString());
+        var returnedEntry=query.GetValueOrDefault("organizationId").SingleOrDefault();
+        Assert.Equal(expected.Order(),await DirectoryIds(returnedEntry));
+        Assert.Equal(entry?.ToString(),returnedEntry);
+        Assert.Equal(destination,query.GetValueOrDefault("returnPath").ToString());
+    }
+    [Fact] public async Task StartRejectsAnOrganizationOutsideTheSelectedDirectory()
+    {
+        await using var fixture=new OidcProtocolFixture();
+        await fixture.InitializeAsync();
+        var scoped=await fixture.AddProviderAsync("organization-client",fixture.Api.Organization.Id);
+        var other=new Organization{Code="OTHER",Name="其他组织"};
+        var inactive=new Organization{Code="INACTIVE",Name="停用组织",Status="Disabled"};
+        await using var db=fixture.Api.Context();
+        db.AddRange(other,inactive);
+        await db.SaveChangesAsync();
+        using var wrong=await fixture.StartAsync(providerId:scoped.Id,organizationId:other.Id);
+        using var disabled=await fixture.StartAsync(providerId:fixture.Provider.Id,organizationId:inactive.Id);
+        Assert.Equal(HttpStatusCode.NotFound,wrong.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound,disabled.StatusCode);
+        Assert.Empty(await db.Set<SsoLoginAttempt>().ToListAsync());
     }
     [Fact] public async Task UnknownBindingReturnsSanitizedLoginRedirectAndMarksAttemptFailed()
     {

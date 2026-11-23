@@ -11,7 +11,17 @@ export function safeSsoReturnPath(path){
  const roots=['delivery','organizations','projects','environments','apis','imports','routes','clusters','applications','releases','approvals','snapshots','nodes','observability','users','roles','permissions','scopes','audit','settings','coverage'];
  return roots.some(root=>route==='/'+root||route.startsWith('/'+root+'/'))?path:'/organizations';
 }
-export function createSsoStartForm(providerId,returnPath,csrfToken,reauthenticate=false,document=globalThis.document){if(!guid.test(providerId))throw Error('企业登录身份源无效。');const form=document.createElement('form');form.method='post';form.action='/api/v1/auth/sso/'+providerId+'/start';for(const [name,value] of [['__RequestVerificationToken',csrfToken],['returnPath',safeSsoReturnPath(returnPath)],['reauthenticate',reauthenticate?'true':'false']]){const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;form.appendChild(input);}return form;}
+export function createSsoStartForm(providerId,returnPath,csrfToken,reauthenticate=false,document=globalThis.document,organizationId){
+ if(!guid.test(providerId))throw Error('企业登录身份源无效。');
+ if(organizationId&&!guid.test(organizationId))throw Error('企业登录链接中的组织标识无效。');
+ const form=document.createElement('form');
+ form.method='post';
+ form.action='/api/v1/auth/sso/'+providerId+'/start'+(organizationId?'?organizationId='+encodeURIComponent(organizationId):'');
+ for(const [name,value] of [['__RequestVerificationToken',csrfToken],['returnPath',safeSsoReturnPath(returnPath)],['reauthenticate',reauthenticate?'true':'false']]){
+  const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;form.appendChild(input);
+ }
+ return form;
+}
 export async function completeSsoLogin({refresh,csrf,navigate,returnPath}){await refresh();await csrf();navigate(safeSsoReturnPath(returnPath));}
 export function ssoErrorMessage(search){const query=new URLSearchParams(search),code=query.get('ssoError'),messages={cancelled:'企业登录已取消，可重新选择身份源。',generic:'企业登录未完成，请重试或联系管理员。',protocol_error:'企业登录未完成，请重试或联系管理员。',configuration_unavailable:'企业身份源暂不可用，请重试或联系管理员。'};if(!Object.hasOwn(messages,code))return null;const trace=query.get('traceId');return messages[code]+(trace&&/^[a-zA-Z0-9:._-]{1,100}$/.test(trace)?'　追踪编号：'+trace:'');}
 
