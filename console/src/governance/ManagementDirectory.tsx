@@ -45,7 +45,7 @@ export function ManagementDirectory({entry,onClose,onSaved}:{entry:Entry;onClose
     <button className="text-btn" disabled={busy||kind==='owner'&&(detail.loading||!!detail.error||detail.data?.id!==row.id)} onClick={()=>setSelected(person)}>{kind==='owner'?'选为负责人':candidates?'指定为管理员':'移除管理员'}</button>
    </td></tr>)}</tbody></table>{!rows.length&&<p className="empty">没有匹配的人员</p>}</div><Pagination remote={list}/></>}
    {selected&&rows.some(x=>x.id===selected.id&&x.revision===selected.revision)&&!list.error&&!list.loading&&<section className="notice" role="alert" aria-label="确认人员变更">
-    <strong>{selected.displayName}（{selected.username}）</strong><p>{kind==='owner'?'确认将当前项目交接给此人？此次交接仅变更负责人。':candidates?'确认授予此人当前组织的组织管理员权限和组织级读写范围？':selected.legacyAdministrator?'此人持有全局组织管理员角色。移除后，该角色保留，当前组织的组织级读写范围降为只读。':'确认移除此人在当前组织的管理员角色？原有数据范围继续保留。'}</p>
+    <strong>{selected.displayName}（{selected.username}）</strong><p>{kind==='owner'?'确认将当前项目交接给此人？此次交接仅变更负责人。':candidates?'确认授予此人当前组织的组织管理员权限和组织级读写范围？':selected.legacyAdministrator?'此人持有全局组织管理员角色。本次任命授予的范围将被收回。若属于原有全局任职，本组织的读写范围将降为只读。':'确认移除此人在当前组织的管理员角色？另行配置的数据范围将继续生效。'}</p>
     <button className="btn" disabled={busy} onClick={()=>setSelected(undefined)}>取消</button><button className="btn primary" disabled={busy} onClick={()=>void save(selected)}>确认变更</button>
    </section>}
   </>}

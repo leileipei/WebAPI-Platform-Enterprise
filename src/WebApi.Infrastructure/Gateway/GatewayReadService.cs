@@ -49,17 +49,6 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
     }
     public async Task<ManagementSnapshot> SnapshotAsync(Guid env,long version,ActorContext actor,CancellationToken ct=default)
     {await RequireReadAsync(env,"gateway.config.read",actor,ct);var artifact=await history.ReadAsync(env,version,ct);var s=artifact.Snapshot;return new(s.SchemaVersion,s.EnvironmentId,s.ConfigVersion,s.GeneratedAt,s.Routes,s.Clusters,s.Policies,s.Applications.Select(a=>new ManagementApplication(a.Id,a.Status,a.Credentials.Select(k=>new ManagementCredential(k.Id,k.AccessKey,k.Status,k.ValidFrom,k.ExpiresAt)).ToArray(),a.Permissions)).ToArray());}
-    public async Task<SnapshotRollbackSource?> RollbackSourceAsync(Guid env,ActorContext actor,CancellationToken ct)
-    {
-        await RequireReadScopeAsync(env,"gateway.config.read",actor,ct);
-        var source=await (from e in db.Set<EnvironmentRecord>() join r in db.Set<ReleaseRecord>() on e.Id equals r.EnvironmentId
-            where e.Id==env && r.DeploymentSequence>0 && r.DeploymentSequence==e.DeploymentSequence && r.ToConfigVersion==e.DesiredConfigVersion
-                && (r.Status=="Succeeded" || r.Status=="Failed")
-            select new SnapshotRollbackSource(r.Id,r.ToConfigVersion,e.DeploymentSequence)).SingleOrDefaultAsync(ct);
-        if(source is null)return null;
-        var scope=await scopes.EnvironmentAsync(env,ct);
-        return await auth.CanAsync(actor,"release.rollback",new("release",source.ReleaseId,scope),ct)?source:null;
-    }
     public async Task<PageResult<SnapshotInfo>> SnapshotsAsync(Guid env,ActorContext actor,int page=1,int size=50,CancellationToken ct=default)
     {
         await RequireReadScopeAsync(env,"gateway.config.read",actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);

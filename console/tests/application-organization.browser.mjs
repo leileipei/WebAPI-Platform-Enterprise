@@ -16,13 +16,13 @@ let browser;
 before(async () => { browser = await chromium.launch({executablePath:process.env.WEBAPI_CHROMIUM_EXECUTABLE}); });
 after(async () => { await browser?.close(); });
 
-async function fixture(t,{selected=orgA,sharedWithoutProjects=false,detailWait,scopeUnavailable=false}={}) {
+async function fixture(t,{selected=orgA,sharedWithoutProjects=false,detailWait,scopeUnavailable=false,writableOrganizations=[orgA,orgB]}={}) {
   const page = await browser.newPage();
   t.after(() => page.close());
   page.setDefaultTimeout(5000);
   await page.addInitScript(org => localStorage.setItem('core-organization',org),selected);
-  const organizations = [{id:orgA,name:'甲组织'},{id:orgB,name:'乙组织'}];
-  const projects = [{id:projectA,organizationId:orgA,name:'甲项目'},{id:projectB,organizationId:orgB,name:'乙项目'}];
+  const organizations = [{id:orgA,name:'甲组织',status:'Active'},{id:orgB,name:'乙组织',status:'Active'}];
+  const projects = [{id:projectA,organizationId:orgA,name:'甲项目',status:'Active'},{id:projectB,organizationId:orgB,name:'乙项目',status:'Active'}];
   const environments = [{id:envA,projectId:projectA,name:'甲环境'},{id:envB,projectId:projectB,name:'乙环境'}];
   const apps = organizations.map((org,i)=>({id:[appA,appB][i],organizationId:org.id,
     projectId:sharedWithoutProjects && i===0 ? null : projects[i].id, name:'订单应用',code:'ORDERS',
@@ -37,6 +37,7 @@ async function fixture(t,{selected=orgA,sharedWithoutProjects=false,detailWait,s
     else writes.push({method,path,body:request.postDataJSON(),etag:request.headers()['if-match']});
     if (path==='/auth/me') return reply({id:id(11),username:'operator',displayName:'业务管理员',authSource:'local',
       permissions:['app.read','app.write','credential.manage','api.read','app.permission.manage'],
+      rolePermissions:writableOrganizations.map(organizationId=>({organizationId,permissions:['app.write']})),
       scopes:organizations.map(o=>({scope:{organizationId:o.id},accessMode:'read_write'}))});
     if (path==='/auth/csrf') return reply({token:'test-csrf'});
     if (path==='/scope-tree') {
@@ -325,6 +326,16 @@ test('a selected organization requests only its first page and can create a shar
   await editor.getByLabel('应用编码').fill('SHARED');await editor.getByLabel('应用名称').fill('共享接入');await editor.getByLabel('负责人').fill('负责人');
   await button(editor,'保存').click();await editor.waitFor({state:'hidden'});
   assert.equal(writes.length,1);assert.equal(writes[0].body.organizationId,orgA);assert.equal(writes[0].body.projectId,null);
+});
+
+test('application creation never combines another organization’s function with local write scope',async t=>{
+  const {page,open,writes}=await fixture(t,{writableOrganizations:[orgA]});
+  await open('/applications');
+  await button(page,'＋ 新建应用').waitFor();
+  await organization(page).selectOption(orgB);
+  await page.getByRole('cell',{name:'乙组织负责人'}).waitFor();
+  assert.equal(await button(page,'＋ 新建应用').count(),0);
+  assert.deepEqual(writes,[]);
 });
 
 test('the credential creation form can bind a replacement credential to the actual application environment',async t=>{

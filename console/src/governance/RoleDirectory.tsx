@@ -51,6 +51,7 @@ function Catalog({kind,scope,directories,refreshAccess}:{
   kind:PageKind; scope:string; directories:Organization[]; refreshAccess:()=>void;
 }) {
   const ws=useWorkspace();
+  const {canAct}=useSession();
   const organizationId=scope==='platform' ? null : scope;
   const rolePath=directoryPath('roles',organizationId);
   const roles=useRemote<Role[]>(scope && kind==='roles' ? rolePath : null,0,false,true);
@@ -64,6 +65,13 @@ function Catalog({kind,scope,directories,refreshAccess}:{
   const currentRole=currentRoles.find(role=>role.id===view);
   const canEdit=(r:Role)=>roleReady && !r.isSystem && (r.organizationId===null
     ? scope==='platform' : directories.some(o=>o.id===r.organizationId));
+  function canCopy(role:Role) {
+    const target=role.organizationId===null?null:{organizationId:role.organizationId};
+    const hasDirectory=target?directories.some(org=>org.id===target.organizationId):scope==='platform';
+    return roleReady&&dictionaryReady&&hasDirectory&&canAct('role.manage',target)
+      &&role.permissions.every(code=>canAct(code,target)&&items.some(permission=>permission.code===code));
+  }
+  const copySource=draft?.kind==='copy'?currentRoles.find(role=>role.id===draft.role.id&&role.revision===draft.role.revision&&canCopy(role)):undefined;
   function saved() {
     setDraft(undefined);setView(undefined);
     roles.reload();dictionary.reload();refreshAccess();
@@ -87,8 +95,7 @@ function Catalog({kind,scope,directories,refreshAccess}:{
     {kind==='roles' && <Feedback {...roles}/>}<Feedback {...dictionary}/>
     <Table rows={filtered} columns={columns} actions={kind==='roles' ? (role:Role)=><>
       <button className="text-btn" disabled={!canEdit(role)} onClick={()=>setDraft({kind:'role',role})}>编辑</button>
-      <button className="text-btn" disabled={!roleReady||!dictionaryReady||!role.permissions.every(code=>items.some(p=>p.code===code))}
-        onClick={()=>setDraft({kind:'copy',role})}>复制角色</button>
+      {canCopy(role)&&<button className="text-btn" onClick={()=>setDraft({kind:'copy',role})}>复制角色</button>}
       <button className="text-btn danger-text" disabled={!canEdit(role)||role.userCount!==0}
         onClick={()=>{setNotice('');setDraft({kind:'delete',role});}}>删除角色</button>
       <button className="text-btn" disabled={!dictionaryReady} onClick={()=>setView(role.id)}>查看权限</button>
@@ -104,11 +111,11 @@ function Catalog({kind,scope,directories,refreshAccess}:{
         当前字典外的已授予权限　{currentRole.permissions.filter(code=>!items.some(p=>p.code===code)).join('、')}
       </p>}
     </section>}
-    {roleReady && draft?.kind==='copy' && <Editor title="复制角色" fields={roleFields} initial={{code:'',name:draft.role.name+' 副本'}}
-      help={'复制 '+draft.role.permissions.length+' 项权限，不分配用户。'} close={()=>setDraft(undefined)}
+    {copySource && <Editor title="复制角色" fields={roleFields} initial={{code:'',name:copySource.name+' 副本'}}
+      help={'复制 '+copySource.permissions.length+' 项权限，不分配用户。'} close={()=>setDraft(undefined)}
       save={async(value,key)=>{
-       await apiRequest('/roles/'+draft.role.id+'/copy',{method:'POST',body:{code:value.code,name:value.name,organizationId:draft.role.organizationId},
-         etag:'"'+draft.role.revision+'"',idempotencyKey:key});saved();
+       await apiRequest('/roles/'+copySource.id+'/copy',{method:'POST',body:{code:value.code,name:value.name,organizationId:copySource.organizationId},
+         etag:'"'+copySource.revision+'"',idempotencyKey:key});saved();
       }}/>}
     {roleReady && draft?.kind==='delete' && <section className="notice" role="alertdialog" aria-label="删除角色">
       <p>确认删除未分配给用户的角色“{draft.role.name}”？</p>

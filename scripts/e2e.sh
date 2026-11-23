@@ -35,5 +35,8 @@ if [ "${1:-}" = '--browser' ]; then
   touch .runtime/browser-e2e.wait
   while [ -f .runtime/browser-e2e.wait ]; do sleep 2; done
 fi
-compose run --rm sdk dotnet test tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj -c Release --filter "Scenario!=Observability"
+# These five scenarios consume receipts from their own stacks (see console-ci-phase1.md).
+# The core stack runs every other test, including untagged tests added to the SDK project.
+core_scenarios='Scenario!=Observability&Scenario!=Sso&Scenario!=Settings&Scenario!=Policies&Scenario!=NetworkPolicies'
+compose run --rm -e WEBAPI_E2E_OWNER -e WEBAPI_SOURCE_REVISION sdk dotnet test tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj -c Release --filter "$core_scenarios"
 "$NODE" scripts/e2e-faults.mjs

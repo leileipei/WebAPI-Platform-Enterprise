@@ -3,6 +3,7 @@ using Npgsql;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Observability;
 using WebApi.Contracts.Security;
+using WebApi.Domain.Security;
 using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
@@ -24,7 +25,7 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
                 throw new ApiException(409, "inactive_scope", "组织或项目已停用。");
             var read = permission.EndsWith(".read", StringComparison.Ordinal);
             var grants = db.Set<UserProjectScope>().Where(g => g.UserId == actor.UserId && g.OrganizationId == scope.OrganizationId
-                && (g.ProjectId == null || g.ProjectId == project.Id) && (read || g.AccessMode == "read_write"));
+                && (g.ProjectId == null || g.ProjectId == project.Id) && (read || g.AccessMode == "read_write" || g.AccessMode == ScopeMatcher.OrganizationAdministratorWrite));
             environments = await db.Set<EnvironmentRecord>().Where(e => e.ProjectId == project.Id && e.Status == "Active"
                     && grants.Any(g => g.EnvironmentId == null || g.EnvironmentId == e.Id))
                 .OrderBy(e => e.Id).Select(e => e.Id).ToArrayAsync(ct);

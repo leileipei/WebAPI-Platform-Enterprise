@@ -8,19 +8,20 @@ const id=n=>'b1d36ce4-90eb-4052-8ed1-'+String(n).padStart(12,'0');
 const org={id:id(1),name:'甲组织'},project={id:id(2),organizationId:org.id,name:'甲项目'},environment={id:id(3),projectId:project.id,name:'开发环境'};
 const tree={organizations:[org],projects:[project],environments:[environment]};
 const user={id:id(4),username:'operator',displayName:'当前人员',permissions:['user.manage','scope.manage','release.read','organization.read','project.read','project.write','organization.write'],
+  isPlatformAdministrator:true,rolePermissions:[{organizationId:null,permissions:['user.manage','scope.manage','project.write','organization.write']}],
   scopes:[{scope:{organizationId:org.id},accessMode:'read_write'}]};
 const target={id:id(5),displayName:'甲成员',username:'member',status:'Active',authSource:'local',revision:7,roleIds:[]};
 const pageOf=(items,total=items.length)=>({items,total,page:1,pageSize:50});
 let browser;
 before(async()=>{browser=await chromium.launch({executablePath:process.env.WEBAPI_CHROMIUM_EXECUTABLE});});
 after(async()=>browser?.close());
-async function fixture(t,handler){
+async function fixture(t,handler,identity=user){
  const page=await browser.newPage();page.setDefaultTimeout(5000);t.after(()=>page.close());
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url());
   if(!url.pathname.startsWith('/api/v1/'))return route.fulfill({path:join(dist,url.pathname.startsWith('/assets/')?url.pathname.slice(1):'index.html')});
   const path=url.pathname.slice(7);const reply=json=>route.fulfill({json});
-  if(path==='/auth/me')return reply(user);
+  if(path==='/auth/me')return reply(identity);
   if(path==='/scope-tree')return reply(tree);
   if(path==='/auth/csrf')return reply({token:'fixture'});
   return handler(path,url,route,reply);
@@ -121,4 +122,23 @@ test('organization details and administrator settings use the selected organizat
  await page.getByRole('button',{name:'确认变更'}).waitFor({state:'hidden'});
  assert.deepEqual(writes,[{tag:'"7"',assigned:true}]);
  await page.getByRole('button',{name:'管理员设置'}).click();await page.getByRole('button',{name:'移除管理员'}).waitFor();
+});
+
+test('project handover and administrator settings check the organization that supplied the function',async t=>{
+ const identity={...user,rolePermissions:[{organizationId:null,permissions:['user.manage','scope.manage']},
+   {organizationId:id(40),permissions:['project.write','organization.write']}]};
+ const page=await fixture(t,(path,url,route,reply)=>reply(pageOf(path==='/organizations'?[org]:[project])),identity);
+ await page.goto('http://127.0.0.1/projects');
+ await page.getByRole('cell',{name:project.name,exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'设置负责人'}).count(),0);
+ await page.goto('http://127.0.0.1/organizations');
+ await page.getByRole('cell',{name:org.name,exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'管理员设置'}).count(),0);
+});
+
+test('administrator settings require the system platform administrator role',async t=>{
+ const page=await fixture(t,(path,url,route,reply)=>reply(pageOf([org])),{...user,isPlatformAdministrator:false});
+ await page.goto('http://127.0.0.1/organizations');
+ await page.getByRole('cell',{name:org.name,exact:true}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'管理员设置'}).count(),0);
 });

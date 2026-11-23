@@ -3,6 +3,7 @@ using WebApi.Contracts.Common;
 using WebApi.Contracts.Gateway;
 using WebApi.ControlPlane.Security;
 using WebApi.Infrastructure.Gateway;
+using WebApi.Infrastructure.Releases;
 namespace WebApi.ControlPlane.Gateway;
 public static class GatewayReadEndpoints
 {
@@ -31,9 +32,9 @@ public static class GatewayReadEndpoints
         });
         g.MapPut("/gateway-nodes/{id:guid}/enabled",async(Guid id,SetNodeEnabledRequest request,HttpContext ctx,GatewayReadService service,CancellationToken ct)=>{var node=await service.SetEnabledAsync(id,request.Enabled,ctx.Request.Headers.IfMatch,ctx.Actor(),ct);ctx.Response.Headers.ETag=node.ETag;return Results.Ok(node);});
         g.MapGet("/environments/{id:guid}/snapshots",async(Guid id,HttpContext ctx,GatewayReadService service,int? page,int? pageSize,CancellationToken ct)=>Results.Ok(await service.SnapshotsAsync(id,ctx.Actor(),page??1,pageSize??50,ct)));
-        g.MapGet("/environments/{id:guid}/snapshots/rollback-source",async(Guid id,HttpContext ctx,GatewayReadService service,CancellationToken ct)=>{
+        g.MapGet("/environments/{id:guid}/snapshots/rollback-source",async(Guid id,HttpContext ctx,RollbackService service,CancellationToken ct)=>{
             ctx.Response.Headers.CacheControl="no-store";
-            return Results.Ok(new {source=await service.RollbackSourceAsync(id,ctx.Actor(),ct)});
+            return Results.Ok(new {source=await service.CurrentSourceAsync(id,ctx.Actor(),ct)});
         });
         g.MapGet("/environments/{id:guid}/snapshots/{version:long}",async(Guid id,long version,HttpContext ctx,GatewayReadService service,CancellationToken ct)=>Results.Ok(await service.SnapshotAsync(id,version,ctx.Actor(),ct)));
         g.MapGet("/environments/{id:guid}/snapshots/{version:long}/download",async(Guid id,long version,HttpContext ctx,GatewayReadService service,CancellationToken ct)=>{var data=await service.SnapshotAsync(id,version,ctx.Actor(),ct);ctx.Response.Headers.CacheControl="no-store";return Results.File(JsonSerializer.SerializeToUtf8Bytes(data,CanonicalJson.Options),"application/json",$"snapshot-{version}-management.json");});

@@ -15,7 +15,9 @@ public sealed class PromotionExecutionService(WebApiDbContext db,DeliveryLockCoo
   if(release.ArtifactId!=p.ArtifactId||release.SourceReleaseId!=p.SourceReleaseId)throw new ApiException(409,"invalid_delivery_recovery_chain","恢复发布缺少原晋级制品追溯。");
  }
  public async Task RequireRecoveryVisibilityAsync(ReleaseRecord origin,ActorContext actor,CancellationToken ct)
- {await LockReleaseAsync(origin,ct);var p=await reads.ResolvePromotionAsync(origin.Id,ct);if(p is not null)await artifacts.GetAsync(p.ArtifactId,actor,ct);}
+ {await LockReleaseAsync(origin,ct);await RequireRecoverySourceAccessAsync(origin.Id,actor,ct);}
+ public async Task RequireRecoverySourceAccessAsync(Guid releaseId,ActorContext actor,CancellationToken ct)
+ {var promotion=await reads.ResolvePromotionAsync(releaseId,ct);if(promotion is not null)await artifacts.GetAsync(promotion.ArtifactId,actor,ct);}
  public async Task RecordDeploymentStateAsync(ReleaseRecord release,CancellationToken ct)
  {
   var (p,rollbackTarget)=await PromotionReadService.ResolveDeploymentOriginAsync(db,release,ct);

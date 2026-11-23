@@ -29,6 +29,8 @@ async function openDirectory(t,{path='/roles',platform=false,tree=organizations,
     if(!asset.startsWith('/api/v1/')) return route.fulfill({path:join(process.env.WEBAPI_CONSOLE_DIST,'index.html')});
     const endpoint=asset.slice(7);
     if(endpoint==='/auth/me'){f.identityReads++;return reply({id:'manager',username:'manager',displayName:'角色管理员',permissions:['role.manage','api.read','route.read'],
+      isPlatformAdministrator:f.platform,rolePermissions:[...(f.platform?[{organizationId:null,permissions:['role.manage']}]:[]),
+        ...f.managed.map(organizationId=>({organizationId,permissions:['role.manage','api.read','route.read']}))],
       scopes:organizations.map(o=>({scope:{organizationId:o.id},accessMode:f.mode}))});}
     if(endpoint==='/auth/csrf') return reply({token:'test-csrf'});
     if(endpoint==='/scope-tree') return reply({organizations:f.tree,projects:[],environments:[]});
@@ -210,4 +212,15 @@ test('custom role copy and confirmed deletion preserve the source and use the di
  await page.getByRole('alertdialog').getByRole('button',{name:'确认删除'}).click();
  await copied.waitFor({state:'hidden'});assert.equal(await source.count(),1);
  assert.deepEqual(f.writes.map(w=>[w.endpoint,w.tag]),[['/roles/alpha/copy','"1"'],['/roles/copy','"1"']]);
+});
+
+test('platform role copy checks the row organization and every source permission there',async t=>{
+  const {page,f,row}=await openDirectory(t,{platform:true,managed:[a]});
+  await page.getByRole('combobox',{name:'角色管理范围'}).selectOption('platform');
+  await row('乙方角色').waitFor();
+  const copy=name=>row(name).getByRole('button',{name:'复制角色',exact:true});
+  assert.equal(await copy('乙方角色').count(),0);
+  assert.equal(await copy('保留既有授权').count(),0);
+  assert.equal(await copy('甲方角色').isEnabled(),true);
+  assert.deepEqual(f.writes,[]);
 });

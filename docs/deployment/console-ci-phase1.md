@@ -11,6 +11,8 @@
 | 本地运行工具 | `bash scripts/check-local-runtime.sh unit` 发现全部顶层运行工具用例和前端单测。Docker 生命周期、卷和回环监听在隔离宿主用 `bash scripts/check-local-runtime.sh integration` 串行执行。 |
 | 整套服务端到端 | 在具备 Docker Compose、可用测试端口、镜像、SDK 与独立存储的主机，先构建控制台，再运行 `bash scripts/e2e.sh`。它启动临时数据库、控制面、Worker、双网关和两个后端，执行 WebApi.EndToEnd.Tests 的核心流程。监控端到端使用 `bash scripts/check-observability-loop.sh e2e`，外部 SSO 与现场恢复使用相应部署手册的专用环境。 |
 
+核心 Compose 会把本次运行的 owner 和实际源码提交传给 SDK 容器。带有 `Observability`、`Sso`、`Settings`、`Policies`、`NetworkPolicies` 标记的用例需要各自的运行环境与输入。对应入口为 `bash scripts/check-observability-loop.sh e2e`、`bash scripts/check-sso.sh e2e`、`bash scripts/check-settings.sh e2e`、`bash scripts/check-policies.sh e2e` 及[网络策略验收手册](network-policies-runbook.md)。专用运行器负责生成本轮回执，再交由对应的 SDK 用例核对。
+
 日期：2026-11-10。配置阶段输入：主干 `7626115c769ae0926d38109ace46b2f5017bfcc3`。用户选择 A 路径，首批仅前端，三个后端套件为第二批。**后续状态：工作流已通过 PR #5 合入，修正候选和 main 的实际检查均通过；2026-11-11 只读确认四项主干必需检查已启用。**下文保留首批本地验证的原范围与结果，后续结果见文末。
 
 ## 本批配置

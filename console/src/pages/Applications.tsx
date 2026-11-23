@@ -19,7 +19,7 @@ const fields:Field[]=[{key:'code',label:'应用编码',required:true},{key:'name
 const tabs=[['overview','Overview'],['credentials','凭证'],['permissions','API 授权'],['runtime','运行版本'],['metrics','Metrics'],['audit','Audit']];
 
 export function Applications({id}:{id?:string}) {
-  const ws=useWorkspace(),{can}=useSession();
+  const ws=useWorkspace(),{can,canAct}=useSession();
   const [paging,setPaging]=useState({org:ws.organizationId,page:1}),[edit,setEdit]=useState<Draft>(),[tab,setTab]=useState('credentials');
   const page=paging.org===ws.organizationId?paging.page:1;
   const setPage=(value:number)=>setPaging({org:ws.organizationId,page:value});
@@ -31,16 +31,17 @@ export function Applications({id}:{id?:string}) {
   const owner=requested && ws.tree.organizations.find(org=>org.id===requested.organizationId);
   const rows=(remote.data?.items??[]).filter(row=>row.organizationId===ws.organizationId);
   const orgScope={organizationId:ws.organizationId};
-  const writableProjects=ws.tree.projects.filter(project=>project.organizationId===ws.organizationId
-    && can('app.write',{...orgScope,projectId:project.id},true));
-  const shared=can('app.write',orgScope,true);
+  const activeOrganization=ws.tree.organizations.some(org=>org.id===ws.organizationId&&org.status==='Active');
+  const writableProjects=ws.tree.projects.filter(project=>activeOrganization&&project.organizationId===ws.organizationId&&project.status==='Active'
+    && canAct('app.write',{...orgScope,projectId:project.id}));
+  const shared=activeOrganization&&canAct('app.write',orgScope);
   const selectedProject=writableProjects.find(p=>p.id===ws.projectId)??writableProjects[0];
   const ownership:Field={key:'ownership',label:'应用归属',required:true,options:[
     ...(shared?[{value:'organization',label:'组织共享应用'}]:[]),
     ...writableProjects.map(p=>({value:p.id,label:p.name}))
   ]};
-  const allowed=ws.scopeReady && !!ws.organizationId && (id?!!app&&can('app.write',
-    {organizationId:app.organizationId,projectId:app.projectId},true):shared||writableProjects.length>0);
+  const allowed=ws.scopeReady && !!ws.organizationId && (id?!!app&&canAct('app.write',
+    {organizationId:app.organizationId,projectId:app.projectId}):shared||writableProjects.length>0);
   const editorAllowed=!!edit&&allowed&&edit.organizationId===ws.organizationId&&(edit.id
     ?edit.id===app?.id&&(edit.projectId??null)===(app?.projectId??null):!id);
   const validOwner=(value:string)=>value==='organization'?shared:writableProjects.some(p=>p.id===value);
@@ -49,9 +50,9 @@ export function Applications({id}:{id?:string}) {
     <div className="breadcrumb"><Link to="/applications">应用接入</Link>{id&&' / 应用详情'}</div>
     <div className="page-head"><div><h1>{id?app?.name||'应用详情':'应用管理'}</h1>
       <p>管理消费方身份、凭证窗口与 API 授权</p></div>
-      <button className="btn primary" disabled={!allowed} onClick={()=>setEdit(app??{
+      {(id||allowed)&&<button className="btn primary" disabled={!allowed} onClick={()=>setEdit(app??{
         organizationId:ws.organizationId,projectId:selectedProject?.id||null,ownership:selectedProject?.id??'organization',status:'Active'
-      })}>{id?'编辑应用':'＋ 新建应用'}</button>
+      })}>{id?'编辑应用':'＋ 新建应用'}</button>}
     </div>
     <div className="notice">应用、凭证及授权保存为工作配置。网关认证采用已发布 Snapshot 的应用状态、有效期与授权集合。</div>
     <Feedback {...remote}/>

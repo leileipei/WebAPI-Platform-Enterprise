@@ -175,8 +175,9 @@ public sealed partial class GovernanceService(WebApiDbContext db,AuthorizationSe
         if(list.Length==0)return new([],total,page,pageSize);
         var ids=list.Select(u=>u.Id).ToArray();var roles=(await db.Set<UserRole>().AsNoTracking().Where(r=>ids.Contains(r.UserId)).Select(r=>new {r.UserId,r.RoleId}).ToArrayAsync(ct)).ToLookup(r=>r.UserId,r=>r.RoleId);
         var scopeCounts=await auth.CanAsync(actor,"scope.manage",new("user",Guid.Empty,platform),ct)
-            ?await db.Set<UserProjectScope>().AsNoTracking().Where(g=>ids.Contains(g.UserId)).GroupBy(g=>g.UserId)
-                .Select(g=>new{Id=g.Key,Total=g.Count(),Write=g.Count(x=>x.AccessMode=="read_write")}).ToDictionaryAsync(g=>g.Id,ct):null;
+            ?await db.Set<UserProjectScope>().AsNoTracking().Where(g=>ids.Contains(g.UserId))
+                .Select(g=>new{g.UserId,g.OrganizationId,g.ProjectId,g.EnvironmentId,Writable=g.AccessMode=="read_write" || g.AccessMode==ScopeMatcher.OrganizationAdministratorWrite})
+                .Distinct().GroupBy(g=>g.UserId).Select(g=>new{Id=g.Key,Total=g.Count(),Write=g.Count(x=>x.Writable)}).ToDictionaryAsync(g=>g.Id,ct):null;
         var result=list.Select(u=>new UserDto(u.Id,u.Username,u.DisplayName,u.Email,u.Status,u.AuthSource,u.Revision,roles[u.Id].ToArray(),u.MustChangePassword,
             scopeCounts==null?null:scopeCounts.GetValueOrDefault(u.Id)?.Total??0,scopeCounts==null?null:scopeCounts.GetValueOrDefault(u.Id)?.Write??0)).ToArray();
         return new(result,total,page,pageSize);
@@ -228,7 +229,8 @@ public sealed partial class GovernanceService(WebApiDbContext db,AuthorizationSe
                              join assignment in db.Set<UserRole>() on user.Id equals assignment.UserId
                              join role in adminRoles on assignment.RoleId equals role.Id
                              where user.Status == "Active" && grant.ProjectId == null && grant.EnvironmentId == null
-                                 && grant.AccessMode == "read_write" && (role.OrganizationId == null || role.OrganizationId == grant.OrganizationId)
+                                 && (grant.AccessMode == "read_write" || grant.AccessMode == ScopeMatcher.OrganizationAdministratorWrite)
+                                 && (role.OrganizationId == null || role.OrganizationId == grant.OrganizationId)
                              select new
                              {
                                  grant.UserId, grant.OrganizationId, assignment.RoleId, user.MustChangePassword,
@@ -257,11 +259,12 @@ public sealed partial class GovernanceService(WebApiDbContext db,AuthorizationSe
         var ids=request.RoleIds.Distinct().ToArray();var roles=await db.Set<Role>().Where(r=>ids.Contains(r.Id)).ToArrayAsync(token);if(roles.Length!=ids.Length) throw new ApiException(422,"invalid_role","角色不存在。");
         if(!roles.Any(r=>r.Code=="PlatformAdmin"&&r.IsSystem&&r.OrganizationId==null)) await ProtectAdminAsync(id,token);
         await ProtectOrganizationAdministratorsAsync(id, token, retainedRoleIds: ids);
+        await RemoveRevokedAdministratorGrantsAsync(id,ids,token);
         db.RemoveRange(await db.Set<UserRole>().Where(x=>x.UserId==id&&!ids.Contains(x.RoleId)).ToArrayAsync(token));var old=await db.Set<UserRole>().Where(x=>x.UserId==id).Select(x=>x.RoleId).ToArrayAsync(token);
         foreach(var role in ids.Except(old)) db.Add(new UserRole {UserId=id,RoleId=role});user.Revision++;return new CommandResult<UserDto>(new(user.Id,user.Username,user.DisplayName,user.Email,user.Status,user.AuthSource,user.Revision,ids),RevisionTag.Format(user.Revision));
     },ct);
     public async Task<IReadOnlyList<ScopeGrantDto>> UserScopesAsync(Guid id,ActorContext actor,CancellationToken ct=default)
-    {await Require(actor,"scope.manage",platform,id,ct);return await db.Set<UserProjectScope>().Where(x=>x.UserId==id).Select(x=>new ScopeGrantDto(new(x.OrganizationId,x.ProjectId,x.EnvironmentId),x.AccessMode)).ToArrayAsync(ct);}
+    {await Require(actor,"scope.manage",platform,id,ct);return await db.Set<UserProjectScope>().Where(x=>x.UserId==id && x.AccessMode!=ScopeMatcher.OrganizationAdministratorWrite).Select(x=>new ScopeGrantDto(new(x.OrganizationId,x.ProjectId,x.EnvironmentId),x.AccessMode)).ToArrayAsync(ct);}
     public Task<CommandResult<IReadOnlyList<ScopeGrantDto>>> SaveScopesAsync(Guid id,SaveScopesRequest request,string? tag,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,platform,"user.scopes",async(_,token)=>{
         await Require(actor,"scope.manage",platform,id,token);var user=await db.Set<UserRecord>().SingleOrDefaultAsync(x=>x.Id==id,token)??throw ScopeResolver.Missing();RevisionTag.Require(tag,user.Revision);
         foreach(var grant in request.Scopes)
@@ -270,11 +273,13 @@ public sealed partial class GovernanceService(WebApiDbContext db,AuthorizationSe
             if(s.ProjectId is Guid p && (await scopes.ProjectAsync(p,token)).OrganizationId!=s.OrganizationId) throw new ApiException(422,"invalid_scope","项目不属于组织。");
             if(s.EnvironmentId is Guid e && (await scopes.EnvironmentAsync(e,token))!=s) throw new ApiException(422,"invalid_scope","环境不属于项目。");
         }
+        var appointmentOrganizations=await db.Set<UserProjectScope>().Where(g=>g.UserId==id && g.AccessMode==ScopeMatcher.OrganizationAdministratorWrite)
+            .Select(g=>g.OrganizationId).ToArrayAsync(token);
         var retainedOrganizations = request.Scopes
             .Where(grant => grant.Scope.ProjectId == null && grant.Scope.EnvironmentId == null && ScopeMatcher.CanWrite(grant.AccessMode))
-            .Select(grant => grant.Scope.OrganizationId).Distinct().ToArray();
+            .Select(grant => grant.Scope.OrganizationId).Concat(appointmentOrganizations).Distinct().ToArray();
         await ProtectOrganizationAdministratorsAsync(id, token, retainedOrganizationIds: retainedOrganizations);
-        db.RemoveRange(await db.Set<UserProjectScope>().Where(x=>x.UserId==id).ToArrayAsync(token));foreach(var g in request.Scopes.Distinct()) db.Add(new UserProjectScope {UserId=id,OrganizationId=g.Scope.OrganizationId,ProjectId=g.Scope.ProjectId,EnvironmentId=g.Scope.EnvironmentId,AccessMode=g.AccessMode});user.Revision++;
+        db.RemoveRange(await db.Set<UserProjectScope>().Where(x=>x.UserId==id && x.AccessMode!=ScopeMatcher.OrganizationAdministratorWrite).ToArrayAsync(token));foreach(var g in request.Scopes.Distinct()) db.Add(new UserProjectScope {UserId=id,OrganizationId=g.Scope.OrganizationId,ProjectId=g.Scope.ProjectId,EnvironmentId=g.Scope.EnvironmentId,AccessMode=g.AccessMode});user.Revision++;
         return new CommandResult<IReadOnlyList<ScopeGrantDto>>(request.Scopes,RevisionTag.Format(user.Revision));
     },ct);
     public async Task<RoleDirectoriesDto> RoleDirectoriesAsync(ActorContext actor, CancellationToken ct = default)

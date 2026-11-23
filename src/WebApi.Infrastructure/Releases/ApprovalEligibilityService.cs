@@ -4,6 +4,7 @@ using WebApi.Contracts.Releases;
 using WebApi.Contracts.Security;
 using WebApi.Domain.Delivery.Pipelines;
 using WebApi.Domain.Releases;
+using WebApi.Domain.Security;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
@@ -158,7 +159,7 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
                   AND grant_scope.organization_id = organization.id
                   AND (grant_scope.project_id IS NULL OR grant_scope.project_id = project.id)
                   AND (grant_scope.environment_id IS NULL OR grant_scope.environment_id = e.id)
-                  AND grant_scope.access_mode = 'read_write')
+                  AND grant_scope.access_mode IN ('read_write', {ScopeMatcher.OrganizationAdministratorWrite}))
               AND EXISTS (
                 SELECT 1 FROM user_roles ur
                 JOIN roles role ON role.id = ur.role_id
