@@ -25,7 +25,7 @@ after(async () => { await browser?.close(); });
 
 async function fixture(t, {entry='detail', permissions=allPermissions, mode='read_write',
   canReadSchemas=true, canReadVersions=false, canWriteSchemas=true, canWriteVersions=true, versionChanges={},
-  workspaces=false, selectedProject, selectedOrganization}={}) {
+  workspaces=false, selectedProject, selectedOrganization, scopeTree}={}) {
   const page = await browser.newPage();
   t.after(() => page.close());
   page.setDefaultTimeout(4000);
@@ -53,8 +53,8 @@ async function fixture(t, {entry='detail', permissions=allPermissions, mode='rea
       if (state.csrfWait) await state.csrfWait;
       return reply({token:'fixture-csrf'});
     }
-    if (resource==='/scope-tree') return reply(workspaces?workspaceTree:{organizations:[{id:'org',name:'订单组织'}],
-      projects:[{id:'project',organizationId:'org',name:'订单项目'}],environments:[]});
+    if (resource==='/scope-tree') return reply(scopeTree??(workspaces?workspaceTree:{organizations:[{id:'org',name:'订单组织'}],
+      projects:[{id:'project',organizationId:'org',name:'订单项目'}],environments:[]}));
     if (workspaces && resource.endsWith('/api-groups')) return reply([]);
     if (workspaces && resource.startsWith('/projects/') && resource.endsWith('/apis')) {
       const items=resource==='/projects/project/apis'?[state.api]:[];
@@ -93,7 +93,7 @@ async function fixture(t, {entry='detail', permissions=allPermissions, mode='rea
     throw Error('Unexpected browser request: '+method+' '+pathname);
   });
   await page.goto('http://127.0.0.1'+routePath);
-  if (selectedProject) await page.waitForLoadState('networkidle');
+  if (selectedProject || scopeTree) await page.waitForLoadState('networkidle');
   else await page.getByRole('cell',{name:'1.0',exact:true}).waitFor();
   async function tab(kind) {
     if (entry==='wizard') await page.locator('.wizard-steps button').filter({hasText:kind==='parameters'?'参数定义':'请求与响应'}).click();
@@ -477,3 +477,35 @@ test('workspace conflict recovery rechecks the organization before reading schem
   assert.equal(await dialog.getByLabel('定义名称').inputValue(),'保留草稿');
   assert.equal(writes().length,1);
 });
+
+for (const mode of ['read_only','read_write']) {
+  const mayWrite=mode==='read_write';
+  test('API detail stays read-only without visible projects for '+mode,async t=>{
+    const {page,requests,writes}=await fixture(t,{
+      permissions:[...allPermissions,'api.edit','api.version.read'],
+      mode,scopeTree:{organizations:[],projects:[],environments:[]},
+      canReadVersions:true,canWriteVersions:mayWrite,canWriteSchemas:mayWrite,versionChanges:contract
+    });
+    const detail=requests.find(r=>r.method==='GET'&&r.resource===path);
+    assert.ok(detail,'The server must be asked for the authorized detail without a project selection');
+    await page.getByRole('heading',{name:api.name,exact:true}).waitFor();
+    assert.equal(await button(page,'编辑 API').isEnabled(),false);
+    assert.equal(await button(page,'＋ 新建版本').isEnabled(),false);
+    assert.equal(await page.getByRole('link',{name:'配置与发布向导 →'}).count(),0);
+    assert.equal(await page.getByRole('link',{name:'版本比较与评审'}).count(),0);
+    await button(page,'OpenAPI').click();
+    await page.locator('pre').filter({hasText:'fixture source'}).waitFor();
+    await button(page,'Schema').click();
+    await page.getByRole('cell',{name:'响应内容'}).waitFor();
+    assert.equal(await button(page,'＋ 新增').isEnabled(),false);
+    const viewer=button(page,'查看 / 验证');
+    await viewer.click();
+    assert.equal(await page.getByRole('dialog').getByRole('button',{name:'保存工作定义',exact:true}).count(),0);
+    assert.deepEqual(writes(),[]);
+
+    const callsBeforeWizard=requests.filter(r=>r.resource===path).length;
+    await page.goto('http://127.0.0.1'+path+'/wizard');
+    await page.getByRole('status').filter({hasText:'请选择项目后查看 API'}).waitFor();
+    assert.equal(requests.filter(r=>r.resource===path).length,callsBeforeWizard);
+  });
+}

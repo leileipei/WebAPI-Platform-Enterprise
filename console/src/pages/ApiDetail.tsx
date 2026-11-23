@@ -16,7 +16,7 @@ type WizardVersion = {
 };
 
 export function ApiDetailPage({id}:{id:string}){
- return <ProjectApi id={id}>{remote=><ApiDetailContent id={remote.data.api.id} remote={remote}/>}</ProjectApi>;
+ return <ProjectApi id={id} allowDirectRead>{remote=><ApiDetailContent id={remote.data.api.id} remote={remote}/>}</ProjectApi>;
 }
 
 export function ApiDetailContent({id,remote,wizard}:{id:string;remote:ProjectApiRemote;wizard?:WizardVersion}){
@@ -29,12 +29,13 @@ export function ApiDetailContent({id,remote,wizard}:{id:string;remote:ProjectApi
  const v=wizard?wizard.version:(d?.versions.find(version=>version.id===selected)??d?.versions[0]);
  const scope=d?{organizationId:d.api.organizationId,projectId:d.api.projectId}:undefined;
  const detailCurrent=ws.scopeReady&&apiInWorkspace(d.api,id,ws)&&!remote.loading&&!remote.error;
+ const detailReadable=detailCurrent||(!!remote.readOnly&&!remote.loading&&!remote.error);
  const mayWriteVersions=!!d?.canWriteVersions&&detailCurrent&&can('api.version.write',scope,true);
  const editedVersion=edit?.kind==='version'?d?.versions.find(row=>row.id===edit.versionId&&row.apiId===id):undefined;
  const mayEditApi=detailCurrent&&can('api.edit',scope,true);
  const editAllowed=edit?.kind==='api'?mayEditApi:mayWriteVersions&&(edit?.kind==='new-version'||isEditableVersion(editedVersion));
  function readsContract(detail?:ApiDetail){
-   if(!detail||!apiInWorkspace(detail.api,id,ws))return false;
+   if(!detail||(!remote.readOnly&&!apiInWorkspace(detail.api,id,ws)))return false;
    const owner={organizationId:detail.api.organizationId,projectId:detail.api.projectId};
    return !!((detail.canReadVersions&&can('api.version.read',owner))||(detail.canReadSchemas&&can('api.schema.read',owner)));
  }
@@ -61,7 +62,7 @@ export function ApiDetailContent({id,remote,wizard}:{id:string;remote:ProjectApi
    else remote.reload();
  }
 
-return <><div className="breadcrumb"><Link to="/apis">API 目录</Link> / 详情</div><div className="page-head"><div><h1>{d?.api.name||'API 详情'}</h1><p>{d?.api.code}　工作修订 {d?.workingRevision??'—'}</p></div><div className="actions">{can('metrics.read',ws.scope)&&<Link to={'/observability/apis/'+id}>运行监控</Link>}<button className="btn" disabled={!mayEditApi} onClick={()=>d&&setEdit({kind:'api',revision:d.workingRevision})}>编辑 API</button>{d&&['api.read','api.version.read','api.schema.read'].every(code=>can(code,scope))&&<Link to={'/apis/'+id+'/versions/compare'}>版本比较与评审</Link>}<Link to={'/apis/'+id+'/wizard'}>配置与发布向导 →</Link></div></div><Feedback {...remote}/>{d&&<><div className="metric-grid"><div className="card metric"><small>工作修订</small><strong>{d.workingRevision}</strong></div><div className="card metric"><small>当前环境节点一致配置版本</small><strong>{d.runningConfigVersion[ws.environmentId]??'不一致 / 未运行'}</strong></div><div className="card metric"><small>API 版本数量</small><strong>{d.versions.length}</strong></div><div className="card metric"><small>待处理发布</small>{pendingReleaseId?<Link to={'/releases/'+pendingReleaseId}>查看发布</Link>:<strong>—</strong>}</div></div><ApiAccessPanel environmentId={ws.environmentId} apiId={id} versionId={v?.id}/><div className="tabs">{[['versions','版本'],['parameters','参数'],['schemas','Schema'],['openapi','OpenAPI']].map(([key,title])=><button key={key} className={tab===key?'active':''} onClick={()=>{if(allowNavigation())setTab(key);}}>{title}</button>)}</div><div className="card">
+return <><div className="breadcrumb"><Link to="/apis">API 目录</Link> / 详情</div><div className="page-head"><div><h1>{d?.api.name||'API 详情'}</h1><p>{d?.api.code}　工作修订 {d?.workingRevision??'—'}</p></div><div className="actions">{can('metrics.read',ws.scope)&&<Link to={'/observability/apis/'+id}>运行监控</Link>}<button className="btn" disabled={!mayEditApi} onClick={()=>d&&setEdit({kind:'api',revision:d.workingRevision})}>编辑 API</button>{!remote.readOnly&&d&&['api.read','api.version.read','api.schema.read'].every(code=>can(code,scope))&&<Link to={'/apis/'+id+'/versions/compare'}>版本比较与评审</Link>}{!remote.readOnly&&<Link to={'/apis/'+id+'/wizard'}>配置与发布向导 →</Link>}</div></div><Feedback {...remote}/>{d&&<><div className="metric-grid"><div className="card metric"><small>工作修订</small><strong>{d.workingRevision}</strong></div><div className="card metric"><small>当前环境节点一致配置版本</small><strong>{d.runningConfigVersion[ws.environmentId]??'不一致 / 未运行'}</strong></div><div className="card metric"><small>API 版本数量</small><strong>{d.versions.length}</strong></div><div className="card metric"><small>待处理发布</small>{pendingReleaseId?<Link to={'/releases/'+pendingReleaseId}>查看发布</Link>:<strong>—</strong>}</div></div><ApiAccessPanel environmentId={ws.environmentId} apiId={id} versionId={v?.id}/><div className="tabs">{[['versions','版本'],['parameters','参数'],['schemas','Schema'],['openapi','OpenAPI']].map(([key,title])=><button key={key} className={tab===key?'active':''} onClick={()=>{if(allowNavigation())setTab(key);}}>{title}</button>)}</div><div className="card">
  {tab==='versions'?<>
    <div className="filter-bar"><button className="btn primary" disabled={!mayWriteVersions} onClick={()=>setEdit({kind:'new-version'})}>＋ 新建版本</button></div>
    <Table rows={d.versions} columns={[['version','版本号'],['status','状态'],['changeType','变更类型'],['revision','修订'],['sealedAt','封存时间']]} actions={row=><>
@@ -73,8 +74,8 @@ return <><div className="breadcrumb"><Link to="/apis">API 目录</Link> / 详情
    {!wizard&&<div className="filter-bar"><label>API 版本 <select value={v.id} onChange={e=>{if(allowNavigation())setSelected(e.target.value);}}>
     {d.versions.map(x=><option key={x.id} value={x.id}>{x.version} · {x.status}</option>)}
    </select></label></div>}
-   {tab==='openapi'?(detailCurrent&&(readable&&v.apiId===id?<Details value={v.openapiSource||v.openapiDocument||'尚未保存 OpenAPI 文档'}/>:<p className="notice">缺少此 API 的契约读取权限。</p>)):
-    <SchemaEditor key={v.id+tab} version={v} kind={tab as 'parameters'|'schemas'} detail={d} checking={!detailCurrent} reloadVersion={reloadVersion}/>}
+   {tab==='openapi'?(detailReadable&&(readable&&v.apiId===id?<Details value={v.openapiSource||v.openapiDocument||'尚未保存 OpenAPI 文档'}/>:<p className="notice">缺少此 API 的契约读取权限。</p>)):
+    <SchemaEditor key={v.id+tab} version={v} kind={tab as 'parameters'|'schemas'} detail={d} checking={!detailReadable} readOnly={remote.readOnly} reloadVersion={reloadVersion}/>}
  </>:<div className="empty">请先创建 API 版本</div>}
  </div></>}
  {edit&&d&&editorCurrent&&<Editor title={edit.kind==='api'?'编辑 API':edit.kind==='new-version'?'新建版本':'编辑版本'} allowed={editAllowed}

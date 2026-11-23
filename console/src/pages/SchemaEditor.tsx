@@ -2,14 +2,14 @@ import {useEffect,useState} from 'react';import {apiRequest} from '../api/client
 import {apiDetailPath,apiInWorkspace,isEditableVersion,type ApiDetail,type Version} from '../api/catalog';
 import {useSession} from '../auth/SessionProvider';
 import {useWorkspace} from '../Shell';
-export function SchemaEditor({version,kind,detail,checking,reloadVersion}:{version:Version;kind:'parameters'|'schemas';detail:ApiDetail;checking:boolean;reloadVersion:()=>void}){
+export function SchemaEditor({version,kind,detail,checking,readOnly=false,reloadVersion}:{version:Version;kind:'parameters'|'schemas';detail:ApiDetail;checking:boolean;readOnly?:boolean;reloadVersion:()=>void}){
  const ws=useWorkspace(),{can}=useSession(),scope={organizationId:detail.api.organizationId,projectId:detail.api.projectId};
- const readable=apiInWorkspace(detail.api,version.apiId,ws)&&detail.canReadSchemas&&can('api.schema.read',scope);
+ const readable=(readOnly?detail.api.id===version.apiId:apiInWorkspace(detail.api,version.apiId,ws))&&detail.canReadSchemas&&can('api.schema.read',scope);
  const [lifetime]=useState(()=>new AbortController());
  useEffect(()=>()=>lifetime.abort(),[lifetime]);
  const path=`/versions/${version.id}/${kind}`;
  const remote=useRemote<any[]>(readable?path:null,0,false,true,version.revision),[edit,setEdit]=useState<any>(),[error,setError]=useState(''),[tab,setTab]=useState('all');
- const rows=remote.data??[],readonly=!detail.canWriteSchemas||!can('api.schema.write',scope,true)||!isEditableVersion(version);
+ const rows=remote.data??[],readonly=readOnly||!detail.canWriteSchemas||!can('api.schema.write',scope,true)||!isEditableVersion(version);
  const blocked=!ws.scopeReady||checking||remote.loading||!!remote.error||!remote.data;
  const denied=remote.errorStatus===403||remote.errorStatus===404;
  useEffect(()=>{setTab('all');setEdit(undefined);setError('');},[version.id,kind,readable,denied]);

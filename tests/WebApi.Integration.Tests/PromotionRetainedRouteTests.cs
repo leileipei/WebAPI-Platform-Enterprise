@@ -147,6 +147,67 @@ public sealed class PromotionRetainedRouteTests
         Assert.False(await db.Set<ReleaseRecord>().AnyAsync(release => release.PromotionId == fixture.PromotionId));
     }
 
+    [Theory]
+    [InlineData(-1, true)]
+    [InlineData(1, false)]
+    [InlineData(2, false)]
+    public async Task RetainedLegacyAuthorizationOnlyStopsPromotionWhenItsWindowCanStillOpen(int daysUntilExpiry, bool allowed)
+    {
+        await using var fixture = new PromotionScenario();
+        var now = DateTimeOffset.UtcNow;
+        var grant = new ApplicationApiPermission
+        {
+            Mode = "LegacyApi",
+            ValidFrom = now.AddDays(daysUntilExpiry == 2 ? 1 : -2),
+            ExpiresAt = now.AddDays(daysUntilExpiry)
+        };
+        await fixture.InitializeAsync(authenticatedTargetReceipts: true, beforeTargetBaseline: async target =>
+        {
+            await AddPrivateRouteAsync(target);
+            var app = new ApplicationRecord
+            {
+                OrganizationId = target.Api.Organization.Id,
+                ProjectId = target.Api.Project.Id,
+                Code = "RETAINED_CONSUMER",
+                Name = "保留路由消费方"
+            };
+            grant.ApplicationId = app.Id;
+            grant.ApiId = target.Api.Api.Id;
+            grant.EnvironmentId = target.TargetEnvironmentId;
+            grant.CreatedBy = target.Api.User.Id;
+            await using var db = target.Api.Context();
+            db.AddRange(app, grant);
+            await db.SaveChangesAsync();
+            using var credential = await target.Api.WriteAsync(HttpMethod.Post, $"/api/v1/applications/{app.Id}/credentials",
+                new { validFrom = now.AddDays(-1), expiresAt = now.AddDays(3) });
+            credential.EnsureSuccessStatusCode();
+        });
+
+        await using var db = fixture.Api.Context();
+        var mappedId = await db.Set<ApiRoute>().Where(route => route.EnvironmentId == fixture.TargetEnvironmentId &&
+            route.Path != PrivatePath).Select(route => route.Id).SingleAsync();
+        var result = await PrecheckAsync(fixture, mappedId);
+        if (!allowed)
+        {
+            Assert.False(result.CanSubmit);
+            Assert.Contains(result.Checks, check => check.Blocking && check.ReasonCode == "promotion_retained_access_changed");
+            return;
+        }
+
+        Assert.True(result.CanSubmit, JsonSerializer.Serialize(result.Checks));
+        var candidate = await fixture.PrepareAsync();
+        using var scope = fixture.Api.Services();
+        var history = scope.ServiceProvider.GetRequiredService<HistoricalSnapshotService>();
+        var baseline = (await history.ReadAsync(fixture.TargetEnvironmentId, 1)).Snapshot;
+        var compiled = scope.ServiceProvider.GetRequiredService<SnapshotCompiler>().Compile(candidate, baseline, 2, now);
+        var snapshot = WebApi.Domain.Runtime.SnapshotValidator.ParsePayload(compiled.Payload.Span, fixture.TargetEnvironmentId);
+        Assert.Contains(snapshot.Routes, route => route.Path == PrivatePath);
+        var previous = baseline.Applications.Single(application => application.Id == grant.ApplicationId);
+        var retained = snapshot.Applications.Single(application => application.Id == grant.ApplicationId);
+        Assert.Equal(CanonicalJson.Serialize(previous), CanonicalJson.Serialize(retained));
+        Assert.True(Assert.Single(retained.Permissions).ExpiresAt <= now);
+    }
+
     [Fact]
     public async Task PrecheckBlocksReplacingTheVersionOfAnUnmappedRoute()
     {

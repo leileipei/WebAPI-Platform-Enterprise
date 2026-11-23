@@ -42,8 +42,11 @@ public sealed partial class PromotionCredentialSelection(WebApiDbContext db,Auth
   // A baseline grant shared with a protected artifact API must not implicitly authorize its mapped routes.
   var protectedApis = content.Routes.Where(route => route.AuthenticationMode != "Anonymous").Select(route => route.ApiId).ToHashSet();
   var explicitGrants = selections.SelectMany(selection => selection.AuthorizationIds).ToHashSet();
+  var evaluatedAt = DateTimeOffset.UtcNow;
+  // Expired legacy grants stay in the retained snapshot. Only windows that can still open need the overlap guard.
   var implicitGrants = result.Applications.SelectMany(app => app.Permissions)
-      .Where(grant => protectedApis.Contains(grant.ApiId) && !explicitGrants.Contains(grant.Id)).ToArray();
+      .Where(grant => protectedApis.Contains(grant.ApiId) && !explicitGrants.Contains(grant.Id) &&
+          (governed || grant.ExpiresAt is null || grant.ExpiresAt > evaluatedAt)).ToArray();
   var implicitIds = implicitGrants.Select(grant => grant.Id).ToArray();
   if (implicitIds.Length > 0 && (!governed ||
       await db.Set<ApplicationApiPermission>().AnyAsync(grant => implicitIds.Contains(grant.Id) && grant.Mode != "RouteMethod",ct) ||
