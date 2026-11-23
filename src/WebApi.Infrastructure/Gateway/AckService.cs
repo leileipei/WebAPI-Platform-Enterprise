@@ -58,9 +58,7 @@ public sealed class AckService(WebApiDbContext db,NodeIdentityService identities
         else if(r.Status=="Publishing"&&await db.Set<GatewayAck>().CountAsync(a=>a.ReleaseId==r.Id&&a.Success,ct)==await db.Set<ReleaseTarget>().CountAsync(t=>t.ReleaseId==r.Id,ct))
         {
             r.Status="Succeeded";r.CompletedAt=DateTimeOffset.UtcNow;config!.Status="Published";config.PublishedAt=DateTimeOffset.UtcNow;
-            if(r.ReleaseType=="rollback"&&r.RollbackOf is Guid originalId) {var original=await db.Set<ReleaseRecord>().SingleAsync(x=>x.Id==originalId,ct);if(original.Status=="Succeeded") original.Status="RolledBack";}
-            var candidate=JsonSerializer.Deserialize<FrozenReleaseCandidate>(r.CandidateBytes!,CanonicalJson.Options)!;
-            foreach(var id in candidate.VersionIds) {var version=await db.Set<ApiVersion>().SingleAsync(v=>v.Id==id,ct);version.Status="Published";version.SealedAt??=DateTimeOffset.UtcNow;}
+            await ReleaseVersionPublication.RecordOutcomeAsync(db,r,ct);
             var project=await db.Set<EnvironmentRecord>().Where(e=>e.Id==r.EnvironmentId).Select(e=>e.ProjectId).SingleAsync(ct);var org=await db.Set<Project>().Where(p=>p.Id==project).Select(p=>p.OrganizationId).SingleAsync(ct);
             db.Add(new AuditLog {EnvironmentId=r.EnvironmentId,ProjectId=project,OrganizationId=org,UserId=r.PublishRequestedBy,Action="release.succeeded",ResourceType="ReleaseRecord",ResourceId=r.Id.ToString(),TraceId=r.PublishTraceId,AfterJson=JsonSerializer.Serialize(new {configVersion=r.ToConfigVersion,deploymentSequence=r.DeploymentSequence})});
         }

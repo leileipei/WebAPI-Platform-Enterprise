@@ -21,7 +21,19 @@ public sealed class VersionContractSourceService(WebApiDbContext db,Authorizatio
     internal static Uri RootUri(Guid id)=>new($"https://contracts.invalid/versions/{id:D}/openapi.json");
     internal static string DocumentHash(string? json)=>json is null?CatalogService.Hash("null"):CatalogService.Hash(ContractDocumentReader.Canonicalize(JsonNode.Parse(json,documentOptions:new(){MaxDepth=64})!).ToJsonString(JsonOptions));
     internal static string DialectName(ContractDialect dialect)=>dialect==ContractDialect.Oas30?"oas-3.0":"oas-3.1";
-    private static string EmptyRoot(ContractDialect dialect)=>new JsonObject{["openapi"]=dialect==ContractDialect.Oas30?"3.0.3":"3.1.0",["info"]=new JsonObject{["title"]="Maintained contract",["version"]="1"},["paths"]=new JsonObject()}.ToJsonString();
+    internal static string EmptyRoot(string? dialect, string version)
+    {
+        // A version without a recorded dialect or document predates explicit dialect selection.
+        var openapi = dialect switch {
+            null or "oas-3.0" => "3.0.3",
+            "oas-3.1" => "3.1.0",
+            _ => throw Invalid("unsupported_schema_dialect", "版本方言未登记。")
+        };
+        return new JsonObject {
+            ["openapi"] = openapi, ["info"] = new JsonObject { ["title"] = "Maintained contract", ["version"] = version },
+            ["paths"] = new JsonObject()
+        }.ToJsonString();
+    }
     internal static ContractBundle Prepare(Guid id,CreateVersionRequest request,CancellationToken ct,out string? document,out string? source,out string? format)
     {
         var reader=new ContractDocumentReader();var limits=new ContractLimits();var uri=RootUri(id);
@@ -34,7 +46,7 @@ public sealed class VersionContractSourceService(WebApiDbContext db,Authorizatio
         var root=raw??canonical;
         if(root is not null&&request.Dialect is not null&&DialectName(root.Dialect)!=request.Dialect)throw Invalid("contract_dialect_mismatch","版本方言与根契约不一致。");
         document=root?.CanonicalJson;source=request.OpenapiSource??request.OpenapiDocument;format=root?.Source.Format;
-        root??=reader.Read(new(uri,EmptyRoot(request.Dialect=="oas-3.0"?ContractDialect.Oas30:ContractDialect.Oas31),"json"),limits,ct);
+        root??=reader.Read(new(uri,EmptyRoot(request.Dialect??"oas-3.1","1"),"json"),limits,ct);
         return ContractBundleCodec.Create(uri,[root],limits);
     }
     internal async Task<bool> CanReadAsync(ActorContext actor, ResourceRef resource, CancellationToken ct) =>
@@ -78,7 +90,7 @@ public sealed class VersionContractSourceService(WebApiDbContext db,Authorizatio
             if(!Enum.TryParse<ContractDialect>(row.Dialect,out var dialect)||dialect!=bundle.Documents.Single(x=>x.Source.LogicalUri==bundle.RootUri).Dialect)throw Invalid("contract_dialect_mismatch","来源方言不一致。");
             return new(bundle,metadata,row.SourcePolicyRevision);
         }
-        var root=version.OpenapiDocument??EmptyRoot(ContractDialect.Oas31);
+        var root=version.OpenapiDocument??EmptyRoot(null,version.Version);
         var document=new ContractDocumentReader().Read(new(RootUri(version.Id),root,"json"),new(),ct);
         var legacy=ContractBundleCodec.Create(document.Source.LogicalUri,[document]);
         return new(legacy,new(legacy.Documents.Select(d=>new ContractResourceSource(d.Source.LogicalUri,d.Source.Format)).ToArray(),[],DocumentHash(version.OpenapiDocument)),0);

@@ -36,3 +36,23 @@ test('a late preview cannot restore stale scope or overwrite a newer preview',()
  const changed={...pending,input:{...input,text:'changed'}};assert.equal(importState.acceptImportPreview(changed,input,preview,2),changed);
  const accepted=importState.acceptImportPreview({...pending,preview:undefined,targets:[]},input,preview,2);assert.equal(accepted.preview.previewId,'preview');assert.equal(accepted.targets.length,1);assert.equal(accepted.targets[0].operationId,'ok');
 });
+
+test('failed re-preview retains only selected supported operations of the same source and target scope',()=>{
+ const versionId='22222222-2222-4222-8222-222222222222', selected=state();
+ const operation={operationId:'second',suggestedCode:'SECOND',supported:true};
+ const cancelled={...operation,operationId:'cancelled'};
+ selected.preview.operations.push(operation,cancelled);
+ selected.targets=[mapImportTarget(selected.preview.operations[0],{existingVersionId:versionId,expectedRevision:3}),
+   mapImportTarget(operation,{newApiCode:'CUSTOM',newApiName:'自定义'})];
+ const failed=recoverImportFailure(recoverImportFailure(selected,{status:409}),{status:503});
+ const preview={...selected.preview,previewId:'retry',operations:[{...operation,supported:false},cancelled,selected.preview.operations[0]]};
+ const same=importState.acceptImportPreview({...failed,requestSequence:2},input,preview,2);
+ assert.deepEqual(same.targets,[selected.targets[0]]);
+ assert.equal(canCommitPreview(same,0),false);
+ for(const change of [{authority:'other'},{clusterId:'other'},{projectId:'other'},{environmentId:'other'},{text:'different'}]){
+  const changed={...input,...change}, reset=invalidatePreview(failed,changed);
+  const fresh=importState.acceptImportPreview({...reset,requestSequence:3},changed,preview,3);
+  assert.deepEqual(fresh.targets.map(t=>t.operationId),['cancelled','ok']);
+  assert.ok(fresh.targets.every(t=>!t.existingVersionId));
+ }
+});

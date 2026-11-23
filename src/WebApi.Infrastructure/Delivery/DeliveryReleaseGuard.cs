@@ -48,8 +48,8 @@ public sealed class DeliveryReleaseGuard(WebApiDbContext db,DeliveryLockCoordina
  {if(release.PromotionId is null&&release.RecoveryOf is null&&release.RollbackOf is null)return null;if(actor is null)return null;var promotion=await reads.ResolvePromotionAsync(release.Id,ct);if(promotion is null)return null;try{var artifact=await artifacts.GetAsync(promotion.ArtifactId,actor,ct);var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==promotion.SourceEnvironmentId,ct);return new("Visible",promotion.Id,artifact.Id,artifact.ArtifactHash,new(env.Id,env.Code,env.Name),promotion.PipelineRunStageId is Guid stage?await pipelines.TraceStageAsync(stage,actor,ct):null);}catch(ApiException e)when(e.Status is 403 or 404){return new("Restricted",null,null,null,null);}}
  public async Task<IReadOnlyDictionary<Guid,ApprovalDeliverySummaryDto?>> TraceBatchAsync(IReadOnlyList<ReleaseRecord> releases,ActorContext actor,CancellationToken ct)
  {
-  var roots=await PromotionReadService.ResolvePromotionReleasesWithinAsync(db,releases,ct);var result=releases.ToDictionary(r=>r.Id,_=>(ApprovalDeliverySummaryDto?)null);
-  var formal=roots.Values.OfType<ReleaseRecord>().DistinctBy(r=>r.Id).ToArray();if(formal.Length==0)return result;
+  var lineages=await PromotionReadService.ReadLineagesAsync(db,releases,ct);var result=releases.ToDictionary(r=>r.Id,_=>(ApprovalDeliverySummaryDto?)null);
+  var formal=lineages.Values.Select(l=>l.PromotionRoot).OfType<ReleaseRecord>().DistinctBy(r=>r.Id).ToArray();if(formal.Length==0)return result;
   var promotionIds=formal.Select(r=>r.PromotionId!.Value).Distinct().ToArray();var promotions=await db.Set<ReleasePromotion>().AsNoTracking().Where(p=>promotionIds.Contains(p.Id)).ToDictionaryAsync(p=>p.Id,ct);
   foreach(var root in formal)if(!promotions.TryGetValue(root.PromotionId!.Value,out var p)||p.TargetReleaseId!=root.Id||p.TargetEnvironmentId!=root.EnvironmentId||p.ArtifactId!=root.ArtifactId||p.SourceReleaseId!=root.SourceReleaseId)
    throw new ApiException(409,"invalid_delivery_recovery_chain","发布恢复追溯存在循环、跨环境或无效正式关联。");
@@ -63,7 +63,7 @@ public sealed class DeliveryReleaseGuard(WebApiDbContext db,DeliveryLockCoordina
    var artifact=view.Artifact!;var environment=environments[promotion.SourceEnvironmentId];PipelineTraceDto? pipeline=null;if(promotion.PipelineRunStageId is Guid stage)pipelineViews.TryGetValue(stage,out pipeline);
    summaries[promotion.Id]=new("Visible",promotion.Id,artifact.Id,artifact.ArtifactHash,new(environment.Id,environment.Code,environment.Name),pipeline);
   }
-  foreach(var release in releases)if(roots[release.Id] is{} root)result[release.Id]=summaries[root.PromotionId!.Value];return result;
+  foreach(var release in releases)if(lineages[release.Id].PromotionRoot is{} root)result[release.Id]=summaries[root.PromotionId!.Value];return result;
  }
  public async Task RequireApprovalVisibilityAsync(ReleaseRecord release,ActorContext actor,CancellationToken ct)
  {if(release.PromotionId is not Guid id)return;var p=await db.Set<ReleasePromotion>().AsNoTracking().SingleOrDefaultAsync(p=>p.Id==id&&p.TargetReleaseId==release.Id&&p.TargetEnvironmentId==release.EnvironmentId,ct)??throw ScopeResolver.Missing();await locks.LockAsync(p.SourceEnvironmentId,p.TargetEnvironmentId,ct);await artifacts.GetAsync(p.ArtifactId,actor,ct);}
