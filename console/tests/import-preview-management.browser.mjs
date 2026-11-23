@@ -15,24 +15,30 @@ const row = (page,previewId) => page.getByRole('row').filter({hasText:previewId}
 const results = [];
 
 try {
-  for (const scenario of ['release-one-and-retry','recover-lost-response-after-scope-change','switch-during-revocation']) {
+  for (const scenario of ['delayed-workspace-with-default-policy','release-one-and-retry','recover-lost-response-after-scope-change','switch-during-revocation']) {
     const context = await browser.newContext();
     try {
-      const page = await context.newPage(), records = [], errors = [];
+      const page = await context.newPage(), records = [], requests = [], errors = [];
       page.setDefaultTimeout(6000);
       page.on('pageerror',e => errors.push(e.message));
       let dropped = false, failDelete = true, releaseDelete, sawDelete;
       const held = new Promise(resolve => { releaseDelete=resolve; });
       const started = new Promise(resolve => { sawDelete=resolve; });
+      let releaseScope;
+      const scopeResponse = new Promise(resolve => { releaseScope=resolve; });
       await page.route('**/api/v1/**',async route => {
         const req = route.request(), url = new URL(req.url()), path = url.pathname.slice('/api/v1'.length);
+        requests.push({path,method:req.method(),body:req.postDataJSON()});
         const reply = (body,status=200) => route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
         if (path === '/auth/me') return reply({id:id(7),displayName:'开发员',permissions:['api.create','route.write','cluster.read'],
           scopes:[{scope:{organizationId:org},accessMode:'read_write'}]});
         if (path === '/auth/csrf') return reply({token:'fixture'});
-        if (path === '/scope-tree') return reply({organizations:[{id:org,name:'组织'}],
+        if (path === '/scope-tree') {
+          if (scenario==='delayed-workspace-with-default-policy') await scopeResponse;
+          return reply({organizations:[{id:org,name:'组织'}],
           projects:[{id:project,organizationId:org,name:'第一项目'},{id:other,organizationId:org,name:'第二项目'}],
           environments:[{id:env,projectId:project,name:'开发环境'},{id:secondEnv,projectId:other,name:'第二环境'}]});
+        }
         if (path.endsWith('/clusters')) return reply({items:[{id:cluster,status:'Active',name:'集群'}],total:1,page:1,pageSize:50});
         if (path === endpoint && req.method() === 'GET')
           return reply(records.filter(x => x.projectId === url.searchParams.get('projectId') && x.active));
@@ -65,7 +71,20 @@ try {
         await input.fill(JSON.stringify({openapi:'3.0.3',info:{title,version:'1'},paths:{}}));
         await inspect.click();
       }
-      if (scenario.startsWith('release')) {
+      if (scenario==='delayed-workspace-with-default-policy') {
+        try {
+          await input.waitFor({state:'visible'});
+          assert.equal(await input.isEditable(),false,'创建草稿前须取得目标工作区');
+        } finally { releaseScope(); }
+        await create('initial scope');
+        await page.locator('.import-preview-meta').getByText(id(100),{exact:true}).waitFor();
+        const posted=requests.filter(r=>r.path===endpoint&&r.method==='POST');
+        assert.equal(posted.length,1);
+        assert.equal(JSON.parse(posted[0].body.sourceText).info.title,'initial scope');
+        assert.equal(posted[0].body.projectId,project);
+        assert.equal(posted[0].body.environmentId,env);
+        assert.equal(requests.some(r=>r.path.endsWith('/import-source-policy')),false);
+      } else if (scenario.startsWith('release')) {
         for (const [index,title] of ['A','A','B','B','C'].entries()) {
           await create(title);
           await page.locator('.import-preview-meta').getByText(id(100+index),{exact:true}).waitFor();
