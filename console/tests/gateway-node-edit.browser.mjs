@@ -45,6 +45,7 @@ async function fixture(t){
       permissions:state.permissions,scopes:state.grants});
     if(path==='/scope-tree')return reply(state.tree);
     if(path==='/auth/csrf')return reply({token:'fixture-csrf'});
+    if(path==='/auth/sso/providers')return reply([]);
     const [resource,id,action]=path.slice(1).toLowerCase().split('/');
     if(resource==='environments' && action==='gateway-nodes'){
       const items=Object.values(nodes).filter(row=>row.environmentId===id);
@@ -79,6 +80,148 @@ async function fixture(t){
   };
   return {page,nodes,state,writes,open,editor};
 }
+
+async function nodeList(t){
+  const {page,nodes}=await fixture(t);
+  nodes[second].environmentId='qa';
+  const listUrl=origin+'/api/v1/environments/dev/gateway-nodes?page=1';
+  const row=page.getByRole('row').filter({hasText:'节点 '+first});
+  const status=value=>row.getByRole('cell',{name:value,exact:true});
+  let sessionReads=0;
+  page.on('request',req=>{if(new URL(req.url()).pathname==='/api/v1/auth/me')sessionReads++;});
+  await page.goto(origin+'/nodes');
+  await status('Ready').waitFor();
+
+  async function hold(action){
+    const intercepted=Promise.withResolvers();
+    await page.route(listUrl,route=>intercepted.resolve(route),{times:1});
+    await Promise.all([page.waitForRequest(listUrl),action()]);
+    return intercepted.promise;
+  }
+  async function deliver(route,json,code=200){
+    await route.fulfill({json,status:code});
+    await (await route.request().response()).finished();
+    await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+  }
+  const observed=async()=>({
+    rows:await row.allTextContents(),alerts:await page.getByRole('alert').allTextContents(),
+    lastRead:await page.getByText(/^最后读取：/).allTextContents(),loading:await page.getByRole('status').count(),
+    login:await page.getByRole('heading',{name:'登录管理控制台'}).count(),sessionReads
+  });
+  const payload=offline=>({items:[{...nodes[first],offline}],total:1,page:1,pageSize:50});
+  return {page,status,observed,payload,deliver,holdPoll:()=>hold(()=>page.clock.fastForward(5000)),
+    holdRefresh:()=>hold(()=>button(page,'刷新').click())};
+}
+
+for(const code of [200,503,403,404,401]){
+  test('node list polling keeps the newer Offline result after a delayed '+code,async t=>{
+    const {page,holdPoll,deliver,payload,status,observed}=await nodeList(t);
+    const old=await holdPoll(),current=await holdPoll();
+    await deliver(current,payload(true));
+    await status('Offline').waitFor();
+    const offline=await observed();
+    assert.deepEqual(offline.alerts,[]);
+    await page.clock.fastForward(1200);
+    await deliver(old,code===200?payload(false):{detail:'过期的读取错误'},code);
+    assert.deepEqual(await observed(),offline);
+  });
+}
+
+for(const code of [503,403,404]){
+  test('node list polling preserves a current '+code+' through an older success and recovers on the next poll',async t=>{
+    const {holdPoll,deliver,payload,status,observed}=await nodeList(t);
+    const initial=await observed(),old=await holdPoll(),current=await holdPoll();
+    await deliver(current,{detail:'当前读取失败'},code);
+    const failure=await observed();
+    assert.match(failure.alerts[0],/当前读取失败/);
+    if(code===503){
+      assert.deepEqual(failure.rows,initial.rows);
+      assert.deepEqual(failure.lastRead,initial.lastRead);
+      assert.match(failure.alerts[0],/当前数据可能已过时/);
+      assert.equal(failure.sessionReads,initial.sessionReads);
+    }else{
+      assert.deepEqual(failure.rows,[]);
+      assert.match(failure.lastRead[0],/—/);
+      assert.equal(failure.sessionReads,initial.sessionReads+1);
+    }
+    await deliver(old,payload(false));
+    assert.deepEqual(await observed(),failure);
+    await deliver(await holdPoll(),payload(true));
+    await status('Offline').waitFor();
+    assert.deepEqual((await observed()).alerts,[]);
+  });
+}
+
+test('node list polling handles a current 401 by returning to login',async t=>{
+  const {page,holdPoll,deliver,observed}=await nodeList(t);
+  await deliver(await holdPoll(),{detail:'会话已过期'},401);
+  await page.getByRole('heading',{name:'登录管理控制台'}).waitFor();
+  assert.deepEqual((await observed()).rows,[]);
+});
+
+test('node list polling keeps a manual refresh pending until its newest read finishes',async t=>{
+  const {page,holdRefresh,holdPoll,deliver,payload,status,observed}=await nodeList(t);
+  const old=await holdRefresh();
+  await page.getByRole('status').waitFor();
+  const refreshing=await observed(),current=await holdPoll();
+  await deliver(old,payload(false));
+  assert.deepEqual(await observed(),refreshing);
+  await deliver(current,payload(true));
+  await status('Offline').waitFor();
+  assert.equal((await observed()).loading,0);
+});
+
+test('node list polling keeps updating when every read takes longer than the polling interval',async t=>{
+  const {page,payload,status}=await nodeList(t);
+  const path='/api/v1/environments/dev/gateway-nodes';
+  let offline=true;
+  await page.route(origin+path+'?page=1',route=>route.fulfill({json:payload(offline)}));
+  await page.evaluate(path=>{
+    const send=window.fetch;
+    window.fetch=async(...args)=>{
+      if(new URL(args[0],location.href).pathname!==path)return send(...args);
+      const delay=new Promise(done=>setTimeout(done,7000));
+      const [response]=await Promise.all([send(...args),delay]);
+      return response;
+    };
+  },path);
+  await button(page,'刷新').click();
+  await page.getByRole('status').waitFor();
+  for(const next of [true,false]){
+    offline=next;
+    const expected=status(next?'Offline':'Ready');
+    for(let tick=0;tick<8 && !(await expected.isVisible());tick++){
+      await page.clock.fastForward(5000);
+      await page.waitForLoadState('networkidle');
+    }
+    assert.equal(await expected.isVisible(),true,'slow reads must publish '+(next?'Offline':'Ready'));
+    assert.equal(await page.getByRole('status').count(),0);
+  }
+});
+
+test('node list polling allows a manual refresh to replace two outstanding polls',async t=>{
+  const {page,holdRefresh,holdPoll,deliver,payload,status,observed}=await nodeList(t);
+  const old=await holdPoll(),newer=await holdPoll(),manual=await holdRefresh();
+  await deliver(manual,payload(true));
+  await status('Offline').waitFor();
+  const refreshed=await observed();
+  await old.fulfill({json:payload(false)});
+  await newer.fulfill({status:401,json:{detail:'过期的会话错误'}});
+  await page.waitForLoadState('networkidle');
+  assert.deepEqual(await observed(),refreshed);
+});
+
+test('node list polling cannot restore the previous environment after the operator switches scope',async t=>{
+  const {page,holdPoll,payload,observed}=await nodeList(t);
+  const old=await holdPoll();
+  await page.getByRole('combobox',{name:'当前环境'}).selectOption('qa');
+  const qa=page.getByRole('cell',{name:'节点 '+second});
+  await qa.waitFor();
+  await old.fulfill({json:payload(false)});
+  await page.waitForLoadState('networkidle');
+  assert.equal(await qa.isVisible(),true);
+  assert.deepEqual((await observed()).rows,[]);
+});
 
 test('polling a newly disabled node cannot re-enable it with the old draft and a new ETag',async t=>{
   const {page,nodes,writes,open,editor}=await fixture(t);

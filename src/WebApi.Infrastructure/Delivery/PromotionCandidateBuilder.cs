@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Releases;
@@ -12,7 +13,7 @@ using WebApi.Infrastructure.Releases;
 using WebApi.Infrastructure.Routing;
 namespace WebApi.Infrastructure.Delivery;
 public sealed record PreparedPromotionAccess(long Revision,string? PublicOrigin,string? InternalOrigin,string BasePath);
-public sealed record PreparedPromotionCandidate(FrozenReleaseCandidate Candidate,IReadOnlyList<ResourceRevision> ResourceRevisions,string CandidateHash,long MappingRevision,long BaselineConfigVersion,PreparedPromotionAccess Access,IReadOnlyList<SharedCredentialImpact> CredentialImpact);
+public sealed record PreparedPromotionCandidate(FrozenReleaseCandidate Candidate,IReadOnlyList<ResourceRevision> ResourceRevisions,string CandidateHash,long MappingRevision,long BaselineConfigVersion,PreparedPromotionAccess Access,IReadOnlyList<SharedCredentialImpact> CredentialImpact,string SnapshotSchemaVersion);
 public sealed class PromotionCandidateBuilder(WebApiDbContext db,PromotionMappingService mapping,ReleaseArtifactService artifacts,TestAcceptanceService acceptances,PromotionCredentialSelection credentials,ReleaseCandidateBuilder builder,SnapshotCompiler compiler,HistoricalSnapshotService history)
 {
  public async Task<PreparedPromotionCandidate> PrepareAsync(ReleasePromotion promotion,ActorContext actor,CancellationToken ct)
@@ -46,9 +47,12 @@ public sealed class PromotionCandidateBuilder(WebApiDbContext db,PromotionMappin
   if(candidate.Versions.Any(v=>v.Api.LifecycleStatus=="Retired"||v.Version.Status=="Retired"))throw new ApiException(422,"retired_artifact_api","制品引用的API或版本已停用，不能从晋级目标中隐含删除。");
   foreach(var route in candidate.Routes){var frozen=artifact.Content.Routes.Single(r=>r.VersionId==route.ApiVersionId&&r.Key==rows.Single(row=>row.TargetRouteId==route.Id).ResourceKey);var mode=route.EffectiveAuthenticationMode??(route.RequireApiKey?"ApiKey":"Anonymous");if(mode!=frozen.AuthenticationMode||route.Path!=frozen.Path||!route.Methods.SequenceEqual(frozen.Methods.Order(StringComparer.Ordinal)))throw PromotionMappingService.Invalid();}
   var revisions=candidate.ResourceRevisions.Concat(sourcePolicyRevisions).DistinctBy(r=>(r.Type,r.Id)).OrderBy(r=>r.Type,StringComparer.Ordinal).ThenBy(r=>r.Id).ToArray();candidate=candidate with{ResourceRevisions=revisions};
-  var baseline=promotion.BaselineConfigVersion==0?new RuntimeSnapshot("2.0",env.Id,0,DateTimeOffset.UtcNow,[],[],[],[]):(await history.ReadAsync(env.Id,promotion.BaselineConfigVersion,ct)).Snapshot;compiler.Compile(candidate,baseline,promotion.BaselineConfigVersion+1,DateTimeOffset.UtcNow);
+  var baseline=promotion.BaselineConfigVersion==0?new RuntimeSnapshot("2.0",env.Id,0,DateTimeOffset.UtcNow,[],[],[],[]):(await history.ReadAsync(env.Id,promotion.BaselineConfigVersion,ct)).Snapshot;
+  var compiled=compiler.Compile(candidate,baseline,promotion.BaselineConfigVersion+1,DateTimeOffset.UtcNow);
+  using var payload=JsonDocument.Parse(compiled.Payload);
+  var snapshotSchemaVersion=payload.RootElement.GetProperty("schemaVersion").GetString()!;
   var hash=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(CanonicalJson.Serialize(candidate)));promotion.CandidateHash=hash;promotion.ResourceRevisionsJson=PromotionMappingService.Json(revisions);promotion.TargetAccessAddressRevision=env.AccessAddressRevision;
   db.Add(new ReleasePromotionEvent{OrganizationId=promotion.OrganizationId,ProjectId=promotion.ProjectId,EnvironmentId=env.Id,PromotionId=promotion.Id,Phase="Mapping",FromStatus=promotion.Status,ToStatus=promotion.Status,ReasonCode="target_candidate_prepared",ActorId=actor.UserId});
-  return new(candidate,revisions,hash,promotion.MappingRevision,promotion.BaselineConfigVersion,new(env.AccessAddressRevision,env.GatewayPublicUrl,env.GatewayInternalUrl,env.BasePath),selection.Impact);
+  return new(candidate,revisions,hash,promotion.MappingRevision,promotion.BaselineConfigVersion,new(env.AccessAddressRevision,env.GatewayPublicUrl,env.GatewayInternalUrl,env.BasePath),selection.Impact,snapshotSchemaVersion);
  }
 }

@@ -11,11 +11,26 @@ export function useRemote<T>(path:string|null,interval=0,allPages=false,revalida
   const identity=JSON.stringify([path,authority]);const controller=new AbortController();
   if(previous.current!==identity){setData(undefined);setUpdated(undefined);previous.current=identity;}
   setError('');setErrorStatus(undefined);setLoading(true);if(!path){setLoading(false);setVerified(requested);return;}
-  // Reads triggered by a session refresh consume their own denial without starting another refresh.
-  const options={signal:controller.signal,refreshPermissionsOnDenied:!revalidateOnSessionRefresh};
-  const load=async()=>{try{const result=await (allPages?readAllPages(apiRequest,path,options):apiRequest<T>(path,options));if(!controller.signal.aborted){setData(result);setError('');setErrorStatus(undefined);setUpdated(new Date());}}
-   catch(e){if(!controller.signal.aborted){if(e instanceof ApiError&&[401,403,404].includes(e.status)){setData(undefined);setUpdated(undefined);}setError((e as Error).message);setErrorStatus(e instanceof ApiError?e.status:undefined);}}
-   finally{if(!controller.signal.aborted){setLoading(false);setVerified(requested);}}};
+  let latestRequest=0,lastAppliedRequest=0;
+  const load=async()=>{
+   // One poll may overtake a slow read. Give that newer read time to finish.
+   if(latestRequest-lastAppliedRequest>=2)return;
+   const request=++latestRequest;
+   const isCurrent=()=>request===latestRequest&&!controller.signal.aborted;
+   // Reads triggered by a session refresh consume their own denial without starting another refresh.
+   const options={signal:controller.signal,refreshPermissionsOnDenied:!revalidateOnSessionRefresh,isCurrentRead:interval?isCurrent:undefined};
+   try{
+    const result=await (allPages?readAllPages(apiRequest,path,options):apiRequest<T>(path,options));
+    if(!isCurrent())return;
+    setData(result);setError('');setErrorStatus(undefined);setUpdated(new Date());
+   }catch(e){
+    if(!isCurrent())return;
+    if(e instanceof ApiError&&[401,403,404].includes(e.status)){setData(undefined);setUpdated(undefined);}
+    setError((e as Error).message);setErrorStatus(e instanceof ApiError?e.status:undefined);
+   }
+   lastAppliedRequest=request;
+   setLoading(false);setVerified(requested);
+  };
   void load();const timer=interval?setInterval(load,interval):undefined;
   return()=>{controller.abort();if(timer)clearInterval(timer);};
  },[path,tick,interval,authority,allPages,revalidateOnSessionRefresh,requested]);

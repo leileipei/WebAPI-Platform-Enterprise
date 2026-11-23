@@ -167,7 +167,7 @@ public sealed class PromotionRetainedRouteTests
         Assert.Null(blocked.CandidateHash);
     }
 
-    private static Task AddPrivateRouteAsync(PromotionScenario fixture) => AddPrivateRouteAsync(fixture, fixture.Api.Version.Id);
+    internal static Task AddPrivateRouteAsync(PromotionScenario fixture) => AddPrivateRouteAsync(fixture, fixture.Api.Version.Id);
 
     private static async Task AddPrivateRouteAsync(PromotionScenario fixture, Guid versionId, bool anonymous = false)
     {
