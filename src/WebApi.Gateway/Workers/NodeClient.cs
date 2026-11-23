@@ -17,16 +17,16 @@ public sealed class NodeClient : IDisposable
     private readonly string[] snapshotSchemas;
     private readonly string[]? securityCapabilities;
     private readonly HttpClient? securityClient;
-    private readonly LkgStore? lkg;
+    private readonly VerifiedLkgVersion? lkgVersion;
     private readonly Channel<bool> maintenance=Channel.CreateBounded<bool>(new BoundedChannelOptions(1){FullMode=BoundedChannelFullMode.DropWrite});
     private static readonly string appVersion=typeof(NodeClient).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0]
         ?? typeof(NodeClient).Assembly.GetName().Version!.ToString();
     private readonly object sampleLock = new();
     private long previousTimestamp;
     private TimeSpan previousCpu;
-    public NodeClient(GatewaySettings settings,GatewaySecurityEvidence? governance=null,LkgStore? lkg=null)
+    public NodeClient(GatewaySettings settings,GatewaySecurityEvidence? governance=null,VerifiedLkgVersion? lkgVersion=null)
     {
-        this.settings=settings;this.lkg=lkg;
+        this.settings=settings;this.lkgVersion=lkgVersion;
         if(governance is not null&&settings.ControlPlaneUrl.Scheme!="https"&&!settings.ControlPlaneUrl.IsLoopback)
             throw new InvalidOperationException("Governance node credentials require an HTTPS control plane.");
         snapshotSchemas=governance is null?["2.0","2.1","2.2","2.3"]:["2.0","2.1","2.2","2.3","2.4"];
@@ -67,7 +67,7 @@ public sealed class NodeClient : IDisposable
                 Math.Clamp((cpu - previousCpu).TotalSeconds * 100 / (elapsed * Environment.ProcessorCount), 0, 100);
             previousCpu = cpu;
             previousTimestamp = now;
-            return new(percent, process.WorkingSet64, lkg?.VerifiedVersion);
+            return new(percent, process.WorkingSet64, lkgVersion?.Value);
         }
     }
 

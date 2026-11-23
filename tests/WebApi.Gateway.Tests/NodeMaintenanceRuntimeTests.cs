@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using WebApi.Contracts.Gateway;
 using WebApi.Gateway.Configuration;
+using WebApi.Gateway.Storage;
 using WebApi.Gateway.Tests.Support;
 using WebApi.Gateway.Workers;
 using WebApi.Infrastructure.Persistence.Entities;
@@ -15,6 +16,24 @@ namespace WebApi.Gateway.Tests;
 
 public sealed class NodeMaintenanceRuntimeTests
 {
+    [Fact]
+    public void NodeClientCanResolveBeforeGovernedLocalStorage()
+    {
+        var secret = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(secret, new string('x', 64));
+            var services = new ServiceCollection();
+            services.AddSingleton(new GatewaySettings(Guid.NewGuid(), "test-node", secret,
+                Path.GetTempPath(), new Uri("http://127.0.0.1"), false, Guid.NewGuid()));
+            services.AddSingleton<LkgStore>(_ => throw new InvalidOperationException("Local storage requires node identity."));
+            services.AddSingleton<NodeClient>();
+            using var provider = services.BuildServiceProvider();
+            Assert.NotNull(provider.GetRequiredService<NodeClient>());
+        }
+        finally { File.Delete(secret); }
+    }
+
     [Fact]
     public async Task OperatorReadsActualProcessAndLkgThenRunsRetryAndSavedTargetProbeOnOneGateway()
     {

@@ -5,21 +5,28 @@ using WebApi.Contracts.Runtime;
 using WebApi.Gateway.Security;
 using WebApi.Infrastructure.Runtime;
 namespace WebApi.Gateway.Storage;
-public sealed class LkgStore(GatewaySettings settings,IGovernanceAdmissionStateProvider? governance=null)
+public sealed class VerifiedLkgVersion
 {
-    private long verifiedVersion;
-    public long? VerifiedVersion
+    private long version;
+    public long? Value
     {
-        get { var version=Interlocked.Read(ref verifiedVersion); return version>0?version:null; }
+        get { var current = Interlocked.Read(ref version); return current > 0 ? current : null; }
     }
+    internal void Record(long? current) => Interlocked.Exchange(ref version, current ?? 0);
+}
+
+public sealed class LkgStore(GatewaySettings settings,IGovernanceAdmissionStateProvider? governance=null,VerifiedLkgVersion? diagnostics=null)
+{
+    private readonly VerifiedLkgVersion verified = diagnostics ?? new();
+    public long? VerifiedVersion => verified.Value;
     public string FilePath=>Path.Combine(settings.LkgDirectory,"runtime.lkg");
     public async Task<DesiredConfigResponse?> ReadAsync(CancellationToken ct=default)
     {return (await ReadCandidatesAsync(ct)).FirstOrDefault();}
     public async Task<IReadOnlyList<DesiredConfigResponse>> ReadCandidatesAsync(CancellationToken ct=default)
-    {var candidates=new List<DesiredConfigResponse>();foreach(var file in new[]{FilePath,FilePath+".previous"}) {try {if(!File.Exists(file)||new FileInfo(file).Length>32*1024*1024) continue;var value=JsonSerializer.Deserialize<DesiredConfigResponse>(await File.ReadAllBytesAsync(file,ct),CanonicalJson.Options)!;RedisSnapshotStore.ReadArtifact(settings.EnvironmentId,value.Envelope,value.Payload,allowGovernance24:true);candidates.Add(value);}catch(Exception e) when(e is IOException or UnauthorizedAccessException or JsonException or InvalidDataException or WebApi.Contracts.Common.ApiException or ArgumentException or NullReferenceException) {}}Interlocked.Exchange(ref verifiedVersion,candidates.FirstOrDefault()?.Envelope.ConfigVersion??0);return candidates;}
+    {var candidates=new List<DesiredConfigResponse>();foreach(var file in new[]{FilePath,FilePath+".previous"}) {try {if(!File.Exists(file)||new FileInfo(file).Length>32*1024*1024) continue;var value=JsonSerializer.Deserialize<DesiredConfigResponse>(await File.ReadAllBytesAsync(file,ct),CanonicalJson.Options)!;RedisSnapshotStore.ReadArtifact(settings.EnvironmentId,value.Envelope,value.Payload,allowGovernance24:true);candidates.Add(value);}catch(Exception e) when(e is IOException or UnauthorizedAccessException or JsonException or InvalidDataException or WebApi.Contracts.Common.ApiException or ArgumentException or NullReferenceException) {}}verified.Record(candidates.FirstOrDefault()?.Envelope.ConfigVersion);return candidates;}
     public Task WriteAtomicAsync(SnapshotEnvelope envelope,ReadOnlyMemory<byte> payload,CancellationToken ct=default)=>WriteAsync(new(envelope,payload.ToArray()),true,ct);
     public async Task RestoreAsync(DesiredConfigResponse? prior,CancellationToken ct=default)
-    {if(prior is null) {File.Delete(FilePath);SyncDirectory(settings.LkgDirectory);Interlocked.Exchange(ref verifiedVersion,0);}else await WriteAsync(prior,false,ct);}
+    {if(prior is null) {File.Delete(FilePath);SyncDirectory(settings.LkgDirectory);verified.Record(null);}else await WriteAsync(prior,false,ct);}
     private async Task WriteAsync(DesiredConfigResponse value,bool rotate,CancellationToken ct)
     {
         RedisSnapshotStore.ReadArtifact(settings.EnvironmentId,value.Envelope,value.Payload,governance is not null);Directory.CreateDirectory(settings.LkgDirectory);
@@ -29,7 +36,7 @@ public sealed class LkgStore(GatewaySettings settings,IGovernanceAdmissionStateP
         {
             await using(var stream=new FileStream(temporary,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.Asynchronous|FileOptions.WriteThrough)) {if(!OperatingSystem.IsWindows()) File.SetUnixFileMode(temporary,UnixFileMode.UserRead|UnixFileMode.UserWrite);await JsonSerializer.SerializeAsync(stream,value,CanonicalJson.Options,ct);await stream.FlushAsync(ct);stream.Flush(true);}
             ct.ThrowIfCancellationRequested();if(rotate&&File.Exists(FilePath)) {var prior=await ReadAsync(ct);if(prior is not null) {var backup=FilePath+".previous.tmp";await using(var stream=new FileStream(backup,FileMode.Create,FileAccess.Write,FileShare.None)) {await JsonSerializer.SerializeAsync(stream,prior,CanonicalJson.Options,ct);stream.Flush(true);}if(!OperatingSystem.IsWindows()) File.SetUnixFileMode(backup,UnixFileMode.UserRead|UnixFileMode.UserWrite);File.Move(backup,FilePath+".previous",true);}}
-            File.Move(temporary,FilePath,true);SyncDirectory(settings.LkgDirectory);Interlocked.Exchange(ref verifiedVersion,value.Envelope.ConfigVersion);
+            File.Move(temporary,FilePath,true);SyncDirectory(settings.LkgDirectory);verified.Record(value.Envelope.ConfigVersion);
         }
         finally {if(File.Exists(temporary)) File.Delete(temporary);}
     }
