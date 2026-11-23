@@ -21,7 +21,7 @@ public sealed class PromotionCandidateBuilder(WebApiDbContext db,PromotionMappin
   if(promotion.Status!="Draft")throw PromotionMappingService.NotDraft();var artifact=await mapping.RequireAsync(promotion,actor,ct);if(promotion.AcceptanceId is not Guid accepted)throw new ApiException(409,"test_acceptance_required","晋级需有效独立测试验收。");await acceptances.RequireAcceptedCurrentAsync(accepted,promotion.ArtifactId,actor,ct);
   var source=await artifacts.RequireSourceAsync(promotion.SourceReleaseId,actor,ct);if(ReleaseArtifactCanonicalizer.Hash(source.Content)!=artifact.ArtifactHash)throw new ApiException(409,"artifact_source_changed","来源制品已与实际部署内容不符。");
   var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==promotion.TargetEnvironmentId,ct);if(env.ProjectId!=promotion.ProjectId||(!env.IsProduction&&promotion.GateOrigin!="PipelineRunStage")||env.Status!="Active"||(env.DesiredConfigVersion??0)!=promotion.BaselineConfigVersion)throw new ApiException(409,"stale_baseline","目标生产环境或基线已变化。");
-  var request=await mapping.LoadAsync(promotion.Id,ct);await mapping.ValidateAsync(promotion,artifact.Content,request,actor,ct);var selection=await credentials.SelectAsync(promotion,artifact.Content,request.Applications,actor,ct);
+  var request=await mapping.LoadAsync(promotion.Id,ct);await mapping.ValidateAsync(promotion,artifact.Content,request,actor,ct);
   var rows=await db.Set<ReleasePromotionMapping>().Where(m=>m.PromotionId==promotion.Id&&m.Kind=="Route").ToArrayAsync(ct);var routeIds=new List<Guid>();var sourcePolicyRevisions=new List<ResourceRevision>();
   foreach(var row in rows){var state=PromotionMappingService.Read<PromotionRouteState>(row.ParametersJson);var target=state.Mapping;var frozen=artifact.Content.Routes.Single(r=>r.Key==target.ArtifactRouteKey);var id=target.TargetRouteId??state.PreparedRouteId;
    var route=id is Guid existing?await mapping.RequireMatchingRouteAsync(existing,promotion,frozen,actor,ct):new ApiRoute{EnvironmentId=env.Id};var normalized=RouteNormalizer.Normalize(frozen.Path);RouteNormalizer.MatchOrder(frozen.Path,frozen.Priority);
@@ -40,7 +40,9 @@ public sealed class PromotionCandidateBuilder(WebApiDbContext db,PromotionMappin
    if(route.AuthenticationMode!=healMode){route.AuthenticationMode=healMode;route.Revision++;}
    row.TargetRouteId=route.Id;row.ParametersJson=PromotionMappingService.Json(new PromotionRouteState(target,route.Id,privateIds,promotion.MappingRevision));routeIds.Add(route.Id);
   }
-  await db.SaveChangesAsync(ct);var candidate=await builder.BuildPromotionAsync(env.Id,new(promotion.BaselineConfigVersion,artifact.Content.Apis.Select(a=>a.VersionId).ToArray()),routeIds,selection,ct);
+  await db.SaveChangesAsync(ct);
+  var selection=await credentials.SelectAsync(promotion,artifact.Content,request.Applications,routeIds,actor,ct);
+  var candidate=await builder.BuildPromotionAsync(env.Id,new(promotion.BaselineConfigVersion,artifact.Content.Apis.Select(a=>a.VersionId).ToArray()),routeIds,selection,ct);
   if(candidate.Versions.Any(v=>v.Api.LifecycleStatus=="Retired"||v.Version.Status=="Retired"))throw new ApiException(422,"retired_artifact_api","制品引用的API或版本已停用，不能从晋级目标中隐含删除。");
   foreach(var route in candidate.Routes){var frozen=artifact.Content.Routes.Single(r=>r.VersionId==route.ApiVersionId&&r.Key==rows.Single(row=>row.TargetRouteId==route.Id).ResourceKey);var mode=route.EffectiveAuthenticationMode??(route.RequireApiKey?"ApiKey":"Anonymous");if(mode!=frozen.AuthenticationMode||route.Path!=frozen.Path||!route.Methods.SequenceEqual(frozen.Methods.Order(StringComparer.Ordinal)))throw PromotionMappingService.Invalid();}
   var revisions=candidate.ResourceRevisions.Concat(sourcePolicyRevisions).DistinctBy(r=>(r.Type,r.Id)).OrderBy(r=>r.Type,StringComparer.Ordinal).ThenBy(r=>r.Id).ToArray();candidate=candidate with{ResourceRevisions=revisions};

@@ -109,7 +109,7 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
             try { baseline = (await history.ReadAsync(environmentId, request.BaseConfigVersion, ct)).Snapshot; }
             catch (ApiException error) when (error.Status == 404) { throw new ApiException(409, "baseline_unavailable", "环境基准快照不可用。"); }
             if (!governed && baseline.RequiredSecurityGeneration is not null) throw GovernanceRequired();
-            retainedRoutes = baseline.Routes.Where(r => !apiIds.Contains(r.ApiId)).ToArray();
+            retainedRoutes = SnapshotCompiler.RetainedRoutes(baseline, apiIds, selectedRoutes?.ToHashSet());
             if (governed && baseline.SchemaVersion != "2.4" && retainedRoutes.Length > 0)
                 throw new ApiException(409, "governance_snapshot_full_freeze_required", "首次发布 2.4 必须将所有仍在运行的 API 纳入同一冻结范围。");
             var retainedPolicyIds=retainedRoutes.SelectMany(r=>r.PolicyBindings??[]).Select(b=>b.PolicyId).ToHashSet();
@@ -172,16 +172,17 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
             bindings = bindings.OrderBy(binding => binding.RouteId).ThenBy(binding => binding.Priority).ThenBy(binding => binding.PolicyId).ToArray();
             policies = policies.OrderBy(policy => policy.Id).ToArray();
         }
-        var candidate=new FrozenReleaseCandidate(environmentId,scope.OrganizationId,scope.ProjectId!.Value,request.BaseConfigVersion,request.VersionIds,versions,routeDtos,clusters,policies.Select(p=>new FrozenPolicy(p.Id,p.Type,p.Config,p.Enabled,p.VersionNo)).ToArray(),bindings,applications,revisions,Governance:governance);
+        var candidate=new FrozenReleaseCandidate(environmentId,scope.OrganizationId,scope.ProjectId!.Value,request.BaseConfigVersion,request.VersionIds,versions,routeDtos,clusters,policies.Select(p=>new FrozenPolicy(p.Id,p.Type,p.Config,p.Enabled,p.VersionNo)).ToArray(),bindings,applications,revisions,Governance:governance,
+            PreserveUnmappedPromotionRoutes:retainedRoutes.Any(route => apiIds.Contains(route.ApiId)));
         var newSemantics=policies.Any(p=>p.Enabled&&routeEntities.Any(r=>r.Enabled&&bindings.Any(b=>b.RouteId==r.Id&&b.PolicyId==p.Id))&&RequiresModernSchema(p.Type,p.Config))
-            || baseline is not null&&baseline.Routes.Where(r=>!apiIds.Contains(r.ApiId)).Any(r=>r.AuthenticationMode==AuthenticationMode.JWT||(r.PolicyBindings??[]).Any(b=>baseline.Policies.Any(p=>p.Id==b.PolicyId&&RequiresModernSchema(p.Type,p.Config))));
-        if(newSemantics || governed)
+            || baseline is not null&&retainedRoutes.Any(r=>r.AuthenticationMode==AuthenticationMode.JWT||(r.PolicyBindings??[]).Any(b=>baseline.Policies.Any(p=>p.Id==b.PolicyId&&RequiresModernSchema(p.Type,p.Config))));
+        if(newSemantics || governed || candidate.PreserveUnmappedPromotionRoutes)
         {
             var compileTime = DateTimeOffset.UtcNow;
             var compiled=compiler.Compile(candidate,baseline??new RuntimeSnapshot("2.0",environmentId,0,compileTime,[],[],[],[]),request.BaseConfigVersion+1,compileTime);
             if (ledger is not null && selection is not null)
                 RequireGovernedPromotionAccess(SnapshotValidator.ParsePayload(compiled.Payload.Span, environmentId),
-                    baseline, apiIds, ledger, compileTime);
+                    baseline, apiIds, selectedRuntimeRoutes.Select(route => route.Id).ToHashSet(), ledger, compileTime);
             using var document=JsonDocument.Parse(compiled.Payload);
             var schema=document.RootElement.GetProperty("schemaVersion").GetString()!;
             if(schema is "2.2" or "2.3") await SnapshotSchemaCapabilities.RequireOnlineSchemaAsync(db,publishSettings,environmentId,schema,ct);
@@ -190,11 +191,11 @@ public sealed class ReleaseCandidateBuilder(WebApiDbContext db,ScopeResolver sco
     }
 
     private static void RequireGovernedPromotionAccess(RuntimeSnapshot current, RuntimeSnapshot? baseline,
-        HashSet<Guid> selectedApis, SecurityLedgerMaterial ledger, DateTimeOffset now)
+        HashSet<Guid> selectedApis, HashSet<Guid> mappedRouteIds, SecurityLedgerMaterial ledger, DateTimeOffset now)
     {
         var revoked = ledger.Revocations.Select(x => x.CredentialId).ToHashSet();
         var policies = current.Policies.ToDictionary(x => x.Id);
-        foreach (var route in current.Routes.Where(x => selectedApis.Contains(x.ApiId)))
+        foreach (var route in current.Routes.Where(x => mappedRouteIds.Contains(x.Id)))
         {
             IEnumerable<RuntimeApplication> eligible;
             if (route.RequireApiKey)

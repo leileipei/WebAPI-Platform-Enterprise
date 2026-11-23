@@ -60,6 +60,8 @@ async function fixture(t) {
       }
     }
     if(path==='/projects/'+project+'/apis')return paged(apis,1);
+    if(path==='/projects/'+foreign+'/apis')return paged([]);
+    if(path==='/projects/'+foreign+'/api-groups')return reply([]);
     if(path==='/projects/'+project+'/policies')return paged([{id:'selected-policy',type:'timeout',projectId:project,name:'超时策略',enabled:true}]);
     if(path.endsWith('/access-addresses'))return reply({configured:false,routes:[]});
     for(const e of [env,alt,'foreign-env']){
@@ -208,7 +210,8 @@ test('an empty or vanished version and an unrelated project cannot create routes
   assert.equal(await button(page,'创建发布草稿并预览').isDisabled(),true);
   await step(page,5).click();
   await page.getByRole('combobox',{name:'当前项目'}).selectOption(foreign);
-  await step(page,5).click();
+  await page.getByRole('heading',{name:'API 目录',exact:true}).waitFor();
+  assert.equal(new URL(page.url()).pathname,'/apis');
   assert.equal(await button(page,'＋ 新建路由').count(),0);
   assert.equal(writes().some(r=>r.path.endsWith('/submit')||r.path.endsWith('/routes')),false);
 });

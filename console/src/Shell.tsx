@@ -1,6 +1,7 @@
 import {resetAlertScopeSearch} from './observability/alert-state.mjs';import {resetObservationScopeSearch} from './observability/query-state.mjs';import {createContext,useContext,useEffect,useRef,useState,type ReactNode} from 'react';import {IconShieldCheck,IconLogout,IconRefresh} from '@tabler/icons-react';import {SidebarNav} from './SidebarNav';import {sidebarGroupForPath,toggleSidebarGroup} from './sidebar-model.mjs';import {useSession} from './auth/SessionProvider';import {useRemote,Feedback} from './ui';import type {ScopeTree,Scope} from './api/types';
 type Workspace={tree:ScopeTree;organizationId:string;projectId:string;environmentId:string;scope:Scope|undefined;scopeReady:boolean;refresh:()=>void;selectScope:(scope:Scope,path?:string)=>void};const WorkspaceContext=createContext<Workspace>(null!);export const useWorkspace=()=>useContext(WorkspaceContext);
 import {allowNavigation,bindNavigation,navigate} from './navigation.mjs';
+import {apiRoute} from './comparisons/model.mjs';
 export {allowNavigation,navigate};
 export function Link({to,children}:{to:string;children:ReactNode}){return <a href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{children}</a>;}
 export function usePath(){const[route,set]=useState({path:location.pathname,search:location.search});useEffect(()=>bindNavigation(window,(path,search)=>set({path,search})),[]);return route;}
@@ -11,6 +12,7 @@ export function Shell({children,path}:{children:ReactNode;path:string}){const{us
   set(value);
   localStorage.setItem('core-'+kind,value);
   if(/^\/clusters\/[^/]+/.test(path))navigate('/clusters',true);
+  else if(kind!=='environment'&&path.startsWith('/apis/')&&['detail','wizard'].includes(apiRoute(path).kind))navigate('/apis',true);
   else if(path.startsWith('/observability/'))navigate(path+(path==='/observability/alerts'?resetAlertScopeSearch(location.search):resetObservationScopeSearch(location.search,kind)),true);
  };
  function selectScope(scope:Scope,url?:string){

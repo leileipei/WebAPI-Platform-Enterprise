@@ -27,21 +27,45 @@ public sealed partial class PromotionCredentialSelection(WebApiDbContext db,Auth
   }
   if(content.Routes.Any(r=>r.AuthenticationMode=="ApiKey"?!apiKeyCovered.Contains(r.ApiId):r.AuthenticationMode!="Anonymous"&&!covered.Contains(r.ApiId)))throw PromotionMappingService.Invalid();
  }
- public async Task<PromotionCredentialResult> SelectAsync(ReleasePromotion p,ArtifactContent content,IReadOnlyList<PromotionApplicationMapping> selections,ActorContext actor,CancellationToken ct)
+ public async Task<PromotionCredentialResult> SelectAsync(ReleasePromotion p,ArtifactContent content,IReadOnlyList<PromotionApplicationMapping> selections,IReadOnlyList<Guid> routeIds,ActorContext actor,CancellationToken ct)
  {
   await ValidateAsync(p,content,selections,actor,ct);
-  if(settings.EnablesGovernanceSnapshot24(p.TargetEnvironmentId))return await SelectGovernedAsync(p,content,selections,actor,ct);
-  var selectedApis=content.Apis.Select(a=>a.ApiId).ToHashSet();var scope=await scopes.EnvironmentAsync(p.TargetEnvironmentId,ct);var retained=new Dictionary<Guid,FrozenApplication>();
-  if(p.BaselineConfigVersion>0){var baseline=(await history.ReadAsync(p.TargetEnvironmentId,p.BaselineConfigVersion,ct)).Snapshot;var historical=await history.CandidateAsync(p.TargetEnvironmentId,p.BaselineConfigVersion,p.BaselineConfigVersion,ct);
-   var retainedApis=baseline.Routes.Where(r=>!selectedApis.Contains(r.ApiId)).Select(r=>r.ApiId).ToHashSet();var retainedMapped=baseline.Policies.Where(policy=>baseline.Routes.Where(r=>retainedApis.Contains(r.ApiId)).Any(r=>(r.PolicyBindings??[]).Any(b=>b.PolicyId==policy.Id))&&policy.Type=="authentication").SelectMany(policy=>WebApi.Domain.Policies.PolicyConfigurationValidator.ParseAuthentication(policy.Config).Jwt?.ApplicationMappings??[]).Select(m=>m.ApplicationId).ToHashSet();
-   foreach(var runtime in baseline.Applications){var permissions=runtime.Permissions.Where(g=>retainedApis.Contains(g.ApiId)).ToArray();if(permissions.Length==0&&!retainedMapped.Contains(runtime.Id))continue;var frozen=historical.Applications.SingleOrDefault(a=>a.Application.Id==runtime.Id)??throw BaselineChanged();
-    if(frozen.Application.Status!=runtime.Status||frozen.Credentials.Count!=runtime.Credentials.Count||runtime.Credentials.Any(c=>!frozen.Credentials.Any(f=>Same(f,c))))throw BaselineChanged();var grants=frozen.Permissions.Where(g=>permissions.Any(r=>r.ApiId==g.ApiId&&r.ValidFrom==g.ValidFrom&&r.ExpiresAt==g.ExpiresAt)).ToArray();if(grants.Length!=permissions.Length)throw BaselineChanged();
-    await auth.RequireAsync(actor,"app.read",new("application",runtime.Id,scope),ct);retained.Add(runtime.Id,frozen with{Permissions=grants});
+  var baseline = p.BaselineConfigVersion > 0 ? (await history.ReadAsync(p.TargetEnvironmentId,p.BaselineConfigVersion,ct)).Snapshot : null;
+  var mappedRoutes = routeIds.ToHashSet();
+  var retainedRoutes = baseline?.Routes.Where(route => !mappedRoutes.Contains(route.Id)).ToArray() ?? [];
+  var access = baseline is null ? null : new RetainedRouteAccess(baseline, retainedRoutes,content.Apis.Select(api => api.ApiId).ToHashSet());
+  var governed = settings.EnablesGovernanceSnapshot24(p.TargetEnvironmentId);
+  var result = governed
+      ? await SelectGovernedAsync(p,selections,actor,baseline,retainedRoutes,access,ct)
+      : await SelectLegacyAsync(p,selections,actor,baseline,access,ct);
+
+  // A baseline grant shared with a protected artifact API must not implicitly authorize its mapped routes.
+  var protectedApis = content.Routes.Where(route => route.AuthenticationMode != "Anonymous").Select(route => route.ApiId).ToHashSet();
+  var explicitGrants = selections.SelectMany(selection => selection.AuthorizationIds).ToHashSet();
+  var implicitGrants = result.Applications.SelectMany(app => app.Permissions)
+      .Where(grant => protectedApis.Contains(grant.ApiId) && !explicitGrants.Contains(grant.Id)).ToArray();
+  var implicitIds = implicitGrants.Select(grant => grant.Id).ToArray();
+  if (implicitIds.Length > 0 && (!governed ||
+      await db.Set<ApplicationApiPermission>().AnyAsync(grant => implicitIds.Contains(grant.Id) && grant.Mode != "RouteMethod",ct) ||
+      await db.Set<ApplicationRouteMethodGrant>().AnyAsync(grant => implicitIds.Contains(grant.PermissionId) && routeIds.Contains(grant.RouteId),ct)))
+      throw RetainedRouteAccess.Changed();
+  return result;
+ }
+
+ private async Task<PromotionCredentialResult> SelectLegacyAsync(ReleasePromotion p,IReadOnlyList<PromotionApplicationMapping> selections,ActorContext actor,
+     RuntimeSnapshot? baseline,RetainedRouteAccess? access,CancellationToken ct)
+ {
+  var scope=await scopes.EnvironmentAsync(p.TargetEnvironmentId,ct);var retained=new Dictionary<Guid,FrozenApplication>();var affectedApis=new Dictionary<Guid,Guid[]>();
+  if(baseline is not null){var historical=await history.CandidateAsync(p.TargetEnvironmentId,p.BaselineConfigVersion,p.BaselineConfigVersion,ct);
+   foreach(var runtime in baseline.Applications){var affected=access!.ApiIdsFor(runtime);if(affected.Length==0)continue;affectedApis.Add(runtime.Id,affected);var permissions=access.PermissionsFor(runtime).ToArray();var frozen=historical.Applications.SingleOrDefault(a=>a.Application.Id==runtime.Id)??throw BaselineChanged();
+    var keepKeys=access.NeedsCredentials(runtime);
+    if(frozen.Application.Status!=runtime.Status||keepKeys&&(frozen.Credentials.Count!=runtime.Credentials.Count||runtime.Credentials.Any(c=>!frozen.Credentials.Any(f=>Same(f,c)))))throw BaselineChanged();var grants=frozen.Permissions.Where(g=>permissions.Any(r=>r.ApiId==g.ApiId&&r.ValidFrom==g.ValidFrom&&r.ExpiresAt==g.ExpiresAt)).ToArray();if(grants.Length!=permissions.Length)throw BaselineChanged();
+    await auth.RequireAsync(actor,"app.read",new("application",runtime.Id,scope),ct);retained.Add(runtime.Id,frozen with{Credentials=keepKeys?frozen.Credentials:[],Permissions=grants});
    }
   }
   var applications=new List<FrozenApplication>();var revisions=new List<ResourceRevision>();var impact=new List<SharedCredentialImpact>();
   foreach(var selection in selections){var app=await db.Set<ApplicationRecord>().AsNoTracking().SingleAsync(a=>a.Id==selection.ApplicationId,ct);var creds=await db.Set<ApplicationCredential>().AsNoTracking().Where(c=>selection.CredentialIds.Contains(c.Id)).OrderBy(c=>c.Id).ToArrayAsync(ct);var grants=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(g=>selection.AuthorizationIds.Contains(g.Id)).OrderBy(g=>g.Id).ToArrayAsync(ct);var frozen=new FrozenApplication(ApplicationService.Dto(app),creds.Select(c=>new FrozenCredential(c.Id,c.AccessKey,c.SecretHash,c.SecretLast4,c.Status,c.ValidFrom,c.ExpiresAt,c.Revision)).ToArray(),grants.Select(ApplicationService.Dto).ToArray());
-   if(retained.Remove(app.Id,out var old)){var required=old.Credentials.Select(c=>c.Id).Order().ToArray();if(required.Except(selection.CredentialIds).Any()||old.Application.Status!=frozen.Application.Status||old.Credentials.Any(c=>!frozen.Credentials.Any(n=>Same(c,n))))throw BaselineChanged();if(!selection.ConfirmSharedCredentialImpact)throw new ApiException(409,"shared_credential_confirmation_required","共享应用的凭证影响须明确确认，并随目标候选提交生产审批。");impact.Add(new(app.Id,old.Permissions.Select(g=>g.ApiId).Distinct().Order().ToArray(),required,true));frozen=frozen with{Permissions=old.Permissions.Concat(frozen.Permissions).OrderBy(g=>g.Id).ToArray()};}
+   if(retained.Remove(app.Id,out var old)){var required=old.Credentials.Select(c=>c.Id).Order().ToArray();if(required.Except(selection.CredentialIds).Any()||old.Application.Status!=frozen.Application.Status||old.Credentials.Any(c=>!frozen.Credentials.Any(n=>Same(c,n))))throw BaselineChanged();if(!selection.ConfirmSharedCredentialImpact)throw new ApiException(409,"shared_credential_confirmation_required","共享应用的凭证影响须明确确认，并随目标候选提交生产审批。");impact.Add(new(app.Id,affectedApis[app.Id],required,true));frozen=frozen with{Permissions=frozen.Permissions.Concat(old.Permissions).DistinctBy(g=>g.Id).OrderBy(g=>g.Id).ToArray()};}
    var shared=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(g=>g.ApplicationId==app.Id&&g.EnvironmentId!=p.TargetEnvironmentId).ToArrayAsync(ct);
    if(shared.Length>0){if(!selection.ConfirmSharedCredentialImpact)throw new ApiException(409,"shared_credential_confirmation_required","该应用跨环境共用，须确认凭证影响并提交目标审批。");var existing=impact.FindIndex(x=>x.ApplicationId==app.Id);if(existing>=0)impact[existing]=impact[existing] with{SharedAcrossEnvironments=true};else impact.Add(new(app.Id,[],[],true,true));revisions.AddRange(shared.Select(g=>new ResourceRevision("authorization",g.Id,g.Revision)));}
    applications.Add(frozen);revisions.Add(new("application",app.Id,app.Revision));revisions.AddRange(creds.Select(c=>new ResourceRevision("credential",c.Id,c.Revision)));revisions.AddRange(grants.Select(g=>new ResourceRevision("authorization",g.Id,g.Revision)));
