@@ -1,62 +1,53 @@
-# 凭证安全操作手册（G 系列 G01–G13）
+# 凭证安全操作手册
 
-合并来源：main `57f2ef2`（tag `governance-g13-57f2ef2`，2026-11-08 合并）。运行边界于 2026-11-10 按主干 `7626115` 源码复核并修正；本手册不证明 4192 或目标环境已安装该版本。关联文档：[当前项目状态](current-project-status.md)、[数据字典](../credential-security-data-dictionary.md)、[P2-4 独立评审](../evidence/governance-merge/p2-4-crypto-review.md)、[迁移双路径证据](../evidence/governance-merge/p2-2-upgrade.json)、[G14 最小子集证据](../evidence/governance-merge/g14-minimal.json)。
+适用源码为 `7e8a1d9`，核对日期为 2026-11-23。普通凭证轮换走审批发布。治理通道由控制面取得独立见证后签发检查点和租约，每个网关实例分别核验并上报。目标生产环境仍登记为 `awaiting_target`。[项目状态与预生产回执](current-project-status.md#p12-项目主管批准结项)
 
-## 1. 运行边界（固定主干 7626115 的源码状态）
+## 治理启用条件
 
-- **已有运行路径**：普通双 Key 轮换、凭证工作配置撤销、凭证使用证据，以及治理迁移预检与升级守卫。普通轮换通过两次审批发布完成：第一次发布令新旧 Key 并存，消费方切换后撤销旧 Key，再次发布才使撤销进入网关运行快照。工作配置保存不改变已发布快照；目标环境实际安装能力须另行核对。
-- **尚未启用**：独立即时撤销、安全检查点/租约准入，以及依赖该通道的正式轮换硬截止。`SecurityLeaseIssuer.IssueAsync` 为关闭的 503 桩；`SecurityAckService`、`CurrentSecurityProofService` 和网关 `SecurityStateStore` 无生产 DI/端点/请求接线。组件与表结构合入不表示这条运行链路已经存在。
-- **直接依据**：`ApplicationService.SaveCredentialAsync` 更新凭证工作状态；`ApiKeyMiddleware` 使用当前 generation 中的凭证；`CredentialRotationFlowTests.cs:33–38` 明确断言“撤销后旧 Key 仍为 200，再次发布后才为 401”。独立评审的 274 项安全组件测试及 G14 发布协调故障测试均不能替代实时安全通道端到端验收。
-- **更正范围**：本手册此前“已激活”“即时拒绝”“正式双模式已验证”的表述超出以上证据。本次只修正操作口径，保留原始提交、台账和失败/通过证据；不改变实现，也不启用安全路径。
+标准宿主默认关闭凭证治理。部署治理 2.4 时，各进程须使用同一部署的信任配置。对照下表核对正在运行的版本和配置。[标准宿主配置与见证协议](credential-governance-witness.md#2026-11-20-标准宿主配置)
 
-## 2. 签名密钥配置（激活安全路径的前置）
+| 组件 | 运行前提 |
+| --- | --- |
+| 控制面和 Worker | 两者显式设置 `CredentialGovernance:Enabled=true`，使用相同的 `JournalId` 权威与代次，以及相同的 2.4 发布环境名单 `Environments`。各自使用有写入权限的客户端证书 `WriterCertificateFile` 访问独立持久日志 `GovernanceJournal`。完成治理迁移并登记独立账本，`RecoveryHistory` 须能确认该环境的历史与本地账本一致。 |
+| 控制面签发 | `TimeEvidence` 和 `HistoryEvidence` 使用分别固定的 HTTPS 端点与签名公钥。`Security:Signing:KeyId` 和 `Security:Signing:PrivateKeyFile` 指定 ECDSA P-256 签发者及私钥 PEM，私钥可按 0600 挂载。`Security:TrustedKeys` 中同一 KeyId 的公钥须与签发者匹配。租约签名密钥须独立于见证密钥。 |
+| 每个网关 | 显式启用 `CredentialGovernance:Enabled=true`，用 HTTPS 的 `Gateway:ControlPlaneUrl` 和已登记的节点身份连接控制面。配置 `TimeEvidence`、`HistoryEvidence` 及 `CredentialGovernance:LeaseVerificationKeys`，按签发 KeyId 固定租约公钥。网关独占安全状态目录，重启沿用原目录。自动续租要求 `Gateway:AutomaticUpdates` 开启。 |
 
-签名组件通过 `SecuritySigningSettings` 等读取配置（`Security:Signing`）；配置有效只证明组件可加载材料，不会接通当前关闭的签发或网关准入路径。
+首次登记由授权操作者调用 `POST /api/v1/credential-governance/journal/enroll`，核对目标数据库及独立账本的初始位置。签发密钥轮换需另行明确新 KeyId、旧公钥保留期和移除条件，逐节点留存新租约刷新证明。[迁移与账本登记](credential-governance-witness.md#数据库与控制面入口)
 
-| 配置键 | 说明 |
-|---|---|
-| `Security:Signing:KeyId` | 签名密钥标识（非秘密，进租约/检查点线格式） |
-| `Security:Signing:PrivateKeyFile` | ECDSA P-256 私钥文件（PEM）。**文件权限必须 0600**（无 group/other 任何位），否则加载失败 |
-| `Security:TrustedKeys:{keyId}` | 受信公钥（base64）。当前 keyId 的公钥由私钥推导并交叉核对，不一致报 `security_signing_key_conflict` |
+## 节点同步与故障排查
 
-失败语义（fail-closed）：缺密钥/坏密钥/权限不对 → `503 security_signing_unavailable`；验证侧无可信公钥 → `503 security_verification_unavailable`。私钥内容不进入任何日志、异常消息或响应体（P2-4 评审确认密钥材料零泄漏，异常统一映射 409/503）。
+以下三个端点均为节点内部 POST 请求，使用节点 Bearer 凭据。核对时按同一环境、节点 ID、实例 ID 和租约关联请求与记录。[控制面节点端点](../../src/WebApi.ControlPlane/Gateway/InternalNodeEndpoints.cs) · [网关续租与上报](../../src/WebApi.Gateway/Security/WitnessedGatewaySecurity.cs)
 
-未来签名密钥轮换协议需覆盖新增 keyId、旧公钥保留期、全节点租约刷新证明与移除旧 keyId 的条件；当前没有可执行的端到端签发/刷新流程，不能仅修改配置便宣称轮换完成。
+1. 网关请求 `/internal/v1/nodes/{id}/security/material?instanceId={instanceId}`。控制面核对节点能力、账本连续性、独立时间及完整历史，让日志见证按已确认的位置预留本次租约，再向 PostgreSQL 提交不可变发行记录。交付时仍在有效期内才返回 200 和签名的环境检查点、实例租约。[租约签发实现](../../src/WebApi.Infrastructure/CredentialSecurity/SecurityLeaseIssuer.cs)
+2. 网关核对签名、环境、节点、实例和检查点摘要，用独立时间与历史再次验证，并将状态持久化到本机。随后向 `/internal/v1/nodes/{id}/security/current-proof` 上报当前证明，控制面核验并接受后返回 204。[当前证明核验](../../src/WebApi.Infrastructure/CredentialSecurity/CurrentSecurityProofService.cs)
+3. 租约携带待确认操作的挑战时，网关用同一实例的签名材料和挑战值向 `/internal/v1/nodes/{id}/security/ack` 逐项上报。核对操作传播须查对应的安全 ACK，普通配置发布另有自己的 ACK。[操作 ACK 核验](../../src/WebApi.Infrastructure/CredentialSecurity/SecurityAckService.cs)
 
-## 3. 首次检查点引导（待实现与独立评审，当前不可执行）
+| 观察结果 | 排查依据 |
+| --- | --- |
+| 签发返回 `503 security_evidence_unavailable` | 已认证节点在默认关闭时会得到此响应。启用后检查账本与恢复历史是否一致、时间和历史证明是否新鲜、见证是否确认本次预留，以及数据库提交和交付时是否仍在有效期内。预留回复丢失时仍需保留见证侧记录。 |
+| 其他配置或身份错误 | `503 credential_governance_unavailable` 可来自控制面的见证客户端配置或写入证书。`503 security_signing_unavailable`、`503 security_signing_key_conflict` 分别提示签发密钥不可用或公钥冲突。节点身份无效返回 401，实例已替换或缺少所需协议能力可返回 409。网关启用时的信任配置或控制面 URL 无效也可能在启动时直接报错。 |
+| 网关认证请求返回 `503 security_state_unavailable`，或 `/health/ready` 返回 503 | 检查本实例的租约是否有效，以及当前快照是否满足检查点记录的安全代次、最低快照版本及环境凭证策略。注册治理后，就绪检查同时要求当前路由配置及与该配置匹配的安全状态。有效安全状态中已记录撤销的 Key 返回 `401 invalid_api_key`。就绪响应仅反映被查询实例当时的状态。[认证准入](../../src/WebApi.Gateway/Security/ApiKeyMiddleware.cs) · [就绪判定](../../src/WebApi.Gateway/Security/IGovernanceAdmissionStateProvider.cs) |
 
-以下是未来启用的约束与验收要求，尚不是部署步骤。须先完成签发入口、外部见证、恢复协议、ACK/当前证明端点、网关准入及其就绪检查，并通过 P2-4 所要求的同深度独立评审，才能制定固定版本的维护窗口执行单：
+## 撤销、轮换与验收
 
-1. 固定源码、镜像、节点身份、密钥配置及回退边界；全量备份并冻结发布。恢复后以真实 `SecurityEventHash.Compute` 从 Genesis 逐条核对 `event_hash` 与 `previous_hash`。已有[G13 备份演练](governance-g13-upgrade-rehearsal.md)仅证明临时种入的五事件链可恢复，不证明生产路径已写入账本或引导已完成。
-2. 区分升级与灾备路径：pre-G → G 的迁移预检按 P2-2 直接检查目标库，不能把 dump/restore 后的 schema 视为同一指纹。真实目标库的执行仍需单独维护窗口与授权。
-3. 在隔离环境验证完整链路：独立证明 → 检查点/租约签发 → 节点验证与持久化 → ACK/当前证明 → 安全准入及就绪状态。
-4. 验证未授权、过期、断链、时钟异常、节点重启与写盘失败均按协议拒绝，并保留恢复证据。现有 `/health/ready` 只检查运行配置 generation，不能证明安全租约有效。
-5. Unavailable 节点应停止接收流量并保留证据；不能把回退到不执行安全准入的旧镜像写成默认恢复动作。回退须有单独审阅的应用、数据库、节点状态和流量隔离方案，不能以绕过撤销约束换取恢复。
+**普通双 Key 轮换。** 第一次审批发布令新旧 Key 并存。消费方切换后，在工作配置中撤销旧 Key，再次审批发布，逐环境验证当前网关已接受新 Key、拒绝旧 Key。两次发布之间，原快照仍可能接受旧 Key。[普通双 Key 轮换步骤](account-credential-operations.md#双key轮换)
 
-## 4. 当前撤销/轮换流程与未来安全演练
+**治理撤销与正式轮换。** 治理撤销先落账。查询回执时按原操作范围复核独立日志、入口覆盖以及目标实例的 ACK 和有效租约证明，结果依证据为 `FullyApplied`、`Partial` 或 `Unconfirmed`。正式轮换须另有可信租约期限证明，控制面按已登记的硬截止限制续签，Worker 按账本推进到期撤旧。[部署证据及撤销回执](credential-governance-witness.md#部署证据及撤销回执) · [正式轮换硬截止](credential-governance-witness.md#正式轮换硬截止)
 
-**当前可用流程**：按[账号与凭证操作说明](account-credential-operations.md#双key轮换)先发布新旧 Key 并存，确认消费方已切换，再通过影响预览与修订保护撤销旧 Key，重新审批发布；逐环境核对当前节点的配置版本、部署序列与 Key 调用结果。保存撤销后、重新发布前，旧 Key 仍可能被当前快照接受；不能将管理面状态当作所有网关已拒绝的证明。
+**现场验收。** 专属预生产的 `accepted_preproduction` 绑定候选 `6b0cf2c` 和主线 `1ead23c`。在目标环境验收时，需用实际独立服务、受控入口及旧进程隔离证据，在两台网关上分别核验签发与续租、撤销后的业务请求、轮换硬截止及重启恢复。保留逐实例证明和真实客户端的请求结果。[预生产批准记录和生产状态](current-project-status.md#p12-项目主管批准结项)
 
-**未来即时撤销验收**：在 §3 的链路实现并评审后，验证无需普通配置重发即可全节点拒绝已撤销凭证，且对应安全事件、节点 ACK、当前证明及重启恢复幂等均可独立核验。目前不具备这项验收结论。
-
-**未来正式轮换硬截止验收**：需证明暂停协调服务、保留旧运行快照或中止操作均不能无限延长双钥窗口。现有 `ApiKeyMiddleware` 会检查运行快照中的 `ExpiresAt`，这不等于正式轮换硬截止协议已接入。
-
-**G14 已验证范围**：最小子集 3 项与完整矩阵 4 项覆盖普通发布协调故障。worker 故障须恢复 worker 才能推进终态；节点故障可能以 `ack_timeout` 失败，再创建 retry 发布收敛；Redis 重启不得反写 PG 权威事实。这里的发布 ACK 与 `security_acks` 是不同事实，不能据此宣称节点已从安全账本恢复准入。见[完整故障矩阵](governance-g14-fault-matrix.md)。
-
-## 5. 安全 LKG 恢复约束（安全组件尚未接入生产）
+## 安全 LKG 恢复约束
 
 安全 LKG 与普通配置 LKG 分别持久化。演练期间保留每个网关的私有目录及独立见证状态，分别核对备份、数据库账本、见证高水位与实际业务准入。
 
-回退数据库拒绝下发和签发时，网关可从完整签名 LKG 恢复拒绝高水位。进程独占目录、已注册节点与原租约绑定一致、运行期间未收到后续材料且本机时钟正常时，正常退出会在原目录复核 LKG 原字节后清理本进程的标记。还原一致数据库后，新实例仍须经正常入口取得新的签名租约及独立时间和历史证明，提交逐实例 ACK 后再验收业务。
+回退数据库拒绝下发和签发时，网关可从完整签名 LKG 恢复拒绝高水位。进程独占目录、已注册节点与原租约绑定一致、运行期间未收到后续材料且本机时钟正常时，正常退出会在原目录复核 LKG 原字节后清理本进程的标记。还原一致数据库后，新实例仍须重新取得签名租约及独立时间和历史证明，上报自己的当前证明，并对待确认操作回报 ACK 后核验业务。
 
 未清理的 `.security-running`、无法验证的高水位或失效的目录所有权均保持关闭。遇到这些情况先隔离流量并保留目录、标记、文件身份及原始字节。非干净停机按已评审的所有权与恢复流程处理，禁止通过删除标记、清空 LKG 或重建安全地板恢复准入。
 
-## 6. 未来启用验收清单（全部保持待验收）
+## 历史范围（G01–G13）
 
-- [ ] 升级守卫预检在目标库通过（`Committed`，含幂等重放）
-- [ ] 备份恢复后安全账本哈希链重算逐条一致（`SecurityEventHash.Compute`，Genesis→head，已在[G13 升级演练](governance-g13-upgrade-rehearsal.md)通过）
-- [ ] 全节点 ACK 后检查点达 Allow，`/health/ready` 全绿
-- [ ] 紧急撤销：所有节点即时拒绝 + 重启恢复回执幂等
-- [ ] 正式轮换：双钥窗口并存 + 硬截止撤旧
-- [ ] 单网关 Unavailable 隔离流量，恢复/回退不绕过安全地板或撤销事实
-- [ ] §5 恢复 runbook 实际执行一次
+`57f2ef2`（标签 `governance-g13-57f2ef2`）合入 G01–G13 安全组件。2026-11-10 核对的 `7626115` 上，`SecurityLeaseIssuer.IssueAsync` 固定返回 `503 security_evidence_unavailable`，网关安全准入尚未接线，`/health/ready` 只检查配置代际。PR #18 合并提交 `c65a0c0` 已接入经见证的签发和网关准入。[PR #18 合并后的凭证治理](current-project-status.md#pr-18-合并后的凭证治理)
+
+P2-4 的 274 项安全组件检查通过，合并评审要求后续复审启用链路并核验恢复手册。P2-2 记录两条迁移路径。G13 备份演练验证临时种入的五事件链恢复，G14 最小子集和完整矩阵记录普通发布协调故障。目标数据库的升级预检须以该库迁移前的实际指纹为准，恢复演练另行保留从 Genesis 到账本头的逐条哈希证据。[数据字典](../credential-security-data-dictionary.md) · [P2-4 评审](../evidence/governance-merge/p2-4-crypto-review.md) · [P2-2 迁移](../evidence/governance-merge/p2-2-upgrade.json) · [G13 备份演练](governance-g13-upgrade-rehearsal.md) · [G14 最小子集](../evidence/governance-merge/g14-minimal.json) · [G14 故障矩阵](governance-g14-fault-matrix.md)
+
+G13 演练记录所引的第 3 节“首次检查点引导”和第 6 节“演练验收清单”沿用当时的章节编号。[G13 当时的手册原文](https://github.com/leileipei/WebAPI-Platform-Enterprise/blob/e86aafef7940cc3922035285e6b836ad1fd9c1e8/docs/deployment/credential-security-operations.md)

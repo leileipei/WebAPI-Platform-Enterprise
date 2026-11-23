@@ -29,18 +29,20 @@ public sealed class OidcProtocolFixture:IAsyncDisposable
         using var user=await Api.WriteAsync(HttpMethod.Post,"/api/v1/users/sso",new CreateSsoUserRequest("synthetic","预开通用户",null,Provider.Id,"SyntheticSubject"));user.EnsureSuccessStatusCode();
         Browser=new HttpClient(new HttpClientHandler{CookieContainer=new CookieContainer(),AllowAutoRedirect=false}){BaseAddress=Api.Client.BaseAddress};
     }
-    public async Task<SsoProviderDto> AddProviderAsync(string clientId="webapi-console")
+    public async Task<SsoProviderDto> AddProviderAsync(string clientId="webapi-console",Guid? organizationId=null)
     {
-        var body=SsoFixture.Body(issuer:Identity.Issuer) with{ClientId=clientId};
+        var body=SsoFixture.Body(organizationId:organizationId,issuer:Identity.Issuer) with{ClientId=clientId};
         using var response=await Api.WriteAsync(HttpMethod.Post,"/api/v1/settings/sso/providers",body);response.EnsureSuccessStatusCode();var provider=(await response.Content.ReadFromJsonAsync<SsoProviderDto>())!;
         using var test=await Api.WriteAsync(HttpMethod.Post,$"/api/v1/settings/sso/providers/{provider.Id}/test",new{},RevisionTag.Format(provider.Revision));test.EnsureSuccessStatusCode();
         using var enabled=await Api.WriteAsync(HttpMethod.Post,$"/api/v1/settings/sso/providers/{provider.Id}/enable",new{},RevisionTag.Format(provider.Revision));enabled.EnsureSuccessStatusCode();
         return (await enabled.Content.ReadFromJsonAsync<SsoProviderDto>())!;
     }
-    public async Task<HttpResponseMessage> StartAsync(string path="/apis",HttpClient? browser=null)
+    public async Task<HttpResponseMessage> StartAsync(string path="/apis",HttpClient? browser=null,Guid? providerId=null,Guid? organizationId=null)
     {
         var client=browser??Browser;var csrf=(await client.GetFromJsonAsync<Dictionary<string,string>>("/api/v1/auth/csrf"))!;
-        return await client.PostAsync($"/api/v1/auth/sso/{Provider.Id}/start",new FormUrlEncodedContent(new Dictionary<string,string>{{"__RequestVerificationToken",csrf["token"]},{"returnPath",path}}));
+        var startPath=$"/api/v1/auth/sso/{providerId??Provider.Id}/start";
+        if(organizationId.HasValue)startPath+="?organizationId="+organizationId.Value;
+        return await client.PostAsync(startPath,new FormUrlEncodedContent(new Dictionary<string,string>{{"__RequestVerificationToken",csrf["token"]},{"returnPath",path}}));
     }
     public async Task<Uri> CallbackAsync()
     {

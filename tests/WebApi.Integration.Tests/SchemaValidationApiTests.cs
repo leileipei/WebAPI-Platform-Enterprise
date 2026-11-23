@@ -20,6 +20,37 @@ public sealed class SchemaValidationApiTests(MigratedDatabaseTemplateFixture tem
     }
     internal static string Path(ApiFixture f)=>$"/api/v1/versions/{f.Version.Id}/schema-validation";
     internal static object Body(Guid? schemaId,string example="0",long revision=1,bool draft=false,string? draftSchema=null,Guid? parameterId=null)=>new{expectedVersionRevision=revision,schemaId,parameterId,draft,draftSchemaJson=draftSchema,exampleJson=example,direction="request",formatMode="Annotation"};
+    [Theory]
+    [InlineData(null, "oas-3.0", "Valid")]
+    [InlineData("3.0.3", "oas-3.0", "Valid")]
+    [InlineData("3.1.0", "oas-3.1", "Incomplete")]
+    public async Task LegacySchemaValidationInheritsDocumentOrHistoricalDialect(string? openapi, string dialect, string status)
+    {
+        var setup = await Setup("""{"type":"string","nullable":true}""", databaseTemplate: template.Template);
+        await using var f = setup.Fixture;
+        await using (var db = f.Context())
+        {
+            var version = await db.Set<ApiVersion>().SingleAsync();
+            version.OpenapiDocument = openapi is null ? null : JsonSerializer.Serialize(new { openapi, info = new { title = "Legacy", version = "1" }, paths = new { } });
+            version.OpenapiSource = null;
+            version.SourceFormat = null;
+            await db.SaveChangesAsync();
+        }
+
+        using var response = await f.WriteAsync(HttpMethod.Post, Path(f), Body(setup.Schema.Id, "null"));
+        response.EnsureSuccessStatusCode();
+        var result = (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("result");
+        Assert.Equal(dialect, result.GetProperty("dialect").GetString());
+        Assert.Equal(status, result.GetProperty("status").GetString());
+        var issues = result.GetProperty("coverageIssues").EnumerateArray().ToArray();
+        if (status == "Valid") Assert.Empty(issues);
+        else Assert.Contains(issues, x => x.GetProperty("code").GetString() == "unsupported_schema_keyword" &&
+            x.GetProperty("pointer").GetString()!.EndsWith("/nullable", StringComparison.Ordinal));
+
+        await using var check = f.Context();
+        Assert.False(await check.Set<ApiVersionContractSources>().AnyAsync());
+        Assert.Equal(1, (await check.Set<ApiVersion>().SingleAsync()).Revision);
+    }
     [Fact] public async Task SchemaReadOnlyCanValidateDraftWithoutWrites()
     {
         var setup=await Setup();await using var f=setup.Fixture;

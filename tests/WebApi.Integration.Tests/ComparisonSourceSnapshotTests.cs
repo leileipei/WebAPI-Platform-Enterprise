@@ -11,6 +11,39 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class ComparisonSourceSnapshotTests
 {
+    [Theory]
+    [InlineData(null, true, false)]
+    [InlineData("3.0.3", false, false)]
+    [InlineData("3.1.0", false, true)]
+    public async Task LegacySchemaComparisonInheritsDocumentOrHistoricalDialect(string? openapi, bool missing, bool unsupportedNullable)
+    {
+        await using var f = new ComparisonFixture();
+        await f.InitializeAsync();
+        await using (var db = f.Api.Context())
+        {
+            var version = await db.Set<ApiVersion>().SingleAsync(x => x.Id == f.Api.Version.Id);
+            version.OpenapiDocument = openapi is null ? null : JsonSerializer.Serialize(new { openapi, info = new { title = "Legacy", version = "1" }, paths = new { } });
+            var definitions = new[] { version.Id, f.Target.Id }.Select(id => new ApiSchema {
+                ApiVersionId = id, SchemaType = "component", Name = "OptionalText",
+                ContentType = "application/json", SchemaJson = """{"type":"string","nullable":true}"""
+            });
+            db.AddRange(definitions);
+            await db.SaveChangesAsync();
+        }
+
+        var id = await f.CreateIdAsync();
+        await using var check = f.Api.Context();
+        var evidence = await check.Set<ApiVersionComparison>().SingleAsync(x => x.Id == id);
+        using var stored = JsonDocument.Parse(evidence.ReportBytes);
+        Assert.NotEqual("Invalid", evidence.Coverage);
+        var issues = stored.RootElement.GetProperty("coverageIssues").EnumerateArray().ToArray();
+        Assert.Equal(missing, issues.Any(x => x.GetProperty("source").GetString() == "from" &&
+            x.GetProperty("code").GetString() == "missing_document"));
+        Assert.Equal(unsupportedNullable, issues.Any(x => x.GetProperty("source").GetString() == "from" &&
+            x.GetProperty("code").GetString() == "unsupported_schema_keyword" &&
+            x.GetProperty("pointer").GetString() == "/components/schemas/OptionalText/nullable"));
+        Assert.False(await check.Set<ApiVersionContractSources>().AnyAsync());
+    }
     [Fact]public async Task SavedIndependentMaintenanceSupportsAnotherSaveAndValidation()
     {
         var setup=await SchemaValidationApiTests.Setup();await using var f=setup.Fixture;var path=$"/api/v1/versions/{f.Version.Id}/parameters";

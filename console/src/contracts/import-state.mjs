@@ -2,10 +2,33 @@ const bytes=text=>new TextEncoder().encode(text??'').length;
 const limits={maxDocumentBytes:2*1024*1024,maxBundleBytes:4*1024*1024,maxResources:16};
 function active(input){return {mode:input.mode,format:input.format??'auto',sourceText:input.mode==='url'?undefined:input.text,sourceUrl:input.mode==='url'?input.url:undefined,files:input.mode==='url'?undefined:(input.files??[]).map(({name,content,format})=>({name,content,format}))};}
 export function importIdentity(input){return JSON.stringify([input.projectId,input.environmentId,input.clusterId,input.authority,input.policyRevision,active(input)]);}
-export function invalidatePreview(state,input){const identity=importIdentity(input);return state.identity===identity?state:{...state,input,identity,preview:undefined,targets:[],result:undefined,issues:[],recovery:''};}
+function savedMapping(state){
+ return state.preview ? {bundleHash:state.preview.bundleHash,targets:state.targets} : state.mappingDraft;
+}
+export function suspendImportPreview(state){
+ return {...state,mappingDraft:savedMapping(state),preview:undefined,targets:[],revisionReview:[]};
+}
+export function invalidatePreview(state,input){
+ const identity=importIdentity(input);
+ if(state.identity===identity)return state;
+ const sameSource=state.input&&state.identity===importIdentity({...input,policyRevision:state.input.policyRevision});
+ if(sameSource&&state.preview&&state.preview.sourcePolicyRevision===input.policyRevision)return {...state,input,identity};
+ return {...state,input,identity,preview:undefined,targets:[],revisionReview:[],mappingDraft:sameSource?savedMapping(state):undefined,result:undefined,issues:[],recovery:''};
+}
 export function canCommitPreview(state,now=Date.now()){
- const preview=state.preview;if(!preview||!state.authorized||state.busy||state.identity!==importIdentity(state.input)||!Number.isFinite(Date.parse(preview.expiresAt))||Date.parse(preview.expiresAt)<=now||state.input.policyRevision!==undefined&&state.input.policyRevision!==preview.sourcePolicyRevision||!state.targets?.length)return false;
- const seen=new Set();return state.targets.every(target=>{const operation=preview.operations.find(x=>x.operationId===target.operationId&&x.supported);if(!operation||seen.has(target.operationId))return false;seen.add(target.operationId);try{mapImportTarget(operation,target);return true;}catch{return false;}});
+ const preview=state.preview;
+ if(!preview||!state.authorized||state.busy||state.identity!==importIdentity(state.input)||!state.targets?.length)return false;
+ if(state.input.policyRevision!==undefined&&state.input.policyRevision!==preview.sourcePolicyRevision)return false;
+ const expires=Date.parse(preview.expiresAt);
+ if(!Number.isFinite(expires)||expires<=now)return false;
+ const supported=new Map(preview.operations.filter(op=>op.supported).map(op=>[op.operationId,op]));
+ const unavailable=new Set(state.revisionReview);
+ return state.targets.every(target=>{
+  const operation=supported.get(target.operationId);
+  if(!operation||unavailable.has(target.operationId))return false;
+  unavailable.add(target.operationId);
+  try{mapImportTarget(operation,target);return true;}catch{return false;}
+ });
 }
 const guid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 export function mapImportTarget(operation,target){
@@ -34,14 +57,24 @@ export async function readImportFiles(files,budget=limits){
  if(total>budget.maxBundleBytes)throw new Error('文件超过总字节预算。');const result=[];total=0;
  for(const file of list){const content=await file.text();const length=bytes(content);if(length>budget.maxDocumentBytes||(total+=length)>budget.maxBundleBytes)throw new Error('文件原文超过字节预算。');const name=file.webkitRelativePath||file.name;result.push({name,content,format:/\.json$/i.test(name)?'json':'yaml'});}return result;
 }
+const overwriteOperations=targets=>(targets??[]).filter(target=>target.existingVersionId).map(target=>target.operationId);
 export function recoverImportFailure(state,error){
  const recovery=error.status===412?'目标修订已变化；映射与输入已保留，请读取最新目标修订后修改映射。':error.status===403||error.status===404?'资源或权限已失效；输入已保留，请刷新会话与目标范围。':error.status===409?'预览、政策或目标冲突已变化，请重新预览并核对映射。':'请求未完成，输入已保留；可重试或修复诊断。';
- return {...state,busy:false,recovery,issues:error.issues??[],...([403,404,409].includes(error.status)?{preview:undefined,targets:[]}:{}),...([403,404].includes(error.status)?{authorized:false}:{})};
+ let next=state;
+ if(error.status===409)next=suspendImportPreview(state);
+ if(error.status===412)next={...state,revisionReview:overwriteOperations(state.targets)};
+ if(error.status===403||error.status===404)next={...state,preview:undefined,targets:[],mappingDraft:undefined,revisionReview:[],authorized:false};
+ return {...next,busy:false,recovery,issues:error.issues??[]};
 }
 
 export function acceptImportPreview(state,input,preview,requestSequence){
  if(state.requestSequence!==requestSequence||importIdentity(state.input)!==importIdentity(input))return state;
- return {...state,input,identity:importIdentity(input),preview,targets:preview.operations.filter(x=>x.supported).map(x=>mapImportTarget(x,{newApiCode:x.suggestedCode,newApiName:x.summary||x.operationId,version:'1.0.0'})),result:undefined,issues:preview.issues??[],busy:false,recovery:''};
+ const draft=savedMapping(state),supported=preview.operations.filter(operation=>operation.supported);
+ const restoring=!!draft&&draft.bundleHash===preview.bundleHash;
+ const supportedIds=new Set(supported.map(operation=>operation.operationId));
+ const targets=restoring ? draft.targets.filter(target=>supportedIds.has(target.operationId))
+  : supported.map(operation=>mapImportTarget(operation,{newApiCode:operation.suggestedCode,newApiName:operation.summary||operation.operationId,version:'1.0.0'}));
+ return {...state,input,identity:importIdentity(input),preview,targets,mappingDraft:undefined,revisionReview:restoring?overwriteOperations(targets):[],result:undefined,issues:preview.issues??[],busy:false,recovery:''};
 }
 
 export function importPolicyScope(scope){return JSON.stringify([scope?.organizationId??null,scope?.projectId??null]);}

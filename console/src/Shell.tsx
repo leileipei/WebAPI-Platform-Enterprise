@@ -3,6 +3,7 @@ type Workspace={tree:ScopeTree;organizationId:string;projectId:string;environmen
 import {allowNavigation,bindNavigation,navigate} from './navigation.mjs';
 import {apiRoute} from './comparisons/model.mjs';
 export {allowNavigation,navigate};
+export function ScopeRetry(){const {scopeReady,refresh}=useWorkspace();return scopeReady?null:<span>组织范围待核对。 <button type="button" className="text-btn" onClick={refresh}>重新核对组织范围</button></span>;}
 export function Link({to,children}:{to:string;children:ReactNode}){return <a href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{children}</a>;}
 export function usePath(){const[route,set]=useState({path:location.pathname,search:location.search});useEffect(()=>bindNavigation(window,(path,search)=>set({path,search})),[]);return route;}
 export function Shell({children,path}:{children:ReactNode;path:string}){const{user,logout,refresh,error:sessionError}=useSession(),remote=useRemote<ScopeTree>('/scope-tree');const tree=remote.data||{organizations:[],projects:[],environments:[]};const[org,setOrg]=useState(localStorage.getItem('core-organization')||''),[project,setProject]=useState(localStorage.getItem('core-project')||''),[env,setEnv]=useState(localStorage.getItem('core-environment')||'');const organizationId=tree.organizations.some(o=>o.id===org)?org:tree.organizations[0]?.id||'',projects=tree.projects.filter(p=>p.organizationId===organizationId),projectId=projects.some(p=>p.id===project)?project:projects[0]?.id||'',environments=tree.environments.filter(e=>e.projectId===projectId),environmentId=environments.some(e=>e.id===env)?env:environments[0]?.id||'';const environment=environments.find(e=>e.id===environmentId);
@@ -12,11 +13,15 @@ export function Shell({children,path}:{children:ReactNode;path:string}){const{us
   set(value);
   localStorage.setItem('core-'+kind,value);
   if(/^\/clusters\/[^/]+/.test(path))navigate('/clusters',true);
+  else if(kind==='organization'&&/^\/applications\/[^/]+/.test(path))navigate('/applications',true);
   else if(kind!=='environment'&&path.startsWith('/apis/')&&['detail','wizard'].includes(apiRoute(path).kind))navigate('/apis',true);
   else if(path.startsWith('/observability/'))navigate(path+(path==='/observability/alerts'?resetAlertScopeSearch(location.search):resetObservationScopeSearch(location.search,kind)),true);
  };
  function selectScope(scope:Scope,url?:string){
-  if(!tree.environments.some(e=>e.id===scope.environmentId&&e.projectId===scope.projectId)||!allowNavigation())return;
+  const available=scope.projectId||scope.environmentId
+    ? tree.environments.some(e=>e.id===scope.environmentId&&e.projectId===scope.projectId)
+    : tree.organizations.some(o=>o.id===scope.organizationId);
+  if(!available||!allowNavigation())return;
   setOrg(scope.organizationId);setProject(scope.projectId||'');setEnv(scope.environmentId||'');
   for(const [kind,value] of Object.entries({organization:scope.organizationId,project:scope.projectId,environment:scope.environmentId}))
     localStorage.setItem('core-'+kind,value||'');

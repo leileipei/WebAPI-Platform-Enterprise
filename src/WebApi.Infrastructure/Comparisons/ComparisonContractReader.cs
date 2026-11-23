@@ -22,7 +22,7 @@ internal static class ComparisonContractReader
         var uri=new Uri($"https://contracts.invalid/versions/{input.Version.Id:D}/openapi.json");var raw=input.Version.OpenapiDocument;
         if(raw is null){
             issue("missing_document","/openapi","缺少 OpenAPI 文档，仅比较维护定义。");
-            raw=new JsonObject{["openapi"]=input.Version.Dialect=="oas-3.0"?"3.0.3":"3.1.0",["info"]=new JsonObject{["title"]="Maintained contract",["version"]=input.Version.Version},["paths"]=new JsonObject()}.ToJsonString();
+            raw=VersionContractSourceService.EmptyRoot(input.Version.Dialect,input.Version.Version);
         }
         if(Encoding.UTF8.GetByteCount(raw)>limits.MaxDocumentBytes)throw Invalid();
         // Older persisted contracts omitted annotation-only info. Add it solely in

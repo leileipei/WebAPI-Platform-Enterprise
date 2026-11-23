@@ -13,14 +13,21 @@ public sealed class PromotionReadService(WebApiDbContext db,ScopeResolver scopes
  internal static async Task<ReleasePromotion?> ResolvePromotionWithinAsync(WebApiDbContext db,Guid releaseId,CancellationToken ct)
  {
   var release=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==releaseId,ct)??throw InvalidChain();
-  var root=(await ResolvePromotionReleasesWithinAsync(db,[release],ct))[releaseId];if(root is null)return null;
-  return await db.Set<ReleasePromotion>().SingleOrDefaultAsync(p=>p.Id==root.PromotionId&&p.TargetReleaseId==root.Id&&p.TargetEnvironmentId==root.EnvironmentId&&p.ArtifactId==root.ArtifactId&&p.SourceReleaseId==root.SourceReleaseId,ct)??throw InvalidChain();
+  return (await ResolveDeploymentOriginAsync(db,release,ct)).Promotion;
  }
+ internal static async Task<(ReleasePromotion? Promotion, Guid? RollbackTarget)> ResolveDeploymentOriginAsync(WebApiDbContext db,ReleaseRecord release,CancellationToken ct)
+ {
+  var lineage=(await ReadLineagesAsync(db,[release],ct))[release.Id];
+  if(lineage.PromotionRoot is not {} root)return (null,lineage.RollbackTarget);
+  var promotion=await db.Set<ReleasePromotion>().SingleOrDefaultAsync(p=>p.Id==root.PromotionId&&p.TargetReleaseId==root.Id&&p.TargetEnvironmentId==root.EnvironmentId&&p.ArtifactId==root.ArtifactId&&p.SourceReleaseId==root.SourceReleaseId,ct)??throw InvalidChain();
+  return (promotion,lineage.RollbackTarget);
+ }
+ internal sealed record ReleaseLineage(ReleaseRecord? PromotionRoot,Guid? RollbackTarget);
  // Load this page and its bounded ancestors in one query. Validation is identical for detail and list,
  // with a per-chain cycle/environment guard and the original 100-release depth bound.
- internal static async Task<IReadOnlyDictionary<Guid,ReleaseRecord?>> ResolvePromotionReleasesWithinAsync(WebApiDbContext db,IReadOnlyList<ReleaseRecord> releases,CancellationToken ct)
+ internal static async Task<IReadOnlyDictionary<Guid,ReleaseLineage>> ReadLineagesAsync(WebApiDbContext db,IReadOnlyList<ReleaseRecord> releases,CancellationToken ct)
  {
-  if(releases.Count==0)return new Dictionary<Guid,ReleaseRecord?>();var ids=releases.Select(r=>r.Id).ToArray();
+  if(releases.Count==0)return new Dictionary<Guid,ReleaseLineage>();var ids=releases.Select(r=>r.Id).ToArray();
   var rows=await db.Set<ReleaseRecord>().FromSqlInterpolated($"""
    WITH RECURSIVE release_chain AS (
     SELECT r.id,r.promotion_id,r.recovery_of,r.rollback_of,0 AS depth FROM release_records r WHERE r.id=ANY({ids})
@@ -30,17 +37,17 @@ public sealed class PromotionReadService(WebApiDbContext db,ScopeResolver scopes
    ) SELECT r.* FROM release_records r WHERE r.id IN (SELECT id FROM release_chain)
    """).AsNoTracking().ToArrayAsync(ct);
   var records=rows.ToDictionary(r=>r.Id);
-  var result=new Dictionary<Guid,ReleaseRecord?>();
+  var result=new Dictionary<Guid,ReleaseLineage>();
   foreach(var original in releases)
   {
-   var visited=new HashSet<Guid>();var id=original.Id;var resolved=false;
+   var visited=new HashSet<Guid>();var id=original.Id;Guid? rollbackTarget=null;var resolved=false;
    for(var depth=0;depth<100;depth++)
    {
     if(!visited.Add(id)||!records.TryGetValue(id,out var release)||release.EnvironmentId!=original.EnvironmentId)throw InvalidChain();
-    if(release.PromotionId is not null){if(release.RecoveryOf is not null||release.RollbackOf is not null||release.ReleaseType!="publish")throw InvalidChain();result[original.Id]=release;resolved=true;break;}
+    if(release.PromotionId is not null){if(release.RecoveryOf is not null||release.RollbackOf is not null||release.ReleaseType!="publish")throw InvalidChain();result[original.Id]=new(release,rollbackTarget);resolved=true;break;}
     if(release.RecoveryOf is Guid recovery){if(release.ReleaseType!="retry"||release.RollbackOf is not null)throw InvalidChain();id=recovery;continue;}
-    if(release.RollbackOf is Guid rollback){if(release.ReleaseType!="rollback")throw InvalidChain();id=rollback;continue;}
-    result[original.Id]=null;resolved=true;break;
+    if(release.RollbackOf is Guid rollback){if(release.ReleaseType!="rollback")throw InvalidChain();rollbackTarget??=rollback;id=rollback;continue;}
+    result[original.Id]=new(null,rollbackTarget);resolved=true;break;
    }
    if(!resolved)throw InvalidChain();
   }

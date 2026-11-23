@@ -1,3 +1,4 @@
+using System.Globalization;
 using WebApi.Contracts.Observability;
 namespace WebApi.Infrastructure.Observability;
 public sealed record SourceSpan(Guid? EnvironmentId,string SpanId,string? ParentSpanId,string Name,DateTimeOffset Start,double DurationMs,string Kind,string Status,IReadOnlyDictionary<string,string> Attributes);
@@ -17,7 +18,10 @@ public static class TraceProjection
             if(attrs.TryGetValue("http.request.method",out var method)&&method.Length<=16&&method.All(c=>c is >= 'A' and <= 'Z'))tags["http.request.method"]=method;
             if(attrs.TryGetValue("url.template",out var path)&&path.Length<=512&&path.StartsWith('/')&&!path.Any(c=>char.IsControl(c)||c is '?' or '#'))tags["url.template"]=path;
             if(attrs.TryGetValue("webapi.outcome",out var outcome)&&Outcomes.Contains(outcome))tags["webapi.outcome"]=outcome;
-            foreach(var key in new[]{"webapi.config.version","webapi.api.version.id","webapi.route.id","webapi.cluster.id"})if(attrs.TryGetValue(key,out var value)&&Guid.TryParse(value,out var id))tags[key]=id.ToString();
+            foreach(var key in new[]{"webapi.api.version.id","webapi.route.id","webapi.cluster.id"})if(attrs.TryGetValue(key,out var value)&&Guid.TryParse(value,out var id))tags[key]=id.ToString();
+            if (attrs.TryGetValue("webapi.config.version", out var version)
+                && long.TryParse(version, NumberStyles.None, CultureInfo.InvariantCulture, out var configVersion) && configVersion > 0)
+                tags["webapi.config.version"] = configVersion.ToString(CultureInfo.InvariantCulture);
             if(attrs.TryGetValue("webapi.deployment.sequence",out var seq)&&long.TryParse(seq,out var number)&&number>=0)tags["webapi.deployment.sequence"]=number.ToString(System.Globalization.CultureInfo.InvariantCulture);
             // Names are controlled by the gateway. Never copy arbitrary backend names or raw attributes.
             var policy=PolicyObservationProjection.Read(attrs,scope,env);var advanced=PolicyObservationProjection.ReadAdvanced(attrs,scope,env);partial|=policy.Rejected||advanced.Rejected;

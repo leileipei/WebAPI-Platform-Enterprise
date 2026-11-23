@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using WebApi.Contracts.Alerts;
+using WebApi.Contracts.Catalog;
 using WebApi.Infrastructure.Alerts;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
@@ -15,10 +16,19 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class AlertEvaluationTests
 {
+    private static void ConfigureEvaluator(Microsoft.AspNetCore.Builder.WebApplicationBuilder builder, AlertClockedMetricHandler handler)
+    {
+        builder.Configuration["Observability:Enabled"] = "true";
+        builder.Services.PostConfigure<HttpClientFactoryOptions>("observability",
+            options => options.HttpMessageHandlerBuilderActions.Add(client => client.PrimaryHandler = handler));
+        builder.Services.AddSingleton(new AlertEvaluationSettings(IntervalSeconds: 1, QueryDelaySeconds: 0));
+        builder.Services.AddScoped<AlertEvaluationLeaseStore>();
+        builder.Services.AddScoped<AlertEvaluationService>();
+    }
     private static async Task<(ApiFixture Fixture,AlertClockedMetricHandler Handler,Guid Rule)> Setup(string target="Environment",int duration=0)
     {
         var handler=new AlertClockedMetricHandler();var fixture=new ApiFixture();
-        await fixture.InitializeAsync(builder=>{builder.Configuration["Observability:Enabled"]="true";builder.Services.PostConfigure<HttpClientFactoryOptions>("observability",o=>o.HttpMessageHandlerBuilderActions.Add(b=>b.PrimaryHandler=handler));builder.Services.AddSingleton(new AlertEvaluationSettings(IntervalSeconds:1,QueryDelaySeconds:0));builder.Services.AddScoped<AlertEvaluationLeaseStore>();builder.Services.AddScoped<AlertEvaluationService>();});
+        await fixture.InitializeAsync(builder=>ConfigureEvaluator(builder,handler));
         await fixture.SeedCatalogAsync();await ObservationTestSupport.GrantAsync(fixture,["alert.rule.manage"]);
         await using(var db=fixture.Context()){fixture.Application.OrganizationId=fixture.Organization.Id;fixture.Application.ProjectId=fixture.Project.Id;db.Add(fixture.Application);db.AddRange(new GatewayNode{EnvironmentId=fixture.Environment.Id,NodeName="node-0"},new GatewayNode{EnvironmentId=fixture.Environment.Id,NodeName="node-1"});await db.SaveChangesAsync();}
         handler.Inner.EnvironmentId=fixture.Environment.Id;handler.Inner.ApiId=fixture.Api.Id;handler.Inner.ApplicationId=fixture.Application.Id;handler.Inner.DestinationId=fixture.Destination.Id;handler.Inner.ClusterId=fixture.Cluster.Id;
@@ -186,6 +196,56 @@ public sealed class AlertEvaluationTests
         var setup=await Setup();await using var f=setup.Fixture;using var read=await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");var rule=(await read.Content.ReadFromJsonAsync<AlertRuleDto>())!;var definition=rule.Definition with{Metric="unhealthy_destinations",Expression="unhealthy_destinations > 0"};using var change=await f.WriteAsync(HttpMethod.Put,$"/api/v1/observability/alert-rules/{setup.Rule}",definition,"\"1\"");change.EnsureSuccessStatusCode();setup.Handler.HealthOnly=true;
         using var test=await f.WriteAsync(HttpMethod.Post,"/api/v1/observability/alert-rules/test",definition);test.EnsureSuccessStatusCode();var result=(await test.Content.ReadFromJsonAsync<RuleTestDto>())!;Assert.Equal("Known",result.EvaluationState);Assert.True(result.Condition);Assert.Equal(1,result.Matches.Single().Values.Single().Value);
         Assert.True(await Evaluate(f,Assert.Single(await ClaimCurrent(f,"health"))));await using var db=f.Context();Assert.Equal("Open",(await db.Set<AlertEvent>().SingleAsync()).Status);
+    }
+
+    [Fact]
+    public async Task DisabledDestinationDraftKeepsTheUnhealthyEventOpen()
+    {
+        var handler = new AlertClockedMetricHandler();
+        await using var deployment = new DeploymentScenario();
+        await deployment.InitializeAsync(builder => ConfigureEvaluator(builder, handler));
+        var f = deployment.Api;
+        await ObservationTestSupport.GrantAsync(f, ["alert.rule.manage"]);
+        using var sibling = await f.WriteAsync(HttpMethod.Post, $"/api/v1/clusters/{f.Cluster.Id}/destinations",
+            new SaveDestinationRequest("secondary", "http://test-backend:8080/secondary"));
+        sibling.EnsureSuccessStatusCode();
+        await deployment.PublishAsync();
+        var rule = new SaveAlertRuleRequest(f.Organization.Id, f.Project.Id, f.Environment.Id, "Destination health",
+            "unhealthy_destinations", "unhealthy_destinations > 0", "Warning", true, 0, "Destination", f.Destination.Id, 60, new(true, []));
+        using var saved = await f.WriteAsync(HttpMethod.Post, "/api/v1/observability/alert-rules", rule);
+        saved.EnsureSuccessStatusCode();
+        var source = handler.Inner;
+        source.EnvironmentId = f.Environment.Id;
+        source.DestinationId = f.Destination.Id;
+        source.ClusterId = f.Cluster.Id;
+        source.HealthSamples = [("node-0", f.Destination.Id, 0), ("node-1", f.Destination.Id, 1)];
+        Assert.True(await Evaluate(f, Assert.Single(await ClaimCurrent(f, "firing"))));
+        using var draft = await f.WriteAsync(HttpMethod.Put, $"/api/v1/destinations/{f.Destination.Id}",
+            new SaveDestinationRequest(f.Destination.Name, f.Destination.Address, Enabled: false), "\"1\"");
+        draft.EnsureSuccessStatusCode();
+
+        async Task CheckEvent(string status, string evaluation, int transitions)
+        {
+            Assert.True(await Evaluate(f, await Next(f)));
+            await using var db = f.Context();
+            var alert = await db.Set<AlertEvent>().SingleAsync();
+            Assert.Equal(status, alert.Status);
+            Assert.Equal(evaluation, alert.EvaluationState);
+            Assert.Equal(transitions, await db.Set<AlertEventTransition>().CountAsync());
+        }
+        await CheckEvent("Open", "Known", 1);
+        using var preview = await f.WriteAsync(HttpMethod.Post, "/api/v1/observability/alert-rules/test", rule);
+        preview.EnsureSuccessStatusCode();
+        Assert.True((await preview.Content.ReadFromJsonAsync<RuleTestDto>())!.Condition);
+        source.HealthSamples = [("node-1", f.Destination.Id, 1)];
+        await CheckEvent("Open", "Unknown", 1);
+        source.HealthSamples = [("node-0", f.Destination.Id, 0), ("node-1", f.Destination.Id, 0)];
+        var release = await deployment.PublishAsync(acknowledge: false);
+        var envelope = (await deployment.DesiredAsync(release)).Envelope;
+        await deployment.AckAsync(0, envelope);
+        await CheckEvent("Open", "Known", 1);
+        await deployment.AckAsync(1, envelope);
+        await CheckEvent("Resolved", "Known", 2);
     }
 
     [Fact] public async Task SourceFailureDoesNotStopStandalonePublishWorker()

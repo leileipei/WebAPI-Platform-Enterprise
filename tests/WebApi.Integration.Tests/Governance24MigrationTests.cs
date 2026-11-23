@@ -1141,7 +1141,7 @@ public sealed class Governance24MigrationTests
         await AssertPreflightBlockedAsync(database, sqlEntry);
 
         await using var check = database.Context();
-        Assert.Equal(40, (await check.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.Equal(41, (await check.Database.GetAppliedMigrationsAsync()).Count());
         Assert.True(await check.Database.SqlQueryRaw<bool>("""
             SELECT tgenabled = 'D' AS "Value"
                 FROM pg_catalog.pg_trigger
@@ -1159,13 +1159,14 @@ public sealed class Governance24MigrationTests
         await database.InitializeAsync();
         string[] migrations;
         await using (var discovery = database.Context()) migrations = discovery.Database.GetMigrations().ToArray();
-        Assert.Equal(40, migrations.Length);
+        Assert.Equal(41, migrations.Length);
         Assert.Equal("20261104080000_Governance24DatabaseClock", migrations[34]);
         Assert.Equal("20261104090000_Governance24MigrationReceipts", migrations[35]);
         Assert.Equal("20261118130000_CredentialGovernanceJournal", migrations[36]);
         Assert.Equal(LegacyGlobalRevocationInheritance.Id, migrations[37]);
         Assert.Equal(FormalCredentialRotationSchedule.Id, migrations[38]);
         Assert.Equal(FormalRotationDecisionProjection.Id, migrations[39]);
+        Assert.Equal(ReleasePublicationOutcomes.Id, migrations[40]);
         var source = Environment.GetEnvironmentVariable("WEBAPI_SOURCE_ROOT") ?? throw new InvalidOperationException("Isolated source root is required.");
         var script = await File.ReadAllTextAsync(Path.Combine(source, "deploy", "initial-core.sql"));
         const string marker = "$WEBAPI_PREFLIGHT$;";

@@ -11,11 +11,26 @@ export function useRemote<T>(path:string|null,interval=0,allPages=false,revalida
   const identity=JSON.stringify([path,authority]);const controller=new AbortController();
   if(previous.current!==identity){setData(undefined);setUpdated(undefined);previous.current=identity;}
   setError('');setErrorStatus(undefined);setLoading(true);if(!path){setLoading(false);setVerified(requested);return;}
-  // Reads triggered by a session refresh consume their own denial without starting another refresh.
-  const options={signal:controller.signal,refreshPermissionsOnDenied:!revalidateOnSessionRefresh};
-  const load=async()=>{try{const result=await (allPages?readAllPages(apiRequest,path,options):apiRequest<T>(path,options));if(!controller.signal.aborted){setData(result);setError('');setErrorStatus(undefined);setUpdated(new Date());}}
-   catch(e){if(!controller.signal.aborted){if(e instanceof ApiError&&[401,403,404].includes(e.status)){setData(undefined);setUpdated(undefined);}setError((e as Error).message);setErrorStatus(e instanceof ApiError?e.status:undefined);}}
-   finally{if(!controller.signal.aborted){setLoading(false);setVerified(requested);}}};
+  let latestRequest=0,lastAppliedRequest=0;
+  const load=async()=>{
+   // One poll may overtake a slow read. Give that newer read time to finish.
+   if(latestRequest-lastAppliedRequest>=2)return;
+   const request=++latestRequest;
+   const isCurrent=()=>request===latestRequest&&!controller.signal.aborted;
+   // Reads triggered by a session refresh consume their own denial without starting another refresh.
+   const options={signal:controller.signal,refreshPermissionsOnDenied:!revalidateOnSessionRefresh,isCurrentRead:interval?isCurrent:undefined};
+   try{
+    const result=await (allPages?readAllPages(apiRequest,path,options):apiRequest<T>(path,options));
+    if(!isCurrent())return;
+    setData(result);setError('');setErrorStatus(undefined);setUpdated(new Date());
+   }catch(e){
+    if(!isCurrent())return;
+    if(e instanceof ApiError&&[401,403,404].includes(e.status)){setData(undefined);setUpdated(undefined);}
+    setError((e as Error).message);setErrorStatus(e instanceof ApiError?e.status:undefined);
+   }
+   lastAppliedRequest=request;
+   setLoading(false);setVerified(requested);
+  };
   void load();const timer=interval?setInterval(load,interval):undefined;
   return()=>{controller.abort();if(timer)clearInterval(timer);};
  },[path,tick,interval,authority,allPages,revalidateOnSessionRefresh,requested]);
@@ -39,7 +54,7 @@ type FormValues = Record<string,any>;
 export type Field={key:string;label:string;type?:string;required?:boolean;options?:{value:string;label:string}[];help?:string;
   // Display this value while the input has no override. Restoring it clears the override.
   originalInput?:(draft:FormValues)=>string};
-export function Editor({title,fields,initial={},save,close,loadLatest,adoptLatest,help='保存至工作配置，发布后才影响网关',renderFields,explicitSubmitOnly=false,allowed=true,conflictStatuses=[412],maySave}:{maySave?:(value:Record<string,any>)=>boolean;conflictStatuses?:number[];explicitSubmitOnly?:boolean;allowed?:boolean;renderFields?:(value:Record<string,any>,change:(key:string,value:any)=>void)=>ReactNode;help?:string;title:string;fields:Field[];initial?:Record<string,any>;save:(value:Record<string,any>,key:string,fresh?:{revision?:number;eTag?:string})=>Promise<unknown>;close:()=>void;loadLatest?:()=>Promise<Record<string,any>>;adoptLatest?:(draft:FormValues,latest:FormValues)=>FormValues}){
+export function Editor({title,fields,initial={},save,close,loadLatest,adoptLatest,help='保存至工作配置，发布后才影响网关',renderFields,explicitSubmitOnly=false,allowed=true,conflictStatuses=[412],maySave}:{maySave?:(value:Record<string,any>)=>boolean;conflictStatuses?:number[];explicitSubmitOnly?:boolean;allowed?:boolean;renderFields?:(value:Record<string,any>,change:(key:string,value:any)=>void)=>ReactNode;help?:ReactNode;title:string;fields:Field[];initial?:Record<string,any>;save:(value:Record<string,any>,key:string,fresh?:{revision?:number;eTag?:string})=>Promise<unknown>;close:()=>void;loadLatest?:()=>Promise<Record<string,any>>;adoptLatest?:(draft:FormValues,latest:FormValues)=>FormValues}){
  const[value,setValue]=useState(initial),[error,setError]=useState(''),[conflict,setConflict]=useState(false),[busy,setBusy]=useState(false),[dirty,setDirty]=useState(false),[latest,setLatest]=useState<Record<string,any>>(),[fresh,setFresh]=useState<{revision?:number;eTag?:string}>(),[invalid,setInvalid]=useState(false),[discard,setDiscard]=useState(false);const session=useSession();const key=useRef(crypto.randomUUID());const oldFocus=useRef<HTMLElement|null>(null);const editorRoot=useRef<HTMLFormElement>(null);
  const latestRequest=useRef(0);
  async function readLatest(){

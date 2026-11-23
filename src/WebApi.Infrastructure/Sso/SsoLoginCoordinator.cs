@@ -9,13 +9,17 @@ using WebApi.Infrastructure.Settings;
 namespace WebApi.Infrastructure.Sso;
 public sealed class SsoLoginCoordinator(WebApiDbContext db,SystemSettingsReader settings,TimeProvider clock)
 {
-    public async Task<PendingSsoLogin> BeginAsync(Guid providerId,string? returnPath,CancellationToken ct=default)
+    public Task<PendingSsoLogin> BeginAsync(Guid providerId,string? returnPath,CancellationToken ct=default)=>
+        BeginAsync(providerId,returnPath,null,ct);
+    public async Task<PendingSsoLogin> BeginAsync(Guid providerId,string? returnPath,Guid? entryOrganizationId,CancellationToken ct)
     {
         var path=returnPath??"/organizations";
         if(!SsoProviderValidator.IsSafeReturnPath(path))throw new ApiException(422,"invalid_sso_return_path","登录返回路径不可用。");
         await using var transaction=await db.Database.BeginTransactionAsync(ct);await Lock(ct);
         var provider=await db.Set<SsoProvider>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==providerId&&x.Enabled,ct)??throw EntryUnavailable();
-        if(provider.OrganizationId.HasValue&&!await db.Set<Organization>().AnyAsync(x=>x.Id==provider.OrganizationId&&x.Status=="Active",ct))throw EntryUnavailable();
+        if(entryOrganizationId.HasValue&&provider.OrganizationId.HasValue&&entryOrganizationId!=provider.OrganizationId)throw EntryUnavailable();
+        var organizationId=entryOrganizationId??provider.OrganizationId;
+        if(organizationId.HasValue&&!await db.Set<Organization>().AnyAsync(x=>x.Id==organizationId&&x.Status=="Active",ct))throw EntryUnavailable();
         var now=clock.GetUtcNow();var attempt=new SsoLoginAttempt{ProviderId=provider.Id,ProviderRevision=provider.Revision,AuthRevision=provider.AuthRevision,ReturnPath=path,CreatedAt=now,ExpiresAt=now.AddMinutes(5)};
         db.Add(attempt);await db.SaveChangesAsync(ct);await transaction.CommitAsync(ct);
         var snapshot=new SsoProviderSnapshot(provider.Id,provider.OrganizationId,provider.Issuer,provider.ClientId,provider.SecretRef,
@@ -63,15 +67,23 @@ public sealed class SsoLoginCoordinator(WebApiDbContext db,SystemSettingsReader 
     }
     public Task FailAsync(Guid attemptId,string safeCode,CancellationToken ct=default)=>FailCoreAsync(attemptId,safeCode,true,ct);
     public Task FailPendingAsync(Guid attemptId,string safeCode,CancellationToken ct=default)=>FailCoreAsync(attemptId,safeCode,false,ct);
-    private async Task FailCoreAsync(Guid attemptId,string safeCode,bool ownsProcessing,CancellationToken ct)
+    public Task<string?> CancelAsync(Guid attemptId,CancellationToken ct=default)=>FailCoreAsync(attemptId,"cancelled",false,ct);
+    private async Task<string?> FailCoreAsync(Guid attemptId,string safeCode,bool ownsProcessing,CancellationToken ct)
     {
         string[] allowed=["cancelled","protocol_error","provider_changed","attempt_expired","unknown_identity","admission_denied","configuration_unavailable"];
         var code=allowed.Contains(safeCode,StringComparer.Ordinal)?safeCode:"protocol_error";
         await using var transaction=await db.Database.BeginTransactionAsync(ct);await Lock(ct);
         var changed=await db.Set<SsoLoginAttempt>().Where(x=>x.Id==attemptId&&(x.State=="Pending"||ownsProcessing&&x.State=="Processing"))
             .ExecuteUpdateAsync(update=>update.SetProperty(x=>x.State,"Failed").SetProperty(x=>x.FailureCode,code),ct);
+        string? returnPath=null;
+        if(changed==1&&code=="cancelled")
+        {
+            var now=clock.GetUtcNow();
+            returnPath=await db.Set<SsoLoginAttempt>().Where(x=>x.Id==attemptId&&x.ExpiresAt>now).Select(x=>x.ReturnPath).SingleOrDefaultAsync(ct);
+        }
         if(changed==1||!ownsProcessing)db.Add(new AuditLog{Action="auth.sso.failed",ResourceType="sso_login_attempt",ResourceId=attemptId.ToString(),AfterJson=JsonSerializer.Serialize(new{code},CanonicalJson.Options),CreatedAt=clock.GetUtcNow()});
         await db.SaveChangesAsync(ct);await transaction.CommitAsync(ct);
+        return returnPath;
     }
     private Task<int> Lock(CancellationToken ct)=>db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
     private static string? Profile(string? claim,IReadOnlyDictionary<string,string> claims,string? current,int maximum,bool required)

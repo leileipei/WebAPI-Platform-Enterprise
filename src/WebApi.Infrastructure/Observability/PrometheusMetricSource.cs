@@ -49,7 +49,8 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var observed=coverage.Evaluate(scope,range,await latestTask,await firstTask,(await droppedTask).Sum(x=>x.Value)+(await failedTask).Sum(x=>x.Value)+(await lastLossTask).Count(x=>x.Value>=range.Start.ToUnixTimeMilliseconds()/1000d&&x.Value<range.End.ToUnixTimeMilliseconds()/1000d),await ageTask);
         if(observed.Coverage.Complete&&await collectorTask)observed=observed with{State=SourceState.Partial,Coverage=observed.Coverage with{Complete=false,Reason="collector_metrics_collection_gap"}};
         var missing=observed.State is SourceState.Partial or SourceState.Stale||scope.ExpectedNodes.Count==0;
-        var values=Values(requests,histogram,seconds,Unhealthy(scope,health,filter),missing,observed.State);
+        var nodes=NodeHealth(scope,health,observed.MissingNodes);
+        var values=Values(requests,histogram,seconds,Unhealthy(nodes,filter),missing,observed.State);
         if(filter.ApiId is not null||filter.ApplicationId is not null)values=values.Select(v=>v.Metric=="unhealthy_destinations"?v with{Value=null,State=SourceState.NotApplicable}:v).ToArray();
         var applicable=filter.ApiId is null&&filter.ApplicationId is null&&filter.DestinationId is null;
         var policyRows=(await policyTask).Where(x=>PolicySeriesValid(x.Labels,scope)).ToArray();
@@ -68,7 +69,6 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var trends=new Dictionary<string,IReadOnlyList<MetricPointDto>>(Trends(await ratesTask, await latencyTrendTask, missing));
         var policyPoints=(await policyTrendTask).Where(x=>PolicySeriesValid(x.Labels,scope)).SelectMany(x=>x.Points.Select(p=>(x.Labels,p.Time,p.Value))).GroupBy(x=>x.Time).OrderBy(x=>x.Key).Take(600).ToArray();
         foreach(var key in PolicyKpiKeys) trends[key]=policyPoints.Select(g=>new MetricPointDto(g.Key,missing||!applicable?null:g.Where(x=>PolicyMatches(x.Labels,key)).Sum(x=>x.Value))).ToArray();
-        var nodes=NodeHealth(scope,health,observed.MissingNodes);
         if(filter.ApiId is not null||filter.ApplicationId is not null)nodes=nodes.Select(n=>n with{Destinations=[]}).ToArray();
         else if(filter.DestinationId is Guid destination)nodes=nodes.Select(n=>n with{Destinations=n.Destinations.Where(d=>d.DestinationId==destination).ToArray()}).ToArray();
         var total=requests.Sum(x=>x.Value);var state=observed.State==SourceState.Available&&total==0?SourceState.NoData:observed.State;
@@ -125,23 +125,38 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         bool Status(IReadOnlyDictionary<string,string> labels,int lower)=>int.TryParse(labels.GetValueOrDefault("http_response_status_code"),out var s)&&s>=lower&&s<lower+100;
         return new Dictionary<string,IReadOnlyList<MetricPointDto>>{{"request_rps",rps},{"success_ratio",Ratio(x=>x.GetValueOrDefault("webapi_success")=="true")},{"error_4xx_ratio",Ratio(x=>Status(x,400))},{"error_5xx_ratio",Ratio(x=>Status(x,500))},{"latency_p50_ms",Latency(0.5)},{"latency_p95_ms",Latency(0.95)},{"latency_p99_ms",Latency(0.99)}};
     }
-    private static double? Unhealthy(TrustedObservationScope scope,IReadOnlyList<PrometheusSeries> health,MetricFilter filter)
+    private static double? Unhealthy(IReadOnlyList<NodeHealthDto> nodes, MetricFilter filter)
     {
-        if(filter.ApiId is not null||filter.ApplicationId is not null)return null;
-        var applicable=scope.Destinations.Values.Where(x=>x.Enabled&&(filter.DestinationId is null||x.Id==filter.DestinationId)).ToArray();
-        var count=0;foreach(var destination in applicable)
+        if (filter.ApiId is not null || filter.ApplicationId is not null) return null;
+        var destinations = nodes.SelectMany(n => n.Destinations)
+            .Where(d => filter.DestinationId is null || d.DestinationId == filter.DestinationId)
+            .GroupBy(d => d.DestinationId);
+        var count = 0;
+        foreach (var destination in destinations)
         {
-            var expected=scope.ExpectedNodes.Where(x=>x.EnvironmentId==destination.EnvironmentId).ToArray();
-            if(expected.Length==0)return null;
-            var rows=health.Where(x=>x.Labels.GetValueOrDefault("webapi_destination_id")==destination.Id.ToString()&&x.Labels.GetValueOrDefault("webapi_environment_id")==destination.EnvironmentId.ToString()).ToArray();
-            if(rows.Any(x=>x.Value==0)){count++;continue;}
-            if(expected.Any(node=>!rows.Any(x=>x.Labels.GetValueOrDefault("service_instance_id")==node.NodeName&&x.Value==1)))return null;
+            if (destination.Any(d => d.Health == "Unhealthy")) count++;
+            else if (destination.Any(d => d.Health == "Unknown")) return null;
         }
         return count;
     }
-    private static IReadOnlyList<NodeHealthDto> NodeHealth(TrustedObservationScope scope,IReadOnlyList<PrometheusSeries> health,IReadOnlySet<ExpectedObservationNode> missing)=>scope.ExpectedNodes.Select(node=>new NodeHealthDto(node.NodeName,missing.Contains(node)?"Stale":"Available",scope.Destinations.Values.Where(d=>d.EnvironmentId==node.EnvironmentId).Select(d=>{
-        var row=health.FirstOrDefault(x=>x.Labels.GetValueOrDefault("webapi_environment_id")==node.EnvironmentId.ToString()&&x.Labels.GetValueOrDefault("service_instance_id")==node.NodeName&&x.Labels.GetValueOrDefault("webapi_destination_id")==d.Id.ToString());return new DestinationHealthDto(d.ClusterId,d.Id,!d.Enabled?"Disabled":row?.Value switch{1=>"Healthy",0=>"Unhealthy",_=>"Unknown"});
-    }).ToArray(),node.EnvironmentId)).ToArray();
+    private static IReadOnlyList<NodeHealthDto> NodeHealth(TrustedObservationScope scope,
+        IReadOnlyList<PrometheusSeries> health, IReadOnlySet<ExpectedObservationNode> missing)
+    {
+        var samples = health.ToLookup(row => (row.Labels.GetValueOrDefault("webapi_environment_id"),
+            row.Labels.GetValueOrDefault("service_instance_id"), row.Labels.GetValueOrDefault("webapi_destination_id")), row => row.Value);
+        var destinations = scope.Destinations.Values.ToLookup(d => d.EnvironmentId);
+        string Health(ExpectedObservationNode node, ObservationDestination destination)
+        {
+            if (scope.AppliedDestinations.TryGetValue(node, out var members) && !members.Contains((destination.ClusterId, destination.Id)))
+                return "Disabled";
+            var values = samples[(node.EnvironmentId.ToString(), node.NodeName, destination.Id.ToString())];
+            if (values.Contains(0)) return "Unhealthy";
+            return values.Any() && values.All(value => value == 1) ? "Healthy" : "Unknown";
+        }
+        return scope.ExpectedNodes.Select(node => new NodeHealthDto(node.NodeName, missing.Contains(node) ? "Stale" : "Available",
+            destinations[node.EnvironmentId].Select(d => new DestinationHealthDto(d.ClusterId, d.Id, Health(node, d))).ToArray(),
+            node.EnvironmentId)).ToArray();
+    }
     private static string Name(TrustedObservationScope scope,string dimension,string key)
     {
         if(!Guid.TryParse(key,out var id))return key switch{"Unmatched"=>"未匹配 API","Unknown"=>"未知应用","Anonymous"=>"匿名请求","None"=>"未选择后端",_=>"未知资源"};

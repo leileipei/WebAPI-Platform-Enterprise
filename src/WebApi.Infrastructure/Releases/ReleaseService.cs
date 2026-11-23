@@ -126,7 +126,7 @@ public sealed class ReleaseService(WebApiDbContext db,AuthorizationService auth,
             foreach(var rule in rules) for(var n=0;n<rule.RequiredCount;n++) db.Add(new ApprovalTask {FlowId=flow.Id,ReleaseId=r.Id,StepOrder=rule.StepOrder,Status="Pending"});r.Status="WaitingApproval";
         }else r.Status="Ready";
         r.CandidateBytes=CanonicalJson.Serialize(candidate);r.ApprovalPolicy=JsonSerializer.Serialize(rules,CanonicalJson.Options);
-        foreach(var version in candidate.Versions) db.Add(new ReleaseItem {ReleaseId=r.Id,ResourceType="version",ResourceId=version.Version.Id,ChangeType=version.Version.ChangeType,AfterJson=JsonSerializer.Serialize(new {version=version.Version.Version,revision=version.Version.Revision},CanonicalJson.Options)});
+        ReleaseVersionPublication.CaptureItems(db,r,candidate);
         // Return pending tasks from tracked entries as well as committed records.
         return await DtoWithPendingAsync(r,rules,token);
     }

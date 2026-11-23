@@ -81,7 +81,7 @@ public sealed class LegacyGlobalRevocationMigrationTests
         await InstallUpgradeAsync(database, sqlEntry);
 
         await using var db = database.Context();
-        Assert.Equal(GovernanceSchemaFingerprints.Expected[FormalRotationDecisionProjection.Id],
+        Assert.Equal(GovernanceSchemaFingerprints.Expected[ReleasePublicationOutcomes.Id],
             await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
         Assert.Equal(originalHash, (await db.Set<SecurityEvent>().AsNoTracking().SingleAsync()).EventHash);
         Assert.True(await db.Set<CredentialRevocation>().AnyAsync(item => item.CredentialId == fixture.Credential.Id &&

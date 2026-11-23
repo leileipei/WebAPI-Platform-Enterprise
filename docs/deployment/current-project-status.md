@@ -327,9 +327,9 @@ Gateway测试进程exit0、560项通过，但保全检查失败使编排exit1并
 
 ## 源码能力及关闭边界
 
-下表保留 PR #18 前的历史口径。“固定 503、网关未接线”描述的是当时的源码。当前实现见 [c65a0c0 凭证治理补记](#pr-18-合并后的凭证治理)。
+下表记录 PR #18 前的源码状态。“固定 503、网关未接线”适用于 `7626115` 等旧版本。后续接入记录见 [c65a0c0 凭证治理补记](#pr-18-合并后的凭证治理)。
 
-| 能力 | 源码依据 | 当前解释 |
+| 能力 | 源码依据 | 该阶段的解释 |
 | --- | --- | --- |
 | API、路由、策略、应用、审批与跨环境交付 | [控制面](../../src/WebApi.ControlPlane/)、[网关](../../src/WebApi.Gateway/)、[控制台](../../console/src/) | 有对应实现；功能入口不等于全部需求或生产验收通过 |
 | 普通凭证轮换和撤销 | [ApplicationService](../../src/WebApi.Infrastructure/Applications/ApplicationService.cs)、[ApiKeyMiddleware](../../src/WebApi.Gateway/Security/ApiKeyMiddleware.cs) | 保存工作配置后须再次审批发布，不能承诺即时拒绝旧 Key |
@@ -337,7 +337,7 @@ Gateway测试进程exit0、560项通过，但保全检查失败使编排exit1并
 | 网关安全准入 | [GatewayApp](../../src/WebApi.Gateway/GatewayApp.cs) | 尚未接入安全状态存储及准入链路，不能宣称正式轮换硬截止已上线 |
 | G01–G13 安全组件 | [独立评审记录](../evidence/governance-merge/p2-4-crypto-review.md)、[数据字典](../credential-security-data-dictionary.md) | 历史合并与附条件评审保留；不能由表结构、组件或测试存在推导生产路径启用 |
 
-操作解释以[凭证安全手册](credential-security-operations.md)为准。完整资料按[总目录](../README.md)和[运维目录](README.md)查阅。
+现行部署条件、节点证明和 503 排查见[凭证安全操作手册](credential-security-operations.md#治理启用条件)。完整资料按[总目录](../README.md)和[运维目录](README.md)查阅。
 
 ## 固定版本验证
 

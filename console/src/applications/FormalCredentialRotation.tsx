@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import {apiRequest, ApiError} from '../api/client';
 import {Feedback, Table, useRemote, useUnsaved} from '../ui';
+import {useWorkspace} from '../Shell';
 import {maskAccessKey} from './rotation-state.mjs';
 import {
   formalRotationCandidates, formalRotationCommand, formalRotationVerification, formalRotationWindow,
@@ -53,6 +54,7 @@ export function FormalCredentialRotation({old, credentials, environmentName, ini
   onChanged: () => void;
   onAccessDenied: () => void;
 }) {
+  const {scopeReady} = useWorkspace();
   const root = useRef<HTMLElement>(null);
   const request = useRef<AbortController|undefined>(undefined);
   const command = useRef<RotationCommand|undefined>(undefined);
@@ -87,7 +89,7 @@ export function FormalCredentialRotation({old, credentials, environmentName, ini
   useUnsaved(busy);
 
   async function run<T>(send:(signal:AbortSignal)=>Promise<T>, apply:(result:T)=>void, rejected?:(error:unknown)=>void) {
-    if (request.current) return;
+    if (!scopeReady || request.current) return;
     const controller = new AbortController();
     request.current = controller;
     setBusy(true);
@@ -187,11 +189,11 @@ export function FormalCredentialRotation({old, credentials, environmentName, ini
     {rotationId ? <div className="details">
       <Feedback {...receiptRead}/>
       {receiptMismatch && <div className="error" role="alert">回执与当前旧凭证、环境或已知修订不匹配。</div>}
-      {receipt && <RotationReceiptView key={receipt.rotationId + ':' + receipt.revision} receipt={receipt} busy={busy}
+      {receipt && <RotationReceiptView key={receipt.rotationId + ':' + receipt.revision} receipt={receipt} busy={busy || !scopeReady}
         current={!!currentReceipt} verification={verification} verificationRead={verificationRead}
         refresh={() => { receiptRead.reload(); verificationRead.reload(); }} decide={decide}/>}
     </div> : old.status === 'Active'
-      ? <RotationSchedule key={old.revision} old={old} credentials={credentials} busy={busy} readPreview={readPreview} confirm={confirm}/>
+      ? <RotationSchedule key={old.revision} old={old} credentials={credentials} busy={busy || !scopeReady} readPreview={readPreview} confirm={confirm}/>
       : <p className="notice">可按轮换 ID 查询该旧凭证的正式轮换回执。</p>}
   </section>;
 }

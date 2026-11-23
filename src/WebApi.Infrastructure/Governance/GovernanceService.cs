@@ -24,33 +24,53 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
     {
         if(string.IsNullOrWhiteSpace(code)||code.Length>64||!Regex.IsMatch(code,"^[A-Za-z0-9][A-Za-z0-9_.-]*$")||string.IsNullOrWhiteSpace(name)||name.Length>128||status is not ("Active" or "Disabled")) throw new ApiException(422,"invalid_fields","编码、名称或状态不合法。");
     }
-    public async Task<ScopeTreeDto> GetScopeTreeAsync(ActorContext actor,CancellationToken ct=default)
+    private static IQueryable<Guid?> ReadableProjectIds(CollectionAuthorizationQuery visibility, ActorContext actor) =>
+        visibility.Scopes(actor, "project.read")
+            .Where(s => s.ProjectId != null && s.EnvironmentId == null).Select(s => s.ProjectId);
+
+    public async Task<ScopeTreeDto> GetScopeTreeAsync(ActorContext actor, CancellationToken ct = default)
     {
-        var visibleOrgs=new List<OrganizationDto>();var visibleProjects=new List<ProjectDto>();var visibleEnvs=new List<EnvironmentDto>();
-        var projects=await db.Set<Project>().AsNoTracking().OrderBy(x=>x.Code).ToArrayAsync(ct);
-        var envs=await db.Set<EnvironmentRecord>().AsNoTracking().OrderBy(x=>x.SortOrder).ToArrayAsync(ct);
-        foreach(var p in projects)
-        {
-            foreach(var e in envs.Where(e=>e.ProjectId==p.Id))
-                if(await auth.CanAsync(actor,"environment.read",new("environment",e.Id,new(p.OrganizationId,p.Id,e.Id)),ct)) visibleEnvs.Add(Dto(e));
-            if(visibleEnvs.Any(e=>e.ProjectId==p.Id)||await auth.CanAsync(actor,"project.read",new("project",p.Id,new(p.OrganizationId,p.Id)),ct)) visibleProjects.Add(Dto(p));
-        }
-        foreach(var org in await db.Set<Organization>().AsNoTracking().OrderBy(x=>x.Code).ToArrayAsync(ct))
-            if(visibleProjects.Any(p=>p.OrganizationId==org.Id)||await auth.CanAsync(actor,"organization.read",new("organization",org.Id,new(org.Id)),ct)) visibleOrgs.Add(Dto(org));
-        return new(visibleOrgs,visibleProjects,visibleEnvs);
+        var visibility = new CollectionAuthorizationQuery(db);
+        await visibility.RequireActiveActorAsync(actor, ct);
+        var readableEnvironments = visibility.Scopes(actor, "environment.read").Where(s => s.EnvironmentId != null);
+        var environments = await (from environment in db.Set<EnvironmentRecord>().AsNoTracking()
+                                  join project in db.Set<Project>() on environment.ProjectId equals project.Id
+                                  where readableEnvironments.Any(s => s.EnvironmentId == environment.Id)
+                                  orderby project.Code, project.Id, environment.SortOrder, environment.Id
+                                  select environment).ToArrayAsync(ct);
+        // Include the parents of the children returned in this response, even without a direct parent grant.
+        var parentProjects = environments.Select(e => e.ProjectId).Distinct().ToArray();
+        var directProjects = ReadableProjectIds(visibility, actor);
+        var projects = await db.Set<Project>().AsNoTracking()
+            .Where(p => parentProjects.Contains(p.Id) || directProjects.Contains(p.Id))
+            .OrderBy(p => p.Code).ThenBy(p => p.Id).ToArrayAsync(ct);
+        var parentOrganizations = projects.Select(p => p.OrganizationId).Distinct().ToArray();
+        var readableOrganizations = visibility.Scopes(actor, "organization.read").Where(s => s.ProjectId == null);
+        var organizations = await db.Set<Organization>().AsNoTracking()
+            .Where(o => parentOrganizations.Contains(o.Id) || readableOrganizations.Any(s => s.OrganizationId == o.Id))
+            .OrderBy(o => o.Code).ThenBy(o => o.Id).ToArrayAsync(ct);
+        return new(organizations.Select(Dto).ToArray(), projects.Select(Dto).ToArray(), environments.Select(Dto).ToArray());
     }
     public async Task<PageResult<ProjectListItemDto>> ProjectsAsync(Guid organizationId, ActorContext actor, int? page, int? pageSize, CancellationToken ct = default)
     {
         var visibility = new CollectionAuthorizationQuery(db);
         await visibility.RequireActiveActorAsync(actor, ct);
-        var tree = await GetScopeTreeAsync(actor, ct);
-        var projects = Pagination.Slice(tree.Projects.Where(project => project.OrganizationId == organizationId).ToArray(), page, pageSize);
-        if (projects.Items.Count == 0)
-            return new([], projects.Total, projects.Page, projects.PageSize);
+        var environmentScopes = visibility.Scopes(actor, "environment.read");
+        var visibleIds = ReadableProjectIds(visibility, actor)
+            .Concat(environmentScopes.Where(s => s.EnvironmentId != null).Select(s => s.ProjectId));
+        var query = db.Set<Project>().AsNoTracking()
+            .Where(p => p.OrganizationId == organizationId && visibleIds.Contains(p.Id));
+        var pageNumber = Math.Clamp(page ?? 1, 1, 1000000);
+        var size = Math.Clamp(pageSize ?? 50, 1, 100);
+        var total = await query.CountAsync(ct);
+        var projects = await query.OrderBy(p => p.Code).ThenBy(p => p.Id)
+            .Skip((pageNumber - 1) * size).Take(size).ToArrayAsync(ct);
+        if (projects.Length == 0)
+            return new([], total, pageNumber, size);
 
-        var projectIds = projects.Items.Select(project => project.Id).ToArray();
+        var projectIds = projects.Select(project => project.Id).ToArray();
         // Project scope rows preserve readable zeroes when a project has no environments.
-        var environmentCounts = await visibility.Scopes(actor, "environment.read")
+        var environmentCounts = await environmentScopes
             .Where(scope => scope.OrganizationId == organizationId && scope.ProjectId != null && projectIds.Contains(scope.ProjectId.Value))
             .GroupBy(scope => scope.ProjectId!.Value)
             .Select(group => new { ProjectId = group.Key, Count = group.Count(scope => scope.EnvironmentId != null) })
@@ -74,10 +94,10 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
             })
             .ToDictionaryAsync(row => row.ProjectId, row => (int?)row.Count, ct);
 
-        var items = projects.Items.Select(project => new ProjectListItemDto(
+        var items = projects.Select(project => new ProjectListItemDto(
             project.Id, project.OrganizationId, project.Code, project.Name, project.Status, project.Revision, project.OwnerUserId,
             environmentCounts.GetValueOrDefault(project.Id), apiCounts.GetValueOrDefault(project.Id), applicationCounts.GetValueOrDefault(project.Id))).ToArray();
-        return new(items, projects.Total, projects.Page, projects.PageSize);
+        return new(items, total, pageNumber, size);
     }
     public async Task<EnvironmentDetailDto> EnvironmentAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {

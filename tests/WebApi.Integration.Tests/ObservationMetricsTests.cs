@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
+using WebApi.Contracts.Catalog;
+using WebApi.Contracts.Gateway;
 using WebApi.Contracts.Observability;
 using WebApi.Infrastructure.Observability;
 using WebApi.Infrastructure.Persistence.Entities;
@@ -27,6 +29,111 @@ public sealed class ObservationMetricsTests
     private static string Url(ApiFixture fixture,MetricProtocolHandler source,Guid? environment=null,bool all=false,string? suffix=null)=>
         $"/api/v1/observability/metrics?organizationId={fixture.Organization.Id}&projectId={fixture.Project.Id}&environmentId={environment??fixture.Environment.Id}&allAccessibleEnvironments={all.ToString().ToLowerInvariant()}&start={Uri.EscapeDataString(source.Start.ToString("O"))}&end={Uri.EscapeDataString(source.End.ToString("O"))}{suffix}";
     private static MetricValueDto Value(ObservationEnvelope<MetricsDto> envelope,string key)=>Assert.Single(envelope.Data!.Kpis,x=>x.Metric==key);
+    [Fact]
+    public async Task DisabledDestinationHealthFollowsEachCurrentInstanceApplication()
+    {
+        var source = new MetricProtocolHandler();
+        await using var deployment = new DeploymentScenario();
+        await deployment.InitializeAsync(b =>
+        {
+            b.Configuration["Observability:Enabled"] = "true";
+            b.Services.PostConfigure<HttpClientFactoryOptions>("observability",
+                options => options.HttpMessageHandlerBuilderActions.Add(builder => builder.PrimaryHandler = source));
+        });
+        var f = deployment.Api;
+        await ObservationTestSupport.GrantAsync(f, ["metrics.read"]);
+        using var added = await f.WriteAsync(HttpMethod.Post, $"/api/v1/clusters/{f.Cluster.Id}/destinations",
+            new SaveDestinationRequest("secondary", "http://test-backend:8080/secondary"));
+        added.EnsureSuccessStatusCode();
+        var target = (await added.Content.ReadFromJsonAsync<DestinationDto>())!;
+        source.EnvironmentId = f.Environment.Id;
+        source.ClusterId = f.Cluster.Id;
+        source.DestinationId = f.Destination.Id;
+        var firstRelease = await deployment.PublishAsync();
+        var firstVersion = (await deployment.DesiredAsync(firstRelease)).Envelope.ConfigVersion;
+
+        async Task Check(double? count, string node0, string node1, DateTimeOffset? end = null)
+        {
+            source.End = end ?? DateTimeOffset.UtcNow;
+            using var response = await f.Client.GetAsync(Url(f, source, suffix: $"&destinationId={target.Id}"));
+            response.EnsureSuccessStatusCode();
+            var body = (await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+            Assert.True(body.Coverage.Complete);
+            Assert.Equal(count, Value(body, "unhealthy_destinations").Value);
+            var states = body.Data!.NodeHealth.ToDictionary(node => node.NodeName, node => Assert.Single(node.Destinations));
+            Assert.Equal(2, states.Count);
+            Assert.All(states.Values, row => Assert.Equal(f.Cluster.Id, row.ClusterId));
+            Assert.Equal(node0, states["node-0"].Health);
+            Assert.Equal(node1, states["node-1"].Health);
+        }
+
+        await using (var db = f.Context())
+        {
+            db.Add(new GatewayNode { EnvironmentId = f.Environment.Id, NodeName = "retired", Enabled = false });
+            await db.SaveChangesAsync();
+        }
+        source.HealthSamples = [("node-0", target.Id, 1), ("node-1", target.Id, 1), ("retired", target.Id, 0),
+            ("node-0", f.Destination.Id, 1), ("node-1", f.Destination.Id, 1)];
+        await Check(0, "Healthy", "Healthy");
+        using (var environment = await f.Client.GetAsync(Url(f, source)))
+        {
+            environment.EnsureSuccessStatusCode();
+            Assert.Equal(0, Value((await environment.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!,
+                "unhealthy_destinations").Value);
+        }
+        source.HealthSamples = [("node-0", target.Id, 0), ("node-1", target.Id, 0)];
+        await Check(1, "Unhealthy", "Unhealthy");
+        await using (var db = f.Context())
+        {
+            // The ACK covers the delivered bytes. The searchable JSON copy can disagree.
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE gateway_config_snapshots s SET payload = jsonb_set(s.payload, ARRAY['clusters'], '[]'::jsonb)
+                FROM gateway_config_versions v WHERE s.config_version_id = v.id
+                    AND v.environment_id = {f.Environment.Id} AND v.version_no = {firstVersion}
+                """);
+        }
+        await Check(1, "Unhealthy", "Unhealthy");
+        using var draft = await f.WriteAsync(HttpMethod.Put, $"/api/v1/destinations/{target.Id}",
+            new SaveDestinationRequest(target.Name, target.Address, Enabled: false), added.Headers.ETag!.ToString());
+        draft.EnsureSuccessStatusCode();
+        var beforeDeployment = DateTimeOffset.UtcNow;
+        await Check(1, "Unhealthy", "Unhealthy");
+        var release = await deployment.PublishAsync(acknowledge: false);
+        var envelope = (await deployment.DesiredAsync(release)).Envelope;
+        await Check(1, "Unhealthy", "Unhealthy");
+
+        await deployment.AckAsync(0, envelope);
+        await Check(1, "Disabled", "Unhealthy");
+        source.HealthSamples = [];
+        await Check(null, "Disabled", "Unknown");
+        await deployment.AckAsync(1, envelope);
+        await Check(0, "Disabled", "Disabled");
+        source.HealthSamples = [("node-0", target.Id, 0), ("node-1", target.Id, 0)];
+        await Check(1, "Unhealthy", "Unhealthy", beforeDeployment);
+
+        deployment.Instances[0] = Guid.NewGuid();
+        using var registered = await deployment.NodeAsync(0, "/internal/v1/nodes/register",
+            new RegisterNodeRequest(f.Environment.Id, "node-0", deployment.Instances[0], "test"));
+        registered.EnsureSuccessStatusCode();
+        using var heartbeat = await deployment.NodeAsync(0, $"/internal/v1/nodes/{deployment.NodeIds[0]}/heartbeat",
+            new NodeHeartbeat(deployment.Instances[0], envelope.ConfigVersion, envelope.DeploymentSequence, "Ready"));
+        heartbeat.EnsureSuccessStatusCode();
+        source.HealthSamples = [];
+        await Check(null, "Unknown", "Disabled");
+        await deployment.AckAsync(0, envelope);
+        await Check(0, "Disabled", "Disabled");
+
+        await using (var db = f.Context())
+        {
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE gateway_config_snapshots s SET payload_bytes = convert_to('[]', 'UTF8'), size_bytes = 2
+                FROM gateway_config_versions v WHERE s.config_version_id = v.id
+                    AND v.environment_id = {f.Environment.Id} AND v.version_no = {envelope.ConfigVersion}
+                """);
+        }
+        await Check(null, "Unknown", "Unknown");
+    }
+
     [Fact]
     public async Task SharedApplicationMetricsFollowEachAuthorizedEnvironmentAcrossProjects()
     {
@@ -369,6 +476,7 @@ public sealed class ObservationMetricsTests
 
 public sealed class MetricProtocolHandler : HttpMessageHandler
 {
+    public (string Node, Guid Destination, int Value)[]? HealthSamples { get; set; }
     public Guid? UnhealthyDestinationId,UnhealthyClusterId;public Guid EnvironmentId,ApiId,ApplicationId,DestinationId,ClusterId;
     public Guid? ForeignEnvironmentId,SecondApiId,PolicyId;
     public string DefaultNodeName = "node-0";
@@ -449,7 +557,19 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
         {if(PolicyId is Guid policy){Add(new(){["webapi_environment_id"]=EnvironmentId.ToString(),["webapi_policy_id"]=policy.ToString(),["webapi_policy_type"]="rate_limit",["webapi_policy_decision"]="Bypass"},7);Add(new(){["webapi_environment_id"]=EnvironmentId.ToString(),["webapi_policy_id"]=policy.ToString(),["webapi_policy_type"]="circuit_breaker",["webapi_policy_decision"]="OpenRejected"},3);}}
         else if(query.Contains("_bucket",StringComparison.Ordinal))
         {foreach(var node in new[]{"node-0","node-1"})foreach(var le in new[]{"0.1","1","10","+Inf"}){var labels=Labels(node);labels["le"]=le;Add(labels,SecondApiId is null?node=="node-0"||le is "10" or "+Inf"?100:0:le is "10" or "+Inf"?100:0);if(SecondApiId is Guid second){var fast=Labels(node);fast["webapi_api_id"]=second.ToString();fast["le"]=le;Add(fast,100);}}}
-        else if(query.Contains("webapi_destination_health",StringComparison.Ordinal)){Add(Labels(),1);if(UnhealthyDestinationId is Guid bad){var labels=Labels();labels["webapi_destination_id"]=bad.ToString();labels["webapi_cluster_id"]=UnhealthyClusterId.ToString()!;Add(labels,0);}}
+        else if(query.Contains("webapi_destination_health",StringComparison.Ordinal))
+        {
+            if (HealthSamples is { } samples)
+            {
+                foreach (var (node, destination, value) in samples)
+                {
+                    var labels = Labels(node);
+                    labels["webapi_destination_id"] = destination.ToString();
+                    Add(labels, value);
+                }
+            }
+            else {Add(Labels(),1);if(UnhealthyDestinationId is Guid bad){var labels=Labels();labels["webapi_destination_id"]=bad.ToString();labels["webapi_cluster_id"]=UnhealthyClusterId.ToString()!;Add(labels,0);}}
+        }
         else if(query.Contains("dropped_total",StringComparison.Ordinal)||query.Contains("export_failures_total",StringComparison.Ordinal)){}
         else if(query.Contains("webapi_gateway_requests_total",StringComparison.Ordinal)){Add(Labels(),ResetWindow?6:200);if(SecondApiId is Guid second){var fast=Labels();fast["webapi_api_id"]=second.ToString();Add(fast,400);}if(ForeignEnvironmentId is Guid foreign){var labels=Labels();labels["webapi_environment_id"]=foreign.ToString();Add(labels,999999);}}
         if(request.RequestUri.AbsolutePath.EndsWith("query_range",StringComparison.Ordinal))

@@ -1,5 +1,6 @@
 export function importIdentity(input:any):string;
 export function invalidatePreview(state:any,input:any):any;
+export function suspendImportPreview(state:any):any;
 export function canCommitPreview(state:any,now?:number):boolean;
 export function mapImportTarget(operation:any,target:any):any;
 export function previewRequest(input:any,budget?:any):any;

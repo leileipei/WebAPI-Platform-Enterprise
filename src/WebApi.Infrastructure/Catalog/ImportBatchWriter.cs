@@ -39,6 +39,8 @@ public sealed class ImportBatchWriter(WebApiDbContext db,AuthorizationService au
         ContractBundleCodec.Verify(bundle);var root=bundle.Documents.Single(x=>x.Source.LogicalUri==bundle.RootUri);var scope=await ScopeAsync(targetScope,actor,token);await RequireTargetsAsync(targets,targetScope,actor,token);
             if(targets.Count is <1 or >1000||targets.Select(t=>t.OperationId).Distinct().Count()!=targets.Count||targets.Where(t=>t.ExistingVersionId is not null).GroupBy(t=>t.ExistingVersionId).Any(g=>g.Count()>1)) throw new ApiException(422,"invalid_import_targets","每个Operation与已有目标版本只能出现一次。");
             var parser=new OpenApiOperationParser(bundle);var operations=new List<ImportedOperationDto>();var warnings=new List<string>();var routeKeys=new HashSet<string>(StringComparer.Ordinal);
+            // Check the complete selection against the frozen source before modifying any target.
+            foreach (var target in targets) parser.RequireSupportedOperation(target.OperationId);
             foreach(var target in targets)
             {
                 var parsed=parser.Parse(target.OperationId);warnings.AddRange(parsed.Warnings);ApiVersion version;Api api;
