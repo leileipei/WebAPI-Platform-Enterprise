@@ -35,7 +35,7 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
         }
         return environments;
     }
-    public async Task<TrustedObservationScope> ResolveAsync(ActorContext actor,string permission,ObservationScopeRequest scope,Guid? apiId,Guid? appId,Guid? destinationId,CancellationToken ct)
+    public async Task<TrustedObservationScope> ResolveAsync(ActorContext actor,string permission,ObservationScopeRequest scope,Guid? apiId,Guid? appId,Guid? destinationId,CancellationToken ct,DateTimeOffset? destinationHealthAt=null)
     {
         var environments=await ResolveEnvironmentIdsAsync(actor,permission,scope,ct);
         var apis=await db.Set<Api>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
@@ -61,7 +61,8 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
                 """,new NpgsqlParameter("environments",environments)).ToArrayAsync(ct);
             foreach(var row in history) if(Guid.TryParse(row.PolicyId,out var id)) policyIds[row.EnvironmentId].Add(id);
         }
-        return new(scope.OrganizationId,scope.ProjectId,environments,nodes,apis,apps,destinations,policyIds.ToDictionary(x=>x.Key,x=>(IReadOnlySet<Guid>)x.Value));
+        var trusted = new TrustedObservationScope(scope.OrganizationId,scope.ProjectId,environments,nodes,apis,apps,destinations,policyIds.ToDictionary(x=>x.Key,x=>(IReadOnlySet<Guid>)x.Value));
+        return await trusted.WithAppliedDestinationsAsync(db, destinationHealthAt, ct);
     }
 }
 

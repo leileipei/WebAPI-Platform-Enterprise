@@ -22,7 +22,9 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
         if(active&&!retired&&rule.Revision==lease.RuleRevision)
         {
             // No transaction/governance lock is held during source I/O.
-            var trusted=await scopes.ObservationAsync(rule.OrganizationId,lease.EnvironmentId,ct);var end=lease.Slot.AddSeconds(-settings.QueryDelaySeconds);
+            var end=lease.Slot.AddSeconds(-settings.QueryDelaySeconds);
+            var trusted=await scopes.ObservationAsync(rule.OrganizationId,lease.EnvironmentId,ct,
+                destinationHealthAt: rule.Metric == "unhealthy_destinations" ? end : null);
             try
             {
                 var response=await source.QueryAsync(trusted,new(end.AddSeconds(-rule.WindowSeconds),end),new(rule.TargetType=="Api"?rule.TargetId:null,null,rule.TargetType=="Destination"?rule.TargetId:null),ct);
