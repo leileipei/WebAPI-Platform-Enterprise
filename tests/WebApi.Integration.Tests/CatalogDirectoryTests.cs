@@ -198,6 +198,9 @@ public sealed class CatalogDirectoryTests(MigratedDatabaseTemplateFixture templa
         Assert.Equal(release,Assert.Single(overview.GetProperty("releases").EnumerateArray()).GetProperty("id").GetGuid());
         var directory=$"/api/v1/projects/{f.Project.Id}/apis?directory=true&environmentId={f.Environment.Id}&health=";
         Assert.Equal(1,(await f.Client.GetFromJsonAsync<JsonElement>(directory+"Healthy")).GetProperty("total").GetInt32());
+        probes.OmitNodeName=true;
+        Assert.Equal("Unknown",Assert.Single((await f.Client.GetFromJsonAsync<JsonElement>(path)).GetProperty("clusters").EnumerateArray()).GetProperty("health").GetString());
+        probes.OmitNodeName=false;
         probes.Unhealthy=true;
         Assert.Equal("Unhealthy",Assert.Single((await f.Client.GetFromJsonAsync<JsonElement>(path)).GetProperty("clusters").EnumerateArray()).GetProperty("health").GetString());
         Assert.Equal(1,(await f.Client.GetFromJsonAsync<JsonElement>(directory+"Unhealthy")).GetProperty("total").GetInt32());
@@ -215,17 +218,21 @@ public sealed class CatalogDirectoryTests(MigratedDatabaseTemplateFixture templa
     {
         public bool Unhealthy {get;set;}
         public bool WrongInstance {get;set;}
+        public bool OmitNodeName {get;set;}
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
         {
             var f=scenario.Api;
             var stamp=DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            var samples=from i in Enumerable.Range(0,2) from component in new[]{"active","passive"} select new {
+            var samples=(from i in Enumerable.Range(0,2) from component in new[]{"active","passive"} select new {
                 metric=new Dictionary<string,string>{
+                    ["service_instance_id"]="node-"+i,
                     ["webapi_environment_id"]=f.Environment.Id.ToString(),["webapi_node_instance"]=WrongInstance?Guid.NewGuid().ToString():scenario.Instances[i].ToString(),
                     ["webapi_deployment_sequence"]="1",["webapi_cluster_id"]=f.Cluster.Id.ToString(),["webapi_destination_id"]=f.Destination.Id.ToString(),
                     ["webapi_health_target"]=GatewayProbeTarget.Fingerprint(f.Destination.Address,f.Cluster.HealthCheckPath),["webapi_health_component"]=component},
-                value=new object[]{stamp,Unhealthy&&i==0&&component=="passive"?"0":"1"}};
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=samples.ToArray()}})});
+                value=new object[]{stamp,Unhealthy&&i==0&&component=="passive"?"0":"1"}}).ToArray();
+            if(OmitNodeName)
+                foreach(var sample in samples) sample.metric.Remove("service_instance_id");
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=samples}})});
         }
     }
 }
