@@ -15,7 +15,6 @@ using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Routing;
 public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,SystemSettingsReader settings,RouteListReader listReader)
 {
-    private static readonly string[] methods=["GET","POST","PUT","PATCH","DELETE","HEAD","OPTIONS"];
     public static RouteDto Dto(ApiRoute r,bool key=true)=>new(r.Id,r.ApiVersionId,r.EnvironmentId,r.RouteName,r.Path,r.NormalizedPath,r.Methods,r.ClusterId,r.Priority,RouteNormalizer.MatchOrder(r.Path,r.Priority),r.Enabled,r.TimeoutMs,key,r.Revision);
     public async Task<EffectiveRoutePolicies> EffectiveAsync(Guid routeId,CancellationToken ct)
     {
@@ -55,7 +54,7 @@ public sealed class RouteService(WebApiDbContext db,AuthorizationService auth,Sc
             if(request.Id is not null&&request.TimeoutMs is null)throw new ApiException(422,"route_timeout_required","编辑路由必须提交基础超时。");
             var timeout=request.TimeoutMs??(await settings.GatewayAsync(token)).DefaultRouteTimeoutMs;
             var normalized=RouteNormalizer.Normalize(request.Path);RouteNormalizer.MatchOrder(request.Path,request.Priority);
-            if(string.IsNullOrWhiteSpace(request.RouteName)||request.RouteName.Length>128||request.TimeoutMs is <1 or >300000||request.Methods is null||request.Methods.Count is <1 or >7||request.Methods.Any(m=>m is null||!methods.Contains(m.ToUpperInvariant()))) throw new ApiException(422,"invalid_route","路由名称、方法集合或超时不合法（最多300秒）。");
+            if(string.IsNullOrWhiteSpace(request.RouteName)||request.RouteName.Length>128||request.TimeoutMs is <1 or >300000||request.Methods is null||request.Methods.Count<1||request.Methods.Count>RouteHttpMethods.Supported.Count||request.Methods.Any(m=>m is null||!RouteHttpMethods.Supported.Contains(m.ToUpperInvariant()))) throw new ApiException(422,"invalid_route","路由名称、方法集合或超时不合法（最多300秒）。");
             var verbs=request.Methods.Select(m=>m.ToUpperInvariant()).Distinct().OrderBy(m=>m,StringComparer.Ordinal).ToArray();
             var versionScope=await scopes.VersionAsync(request.ApiVersionId,token);var version=await db.Set<ApiVersion>().AsNoTracking().SingleAsync(v=>v.Id==request.ApiVersionId,token);
             if(versionScope.ProjectId!=scope.ProjectId||versionScope.OrganizationId!=scope.OrganizationId||version.Status=="Retired") throw new ApiException(422,"foreign_version","版本不属于环境所在项目或已停用。");

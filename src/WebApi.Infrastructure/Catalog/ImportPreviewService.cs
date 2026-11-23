@@ -9,11 +9,36 @@ using WebApi.Infrastructure.Contracts;
 using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Catalog;
 internal sealed record ImportCommittedMetadata(string ReceiptKey,IReadOnlyList<ImportTarget> Targets,IReadOnlyList<ImportedOperationDto> Operations);
 public sealed class ImportPreviewService(WebApiDbContext db,ImportBatchWriter writer,ImportSourcePolicyService policies,ImportSourceFetcher fetcher,ImportSourceSettings settings,
-    ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,TimeProvider clock)
+    ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,TimeProvider clock,AuthorizationService auth)
 {
+    public async Task<IReadOnlyList<ActiveImportPreviewDto>> ListActiveAsync(Guid projectId, ActorContext actor, CancellationToken ct)
+    {
+        var project = await scopes.ProjectAsync(projectId, ct);
+        await auth.RequireAsync(actor, "api.create", new("project", projectId, project), ct);
+        var now = clock.GetUtcNow();
+        var candidates = await (
+            from preview in db.Set<ApiImportPreview>()
+            join environment in db.Set<EnvironmentRecord>() on preview.EnvironmentId equals environment.Id
+            join cluster in db.Set<UpstreamCluster>() on preview.ClusterId equals cluster.Id
+            where preview.ProjectId == projectId && preview.ActorId == actor.UserId &&
+                  preview.Status == "Active" && preview.ExpiresAt > now && cluster.Status == "Active" &&
+                  cluster.ProjectId == projectId && cluster.EnvironmentId == environment.Id
+            orderby preview.CreatedAt descending, preview.Id
+            select new ActiveImportPreviewDto(preview.Id, environment.Id, environment.Name, cluster.Name,
+                preview.BundleHash, preview.CreatedAt, preview.ExpiresAt)).ToArrayAsync(ct);
+
+        var visible = new HashSet<Guid>();
+        foreach (var environmentId in candidates.Select(x => x.EnvironmentId).Distinct())
+        {
+            if (await auth.CanAsync(actor, "api.create", new("environment", environmentId, project with { EnvironmentId = environmentId }), ct))
+                visible.Add(environmentId);
+        }
+        return candidates.Where(x => visible.Contains(x.EnvironmentId)).ToArray();
+    }
     public async Task<ImportSessionDto> CreateAsync(CreateImportPreviewRequest request,ActorContext actor,CancellationToken ct)
     {
         var input=new ImportPreviewRequest(request.ProjectId,request.EnvironmentId,request.ClusterId,"");var scope=await writer.ScopeAsync(input,actor,ct);

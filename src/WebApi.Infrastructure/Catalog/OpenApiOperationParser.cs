@@ -13,6 +13,7 @@ internal sealed class OpenApiOperationParser
     private readonly JsonObject root;
     private readonly ContractReferenceRegistry registry;
     private readonly Uri rootUri;
+    private Dictionary<string,(string Id,string Method,string Path)>? operationsById;
     private static readonly string[] methods=["get","post","put","patch","delete","head","options","trace"];
     public static ContractBundle Read(string source,ContractLimits? limits=null)
     {
@@ -37,9 +38,17 @@ internal sealed class OpenApiOperationParser
         }
         if(result.Count is <1 or >1000)throw Invalid("必须选择包含1到1000个可识别Operation的文档。");return result;
     }
+    public (string Id,string Method,string Path) RequireSupportedOperation(string operationId)
+    {
+        operationsById ??= Operations().ToDictionary(op => op.Id, StringComparer.Ordinal);
+        if (operationId is null || !operationsById.TryGetValue(operationId, out var key)) throw Invalid("选中的Operation不存在。");
+        if (!RouteHttpMethods.Supported.Contains(key.Method))
+            throw new ApiException(422, "unsupported_route_method", $"Operation {key.Id} 使用的 HTTP 方法 {key.Method} 不支持导入为网关路由。");
+        return key;
+    }
     public ParsedOperation Parse(string operationId)
     {
-        var key=Operations().SingleOrDefault(x=>x.Id==operationId);if(key.Id is null)throw Invalid("选中的Operation不存在。");RouteNormalizer.Normalize(key.Path);
+        var key=RequireSupportedOperation(operationId);RouteNormalizer.Normalize(key.Path);
         var path=Object(root["paths"]![key.Path],"Path Item");var raw=(JsonObject)path[key.Method.ToLowerInvariant()]!;var warnings=new List<string>();
         if(raw["security"] is not null||root["security"] is not null)warnings.Add("OpenAPI security保留原文；路由默认使用API Key，企业授权需另行配置并发布。");
         if(raw["callbacks"] is not null||root["webhooks"] is not null)warnings.Add("callbacks/webhooks保留原文，不自动创建普通路由。");
