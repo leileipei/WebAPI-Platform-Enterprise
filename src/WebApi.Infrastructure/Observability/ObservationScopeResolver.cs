@@ -35,7 +35,7 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
         }
         return environments;
     }
-    public async Task<TrustedObservationScope> ResolveAsync(ActorContext actor,string permission,ObservationScopeRequest scope,Guid? apiId,Guid? appId,Guid? destinationId,CancellationToken ct,DateTimeOffset? destinationHealthAt=null)
+    public async Task<TrustedObservationScope> ResolveAsync(ActorContext actor,string permission,ObservationScopeRequest scope,Guid? apiId,Guid? appId,Guid? destinationId,CancellationToken ct,DateTimeOffset? destinationHealthAt=null,bool includeDestinationNames=false)
     {
         var environments=await ResolveEnvironmentIdsAsync(actor,permission,scope,ct);
         var apis=await db.Set<Api>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
@@ -46,8 +46,8 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
             if (app.SharedEnvironmentIds is { } allowed) environments = environments.Where(allowed.Contains).ToArray();
             apps = new Dictionary<Guid, ObservationApplication> { [applicationId] = app };
         }
-        var destinations=await(from d in db.Set<UpstreamDestination>().AsNoTracking() join c in db.Set<UpstreamCluster>().AsNoTracking() on d.ClusterId equals c.Id where c.ProjectId==scope.ProjectId&&environments.Contains(c.EnvironmentId) select new ObservationDestination(d.Id,c.Id,c.EnvironmentId,d.Name,d.Enabled)).ToDictionaryAsync(x=>x.Id,ct);
-        if(apiId is Guid api&&!apis.ContainsKey(api)||destinationId is Guid destination&&!destinations.ContainsKey(destination))throw ScopeResolver.Missing();
+        var membership = await AppliedDestinationQuery.ReadAsync(db, scope.OrganizationId, scope.ProjectId, environments, destinationHealthAt, ct, includeDestinationNames);
+        if(apiId is Guid api&&!apis.ContainsKey(api)||destinationId is Guid destination&&!membership.Destinations.ContainsKey(destination))throw ScopeResolver.Missing();
         var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>environments.Contains(x.EnvironmentId)&&x.Enabled).Select(x=>new ExpectedObservationNode(x.EnvironmentId,x.NodeName)).ToArrayAsync(ct);
         var workingIds=await db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==scope.OrganizationId&&(p.ProjectId==null||p.ProjectId==scope.ProjectId)).Select(p=>p.Id).ToArrayAsync(ct);
         var policyIds=environments.ToDictionary(env=>env,_=>new HashSet<Guid>(workingIds));
@@ -61,8 +61,8 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
                 """,new NpgsqlParameter("environments",environments)).ToArrayAsync(ct);
             foreach(var row in history) if(Guid.TryParse(row.PolicyId,out var id)) policyIds[row.EnvironmentId].Add(id);
         }
-        var trusted = new TrustedObservationScope(scope.OrganizationId,scope.ProjectId,environments,nodes,apis,apps,destinations,policyIds.ToDictionary(x=>x.Key,x=>(IReadOnlySet<Guid>)x.Value));
-        return await trusted.WithAppliedDestinationsAsync(db, destinationHealthAt, ct);
+        return new TrustedObservationScope(scope.OrganizationId,scope.ProjectId,environments,nodes,apis,apps,membership.Destinations,
+            policyIds.ToDictionary(x=>x.Key,x=>(IReadOnlySet<Guid>)x.Value)) { Membership = membership };
     }
 }
 

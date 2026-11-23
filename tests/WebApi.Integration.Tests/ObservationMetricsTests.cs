@@ -135,6 +135,130 @@ public sealed class ObservationMetricsTests
     }
 
     [Fact]
+    public async Task DeletedDestinationMetricsAndNamesFollowAcknowledgedMembershipAtQueryEnd()
+    {
+        var source = new MetricProtocolHandler();
+        await using var deployment = new DeploymentScenario();
+        await deployment.InitializeAsync(builder =>
+        {
+            builder.Configuration["Observability:Enabled"] = "true";
+            builder.Services.PostConfigure<HttpClientFactoryOptions>("observability",
+                options => options.HttpMessageHandlerBuilderActions.Add(client => client.PrimaryHandler = source));
+        });
+        var f = deployment.Api;
+        await ObservationTestSupport.GrantAsync(f, ["metrics.read"]);
+        using var added = await f.WriteAsync(HttpMethod.Post, $"/api/v1/clusters/{f.Cluster.Id}/destinations",
+            new SaveDestinationRequest("orders replica", "http://test-backend:8080/replica"));
+        added.EnsureSuccessStatusCode();
+        var target = (await added.Content.ReadFromJsonAsync<DestinationDto>())!;
+        source.EnvironmentId = f.Environment.Id;
+        source.ApiId = f.Api.Id;
+        source.ApplicationId = f.Application.Id;
+        source.ClusterId = f.Cluster.Id;
+        source.DestinationId = target.Id;
+        source.HealthSamples = [("node-0", target.Id, 0), ("node-1", target.Id, 0),
+            ("node-0", f.Destination.Id, 1), ("node-1", f.Destination.Id, 1)];
+        await deployment.PublishAsync();
+        var historicalEnd = DateTimeOffset.UtcNow;
+
+        async Task Check(double? unhealthy, string node0, string node1, DateTimeOffset? end = null)
+        {
+            source.End = end ?? DateTimeOffset.UtcNow;
+            foreach (var suffix in new[] { "&groupBy=Destination", $"&groupBy=Destination&destinationId={target.Id}" })
+            {
+                using var response = await f.Client.GetAsync(Url(f, source, suffix: suffix));
+                response.EnsureSuccessStatusCode();
+                var body = (await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+                Assert.Equal(unhealthy, Value(body, "unhealthy_destinations").Value);
+                Assert.Equal(target.Name, Assert.Single(body.Data!.Groups).Name);
+                string Status(string node) => Assert.Single(body.Data.NodeHealth.Single(n => n.NodeName == node).Destinations,
+                    d => d.DestinationId == target.Id && d.ClusterId == f.Cluster.Id).Health;
+                Assert.Equal(node0, Status("node-0"));
+                Assert.Equal(node1, Status("node-1"));
+            }
+        }
+
+        using var rename = await f.WriteAsync(HttpMethod.Put, $"/api/v1/destinations/{target.Id}",
+            new SaveDestinationRequest("unpublished name", target.Address), added.Headers.ETag!.ToString());
+        rename.EnsureSuccessStatusCode();
+        await Check(1, "Unhealthy", "Unhealthy");
+        using var deleted = await f.WriteAsync(HttpMethod.Delete, $"/api/v1/destinations/{target.Id}", etag: rename.Headers.ETag!.ToString());
+        deleted.EnsureSuccessStatusCode();
+        await Check(1, "Unhealthy", "Unhealthy");
+        using var traffic = await f.Client.GetAsync(Url(f, source,
+            suffix: $"&apiId={f.Api.Id}&applicationId={f.Application.Id}&destinationId={target.Id}"));
+        traffic.EnsureSuccessStatusCode();
+        var combined = (await traffic.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+        Assert.Equal(200, Value(combined, "request_count").Value);
+        Assert.Equal(SourceState.NotApplicable, Value(combined, "unhealthy_destinations").State);
+        var release = await deployment.PublishAsync(acknowledge: false);
+        var envelope = (await deployment.DesiredAsync(release)).Envelope;
+        await Check(1, "Unhealthy", "Unhealthy");
+        var other = new EnvironmentRecord { ProjectId = f.Project.Id, Code = "OTHER", Name = "其他环境" };
+        await using (var db = f.Context()) { db.Add(other); await db.SaveChangesAsync(); }
+        using var outside = await f.Client.GetAsync(Url(f, source, other.Id, suffix: $"&destinationId={target.Id}"));
+        Assert.Equal(HttpStatusCode.NotFound, outside.StatusCode);
+
+        await deployment.AckAsync(0, envelope);
+        await Check(1, "Disabled", "Unhealthy");
+        using var heartbeat = await deployment.NodeAsync(1, $"/internal/v1/nodes/{deployment.NodeIds[1]}/heartbeat",
+            new NodeHeartbeat(deployment.Instances[1], envelope.ConfigVersion, envelope.DeploymentSequence, "Ready"));
+        heartbeat.EnsureSuccessStatusCode();
+        source.HealthSamples = [("node-0", target.Id, 0), ("node-1", target.Id, 1),
+            ("node-0", f.Destination.Id, 1), ("node-1", f.Destination.Id, 1)];
+        await Check(null, "Disabled", "Unknown");
+
+        await deployment.AckAsync(1, envelope);
+        source.End = DateTimeOffset.UtcNow;
+        using var filtered = await f.Client.GetAsync(Url(f, source, suffix: $"&destinationId={target.Id}"));
+        Assert.Equal(HttpStatusCode.NotFound, filtered.StatusCode);
+        using var environment = await f.Client.GetAsync(Url(f, source));
+        environment.EnsureSuccessStatusCode();
+        var retired = (await environment.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+        Assert.Equal(0, Value(retired, "unhealthy_destinations").Value);
+        Assert.All(retired.Data!.NodeHealth, node => Assert.DoesNotContain(node.Destinations, d => d.DestinationId == target.Id));
+        source.HealthSamples = [("node-0", target.Id, 0), ("node-1", target.Id, 0),
+            ("node-0", f.Destination.Id, 1), ("node-1", f.Destination.Id, 1)];
+        await Check(1, "Unhealthy", "Unhealthy", historicalEnd);
+    }
+
+    [Fact]
+    public async Task AHealthyGaugeCannotProveZeroBeforeEveryFirstApplication()
+    {
+        var source = new MetricProtocolHandler();
+        await using var deployment = new DeploymentScenario();
+        await deployment.InitializeAsync(b =>
+        {
+            b.Configuration["Observability:Enabled"] = "true";
+            b.Services.PostConfigure<HttpClientFactoryOptions>("observability",
+                options => options.HttpMessageHandlerBuilderActions.Add(client => client.PrimaryHandler = source));
+        });
+        var f = deployment.Api;
+        await ObservationTestSupport.GrantAsync(f, ["metrics.read"]);
+        source.EnvironmentId = f.Environment.Id;
+        source.DestinationId = f.Destination.Id;
+        source.ClusterId = f.Cluster.Id;
+        source.HealthSamples = [("node-0", f.Destination.Id, 1), ("node-1", f.Destination.Id, 1)];
+        var release = await deployment.PublishAsync(acknowledge: false);
+        var envelope = (await deployment.DesiredAsync(release)).Envelope;
+        var beforeFirst = DateTimeOffset.UtcNow;
+        async Task Check(DateTimeOffset end, double? count)
+        {
+            source.End = end;
+            using var response = await f.Client.GetAsync(Url(f, source));
+            response.EnsureSuccessStatusCode();
+            var body = (await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+            Assert.Equal(count, Value(body, "unhealthy_destinations").Value);
+        }
+        await Check(beforeFirst, null);
+        await deployment.AckAsync(0, envelope);
+        await Check(DateTimeOffset.UtcNow, null);
+        await deployment.AckAsync(1, envelope);
+        await Check(DateTimeOffset.UtcNow, 0);
+        await Check(beforeFirst, null);
+    }
+
+    [Fact]
     public async Task SharedApplicationMetricsFollowEachAuthorizedEnvironmentAcrossProjects()
     {
         var source = new MetricProtocolHandler();

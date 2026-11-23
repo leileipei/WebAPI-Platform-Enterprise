@@ -50,7 +50,12 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         if(observed.Coverage.Complete&&await collectorTask)observed=observed with{State=SourceState.Partial,Coverage=observed.Coverage with{Complete=false,Reason="collector_metrics_collection_gap"}};
         var missing=observed.State is SourceState.Partial or SourceState.Stale||scope.ExpectedNodes.Count==0;
         var nodes=NodeHealth(scope,health,observed.MissingNodes);
-        var values=Values(requests,histogram,seconds,Unhealthy(nodes,filter),missing,observed.State);
+        var unhealthy = Unhealthy(nodes, filter);
+        if (unhealthy == 0 && scope.Membership is { } membership &&
+            (filter.DestinationId is Guid id && scope.Destinations.TryGetValue(id, out var target)
+                ? membership.UnconfirmedEnvironments.Contains(target.EnvironmentId) : membership.UnconfirmedEnvironments.Count > 0))
+            unhealthy = null;
+        var values=Values(requests,histogram,seconds,unhealthy,missing,observed.State);
         if(filter.ApiId is not null||filter.ApplicationId is not null)values=values.Select(v=>v.Metric=="unhealthy_destinations"?v with{Value=null,State=SourceState.NotApplicable}:v).ToArray();
         var applicable=filter.ApiId is null&&filter.ApplicationId is null&&filter.DestinationId is null;
         var policyRows=(await policyTask).Where(x=>PolicySeriesValid(x.Labels,scope)).ToArray();
@@ -147,7 +152,8 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
         var destinations = scope.Destinations.Values.ToLookup(d => d.EnvironmentId);
         string Health(ExpectedObservationNode node, ObservationDestination destination)
         {
-            if (scope.AppliedDestinations.TryGetValue(node, out var members) && !members.Contains((destination.ClusterId, destination.Id)))
+            if (scope.Membership?.UnconfirmedNodes.Contains(node) == true) return "Unknown";
+            if (scope.Membership?.Applied.TryGetValue(node, out var members) == true && !members.Contains((destination.ClusterId, destination.Id)))
                 return "Disabled";
             var values = samples[(node.EnvironmentId.ToString(), node.NodeName, destination.Id.ToString())];
             if (values.Contains(0)) return "Unhealthy";

@@ -26,7 +26,9 @@ Collector 下划线转换后，环境、API、应用、目标的查询标签分�
 
 显式容量最多2048个拥有独立JSON存储的条目，单批最多512条。SDK MetricPoint、Activity 与 LogRecord 缓冲不跨生命周期保留，记录请求时无网络I/O。导出只在后台执行，5秒超时，Collector response 最大64KiB，不记录响应错误原文。
 
-诊断指标：webapi_telemetry_dropped_total / webapi_telemetry_export_failures_total 按 signal=metrics/logs/traces 统计条目缺口；webapi_telemetry_last_export_success_timestamp_seconds 记录信号最近导出成功时间；webapi_telemetry_last_observed_timestamp_seconds 每次默认15秒指标采集输出节点观察时间。webapi_destination_health 由实际YARP状态读取，1=Healthy，0=Unhealthy，-1=Unknown，-2=Disabled；当前运行快照不含已禁用目标，禁用展示由查询层数据库状态补全。
+诊断指标：webapi_telemetry_dropped_total / webapi_telemetry_export_failures_total 按 signal=metrics/logs/traces 统计条目缺口；webapi_telemetry_last_export_success_timestamp_seconds 记录信号最近导出成功时间；webapi_telemetry_last_observed_timestamp_seconds 每次默认15秒指标采集输出节点观察时间。`webapi_destination_health` 读取实际 YARP 状态，1 表示 Healthy，0 表示 Unhealthy，-1 表示 Unknown，-2 表示 Disabled。
+
+在授权环境内，后端健康按查询窗口结束前各启用节点确认的快照判断。实例已从工作配置删除时，仍持有该实例的节点继续参与健康统计，已确认移除该实例的节点显示 Disabled。分组名称取自对应发布冻结的实例。某一节点仅通过心跳报告新版本、缺少应用回执或快照完整性校验失败时，无法证实的健康数值显示为空。尚无发布记录的环境沿用已有工作实例和采集数据。
 
 ## 指标与连续采集覆盖
 
@@ -74,7 +76,7 @@ POST `/observability/alert-rules/test`和preview只读，但仍要求CSRF，不�
 
 所有持久写按治理锁8901202、rule、evaluation、event顺序；外部来源I/O不在事务中。提交校验当前revision、logic_revision、enabled、实际Active环境/目标、单调token、真实有效期及last_evaluated_slot。重命名期间的旧修订查询不提交结果，但释放其仍有效的旧租约，保留Pending和人工抑制，允许当前修订重查。
 
-未知来源重置Pending；Firing与人工抑制保持。暂停Scope也保持Firing和SuppressedUntilRecovery，事件标ScopeInactive；真实恢复再Resolved。资源实际删除/离开目标归属才以ResourceRetired关闭，来源不再返回序列不等于删除。有效观测时间必须递增，人工解决后的恢复还必须晚于SuppressedAt。事件创建时间是实际数据库提交时间，condition_started_at来自连续有效观测起点。
+未知来源重置Pending；Firing与人工抑制保持。暂停Scope也保持Firing和SuppressedUntilRecovery，事件标ScopeInactive；真实恢复再Resolved。从工作配置删除运行实例后，实例告警持续评估，直至所有启用节点的已应用快照确认其移除，才以 ResourceRetired 结束。环境告警按仍在运行的实例计算异常数，有效观测满足恢复条件后以 Recovered 结束。两个事件保留原始触发和后续状态记录。有效观测时间必须递增，人工解决后的恢复还必须晚于SuppressedAt。事件创建时间是实际数据库提交时间，condition_started_at来自连续有效观测起点。
 
 规则当前槽位超过两倍间隔则Unknown，LastSuccessAt保留所有当前目标已有有效观测时点的最小值；没有某个目标的成功事实时null。UI应称“最近有效观测”，显示真实年龄和当前状态。健康指标有独立gauge：节点覆盖完整且健康样本有效可在无业务请求时Known；不能把没有比例/分位样本解释成恢复。系统trigger/recovery/retirement追加transition和UserId=null审计，重复true仅更新观测事实。
 # 告警事件命令与静默到期

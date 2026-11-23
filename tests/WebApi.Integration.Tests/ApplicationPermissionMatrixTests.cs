@@ -290,6 +290,7 @@ public sealed class ApplicationPermissionMatrixTests
                 EnvironmentId = f.Environment.Id,
                 NodeName = "matrix-" + i,
                 InstanceId = Guid.NewGuid().ToString(),
+                Status = "Ready",
                 CurrentConfigVersion = 3,
                 CurrentDeploymentSequence = 4,
                 LastHeartbeatAt = now,

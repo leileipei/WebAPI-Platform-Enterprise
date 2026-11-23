@@ -98,8 +98,7 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
         var r=Validate(input);var environments=await scopes.ResolveForActorAsync(actor,r,ct);var expression=AlertExpressionParser.Parse(r.Metric,r.Expression);var matches=new List<MetricGroupDto>();var conditions=new List<bool?>();var end=DateTimeOffset.UtcNow.AddSeconds(-30);var range=new TimeRange(end.AddSeconds(-r.WindowSeconds),end);
         foreach(var environment in environments)
         {
-            var trusted=await scopes.ObservationAsync(r.OrganizationId,environment,ct,
-                destinationHealthAt: r.Metric == "unhealthy_destinations" ? end : null);
+            var trusted=await scopes.ObservationAsync(r.OrganizationId,environment,ct,end);
             ObservationEnvelope<MetricsDto> value;
             try{value=await source.QueryAsync(trusted,range,new(r.TargetType=="Api"?r.TargetId:null,null,r.TargetType=="Destination"?r.TargetId:null),ct);}
             catch(ApiException error)when(error.Status==503)
@@ -107,7 +106,8 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
                 matches.Add(new(environment.ToString(),environment.ToString(),[new(r.Metric,null,Unit(r.Metric),0,SourceState.Unavailable)]));conditions.Add(null);continue;
             }
             var metric=value.Data?.Kpis.SingleOrDefault(x=>x.Metric==r.Metric);
-            var known=AlertEvaluationService.IsKnown(value,metric,r.Metric);
+            var known=AlertEvaluationService.IsKnown(value,metric,r.Metric) &&
+                (r.TargetType != "Destination" || trusted.Membership!.TargetExists(environment, r.TargetId!.Value) == true);
             matches.Add(new(environment.ToString(),environment.ToString(),[metric is null?new(r.Metric,null,r.Metric=="latency_p95_ms"?"ms":"",0,SourceState.NoData):known?metric with{State=SourceState.Available}:metric with{Value=null,State=value.SourceState==SourceState.Available?SourceState.Partial:value.SourceState}]));conditions.Add(known?AlertExpressionParser.Compare(expression,metric!.Value):null);
         }
         var current=await scopes.ResolveForActorAsync(actor,r,ct);if(!environments.SequenceEqual(current))throw new ApiException(403,"scope_changed","规则范围已变化，请重新预览。");

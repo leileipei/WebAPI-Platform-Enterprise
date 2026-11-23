@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using WebApi.Contracts.Alerts;
 using WebApi.Contracts.Catalog;
+using WebApi.Contracts.Gateway;
 using WebApi.Infrastructure.Alerts;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
@@ -246,6 +247,89 @@ public sealed class AlertEvaluationTests
         await CheckEvent("Open", "Known", 1);
         await deployment.AckAsync(1, envelope);
         await CheckEvent("Resolved", "Known", 2);
+    }
+
+    [Fact]
+    public async Task DeletedDestinationKeepsBothEventsUntilEveryNodeProvesRemoval()
+    {
+        var handler = new AlertClockedMetricHandler();
+        await using var deployment = new DeploymentScenario();
+        await deployment.InitializeAsync(builder => ConfigureEvaluator(builder, handler));
+        var f = deployment.Api;
+        await ObservationTestSupport.GrantAsync(f, ["alert.rule.manage"]);
+        using var added = await f.WriteAsync(HttpMethod.Post, $"/api/v1/clusters/{f.Cluster.Id}/destinations",
+            new SaveDestinationRequest("replica", "http://test-backend:8080/replica"));
+        added.EnsureSuccessStatusCode();
+        var target = (await added.Content.ReadFromJsonAsync<DestinationDto>())!;
+        await deployment.PublishAsync();
+        var scopeRule = new SaveAlertRuleRequest(f.Organization.Id, f.Project.Id, f.Environment.Id, "Environment health",
+            "unhealthy_destinations", "unhealthy_destinations > 0", "Warning", true, 0, "Environment", null, 60, new(true, []));
+        var destinationRule = scopeRule with { Name = "Destination health", TargetType = "Destination", TargetId = target.Id };
+        foreach (var definition in new[] { scopeRule, destinationRule })
+        {
+            using var saved = await f.WriteAsync(HttpMethod.Post, "/api/v1/observability/alert-rules", definition);
+            saved.EnsureSuccessStatusCode();
+        }
+        var source = handler.Inner;
+        source.EnvironmentId = f.Environment.Id;
+        source.ApiId = f.Api.Id;
+        source.ApplicationId = f.Application.Id;
+        source.DestinationId = target.Id;
+        source.ClusterId = f.Cluster.Id;
+        source.HealthSamples = [("node-0", target.Id, 0), ("node-1", target.Id, 0),
+            ("node-0", f.Destination.Id, 1), ("node-1", f.Destination.Id, 1)];
+
+        async Task EvaluateBoth()
+        {
+            // The worker evaluates the previous whole-second boundary. Advance past the last ACK.
+            await Task.Delay(1100);
+            var leases = await ClaimCurrent(f, "health");
+            Assert.Equal(2, leases.Count);
+            foreach (var lease in leases) Assert.True(await Evaluate(f, lease));
+        }
+        async Task CheckOpen(string evaluation)
+        {
+            await EvaluateBoth();
+            await using var db = f.Context();
+            var events = await db.Set<AlertEvent>().ToArrayAsync();
+            Assert.Equal(2, events.Length);
+            Assert.All(events, e => { Assert.Equal("Open", e.Status); Assert.Equal(evaluation, e.EvaluationState); });
+            Assert.Equal(2, await db.Set<AlertEventTransition>().CountAsync());
+        }
+        await CheckOpen("Known");
+        await using var history = f.Context();
+        var original = await history.Set<AlertEventTransition>().AsNoTracking().OrderBy(t => t.Id)
+            .Select(t => new { t.Id, t.EventId, t.OccurredAt, t.Reason }).ToArrayAsync();
+        using var deleted = await f.WriteAsync(HttpMethod.Delete, $"/api/v1/destinations/{target.Id}", etag: added.Headers.ETag!.ToString());
+        deleted.EnsureSuccessStatusCode();
+        await CheckOpen("Known");
+        using var preview = await f.WriteAsync(HttpMethod.Post, "/api/v1/observability/alert-rules/preview", destinationRule);
+        preview.EnsureSuccessStatusCode();
+        var next = await deployment.PublishAsync(acknowledge: false);
+        var envelope = (await deployment.DesiredAsync(next)).Envelope;
+        await CheckOpen("Known");
+        await deployment.AckAsync(0, envelope);
+        await CheckOpen("Known");
+        using var heartbeat = await deployment.NodeAsync(1, $"/internal/v1/nodes/{deployment.NodeIds[1]}/heartbeat",
+            new NodeHeartbeat(deployment.Instances[1], envelope.ConfigVersion, envelope.DeploymentSequence, "Ready"));
+        heartbeat.EnsureSuccessStatusCode();
+        source.HealthSamples = [("node-0", target.Id, 0), ("node-1", target.Id, 1),
+            ("node-0", f.Destination.Id, 1), ("node-1", f.Destination.Id, 1)];
+        await CheckOpen("Unknown");
+        await deployment.AckAsync(1, envelope);
+        await EvaluateBoth();
+        await EvaluateBoth();
+        var resolved = await history.Set<AlertEvent>().AsNoTracking().ToDictionaryAsync(e => e.ResourceType);
+        Assert.Equal(2, resolved.Count);
+        Assert.All(resolved.Values, e => { Assert.Equal("Resolved", e.Status); Assert.Equal(1, e.OccurrenceNo); });
+        Assert.Equal("Recovered", resolved["Environment"].ResolveReason);
+        Assert.Equal("ResourceRetired", resolved["Destination"].ResolveReason);
+        var transitions = await history.Set<AlertEventTransition>().AsNoTracking().OrderBy(t => t.Id)
+            .Select(t => new { t.Id, t.EventId, t.OccurredAt, t.Reason }).ToArrayAsync();
+        Assert.Equal(4, transitions.Length);
+        Assert.Equal(original, transitions.Where(t => t.Reason == "Triggered").ToArray());
+        Assert.All(transitions.Where(t => t.Reason != "Triggered"), t =>
+            Assert.Contains(resolved.Values, e => e.Id == t.EventId && e.ResolveReason == t.Reason));
     }
 
     [Fact] public async Task SourceFailureDoesNotStopStandalonePublishWorker()

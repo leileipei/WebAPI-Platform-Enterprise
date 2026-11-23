@@ -62,6 +62,47 @@ public sealed class ObservationLogsTests
         Assert.False(export.Headers.Contains("X-WebApi-Export-Rows"));
     }
 
+    [Fact]
+    public async Task DeletedRunningDestinationRemainsVisibleInLogsAndExportForItsAppliedWindow()
+    {
+        var source = new LogProtocolHandler();
+        await using var scenario = new DeploymentScenario();
+        await scenario.InitializeAsync(builder =>
+        {
+            builder.Configuration["Observability:Enabled"] = "true";
+            builder.Services.PostConfigure<HttpClientFactoryOptions>("observability",
+                options => options.HttpMessageHandlerBuilderActions.Add(client => client.PrimaryHandler = source));
+        });
+        var f = scenario.Api;
+        await ObservationTestSupport.GrantAsync(f, ["log.read"]);
+        using var added = await f.WriteAsync(HttpMethod.Post, $"/api/v1/clusters/{f.Cluster.Id}/destinations",
+            new WebApi.Contracts.Catalog.SaveDestinationRequest("replica", "http://test-backend:8080/replica"));
+        added.EnsureSuccessStatusCode();
+        var target = (await added.Content.ReadFromJsonAsync<WebApi.Contracts.Catalog.DestinationDto>())!;
+        await scenario.PublishAsync();
+        source.EnvironmentId = f.Environment.Id;
+        source.ApiId = f.Api.Id;
+        source.ApplicationId = f.Application.Id;
+        source.DestinationId = target.Id;
+        var id = Guid.NewGuid();
+        source.Rows.Add(new(id, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() * 1_000_000, "GET", "/orders", "node-0"));
+        var end = DateTimeOffset.UtcNow;
+        var query = $"?organizationId={f.Organization.Id}&projectId={f.Project.Id}&environmentId={f.Environment.Id}" +
+            $"&start={Uri.EscapeDataString(end.AddHours(-1).ToString("O"))}&end={Uri.EscapeDataString(end.ToString("O"))}";
+        var filter = $"&applicationId={f.Application.Id}&destinationId={target.Id}";
+        const string logs = "/api/v1/observability/logs";
+        using var delete = await f.WriteAsync(HttpMethod.Delete, $"/api/v1/destinations/{target.Id}", etag: added.Headers.ETag!.ToString());
+        delete.EnsureSuccessStatusCode();
+        Assert.Equal(id, Assert.Single((await PageAsync(f.Client, logs + query + filter)).Data!.Items).Id);
+        await scenario.PublishAsync();
+        using var detail = await f.Client.GetAsync(logs + "/" + id + query);
+        detail.EnsureSuccessStatusCode();
+        Assert.Equal(target.Id, (await detail.Content.ReadFromJsonAsync<ObservationEnvelope<AccessLogDto>>())!.Data!.DestinationId);
+        using var export = await f.Client.GetAsync(logs + "/export" + query + filter);
+        export.EnsureSuccessStatusCode();
+        Assert.Equal("1", Assert.Single(export.Headers.GetValues("X-WebApi-Export-Rows")));
+    }
+
     [Fact]public async Task EqualNanosecondRowsCrossBoundaryWithoutLoss()
     {
         await using var s=await FixtureAsync();s.Source.Rows.Add(s.Source.Rows[0]);var ids=new List<Guid>();string? cursor=null;var pages=0;

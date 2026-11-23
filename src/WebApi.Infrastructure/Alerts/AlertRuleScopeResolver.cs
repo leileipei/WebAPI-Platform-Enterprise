@@ -46,8 +46,11 @@ public sealed class AlertRuleScopeResolver(WebApiDbContext db,AuthorizationServi
                 if(r.ProjectId is null||r.TargetId is null)throw Invalid("API目标必须指定项目和API。");
                 if(!await db.Set<Api>().AnyAsync(x=>x.Id==r.TargetId&&x.ProjectId==r.ProjectId&&x.OrganizationId==r.OrganizationId,ct))throw ScopeResolver.Missing();break;
             case "Destination":
-                if(r.ProjectId is null||r.EnvironmentId is null||r.TargetId is null)throw Invalid("后端目标必须限定单个环境。");
-                if(!await(from d in db.Set<UpstreamDestination>() join c in db.Set<UpstreamCluster>() on d.ClusterId equals c.Id where d.Id==r.TargetId&&c.ProjectId==r.ProjectId&&c.EnvironmentId==r.EnvironmentId select d.Id).AnyAsync(ct))throw ScopeResolver.Missing();break;
+                if(r.ProjectId is not Guid targetProject||r.EnvironmentId is not Guid targetEnvironment||r.TargetId is not Guid destination)
+                    throw Invalid("后端目标必须限定单个环境。");
+                var membership = await AppliedDestinationQuery.ReadAsync(db, r.OrganizationId, targetProject, [targetEnvironment],
+                    DateTimeOffset.UtcNow, ct, includeNames: false);
+                if(!membership.Destinations.ContainsKey(destination))throw ScopeResolver.Missing();break;
             default:throw Invalid("不支持的规则目标。");
         }
     }
@@ -56,10 +59,9 @@ public sealed class AlertRuleScopeResolver(WebApiDbContext db,AuthorizationServi
         var env=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(x=>x.Id==environmentId,ct);
         var apis=await db.Set<Api>().AsNoTracking().Where(x=>x.OrganizationId==organizationId&&x.ProjectId==env.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
         var apps = await ObservationApplicationQuery.ReadAsync(db, organizationId, env.ProjectId, [env.Id], ct);
-        var destinations=await(from d in db.Set<UpstreamDestination>().AsNoTracking() join c in db.Set<UpstreamCluster>().AsNoTracking() on d.ClusterId equals c.Id where c.ProjectId==env.ProjectId&&c.EnvironmentId==env.Id select new ObservationDestination(d.Id,c.Id,c.EnvironmentId,d.Name,d.Enabled)).ToDictionaryAsync(x=>x.Id,ct);
+        var membership = await AppliedDestinationQuery.ReadAsync(db, organizationId, env.ProjectId, [env.Id], destinationHealthAt, ct, includeNames: false);
         var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>x.EnvironmentId==env.Id&&x.Enabled).Select(x=>new ExpectedObservationNode(x.EnvironmentId,x.NodeName)).ToArrayAsync(ct);
-        var trusted = new TrustedObservationScope(organizationId,env.ProjectId,[env.Id],nodes,apis,apps,destinations);
-        return await trusted.WithAppliedDestinationsAsync(db, destinationHealthAt, ct);
+        return new TrustedObservationScope(organizationId,env.ProjectId,[env.Id],nodes,apis,apps,membership.Destinations) { Membership = membership };
     }
     private static ApiException Invalid(string message)=>new(422,"invalid_alert_rule",message);
 }
