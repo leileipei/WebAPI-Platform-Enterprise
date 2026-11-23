@@ -259,6 +259,55 @@ public sealed class ObservationMetricsTests
     }
 
     [Fact]
+    public async Task RetainedClusterKeepsItsFrozenDestinationNameDuringAnUnrelatedRelease()
+    {
+        var source = new MetricProtocolHandler();
+        await using var deployment = new DeploymentScenario();
+        await deployment.InitializeAsync(b =>
+        {
+            b.Configuration["Observability:Enabled"] = "true";
+            b.Services.PostConfigure<HttpClientFactoryOptions>("observability",
+                options => options.HttpMessageHandlerBuilderActions.Add(client => client.PrimaryHandler = source));
+        });
+        var f = deployment.Api;
+        await ObservationTestSupport.GrantAsync(f, ["metrics.read"]);
+        await deployment.PublishAsync();
+        using var rename = await f.WriteAsync(HttpMethod.Put, $"/api/v1/destinations/{f.Destination.Id}",
+            new SaveDestinationRequest("new draft name", f.Destination.Address), "\"1\"");
+        rename.EnsureSuccessStatusCode();
+
+        async Task<Guid> Create(string path, object body)
+        {
+            using var reply = await f.WriteAsync(HttpMethod.Post, path, body);
+            reply.EnsureSuccessStatusCode();
+            return (await reply.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        }
+        var api = await Create($"/api/v1/projects/{f.Project.Id}/apis", new SaveApiRequest("STOCK", "库存"));
+        var version = await Create($"/api/v1/apis/{api}/versions", new CreateVersionRequest("1.0"));
+        var cluster = await Create($"/api/v1/environments/{f.Environment.Id}/clusters", new SaveClusterRequest("Stock"));
+        await Create($"/api/v1/clusters/{cluster}/destinations", new SaveDestinationRequest("inventory", "http://test-backend:8080/inventory"));
+        await Create($"/api/v1/environments/{f.Environment.Id}/routes",
+            new SaveRouteRequest(null, version, "Stock", "/inventory", ["GET"], cluster, TimeoutMs: 30000));
+        var release = await Create($"/api/v1/environments/{f.Environment.Id}/releases", await f.PreviewReleaseRequestAsync(1, version));
+        using var submitted = await ApiFixture.CommandAsync(f.Client, $"/api/v1/releases/{release}/submit");
+        submitted.EnsureSuccessStatusCode();
+        await deployment.ApproveAsync(release);
+        await deployment.BuildAsync(release);
+        await deployment.AckAllAsync(release);
+
+        source.EnvironmentId = f.Environment.Id;
+        source.ApiId = f.Api.Id;
+        source.ApplicationId = f.Application.Id;
+        source.DestinationId = f.Destination.Id;
+        source.ClusterId = f.Cluster.Id;
+        source.End = DateTimeOffset.UtcNow;
+        using var response = await f.Client.GetAsync(Url(f, source, suffix: $"&groupBy=Destination&destinationId={f.Destination.Id}"));
+        response.EnsureSuccessStatusCode();
+        var body = (await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+        Assert.Equal(f.Destination.Name, Assert.Single(body.Data!.Groups).Name);
+    }
+
+    [Fact]
     public async Task SharedApplicationMetricsFollowEachAuthorizedEnvironmentAcrossProjects()
     {
         var source = new MetricProtocolHandler();
