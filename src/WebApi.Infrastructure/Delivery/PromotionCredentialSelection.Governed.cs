@@ -11,11 +11,12 @@ namespace WebApi.Infrastructure.Delivery;
 
 public sealed partial class PromotionCredentialSelection
 {
-    private async Task<PromotionCredentialResult> SelectGovernedAsync(ReleasePromotion promotion, ArtifactContent content,
-        IReadOnlyList<PromotionApplicationMapping> selections, ActorContext actor, CancellationToken ct)
+    private async Task<PromotionCredentialResult> SelectGovernedAsync(ReleasePromotion promotion,
+        IReadOnlyList<PromotionApplicationMapping> selections, ActorContext actor, RuntimeSnapshot? baseline,
+        RuntimeRoute[] retainedRoutes, RetainedRouteAccess? access, CancellationToken ct)
     {
         var scope = await scopes.EnvironmentAsync(promotion.TargetEnvironmentId, ct);
-        var applications = await ReadGovernedRetainedAsync(promotion, content, scope, actor, ct);
+        var applications = await ReadGovernedRetainedAsync(promotion, baseline, retainedRoutes, access, scope, actor, ct);
         var impact = new List<SharedCredentialImpact>();
         foreach (var selection in selections.OrderBy(x => x.ApplicationId))
         {
@@ -30,17 +31,19 @@ public sealed partial class PromotionCredentialSelection
             applications.TryGetValue(app.Id, out var retained);
             var shared = await db.Set<ApplicationApiPermission>().AnyAsync(x => x.ApplicationId == app.Id &&
                 x.EnvironmentId != promotion.TargetEnvironmentId, ct);
-            if (retained is not null && !retained.Credentials.Select(x => x.Id).SequenceEqual(frozen.Credentials.Select(x => x.Id)))
+            var previous = retained is null ? null : baseline!.Applications.Single(row => row.Id == app.Id);
+            if (previous is not null && access!.NeedsCredentials(previous) &&
+                !retained!.Credentials.Select(x => x.Id).SequenceEqual(frozen.Credentials.Select(x => x.Id)))
                 throw BaselineChanged();
             if (shared || retained is not null)
             {
                 if (!selection.ConfirmSharedCredentialImpact)
                     throw new ApiException(409, "shared_credential_confirmation_required", "共享应用的目标凭证和授权影响须明确确认。");
-                impact.Add(new(app.Id, retained?.Permissions.Select(x => x.ApiId).Distinct().Order().ToArray() ?? [],
+                impact.Add(new(app.Id, previous is null ? [] : access!.ApiIdsFor(previous),
                     retained?.Credentials.Select(x => x.Id).ToArray() ?? [], true, shared));
             }
             if (retained is not null)
-                frozen = frozen with { Permissions = frozen.Permissions.Concat(retained.Permissions).OrderBy(x => x.Id).ToArray() };
+                frozen = frozen with { Permissions = frozen.Permissions.Concat(retained.Permissions).DistinctBy(x => x.Id).OrderBy(x => x.Id).ToArray() };
             applications[app.Id] = frozen;
         }
 
@@ -53,31 +56,22 @@ public sealed partial class PromotionCredentialSelection
     }
 
     private async Task<Dictionary<Guid, FrozenApplication>> ReadGovernedRetainedAsync(ReleasePromotion promotion,
-        ArtifactContent content, ScopeRef scope, ActorContext actor, CancellationToken ct)
+        RuntimeSnapshot? baseline, RuntimeRoute[] retainedRoutes, RetainedRouteAccess? access, ScopeRef scope, ActorContext actor, CancellationToken ct)
     {
         var retained = new Dictionary<Guid, FrozenApplication>();
-        if (promotion.BaselineConfigVersion == 0) return retained;
-        var baseline = (await history.ReadAsync(promotion.TargetEnvironmentId, promotion.BaselineConfigVersion, ct)).Snapshot;
-        var selectedIds = content.Apis.Select(x => x.ApiId).ToHashSet();
-        var retainedRoutes = baseline.Routes.Where(x => !selectedIds.Contains(x.ApiId)).ToArray();
-        if (retainedRoutes.Length == 0) return retained;
+        if (baseline is null || retainedRoutes.Length == 0) return retained;
         if (baseline.SchemaVersion != "2.4")
             throw new ApiException(409, "governance_snapshot_full_freeze_required", "首次发布 2.4 必须冻结全部仍在运行的 API。");
-        var apiIds = retainedRoutes.Select(x => x.ApiId).ToHashSet();
-        var policyIds = retainedRoutes.SelectMany(x => x.PolicyBindings ?? []).Select(x => x.PolicyId).ToHashSet();
-        var mappedIds = baseline.Policies.Where(x => x.Type == "authentication" && policyIds.Contains(x.Id))
-            .SelectMany(x => PolicyConfigurationValidator.ParseAuthentication(x.Config).Jwt?.ApplicationMappings ?? [])
-            .Select(x => x.ApplicationId).ToHashSet();
         foreach (var runtime in baseline.Applications)
         {
-            var expected = runtime.Permissions.Where(x => apiIds.Contains(x.ApiId)).ToArray();
-            if (expected.Length == 0 && !mappedIds.Contains(runtime.Id)) continue;
+            if (access!.ApiIdsFor(runtime).Length == 0) continue;
+            var expected = access.PermissionsFor(runtime).ToArray();
             await auth.RequireAsync(actor, "app.read", new("application", runtime.Id, scope), ct);
             var app = await db.Set<ApplicationRecord>().AsNoTracking().SingleOrDefaultAsync(x => x.Id == runtime.Id, ct);
             if (app is null || app.OrganizationId != promotion.OrganizationId ||
                 app.ProjectId is Guid projectId && projectId != promotion.ProjectId || app.Status != runtime.Status)
                 throw BaselineChanged();
-            var ids = runtime.Credentials.Select(x => x.Id).ToArray();
+            var ids = access.NeedsCredentials(runtime) ? runtime.Credentials.Select(x => x.Id).ToArray() : [];
             var current = await db.Set<ApplicationCredential>().AsNoTracking()
                 .Where(x => x.ApplicationId == app.Id && ids.Contains(x.Id)).OrderBy(x => x.Id).ToArrayAsync(ct);
             var keys = current.Select(FreezeGoverned).ToArray();

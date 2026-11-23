@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Releases;
+using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Security;
+using WebApi.Domain.Routing;
 using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
@@ -29,10 +31,27 @@ public sealed class PromotionOptionsService(WebApiDbContext db,PromotionReadServ
     var grants=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(g=>ids.Contains(g.ApplicationId)&&g.EnvironmentId==promotion.TargetEnvironmentId&&apiIds.Contains(g.ApiId)&&g.ValidFrom<=now&&(g.ExpiresAt==null||g.ExpiresAt>now)&&(!governed||g.Mode=="RouteMethod")).OrderBy(g=>g.ApplicationId).ThenBy(g=>g.Id).Select(g=>new{g.ApplicationId,Value=new PromotionAuthorizationChoice(g.Id,g.ApiId)}).Take(1001).ToArrayAsync(token);truncated|=grants.Length>1000;grants=grants.Take(1000).ToArray();
     // Only a sharing boolean crosses this boundary. Other environment IDs and grants stay private.
     var shared=await db.Set<ApplicationApiPermission>().AsNoTracking().Where(g=>ids.Contains(g.ApplicationId)&&g.EnvironmentId!=promotion.TargetEnvironmentId).Select(g=>g.ApplicationId).Distinct().ToArrayAsync(token);
-    WebApi.Contracts.Runtime.RuntimeSnapshot? baseline=promotion.BaselineConfigVersion>0?(await history.ReadAsync(promotion.TargetEnvironmentId,promotion.BaselineConfigVersion,token)).Snapshot:null;var retainedApiIds=baseline?.Routes.Where(r=>!apiIds.Contains(r.ApiId)).Select(r=>r.ApiId).ToHashSet()??[];
-    applications=rows.Take(1000).Select(a=>{var old=baseline?.Applications.SingleOrDefault(r=>r.Id==a.Id);var retained=old?.Permissions.Where(g=>retainedApiIds.Contains(g.ApiId)).Select(g=>g.ApiId).Distinct().ToArray()??[];var jwtRetained=baseline?.Policies.Any(p=>p.Type=="authentication"&&baseline.Routes.Any(r=>retainedApiIds.Contains(r.ApiId)&&(r.PolicyBindings??[]).Any(b=>b.PolicyId==p.Id))&&(WebApi.Domain.Policies.PolicyConfigurationValidator.ParseAuthentication(p.Config).Jwt?.ApplicationMappings??[]).Any(m=>m.ApplicationId==a.Id))==true;return new PromotionApplicationChoice(a.Id,a.Name,keys.Where(k=>k.ApplicationId==a.Id).Select(k=>k.Value).OrderBy(k=>k.Id).ToArray(),grants.Where(g=>g.ApplicationId==a.Id).Select(g=>g.Value).OrderBy(g=>g.Id).ToArray(),shared.Contains(a.Id),retained.Length>0||jwtRetained?old?.Credentials.Select(k=>k.Id).Order().ToArray()??[]:[],retained);}).ToArray();
+    var baseline=promotion.BaselineConfigVersion>0?(await history.ReadAsync(promotion.TargetEnvironmentId,promotion.BaselineConfigVersion,token)).Snapshot:null;
+    var retainedAccess=baseline is null?null:await ReadRetainedAccessAsync(promotion.Id,artifact.Content,baseline,token);
+    applications=rows.Take(1000).Select(a=>{var old=baseline?.Applications.SingleOrDefault(r=>r.Id==a.Id);var retained=old is null?[]:retainedAccess!.ApiIdsFor(old);return new PromotionApplicationChoice(a.Id,a.Name,keys.Where(k=>k.ApplicationId==a.Id).Select(k=>k.Value).OrderBy(k=>k.Id).ToArray(),grants.Where(g=>g.ApplicationId==a.Id).Select(g=>g.Value).OrderBy(g=>g.Id).ToArray(),shared.Contains(a.Id),old is not null&&retainedAccess!.NeedsCredentials(old)?old.Credentials.Select(k=>k.Id).Order().ToArray():[],retained);}).ToArray();
    }
    return new(promotion.TargetEnvironmentId,clusters,routes,policies,applications,truncated,governed);
   }catch(OperationCanceledException)when(!ct.IsCancellationRequested&&budget.IsCancellationRequested){throw new ApiException(503,"delivery_query_timeout","映射选项查询超时，请稍后重试。");}
  }
+
+ private async Task<RetainedRouteAccess> ReadRetainedAccessAsync(Guid promotionId,ArtifactContent content,RuntimeSnapshot baseline,CancellationToken ct)
+ {
+    var saved=await db.Set<ReleasePromotionMapping>().AsNoTracking().Where(row=>row.PromotionId==promotionId&&row.Kind=="Route")
+        .Select(row=>new{row.ResourceKey,row.TargetRouteId}).ToArrayAsync(ct);
+    var mappedIds=saved.Where(row=>row.TargetRouteId.HasValue).Select(row=>row.TargetRouteId!.Value).ToHashSet();
+    var savedKeys=saved.Select(row=>row.ResourceKey).ToHashSet();
+    // Before a mapping is saved, identify the existing logical route offered by the wizard.
+    var unsaved=content.Routes.Where(route=>!savedKeys.Contains(route.Key))
+        .Select(route=>Identity(route.ApiId,route.Path,route.Methods)).ToHashSet();
+    var retained=baseline.Routes.Where(route=>!mappedIds.Contains(route.Id)&&!unsaved.Contains(Identity(route.ApiId,route.Path,route.Methods))).ToArray();
+    return new(baseline,retained,content.Apis.Select(api=>api.ApiId).ToHashSet());
+ }
+
+ private static (Guid Api,string Path,string Methods) Identity(Guid apiId,string path,IReadOnlyList<string> methods) =>
+     (apiId,RouteNormalizer.Normalize(path),string.Join(",",methods.Order(StringComparer.Ordinal)));
 }

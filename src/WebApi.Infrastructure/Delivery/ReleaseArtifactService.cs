@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Catalog;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Releases;
+using WebApi.Contracts.Runtime;
 using WebApi.Contracts.Security;
 using WebApi.Domain.Delivery;
 using WebApi.Infrastructure.Commands;
@@ -108,19 +109,18 @@ public sealed class ReleaseArtifactService(WebApiDbContext db, ScopeResolver sco
         if (!await auth.CanAsync(actor, "release.read", new("release", releaseId, scope), ct)) throw ScopeResolver.Missing();
         var deployment = await running.ReadAsync(release.EnvironmentId, releaseId, ct);
         if (deployment.Environment.IsProduction) throw new ApiException(422, "invalid_artifact_source", "制品来源需为非生产环境。");
-        FrozenReleaseCandidate candidate;
-        try { candidate = JsonSerializer.Deserialize<FrozenReleaseCandidate>(release.CandidateBytes ?? [], CanonicalJson.Options) ?? throw Invalid(); }
-        catch (JsonException) { throw Invalid(); }
-        if (candidate.EnvironmentId != release.EnvironmentId || candidate.OrganizationId != scope.OrganizationId || candidate.ProjectId != scope.ProjectId || candidate.VersionIds.Count == 0) throw Invalid();
-        var baseline = candidate.BaselineConfigVersion > 0 ? (await history.ReadAsync(release.EnvironmentId, candidate.BaselineConfigVersion, ct)).Snapshot : new WebApi.Contracts.Runtime.RuntimeSnapshot("2.0", release.EnvironmentId, 0, deployment.Snapshot.Snapshot.GeneratedAt, [], [], [], []);
-        // Recovery reuses an existing exact snapshot: validate its original publish candidate.
+        var candidate = ReadSourceCandidate(release, scope);
+        // An exact recovery reuses the snapshot built from the original publish and its baseline.
         if (release.ReleaseType is ("retry" or "rollback") && candidate.GovernedRollback is null)
         {
             var origin = await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r => r.EnvironmentId == release.EnvironmentId && r.ReleaseType == "publish" && r.ToConfigVersion == release.ToConfigVersion, ct) ?? throw Invalid();
-            try { candidate = JsonSerializer.Deserialize<FrozenReleaseCandidate>(origin.CandidateBytes ?? [], CanonicalJson.Options) ?? throw Invalid(); } catch (JsonException) { throw Invalid(); }
-            baseline = candidate.BaselineConfigVersion > 0 ? (await history.ReadAsync(release.EnvironmentId, candidate.BaselineConfigVersion, ct)).Snapshot : baseline with { ConfigVersion = 0 };
+            candidate = ReadSourceCandidate(origin, scope);
         }
-        if (compiler.Compile(candidate, baseline, release.ToConfigVersion, deployment.Snapshot.Snapshot.GeneratedAt).Hash != deployment.Snapshot.Hash) throw Invalid();
+        var generatedAt = deployment.Snapshot.Snapshot.GeneratedAt;
+        var baseline = candidate.BaselineConfigVersion > 0
+            ? (await history.ReadAsync(release.EnvironmentId, candidate.BaselineConfigVersion, ct)).Snapshot
+            : new RuntimeSnapshot("2.0", release.EnvironmentId, 0, generatedAt, [], [], [], []);
+        if (compiler.Compile(candidate, baseline, release.ToConfigVersion, generatedAt).Hash != deployment.Snapshot.Hash) throw Invalid();
         var apiContracts = new List<ArtifactApiContract>();
         foreach (var frozen in candidate.Versions)
         {
@@ -163,6 +163,18 @@ public sealed class ReleaseArtifactService(WebApiDbContext db, ScopeResolver sco
             foreach (var permission in new[] { "api.read", "api.version.read", "api.schema.read" }) if (!await auth.CanAsync(actor, permission, new("api", contract.ApiId, scope), ct)) throw ScopeResolver.Missing();
         }
         if (content.Routes.Any(r => r.Policies.Count > 0) && !await policyAccess.CanReadAsync(scope, actor, ct)) throw ScopeResolver.Missing();
+    }
+
+    private static FrozenReleaseCandidate ReadSourceCandidate(ReleaseRecord release, ScopeRef scope)
+    {
+        try
+        {
+            var candidate = JsonSerializer.Deserialize<FrozenReleaseCandidate>(release.CandidateBytes ?? [], CanonicalJson.Options);
+            if (candidate is null || candidate.EnvironmentId != release.EnvironmentId || candidate.OrganizationId != scope.OrganizationId ||
+                candidate.ProjectId != scope.ProjectId || candidate.VersionIds is not { Count: > 0 }) throw Invalid();
+            return candidate;
+        }
+        catch (JsonException) { throw Invalid(); }
     }
 
     private static ReleaseArtifactDto View(ReleaseArtifact row)

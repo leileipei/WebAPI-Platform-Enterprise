@@ -24,8 +24,8 @@ function credential(n, validFrom, expiresAt, status = 'Active') {
     revision:1, activation:'WorkingConfiguration'};
 }
 
-async function openCredentials(t, credentials, {list = false, usageStatus = 200, readOnly = false} = {}) {
-  const page = await browser.newPage();
+async function openCredentials(t, credentials, {list = false, usageStatus = 200, readOnly = false, timezoneId} = {}) {
+  const page = await browser.newPage({timezoneId});
   t.after(() => page.close());
   page.setDefaultTimeout(5000);
   const errors = [];
@@ -122,4 +122,138 @@ test('an operator can open a malformed historic window to correct its missing da
   assert.equal(await editor.getByLabel('生效时间').inputValue(),'');
   assert.notEqual(await editor.getByLabel('失效时间').inputValue(),'');
   assert.equal(await editor.getByLabel('状态').inputValue(),'Active');
+});
+
+async function editWindow(t, key, {confirmImpact = false, timezoneId = 'Asia/Shanghai'} = {}) {
+  const {page,row,errors} = await openCredentials(t,[key],{timezoneId});
+  const writes = [], previews = [];
+  const state = {current:{...key}, failNext:false};
+  t.after(() => assert.deepEqual(errors,[]));
+  const path = '**/api/v1/credentials/' + key.id;
+  await page.route('**/api/v1/auth/csrf', route => route.fulfill({json:{token:'fixture-csrf'}}));
+  await page.route(path + '/impact', route => {
+    previews.push(route.request().postDataJSON());
+    return route.fulfill({json:{impactHash:'fixture-impact',lastWorkingCredential:true,
+      atRiskVisibleEnvironmentIds:[],publishedImpactUnknown:true}});
+  });
+  await page.route(path, route => {
+    const request = route.request();
+    if (request.method() === 'GET') return route.fulfill({json:state.current});
+    assert.equal(request.method(),'PUT');
+    const body = request.postDataJSON(), etag = request.headers()['if-match'];
+    writes.push({body,etag,key:request.headers()['idempotency-key']});
+    if (etag !== '"' + state.current.revision + '"') {
+      return route.fulfill({status:412,json:{code:'stale_revision',detail:'凭证已更新。'}});
+    }
+    if (state.failNext) {
+      state.failNext = false;
+      return route.fulfill({status:503,json:{detail:'请重试本次保存。'}});
+    }
+    if (confirmImpact && !body.impactConfirmation) return route.fulfill({status:409,
+      json:{code:'credential_impact_confirmation_required',detail:'请确认影响。'}});
+    const {validFrom,expiresAt,status} = body;
+    state.current = {...state.current,validFrom,expiresAt,status,revision:state.current.revision + 1};
+    Object.assign(key,state.current);
+    return route.fulfill({json:state.current});
+  });
+  await row(key).getByRole('button',{name:'有效期 / 撤销'}).click();
+  const editor = page.getByRole('dialog',{name:'编辑凭证窗口'}), save = editor.getByRole('button',{name:'保存',exact:true});
+  return {page,editor,save,state,writes,previews};
+}
+
+const preciseStart = '2026-11-21T12:00:37.123456+08:00';
+const preciseEnd = '2026-11-23T09:30:42.654321-02:30';
+
+test('changing expiry preserves the complete effective timestamp and its original offset', async t => {
+  const {editor,save,writes} = await editWindow(t,credential(20,preciseStart,preciseEnd));
+  await editor.getByLabel('失效时间').fill('2026-11-23T20:01');
+  await save.click();
+  await editor.waitFor({state:'hidden'});
+  assert.deepEqual(writes.map(write => write.body),[
+    {validFrom:preciseStart,expiresAt:'2026-11-23T12:01:00.000Z',status:'Active'}
+  ]);
+});
+
+test('retrying a start change keeps the exact restored expiry, payload and idempotency key', async t => {
+  const {editor,save,writes,state} = await editWindow(t,credential(21,preciseStart,preciseEnd));
+  const expiry = editor.getByLabel('失效时间');
+  await expiry.fill('2026-11-23T21:05');
+  await expiry.fill('2026-11-23T20:00');
+  await editor.getByLabel('生效时间').fill('2026-11-21T12:05');
+  state.failNext = true;
+  await save.click();
+  await editor.getByRole('alert').filter({hasText:'请重试本次保存'}).waitFor();
+  await save.click();
+  await editor.waitFor({state:'hidden'});
+  assert.equal(writes.length,2);
+  assert.deepEqual(writes[0].body,{validFrom:'2026-11-21T04:05:00.000Z',expiresAt:preciseEnd,status:'Active'});
+  assert.ok(writes[0].key);
+  assert.deepEqual(writes[1],writes[0]);
+});
+
+test('the untouched expiry stays in the second occurrence of a repeated local hour', async t => {
+  const from = '2026-11-01T01:30:37.123456-04:00', end = '2026-11-01T01:30:42.654321-05:00';
+  const {editor,save,writes} = await editWindow(t,credential(25,from,end),{timezoneId:'America/New_York'});
+  assert.equal(await editor.getByLabel('失效时间').inputValue(),'2026-11-01T01:30');
+  await editor.getByLabel('生效时间').fill('2026-11-01T01:45');
+  await save.click();
+  await editor.waitFor({state:'hidden'});
+  assert.deepEqual(writes.map(write => write.body),[
+    {validFrom:'2026-11-01T05:45:00.000Z',expiresAt:end,status:'Active'}
+  ]);
+});
+
+test('revocation retains a one-tick window through impact preview and confirmation', async t => {
+  const validFrom = '2026-11-22T12:00:00.0000001+08:00', expiresAt = '2026-11-22T04:00:00.0000002Z';
+  const {page,editor,save,writes,previews} = await editWindow(t,credential(22,validFrom,expiresAt),{confirmImpact:true});
+  await editor.getByLabel('状态').selectOption('Revoked');
+  await save.click();
+  const impact = page.getByRole('alertdialog',{name:'确认凭证访问影响'});
+  await impact.getByRole('checkbox').check();
+  await impact.getByRole('button',{name:'确认风险并保存'}).click();
+  await editor.waitFor({state:'hidden'});
+  const body = {validFrom,expiresAt,status:'Revoked'};
+  assert.deepEqual(previews,[body]);
+  assert.deepEqual(writes.map(write => write.body),[body,{...body,
+    impactConfirmation:{impactHash:'fixture-impact',confirmCloseAllAccess:true}}]);
+});
+
+test('each adopted revision supplies its untouched expiry while keeping the edited local minute', async t => {
+  const {editor,save,state,writes} = await editWindow(t,credential(23,preciseStart,preciseEnd));
+  await editor.getByLabel('生效时间').fill('2026-11-21T12:05');
+  const intermediateEnd = '2026-11-23T11:11:03.012345+01:00';
+  const latestEnd = '2026-11-23T04:11:59.7654321-06:00';
+  for (const [revision,expiresAt] of [[2,intermediateEnd],[3,latestEnd]]) {
+    state.current = {...state.current,revision,expiresAt,validFrom:'2026-11-21T04:05:32.100007Z'};
+    await save.click();
+    await editor.getByRole('button',{name:'查看最新内容'}).click();
+    await editor.locator('pre').filter({hasText:expiresAt}).waitFor();
+    await editor.getByRole('button',{name:'保持我的输入，采用最新修订'}).click();
+  }
+  assert.equal(await editor.getByLabel('生效时间').inputValue(),'2026-11-21T12:05');
+  assert.equal(await editor.getByLabel('失效时间').inputValue(),'2026-11-23T18:11');
+  await save.click();
+  await editor.waitFor({state:'hidden'});
+  assert.deepEqual(writes.map(({etag,body}) => [etag,body]),[preciseEnd,intermediateEnd,latestEnd].map((expiresAt,index) =>
+    ['"' + (index + 1) + '"',{validFrom:'2026-11-21T04:05:00.000Z',expiresAt,status:'Active'}]));
+  assert.ok(writes.every(write => write.key));
+  assert.equal(new Set(writes.map(write => write.key)).size,3);
+});
+
+test('an edited minute may start a window ending one tick later but cannot end at or before its stored start', async t => {
+  const from = '2026-11-22T12:00:00.0000001+08:00', end = '2026-11-22T04:02:00.0000001Z';
+  const {page,editor,save,writes} = await editWindow(t,credential(24,from,end));
+  const expiry = editor.getByLabel('失效时间');
+  await expiry.fill('2026-11-22T12:00');
+  await save.click();
+  await page.waitForLoadState('networkidle');
+  assert.deepEqual(writes,[]);
+  await editor.getByRole('alert').filter({hasText:'有效期结束必须晚于开始时间'}).waitFor();
+  await expiry.fill('2026-11-22T12:02');
+  await editor.getByLabel('生效时间').fill('2026-11-22T12:02');
+  await save.click();
+  await editor.waitFor({state:'hidden'});
+  assert.deepEqual(writes.map(write => write.body),[
+    {validFrom:'2026-11-22T04:02:00.000Z',expiresAt:end,status:'Active'}
+  ]);
 });
