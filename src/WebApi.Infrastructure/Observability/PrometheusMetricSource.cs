@@ -149,7 +149,7 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
     {
         var samples = health.ToLookup(row => (row.Labels.GetValueOrDefault("webapi_environment_id"),
             row.Labels.GetValueOrDefault("service_instance_id"), row.Labels.GetValueOrDefault("webapi_destination_id")), row => row.Value);
-        var destinations = scope.Destinations.Values.ToLookup(d => d.EnvironmentId);
+        var destinations = scope.Destinations.Values.Where(d => scope.Membership?.AtWindowEnd.Contains(d.Id) != false).ToLookup(d => d.EnvironmentId);
         string Health(ExpectedObservationNode node, ObservationDestination destination)
         {
             if (scope.Membership?.UnconfirmedNodes.Contains(node) == true) return "Unknown";
@@ -202,24 +202,30 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
             : scope.Applications.Where(pair => pair.Value.SharedEnvironmentIds?.Contains(environment) != false)
                 .Select(pair => pair.Key.ToString()).Concat(["Anonymous", "Unknown"]);
 
+        IEnumerable<string> AllowedDestinations(Guid environment) => filter.DestinationId is Guid destination
+            ? scope.Destinations.TryGetValue(destination,out var target) && target.EnvironmentId==environment ? [destination.ToString()] : []
+            : scope.Destinations.Values.Where(d => d.EnvironmentId == environment)
+                .Select(d => d.Id.ToString()).Append("None");
         var batches = scope.EnvironmentIds
             .SelectMany(environment => AllowedApplications(environment).Chunk(applicationsPerQuery)
-                .Select(applications => (Environment: environment, Applications: applications)))
+                .SelectMany(applications => AllowedDestinations(environment).Chunk(64)
+                    .Select(destinations => (Environment: environment, Applications: applications, Destinations: destinations))))
             .ToArray();
         var results = new IReadOnlyList<PrometheusMatrix>[batches.Length];
         var options = new ParallelOptions { CancellationToken = ct, MaxDegreeOfParallelism = 4 };
         await Parallel.ForEachAsync(Enumerable.Range(0, batches.Length), options, async (index, token) =>
         {
-            var (environment, applications) = batches[index];
+            var (environment, applications, destinations) = batches[index];
             var scoped = scope with { EnvironmentIds = [environment] };
             // Apply the allowlist before aggregation to keep each returned matrix within the
             // existing response budget, even when a project has many applications.
             var applicationMatch = "webapi_application_id=~\"" + string.Join('|', applications) + "\"";
-            var matcher = Matcher(scoped, filter with { ApplicationId = null }, applicationMatch);
+            var destinationMatch = "webapi_destination_id=~\"" + string.Join('|', destinations) + "\"";
+            var matcher = Matcher(scoped, filter with { ApplicationId = null, DestinationId = null }, applicationMatch + "," + destinationMatch);
             var query = $"sum by (webapi_environment_id,{groupLabels}) (clamp_min(rate({metric}{matcher}[{bucket}]),0))";
             var rows = await MatrixAsync(query, range, step, scoped, token);
-            results[index] = rows.Where(row => !row.Labels.TryGetValue("webapi_application_id", out var id)
-                || applications.Contains(id, StringComparer.Ordinal)).ToArray();
+            results[index] = rows.Where(row => (!row.Labels.TryGetValue("webapi_application_id", out var id) || applications.Contains(id, StringComparer.Ordinal))
+                && (!row.Labels.TryGetValue("webapi_destination_id",out var destination) || destinations.Contains(destination,StringComparer.Ordinal))).ToArray();
         });
         return results.SelectMany(rows => rows).ToArray();
     }

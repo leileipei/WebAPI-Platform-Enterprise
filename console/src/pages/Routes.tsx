@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {RouteCopy} from './RouteCopy';
 import {ApiAccessPanel} from '../environments/ApiAccessPanel';
 import {effectiveAuthentication,routePolicyPayload} from '../policies/advanced-policy-state.mjs';
 import {routeDefaultInput} from '../settings/state.mjs';
@@ -33,7 +34,7 @@ export function Routes({target,onChanged}:RoutesProps){
 
 function RouteTable({api,target,selector,list,onChanged}:RoutesProps&{api?:Api;selector:React.ReactNode;list:ReturnType<typeof usePaged>}){
  const ws=useWorkspace(),{can}=useSession();
- const [edit,setEdit]=useState<any>(),[binding,setBinding]=useState<any>();
+ const [edit,setEdit]=useState<any>(),[binding,setBinding]=useState<any>(),[copy,setCopy]=useState<any>(),[copyNote,setCopyNote]=useState('');
  const [lifetime]=useState(()=>new AbortController());
  useEffect(()=>()=>lifetime.abort(),[lifetime]);
  const canReadVersions=!!api&&can('api.version.read',{organizationId:api.organizationId,projectId:api.projectId});
@@ -108,10 +109,12 @@ function RouteTable({api,target,selector,list,onChanged}:RoutesProps&{api?:Api;s
    <Feedback {...defaults}/><Feedback {...list}/>
    <Table rows={rows} columns={[['routeName','路由'],['path','路径'],['methods','方法'],['authenticationLabel','有效认证'],['apiVersionId','版本 ID'],['priority','优先级'],['enabled','启用'],['revision','修订']]} actions={row=><>
     <button className="text-btn" disabled={!allowed} onClick={()=>setEdit({...row,methodsText:row.methods.join(','),authenticationSelection:effectiveAuthentication(row)})}>编辑</button>
+    <button className="text-btn" disabled={!can('route.read',ws.scope)||!ws.tree.environments.some(e=>e.projectId===ws.projectId&&e.id!==ws.environmentId&&can('route.write',{organizationId:ws.organizationId,projectId:ws.projectId,environmentId:e.id},true)&&can('cluster.read',{organizationId:ws.organizationId,projectId:ws.projectId,environmentId:e.id}))} onClick={()=>{setCopyNote('');setCopy(row);}}>复制到环境</button>
     <button className="text-btn" disabled={!allowed||!canChangeAuthentication} onClick={()=>setBinding(row)}>策略绑定</button>
    </>}/>
    <Pagination remote={list}/>
   </div>
+  {copy&&<RouteCopy source={copy} close={()=>setCopy(undefined)} done={()=>{setCopy(undefined);setCopyNote('已在目标环境创建工作路由。');}}/>}{copyNote&&<p role="status">{copyNote}</p>}
   {api&&<ApiAccessPanel environmentId={ws.environmentId} apiId={api.id} versionId={target?.version.id} view="working"/>}
   {binding&&<RoutePolicyEditor route={binding} verifyTarget={target?async revision=>{
     const latest=await latestRoute(binding.id);

@@ -1,7 +1,10 @@
 """Immutable inputs and receipt checks shared by observability packaging and verification."""
 import hashlib
 import json
-from pathlib import PurePosixPath
+import os
+from pathlib import Path, PurePosixPath
+import shutil
+import tempfile
 import re
 import subprocess
 
@@ -32,6 +35,34 @@ def require(condition, message):
 
 def git(*args):
     return subprocess.check_output(["git", "--no-replace-objects", *args])
+
+
+ARCHIVE_STEM = "WebAPI_Enterprise_可观测与告警源码及验收"
+
+
+def production_static_files(source):
+    root = Path.cwd()
+    node = os.environ.get("WEBAPI_NODE") or shutil.which("node")
+    require(node, "Install Node to rebuild the production console")
+    for name in ("console/package.json", "console/pnpm-lock.yaml"):
+        require(source[name] == (root / name).read_bytes(), "Install the archived frozen dependencies before building")
+    with tempfile.TemporaryDirectory(prefix="webapi-observability-console-") as temporary:
+        checkout = Path(temporary)
+        for name, content in source.items():
+            if name.startswith("console/"):
+                target = checkout / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(content)
+        console = checkout / "console"
+        modules = root / "console/node_modules"
+        (console / "node_modules").symlink_to(modules, target_is_directory=True)
+        env = dict(os.environ, PATH=str(Path(node).parent) + os.pathsep + os.environ["PATH"], NODE_ENV="production")
+        subprocess.run([node, modules / "typescript/bin/tsc", "--noEmit"], cwd=console, env=env, check=True)
+        subprocess.run([node, modules / "vite/bin/vite.js", "build", "--mode", "production"], cwd=console, env=env, check=True)
+        static = {file.relative_to(checkout).as_posix(): file.read_bytes()
+                  for file in sorted((console / "dist").rglob("*")) if file.is_file()}
+        require("console/dist/index.html" in static, "Missing rebuilt console/dist/index.html")
+        return static
 
 
 def commit(ref):

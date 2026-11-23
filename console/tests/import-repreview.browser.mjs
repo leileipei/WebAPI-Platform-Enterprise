@@ -21,6 +21,7 @@ async function fixture(t,firstFailure) {
   const page=await browser.newPage();
   t.after(()=>page.close());
   page.setDefaultTimeout(6000);
+  if(firstFailure==='lost')await page.clock.install({time:new Date()});
   const commits=[], previews=[], errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   t.after(()=>assert.deepEqual(errors,[]));
@@ -45,7 +46,8 @@ async function fixture(t,firstFailure) {
         expiresAt:new Date(Date.now()+1200000).toISOString(),operations:index%2?operations:[...operations].reverse(),issues:[],sourceFormat:'json',dialect:'Oas30'});
     }
     if(path.startsWith(endpoint+'/') && path.endsWith('/commit') && method==='POST') {
-      commits.push({path,body:request.postDataJSON()});
+      commits.push({path,body:request.postDataJSON(),key:request.headers()['idempotency-key']});
+      if(commits.length===1&&firstFailure==='lost')return route.abort('failed');
       if(commits.length===1 && firstFailure) {
         if(firstFailure==='import_preview_changed') remote.revision++;
         return route.fulfill({status:firstFailure==='stale_revision'?412:409,json:{code:firstFailure,detail:firstFailure}});
@@ -154,4 +156,19 @@ test('a different frozen bundle at the same URL starts with new targets',async t
   await inspect();
   assert.equal(await checkbox('stock').isChecked(),true);
   assert.match(await row('orders').innerText(),/orders · 1.0.0/);
+});
+
+
+test('a lost import response can replay the original key and body after expiry',async t=>{
+  const f=await fixture(t,'lost');
+  await f.source.fill(doc('receipt'));
+  await f.inspect();
+  await f.submit.click();
+  await f.page.getByText(/请求未完成，输入已保留/).waitFor();
+  await f.page.clock.fastForward(21*60*1000);
+  await button(f.page,'用原请求查询导入回执').click();
+  await f.page.getByText(/已写入工作配置/).waitFor();
+  assert.equal(f.commits.length,2);
+  assert.ok(f.commits[0].key);
+  assert.deepEqual(f.commits[0],f.commits[1]);
 });

@@ -1,4 +1,5 @@
 using System.Net;
+using WebApi.Contracts.Catalog;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Releases;
@@ -8,6 +9,51 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class PromotionMappingTests
 {
+    [Fact]
+    public async Task LargeDirectoryIsSearchableAndPagedAndSavedMappingsRemainAvailable()
+    {
+        await using var scenario=new PromotionScenario();
+        await scenario.InitializeAsync();
+        var path=$"/api/v1/release-promotions/{scenario.PromotionId}/mapping-options";
+        await using(var db=scenario.Api.Context()){
+            db.AddRange(Enumerable.Range(1,1001).Select(n=>new UpstreamCluster{ProjectId=scenario.Api.Project.Id,EnvironmentId=scenario.TargetEnvironmentId,
+                Name=$"directory-{n:D4}",LoadBalancingPolicy="RoundRobin",HealthCheckPath="/health",HealthCheckIntervalSec=30}));
+            await db.SaveChangesAsync();
+        }
+        var first=await scenario.Api.Client.GetFromJsonAsync<PromotionMappingOptionsDto>(path+"?search=directory");
+        Assert.True(first!.Truncated);
+        Assert.Equal(1000,first.Clusters!.Count);
+        var second=await scenario.Api.Client.GetFromJsonAsync<PromotionMappingOptionsDto>(path+"?search=directory&page=2");
+        var last=Assert.Single(second!.Clusters!);
+        Assert.Equal("directory-1001",last.Name);
+        Assert.False(second.Truncated);
+        var mapping=scenario.Mapping();
+        using var saved=await scenario.SaveAsync(mapping with{Routes=[mapping.Routes[0] with{ClusterId=last.Id}]});
+        saved.EnsureSuccessStatusCode();
+        var small=await scenario.Api.Client.GetFromJsonAsync<PromotionMappingOptionsDto>(path+"?search=directory-0001&pageSize=1");
+        Assert.Contains(small!.Clusters!,c=>c.Id==last.Id);
+        Assert.Contains(small.Clusters!,c=>c.Name=="directory-0001");
+        Assert.DoesNotContain(small.Clusters!,c=>c.Id==scenario.Api.Cluster.Id);
+    }
+    [Fact]
+    public async Task ASecondCredentialPageIncludesItsParentAndAnExactCredentialSearch()
+    {
+        await using var s=new PromotionScenario();
+        await s.InitializeAsync();
+        using var created=await s.Api.WriteAsync(HttpMethod.Post,$"/api/v1/applications/{s.TargetApplicationId}/credentials",
+            new{validFrom=DateTimeOffset.UtcNow.AddMinutes(-1),expiresAt=DateTimeOffset.UtcNow.AddDays(1)});
+        created.EnsureSuccessStatusCode();
+        var path=$"/api/v1/release-promotions/{s.PromotionId}/mapping-options?pageSize=1";
+        var first=await s.Api.Client.GetFromJsonAsync<PromotionMappingOptionsDto>(path+$"&search={s.TargetApplicationId}");
+        var second=await s.Api.Client.GetFromJsonAsync<PromotionMappingOptionsDto>(path+$"&search={s.TargetApplicationId}&page=2");
+        Assert.True(first!.Truncated);Assert.False(second!.Truncated);
+        var app=Assert.Single(second.Applications!);
+        Assert.Equal(s.TargetApplicationId,app.Id);
+        var latest=Assert.Single(app.Credentials);
+        Assert.NotEqual(Assert.Single(Assert.Single(first.Applications!).Credentials).Id,latest.Id);
+        var exact=await s.Api.Client.GetFromJsonAsync<PromotionMappingOptionsDto>(path+$"&search={latest.Id}");
+        Assert.Equal(latest.Id,Assert.Single(Assert.Single(exact!.Applications!).Credentials).Id);
+    }
  [Fact] public async Task PreparationCreatesOnlyTargetDraftResourcesAndLeavesRuntimeUntouched()
  {await using var s=new PromotionScenario();await s.InitializeAsync();int outbox;await using(var db=s.Api.Context())outbox=await db.Set<OutboxMessage>().CountAsync();using var saved=await s.SaveAsync(s.Mapping());saved.EnsureSuccessStatusCode();var candidate=await s.PrepareAsync();Assert.Equal(s.TargetEnvironmentId,candidate.EnvironmentId);var r=Assert.Single(candidate.Routes);var source=Assert.Single(s.Source.Artifact.Content.Routes);Assert.Equal(source.Path,r.Path);Assert.Equal(source.Methods.Order(),r.Methods.Order());Assert.Equal(source.ApiId,Assert.Single(candidate.Versions).Api.Id);Assert.Equal(s.TargetClusterId,r.ClusterId);await using var context=s.Api.Context();Assert.Equal(outbox,await context.Set<OutboxMessage>().CountAsync());Assert.Null((await context.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==s.TargetEnvironmentId)).DesiredConfigVersion);Assert.Null((await context.Set<ReleasePromotion>().SingleAsync(p=>p.Id==s.PromotionId)).TargetReleaseId);}
  [Fact] public async Task SavedMappingRequiresCurrentRevisionAndDraftState()
@@ -36,4 +82,32 @@ public sealed class PromotionMappingTests
  {await using var s=new PromotionScenario();await s.InitializeAsync(timeout:true);using var saved=await s.SaveAsync(s.Mapping());saved.EnsureSuccessStatusCode();var candidate=await s.PrepareAsync();var route=Assert.Single(candidate.Routes);await using(var db=s.Api.Context()){if(removed)await db.Set<RoutePolicyBinding>().Where(b=>b.RouteId==route.Id).ExecuteDeleteAsync();else await db.Set<RoutePolicyBinding>().Where(b=>b.RouteId==route.Id).ExecuteUpdateAsync(x=>x.SetProperty(b=>b.Priority,99));}Assert.Equal(409,(await Assert.ThrowsAsync<WebApi.Contracts.Common.ApiException>(()=>s.PrepareAsync())).Status);}
  [Fact] public async Task RetiredApiCannotSilentlyDisappearFromPromotedArtifact()
  {await using var s=new PromotionScenario();await s.InitializeAsync();using var saved=await s.SaveAsync(s.Mapping());saved.EnsureSuccessStatusCode();await using(var db=s.Api.Context())await db.Set<Api>().Where(a=>a.Id==s.Api.Api.Id).ExecuteUpdateAsync(x=>x.SetProperty(a=>a.LifecycleStatus,"Retired").SetProperty(a=>a.VersionNo,2));Assert.Equal(422,(await Assert.ThrowsAsync<WebApi.Contracts.Common.ApiException>(()=>s.PrepareAsync())).Status);}
+    [Fact]
+    public async Task PreparingAnExistingRoutePreservesItsNameAndInvalidatesAnOlderEditWhenBindingsChange()
+    {
+        await using var s = new PromotionScenario();
+        await s.InitializeAsync(timeout: true);
+        await s.SeedProductionBaselineAsync();
+        await PromotionSubmissionTests.Create(s);
+        Guid routeId;
+        await using(var db = s.Api.Context())
+            routeId = await db.Set<ApiRoute>().Where(r => r.EnvironmentId == s.TargetEnvironmentId).Select(r => r.Id).SingleAsync();
+        var url = $"/api/v1/routes/{routeId}";
+        using var opened = await s.Api.Client.GetAsync(url);
+        opened.EnsureSuccessStatusCode();
+        var before = (await opened.Content.ReadFromJsonAsync<RouteDto>())!;
+        var tag = opened.Headers.ETag!.Tag;
+        using var saved = await s.SaveAsync(s.Mapping(routeId));
+        saved.EnsureSuccessStatusCode();
+        using var precheck = await PromotionSubmissionTests.Send(s, "precheck", new PromotionPrecheckRequest(ConfirmUpstreamHealth: true, UpstreamHealthComment:"人工确认目标后端健康，等待正式独立审批"));
+        precheck.EnsureSuccessStatusCode();
+        Assert.True((await precheck.Content.ReadFromJsonAsync<PromotionPrecheckDto>())!.CanSubmit);
+        using var current = await s.Api.Client.GetAsync(url);
+        current.EnsureSuccessStatusCode();
+        var after = (await current.Content.ReadFromJsonAsync<RouteDto>())!;
+        Assert.Equal(before.RouteName, after.RouteName);
+        Assert.NotEqual(tag, current.Headers.ETag!.Tag);
+        using var edited = await s.Api.WriteAsync(HttpMethod.Put, url, new SaveRouteRequest(before.Id, before.ApiVersionId, before.RouteName, before.Path, before.Methods, before.ClusterId, before.Priority, before.Enabled, before.TimeoutMs+1000, before.RequireApiKey),tag);
+        Assert.Equal(HttpStatusCode.PreconditionFailed, edited.StatusCode);
+    }
 }

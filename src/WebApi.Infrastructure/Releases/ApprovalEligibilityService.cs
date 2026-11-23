@@ -203,6 +203,8 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
                   WHERE ur.user_id = {actor.UserId}
                     AND (role.organization_id IS NULL OR role.organization_id = organization.id)
                     AND (role.code = frozen_rule->>'roleCode'
+                      OR (role.code = {WebApi.Infrastructure.Governance.PermissionCatalog.ScopedOrganizationAdministrator}
+                        AND role.is_system AND role.organization_id = organization.id AND frozen_rule->>'roleCode' = 'OrganizationAdmin')
                       OR (role.code = 'PlatformAdmin' AND role.is_system AND role.organization_id IS NULL))))
             """);
     }

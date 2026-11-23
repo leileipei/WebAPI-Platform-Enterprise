@@ -1,5 +1,16 @@
 # 前端自动检查第一批：配置与本地验证
 
+## 当前回归入口
+
+每次向 main 提交或发起拉取请求时，Console CI 会从锁文件安装依赖并构建生产控制台，随后安装固定版本的 Playwright 和 Chromium，执行 `node scripts/check-console-browser.mjs`。该命令自动发现 `console/tests/*.browser.mjs`，并在回环地址提供本次构建的页面。单个流程失败、全部跳过或套件缺失都会使检查失败。工作流超时为 30 分钟。
+
+| 回归内容 | 运行环境与入口 |
+| --- | --- |
+| 控制台页面及权限交互 | 已安装的 Node、Playwright、Chromium 和生产构建。用 `WEBAPI_PLAYWRIGHT_PACKAGE` 指向包的 package.json。可选的 `WEBAPI_CHROMIUM_EXECUTABLE` 指定本机浏览器，`WEBAPI_BROWSER_RESULTS` 保存逐套件输出。浏览器使用受控 API 响应。 |
+| 服务端契约与数据库 | Contracts CI 分别运行 `bash scripts/check-contracts.sh domain`、`integration`、`gateway`。集成环境使用 Docker、PostgreSQL 和 Redis。 |
+| 本地运行工具 | `bash scripts/check-local-runtime.sh unit` 发现全部顶层运行工具用例和前端单测。Docker 生命周期、卷和回环监听在隔离宿主用 `bash scripts/check-local-runtime.sh integration` 串行执行。 |
+| 整套服务端到端 | 在具备 Docker Compose、可用测试端口、镜像、SDK 与独立存储的主机，先构建控制台，再运行 `bash scripts/e2e.sh`。它启动临时数据库、控制面、Worker、双网关和两个后端，执行 WebApi.EndToEnd.Tests 的核心流程。监控端到端使用 `bash scripts/check-observability-loop.sh e2e`，外部 SSO 与现场恢复使用相应部署手册的专用环境。 |
+
 日期：2026-11-10。配置阶段输入：主干 `7626115c769ae0926d38109ace46b2f5017bfcc3`。用户选择 A 路径，首批仅前端，三个后端套件为第二批。**后续状态：工作流已通过 PR #5 合入，修正候选和 main 的实际检查均通过；2026-11-11 只读确认四项主干必需检查已启用。**下文保留首批本地验证的原范围与结果，后续结果见文末。
 
 ## 本批配置

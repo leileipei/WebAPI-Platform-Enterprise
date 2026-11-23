@@ -11,6 +11,7 @@ export function workbenchPlan(scope,can,end){
   metrics:make('metrics.read',environmentSelected,'/observability/metrics?'+metrics),
   nodes:make('gateway.read',environmentSelected,`/environments/${encodeURIComponent(environmentId)}/gateway-nodes?page=1&pageSize=5`),
   alerts:make('alert.read',environmentSelected,'/observability/alerts?'+alerts),
+  pending:!can('release.read')?{state:'denied'}:{state:'loading',path:'/approvals?view=PendingMine&page=1&pageSize=5'},
   releases:make('release.read',environmentSelected,`/environments/${encodeURIComponent(environmentId)}/releases?page=1&pageSize=50`)
  };
 }

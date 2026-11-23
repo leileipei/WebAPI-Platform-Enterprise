@@ -4,7 +4,7 @@ public sealed class TraceQueryService(ObservationScopeResolver resolver,TempoTra
 {
     public async Task<ObservationEnvelope<CursorPage<TraceSummaryDto>>> SearchAsync(ActorContext actor,ObservationScopeRequest scope,TimeRange range,TraceFilter filter,CancellationToken ct)
     {
-        Validate(scope,range,filter);var trusted=await resolver.ResolveAsync(actor,"trace.read",scope,filter.ApiId,null,null,ct,range.End);PolicyObservationProjection.RequireFilter(trusted,filter.PolicyId,filter.PolicyDecision);var hash=ObservationCursorCodec.Hash(filter with{Cursor=null,Limit=0});var cursor=filter.Cursor is null?null:cursors.Decode(filter.Cursor,"traces",actor.UserId,trusted,range,hash);
+        Validate(scope,range,filter);var trusted=await resolver.ResolveAsync(actor,"trace.read",scope,filter.ApiId,null,null,ct,range.End,destinationWindowStart:range.Start);PolicyObservationProjection.RequireFilter(trusted,filter.PolicyId,filter.PolicyDecision);var hash=ObservationCursorCodec.Hash(filter with{Cursor=null,Limit=0});var cursor=filter.Cursor is null?null:cursors.Decode(filter.Cursor,"traces",actor.UserId,trusted,range,hash);
         if(trusted.EnvironmentIds.Count==0)return new(SourceState.NoData,range,null,new(false,[],"no_accessible_environments",false),Sampling(),new([],null,false));
         using var timeout=CancellationTokenSource.CreateLinkedTokenSource(ct);timeout.CancelAfter(TimeSpan.FromSeconds(10));
         try{
@@ -24,7 +24,7 @@ public sealed class TraceQueryService(ObservationScopeResolver resolver,TempoTra
     }
     public async Task<ObservationEnvelope<TraceDetailDto>> DetailAsync(ActorContext actor,ObservationScopeRequest scope,string traceId,TimeRange range,CancellationToken ct)
     {
-        Validate(scope,range,new TraceFilter(traceId));traceId=TempoTraceSource.TraceId(traceId);var trusted=await resolver.ResolveAsync(actor,"trace.read",scope,null,null,null,ct,range.End);
+        Validate(scope,range,new TraceFilter(traceId));traceId=TempoTraceSource.TraceId(traceId);var trusted=await resolver.ResolveAsync(actor,"trace.read",scope,null,null,null,ct,range.End,destinationWindowStart:range.Start);
         using var timeout=CancellationTokenSource.CreateLinkedTokenSource(ct);timeout.CancelAfter(TimeSpan.FromSeconds(10));
         try{var batch=await source.DetailAsync(traceId,range,timeout.Token);var projected=ProjectRange(traceId,batch,trusted,range);if(projected.Spans.Count==0)throw new ApiException(404,"observation_trace_not_found","未找到当前可访问范围的链路；可能未采样或已超过保留期。");var collection=await coverage.QueryAsync(trusted,range,"traces",timeout.Token);await Reauthorize(actor,scope,null,trusted,ct);
             return new(projected.PartialTrace||collection.State==SourceState.Partial?SourceState.Partial:SourceState.Available,range,collection.ObservedAt,collection.Coverage with{Complete=collection.Coverage.Complete&&!projected.PartialTrace,Reason=projected.PartialTrace?"partial_trace":collection.Coverage.Reason},Sampling(),projected);

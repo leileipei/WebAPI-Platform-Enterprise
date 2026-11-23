@@ -74,3 +74,12 @@ test('an approval belongs to the eligible release, step and candidate seen on op
    assert.equal(approvalOperationMatches(opened,changed),false);
  assert.equal(approvalOperationMatches({...opened,stepOrder:0},{...detail,approvalEligibility:{canAct:true,currentStepOrder:0}}),false);
 });
+
+test('slow inbox polling completes and an explicit refresh during the read follows it',async()=>{
+ const {singleFlightInbox}=await import('../src/approvals/inbox-state.mjs');
+ assert.equal(typeof singleFlightInbox,'function');
+ const reads=[];const poll=singleFlightInbox(()=>new Promise(resolve=>reads.push(resolve)));
+ const first=poll();poll();poll(true);poll();assert.equal(reads.length,1);
+ reads[0]();await new Promise(resolve=>setImmediate(resolve));assert.equal(reads.length,2);
+ reads[1]();await first;
+});

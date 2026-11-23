@@ -16,15 +16,19 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
         Guid[] environments;
         if(scope.AllAccessibleEnvironments)
         {
-            var projectGranted=true;
-            // This checks the functional permission even when this actor only holds environment-level grants.
-            try{await authorization.RequireAsync(actor,permission,new("observation",project.Id,new(scope.OrganizationId,scope.ProjectId)),ct);}
-            catch(ApiException e)when(e.Code=="scope_denied"){projectGranted=false;}
-            if(project.Status!="Active"||!await db.Set<Organization>().AnyAsync(x=>x.Id==scope.OrganizationId&&x.Status=="Active",ct))throw new ApiException(409,"inactive_scope","组织或项目已停用。");
-            var candidates=await db.Set<EnvironmentRecord>().AsNoTracking().Where(x=>x.ProjectId==project.Id&&x.Status=="Active").Select(x=>x.Id).ToArrayAsync(ct);
-            var allowed=new List<Guid>();foreach(var environment in candidates)if(await authorization.CanAsync(actor,permission,new("observation",environment,new(scope.OrganizationId,scope.ProjectId,environment)),ct))allowed.Add(environment);
-            environments=allowed.Order().ToArray();
-            if(environments.Length==0&&!projectGranted)throw ScopeResolver.Missing();
+            var projectScope = new ScopeRef(scope.OrganizationId, project.Id);
+            await new PasswordLifecycleGuard(db).RequireBusinessAccessAsync(actor, ct);
+            if (!await authorization.FunctionalPermissions(actor, projectScope).AnyAsync(p => p.Code == permission, ct))
+                throw new ApiException(403, "permission_denied", "缺少操作权限。");
+            if (project.Status != "Active" || !await db.Set<Organization>().AnyAsync(o => o.Id == scope.OrganizationId && o.Status == "Active", ct))
+                throw new ApiException(409, "inactive_scope", "组织或项目已停用。");
+            var read = permission.EndsWith(".read", StringComparison.Ordinal);
+            var grants = db.Set<UserProjectScope>().Where(g => g.UserId == actor.UserId && g.OrganizationId == scope.OrganizationId
+                && (g.ProjectId == null || g.ProjectId == project.Id) && (read || g.AccessMode == "read_write"));
+            environments = await db.Set<EnvironmentRecord>().Where(e => e.ProjectId == project.Id && e.Status == "Active"
+                    && grants.Any(g => g.EnvironmentId == null || g.EnvironmentId == e.Id))
+                .OrderBy(e => e.Id).Select(e => e.Id).ToArrayAsync(ct);
+            if (environments.Length == 0 && !await grants.AnyAsync(g => g.EnvironmentId == null, ct)) throw ScopeResolver.Missing();
         }
         else
         {
@@ -35,7 +39,7 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
         }
         return environments;
     }
-    public async Task<TrustedObservationScope> ResolveAsync(ActorContext actor,string permission,ObservationScopeRequest scope,Guid? apiId,Guid? appId,Guid? destinationId,CancellationToken ct,DateTimeOffset? destinationHealthAt=null,bool includeDestinationNames=false)
+    public async Task<TrustedObservationScope> ResolveAsync(ActorContext actor,string permission,ObservationScopeRequest scope,Guid? apiId,Guid? appId,Guid? destinationId,CancellationToken ct,DateTimeOffset? destinationHealthAt=null,bool includeDestinationNames=false,DateTimeOffset? destinationWindowStart=null)
     {
         var environments=await ResolveEnvironmentIdsAsync(actor,permission,scope,ct);
         var apis=await db.Set<Api>().AsNoTracking().Where(x=>x.OrganizationId==scope.OrganizationId&&x.ProjectId==scope.ProjectId).ToDictionaryAsync(x=>x.Id,x=>x.Name,ct);
@@ -46,7 +50,7 @@ public sealed class ObservationScopeResolver(WebApiDbContext db,AuthorizationSer
             if (app.SharedEnvironmentIds is { } allowed) environments = environments.Where(allowed.Contains).ToArray();
             apps = new Dictionary<Guid, ObservationApplication> { [applicationId] = app };
         }
-        var membership = await AppliedDestinationQuery.ReadAsync(db, scope.OrganizationId, scope.ProjectId, environments, destinationHealthAt, ct, includeDestinationNames);
+        var membership = await AppliedDestinationQuery.ReadAsync(db, scope.OrganizationId, scope.ProjectId, environments, destinationHealthAt, ct, includeDestinationNames, destinationWindowStart);
         if(apiId is Guid api&&!apis.ContainsKey(api)||destinationId is Guid destination&&!membership.Destinations.ContainsKey(destination))throw ScopeResolver.Missing();
         var nodes=await db.Set<GatewayNode>().AsNoTracking().Where(x=>environments.Contains(x.EnvironmentId)&&x.Enabled).Select(x=>new ExpectedObservationNode(x.EnvironmentId,x.NodeName)).ToArrayAsync(ct);
         var workingIds=await db.Set<Policy>().AsNoTracking().Where(p=>p.OrganizationId==scope.OrganizationId&&(p.ProjectId==null||p.ProjectId==scope.ProjectId)).Select(p=>p.Id).ToArrayAsync(ct);

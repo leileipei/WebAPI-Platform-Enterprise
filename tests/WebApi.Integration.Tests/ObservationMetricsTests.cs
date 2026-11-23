@@ -211,7 +211,8 @@ public sealed class ObservationMetricsTests
         await deployment.AckAsync(1, envelope);
         source.End = DateTimeOffset.UtcNow;
         using var filtered = await f.Client.GetAsync(Url(f, source, suffix: $"&destinationId={target.Id}"));
-        Assert.Equal(HttpStatusCode.NotFound, filtered.StatusCode);
+        filtered.EnsureSuccessStatusCode();
+        Assert.Equal(200, Value((await filtered.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!, "request_count").Value);
         using var environment = await f.Client.GetAsync(Url(f, source));
         environment.EnsureSuccessStatusCode();
         var retired = (await environment.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;

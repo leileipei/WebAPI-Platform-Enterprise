@@ -14,7 +14,7 @@ async function component(){
  server=await createServer({root,configFile:false,optimizeDeps:{noDiscovery:true,include:[]},server:{middlewareMode:true,hmr:false},appType:'custom'});
  view=(await server.ssrLoadModule('/src/workbench/WorkbenchView.tsx')).WorkbenchView;return view;
 }
-const empty={api:{state:'denied'},metrics:{state:'denied'},nodes:{state:'denied'},alerts:{state:'denied'},releases:{state:'denied'}};
+const empty={pending:{state:'denied'},api:{state:'denied'},metrics:{state:'denied'},nodes:{state:'denied'},alerts:{state:'denied'},releases:{state:'denied'}};
 // Catches unauthorized links and showing zero/healthy status when no authorized data exists.
 test('a denied workbench shows no resource detail links or invented zero counts',async()=>{
  const View=await component();assert.equal(typeof View,'function');
@@ -24,11 +24,11 @@ test('a denied workbench shows no resource detail links or invented zero counts'
 });
 test('workbench renders scoped counts, partial coverage and real detail links without claiming all pending tasks',async()=>{
  const View=await component();assert.equal(typeof View,'function');
- const results={...empty,api:{state:'ready',data:{total:87}},metrics:{state:'ready',data:{sourceState:'Partial',coverage:{complete:false,missingNodes:['node-b'],reason:'missing_or_stale_nodes'},observedAt:null,sampling:{ratio:1,mode:'Estimate'},data:{kpis:[{metric:'success_ratio',value:.98,unit:'ratio',state:'Available',sampleCount:5}],trends:{},groups:[]}}},nodes:{state:'ready',data:{total:99,items:[{id:'node-id',nodeName:'Node A',enabled:true,offline:true,status:'Ready',currentConfigVersion:4,currentDeploymentSequence:4,desiredConfigVersion:4,desiredDeploymentSequence:4}]}},releases:{state:'ready',data:{total:98,items:[{id:'release-id',releaseNo:'REL-123',state:'WaitingApproval',createdAt:'2026-10-06T09:00:00Z',targets:[]}]}}};
+ const results={...empty,pending:{state:'ready',data:{page:{total:142,items:[{id:'other-release',releaseNo:'PERSONAL-1',environment:{id:'other-env',name:'其他环境'},approvalEligibility:{currentStepOrder:2},createdAt:'2026-10-05T08:00:00Z'}]}}},api:{state:'ready',data:{total:87}},metrics:{state:'ready',data:{sourceState:'Partial',coverage:{complete:false,missingNodes:['node-b'],reason:'missing_or_stale_nodes'},observedAt:null,sampling:{ratio:1,mode:'Estimate'},data:{kpis:[{metric:'success_ratio',value:.98,unit:'ratio',state:'Available',sampleCount:5}],trends:{},groups:[]}}},nodes:{state:'ready',data:{total:99,items:[{id:'node-id',nodeName:'Node A',enabled:true,offline:true,status:'Ready',currentConfigVersion:4,currentDeploymentSequence:4,desiredConfigVersion:4,desiredDeploymentSequence:4}]}},releases:{state:'ready',data:{total:98,items:[{id:'release-id',releaseNo:'REL-123',state:'WaitingApproval',createdAt:'2026-10-06T09:00:00Z',targets:[]}]}}};
  const html=renderToStaticMarkup(createElement(View,{results,end:'2026-10-06T10:00:00Z',refresh:()=>{}}));
  assert.match(html,/87/);assert.match(html,/98.00%/);assert.match(html,/数据覆盖不完整/);assert.match(html,/Offline/);
  assert.match(html,/href="\/nodes\/node-id"/);assert.match(html,/href="\/releases\/release-id"/);
- assert.match(html,/最近.*待审批/);assert.doesNotMatch(html,/待我审批/);
+ assert.match(html,/待我审批/);assert.match(html,/PERSONAL-1/);assert.match(html,/142/);
  assert.match(html,/99/);assert.match(html,/展示前/);
 });
 

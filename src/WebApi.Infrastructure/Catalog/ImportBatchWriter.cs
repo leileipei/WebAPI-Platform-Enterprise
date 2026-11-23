@@ -70,12 +70,26 @@ public sealed class ImportBatchWriter(WebApiDbContext db,AuthorizationService au
                 for(var i=0;i<parsed.Parameters.Count;i++){var p=parsed.Parameters[i];var entity=new ApiParameter{ApiVersionId=version.Id,Location=p.Location,Name=p.Name,DataType=p.DataType,Required=p.Required,Schema=p.Schema,Description=p.Description,ExampleJson=p.ExampleJson};db.Add(entity);var origin=parsed.Origins.Single(x=>x.Kind=="parameter"&&x.Index==i);sourceDefinitions.Add(new(entity.Id,"parameter",origin.ResourceUri,origin.Pointer,VersionContractSourceService.DocumentHash(p.Schema??throw new InvalidOperationException("Parsed parameter must include a schema."))));}
                 for(var i=0;i<parsed.Schemas.Count;i++){var s=parsed.Schemas[i];var entity=new ApiSchema{ApiVersionId=version.Id,SchemaType=s.SchemaType,Name=s.Name,StatusCode=s.StatusCode,ContentType=s.ContentType,SchemaJson=s.SchemaJson,SchemaHash=CatalogService.Hash(s.SchemaJson),ExampleJson=s.ExampleJson};db.Add(entity);var origin=parsed.Origins.Single(x=>x.Kind=="schema"&&x.Index==i);sourceDefinitions.Add(new(entity.Id,"schema",origin.ResourceUri,origin.Pointer,VersionContractSourceService.DocumentHash(s.SchemaJson),ResponseSelector:origin.ResponseSelector));}
                 sourceRow.SourcesJson=JsonSerializer.Serialize(new ContractSourceMetadata(bundle.Documents.Select(d=>new ContractResourceSource(d.Source.LogicalUri,d.Source.Format)).ToArray(),sourceDefinitions,VersionContractSourceService.DocumentHash(version.OpenapiDocument)),CanonicalJson.Options);
-                var normalized=RouteNormalizer.Normalize(parsed.Path);var route=target.ExistingRouteId is Guid rid?await db.Set<ApiRoute>().SingleOrDefaultAsync(r=>r.Id==rid&&r.ApiVersionId==version.Id&&r.EnvironmentId==targetScope.EnvironmentId,token)??throw new ApiException(422,"foreign_route","路由不属于导入版本和环境。"):new ApiRoute {ApiVersionId=version.Id,EnvironmentId=targetScope.EnvironmentId};
-                if(target.ExistingRouteId is not null) {RevisionTag.Require(target.ExpectedRouteRevision is long rev?RevisionTag.Format(rev):null,route.Revision);route.Revision++;}else db.Add(route);
-                if(!routeKeys.Add(parsed.Method+":"+normalized)||await db.Set<RouteMethod>().AnyAsync(m=>m.EnvironmentId==targetScope.EnvironmentId&&m.Method==parsed.Method&&m.NormalizedPath==normalized&&m.RouteId!=route.Id,token)) throw new ApiException(409,"route_conflict","导入路由与启用工作区路由冲突。");
-                route.RouteName=parsed.SuggestedCode;route.Path=parsed.Path;route.NormalizedPath=normalized;route.Methods=[parsed.Method];route.ClusterId=targetScope.ClusterId;route.Priority=100;route.Enabled=true;route.TimeoutMs=target.ExistingRouteId is not null?30000:(await settings.GatewayAsync(token)).DefaultRouteTimeoutMs;route.UpdatedAt=DateTimeOffset.UtcNow;
-                var oldMethods=await db.Set<RouteMethod>().Where(m=>m.RouteId==route.Id).ToArrayAsync(token);db.RemoveRange(oldMethods.Where(m=>m.Method!=parsed.Method));var oldMethod=oldMethods.SingleOrDefault(m=>m.Method==parsed.Method);if(oldMethod is not null) oldMethod.NormalizedPath=normalized;else db.Add(new RouteMethod {RouteId=route.Id,Method=parsed.Method,EnvironmentId=targetScope.EnvironmentId,NormalizedPath=normalized});
-                if(target.ExistingRouteId is null) {var policy=new Policy {OrganizationId=scope.OrganizationId,ProjectId=scope.ProjectId,Name="RouteAuth-"+route.Id,Type="authentication",Config=JsonSerializer.Serialize(new {mode="ApiKey"})};db.Add(policy);db.Add(new RoutePolicyBinding {RouteId=route.Id,PolicyId=policy.Id});}
+                ApiRoute route;
+                if(target.ExistingRouteId is Guid routeId)
+                {
+                    route=await db.Set<ApiRoute>().SingleOrDefaultAsync(r=>r.Id==routeId&&r.ApiVersionId==version.Id&&r.EnvironmentId==targetScope.EnvironmentId,token)
+                        ??throw new ApiException(422,"foreign_route","路由不属于导入版本和环境。");
+                    RevisionTag.Require(target.ExpectedRouteRevision is long rev?RevisionTag.Format(rev):null,route.Revision);
+                }
+                else
+                {
+                    var normalized=RouteNormalizer.Normalize(parsed.Path);
+                    if(!routeKeys.Add(parsed.Method+":"+normalized)||await db.Set<RouteMethod>().AnyAsync(m=>m.EnvironmentId==targetScope.EnvironmentId&&m.Method==parsed.Method&&m.NormalizedPath==normalized,token))
+                        throw new ApiException(409,"route_conflict","导入路由与启用工作区路由冲突。");
+                    route=new ApiRoute {ApiVersionId=version.Id,EnvironmentId=targetScope.EnvironmentId,RouteName=parsed.SuggestedCode,
+                        Path=parsed.Path,NormalizedPath=normalized,Methods=[parsed.Method],ClusterId=targetScope.ClusterId,Priority=100,
+                        Enabled=true,TimeoutMs=(await settings.GatewayAsync(token)).DefaultRouteTimeoutMs};
+                    db.Add(route);
+                    db.Add(new RouteMethod {RouteId=route.Id,Method=parsed.Method,EnvironmentId=targetScope.EnvironmentId,NormalizedPath=normalized});
+                    var policy=new Policy {OrganizationId=scope.OrganizationId,ProjectId=scope.ProjectId,Name="RouteAuth-"+route.Id,Type="authentication",Config=JsonSerializer.Serialize(new {mode="ApiKey"})};
+                    db.Add(policy);db.Add(new RoutePolicyBinding {RouteId=route.Id,PolicyId=policy.Id});
+                }
                 operations.Add(new(parsed.Id,api.Id,version.Id,route.Id));
             }
             return new ImportCommitResponse(Guid.NewGuid(),operations,warnings.Distinct().ToArray());

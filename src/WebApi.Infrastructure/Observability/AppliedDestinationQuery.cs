@@ -8,6 +8,7 @@ namespace WebApi.Infrastructure.Observability;
 internal sealed class DestinationMembership(Dictionary<Guid, ObservationDestination> working)
 {
     internal Dictionary<Guid, ObservationDestination> Destinations { get; } = new(working);
+    internal HashSet<Guid> AtWindowEnd { get; } = new(working.Keys);
     internal Dictionary<ExpectedObservationNode, HashSet<(Guid ClusterId, Guid DestinationId)>> Applied { get; } = [];
     internal HashSet<ExpectedObservationNode> UnconfirmedNodes { get; } = [];
     internal HashSet<Guid> UnconfirmedEnvironments { get; } = [];
@@ -27,12 +28,13 @@ internal static class AppliedDestinationQuery
     private sealed record NodeEvidence(Guid EnvironmentId, string? NodeName, string? InstanceId, bool HasDeployment,
         Guid? CurrentVersion, long? CurrentSequence, DateTimeOffset? AcknowledgedAt, string? CurrentInstanceAppliedAt,
         Guid? PreviousVersion, long? PreviousSequence, string? PreviousInstance);
-    private sealed record NodeVersion(ExpectedObservationNode Node, Guid Version, long Sequence, bool Confirmed);
+    private sealed record NodeVersion(ExpectedObservationNode Node, Guid Version, long Sequence, bool Confirmed, bool WindowOnly = false);
+    private sealed record WindowVersion(Guid EnvironmentId, string NodeName, Guid Version, long Sequence);
     private sealed record Member(Guid VersionId, Guid? RuntimeCluster, Guid? ClusterId, Guid? DestinationId);
     private sealed record FrozenName(Guid VersionId, Guid RuntimeCluster, Guid ClusterId, Guid DestinationId, string Name);
 
     internal static async Task<DestinationMembership> ReadAsync(WebApiDbContext db, Guid organization, Guid project,
-        Guid[] environments, DateTimeOffset? asOf, CancellationToken ct, bool includeNames = true)
+        Guid[] environments, DateTimeOffset? asOf, CancellationToken ct, bool includeNames = true, DateTimeOffset? windowStart = null)
     {
         var working = await (from d in db.Set<UpstreamDestination>().AsNoTracking()
             join c in db.Set<UpstreamCluster>() on d.ClusterId equals c.Id
@@ -47,7 +49,7 @@ internal static class AppliedDestinationQuery
             SELECT e.id AS "EnvironmentId", n.node_name AS "NodeName", n.instance_id AS "InstanceId",
                 (e.desired_config_version > 0) IS TRUE AS "HasDeployment",
                 v.id AS "CurrentVersion", r.deployment_sequence AS "CurrentSequence", a.applied_at AS "AcknowledgedAt",
-                CASE WHEN t.node_id IS NOT NULL AND n.metadata->'runtimeApplication' @> jsonb_build_object(
+                CASE WHEN n.metadata->'runtimeApplication' @> jsonb_build_object(
                     'schemaVersion', 1, 'instanceId', n.instance_id, 'releaseId', r.id,
                     'configVersion', v.version_no, 'deploymentSequence', r.deployment_sequence, 'payloadHash', v.snapshot_hash)
                     THEN n.metadata->'runtimeApplication'->>'appliedAt' END AS "CurrentInstanceAppliedAt",
@@ -100,6 +102,40 @@ internal static class AppliedDestinationQuery
                 result.UnconfirmedEnvironments.Add(node.EnvironmentId);
             }
         }
+        if (windowStart is { } start)
+        {
+            // A valid application owns its interval until the next application, restart or disable.
+            // Historical identities are usable for traffic only. They cannot supply current health.
+            var history = await db.Database.SqlQuery<WindowVersion>($"""
+                WITH nodes AS MATERIALIZED (
+                    SELECT n.id, n.environment_id, n.node_name FROM gateway_nodes n
+                    JOIN environments e ON e.id=n.environment_id WHERE e.project_id={project} AND e.id=ANY({environments})
+                ), applications AS (
+                    SELECT n.id, n.environment_id, n.node_name, a.applied_at AS at, v.id AS version, a.deployment_sequence AS seq
+                    FROM nodes n JOIN gateway_acks a ON a.node_id=n.id AND a.success AND a.applied_at < {end}
+                    JOIN release_targets t ON t.release_id=a.release_id AND t.node_id=n.id AND t.instance_id=a.instance_id
+                    JOIN release_records r ON r.id=a.release_id AND r.environment_id=n.environment_id
+                        AND r.deployment_sequence=a.deployment_sequence AND r.to_config_version=a.config_version
+                    JOIN gateway_config_versions v ON v.environment_id=n.environment_id AND v.version_no=a.config_version AND v.snapshot_hash=a.payload_hash
+                    UNION ALL
+                    SELECT n.id, n.environment_id, n.node_name, (ev.detail->>'appliedAt')::timestamptz, v.id, r.deployment_sequence
+                    FROM nodes n JOIN gateway_node_events ev ON ev.gateway_node_id=n.id AND ev.event_type='runtime_applied'
+                    JOIN release_records r ON r.id::text=ev.detail->>'releaseId' AND r.environment_id=n.environment_id
+                        AND r.to_config_version::text=ev.detail->>'configVersion' AND r.deployment_sequence::text=ev.detail->>'deploymentSequence'
+                    JOIN gateway_config_versions v ON v.environment_id=n.environment_id AND v.version_no=r.to_config_version AND v.snapshot_hash=ev.detail->>'payloadHash'
+                    WHERE (ev.detail->>'appliedAt')::timestamptz < {end}
+                    UNION ALL
+                    SELECT n.id, n.environment_id, n.node_name, ev.created_at, NULL::uuid, 0::bigint
+                    FROM nodes n JOIN gateway_node_events ev ON ev.gateway_node_id=n.id
+                    WHERE ev.event_type IN ('registered','usage.node.disabled') AND ev.created_at < {end}
+                ), intervals AS (
+                    SELECT *, lead(at) OVER (PARTITION BY id ORDER BY at, seq) AS until FROM applications
+                )
+                SELECT DISTINCT environment_id AS "EnvironmentId", node_name AS "NodeName", version AS "Version", seq AS "Sequence"
+                FROM intervals WHERE version IS NOT NULL AND (until IS NULL OR until > {start})
+                """).ToArrayAsync(ct);
+            versions.AddRange(history.Select(v => new NodeVersion(new(v.EnvironmentId, v.NodeName), v.Version, v.Sequence, false, true)));
+        }
         if (versions.Count == 0) return result;
 
         // Only the hash-verified delivered bytes establish identity. Names live in the original frozen
@@ -134,11 +170,11 @@ internal static class AppliedDestinationQuery
         }
         var snapshots = members.ToLookup(row => row.VersionId);
         var named = new HashSet<Guid>();
-        foreach (var version in versions.OrderByDescending(n => n.Confirmed).ThenByDescending(n => n.Sequence))
+        foreach (var version in versions.OrderBy(n => n.WindowOnly).ThenByDescending(n => n.Confirmed).ThenByDescending(n => n.Sequence))
         {
             var rows = snapshots[version.Version];
             var valid = snapshots.Contains(version.Version);
-            if (!version.Confirmed || !valid)
+            if (!version.WindowOnly && (!version.Confirmed || !valid))
             {
                 result.UnconfirmedNodes.Add(version.Node);
                 result.UnconfirmedEnvironments.Add(version.Node.EnvironmentId);
@@ -148,6 +184,7 @@ internal static class AppliedDestinationQuery
             {
                 if (member.ClusterId is not Guid cluster || member.DestinationId is not Guid destination) continue;
                 set.Add((cluster, destination));
+                if (!version.WindowOnly) result.AtWindowEnd.Add(destination);
                 if (named.Add(destination))
                     result.Destinations[destination] = new(destination, cluster, version.Node.EnvironmentId, names.GetValueOrDefault(member) ?? "未知后端", true);
             }

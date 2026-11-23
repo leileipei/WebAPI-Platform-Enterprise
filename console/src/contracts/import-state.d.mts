@@ -11,3 +11,6 @@ export function acceptImportPreview(state:any,input:any,preview:any,requestSeque
 export function importPolicyScope(scope:any):string;
 export function selectImportPolicy(scope:any,remote:any,override:any):any;
 export function acceptImportPolicySave(current:{scope:string;generation:number},captured:{scope:string;generation:number},value:any):any;
+
+export function makeImportAttempt(state:any,key:string):{key:string;identity:string;previewId:string;body:string};
+export function matchesImportAttempt(state:any):boolean;

@@ -65,4 +65,55 @@ public sealed class PipelineProjectionTests
  [Fact] public async Task ChangedActualClassificationCannotPassFrozenNonProductionProfile()
  {await using var s=new PipelineScenario();await s.InitializeEnvironmentsAsync();var (run,_)=await AcceptSourceAsync(s);await using(var db=s.Api.Context()){(await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==run.SourceEnvironmentId)).IsProduction=true;await db.SaveChangesAsync();}await ProjectAsync(s.Api,run.Id);await using var verify=s.Api.Context();Assert.Equal(1,(await verify.Set<ReleasePipelineRun>().SingleAsync(r=>r.Id==run.Id)).CurrentStageOrder);Assert.Equal("AwaitingAcceptance",(await verify.Set<ReleasePipelineRunStage>().SingleAsync(s=>s.Id==run.Stages[0].Id)).Status);Assert.Equal(1,await verify.Set<ReleasePipelineStageAttempt>().CountAsync(a=>a.RunId==run.Id));}
 
+    [Fact]
+    public async Task SuccessfulRollbackDuringVerificationEndsTheRunAndReleasesTheProject()
+    {
+        await using var fixture=new PipelinePromotionFixture();
+        await fixture.InitializeAsync(2);
+        var api=fixture.Scenario.Api;
+        await using (var db=api.Context())
+        {
+            // The standard synthetic bootstrap baseline has an empty snapshot. Supply its matching empty frozen candidate.
+            var baseline=await db.Set<ReleaseRecord>().SingleAsync(r=>r.EnvironmentId==fixture.TargetEnvironmentId&&r.ToConfigVersion==1);
+            baseline.CandidateBytes=CanonicalJson.Serialize(new FrozenReleaseCandidate(fixture.TargetEnvironmentId,api.Organization.Id,api.Project.Id,0,[],[],[],[],[],[],[],[]));
+            baseline.ApprovalPolicy="[]";
+            await db.SaveChangesAsync();
+        }
+        var promotion=await PipelineExecutionTests.ReadyAsync(fixture);
+        await PipelineExecutionTests.SeedSucceededAfterRealBuildAsync(fixture,promotion);
+        var stagePath=$"/api/v1/release-pipeline-run-stages/{fixture.TargetStageId}";
+        var before=await fixture.Scenario.Creator.GetFromJsonAsync<PipelineStageDto>(stagePath);
+        Assert.Equal("AwaitingVerification",before!.Status);
+        var sourcePath=$"/api/v1/environments/{fixture.TargetEnvironmentId}/snapshots/rollback-source";
+        var current=(await fixture.Scenario.Creator.GetFromJsonAsync<System.Text.Json.JsonElement>(sourcePath)).GetProperty("source");
+        Assert.Equal(promotion.TargetReleaseId,current.GetProperty("releaseId").GetGuid());
+        using var created=await ApiFixture.CommandAsync(fixture.Scenario.Creator,$"/api/v1/releases/{promotion.TargetReleaseId}/rollback",new CreateRollbackRequest(1));
+        Assert.True(created.IsSuccessStatusCode,await created.Content.ReadAsStringAsync());
+        var rollback=(await created.Content.ReadFromJsonAsync<ReleaseDto>())!.Id;
+        using var submitted=await ApiFixture.CommandAsync(fixture.Scenario.Creator,$"/api/v1/releases/{rollback}/submit");
+        Assert.True(submitted.IsSuccessStatusCode,await submitted.Content.ReadAsStringAsync());
+        foreach(var role in new[]{"ApiApprover","SecurityReviewer"})
+        {
+            var reviewer=await PipelineExecutionTests.ApproverAsync(fixture,role);
+            using var approved=await ApiFixture.CommandAsync(reviewer.Client,$"/api/v1/releases/{rollback}/approve",new{comment="合成环境回滚审批"});
+            Assert.True(approved.IsSuccessStatusCode,await approved.Content.ReadAsStringAsync());
+        }
+        using var executed=await ApiFixture.CommandAsync(fixture.Scenario.Creator,$"/api/v1/releases/{rollback}/publish");
+        Assert.True(executed.IsSuccessStatusCode,await executed.Content.ReadAsStringAsync());
+        await fixture.Scenario.Source.Deployment.BuildQueuedAsync();
+        await fixture.Scenario.AcknowledgeAsync(rollback);
+        await fixture.Scenario.ProjectAsync(fixture.Run.Id);
+        var after=await fixture.Scenario.Creator.GetFromJsonAsync<PipelineStageDto>(stagePath);
+        Assert.Equal("RolledBack",after!.ActualReleaseStatus);
+        Assert.Equal("Invalidated", after.RunStatus);
+        Assert.Equal("Invalidated", after.Status);
+        Assert.Equal(rollback, after.Rollback?.ReleaseId);
+        Assert.Equal(1, after.Rollback?.ConfigVersion);
+        var newSource=(await fixture.Scenario.Creator.GetFromJsonAsync<System.Text.Json.JsonElement>(sourcePath)).GetProperty("source");
+        Assert.Equal(rollback,newSource.GetProperty("releaseId").GetGuid());
+        Assert.Equal(1,newSource.GetProperty("configVersion").GetInt64());
+        Assert.Contains(after.Events, e => e.ReasonCode == "stage_release_rolled_back");
+        using var replacement=await fixture.Scenario.TryStartAsync(fixture.Run.PipelineVersionId);
+        replacement.EnsureSuccessStatusCode();
+    }
 }

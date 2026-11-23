@@ -458,3 +458,25 @@ test('returning to the list while a conflict read is pending keeps the next node
     [detailPath(first)+'/enabled','"worker-a:True"',412],[detailPath(second)+'/enabled','"worker-b:False"',200]
   ]);
 });
+
+test('node operations show the reported sample and the selected instance receipt',async t=>{
+  const {page,nodes,open}=await fixture(t);
+  nodes[first].diagnostics={instanceId:nodes[first].instanceId,observedAt:new Date().toISOString(),cpuPercent:18.25,workingSetBytes:73400320,lastKnownGoodVersion:3};
+  const operation={id:'operation-a',nodeId:first,instanceId:nodes[first].instanceId};
+  let revision;
+  await page.route('**/api/v1/gateway-nodes/'+first+'/retry',route=>{
+    revision=route.request().headers()['if-match'];
+    return route.fulfill({status:202,json:{...operation,state:'Queued'}});
+  });
+  await page.route('**/api/v1/gateway-nodes/'+first+'/operations/operation-a',route=>
+    route.fulfill({json:{...operation,state:'Completed',outcome:'applied'}}));
+  await page.goto(origin+'/nodes');
+  await page.getByRole('columnheader',{name:'应用版本'}).waitFor();
+  await open();
+  await page.getByText('70.0 MiB',{exact:true}).waitFor();
+  await page.getByText('v3',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('link',{name:'下载诊断包'}).getAttribute('href'),'/api/v1/gateway-nodes/'+first+'/diagnostics');
+  await button(page,'重试当前配置').click();
+  await page.getByText('配置已应用并确认',{exact:true}).waitFor();
+  assert.equal(revision,nodes[first].eTag);
+});

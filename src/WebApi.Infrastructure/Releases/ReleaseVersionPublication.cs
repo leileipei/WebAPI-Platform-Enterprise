@@ -46,6 +46,7 @@ internal static class ReleaseVersionPublication
             .ToDictionaryAsync(fact => fact.Id, ct);
         foreach (var version in versions)
         {
+            if(version.Status=="Retired")continue;
             otherFacts.TryGetValue(version.Id, out var facts);
             var published = release.Status == "Succeeded" || facts?.Published == true;
             version.Status = facts?.Pending == true ? "Publishing" : published ? "Published" : "Draft";

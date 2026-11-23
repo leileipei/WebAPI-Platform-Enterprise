@@ -51,6 +51,31 @@ public sealed class EnvironmentApiAccessTests
         using var mismatch=await s.Api.Client.GetAsync(Entry(s.Api,query:$"versionId={Guid.NewGuid()}"));Assert.Equal(HttpStatusCode.NotFound,mismatch.StatusCode);
         using var doc=await s.Api.Client.GetAsync(Entry(s.Api,"openapi",""));doc.EnsureSuccessStatusCode();Assert.Contains("https://api.test/gateway",await doc.Content.ReadAsStringAsync());
     }
+    [Fact]
+    public async Task RetirementPreservesRunningContractDownloadOnlyForTheSameSealedContent()
+    {
+        await using var s=new DeploymentScenario();
+        await s.InitializeAsync();
+        await Configure(s.Api);
+        await using(var db=s.Api.Context()){
+            var version=await db.Set<ApiVersion>().SingleAsync();
+            version.OpenapiDocument=Document;
+            await db.SaveChangesAsync();
+        }
+        await s.PublishAsync();
+        var endpoint=$"/api/v1/versions/{s.Api.Version.Id}";
+        using var versionResponse=await s.Api.Client.GetAsync(endpoint);
+        using var retired=await s.Api.WriteAsync(HttpMethod.Post,endpoint+"/retire",new{},versionResponse.Headers.ETag!.Tag);
+        retired.EnsureSuccessStatusCode();
+        using var download=await s.Api.Client.GetAsync(Entry(s.Api,"openapi","view=running"));
+        Assert.True(download.IsSuccessStatusCode,await download.Content.ReadAsStringAsync());
+        await using(var db=s.Api.Context()){
+            await db.Set<ApiVersion>().Where(v=>v.Id==s.Api.Version.Id).ExecuteUpdateAsync(u=>u.SetProperty(v=>v.ChangeType,"breaking"));
+        }
+        using var different=await s.Api.Client.GetAsync(Entry(s.Api,"openapi","view=running"));
+        Assert.Equal(HttpStatusCode.UnprocessableEntity,different.StatusCode);
+        Assert.Contains("historical_contract_changed",await different.Content.ReadAsStringAsync());
+    }
     [Fact] public async Task ImportedVersionUsesOnlyItsSelectedOperationFromSharedSourceBundle()
     {
         await using var api=await ImportSessionTests.Setup();await Configure(api);var preview=await ImportSessionTests.Preview(api);using var committed=await api.WriteAsync(HttpMethod.Post,$"/api/v1/openapi/import-previews/{preview.PreviewId}/commit",ImportSessionTests.Commit(preview));committed.EnsureSuccessStatusCode();

@@ -13,7 +13,7 @@ using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
 namespace WebApi.Infrastructure.Governance;
-public sealed class GovernanceService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IPasswordHasher<UserRecord> passwords,SystemSettingsReader settings,AuditAccessQuery auditAccess,LocalAdministratorGuard localAdministrators,ICredentialArchivedIngressWitness? archiveWitness=null)
+public sealed partial class GovernanceService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IPasswordHasher<UserRecord> passwords,SystemSettingsReader settings,AuditAccessQuery auditAccess,LocalAdministratorGuard localAdministrators,ICredentialArchivedIngressWitness? archiveWitness=null)
 {
     private static readonly ScopeRef platform=new(Guid.Empty);
     private static OrganizationDto Dto(Organization x)=>new(x.Id,x.Code,x.Name,x.Status,x.Revision);
@@ -94,9 +94,11 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
             })
             .ToDictionaryAsync(row => row.ProjectId, row => (int?)row.Count, ct);
 
+        var ownerIds=projects.Where(p=>p.OwnerUserId.HasValue).Select(p=>p.OwnerUserId!.Value).Distinct().ToArray();
+        var owners=await db.Set<UserRecord>().AsNoTracking().Where(u=>ownerIds.Contains(u.Id)).ToDictionaryAsync(u=>u.Id,u=>u.DisplayName,ct);
         var items = projects.Select(project => new ProjectListItemDto(
             project.Id, project.OrganizationId, project.Code, project.Name, project.Status, project.Revision, project.OwnerUserId,
-            environmentCounts.GetValueOrDefault(project.Id), apiCounts.GetValueOrDefault(project.Id), applicationCounts.GetValueOrDefault(project.Id))).ToArray();
+            environmentCounts.GetValueOrDefault(project.Id), apiCounts.GetValueOrDefault(project.Id), applicationCounts.GetValueOrDefault(project.Id),project.OwnerUserId is Guid owner?owners.GetValueOrDefault(owner):null)).ToArray();
         return new(items, total, pageNumber, size);
     }
     public async Task<EnvironmentDetailDto> EnvironmentAsync(Guid id,ActorContext actor,CancellationToken ct=default)
@@ -172,7 +174,19 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         await Require(actor,"user.manage",platform,Guid.Empty,ct);page=Math.Clamp(page,1,1000000);pageSize=Math.Clamp(pageSize,1,100);var query=db.Set<UserRecord>().AsNoTracking();var total=await query.CountAsync(ct);var list=await query.OrderBy(x=>x.Username).ThenBy(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).ToArrayAsync(ct);
         if(list.Length==0)return new([],total,page,pageSize);
         var ids=list.Select(u=>u.Id).ToArray();var roles=(await db.Set<UserRole>().AsNoTracking().Where(r=>ids.Contains(r.UserId)).Select(r=>new {r.UserId,r.RoleId}).ToArrayAsync(ct)).ToLookup(r=>r.UserId,r=>r.RoleId);
-        var result=list.Select(u=>new UserDto(u.Id,u.Username,u.DisplayName,u.Email,u.Status,u.AuthSource,u.Revision,roles[u.Id].ToArray(),u.MustChangePassword)).ToArray();return new(result,total,page,pageSize);
+        var scopeCounts=await auth.CanAsync(actor,"scope.manage",new("user",Guid.Empty,platform),ct)
+            ?await db.Set<UserProjectScope>().AsNoTracking().Where(g=>ids.Contains(g.UserId)).GroupBy(g=>g.UserId)
+                .Select(g=>new{Id=g.Key,Total=g.Count(),Write=g.Count(x=>x.AccessMode=="read_write")}).ToDictionaryAsync(g=>g.Id,ct):null;
+        var result=list.Select(u=>new UserDto(u.Id,u.Username,u.DisplayName,u.Email,u.Status,u.AuthSource,u.Revision,roles[u.Id].ToArray(),u.MustChangePassword,
+            scopeCounts==null?null:scopeCounts.GetValueOrDefault(u.Id)?.Total??0,scopeCounts==null?null:scopeCounts.GetValueOrDefault(u.Id)?.Write??0)).ToArray();
+        return new(result,total,page,pageSize);
+
+    }
+    public async Task<UserDto> UserAsync(Guid id,ActorContext actor,CancellationToken ct)
+    {
+        await Require(actor,"user.manage",platform,id,ct);
+        var user=await db.Set<UserRecord>().AsNoTracking().SingleOrDefaultAsync(u=>u.Id==id,ct)??throw ScopeResolver.Missing();
+        return await UserDtoAsync(user,ct);
     }
     private async Task<UserDto> UserDtoAsync(UserRecord u,CancellationToken ct)=>new(u.Id,u.Username,u.DisplayName,u.Email,u.Status,u.AuthSource,u.Revision,await db.Set<UserRole>().Where(r=>r.UserId==u.Id).Select(r=>r.RoleId).ToArrayAsync(ct),u.MustChangePassword);
     public Task<CommandResult<UserDto>> CreateUserAsync(CreateUserRequest request,ActorContext actor,CancellationToken ct=default)=>commands.ExecuteAsync(actor,platform,"user.create",async(_,token)=>{
@@ -199,7 +213,7 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
         await localAdministrators.ProtectRemovalAsync(id,ct);
     }
     private async Task ProtectOrganizationAdministratorsAsync(Guid userId, CancellationToken ct,
-        Guid[]? retainedRoleIds = null, Guid[]? retainedOrganizationIds = null)
+        Guid[]? retainedRoleIds = null, Guid[]? retainedOrganizationIds = null, Guid? onlyOrganization = null)
     {
         var activeGrants = SsoAdmission.ActiveOrganizationGrants(db);
         var usableSsoAccounts = from identity in db.Set<UserExternalIdentity>()
@@ -208,13 +222,13 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
                                     (provider.OrganizationId == null || activeGrants.Any(grant =>
                                         grant.UserId == identity.UserId && grant.OrganizationId == provider.OrganizationId))
                                 select identity.UserId;
+        var adminRoles=AdministratorRoles();
         var administrators = from grant in db.Set<UserProjectScope>()
                              join user in db.Set<UserRecord>() on grant.UserId equals user.Id
                              join assignment in db.Set<UserRole>() on user.Id equals assignment.UserId
-                             join role in db.Set<Role>() on assignment.RoleId equals role.Id
+                             join role in adminRoles on assignment.RoleId equals role.Id
                              where user.Status == "Active" && grant.ProjectId == null && grant.EnvironmentId == null
-                                 && grant.AccessMode == "read_write" && role.IsSystem && role.OrganizationId == null
-                                 && role.Code == "OrganizationAdmin"
+                                 && grant.AccessMode == "read_write" && (role.OrganizationId == null || role.OrganizationId == grant.OrganizationId)
                              select new
                              {
                                  grant.UserId, grant.OrganizationId, assignment.RoleId, user.MustChangePassword,
@@ -224,8 +238,10 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
 
         // The governance transaction lock covers both the old assignments and the pending write.
         var lost = administrators.Where(member => member.UserId == userId);
+        if(onlyOrganization.HasValue)lost=lost.Where(member=>member.OrganizationId==onlyOrganization.Value);
         if (retainedRoleIds is { Length: > 0 })
-            lost = lost.Where(member => !retainedRoleIds.Contains(member.RoleId));
+            lost = lost.Where(member => !adminRoles.Any(role => retainedRoleIds.Contains(role.Id)
+                && (role.OrganizationId==null || role.OrganizationId==member.OrganizationId)));
         if (retainedOrganizationIds is { Length: > 0 })
             lost = lost.Where(member => !retainedOrganizationIds.Contains(member.OrganizationId));
 
@@ -297,7 +313,8 @@ public sealed class GovernanceService(WebApiDbContext db,AuthorizationService au
                           select new { grant.RoleId, permission.Code };
         return await roles.OrderBy(r => r.Name).ThenBy(r => r.Id)
             .Select(r => new RoleDto(r.Id, r.Code, r.Name, r.OrganizationId, r.IsSystem, r.Revision,
-                permissions.Where(p => p.RoleId == r.Id).OrderBy(p => p.Code).Select(p => p.Code).ToArray()))
+                permissions.Where(p => p.RoleId == r.Id).OrderBy(p => p.Code).Select(p => p.Code).ToArray(),
+                db.Set<UserRole>().Count(assignment=>assignment.RoleId==r.Id)))
             .ToArrayAsync(ct);
     }
     private async Task<RoleDto> RoleDtoAsync(Role r,CancellationToken ct)=>new(r.Id,r.Code,r.Name,r.OrganizationId,r.IsSystem,r.Revision,await(from rp in db.Set<RolePermission>() join p in db.Set<Permission>() on rp.PermissionId equals p.Id where rp.RoleId==r.Id select p.Code).ToArrayAsync(ct));

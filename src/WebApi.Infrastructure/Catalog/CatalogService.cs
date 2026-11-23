@@ -84,33 +84,46 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
                 v?.Api?.Id == api.Id && v.Version is { } version && version.Id != Guid.Empty && version.ApiId == api.Id) == true;
     }
 
-    private async Task<Guid?> PendingReleaseAsync(Api api, VersionDto[] versions, Guid[] environments, ActorContext actor, CancellationToken ct)
+    private async Task<Guid?> PendingReleaseAsync(Api api,VersionDto[] versions,Guid[] environments,ActorContext actor,CancellationToken ct)
     {
-        if (environments.Length == 0) return null;
-        var readable = visibility.Scopes(actor, "release.read");
-        var pending = db.Set<ReleaseRecord>().AsNoTracking().Where(r =>
-            environments.Contains(r.EnvironmentId) && readable.Any(s => s.EnvironmentId == r.EnvironmentId) &&
-            r.CandidateBytes != null && (r.Status == "Draft" || r.Status == "WaitingApproval" || r.Status == "Ready" ||
-                r.Status == "Building" || r.Status == "Publishing"));
-        var versionIds = versions.Select(v => v.Id).ToHashSet();
-        const int batchSize = 16;
-        (DateTimeOffset CreatedAt, Guid Id)? before = null;
-        while (true)
+        var readable=visibility.Scopes(actor,"release.read");
+        var releases=db.Set<ReleaseRecord>().AsNoTracking().Where(r=>environments.Contains(r.EnvironmentId)&&readable.Any(s=>s.EnvironmentId==r.EnvironmentId)&&
+            (r.Status=="Draft"||r.Status=="WaitingApproval"||r.Status=="Ready"||r.Status=="Building"||r.Status=="Publishing"));
+        return (await MatchingReleasesAsync(api,versions.Select(v=>v.Id).ToArray(),releases,1,ct)).FirstOrDefault()?.Id;
+    }
+
+    internal async Task<ApiRecentRelease[]> RecentReleasesAsync(Guid apiId,Guid environmentId,CancellationToken ct)
+    {
+        var api=await db.Set<Api>().AsNoTracking().SingleAsync(a=>a.Id==apiId,ct);
+        var ids=await db.Set<ApiVersion>().Where(v=>v.ApiId==apiId).Select(v=>v.Id).ToArrayAsync(ct);
+        return await MatchingReleasesAsync(api,ids,db.Set<ReleaseRecord>().AsNoTracking().Where(r=>r.EnvironmentId==environmentId),5,ct);
+    }
+
+    private async Task<ApiRecentRelease[]> MatchingReleasesAsync(Api api,Guid[] ids,IQueryable<ReleaseRecord> releases,int limit,CancellationToken ct)
+    {
+        var versions=ids.ToHashSet();
+        var items=db.Set<ReleaseItem>().Where(i=>i.ResourceType=="version"&&ids.Contains(i.ResourceId));
+        const int batchSize=16;
+        (DateTimeOffset CreatedAt,Guid Id)? before=null;
+        var result=new List<ApiRecentRelease>();
+        while(true)
         {
-            var page = pending;
-            if (before is { } cursor)
-                page = page.Where(r => r.CreatedAt < cursor.CreatedAt || r.CreatedAt == cursor.CreatedAt && r.Id.CompareTo(cursor.Id) < 0);
-            var rows = page.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id).Take(batchSize)
-                .Select(r => new { r.Id, r.CreatedAt, r.EnvironmentId, r.CandidateBytes,
-                    WorkingDraft = r.ReleaseType == "publish" && r.Status == "Draft" && r.ApprovalPolicy == null });
-            int count = 0;
-            await foreach (var row in rows.AsAsyncEnumerable().WithCancellation(ct))
-            {
-                if (CandidateIncludesApi(row.CandidateBytes!, row.WorkingDraft, row.EnvironmentId, api, versionIds)) return row.Id;
-                before = (row.CreatedAt, row.Id);
-                count++;
+            var page=releases;
+            if(before is { } cursor)page=page.Where(r=>r.CreatedAt<cursor.CreatedAt||r.CreatedAt==cursor.CreatedAt&&r.Id.CompareTo(cursor.Id)<0);
+            var rows=page.Where(r=>r.CandidateBytes!=null||items.Any(i=>i.ReleaseId==r.Id))
+                .OrderByDescending(r=>r.CreatedAt).ThenByDescending(r=>r.Id).Take(batchSize)
+                .Select(r=>new{r.Id,r.ReleaseNo,r.Status,r.ReleaseType,r.CreatedAt,r.EnvironmentId,
+                    Indexed=items.Any(i=>i.ReleaseId==r.Id),Candidate=items.Any(i=>i.ReleaseId==r.Id)?null:r.CandidateBytes,
+                    WorkingDraft=r.ReleaseType=="publish"&&r.Status=="Draft"&&r.ApprovalPolicy==null});
+            var count=0;
+            await foreach(var row in rows.AsAsyncEnumerable().WithCancellation(ct)){
+                if(row.Indexed||row.Candidate!=null&&CandidateIncludesApi(row.Candidate,row.WorkingDraft,row.EnvironmentId,api,versions)){
+                    result.Add(new(row.Id,row.ReleaseNo,row.Status,row.ReleaseType,row.CreatedAt));
+                    if(result.Count==limit)return result.ToArray();
+                }
+                before=(row.CreatedAt,row.Id);count++;
             }
-            if (count < batchSize) return null;
+            if(count<batchSize)return result.ToArray();
         }
     }
     private async Task ValidateApiAsync(SaveApiRequest request,ScopeRef scope,Guid owner,CancellationToken ct)
@@ -144,6 +157,13 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
     public async Task<CommandResult<VersionDto>> CreateVersionAsync(Guid apiId,CreateVersionRequest request,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.ApiAsync(apiId,ct);return await commands.ExecuteAsync(actor,scope,"api.version.create",async(_,token)=>{
         await auth.RequireAsync(actor,"api.version.write",new("api",apiId,scope),token);ValidateVersion(request);var v=new ApiVersion {ApiId=apiId,Version=request.Version,ChangeType=request.ChangeType,OpenapiDocument=request.OpenapiDocument,OpenapiSource=request.OpenapiSource,SourceFormat=request.SourceFormat,SchemaHash=request.OpenapiDocument is null?null:Hash(request.OpenapiDocument),CreatedBy=actor.UserId,Status="Draft"};var bundle=VersionContractSourceService.Prepare(v.Id,request,token,out var document,out var source,out var format);v.OpenapiDocument=document;v.OpenapiSource=source;v.SourceFormat=format;v.SchemaHash=document is null?null:Hash(document);db.Add(v);await sources.SaveDraftAsync(v.Id,bundle,token);return await VersionWriteResultAsync(v,VersionContractSourceService.DialectName(bundle.Documents[0].Dialect),scope,actor,token);},ct);}
+    // Retirement advances the editable resource ETag once without changing the sealed contract.
+    internal static bool MatchesFrozenContract(ApiVersion current,VersionDto frozen)
+    {
+        if(current.Revision==frozen.Revision)return true;
+        if(current.Status!="Retired"||current.SealedAt==null||current.Revision-1!=frozen.Revision)return false;
+        return (Dto(current) with{Status=frozen.Status,SealedAt=frozen.SealedAt,Revision=frozen.Revision})==frozen;
+    }
     public static void RequireDraft(ApiVersion version) {if(version.Status!="Draft"||version.SealedAt is not null) throw new ApiException(409,"version_immutable","已发布或冻结的版本不能覆盖修改，请创建新版本。");}
     public async Task<VersionDto> VersionAsync(Guid id,ActorContext actor,CancellationToken ct=default)
     {
@@ -172,6 +192,19 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
         }
         v.Version=request.Version;v.ChangeType=request.ChangeType;v.Revision++;
         return await VersionWriteResultAsync(v,dialect,scope,actor,token);},ct);}
+    public async Task<CommandResult<VersionDto>> RetireVersionAsync(Guid id,string? tag,ActorContext actor,CancellationToken ct)
+    {
+        var scope=await scopes.VersionAsync(id,ct);
+        return await commands.ExecuteAsync(actor,scope,"api.version.retire",async(_,token)=>{
+            await auth.RequireAsync(actor,"api.version.write",new("version",id,scope),token);
+            var version=await db.Set<ApiVersion>().SingleAsync(v=>v.Id==id,token);
+            RevisionTag.Require(tag,version.Revision);
+            if(version.Status=="Publishing")throw new ApiException(409,"version_publishing","版本正在发布，待本次发布结束后再废弃。");
+            if(version.Status!="Retired"){version.Status="Retired";version.Revision++;}
+            return await VersionWriteResultAsync(version,null,scope,actor,token);
+        },ct);
+    }
+
     public async Task DeleteVersionAsync(Guid id,string? tag,ActorContext actor,CancellationToken ct=default)
     {var scope=await scopes.VersionAsync(id,ct);await commands.ExecuteAsync(actor,scope,"api.version.delete",async(_,token)=>{await auth.RequireAsync(actor,"api.version.write",new("version",id,scope),token);var v=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,v.Revision);RequireDraft(v);if(await db.Set<ApiRoute>().AnyAsync(r=>r.ApiVersionId==id,token)) throw new ApiException(409,"version_in_use","版本已被路由引用。");db.RemoveRange(await db.Set<ApiParameter>().Where(p=>p.ApiVersionId==id).ToArrayAsync(token));db.RemoveRange(await db.Set<ApiSchema>().Where(s=>s.ApiVersionId==id).ToArrayAsync(token));db.Remove(v);return true;},ct);}
     public async Task<IReadOnlyList<GroupDto>> GroupsAsync(Guid projectId,ActorContext actor,CancellationToken ct=default)
@@ -183,8 +216,16 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
         var group=id is Guid existing?await db.Set<ApiGroup>().SingleOrDefaultAsync(g=>g.Id==existing&&g.ProjectId==projectId,token)??throw ScopeResolver.Missing():new ApiGroup {ProjectId=projectId};if(id is not null) {RevisionTag.Require(tag,group.Revision);group.Revision++;}else db.Add(group);group.Name=request.Name;group.ParentId=request.ParentId;group.SortOrder=request.SortOrder;return new CommandResult<GroupDto>(Dto(group),RevisionTag.Format(group.Revision));},ct);}
     public async Task DeleteGroupAsync(Guid id,string? tag,ActorContext actor,CancellationToken ct=default)
     {var group=await db.Set<ApiGroup>().AsNoTracking().SingleOrDefaultAsync(g=>g.Id==id,ct)??throw ScopeResolver.Missing();var scope=await scopes.ProjectAsync(group.ProjectId,ct);await commands.ExecuteAsync(actor,scope,"api.group.delete",async(_,token)=>{await auth.RequireAsync(actor,"api.edit",new("group",id,scope),token);var g=await db.Set<ApiGroup>().SingleAsync(x=>x.Id==id,token);RevisionTag.Require(tag,g.Revision);if(await db.Set<ApiGroup>().AnyAsync(x=>x.ParentId==id,token)||await db.Set<Api>().AnyAsync(x=>x.GroupId==id,token)) throw new ApiException(409,"group_in_use","分组包含子分组或API。");db.Remove(g);return true;},ct);}
+    private static string? DeclaredParameterType(string? schema)
+    {
+        if(schema is null)return null;
+        using var document=JsonDocument.Parse(schema);
+        var root=document.RootElement;
+        return root.ValueKind==JsonValueKind.Object&&!root.TryGetProperty("$ref", out _)&&!root.TryGetProperty("$dynamicRef", out _)&&
+            root.TryGetProperty("type",out var type)&&type.ValueKind==JsonValueKind.String?type.GetString():null;
+    }
     public async Task<IReadOnlyList<ParameterDto>> ParametersAsync(Guid id,ActorContext actor,CancellationToken ct=default,bool includeExamples=false)
-    {var scope=await scopes.VersionAsync(id,ct);if(!await auth.CanAsync(actor,"api.schema.read",new("version",id,scope),ct)) throw ScopeResolver.Missing();var rows=await db.Set<ApiParameter>().AsNoTracking().Where(p=>p.ApiVersionId==id).Select(p=>new ParameterDto(p.Id,p.ApiVersionId,p.Location,p.Name,p.DataType,p.Required,p.Schema,p.Description,p.ExampleJson)).ToArrayAsync(ct);if(!includeExamples)return rows;var examples=await ExampleProjectionAsync(id,ct);return rows.Select(row=>row with{Examples=examples.Read(row.Id,"parameter",row.Schema)}).ToArray();}
+    {var scope=await scopes.VersionAsync(id,ct);if(!await auth.CanAsync(actor,"api.schema.read",new("version",id,scope),ct)) throw ScopeResolver.Missing();var rows=await db.Set<ApiParameter>().AsNoTracking().Where(p=>p.ApiVersionId==id).Select(p=>new ParameterDto(p.Id,p.ApiVersionId,p.Location,p.Name,p.DataType,p.Required,p.Schema,p.Description,p.ExampleJson)).ToArrayAsync(ct);var parameters=rows.Select(row=>row with{DataType=DeclaredParameterType(row.Schema)??row.DataType}).ToArray();if(!includeExamples)return parameters;var examples=await ExampleProjectionAsync(id,ct);return parameters.Select(row=>row with{Examples=examples.Read(row.Id,"parameter",row.Schema)}).ToArray();}
     public async Task<IReadOnlyList<SchemaDto>> SchemasAsync(Guid id,ActorContext actor,CancellationToken ct=default,bool includeExamples=false)
     {var scope=await scopes.VersionAsync(id,ct);if(!await auth.CanAsync(actor,"api.schema.read",new("version",id,scope),ct)) throw ScopeResolver.Missing();var rows=await db.Set<ApiSchema>().AsNoTracking().Where(s=>s.ApiVersionId==id).Select(s=>new SchemaDto(s.Id,s.ApiVersionId,s.SchemaType,s.Name,s.StatusCode,s.ContentType,s.SchemaJson,s.SchemaHash,s.ExampleJson)).ToArrayAsync(ct);if(!includeExamples)return rows;var examples=await ExampleProjectionAsync(id,ct);return rows.Select(row=>row with{Examples=examples.Read(row.Id,"schema",row.SchemaJson)}).ToArray();}
     private async Task<ContractExampleProjection> ExampleProjectionAsync(Guid id,CancellationToken ct)
@@ -198,6 +239,7 @@ public sealed class CatalogService(WebApiDbContext db,AuthorizationService auth,
         {var r=request[index];
             if(r.Location is not ("header" or "query" or "path" or "cookie")||string.IsNullOrWhiteSpace(r.Name)||r.Name.Length>128||string.IsNullOrWhiteSpace(r.DataType)||r.DataType.Length>32||r.Location=="path"&&!r.Required) throw new ApiException(422,"invalid_parameter","参数名称、位置、类型或必填标识不合法。");
             if(!names.Add(r.Location+":"+(r.Location=="header"?r.Name.ToLowerInvariant():r.Name))) throw new ApiException(409,"duplicate_parameter","参数重复。");JsonFields.Validate(r.Schema);JsonFields.Validate(r.ExampleJson);
+            if(DeclaredParameterType(r.Schema) is { } declared&&declared!=r.DataType)throw new ApiException(422,"parameter_schema_type_mismatch","参数类型须与 Schema 根节点的 type 一致。");
             var p=r.Id is Guid key?old.SingleOrDefault(p=>p.Id==key)??throw new ApiException(422,"foreign_parameter","参数不属于版本。"):new ApiParameter {Id=candidates[index].Id,ApiVersionId=id};if(!ids.Add(p.Id)) throw new ApiException(422,"duplicate_parameter_id","参数ID重复。");if(r.Id is null) db.Add(p);
             p.Location=r.Location;p.Name=r.Name;p.DataType=r.DataType;p.Required=r.Required;p.Schema=r.Schema;p.Description=r.Description;p.ExampleJson=r.ExampleJson;result.Add(new(p.Id,id,p.Location,p.Name,p.DataType,p.Required,p.Schema,p.Description,p.ExampleJson));
         }

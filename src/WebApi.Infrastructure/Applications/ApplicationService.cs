@@ -20,11 +20,12 @@ public sealed partial class ApplicationService(WebApiDbContext db,AuthorizationS
     private async Task<ScopeRef> InputScopeAsync(SaveApplicationRequest request,CancellationToken ct)
     {if(request.ProjectId is Guid id) {var actual=await scopes.ProjectAsync(id,ct);if(actual.OrganizationId!=request.OrganizationId) throw new ApiException(422,"foreign_project","应用项目不属于组织。");return actual;}if(!await db.Set<Organization>().AnyAsync(o=>o.Id==request.OrganizationId,ct)) throw new ApiException(422,"invalid_organization","组织不存在。");return new(request.OrganizationId);}
     private static void Validate(SaveApplicationRequest r) {GovernanceService.Validate(r.Code,r.Name,r.Status);if(string.IsNullOrWhiteSpace(r.Owner)||r.Owner.Length>128) throw new ApiException(422,"invalid_owner","应用Owner不合法。");}
-    public async Task<PageResult<ApplicationDto>> ListAsync(ActorContext actor,int page,int size,CancellationToken ct=default)
+    public async Task<PageResult<ApplicationDto>> ListAsync(ActorContext actor,int page,int size,CancellationToken ct=default,Guid? organizationId=null)
     {
         await visibility.RequireActiveActorAsync(actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
         var visible=visibility.Scopes(actor,"app.read");
         var query=db.Set<ApplicationRecord>().AsNoTracking().Where(a=>visible.Any(s=>s.OrganizationId==a.OrganizationId&&s.ProjectId==a.ProjectId&&s.EnvironmentId==null));
+        if(organizationId.HasValue)query=query.Where(a=>a.OrganizationId==organizationId.Value);
         var total=await query.CountAsync(ct);
         var rows=await query.OrderBy(a=>a.Code).ThenBy(a=>a.Id).Skip((page-1)*size).Take(size).ToArrayAsync(ct);
         var summaries=overview is null?new Dictionary<Guid,ApplicationSummaryDto>():await overview.SummariesAsync(rows,actor,ct);return new(rows.Select(x=>Dto(x,summaries.GetValueOrDefault(x.Id))).ToArray(),total,page,size);

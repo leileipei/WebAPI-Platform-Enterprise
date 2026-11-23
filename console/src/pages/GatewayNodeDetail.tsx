@@ -2,9 +2,10 @@ import {useEffect,useState} from 'react';
 import {Link,useWorkspace} from '../Shell';
 import {useSession} from '../auth/SessionProvider';
 import {apiRequest} from '../api/client';
+import {OperationStatus,type GatewayOperation} from '../gateway/OperationStatus';
 import {Details,Editor,Feedback,Pagination,Table,usePaged,useRemote,type Field} from '../ui';
 
-type GatewayNode = {id:string;environmentId:string;nodeName:string;enabled:boolean;eTag:string};
+type GatewayNode = {id:string;environmentId:string;nodeName:string;enabled:boolean;eTag:string;offline:boolean;diagnostics?:{instanceId:string;observedAt:string;cpuPercent:number|null;workingSetBytes:number;lastKnownGoodVersion:number|null}};
 const fields:Field[]=[{key:'enabled',label:'启用节点身份',type:'checkbox',
   help:'停用后，该身份无法再次注册、发送心跳或确认配置。停止运行中的代理进程需通过运维操作。'}];
 
@@ -25,6 +26,8 @@ export function GatewayNodeDetail({id}:{id:string}) {
   const node=mayRead ? requested : undefined;
   const events=usePaged(node?'/gateway-nodes/'+node.id+'/events':null,5000);
   const [edit,setEdit]=useState<GatewayNode>();
+  const [retry,setRetry]=useState<GatewayOperation>(),[busy,setBusy]=useState(false),[actionError,setActionError]=useState('');
+  useEffect(()=>{setRetry(undefined);setActionError('');},[id,mayRead]);
   const writable=!!scope && ws.scopeReady && !remote.loading && !remote.error && hasIdentityRevision(node) && can('gateway.operate',scope,true);
   const canSave=writable && !!edit && node?.id===edit.id && node.environmentId===edit.environmentId;
 
@@ -47,12 +50,31 @@ export function GatewayNodeDetail({id}:{id:string}) {
     remote.reload();
   }
 
+  async function retryNode(){
+    if(!writable || !node || busy)return;
+    setBusy(true);setActionError('');
+    try{setRetry(await apiRequest<GatewayOperation>('/gateway-nodes/'+node.id+'/retry',{method:'POST',etag:node.eTag}));remote.reload();}
+    catch(e){setActionError(e instanceof Error?e.message:'节点重试失败');}finally{setBusy(false);}
+  }
+
   return <>
     <div className="breadcrumb"><Link to="/nodes">网关节点</Link> / 节点详情</div>
     <div className="page-head"><div><h1>{node?.nodeName||'节点详情'}</h1><p>身份停用与运行进程分别管理</p></div>
-      <button className="btn" disabled={!writable} onClick={()=>node && setEdit(node)}>编辑身份状态</button>
+      <div className="actions">
+        {node && <a className="btn" href={'/api/v1/gateway-nodes/'+node.id+'/diagnostics'} download>下载诊断包</a>}
+        <button className="btn" disabled={!writable||!node?.enabled||node.offline||!node.diagnostics||busy} onClick={retryNode}>重试当前配置</button>
+        <button className="btn" disabled={!writable} onClick={()=>node && setEdit(node)}>编辑身份状态</button>
+      </div>
     </div>
-    <Feedback {...remote}/>{node && <div className="card details"><Details value={node}/></div>}
+    <Feedback {...remote}/>
+    {node && <><div className="card"><h3>进程资源</h3>
+      <dl><dt>CPU 使用率</dt><dd>{node.diagnostics?.cpuPercent!=null?node.diagnostics.cpuPercent.toFixed(1)+'%':'未上报'}</dd>
+      <dt>驻留内存</dt><dd>{node.diagnostics?.workingSetBytes!=null?(node.diagnostics.workingSetBytes/1048576).toFixed(1)+' MiB':'未上报'}</dd>
+      <dt>最后可用配置（LKG）</dt><dd>{node.diagnostics?.lastKnownGoodVersion!=null?'v'+node.diagnostics.lastKnownGoodVersion:'未确认'}</dd>
+      <dt>采样接收时间</dt><dd>{node.diagnostics?.observedAt?new Date(node.diagnostics.observedAt).toLocaleString():'未上报'}</dd></dl>
+    </div><div className="card details"><Details value={node}/></div></>}
+    {node && actionError && <p role="alert" className="error">{actionError}</p>}
+    {node && retry?.nodeId===node.id && <OperationStatus key={retry.id} initial={retry} path={'/gateway-nodes/'+node.id+'/operations/'+retry.id}/>}
     <div className="card"><h3 className="section-title">真实注册 / 心跳 / ACK 事件</h3>
       <Feedback {...events}/><Table rows={node?events.data?.items||[]:[]} columns={[['createdAt','时间'],['eventType','类型'],['message','说明'],['detail','安全诊断内容']]}/>
       <Pagination remote={events}/>

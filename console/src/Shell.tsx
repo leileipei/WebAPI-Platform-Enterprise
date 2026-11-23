@@ -18,9 +18,9 @@ export function Shell({children,path}:{children:ReactNode;path:string}){const{us
   else if(path.startsWith('/observability/'))navigate(path+(path==='/observability/alerts'?resetAlertScopeSearch(location.search):resetObservationScopeSearch(location.search,kind)),true);
  };
  function selectScope(scope:Scope,url?:string){
-  const available=scope.projectId||scope.environmentId
-    ? tree.environments.some(e=>e.id===scope.environmentId&&e.projectId===scope.projectId)
-    : tree.organizations.some(o=>o.id===scope.organizationId);
+  const available=tree.organizations.some(o=>o.id===scope.organizationId)
+    && (!scope.projectId||tree.projects.some(p=>p.id===scope.projectId&&p.organizationId===scope.organizationId))
+    && (!scope.environmentId||tree.environments.some(e=>e.id===scope.environmentId&&e.projectId===scope.projectId));
   if(!available||!allowNavigation())return;
   setOrg(scope.organizationId);setProject(scope.projectId||'');setEnv(scope.environmentId||'');
   for(const [kind,value] of Object.entries({organization:scope.organizationId,project:scope.projectId,environment:scope.environmentId}))

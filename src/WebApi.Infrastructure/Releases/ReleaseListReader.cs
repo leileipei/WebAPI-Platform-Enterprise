@@ -21,6 +21,8 @@ public sealed class ReleaseListReader(WebApiDbContext db,CollectionAuthorization
             where e.Id==environment select new {p.OrganizationId,ProjectId=p.Id,e.AccessAddressRevision,e.GatewayPublicUrl,e.BasePath}).SingleAsync(ct);
         var scope=new ScopeRef(entryInfo.OrganizationId,entryInfo.ProjectId,environment);
         var ids=releases.Select(r=>r.Id).ToArray();
+        var applicantIds=releases.Select(r=>r.RequestedBy).Distinct().ToArray();
+        var applicants=await db.Set<UserRecord>().AsNoTracking().Where(u=>applicantIds.Contains(u.Id)).ToDictionaryAsync(u=>u.Id,u=>u.DisplayName,ct);
         var tasks=(await db.Set<ApprovalTask>().AsNoTracking().Where(t=>ids.Contains(t.ReleaseId)).OrderBy(t=>t.StepOrder).ThenBy(t=>t.Id).ToArrayAsync(ct)).ToLookup(t=>t.ReleaseId);
         var targets=(await db.Set<ReleaseTarget>().AsNoTracking().Where(t=>ids.Contains(t.ReleaseId)).ToArrayAsync(ct)).ToLookup(t=>t.ReleaseId);
         var acks=await db.Set<GatewayAck>().AsNoTracking().Where(a=>ids.Contains(a.ReleaseId)).ToDictionaryAsync(a=>(a.ReleaseId,a.NodeId),ct);
@@ -58,7 +60,7 @@ public sealed class ReleaseListReader(WebApiDbContext db,CollectionAuthorization
             var deployed=targets[release.Id].Select(t=>{acks.TryGetValue((release.Id,t.NodeId),out var ack);return new ReleaseTargetDto(t.NodeId,t.InstanceId,ack?.Success==true,ack?.ConfigVersion,ack?.DeploymentSequence,ack?.ErrorCode);}).ToArray();
             contexts.TryGetValue(release.Id,out var context);
             ReleaseAccessContextDto? entry=context is null?null:new(context.ReleaseId,context.EnvironmentId,context.AccessAddressRevision,context.PublicOrigin,context.BasePath,context.CapturedAt,showInternal?context.InternalOrigin:null,release.RecoveryOf);
-            result.Add(new(release.Id,release.EnvironmentId,release.ReleaseNo,release.Status,release.ReleaseType,release.RequestedBy,release.CreatedAt,release.BaselineConfigVersion,release.ToConfigVersion,release.DeploymentSequence,release.RollbackOf,view,hash,steps,deployed,release.FailureCode is null?[]:[release.FailureCode],release.RecoveryOf,eligible[release.Id],entry,entryInfo.GatewayPublicUrl,entry is not null&&entry.AccessAddressRevision!=entryInfo.AccessAddressRevision,entryInfo.BasePath,traces[release.Id]));
+            result.Add(new(release.Id,release.EnvironmentId,release.ReleaseNo,release.Status,release.ReleaseType,release.RequestedBy,release.CreatedAt,release.BaselineConfigVersion,release.ToConfigVersion,release.DeploymentSequence,release.RollbackOf,view,hash,steps,deployed,release.FailureCode is null?[]:[release.FailureCode],release.RecoveryOf,eligible[release.Id],entry,entryInfo.GatewayPublicUrl,entry is not null&&entry.AccessAddressRevision!=entryInfo.AccessAddressRevision,entryInfo.BasePath,traces[release.Id],applicants.GetValueOrDefault(release.RequestedBy)));
         }
         return result;
     }

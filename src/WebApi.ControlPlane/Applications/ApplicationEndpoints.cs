@@ -11,7 +11,7 @@ public static class ApplicationEndpoints
     public static void MapApplications(this WebApplication app)
     {
         var g=app.MapGroup("/api/v1").RequireAuthorization().AddEndpointFilter<RequestValidationFilter>();
-        g.MapGet("/applications",async(HttpContext ctx,ApplicationService service,int? page,int? pageSize,CancellationToken ct)=>Results.Ok(await service.ListAsync(ctx.Actor(),page??1,pageSize??50,ct)));
+        g.MapGet("/applications",async(HttpContext ctx,ApplicationService service,Guid? organizationId,int? page,int? pageSize,CancellationToken ct)=>Results.Ok(await service.ListAsync(ctx.Actor(),page??1,pageSize??50,ct,organizationId)));
         g.MapPost("/applications",async(SaveApplicationRequest request,HttpContext ctx,ApplicationService service,CancellationToken ct)=>GovernanceEndpoints.Command(ctx,await service.CreateAsync(request,ctx.Actor(),ct)));
         g.MapGet("/applications/{id:guid}",async(Guid id,HttpContext ctx,ApplicationService service,CancellationToken ct)=>{var value=await service.DetailAsync(id,ctx.Actor(),ct);ctx.Response.Headers.ETag=RevisionTag.Format(value.Application.Revision);return Results.Ok(value);});
         g.MapPut("/applications/{id:guid}",async(Guid id,SaveApplicationRequest request,HttpContext ctx,ApplicationService service,CancellationToken ct)=>GovernanceEndpoints.Command(ctx,await service.SaveAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct)));

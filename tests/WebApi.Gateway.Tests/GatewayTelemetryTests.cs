@@ -119,6 +119,7 @@ public sealed class GatewayTelemetryTests
         Assert.True(lookup.TryGetCluster(generation.Envelope.DeploymentSequence+":"+runtime.Id,out var cluster));
         var destination=cluster!.Destinations[s.Control.Destination.Id.ToString()];destination.Health.Active=DestinationHealth.Unhealthy;
         var observed=Assert.Single(services.GetRequiredService<GatewayHealthObserver>().Read());
+        Assert.Equal("Unhealthy",observed.ActiveHealth);Assert.Equal("Disabled",observed.PassiveHealth);
         Assert.Equal("Unhealthy",observed.Health);Assert.Equal(s.Control.Cluster.Id,observed.ClusterId);Assert.Equal(s.Control.Environment.Id,observed.EnvironmentId);Assert.Equal(s.Control.Destination.Id,observed.DestinationId);
         destination.Health.Active=DestinationHealth.Unknown;destination.Health.Passive=DestinationHealth.Unknown;
         Assert.Equal("Unknown",Assert.Single(services.GetRequiredService<GatewayHealthObserver>().Read()).Health);

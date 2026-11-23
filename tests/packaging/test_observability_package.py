@@ -1,5 +1,6 @@
 """Exercise the public observability packager and verifier in a disposable Git history."""
 import copy
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import os
@@ -9,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 
@@ -98,6 +100,70 @@ class ObservabilityPackageTests(unittest.TestCase):
 
     def verify(self, success=True):
         self.cli([sys.executable, "scripts/verify-observability-delivery.py"], success)
+
+    def test_previous_manifest_keeps_a_complete_archive_after_another_publication(self):
+        first = self.package(self.seal)
+        old = self.repo / "deliverables" / first["file"]
+        self.write(COLLECTOR, "next release")
+        second = self.package(self.commit("next product"))
+        self.assertNotEqual(first["file"], second["file"])
+        self.assertEqual(hashlib.sha256(old.read_bytes()).hexdigest(), first["sha256"])
+        with zipfile.ZipFile(old) as archive:
+            self.assertIsNone(archive.testzip())
+        again = self.package(self.seal)
+        self.assertEqual(again["file"], first["file"])
+        self.verify()
+
+    def test_production_mode_does_not_depend_on_packagers_environment(self):
+        self.write("console/node_modules/vite/bin/vite.js",
+                   "const fs=require('node:fs'); fs.mkdirSync('dist'); "
+                   "fs.writeFileSync('dist/index.html',process.env.NODE_ENV || 'unset');")
+        with patch.dict(os.environ, {"NODE_ENV": "development"}):
+            packed = self.package(self.seal)
+            self.verify()
+        with zipfile.ZipFile(self.repo / "deliverables" / packed["file"]) as archive:
+            self.assertEqual(archive.read("enterprise/console/dist/index.html"), b"production")
+
+    def test_concurrent_publications_and_failed_build_keep_complete_archives(self):
+        first = self.package(self.seal)
+        self.write(COLLECTOR, "concurrent product")
+        second = self.commit("second input")
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results = [executor.submit(self.cli, ["bash", "scripts/package.sh", "observability", ref], True)
+                       for ref in (self.seal, second)]
+            for result in results:
+                result.result()
+        published = (self.repo / MANIFEST).read_bytes()
+        head = json.loads(published)
+        archives = list((self.repo / "deliverables").glob("*.zip"))
+        self.assertEqual(len(archives), 2)
+        for archive in archives:
+            self.assertIn(hashlib.sha256(archive.read_bytes()).hexdigest(), archive.name)
+            with zipfile.ZipFile(archive) as contents:
+                self.assertIsNone(contents.testzip())
+        self.assertTrue((self.repo / "deliverables" / first["file"]).exists())
+        self.assertTrue((self.repo / "deliverables" / head["file"]).exists())
+        self.write("console/node_modules/vite/bin/vite.js", "process.exit(3)")
+        self.package(self.seal, success=False)
+        self.assertEqual((self.repo / MANIFEST).read_bytes(), published)
+
+    def test_verifier_independently_compares_static_bytes_with_the_production_build(self):
+        manifest = self.package(self.seal)
+        name = "console/dist/index.html"
+        out = self.repo / "deliverables"
+        path = out / manifest["file"]
+        changed = out / "different-console.zip"
+        with zipfile.ZipFile(path) as original, zipfile.ZipFile(changed, "w") as modified:
+            for entry in original.infolist():
+                data = b"different console" if entry.filename == "enterprise/" + name else original.read(entry)
+                modified.writestr(entry, data)
+        digest = hashlib.sha256(changed.read_bytes()).hexdigest()
+        manifest["file"] = manifest["file"].replace(manifest["sha256"], digest)
+        manifest["sha256"] = digest
+        manifest["staticFiles"][name] = hashlib.sha256(b"different console").hexdigest()
+        changed.rename(out / manifest["file"])
+        self.write(MANIFEST, manifest)
+        self.verify(success=False)
 
     def test_matching_source_can_use_separately_sealed_immutable_evidence(self):
         manifest = self.package(self.tested, "--evidence-revision", self.seal)

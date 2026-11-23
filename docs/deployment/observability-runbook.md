@@ -70,6 +70,8 @@ verification.json是最终门槛；fault-run.json保留独立完整故障项目�
 
 用 `bash scripts/package.sh observability <源码提交>` 打包。回执单独封存时，可加 `--evidence-revision <证据提交>`。ZIP 的 `enterprise/` 保存所选源码、锁文件、迁移、配置、手册、原有证据和用该提交重建的静态页面。单独指定的验收材料位于 `package-evidence/`。
 
+打包先在临时目录内生成和校验 ZIP，再以内容 SHA-256 命名归档，最后原子替换清单。下载端按同一份清单的 `file` 字段取包，旧清单仍可读取先前的完整版本。构建固定使用 production 模式。验包会从指定源码独立重建前端并对照全部静态文件，需提前安装对应锁文件的依赖。原版已封存清单可直接对照 Git 中的归档。
+
 `deliverables/manifest-observability.json` 的 `sourceRevision` 标识打包源码。`acceptanceEvidence` 中，`revision` 是读取回执及附件的提交，`receiptRevision` 是最近一次修改该回执的提交，`testedSourceRevision` 是被测产品提交。清单列出回执、附件、静态文件和 ZIP 的 SHA256。打包器核对三源闭环、基线故障、浏览器、最终审查与封存前回执，并对照被测提交的产品代码、依赖、部署、测试脚本和夹具。仅补录封存记录可沿用同一产品的验收。
 
 代码或测试输入改变后仍可取得归档，清单显示 `acceptanceComplete=false`。只待归档校验的临时包也保留此状态。另有验收项目待办或秘密文件清理未通过时，打包命令报错。运行 `python3 scripts/verify-observability-delivery.py` 核对完成包。校验器从本地 Git 对象重算验收结论，未验收、来源不符或文件损坏时返回非零。请在包含相关源提交和证据提交的仓库中执行。

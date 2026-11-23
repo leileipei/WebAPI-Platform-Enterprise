@@ -6,21 +6,22 @@ function savedMapping(state){
  return state.preview ? {bundleHash:state.preview.bundleHash,targets:state.targets} : state.mappingDraft;
 }
 export function suspendImportPreview(state){
- return {...state,mappingDraft:savedMapping(state),preview:undefined,targets:[],revisionReview:[]};
+ return {...state,attempt:undefined,mappingDraft:savedMapping(state),preview:undefined,targets:[],revisionReview:[]};
 }
 export function invalidatePreview(state,input){
  const identity=importIdentity(input);
  if(state.identity===identity)return state;
  const sameSource=state.input&&state.identity===importIdentity({...input,policyRevision:state.input.policyRevision});
  if(sameSource&&state.preview&&state.preview.sourcePolicyRevision===input.policyRevision)return {...state,input,identity};
- return {...state,input,identity,preview:undefined,targets:[],revisionReview:[],mappingDraft:sameSource?savedMapping(state):undefined,result:undefined,issues:[],recovery:''};
+ return {...state,input,identity,attempt:undefined,preview:undefined,targets:[],revisionReview:[],mappingDraft:sameSource?savedMapping(state):undefined,result:undefined,issues:[],recovery:''};
 }
 export function canCommitPreview(state,now=Date.now()){
  const preview=state.preview;
  if(!preview||!state.authorized||state.busy||state.identity!==importIdentity(state.input)||!state.targets?.length)return false;
  if(state.input.policyRevision!==undefined&&state.input.policyRevision!==preview.sourcePolicyRevision)return false;
  const expires=Date.parse(preview.expiresAt);
- if(!Number.isFinite(expires)||expires<=now)return false;
+ if(!Number.isFinite(expires))return false;
+ if(expires<=now)return matchesImportAttempt(state);
  const supported=new Map(preview.operations.filter(op=>op.supported).map(op=>[op.operationId,op]));
  const unavailable=new Set(state.revisionReview);
  return state.targets.every(target=>{
@@ -29,6 +30,15 @@ export function canCommitPreview(state,now=Date.now()){
   unavailable.add(target.operationId);
   try{mapImportTarget(operation,target);return true;}catch{return false;}
  });
+}
+export function makeImportAttempt(state,key){
+ return {key,identity:state.identity,previewId:state.preview.previewId,
+  body:JSON.stringify({expectedBundleHash:state.preview.bundleHash,targets:state.targets})};
+}
+export function matchesImportAttempt(state){
+ const saved=state.attempt;
+ if(!saved?.key||!state.preview||saved.identity!==state.identity||saved.previewId!==state.preview.previewId)return false;
+ return saved.body===makeImportAttempt(state,saved.key).body;
 }
 const guid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 export function mapImportTarget(operation,target){
@@ -64,7 +74,8 @@ export function recoverImportFailure(state,error){
  if(error.status===409)next=suspendImportPreview(state);
  if(error.status===412)next={...state,revisionReview:overwriteOperations(state.targets)};
  if(error.status===403||error.status===404)next={...state,preview:undefined,targets:[],mappingDraft:undefined,revisionReview:[],authorized:false};
- return {...next,busy:false,recovery,issues:error.issues??[]};
+ const uncertain=!error.status||error.status===408||error.status>=500;
+ return {...next,attempt:uncertain?next.attempt:undefined,busy:false,recovery,issues:error.issues??[]};
 }
 
 export function acceptImportPreview(state,input,preview,requestSequence){
@@ -74,7 +85,7 @@ export function acceptImportPreview(state,input,preview,requestSequence){
  const supportedIds=new Set(supported.map(operation=>operation.operationId));
  const targets=restoring ? draft.targets.filter(target=>supportedIds.has(target.operationId))
   : supported.map(operation=>mapImportTarget(operation,{newApiCode:operation.suggestedCode,newApiName:operation.summary||operation.operationId,version:'1.0.0'}));
- return {...state,input,identity:importIdentity(input),preview,targets,mappingDraft:undefined,revisionReview:restoring?overwriteOperations(targets):[],result:undefined,issues:preview.issues??[],busy:false,recovery:''};
+ return {...state,input,identity:importIdentity(input),attempt:undefined,preview,targets,mappingDraft:undefined,revisionReview:restoring?overwriteOperations(targets):[],result:undefined,issues:preview.issues??[],busy:false,recovery:''};
 }
 
 export function importPolicyScope(scope){return JSON.stringify([scope?.organizationId??null,scope?.projectId??null]);}

@@ -56,3 +56,13 @@ test('failed re-preview retains only selected supported operations of the same s
   assert.ok(fresh.targets.every(t=>!t.existingVersionId));
  }
 });
+
+test('only an uncertain submission with the original scope, preview and payload can recover its receipt after expiry',()=>{
+ const staged=state(), past=Date.parse(staged.preview.expiresAt)+1;
+ const attempt={key:'original',identity:staged.identity,previewId:'preview',body:JSON.stringify({expectedBundleHash:'h',targets:staged.targets})};
+ const lost=recoverImportFailure({...staged,attempt},{status:503});
+ assert.equal(canCommitPreview(lost,past),true);
+ for(const changed of [{targets:[{...staged.targets[0],newApiName:'other'}]},{authorized:false},{attempt:{...attempt,previewId:'old'}},{attempt:undefined}])
+  assert.equal(canCommitPreview({...lost,...changed},past),false);
+ assert.equal(canCommitPreview(recoverImportFailure({...staged,attempt},{status:422}),past),false);
+});

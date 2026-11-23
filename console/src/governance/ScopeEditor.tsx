@@ -1,6 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
 import {apiRequest,ApiError} from '../api/client';
-import {readAllPages} from '../api/paging.mjs';
 import {useSession} from '../auth/SessionProvider';
 import {Feedback,useRemote,useUnsaved} from '../ui';
 import type {ScopeTree} from '../api/types';
@@ -15,7 +14,7 @@ export function ScopeEditor({user,onClose,onSaved}:{user:{id:string;displayName:
  const tree=resources.data||emptyTree,grants=payload(rows).scopes,dirty=!!baseline&&JSON.stringify(grants)!==JSON.stringify(baseline.grants),errors=validate(rows,tree),authorized=session.can('scope.manage');
  const blocked=busy||loading||!baseline||!authorized||resources.loading||!!resources.error||discard||review||conflict;
  useUnsaved(dirty||busy,()=>setError('仍有未保存的修改，请先完成保存或关闭编辑器。'));
- async function readSnapshot(signal=controller.current.signal){const options={signal};return loadScopeSnapshot(async()=> (await readAllPages(apiRequest,'/users',options)).items.find((u:any)=>u.id===user.id),()=>apiRequest<Grant[]>(`/users/${user.id}/scopes`,options));}
+ async function readSnapshot(signal=controller.current.signal){const options={signal};return loadScopeSnapshot(()=>apiRequest(`/users/${user.id}`,options),()=>apiRequest<Grant[]>(`/users/${user.id}/scopes`,options));}
  async function load(){if(lock.current)return;const requestController=controller.current;lock.current=true;setLoading(true);setError('');try{const s=await readSnapshot(requestController.signal);if(active.current&&!requestController.signal.aborted){setBaseline(s);setRows(toDraft(s.grants));}}catch(e){if(active.current&&!requestController.signal.aborted)setError((e as Error).message);}finally{if(controller.current===requestController)lock.current=false;if(active.current&&!requestController.signal.aborted)setLoading(false);}}
  useEffect(()=>{active.current=true;controller.current=new AbortController();lock.current=false;void load();const focus=document.activeElement as HTMLElement|null;root.current?.querySelector<HTMLElement>('button')?.focus();return()=>{active.current=false;controller.current.abort();focus?.focus();};},[]);
  useEffect(()=>{if(authority!==originalAuthority.current||!authorized){controller.current.abort();onClose();}},[authority,authorized]);

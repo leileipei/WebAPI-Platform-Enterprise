@@ -27,7 +27,7 @@ async function fixture(t,{selected=orgA,sharedWithoutProjects=false,detailWait,s
   const apps = organizations.map((org,i)=>({id:[appA,appB][i],organizationId:org.id,
     projectId:sharedWithoutProjects && i===0 ? null : projects[i].id, name:'订单应用',code:'ORDERS',
     owner:org.name+'负责人',status:'Active',revision:3}));
-  const reads=[], writes=[], state={scopeUnavailable};
+  const reads=[], writes=[], state={scopeUnavailable,listReads:[]};
   await page.route('**/*', async route => {
     const request=route.request(), url=new URL(request.url()), method=request.method();
     if (url.pathname.startsWith('/assets/')) return route.fulfill({path:join(dist,url.pathname.slice(1))});
@@ -45,7 +45,11 @@ async function fixture(t,{selected=orgA,sharedWithoutProjects=false,detailWait,s
         : reply({organizations,projects:sharedWithoutProjects?projects.slice(1):projects,
             environments:sharedWithoutProjects?environments.slice(1):environments});
     }
-    if (path==='/applications') return reply(pageOf(apps));
+    if(path==='/applications'&&method==='GET'){
+      const organizationId=url.searchParams.get('organizationId');state.listReads.push({organizationId,page:url.searchParams.get('page')});
+      return reply(pageOf(organizationId?apps.filter(a=>a.organizationId===organizationId):apps));
+    }
+    if(path==='/applications'&&method==='POST')return reply({...request.postDataJSON(),id:id(55),revision:1});
     const [,resource,appId,child,operation] = path.split('/');
     const i=apps.findIndex(app=>app.id===appId?.toLowerCase());
     if (resource!=='applications' || i < 0) throw Error('Unexpected fixture request '+method+' '+path);
@@ -307,4 +311,28 @@ test('a conflict cannot adopt a revision read from a different organization’s 
   assert.deepEqual(writes.map(w=>[w.path,w.etag]),[[detail(appA),'"3"'],[detail(appA),'"4"']]);
   assert.equal(apps[0].owner,'已复核负责人');
   assert.equal(apps[1].owner,'乙组织负责人');
+});
+
+
+test('a selected organization requests only its first page and can create a shared application alongside projects',async t=>{
+  const {page,open,writes,state}=await fixture(t);
+  await open('/applications');
+  await page.getByRole('cell',{name:'甲组织负责人'}).waitFor();
+  assert.deepEqual(state.listReads,[{organizationId:orgA,page:'1'}]);
+  await button(page,'＋ 新建应用').click();
+  const editor=page.getByRole('dialog',{name:'新建应用'});
+  await editor.getByLabel('应用归属').selectOption({label:'组织共享应用'});
+  await editor.getByLabel('应用编码').fill('SHARED');await editor.getByLabel('应用名称').fill('共享接入');await editor.getByLabel('负责人').fill('负责人');
+  await button(editor,'保存').click();await editor.waitFor({state:'hidden'});
+  assert.equal(writes.length,1);assert.equal(writes[0].body.organizationId,orgA);assert.equal(writes[0].body.projectId,null);
+});
+
+test('the credential creation form can bind a replacement credential to the actual application environment',async t=>{
+  const {page,open,writes}=await fixture(t);
+  await open(detail(appA));await button(page,'＋ 创建凭证').click();
+  const editor=page.getByRole('dialog',{name:'创建凭证'});
+  const binding=editor.getByLabel('凭证使用范围');assert.equal(await binding.locator('option[value="'+envB+'"]').count(),0);
+  await binding.selectOption(envA);await button(editor,'保存').click();
+  await page.getByRole('dialog',{name:'一次性凭证'}).waitFor();
+  assert.equal(writes.length,1);assert.equal(writes[0].body.environmentId,envA);
 });

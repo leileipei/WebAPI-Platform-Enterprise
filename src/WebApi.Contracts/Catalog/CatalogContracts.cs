@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 namespace WebApi.Contracts.Catalog;
 public sealed record SaveApiRequest(string Code,string Name,string? Description=null,Guid? GroupId=null,Guid? OwnerUserId=null,string LifecycleStatus="Draft");
 public sealed record ApiDto(Guid Id,Guid OrganizationId,Guid ProjectId,Guid? GroupId,string Code,string Name,string? Description,string LifecycleStatus,Guid OwnerUserId,long WorkingRevision);
@@ -28,6 +29,12 @@ public sealed record SchemaDto(Guid Id,Guid ApiVersionId,string SchemaType,strin
 public sealed record SaveRouteRequest(Guid? Id,Guid ApiVersionId,string RouteName,string Path,IReadOnlyList<string> Methods,Guid ClusterId,int Priority=100,bool Enabled=true,int? TimeoutMs=null,bool RequireApiKey=true,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? AuthenticationChange=null);
 public sealed record RouteDto(Guid Id,Guid ApiVersionId,Guid EnvironmentId,string RouteName,string Path,string NormalizedPath,IReadOnlyList<string> Methods,Guid ClusterId,int Priority,int MatchOrder,bool Enabled,int TimeoutMs,bool RequireApiKey,long Revision,int? EffectiveTimeoutMs=null,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? EffectiveAuthenticationMode=null);
 public sealed record SaveClusterRequest(string Name,string LoadBalancingPolicy="RoundRobin",bool HealthCheckEnabled=false,string HealthCheckPath="/health",int HealthCheckIntervalSec=30,string Status="Active");
-public sealed record ClusterDto(Guid Id,Guid ProjectId,Guid EnvironmentId,string Name,string LoadBalancingPolicy,bool HealthCheckEnabled,string HealthCheckPath,int HealthCheckIntervalSec,string Status,long Revision,IReadOnlyList<DestinationDto> Destinations);
+public sealed record CopyClusterRequest(string Name);
+public sealed record ClusterRouteRef(Guid Id,Guid ApiVersionId,string Name,string Path,bool Enabled);
+public sealed record ClusterDto(Guid Id,Guid ProjectId,Guid EnvironmentId,string Name,string LoadBalancingPolicy,bool HealthCheckEnabled,string HealthCheckPath,int HealthCheckIntervalSec,string Status,long Revision,IReadOnlyList<DestinationDto> Destinations,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] int? RouteCount=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] int? HealthyDestinationCount=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<ClusterRouteRef>? Routes=null);
 public sealed record SaveDestinationRequest(string Name,string Address,int Weight=1,bool Enabled=true,string? Metadata=null);
-public sealed record DestinationDto(Guid Id,Guid ClusterId,string Name,string Address,int Weight,bool Enabled,string? Metadata,long Revision);
+public sealed record DestinationDto(Guid Id,Guid ClusterId,string Name,string Address,int Weight,bool Enabled,string? Metadata,long Revision,[property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string? ActiveHealth=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string? PassiveHealth=null);

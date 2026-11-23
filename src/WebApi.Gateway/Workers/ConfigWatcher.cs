@@ -8,6 +8,15 @@ public sealed class ConfigWatcher(GatewaySettings settings,SnapshotActivation ac
     private readonly SemaphoreSlim changed=new(0,1);
     public async Task<ActivationResult> AcceptAsync(DesiredConfigResponse config,CancellationToken ct=default)
     {var result=await activation.ApplyAsync(config.Envelope,config.Payload,ct);if(result.Applied) await nodes.AckAsync(config.Envelope,true,null,ct);else if(result.ErrorCode is not ("stale_sequence" or "sequence_conflict" or "security_state_unavailable")) await nodes.AckAsync(config.Envelope,false,result.ErrorCode,ct);return result;}
+    public async Task<string> RetryAsync(CancellationToken ct)
+    {
+        var desired = await nodes.DesiredAsync(ct);
+        if (desired == null) return "no_configuration";
+        var result = await activation.ApplyAsync(desired.Envelope, desired.Payload, ct);
+        if (!result.Applied) return "rejected";
+        return await nodes.AckAsync(desired.Envelope, true, null, ct) ? "applied" : "rejected";
+    }
+
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if(!settings.AutomaticUpdates) return;var subscribed=false;

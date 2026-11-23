@@ -85,3 +85,15 @@ export function exampleOptions(definition){
  for(const entry of definition.examples??[]){if(entry.unverifiedReason||entry.externalValue)options.push({...entry,unverified:true});else if(entry.json!==undefined)options.push({...entry});else if(Object.hasOwn(entry,'value'))options.push({...entry,json:JSON.stringify(entry.value)});}
  return options;
 }
+
+const parameterTypes=new Set(['string','integer','number','boolean','object','array','null']);
+const typeAnnotations=new Set(['type','title','description','$comment','deprecated','readOnly','writeOnly','nullable']);
+export function parameterSchemaType(document){
+ return document&&typeof document==='object'&&!Object.hasOwn(document,'$ref')&&!Object.hasOwn(document,'$dynamicRef')&&parameterTypes.has(document.type)
+  ?document.type:undefined;
+}
+export function canSelectParameterType(document){
+ return !!document&&typeof document==='object'&&!Array.isArray(document)
+  &&(!Object.hasOwn(document,'type')||!!parameterSchemaType(document))
+  &&Object.keys(document).every(key=>typeAnnotations.has(key)||key.startsWith('x-'));
+}
