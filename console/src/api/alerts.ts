@@ -14,7 +14,8 @@ export const loadAlerts=(scope:ObservationScopeRequest,filter:AlertListFilter,si
 export const loadAlert=(id:string,signal?:AbortSignal)=>apiRequest<AlertEventDto>('/observability/alerts/'+id,{signal});
 export const loadRules=(scope:ObservationScopeRequest,page=1,signal?:AbortSignal)=>apiRequest<Page<AlertRuleDto>>('/observability/alert-rules?'+scoped(scope,{page,pageSize:50}),{signal});
 export const loadRule=(id:string,signal?:AbortSignal)=>apiRequest<AlertRuleDto>('/observability/alert-rules/'+id,{signal});
-export const saveRule=(id:string|null,body:SaveAlertRuleRequest,etag:string|null,idempotencyKey:string)=>apiRequest<AlertRuleDto>('/observability/alert-rules'+(id?'/'+id:''),{method:id?'PUT':'POST',body,etag:etag||undefined,idempotencyKey});
+export const saveRule=(id:string|null,body:SaveAlertRuleRequest,etag:string|null,idempotencyKey:string,signal:AbortSignal)=>
+ apiRequest<AlertRuleDto>('/observability/alert-rules'+(id?'/'+id:''),{method:id?'PUT':'POST',body,etag:etag||undefined,idempotencyKey,signal});
 export const testRule=(body:SaveAlertRuleRequest,signal:AbortSignal)=>apiRequest<RuleTestDto>('/observability/alert-rules/test',{method:'POST',body,signal});
 export const previewRule=(body:SaveAlertRuleRequest,signal:AbortSignal)=>apiRequest<RuleScopePreviewDto>('/observability/alert-rules/preview',{method:'POST',body,signal});
 export const toggleRule=(rule:AlertRuleDto,idempotencyKey:string)=>apiRequest<AlertRuleDto>(`/observability/alert-rules/${rule.id}/${rule.definition.enabled?'disable':'enable'}`,{method:'POST',etag:`"${rule.revision}"`,idempotencyKey});

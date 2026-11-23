@@ -1,5 +1,5 @@
 import type {SaveAlertRuleRequest,AlertRuleDto,RuleTestDto,RuleScopePreviewDto} from '../api/alerts';
-export type RuleEditorState={definition:SaveAlertRuleRequest;dirty:boolean;revision?:number;logicRevision?:number;conflict:boolean;invalid?:boolean;latestRevision?:number;latestLogicRevision?:number;latest?:AlertRuleDto;testResult?:RuleTestDto;preview?:RuleScopePreviewDto};
+export type RuleEditorState={ruleId?:string;definition:SaveAlertRuleRequest;dirty:boolean;revision?:number;logicRevision?:number;conflict:boolean;invalid?:boolean;latestRevision?:number;latestLogicRevision?:number;latest?:AlertRuleDto;testResult?:RuleTestDto;preview?:RuleScopePreviewDto};
 export function newRuleState(definition:SaveAlertRuleRequest,rule?:AlertRuleDto):RuleEditorState;
 export function ruleEditorReducer(state:RuleEditorState,event:{type:string;patch?:Partial<SaveAlertRuleRequest>;rule?:AlertRuleDto;result?:RuleTestDto|RuleScopePreviewDto}):RuleEditorState;
 export function validateRule(definition:SaveAlertRuleRequest):string;

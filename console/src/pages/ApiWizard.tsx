@@ -1,10 +1,11 @@
 import {useEffect,useRef,useState} from 'react';
-import {useRemote,Feedback,Details,Table} from '../ui';
+import {Feedback,Details,Table} from '../ui';
 import {useWorkspace,Link,navigate,allowNavigation} from '../Shell';
 import {useSession} from '../auth/SessionProvider';
 import {apiRequest} from '../api/client';
-import {apiDetailPath,type Api,type ApiDetail,type Version} from '../api/catalog';
-import {ApiDetailPage} from './ApiDetail';
+import type {Api,Version} from '../api/catalog';
+import {ApiDetailContent} from './ApiDetail';
+import {ProjectApi,type ProjectApiRemote} from './ProjectApi';
 import {SchemaEditor} from './SchemaEditor';
 import {Routes} from './Routes';
 import {resolveReviewHandoff,releaseReviewIds,timedComparison} from '../comparisons/model.mjs';
@@ -13,20 +14,20 @@ import {ReleaseRiskReview} from '../comparisons/ReleaseRiskReview';
 export function ApiWizard({id,search=''}:{id:string;search?:string}){
  const ws=useWorkspace(),s=useSession();
  const identity=JSON.stringify([id,search,ws.organizationId,ws.projectId,ws.environmentId,s.user?.id,s.user?.permissions,s.user?.scopes,s.error]);
- return <Wizard key={identity} id={id} search={search}/>;
+ return <ProjectApi key={identity} id={id}>{remote=><Wizard id={remote.data.api.id} search={search} remote={remote}/>}</ProjectApi>;
 }
 
-function Wizard({id,search}:{id:string;search:string}){
+function Wizard({id,search,remote}:{id:string;search:string;remote:ProjectApiRemote}){
  const ws=useWorkspace(),{can}=useSession(),query=new URLSearchParams(search),reviewId=query.get('reviewId');
  const [step,setStep]=useState(reviewId||query.get('step')==='review'?5:0);
  const [versionId,setVersion]=useState<string>(),[draft,setDraft]=useState<any>(),[handoff,setHandoff]=useState<any>();
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[handoffLoading,setHandoffLoading]=useState(!!reviewId);
  const controller=useRef(new AbortController()),createKey=useRef<string|undefined>(undefined),submitKey=useRef<string|undefined>(undefined);
- const remote=useRemote<ApiDetail>(apiDetailPath(id,ws.environmentId),0,false,true),d=remote.data;
+ const d=remote.data;
  const version=d?.versions.find(v=>v.id===versionId&&v.apiId===id&&v.status!=='Retired');
  const environment=ws.tree.environments.find(e=>e.id===ws.environmentId);
- const inScope=!!d&&d.api.id===id&&d.api.organizationId===ws.organizationId&&d.api.projectId===ws.projectId&&environment?.projectId===d.api.projectId;
- const ready=!!version&&inScope&&!remote.loading&&!remote.error&&!handoffLoading&&(!reviewId||handoff?.targetVersionId===version.id);
+ const inScope=environment?.projectId===d.api.projectId;
+ const ready=!!version&&ws.scopeReady&&inScope&&!remote.loading&&!remote.error&&!handoffLoading&&(!reviewId||handoff?.targetVersionId===version.id);
  const mayRelease=ready&&!busy&&can('release.create',ws.scope,true);
  const steps=['基本信息','API 版本','参数定义','请求与响应','路由与后端','Review 与提交'];
  const active=()=>!controller.current.signal.aborted;
@@ -121,10 +122,10 @@ function Wizard({id,search}:{id:string;search:string}){
    <button className="btn" disabled={busy} onClick={remote.reload}>刷新工作数据</button>
    {reviewId&&<button className="btn" disabled={busy||!!draft} onClick={()=>navigate(`/apis/${id}/wizard?step=review`)}>退出评审关联并重新选择版本</button>}
    </div>}
-   {step===0||step===1?<ApiDetailPage id={id} wizard={{
-    remote,version,locked:busy||!!reviewId||remote.loading||!!remote.error,onSelect:selectVersion,onSaved:refreshVersion,
+   {step===0||step===1?<ApiDetailContent id={id} remote={remote} wizard={{
+    version,locked:busy||!!reviewId||remote.loading||!!remote.error,onSelect:selectVersion,onSaved:refreshVersion,
    }}/>:step===2||step===3?<div className="card">
-    {version?<SchemaEditor key={version.id+step} version={version} kind={step===2?'parameters':'schemas'} detail={d} checking={remote.loading||!!remote.error||d.api.id!==id} reloadVersion={refreshVersion}/>:<div className="empty">请先选择版本</div>}
+    {version?<SchemaEditor key={version.id+step} version={version} kind={step===2?'parameters':'schemas'} detail={d} checking={remote.loading||!!remote.error} reloadVersion={refreshVersion}/>:<div className="empty">请先选择版本</div>}
    </div>:step===4?(ready&&version?
     <Routes key={JSON.stringify([id,version.id,ws.environmentId])} target={{api:d.api,version,environmentId:ws.environmentId}} onChanged={clearDraft}/>:
     <p className="notice">请选择此 API 的可用版本与所属项目下的环境。</p>

@@ -30,7 +30,8 @@ public sealed record FrozenGovernedRollback(long SourceConfigVersion, string Sou
     IReadOnlyList<GovernedRollbackRouteImpact> ChangedRoutes);
 public sealed record FrozenReleaseCandidate(Guid EnvironmentId,Guid OrganizationId,Guid ProjectId,long BaselineConfigVersion,IReadOnlyList<Guid> VersionIds,IReadOnlyList<FrozenApiVersion> Versions,IReadOnlyList<RouteDto> Routes,IReadOnlyList<ClusterDto> Clusters,IReadOnlyList<FrozenPolicy> Policies,IReadOnlyList<FrozenBinding> Bindings,IReadOnlyList<FrozenApplication> Applications,IReadOnlyList<ResourceRevision> ResourceRevisions,IReadOnlyList<FrozenRiskReviewReference>? RiskReviewReferences=null,IReadOnlyList<SharedCredentialImpact>? SharedCredentialImpact=null,
     [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] FrozenGovernance24? Governance=null,
-    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] FrozenGovernedRollback? GovernedRollback=null);
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] FrozenGovernedRollback? GovernedRollback=null,
+    [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingDefault)] bool PreserveUnmappedPromotionRoutes=false);
 public sealed record FrozenApplicationView(ApplicationDto Application,IReadOnlyList<CredentialDto> Credentials,IReadOnlyList<ApplicationPermissionDto> Permissions);
 public sealed record FrozenCandidateView(IReadOnlyList<FrozenApiVersion> Versions,IReadOnlyList<RouteDto> Routes,IReadOnlyList<ClusterDto> Clusters,IReadOnlyList<FrozenApplicationView> Applications,IReadOnlyList<ResourceRevision> ResourceRevisions,IReadOnlyList<FrozenPolicy>? Policies=null,IReadOnlyList<FrozenBinding>? Bindings=null,bool? PreconditionsCurrent=null,IReadOnlyList<RiskReviewSummaryDto>? RiskReviews=null,IReadOnlyList<SharedCredentialImpact>? SharedCredentialImpact=null,
     [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] FrozenGovernedRollback? GovernedRollback=null);

@@ -12,39 +12,63 @@ const path = '/apis/'+api.id, versionPath = '/versions/'+version.id;
 const read = ['api.read','api.schema.read'], schemaWrite = 'api.schema.write', versionWrite = 'api.version.write';
 const allPermissions = [...read,schemaWrite,versionWrite];
 const button = (element,name) => element.getByRole('button',{name,exact:true});
+const workspaceTree = {
+  organizations:[{id:'org',name:'订单组织'},{id:'other',name:'其他组织'}],
+  projects:[{id:'project',organizationId:'org',name:'订单项目'},{id:'shipping',organizationId:'org',name:'物流项目'},
+    {id:'finance',organizationId:'other',name:'财务项目'}],
+  environments:[{id:'dev',projectId:'project',name:'开发'},{id:'qa',projectId:'project',name:'验收'},
+    {id:'shipping-env',projectId:'shipping',name:'物流环境'},{id:'finance-env',projectId:'finance',name:'财务环境'}]
+};
 let browser;
 before(async () => { browser = await chromium.launch({executablePath:process.env.WEBAPI_CHROMIUM_EXECUTABLE}); });
 after(async () => { await browser?.close(); });
 
 async function fixture(t, {entry='detail', permissions=allPermissions, mode='read_write',
-  canReadSchemas=true, canReadVersions=false, canWriteSchemas=true, canWriteVersions=true, versionChanges={}}={}) {
+  canReadSchemas=true, canReadVersions=false, canWriteSchemas=true, canWriteVersions=true, versionChanges={},
+  workspaces=false, selectedProject, selectedOrganization}={}) {
   const page = await browser.newPage();
   t.after(() => page.close());
   page.setDefaultTimeout(4000);
-  const state = {permissions,mode,canReadSchemas,canReadVersions,canWriteSchemas,canWriteVersions,version:{...version,...versionChanges},
+  const state = {permissions,mode,canReadSchemas,canReadVersions,canWriteSchemas,canWriteVersions,api:{...api},version:{...version,...versionChanges},
     parameters:[{id:'filter',apiVersionId:version.id,name:'筛选条件',location:'query',dataType:'string',required:false,schema:'{"type":"string"}'}],
     schemas:[{id:'body',apiVersionId:version.id,name:'响应内容',schemaType:'response',statusCode:200,contentType:'application/json',schemaJson:'{"type":"object"}'}]};
   const requests = [];
   const routePath = entry==='detail'?path:path+'/wizard';
+  if (selectedProject) await page.addInitScript(([org,project])=>{
+    localStorage.setItem('core-organization',org);
+    localStorage.setItem('core-project',project);
+  },[selectedOrganization||'org',selectedProject]);
   await page.route('**/*', async route => {
     const req = route.request(), pathname = new URL(req.url()).pathname, method = req.method();
     if (pathname.startsWith('/assets/')) return route.fulfill({path:join(dist,pathname.slice(1))});
-    if (pathname===routePath) return route.fulfill({path:join(dist,'index.html')});
+    if (!pathname.startsWith('/api/v1/')) return route.fulfill({path:join(dist,'index.html')});
     const resource = pathname.slice('/api/v1'.length);
     const body = req.postData()?req.postDataJSON():null;
     requests.push({resource,method,body,headers:req.headers()});
     const reply = (json,status=200) => route.fulfill({json,status});
     if (resource==='/auth/me') return reply({id:'actor',username:'user',displayName:'维护人员',authSource:'local',
-      permissions:state.permissions,scopes:[{scope:{organizationId:api.organizationId,projectId:api.projectId},accessMode:state.mode},
+      permissions:state.permissions,scopes:[{scope:workspaces?{organizationId:api.organizationId}:{organizationId:api.organizationId,projectId:api.projectId},accessMode:state.mode},
         {scope:{organizationId:'other'},accessMode:'read_write'}]});
-    if (resource==='/auth/csrf') return reply({token:'fixture-csrf'});
-    if (resource==='/scope-tree') return reply({organizations:[{id:'org',name:'订单组织'}],
+    if (resource==='/auth/csrf') {
+      if (state.csrfWait) await state.csrfWait;
+      return reply({token:'fixture-csrf'});
+    }
+    if (resource==='/scope-tree') return reply(workspaces?workspaceTree:{organizations:[{id:'org',name:'订单组织'}],
       projects:[{id:'project',organizationId:'org',name:'订单项目'}],environments:[]});
-    if (resource===path && method==='GET') {
+    if (workspaces && resource.endsWith('/api-groups')) return reply([]);
+    if (workspaces && resource.startsWith('/projects/') && resource.endsWith('/apis')) {
+      const items=resource==='/projects/project/apis'?[state.api]:[];
+      return reply({items,total:items.length,page:1,pageSize:50});
+    }
+    if (resource.toLowerCase()==='/apis/'+state.api.id.toLowerCase() && method==='GET') {
       if (state.detailWait) await state.detailWait;
       if (state.detailStatus) return reply({detail:'API 不可用'},state.detailStatus);
-      return reply({api,workingRevision:1,versions:[state.version],runningConfigVersion:{},pendingReleaseId:null,
+      return reply({api:state.api,workingRevision:1,versions:[state.version],runningConfigVersion:{},pendingReleaseId:null,
         canReadSchemas:state.canReadSchemas,canReadVersions:state.canReadVersions,canWriteSchemas:state.canWriteSchemas,canWriteVersions:state.canWriteVersions});
+    }
+    if (resource===path && method==='PUT') {
+      state.api={...state.api,name:body.name};
+      return reply(state.api);
     }
     if (resource===versionPath && method==='GET')
       return state.permissions.includes('api.version.read')?reply(state.version):reply({detail:'缺少版本读取权限'},404);
@@ -69,7 +93,8 @@ async function fixture(t, {entry='detail', permissions=allPermissions, mode='rea
     throw Error('Unexpected browser request: '+method+' '+pathname);
   });
   await page.goto('http://127.0.0.1'+routePath);
-  await page.getByRole('cell',{name:'1.0',exact:true}).waitFor();
+  if (selectedProject) await page.waitForLoadState('networkidle');
+  else await page.getByRole('cell',{name:'1.0',exact:true}).waitFor();
   async function tab(kind) {
     if (entry==='wizard') await page.locator('.wizard-steps button').filter({hasText:kind==='parameters'?'参数定义':'请求与响应'}).click();
     else await button(page,kind==='parameters'?'参数':'Schema').click();
@@ -300,4 +325,155 @@ test('an open version edit retains the revision the user viewed when access is r
   await dialog.getByText('工作修订已变化',{exact:true}).waitFor();
   assert.equal(writes()[0].headers['if-match'],'"7"');
   assert.equal(await dialog.getByLabel('版本号').inputValue(),'2.0');
+});
+
+for (const entry of ['detail','wizard']) {
+  test('workspace project switch leaves the '+entry+' editor and opens the new catalog',async t=>{
+    const {page,dialog,writes,requests}=await fixture(t,{entry,workspaces:true});
+    const project=page.getByRole('combobox',{name:'当前项目'});
+    const create=button(page,'＋ 新建版本');
+    await create.click();
+    await dialog.waitFor();
+    await project.selectOption('shipping',{force:true});
+    await dialog.waitFor({state:'hidden'});
+    await page.waitForLoadState('networkidle');
+    assert.equal(await project.inputValue(),'shipping');
+    if (await create.isVisible() && await create.isEnabled()) {
+      await create.click();
+      await dialog.getByLabel('版本号').fill('2.0');
+      await button(dialog,'保存').click();
+      await dialog.waitFor({state:'hidden'});
+    }
+    assert.deepEqual(writes().map(r=>[r.method,r.resource]),[]);
+    assert.equal(new URL(page.url()).pathname,'/apis');
+    assert.ok(requests.some(r=>r.resource==='/projects/shipping/apis'));
+
+    await project.selectOption('project');
+    await page.getByRole('link',{name:'查看详情',exact:true}).click();
+    await create.click();
+    await dialog.getByLabel('版本号').fill('2.0');
+    await button(dialog,'保存').click();
+    await dialog.waitFor({state:'hidden'});
+    assert.deepEqual(writes().map(r=>[r.method,r.resource,r.body.version]),[['POST',path+'/versions','2.0']]);
+  });
+}
+
+const foreignEntries=[
+  {entry:'detail',action:'编辑 API',field:'API 名称',value:'错误组织的改名',org:'other',project:'finance'},
+  {entry:'wizard',step:'基本信息',action:'编辑 API',field:'API 名称',value:'错误项目的改名'},
+  {entry:'wizard',step:'API 版本',action:'编辑',field:'版本号',value:'2.1'},
+  {entry:'wizard',step:'参数定义',action:'结构 / 原文 / 验证',field:'定义名称',value:'错误项目的参数'},
+  {entry:'wizard',step:'请求与响应',action:'结构 / 原文 / 验证',field:'定义名称',value:'错误项目的 Schema'}
+];
+for (const {entry,step,action,field,value,org,project='shipping'} of foreignEntries) {
+  test('workspace direct link blocks '+entry+' '+(step||'metadata')+' outside its owning project',async t=>{
+    const {page,dialog,requests,writes}=await fixture(t,{entry,workspaces:true,
+      selectedProject:project,selectedOrganization:org,permissions:[...allPermissions,'api.edit']});
+    assert.equal(await page.getByRole('combobox',{name:'当前项目'}).inputValue(),project);
+    const notice=page.getByRole('status').filter({hasText:'订单项目'});
+    if (step) {
+      const openStep=page.locator('.wizard-steps button').filter({hasText:step});
+      if (await openStep.isVisible() && await openStep.isEnabled()) {
+        await openStep.click();
+        if (field==='定义名称') await Promise.race([notice.waitFor(),page.getByRole('cell',{
+          name:step==='参数定义'?'筛选条件':'响应内容',exact:true
+        }).waitFor()]);
+      }
+    }
+    const open=button(page,action);
+    if (await open.isVisible() && await open.isEnabled()) {
+      await open.click();
+      await dialog.getByLabel(field).fill(value);
+      await button(dialog,field==='定义名称'?'保存工作定义':'保存').click();
+      await dialog.waitFor({state:'hidden'});
+    }
+    assert.deepEqual(writes().map(r=>[r.method,r.resource]),[]);
+    assert.equal(requests.some(r=>r.resource===versionPath+'/parameters'||r.resource===versionPath+'/schemas'),false);
+    const create=button(page,'＋ 新建版本');
+    assert.equal(await create.isVisible() && await create.isEnabled(),false);
+    await notice.getByRole('link',{name:'API 目录',exact:true}).click();
+    await page.getByRole('heading',{name:'API 目录',exact:true}).waitFor();
+  });
+}
+
+test('workspace environment switch within the owning project keeps project-level editing available',async t=>{
+  const {page,dialog,writes}=await fixture(t,{workspaces:true});
+  await page.getByRole('combobox',{name:'当前环境'}).selectOption('qa');
+  await button(page,'编辑').click();
+  await dialog.getByLabel('版本号').fill('1.1');
+  await button(dialog,'保存').click();
+  await page.getByRole('cell',{name:'1.1'}).waitFor();
+  assert.equal(new URL(page.url()).pathname,path);
+  assert.deepEqual(writes().map(r=>[r.method,r.resource,r.body.version]),[['PUT',versionPath,'1.1']]);
+});
+
+for (const entry of ['detail','wizard']) {
+  test('workspace accepts an uppercase API GUID bookmark for the owning '+entry,async t=>{
+    const {page,state,dialog,writes}=await fixture(t,{entry,workspaces:true});
+    const guid='35e38fcc-364c-45e2-973b-26aade165df0';
+    state.api={...state.api,id:guid};
+    state.version={...state.version,apiId:guid};
+    await page.goto('http://127.0.0.1/apis/'+guid.toUpperCase()+(entry==='wizard'?'/wizard':''));
+    await page.waitForLoadState('networkidle');
+    assert.equal(await page.getByRole('cell',{name:'1.0',exact:true}).count(),1);
+    await button(page,'编辑').click();
+    await dialog.getByLabel('版本号').fill('1.1');
+    await button(dialog,'保存').click();
+    await page.getByRole('cell',{name:'1.1',exact:true}).waitFor();
+    assert.deepEqual(writes().map(r=>[r.method,r.resource]),[['PUT',versionPath]]);
+  });
+}
+
+test('workspace switch discards a late detail response from the previous project',async t=>{
+  const {page,state,writes}=await fixture(t,{workspaces:true});
+  const detail=Promise.withResolvers();
+  state.detailWait=detail.promise;
+  const pending=page.waitForRequest(req=>new URL(req.url()).pathname==='/api/v1'+path);
+  try {
+    await button(page,'刷新会话与权限').click();
+    await pending;
+    await page.getByRole('combobox',{name:'当前项目'}).selectOption('shipping');
+  } finally { detail.resolve(); }
+  await page.waitForLoadState('networkidle');
+  assert.equal(await page.getByRole('heading',{name:'订单 API',exact:true}).count(),0);
+  assert.equal(new URL(page.url()).pathname,'/apis');
+  assert.deepEqual(writes(),[]);
+});
+
+for (const target of ['api','parameters']) {
+  test('workspace switch cancels a pending '+target+' write before its security token arrives',async t=>{
+    const {page,state,tab,dialog,writes}=await fixture(t,{workspaces:true,permissions:[...allPermissions,'api.edit']});
+    if (target==='api') await button(page,'编辑 API').click();
+    else await tab('parameters');
+    const token=Promise.withResolvers();
+    state.csrfWait=token.promise;
+    const pending=page.waitForRequest(req=>new URL(req.url()).pathname==='/api/v1/auth/csrf');
+    try {
+      await (target==='api'?button(dialog,'保存'):button(page,'移除工作定义')).click();
+      await pending;
+      await page.getByRole('combobox',{name:'当前项目'}).selectOption('shipping',{force:true});
+      await dialog.waitFor({state:'hidden'});
+    } finally { token.resolve(); }
+    await page.waitForLoadState('networkidle');
+    assert.deepEqual(writes().map(r=>[r.method,r.resource]),[]);
+  });
+}
+
+test('workspace conflict recovery rechecks the organization before reading schema rows',async t=>{
+  const {page,tab,state,dialog,requests,writes}=await fixture(t,{workspaces:true});
+  await tab('schemas');
+  await button(page,'结构 / 原文 / 验证').click();
+  await dialog.getByLabel('定义名称').fill('保留草稿');
+  state.version={...state.version,revision:8};
+  await button(dialog,'保存工作定义').click();
+  await button(dialog,'查看最新内容').waitFor();
+  state.api={...state.api,organizationId:'other'};
+  const reads=()=>requests.filter(r=>r.resource===versionPath+'/schemas'&&r.method==='GET').length;
+  const previous=reads();
+  await button(dialog,'查看最新内容').click();
+  await page.waitForLoadState('networkidle');
+  assert.equal(reads(),previous);
+  assert.equal(await button(dialog,'保持草稿，采用最新修订').count(),0);
+  assert.equal(await dialog.getByLabel('定义名称').inputValue(),'保留草稿');
+  assert.equal(writes().length,1);
 });

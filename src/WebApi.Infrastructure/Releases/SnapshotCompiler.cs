@@ -9,6 +9,7 @@ using WebApi.Domain.Routing;
 using WebApi.Domain.CredentialSecurity;
 using WebApi.Infrastructure.Routing;
 using WebApi.Infrastructure.Policies;
+using WebApi.Infrastructure.Delivery;
 namespace WebApi.Infrastructure.Releases;
 public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null,GatewayPolicyDeploymentRules? deployment=null)
 {
@@ -41,7 +42,10 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null,G
             // Runtime identity includes configuration content, so a shared native Cluster can have two frozen generations.
             var identity=new Guid(SHA256.HashData(CanonicalJson.Serialize(runtime)).AsSpan(0,16));runtime=runtime with {Id=identity};clusterMap[cluster.Id]=identity;compiledClusters[identity]=runtime;
         }
-        var selectedApis=candidate.Versions.Select(v=>v.Api.Id).ToHashSet();var routes=baseline.Routes.Where(r=>!selectedApis.Contains(r.ApiId)).ToList();
+        var selectedApis = candidate.Versions.Select(v => v.Api.Id).ToHashSet();
+        var retained = RetainedRoutes(baseline, selectedApis, candidate.PreserveUnmappedPromotionRoutes ? candidate.Routes.Select(r => r.Id).ToHashSet() : null);
+        var retainedIds = retained.Select(route => route.Id).ToHashSet();
+        var routes = retained.ToList();
         var governance = candidate.Governance;
         if (governance is null && baseline.RequiredSecurityGeneration is not null)
             throw new ApiException(409, "governance_snapshot_24_required", "治理基线必须使用新的 2.4 候选。");
@@ -77,7 +81,7 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null,G
                 throw Invalid("冻结路由或授权身份重复。");
             var frozenRoutes = governance.Routes.ToDictionary(route => route.RouteId);
             if (frozenRoutes.Count != routes.Count || routes.Any(route => !frozenRoutes.TryGetValue(route.Id, out var identity) ||
-                !selectedApis.Contains(route.ApiId) && route.AuthorizationRevision != identity.AuthorizationRevision))
+                retainedIds.Contains(route.Id) && route.AuthorizationRevision != identity.AuthorizationRevision))
                 throw Invalid("冻结路由的授权修订缺失或与保留配置不一致。");
             routes = routes.Select(route => route with { EnvironmentId = candidate.EnvironmentId,
                 AuthorizationRevision = frozenRoutes[route.Id].AuthorizationRevision }).ToList();
@@ -110,24 +114,34 @@ public sealed class SnapshotCompiler(UpstreamAddressPolicy? addressPolicy=null,G
             applications.Add(new(app.Application.Id, app.Application.Status, credentials, grants, governance is null ? null : candidate.EnvironmentId));
         }
         if (frozenPermissions is { Count: > 0 }) throw Invalid("冻结快照包含未使用的授权身份。");
-        var network=usedPolicyIds.Any(id=>runtimePolicies[id].Type is "cors" or "ip_filter" or "transform");
-        var newest=usedPolicyIds.Any(id=>runtimePolicies[id].Type is "retry" or "cache" || runtimePolicies[id].Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(runtimePolicies[id].Config).Mode==AuthenticationMode.JWT);
-        var advanced=governance is not null||network||newest||usedPolicyIds.Any(id=>runtimePolicies[id].Type is "rate_limit" or "circuit_breaker");
+        var network=candidate.PreserveUnmappedPromotionRoutes&&baseline.SchemaVersion=="2.3"||usedPolicyIds.Any(id=>runtimePolicies[id].Type is "cors" or "ip_filter" or "transform");
+        var newest=candidate.PreserveUnmappedPromotionRoutes&&baseline.SchemaVersion=="2.2"||usedPolicyIds.Any(id=>runtimePolicies[id].Type is "retry" or "cache" || runtimePolicies[id].Type=="authentication"&&PolicyConfigurationValidator.ParseAuthentication(runtimePolicies[id].Config).Mode==AuthenticationMode.JWT);
+        var advanced=governance is not null||network||newest||candidate.PreserveUnmappedPromotionRoutes&&baseline.SchemaVersion=="2.1"||usedPolicyIds.Any(id=>runtimePolicies[id].Type is "rate_limit" or "circuit_breaker");
         RuntimePolicy[] finalPolicies;
         if(advanced) finalPolicies=runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id)).OrderBy(p=>p.Id).ToArray();
         else {
             // In 2.0 authentication and timeout are executed only through folded route values.
             var legacy=new Dictionary<Guid,RuntimePolicy>();
-            foreach(var p in baseline.Policies.Where(p=>baseline.SchemaVersion=="2.0"&&routes.Any(r=>!selectedApis.Contains(r.ApiId))&&p.Type is "authentication" or "timeout")) legacy.TryAdd(p.SourcePolicyId??p.Id,new(p.SourcePolicyId??p.Id,p.Type,p.Config));
+            foreach(var p in baseline.Policies.Where(p=>baseline.SchemaVersion=="2.0"&&retained.Length>0&&p.Type is "authentication" or "timeout")) legacy.TryAdd(p.SourcePolicyId??p.Id,new(p.SourcePolicyId??p.Id,p.Type,p.Config));
             foreach(var p in runtimePolicies.Values.Where(p=>usedPolicyIds.Contains(p.Id))) legacy.TryAdd(p.SourcePolicyId??p.Id,new(p.SourcePolicyId??p.Id,p.Type,p.Config));
             finalPolicies=legacy.Values.OrderBy(p=>p.Id).ToArray();routes=routes.Select(r=>r with {PolicyBindings=null}).ToList();
         }
         var snapshot=new RuntimeSnapshot(governance is not null?"2.4":network?"2.3":newest?"2.2":advanced?"2.1":"2.0",candidate.EnvironmentId,targetVersion,generatedAt.ToUniversalTime(),routes.OrderBy(r=>r.MatchOrder).ThenBy(r=>r.Id).ToArray(),clusters.Values.OrderBy(c=>c.Id).ToArray(),finalPolicies,applications.OrderBy(a=>a.Id).ToArray(),
             governance?.SecurityGeneration,governance?.Epoch,governance?.RequireEnvironmentCredentials,governance?.MinimumSnapshotSchema);
+        if (candidate.PreserveUnmappedPromotionRoutes)
+        {
+            var siblings = retained.Where(route => selectedApis.Contains(route.ApiId)).ToArray();
+            if (siblings.Any(route => !versions.ContainsKey(route.ApiVersionId)))
+                throw new ApiException(409, "promotion_retained_version_conflict", "同一 API 的未映射运行路由仍使用其他版本，请先独立评审其版本变更。");
+            new RetainedRouteAccess(baseline, siblings).RequireUnchanged(baseline, snapshot);
+        }
         if (governance is null) SnapshotValidator.Validate(snapshot,candidate.EnvironmentId);
         var bytes = CanonicalJson.Serialize(snapshot);
         if (bytes.Length > 16 * 1024 * 1024) throw Invalid("快照超过 16 MiB 限制。");
         if (governance is not null) SnapshotValidator.ParsePayload(bytes, candidate.EnvironmentId);
         return new(bytes,Convert.ToHexStringLower(SHA256.HashData(bytes)),bytes.LongLength);
     }
+
+    internal static RuntimeRoute[] RetainedRoutes(RuntimeSnapshot baseline, IReadOnlySet<Guid> selectedApis, IReadOnlySet<Guid>? mappedRoutes) =>
+        baseline.Routes.Where(route => !selectedApis.Contains(route.ApiId) || mappedRoutes is not null && !mappedRoutes.Contains(route.Id)).ToArray();
 }
