@@ -45,37 +45,13 @@ run_compose(){
   active_pid=
   return "$status"
 }
-check_labels(){
-  if ! printf '%s' "$1" | "$contract_node" --input-type=module -e 'import fs from "node:fs";const labels=JSON.parse(fs.readFileSync(0,"utf8"));process.exit(labels?.["com.docker.compose.project"]===process.env.WEBAPI_CONTRACT_TEST_PROJECT&&labels?.["com.webapi.contracts.owner"]===process.env.WEBAPI_CONTRACT_TEST_OWNER?0:1)'; then
-    echo 'Contract test ownership mismatch; destructive cleanup rejected.' >&2
-    return 1
-  fi
-}
-check_resources(){
-  local kind=$1 listed name suffix labels
-  shift
-  # Include exact declared names even when a foreign resource lacks the Compose project label.
-  listed=$(docker "$kind" ls --filter "name=$WEBAPI_CONTRACT_TEST_PROJECT" --format '{{.Name}}') || return 1
-  for name in $listed; do
-    for suffix in "$@"; do
-      [ "$name" = "${WEBAPI_CONTRACT_TEST_PROJECT}_$suffix" ] || continue
-      labels=$(docker "$kind" inspect --format '{{json .Labels}}' "$name") || return 1
-      check_labels "$labels" || return 1
-      break
-    done
-  done
-}
 cleanup_docker(){
-  local ids id labels
-  ids=$(compose ps --all --quiet) || { echo 'Cannot inspect contract test containers.' >&2; return 1; }
-  for id in $ids; do
-    labels=$(docker inspect --format '{{json .Config.Labels}}' "$id") || return 1
-    check_labels "$labels" || return 1
-  done
-  check_resources volume "${project_volumes[@]}" || return 1
-  check_resources network default || return 1
+  local cleanup_script="$repository/scripts/contracts/cleanup-docker.mjs" status=0
+  "$contract_node" "$cleanup_script" before-down "${project_volumes[@]}" || return 1
   same_directory || { echo 'Contract test directory identity changed before Docker teardown.' >&2; return 1; }
-  compose down --volumes --remove-orphans >/dev/null
+  compose down --volumes --remove-orphans >/dev/null || status=1
+  "$contract_node" "$cleanup_script" after-down "${project_volumes[@]}" || status=1
+  return "$status"
 }
 cleanup(){
   local prior=$? signal_status=0 cleanup_status=0
@@ -168,7 +144,6 @@ run_compose run "${sdk_options[@]}" sdk bash -c '
   dotnet restore src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj --locked-mode
   dotnet build src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj --no-restore --configuration Release --output /runtime-tool
   dotnet build src/WebApi.Migrator/WebApi.Migrator.csproj --no-restore --configuration Release --output /migrator
-  dotnet build scripts/contracts/runner/WebApi.Contracts.TestLogger.csproj --configuration Release --output /contract-test-logger -p:RestoreLockedMode=true
   export WEBAPI_RUNTIME_TOOL_DLL=/runtime-tool/WebApi.RuntimeTool.dll
   export WEBAPI_SOURCE_ROOT=/test-src
   export WEBAPI_MIGRATOR_DLL=/migrator/WebApi.Migrator.dll
@@ -179,9 +154,6 @@ run_compose run "${sdk_options[@]}" sdk bash -c '
   export WEBAPI_MIGRATION_RULE_MAX_COUNT=100000
   export WEBAPI_MIGRATION_TOTAL_MAX_BYTES=67108864
   export WEBAPI_MIGRATION_RECEIPT_MAX_ROWS=100000
-  result_directory=$(mktemp -d)
-  export WEBAPI_CONTRACT_RESULT="$result_directory/completion.json"
-  dotnet test --no-restore --test-adapter-path /contract-test-logger --logger WebApiContractCompletion "$@"
-  cat "$WEBAPI_CONTRACT_RESULT" > /contract-completion.json
+  exec bash scripts/contracts/run-with-completion.sh --no-restore "$@"
 ' -- "$test_project" --configuration Release "$@"
 "$contract_node" "$repository/scripts/contracts/check-completion.mjs" ./completion.json "$WEBAPI_CONTRACT_TEST_OWNER" 8>&-

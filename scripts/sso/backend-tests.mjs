@@ -4,6 +4,7 @@ import {randomUUID,randomBytes} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {withAcceptanceSignals} from '../acceptance-credentials.mjs';
 import {execFileAndWait} from '../runtime/exec-file.mjs';
+import {withTestCompletion} from '../contracts/test-completion.mjs';
 import {cleanupSsoRun,createSsoDirectory,ssoNetwork,writeSsoCredential} from './owned-run.mjs';
 
 const [testProject,...testArgs] = process.argv.slice(2);
@@ -59,8 +60,9 @@ await withAcceptanceSignals(async signal=>{
       setup.push('dotnet publish src/WebApi.RuntimeTool/WebApi.RuntimeTool.csproj -c Release -o /runtime-tool -p:RestoreLockedMode=true',
         'export WEBAPI_RUNTIME_TOOL_DLL=/runtime-tool/WebApi.RuntimeTool.dll');
     }
-    setup.push('exec dotnet test "$@"');
-    await compose(['run','--rm','sdk','bash','-c',setup.join('\n'),'--',testProject,'--configuration','Release',...testArgs],signal);
+    setup.push('exec bash /workspace/scripts/contracts/run-with-completion.sh "$@"');
+    await withTestCompletion(directory,owner,options=>compose(['run','--rm',...options,'sdk','bash','-c',
+      setup.join('\n'),'--',testProject,'--configuration','Release',...testArgs],signal));
   } catch (error) {
     preserve=error.preserveCredentials;
     process.exitCode=error.exitCode || 3;

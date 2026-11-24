@@ -102,6 +102,31 @@ async function scriptsAndDocker(root, code) {
   return {...process.env,WEBAPI_NODE:process.execPath,PATH:path.join(root,'bin')+':'+process.env.PATH};
 }
 
+for (const [scenario, status] of [['passed',0],['zero',3],['early',3],['another-run',3],['sdk-failure',7]]) {
+  test('the SSO backend verifies this SDK run and cleans its project: '+scenario,async t=>{
+    const {root,project}=await workspace(t);
+    const env=await scriptsAndDocker(root,`
+      const fs=require('node:fs'),args=process.argv.slice(2);
+      if(args[0]==='compose' && args.includes('run')){
+        const mount=args.find(s=>s.endsWith(':/contract-completion.json'));
+        if(mount && process.env.SCENARIO!=='early'){
+          const passed=process.env.SCENARIO==='zero'?0:1;
+          const owner=process.env.SCENARIO==='another-run'?'another-owner':process.env.WEBAPI_SSO_TEST_OWNER;
+          fs.writeFileSync(mount.slice(0,-':/contract-completion.json'.length),
+            JSON.stringify({owner,completed:true,executed:passed,passed,failed:0,skipped:0}));
+        }
+        if(process.env.SCENARIO==='sdk-failure')process.exitCode=7;
+      }`);
+    const run=await exec('bash',['scripts/check-sso.sh','domain','--filter','SomeTest'],{
+      cwd:root,env:{...env,SCENARIO:scenario}}).catch(error=>error);
+    assert.equal(run.code??0,status,run.stderr);
+    if(status===3)assert.match(run.stderr,/completion/i);
+    const receipt=JSON.parse(run.stdout.trim().split('\n').at(-1));
+    assert.deepEqual([receipt.containersRemaining,receipt.volumesRemaining,receipt.networksRemaining,receipt.secretsRemaining],[0,0,0,0]);
+    assert.deepEqual(await entries(path.join(root,'.runtime')),[project]);
+  });
+}
+
 test('the backend shell refuses foreign Docker ownership and clears its own database password', async t => {
   const {root,directory} = await workspace(t);
   const env=await scriptsAndDocker(root,`

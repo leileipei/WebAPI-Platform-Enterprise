@@ -59,37 +59,69 @@ async function run(t, {fault = '', exit = 0, mode = 'domain', split = '0', args 
     const a = process.argv.slice(2), env = process.env, fault = env.FAULT;
     fs.appendFileSync(env.CAPTURE, JSON.stringify(a) + '\\n');
     const dir = env.WEBAPI_CONTRACT_TEST_DIRECTORY, owner = env.WEBAPI_CONTRACT_TEST_OWNER;
+    const project = env.WEBAPI_CONTRACT_TEST_PROJECT, cache = project + '_nuget-test';
+    const marker = suffix => env.CAPTURE + '.' + suffix;
+    const afterDown = fs.existsSync(marker('down'));
+    const removed = fs.existsSync(marker('removed'));
+    const ownerOnly = (fault === 'owner-only' || afterDown && fault === 'owner-only-after')
+      && a.includes('label=com.webapi.contracts.owner=' + owner);
+    const leavesCache = ['detached-cache', 'held-cache', 'released-cache', 'unknown-inventory',
+      'changed-owner', 'changed-after-holder-check', 'signal-held-cache', 'signal-detached-cache'].includes(fault);
     function replaceDirectory() {
       fs.renameSync(dir, dir + '.original');
       fs.mkdirSync(dir);
     }
     if (['volume', 'network'].includes(a[0])) {
       if (a.at(-1) === 'fixture-external-seed') process.exit(fault === 'seed' ? 0 : 1);
-      const project = env.WEBAPI_CONTRACT_TEST_PROJECT;
       if (a[1] === 'ls') {
-        const names = a[0] === 'network' ? ['default'] : ['pg-test', 'nuget-test'];
-        if (a[0] === 'volume' && env.WEBAPI_CONTRACT_SPLIT_POSTGRES === '1') names.push('pg-security-test', 'pg-credential-test', 'pg-import-test');
-        for (const name of names) console.log(project + '_' + name);
+        if (afterDown && a[0] === 'volume' && fault === 'unknown-inventory') process.exit(64);
+        if (afterDown) {
+          if (a[0] === 'volume' && leavesCache && !removed) console.log(cache);
+        } else {
+          const names = a[0] === 'network' ? ['default'] : ['pg-test', 'nuget-test'];
+          if (a[0] === 'volume' && env.WEBAPI_CONTRACT_SPLIT_POSTGRES === '1') names.push('pg-security-test', 'pg-credential-test', 'pg-import-test');
+          for (const name of names) console.log(project + '_' + name);
+        }
+        if (a.some(arg => arg.startsWith('name='))) console.log(project + '_unrelated');
+        if (ownerOnly) console.log('owner-only-' + a[0]);
       } else if (a[1] === 'inspect') {
         if (fault === 'replace-inspecting-network' && a[0] === 'network') replaceDirectory();
-        const foreign = fault === 'foreign-' + a[0] || fault === 'foreign-group' && a.at(-1).endsWith('_pg-import-test');
-        console.log(JSON.stringify({'com.docker.compose.project': project, 'com.webapi.contracts.owner': foreign ? 'foreign' : owner}));
+        const foreign = fault === 'foreign-' + a[0] || fault === 'foreign-group' && a.at(-1).endsWith('_pg-import-test')
+          || afterDown && (fault === 'changed-owner' || fault === 'changed-after-holder-check' && fs.existsSync(marker('mounts')));
+        console.log(JSON.stringify({'com.docker.compose.project': a.at(-1).startsWith('owner-only-') ? 'another-project' : project, 'com.webapi.contracts.owner': foreign ? 'foreign' : owner,
+          ['com.docker.compose.' + a[0]]: a.at(-1).slice(project.length + 1)}));
+      } else if (a[1] === 'rm' && a[0] === 'volume') {
+        if (a.length !== 3 || a[2] !== cache || !afterDown || !leavesCache) process.exit(65);
+        if (['held-cache', 'signal-held-cache'].includes(fault)) process.exit(66);
+        fs.writeFileSync(marker('removed'), '1');
       } else process.exit(93);
+    } else if (a[0] === 'ps') {
+      if (a.includes('volume=' + cache)) {
+        const checks = fs.existsSync(marker('mounts')) ? Number(fs.readFileSync(marker('mounts'))) : 0;
+        fs.writeFileSync(marker('mounts'), String(checks + 1));
+        if (['held-cache', 'signal-held-cache'].includes(fault) || fault === 'released-cache' && checks === 0)
+          console.log('external-stopped-container');
+      } else {
+        if (fault === 'ps') process.exit(62);
+        if (!afterDown) console.log('fixture-container');
+        if (ownerOnly) console.log('owner-only-container');
+      }
     } else if (a[0] === 'inspect') {
       if (fault === 'inspect') process.exit(61);
-      console.log(JSON.stringify({'com.docker.compose.project': env.WEBAPI_CONTRACT_TEST_PROJECT,
+      console.log(JSON.stringify({'com.docker.compose.project': a.at(-1) === 'owner-only-container' ? undefined : project,
         'com.webapi.contracts.owner': fault === 'foreign' ? 'another-owner' : owner}));
     } else if (a[0] !== 'compose') process.exit(90);
     else if (a.includes('ps')) {
       if (fault === 'ps') process.exit(62);
-      console.log('fixture-container');
+      if (!afterDown) console.log('fixture-container');
     } else if (a.includes('down')) {
+      fs.writeFileSync(marker('down'), '1');
       if (fault === 'replace-during-down') replaceDirectory();
       if (fault === 'down') process.exit(63);
       if (fault === 'signal-down') process.kill(process.ppid, 'SIGTERM');
     } else if (a.includes('run')) {
-      if (fault.startsWith('foreign')) fs.linkSync(path.join(dir, 'postgres-password'), env.CAPTURE + '.bind');
-      if (fault === 'signal-sdk') process.kill(process.ppid, 'SIGTERM');
+      if (fault.startsWith('foreign') || leavesCache) fs.linkSync(path.join(dir, 'postgres-password'), env.CAPTURE + '.bind');
+      if (fault === 'signal-sdk' || fault.startsWith('signal-') && leavesCache) process.kill(process.ppid, 'SIGTERM');
       const mount = a.find(arg => arg.endsWith(':/contract-completion.json'));
       if (mount && fault !== 'missing') {
         const destination = mount.slice(0, -':/contract-completion.json'.length);
@@ -123,7 +155,9 @@ async function run(t, {fault = '', exit = 0, mode = 'domain', split = '0', args 
   const calls = lines.trim() ? lines.trim().split('\n').map(line => JSON.parse(line)) : [];
   const directories = (await fs.readdir(path.join(root, '.runtime'))).filter(name => name !== 'other-project');
   const remaining = (await Promise.all(directories.map(name => fs.readdir(path.join(root, '.runtime', name))))).flat();
-  return {...result, calls, root, directories, remaining, passwordMode: await fs.readFile(capture + '.mode', 'utf8').catch(() => null),
+  const line = result.stderr.split('\n').findLast(entry => entry.includes('"containersRemaining"'));
+  const inventory = line ? JSON.parse(line.slice(line.indexOf('{'))) : null;
+  return {...result, calls, root, directories, remaining, inventory, passwordMode: await fs.readFile(capture + '.mode', 'utf8').catch(() => null),
     retainedBindSize: (await fs.stat(capture + '.bind').catch(() => ({}))).size};
 }
 
@@ -138,6 +172,32 @@ test('runner accepts a completed nonempty run and cleans only its UUID project',
   assert(compose.some(a => a.includes('down') && a.includes('--volumes')));
   assert.deepEqual(r.directories, []);
 });
+
+for (const [fault, status] of [['detached-cache', 0], ['released-cache', 0], ['signal-detached-cache', 143]]) {
+  test(`a successful down leaving ${fault} reaps the unmounted owned cache and verifies its absence`, async t => {
+    const r = await run(t, {fault});
+    assert.equal(r.status, status, r.stderr);
+    const project = r.calls.find(a => a[0] === 'compose')[2];
+    assert.deepEqual(r.calls.filter(a => a.includes('rm')), [['volume', 'rm', project + '_nuget-test']]);
+    assert.equal(r.inventory.volumesRemaining, 0);
+    assert.deepEqual(r.directories, []);
+    assert.equal(r.retainedBindSize, 0);
+  });
+}
+
+for (const [fault, status, volumes] of [['held-cache', 3, 1], ['changed-owner', 3, 1],
+  ['changed-after-holder-check', 3, 1], ['unknown-inventory', 3, null], ['signal-held-cache', 143, 1]]) {
+  test(`post-down ${fault} retains the resource and reports verified residual counts`, async t => {
+    const r = await run(t, {fault});
+    assert.equal(r.status, status, r.stderr);
+    assert(r.inventory, r.stderr);
+    assert.deepEqual([r.inventory.containersRemaining, r.inventory.volumesRemaining, r.inventory.networksRemaining], [0, volumes, 0]);
+    assert(!r.calls.some(a => a.includes('rm')));
+    assert(!r.remaining.includes('postgres-password'));
+    assert.equal(r.retainedBindSize, 0);
+    assert.equal(r.directories.length, 1);
+  });
+}
 
 for (const fault of ['missing', 'empty', 'old', 'interrupted', 'only-skips', 'failed', 'corrupt', 'missing-field', 'inconsistent']) {
   test(`a zero SDK exit with ${fault} VSTest results fails the contract check`, async t => {
@@ -164,6 +224,16 @@ for (const fault of ['foreign-volume', 'foreign-network', 'foreign-group']) {
     assert(!r.calls.some(a => a.includes('down')));
     assert(!r.remaining.includes('postgres-password'));
     assert.equal(r.retainedBindSize, 0);
+  });
+}
+
+for (const [fault, counts] of [['owner-only', [2, 3, 2]], ['owner-only-after', [1, 1, 1]]]) {
+  test(`a mismatched or missing project on ${fault} resources refuses cleanup and counts each kind`, async t => {
+    const r = await run(t, {fault});
+    assert.equal(r.status, 3, r.stderr);
+    assert.equal(r.calls.some(a => a.includes('down')), fault === 'owner-only-after');
+    assert.deepEqual([r.inventory.containersRemaining, r.inventory.volumesRemaining, r.inventory.networksRemaining], counts);
+    assert(!r.calls.some(a => a.includes('rm')));
   });
 }
 

@@ -37,6 +37,18 @@ def public_files():
     source=read_json(ev/'source-manifest.json');tools=read_json(ev/'tool-manifest.json')
     files=frozen_files(source,read_json(ev/'frozen-source-location.json'),'source/')
     files.update(frozen_files(tools,read_json(ev/'frozen-tools-location.json'),''))
+    # Backend wrappers resolve their Compose files and projects from the source root.
+    # Keep the reviewed tool layout and add its runnable closure beside that source.
+    backend_tools = (
+        'check-sso.sh', 'sso/backend-tests.mjs', 'sso/owned-run.mjs', 'sso/evidence.mjs',
+        'acceptance-credentials.mjs', 'runtime/exec-file.mjs', 'runtime/state.mjs',
+        'runtime/restore-intent.mjs', 'runtime/restore-target-lock.mjs', 'runtime/restore-manifest.mjs',
+        'contracts/test-completion.mjs', 'contracts/run-with-completion.sh',
+        'contracts/runner/WebApi.Contracts.TestLogger.csproj', 'contracts/runner/ContractCompletionLogger.cs',
+        'contracts/runner/packages.lock.json',
+    )
+    for name in backend_tools:
+        files['source/scripts/'+name] = files['scripts/'+name]
     for directory in [ROOT/'docs/deployment',ev,ROOT/'docs/superpowers']:
         for p in directory.rglob('*'):
             if not p.is_file() or p.is_symlink():continue

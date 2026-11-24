@@ -37,5 +37,21 @@ export async function createPrivateWorkspace(root) {
   return workspace;
 }
 export function validateOwnedResources(context,labels){assert.match(context.project,/^webapi-enterprise-e2e-settings-[0-9a-f-]{36}$/);assert.equal(context.project,'webapi-enterprise-e2e-settings-'+context.owner);for(const label of labels){assert.equal(label['com.docker.compose.project'],context.project);assert.equal(label['com.webapi.settings.owner'],context.owner);}return true;}
-export async function toolManifest(root){const files={};async function visit(dir){for(const entry of (await fs.readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name,'en'))){const full=path.join(dir,entry.name);if(entry.isDirectory())await visit(full);else if(entry.isFile()&&/\.(mjs|sh|py)$/.test(entry.name))files[path.relative(root,full)]=sha(await fs.readFile(full));}}await visit(path.join(root,'scripts'));return {schemaVersion:1,files,sha256:sha(JSON.stringify(files))};}
+export async function toolManifest(root){
+ const files={};
+ const excluded=new Set(['.git','.runtime','.secrets','.worktrees','.superpowers','node_modules','bin','obj','dist','__pycache__']);
+ const logger=path.join(root,'scripts/contracts/runner');
+ const loggerInputs=new Set(['ContractCompletionLogger.cs','WebApi.Contracts.TestLogger.csproj','packages.lock.json']);
+ async function visit(dir){
+  for(const entry of (await fs.readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name,'en'))){
+   if(excluded.has(entry.name))continue;
+   const full=path.join(dir,entry.name);
+   if(entry.isDirectory())await visit(full);
+   else if(entry.isFile() && (/\.(mjs|sh|py)$/.test(entry.name) || dir===logger && loggerInputs.has(entry.name)))
+    files[path.relative(root,full)]=sha(await fs.readFile(full));
+  }
+ }
+ await visit(path.join(root,'scripts'));
+ return {schemaVersion:1,files,sha256:sha(JSON.stringify(files))};
+}
 export async function verifyToolManifest(root,manifest){assert.deepEqual(await toolManifest(root),manifest,'Acceptance tool source changed');return true;}

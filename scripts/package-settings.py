@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Fail closed on stale source, failed checks or unreviewed screenshots; package public artifacts only."""
-import argparse, hashlib, json, pathlib, re, sys, zipfile
+import argparse, fcntl, hashlib, json, os, pathlib, re, sys, tempfile, zipfile
 from acceptance_cleanup import verify_cleanup_receipt
 
 def require(condition, message):
@@ -19,9 +19,12 @@ def source_files(root):
     for p in sorted(root.iterdir()):
         if p.name in EXCLUDED:
             continue
-        if p.is_dir() and p.name in {'src', 'tests', 'console', 'deploy'}:
+        if p.is_dir() and p.name in {'src', 'tests', 'console', 'deploy', 'third_party', 'tools'}:
+            require(not p.is_symlink(), 'Source symlink rejected: ' + p.name)
             for f in p.rglob('*'):
                 relative = f.relative_to(root)
+                if p.name == 'tools' and relative.parts[1] != 'WebApi.PerformanceHost':
+                    continue
                 if any((part in EXCLUDED for part in relative.parts)):
                     continue
                 if f.is_symlink():
@@ -29,11 +32,16 @@ def source_files(root):
                 if f.is_file():
                     files[relative.as_posix()] = sha(f.read_bytes())
         elif p.is_file() and (p.suffix in {'.slnx', '.sln', '.props', '.targets'} or p.name in {'global.json', 'NuGet.Config', 'NuGet.config'}):
+            require(not p.is_symlink(), 'Source symlink rejected: ' + p.name)
             files[p.name] = sha(p.read_bytes())
     return files
 
 def tools_files(root):
-    return {f.relative_to(root).as_posix(): sha(f.read_bytes()) for f in sorted((root / 'scripts').rglob('*')) if f.is_file() and f.suffix in {'.mjs', '.sh', '.py'} and (not any((part in EXCLUDED for part in f.relative_to(root).parts)))}
+    logger = root / 'scripts/contracts/runner'
+    logger_inputs = {'ContractCompletionLogger.cs', 'WebApi.Contracts.TestLogger.csproj', 'packages.lock.json'}
+    return {f.relative_to(root).as_posix(): sha(f.read_bytes()) for f in sorted((root / 'scripts').rglob('*'))
+            if f.is_file() and not f.is_symlink() and (f.suffix in {'.mjs', '.sh', '.py'} or f.parent == logger and f.name in logger_inputs)
+            and not any(part in EXCLUDED for part in f.relative_to(root).parts)}
 
 def validate(root, evidence):
     source = load(evidence / 'source-manifest.json')
@@ -64,6 +72,34 @@ def validate(root, evidence):
         require(regression['suites'][name]['pass'] is True and regression['suites'][name]['total'] > 0, 'Regression failed: ' + name)
     return (source, identity, tools)
 
+def publish(staging, output, name, digest):
+    sidecar = pathlib.Path(name).with_suffix('.manifest.json').name
+    expected = {name: digest, sidecar: sha((staging / sidecar).read_bytes())}
+
+    def matches(path):
+        return not path.is_symlink() and path.is_file() and sha(path.read_bytes()) == expected[path.name]
+
+    directory = os.open(output, os.O_RDONLY)
+    try:
+        fcntl.flock(directory, fcntl.LOCK_EX)
+        # Keep the original filenames for a first publication. A retry can complete
+        # a partially published pair only if its existing member has the right bytes.
+        if all(not os.path.lexists(output / n) or matches(output / n) for n in expected):
+            for n in expected:
+                if not os.path.lexists(output / n):
+                    os.link(staging / n, output / n)
+            return output / name
+
+        destination = output / ('settings-' + digest)
+        if os.path.lexists(destination):
+            require(not destination.is_symlink() and destination.is_dir() and
+                    all(matches(destination / n) for n in expected), 'Existing version differs from this delivery')
+        else:
+            staging.rename(destination)
+        return destination / name
+    finally:
+        os.close(directory)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=pathlib.Path, required=True)
@@ -83,24 +119,30 @@ def main():
                 names.add(f.relative_to(root).as_posix())
     files = {n: sha((root / n).read_bytes()) for n in sorted(names)}
     output = root / 'deliverables'
+    require(not output.is_symlink(), 'Invalid delivery directory')
     output.mkdir(exist_ok=True)
     name = 'WebAPI_Enterprise_系统设置源码及验收_20261005.zip'
-    target = output / name
     manifest = {'schemaVersion': 1, 'package': name, 'baseCommit': source['baseCommit'], 'classification': source['classification'], 'sourceManifestHash': identity, 'toolManifestHash': tools['sha256'], 'files': files}
-    with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
-        for n in files:
-            archive.writestr(n, (root / n).read_bytes())
-        archive.writestr('MANIFEST.json', json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
-    with zipfile.ZipFile(target) as archive:
-        require(archive.testzip() is None, 'Delivery validation failed')
-        for (n, expected) in files.items():
-            require(sha(archive.read(n)) == expected, 'Delivery validation failed')
-    manifest['packageSha256'] = sha(target.read_bytes())
-    (output / name.replace('.zip', '.manifest.json')).write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    with tempfile.TemporaryDirectory(prefix='.settings-package-', dir=output) as temporary:
+        staging = pathlib.Path(temporary) / 'delivery'
+        staging.mkdir()
+        archive_path = staging / name
+        with zipfile.ZipFile(archive_path, 'x') as archive:
+            # ZipInfo uses a fixed timestamp so identical inputs produce identical ZIP bytes.
+            for n in files:
+                archive.writestr(zipfile.ZipInfo(n), (root / n).read_bytes(), zipfile.ZIP_DEFLATED)
+            archive.writestr(zipfile.ZipInfo('MANIFEST.json'), json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', zipfile.ZIP_DEFLATED)
+        with zipfile.ZipFile(archive_path) as archive:
+            require(archive.testzip() is None, 'Delivery validation failed')
+            for n, expected in files.items():
+                require(sha(archive.read(n)) == expected, 'Delivery validation failed')
+        manifest['packageSha256'] = sha(archive_path.read_bytes())
+        archive_path.with_suffix('.manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        target = publish(staging, output, name, manifest['packageSha256'])
     print(json.dumps({'package': str(target), 'sha256': manifest['packageSha256'], 'files': len(files)}, ensure_ascii=False))
 if __name__ == '__main__':
     try:
         main()
-    except (AssertionError, ValueError, KeyError, FileNotFoundError, StopIteration) as error:
+    except (AssertionError, ValueError, KeyError, OSError, StopIteration) as error:
         print('Delivery rejected: ' + str(error), file=sys.stderr)
         sys.exit(2)

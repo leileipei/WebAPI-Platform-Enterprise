@@ -38,6 +38,8 @@ GitHub 主干与本地目录可能处于不同提交。阅读“当前”“已�
 
 后端优先执行 `bash scripts/check-contracts.sh domain`、`integration`、`gateway`。各次使用独立 owner、密码、数据库、依赖缓存和固定 SDK 镜像，退出时按归属清理自己的测试资源。旧 `scripts/check.sh` 使用固定测试项目，不应在共享环境并发运行。
 
+这些后端命令及系统设置、流量策略、SSO 的专用后端入口都核对本次 VSTest 完成记录，至少一项通过且零失败才返回成功。指定 `--filter` 后匹配到零项，或 SDK 返回成功但缺少完整记录时，入口返回 3。调用方可继续使用自己的 `--logger` 和 `--results-directory`。
+
 固定端口 E2E、故障演练、性能实验和持久环境维护各有独立入口。运行目录、秘密、数据库转储和依赖缓存均须保留在交付包之外。[运维目录](docs/deployment/README.md)
 
 运行 `bash scripts/package.sh` 会从当前 HEAD 提取交付源码，按该提交的锁文件重新构建前端，并在 `deliverables/` 写入 ZIP 和 `manifest.json`。需要交付历史版本时可传入源码提交，例如 `bash scripts/package.sh <源码提交>`。验收回执若保存在另一次提交，可追加 `--evidence-revision <回执提交>`。清单仅在回执通过校验且受测提交与打包提交一致时标记 `acceptanceComplete: true`。

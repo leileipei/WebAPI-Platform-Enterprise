@@ -7,7 +7,9 @@ exclude={'.git','.runtime','.secrets','.worktrees','.superpowers','node_modules'
 for p in root.rglob('*'):
  rel=p.relative_to(root)
  if any(part in exclude for part in rel.parts) or p.is_symlink() or not p.is_file():continue
- if rel.parts[0] not in {'src','tests','console','deploy','scripts','docs'} and p.name not in {'README.md','NuGet.config','global.json','.gitignore','.env.example'} and p.suffix not in {'.sln','.slnx','.props','.targets'}:continue
+ backend_dependency=rel.parts[0]=='third_party' or rel.parts[:2]==('tools','WebApi.PerformanceHost')
+ if rel.parts[0] in {'third_party','tools'} and not backend_dependency:continue
+ if not backend_dependency and rel.parts[0] not in {'src','tests','console','deploy','scripts','docs'} and p.name not in {'README.md','NuGet.config','global.json','.gitignore','.env.example'} and p.suffix not in {'.sln','.slnx','.props','.targets'}:continue
  if p.suffix=='.zip' or p.name.startswith('operations.log'):continue
  files.append((p,rel.as_posix()))
 secret_values=[]

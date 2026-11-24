@@ -5,6 +5,25 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawnSync} from 'node:child_process';
 
+test('the completion CLI rejects a missing result through a symlinked checkout',t=>{
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'linked-vstest-cli-'));
+  t.after(()=>fs.rmSync(temp,{recursive:true,force:true}));
+  const link=path.join(temp,'checkout');
+  fs.symlinkSync(path.resolve(import.meta.dirname,'../..'),link,'dir');
+  const result=spawnSync(process.execPath,[path.join(link,'scripts/contracts/check-completion.mjs'),path.join(temp,'missing'),'this-run'],{encoding:'utf8'});
+  assert.equal(result.status,3,result.stderr);
+  assert.match(result.stderr,/completion/i);
+});
+
+test('a completion without a run owner cannot be verified by omitting the expected owner',t=>{
+  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'unbound-vstest-cli-'));
+  t.after(()=>fs.rmSync(temp,{recursive:true,force:true}));
+  const file=path.join(temp,'completion.json');
+  fs.writeFileSync(file,JSON.stringify({completed:true,passed:1,executed:1,skipped:0,failed:0}));
+  const result=spawnSync(process.execPath,[path.resolve(import.meta.dirname,'../../scripts/contracts/check-completion.mjs'),file]);
+  assert.equal(result.status,3);
+});
+
 function fixture(t, {mode='domain', wrapper='policies', fault='', productExit=0} = {}) {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'policy-test-cli-')));
   t.after(() => fs.rmSync(root, {recursive:true, force:true}));
@@ -41,6 +60,12 @@ if(a[0]==='volume'&&a[1]==='inspect'&&!a.includes('--format')){
 }
 if(a.includes('up')){fs.writeFileSync(state('started'),'');process.exit(fault==='up'?9:0);}
 if(a.includes('run')) {
+  const mount=a.find(s=>s.endsWith(':/contract-completion.json'));
+  if(mount && fault!=='missing-completion') {
+    const file=mount.slice(0,-':/contract-completion.json'.length);
+    const passed=fault==='zero-matches'?0:1;
+    fs.writeFileSync(file,JSON.stringify({owner,completed:true,executed:passed,passed,failed:0,skipped:0}));
+  }
   if(fault==='signal'){
     process.once('SIGTERM',()=>{fs.writeFileSync(state('child-stopped'),'');process.exit(0);});
     process.kill(process.ppid,'SIGTERM'); setTimeout(()=>process.exit(0),750);
@@ -90,10 +115,22 @@ test('policy domain runner isolates its project and measures credentials and Doc
   assert.ok(f.rows.find(r=>r.args.includes('run')).args.some(a=>a.includes('/nuget-seed/')));
 });
 
+for (const wrapper of ['policies','settings']) {
+  for (const fault of ['zero-matches','missing-completion']) {
+    test(wrapper+' rejects '+fault+' even when the SDK exits zero',t=>{
+      const f=fixture(t,{wrapper,fault});
+      assert.equal(f.result.status,3,f.result.stderr);
+      assert.match(f.result.stderr,/completion/i);
+      assert.equal(f.receipt?.secretsRemaining,0);
+      assert.equal(fs.existsSync(f.directory),false);
+    });
+  }
+}
+
 test('the optional absent cache uses direct restore and preserves a product failure',t=>{
   const f=fixture(t,{fault:'seed-missing',productExit:7});
   assert.equal(f.result.status,7);
-  assert.ok(f.rows.find(r=>r.args.includes('run')).args.includes('dotnet'));
+  assert.ok(!f.rows.find(r=>r.args.includes('run')).args.some(a=>a.includes('/nuget-seed/')));
   assert.equal(fs.existsSync(f.secret),false);
   assert.equal(f.receipt.secretsRemaining,0);
 });

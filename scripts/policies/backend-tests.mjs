@@ -5,6 +5,7 @@ import {spawn} from 'node:child_process';
 import {withAcceptanceSignals} from '../acceptance-credentials.mjs';
 import {execFileAndWait} from '../runtime/exec-file.mjs';
 import {writePrivate} from '../runtime/state.mjs';
+import {withTestCompletion} from '../contracts/test-completion.mjs';
 
 const root = process.cwd();
 const [testProject, ...testArgs] = process.argv.slice(2);
@@ -128,10 +129,11 @@ await withAcceptanceSignals(async signal => {
     signal.throwIfAborted();
     composeStarted = true;
     await runCompose(['up', '-d', '--wait', 'postgres', 'redis'], signal);
-    const test = seedAvailable
-      ? ['bash', '-c', 'mkdir -p /root/.nuget/packages; cp -a /nuget-seed/. /root/.nuget/packages/; exec dotnet test "$@"', '--']
-      : ['dotnet', 'test'];
-    await runCompose(['run', '--rm', 'sdk', ...test, testProject, '--configuration', 'Release', ...testArgs], signal);
+    const test = ['bash', '/workspace/scripts/contracts/run-with-completion.sh', testProject, '--configuration', 'Release', ...testArgs];
+    const command = seedAvailable
+      ? ['bash', '-ec', 'mkdir -p /root/.nuget/packages; cp -a /nuget-seed/. /root/.nuget/packages/; exec "$@"', '--', ...test]
+      : test;
+    await withTestCompletion(directory, owner, options => runCompose(['run', '--rm', ...options, 'sdk', ...command], signal));
   } catch (error) {
     process.exitCode = error.exitCode || 3;
     console.error('Policy test initialization or execution failed.');
