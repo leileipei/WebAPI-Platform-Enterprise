@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';import path from 'node:path';import assert fro
 import {execFileAndWait as exec} from '../runtime/exec-file.mjs';
 const repository=path.resolve(import.meta.dirname,'../..');
 const applicationNames={'control-plane':'ControlPlane',worker:'Worker','gateway-a':'Gateway','gateway-b':'Gateway','backend-a':'TestBackend','backend-b':'TestBackend',console:'ConsoleHost'};
+const comparisonVolumes = ['pg', 'nuget', 'lkg-a', 'lkg-b', 'evidence'];
 function composeArguments(directory,project){return['compose','-p',project,'-f',path.join(directory,'source/deploy/compose.e2e.yml'),'-f',path.join(directory,'overlay.json'),'-f',path.join(directory,'volumes.yml')];}
 async function runnerCommand(directory, env, binary, args, options = {}) {
  try {
@@ -31,7 +32,12 @@ async function ownedComparisonIdentity(root, directory) {
  return {project, owner, directory};
 }
 
-async function teardownComparison({directory, project, owner, environment}) {
+function verifyEvidenceVolume(labels, nonce) {
+ assert.equal(labels['com.docker.compose.volume'], 'evidence');
+ assert(nonce && labels['com.webapi.migration.evidence-nonce'] === nonce, 'Migration evidence volume was not created for this run');
+}
+
+async function teardownComparison({directory, project, owner, environment, evidenceNonce}) {
  const env = {...process.env, WEBAPI_E2E_PROJECT: project, WEBAPI_E2E_DIRECTORY: directory,
   WEBAPI_E2E_RELATIVE_DIR: '.runtime/' + project, WEBAPI_ENVIRONMENT_ID: environment.WEBAPI_ENVIRONMENT_ID};
  const command = (...args) => runnerCommand(directory, env, 'docker', args);
@@ -45,8 +51,10 @@ async function teardownComparison({directory, project, owner, environment}) {
  for (const kind of kinds) {
   for (const id of await list(kind)) {
    const inspect = kind === 'container' ? ['inspect', '--format', '{{json .Config.Labels}}'] : [kind, 'inspect', '--format', '{{json .Labels}}'];
-   resources.push({kind, labels: JSON.parse(await command(...inspect, id))});
-   if (kind === 'volume') assert(['pg', 'nuget', 'lkg-a', 'lkg-b'].some(name => id === project + '_' + name), 'Unexpected volume');
+   const labels = JSON.parse(await command(...inspect, id));
+   resources.push({kind, labels});
+   if (kind === 'volume') assert(comparisonVolumes.some(name => id === project + '_' + name), 'Unexpected volume');
+   if (kind === 'volume' && id === project + '_evidence') verifyEvidenceVolume(labels, evidenceNonce);
   }
  }
  validateComparisonCleanupResources({project, owner}, resources);
@@ -147,15 +155,33 @@ export async function runComparisonAcceptance({root=repository,revision,retainFo
   signal?.throwIfAborted();
   await fs.writeFile(path.join(directory, 'review-context.json'), JSON.stringify(context), {mode: 0o600, flag: 'wx'});
   const archive=path.join(directory,'source.tar'),source=path.join(directory,'source');await fs.mkdir(source,{mode:0o700});await command('git',['-C',root,'archive','--output',archive,sourceRevision]);const archiveHash=sha(await fs.readFile(archive));await command('tar',['-xf',archive,'-C',source]);const tools=await toolManifest(source);assert.deepEqual(await toolManifest(root),tools,'Runner tools differ from immutable source');const image=await buildRelease({root,revision:sourceRevision,directory:path.join(directory,'build'),nugetSeedVolume:'webapi-enterprise-core-test_nuget-test',signal});signal?.throwIfAborted();await fs.writeFile(path.join(publicDirectory,'source-manifest.json'),JSON.stringify({sourceRevision,archiveHash,image,toolManifestHash:tools.sha256},null,2)+'\n');
-  const labels={'com.webapi.comparisons.owner':owner},overlay={services:{},volumes:{},networks:{default:{labels}},secrets:{password:{file:path.join(directory,'password')}}};for(const service of ['postgres','redis','sdk',...Object.keys(applicationNames)])overlay.services[service]={labels};for(const name of ['pg','nuget','lkg-a','lkg-b'])overlay.volumes[name]={labels};
+  const labels={'com.webapi.comparisons.owner':owner},overlay={services:{},volumes:{},networks:{default:{labels}},secrets:{password:{file:path.join(directory,'password')}}};for(const service of ['postgres','redis','sdk',...Object.keys(applicationNames)])overlay.services[service]={labels};for (const name of comparisonVolumes) overlay.volumes[name] = {labels};
+  const evidenceNonce = randomUUID();
+  overlay.volumes.evidence.labels = {...labels, 'com.webapi.migration.evidence-nonce': evidenceNonce};
+  Object.assign(overlay.services.sdk, {
+   image: image.imageId, user: '10001:10001', working_dir: '/app',
+   secrets: ['postgres-password', 'password'], environment: {WEBAPI_BOOTSTRAP_PASSWORD_FILE: '/run/secrets/password'}
+  });
+  overlay.secrets['login-hmac'] = {file: path.join(directory, 'login-hmac')};
   for(const[service,name]of Object.entries(applicationNames)){Object.assign(overlay.services[service],{image:image.imageId,user:'10001:10001',working_dir:'/app',command:['dotnet',`/app/${service.startsWith('gateway')?'gateway':service.startsWith('backend')?'demo-backend':service==='console'?'console-host':service}/WebApi.${name}.dll`]});if(['control-plane','gateway-a','gateway-b','console'].includes(service))overlay.services[service].ports=['127.0.0.1::8080'];}
-  Object.assign(overlay.services['control-plane'],{secrets:['postgres-password','node-a','node-b','password'],environment:{WEBAPI_BOOTSTRAP_USERNAME:'e2e-admin',WEBAPI_BOOTSTRAP_PASSWORD_FILE:'/run/secrets/password',Authentication__CookieName:'WebApi.Comparisons.'+owner+'.Session',Antiforgery__CookieName:'WebApi.Comparisons.'+owner+'.Csrf'}});overlay.services.console.environment={Console__DistDirectory:'/app/console-dist'};
-  await fs.writeFile(path.join(directory,'overlay.json'),JSON.stringify(overlay,null,2),{mode:0o600});const override='services:\n'+Object.keys(applicationNames).map(s=>`  ${s}:\n    volumes: !override ${s.startsWith('gateway')?'[lkg-'+s.at(-1)+':/lkg]':'[]'}\n`+(['control-plane','gateway-a','gateway-b','console'].includes(s)?'    ports: !override ["127.0.0.1::8080"]\n':'')).join('')+'  sdk:\n    volumes: !override []\n';await fs.writeFile(path.join(directory,'volumes.yml'),override,{mode:0o600});const args=composeArguments(directory,project),compose=(...parts)=>command('docker',[...args,...parts]);context={...context,tools,image};
+  Object.assign(overlay.services['control-plane'],{secrets:['postgres-password','node-a','node-b','login-hmac'],environment:{Authentication__LoginProtection__HmacSecretFile:'/run/secrets/login-hmac',Authentication__CookieName:'WebApi.Comparisons.'+owner+'.Session',Antiforgery__CookieName:'WebApi.Comparisons.'+owner+'.Csrf'}});overlay.services.console.environment={Console__DistDirectory:'/app/console-dist'};
+  await fs.writeFile(path.join(directory,'overlay.json'),JSON.stringify(overlay,null,2),{mode:0o600});const override='services:\n'+Object.keys(applicationNames).map(s=>`  ${s}:\n    volumes: !override ${s.startsWith('gateway')?'[lkg-'+s.at(-1)+':/lkg]':'[]'}\n`+(['control-plane','gateway-a','gateway-b','console'].includes(s)?'    ports: !override ["127.0.0.1::8080"]\n':'')).join('')+'  sdk:\n    volumes: !override [evidence:/evidence]\n';await fs.writeFile(path.join(directory,'volumes.yml'),override,{mode:0o600});const args=composeArguments(directory,project),compose=(...parts)=>command('docker',[...args,...parts]);context={...context,tools,image,evidenceNonce};
   signal?.throwIfAborted();
-  for (const name of secretNames) await fs.writeFile(path.join(directory, name), randomBytes(32).toString('base64url'), {mode: 0o600, flag: 'wx'});
+  for (const name of secretNames) await fs.writeFile(path.join(directory, name), randomBytes(32).toString(name === 'login-hmac' ? 'base64' : 'base64url'), {mode: 0o600, flag: 'wx'});
   await writePrivate(path.join(directory, 'review-context.json'), {...context, composeAttempted: true});
   context.composeAttempted = true;
-  await compose('up','-d','--wait','postgres','redis');await compose('run','--rm','--entrypoint','dotnet','control-plane','/app/migrator/WebApi.Migrator.dll','--bootstrap','--seed-catalog');await compose('up','-d','control-plane');const endpoint=async service=>'http://'+await compose('port',service,'8080');env.WEBAPI_E2E_CONTROL_PLANE_URL=await endpoint('control-plane');await command(process.execPath,[path.join(source,'scripts/wait-http.mjs'),env.WEBAPI_E2E_CONTROL_PLANE_URL+'/health/live']);await command(process.execPath,[path.join(source,'scripts/prepare-e2e.mjs')]);const fixture=JSON.parse(await fs.readFile(path.join(directory,'context.json'),'utf8'));env.WEBAPI_ENVIRONMENT_ID=environment.WEBAPI_ENVIRONMENT_ID=fixture.environmentId;await compose('up','-d','--force-recreate','control-plane');env.WEBAPI_E2E_CONTROL_PLANE_URL=await endpoint('control-plane');await compose('create','gateway-a','gateway-b');const sdk=JSON.parse(await fs.readFile(path.join(source,'deploy/images.lock.json'))).sdk;for(const name of ['lkg-a','lkg-b']){const volume=project+'_'+name;validateComparisonResources({project,owner},[JSON.parse(await command('docker',['volume','inspect','--format','{{json .Labels}}',volume]))]);await command('docker',['run','--rm','--user','0:0','-v',volume+':/comparison-lkg',sdk,'bash','-c','chown 10001:10001 /comparison-lkg && chmod 700 /comparison-lkg']);}await compose('up','-d',...Object.keys(applicationNames));await command(process.execPath,[path.join(source,'scripts/wait-http.mjs'),env.WEBAPI_E2E_CONTROL_PLANE_URL+'/health/live']);await command(process.execPath,[path.join(source,'scripts/wait-nodes.mjs')]);const endpoints={control_plane:env.WEBAPI_E2E_CONTROL_PLANE_URL,console:await endpoint('console'),gateway_a:await endpoint('gateway-a'),gateway_b:await endpoint('gateway-b')};context={...context,endpoints,context:fixture};await writePrivate(path.join(directory,'review-context.json'),context);const result=await runComparisonScenario({...context,compose,signal});signal?.throwIfAborted();result.toolManifestHash=tools.sha256;await verifyToolManifest(root,tools);assertNoSecrets(result,await Promise.all([...secretNames,'credential'].map(n=>fs.readFile(path.join(directory,n),'utf8'))));await fs.writeFile(path.join(directory,'result.json'),JSON.stringify(result,null,2),{mode:0o600});
+  await compose('up', '-d', '--wait', 'postgres', 'redis');
+  await compose('create', 'sdk');
+  const evidenceVolume = project + '_evidence';
+  const evidenceLabels = JSON.parse(await command('docker', ['volume', 'inspect', '--format', '{{json .Labels}}', evidenceVolume]));
+  validateComparisonResources({project, owner}, [evidenceLabels]);
+  verifyEvidenceVolume(evidenceLabels, evidenceNonce);
+  const sdk = JSON.parse(await fs.readFile(path.join(source, 'deploy/images.lock.json'))).sdk;
+  await command('docker', ['run', '--rm', '--network', 'none', '--user', '0:0', '--cap-drop', 'ALL', '--cap-add', 'CHOWN', '--cap-add', 'FOWNER',
+   '-e', 'WEBAPI_MIGRATION_EVIDENCE_NEW_VOLUME=1', '-v', evidenceVolume + ':/evidence',
+   '-v', path.join(source, 'deploy/runtime/init-migration-evidence.sh') + ':/init-evidence.sh:ro', sdk, 'bash', '/init-evidence.sh', '/evidence']);
+  await compose('run', '--rm', '--no-deps', '--entrypoint', 'dotnet', 'sdk', '/app/migrator/WebApi.Migrator.dll', '--bootstrap', '--seed-catalog');
+  await compose('up','-d','control-plane');const endpoint=async service=>'http://'+await compose('port',service,'8080');env.WEBAPI_E2E_CONTROL_PLANE_URL=await endpoint('control-plane');await command(process.execPath,[path.join(source,'scripts/wait-http.mjs'),env.WEBAPI_E2E_CONTROL_PLANE_URL+'/health/live']);await command(process.execPath,[path.join(source,'scripts/prepare-e2e.mjs')]);const fixture=JSON.parse(await fs.readFile(path.join(directory,'context.json'),'utf8'));env.WEBAPI_ENVIRONMENT_ID=environment.WEBAPI_ENVIRONMENT_ID=fixture.environmentId;await compose('up','-d','--force-recreate','control-plane');env.WEBAPI_E2E_CONTROL_PLANE_URL=await endpoint('control-plane');await compose('create','gateway-a','gateway-b');for(const name of ['lkg-a','lkg-b']){const volume=project+'_'+name;validateComparisonResources({project,owner},[JSON.parse(await command('docker',['volume','inspect','--format','{{json .Labels}}',volume]))]);await command('docker',['run','--rm','--user','0:0','-v',volume+':/comparison-lkg',sdk,'bash','-c','chown 10001:10001 /comparison-lkg && chmod 700 /comparison-lkg']);}await compose('up','-d',...Object.keys(applicationNames));await command(process.execPath,[path.join(source,'scripts/wait-http.mjs'),env.WEBAPI_E2E_CONTROL_PLANE_URL+'/health/live']);await command(process.execPath,[path.join(source,'scripts/wait-nodes.mjs')]);const endpoints={control_plane:env.WEBAPI_E2E_CONTROL_PLANE_URL,console:await endpoint('console'),gateway_a:await endpoint('gateway-a'),gateway_b:await endpoint('gateway-b')};context={...context,endpoints,context:fixture};await writePrivate(path.join(directory,'review-context.json'),context);const result=await runComparisonScenario({...context,compose,signal});signal?.throwIfAborted();result.toolManifestHash=tools.sha256;await verifyToolManifest(root,tools);assertNoSecrets(result,await Promise.all([...secretNames,'credential'].map(n=>fs.readFile(path.join(directory,n),'utf8'))));await fs.writeFile(path.join(directory,'result.json'),JSON.stringify(result,null,2),{mode:0o600});
   if (!retainForReview) {
    result.cleanup = await cleanup();
    if (result.cleanup.failed) throw Error(result.cleanup.error);

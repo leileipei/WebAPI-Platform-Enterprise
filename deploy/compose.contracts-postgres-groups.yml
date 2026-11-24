@@ -22,5 +22,11 @@ services:
       com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
 volumes:
   pg-security-test:
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
   pg-credential-test:
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
   pg-import-test:
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}

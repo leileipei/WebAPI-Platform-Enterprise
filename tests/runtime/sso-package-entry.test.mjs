@@ -16,12 +16,18 @@ async function candidate(){
  async function receipt(){await exec('python3',['-c',`import runpy,json,hashlib,pathlib; m=runpy.run_path('scripts/package-sso.py',run_name='fixture'); f=m['public_files'](); pathlib.Path('docs/evidence/sso/privacy-scan.json').write_text(json.dumps({'complete':True,'plaintextSecretsFound':0,'files':{k:hashlib.sha256(v).hexdigest() for k,v in f.items()}}))`],{cwd:dir});}
  await receipt();return {dir,ev,json,write,receipt};
 }
-for(const kind of ['valid','stale-review','stale-regression','missing-tool-binding','changed-live-tool','changed-live-source','foreign-cleanup'])test('actual package entry validates '+kind,async()=>{
+for(const kind of ['valid','stale-review','stale-regression','missing-tool-binding','changed-live-tool','changed-live-source','foreign-cleanup','failed-cleanup','remaining-network','unknown-network','boolean-count','missing-modern-count'])test('actual package entry validates '+kind,async()=>{
  const c=await candidate();try{
   if(kind==='stale-review'||kind==='stale-regression'||kind==='missing-tool-binding'){const file=kind==='stale-review'?'independent-review.json':kind==='stale-regression'?'regression.json':'ui/qa.json',value=JSON.parse(await fs.readFile(c.ev+'/'+file));if(kind==='missing-tool-binding')delete value.toolManifestHash;else value.sourceManifestHash='0'.repeat(64);await c.json('docs/evidence/sso/'+file,value);await c.receipt();}
   if(kind==='changed-live-tool')await c.write('scripts/local-client.mjs','unreviewed replacement tool\n');
   if(kind==='changed-live-source')await c.write('src/a.cs','unreviewed replacement source\n');
   if(kind==='foreign-cleanup'){const value=JSON.parse(await fs.readFile(c.ev+'/cleanup.json'));value.project='webapi-sso-test-foreign';await c.json('docs/evidence/sso/cleanup.json',value);await c.receipt();}
+  const cleanupCases={
+    'failed-cleanup':{failed:true,networksRemaining:0},
+    'remaining-network':{networksRemaining:1},'unknown-network':{networksRemaining:null},
+    'boolean-count':{secretsRemaining:false,networksRemaining:0},'missing-modern-count':{schemaVersion:2},
+  };
+  if(Object.hasOwn(cleanupCases,kind)){const value=JSON.parse(await fs.readFile(c.ev+'/cleanup.json'));await c.json('docs/evidence/sso/cleanup.json',{...value,...cleanupCases[kind]});await c.receipt();}
   const attempt=exec('python3',['scripts/package-sso.py'],{cwd:c.dir});if(kind==='valid'){const r=await attempt;assert.equal(JSON.parse(r.stdout).complete,true);}else await assert.rejects(attempt);
  }finally{await fs.rm(c.dir,{recursive:true,force:true});}
 });

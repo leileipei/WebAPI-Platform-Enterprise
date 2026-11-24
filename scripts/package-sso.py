@@ -81,7 +81,12 @@ def scan_public(cleanup=False):
 def create_package():
     ev=ROOT/'docs/evidence/sso';verification=read_json(ev/'verification.json');qa=read_json(ev/'ui/qa.json');review=read_json(ev/'independent-review.json');regression=read_json(ev/'regression.json');cleanup=read_json(ev/'cleanup.json');source=read_json(ev/'source-manifest.json')
     assert verification['complete'] and qa['complete'] and qa['visualReviewComplete'] and review['complete'] and review['blockingFindings']==0 and regression['complete']
-    assert cleanup['containersRemaining']==cleanup['volumesRemaining']==cleanup['secretsRemaining']==0
+    assert cleanup.get('failed',False) is False,'SSO resource or credential cleanup failed'
+    version=cleanup.get('schemaVersion',1)
+    assert type(version) is int and version in (1,2),'Unknown SSO cleanup receipt'
+    counts=['containersRemaining','volumesRemaining','secretsRemaining']
+    if version==2 or 'networksRemaining' in cleanup:counts.append('networksRemaining')
+    assert all(type(cleanup.get(name)) is int and cleanup[name]==0 for name in counts),'Incomplete SSO cleanup counts'
     source_hash,tool_hash=validate_evidence_bindings(ev,verification,qa,review,regression,cleanup)
     files=public_files();privacy=read_json(ev/'privacy-scan.json');assert privacy['complete'] and privacy['plaintextSecretsFound']==0
     assert privacy['files']=={name:sha(data) for name,data in sorted(files.items())},'Public payload changed after private scan'

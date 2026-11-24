@@ -38,9 +38,10 @@ jobs:
           node-version: '24.22.1'
           package-manager-cache: false
 
-      - name: Test runtime acceptance and restore safeguards
+      - name: Test acceptance runners and restore safeguards
         run: >-
           node --test
+          tests/contracts/runner.test.mjs
           tests/runtime/restore-storage-budget.test.mjs
           tests/runtime/restore-quota-provider.test.mjs
           tests/runtime/migration-evidence-inspection.test.mjs
@@ -50,9 +51,12 @@ jobs:
           tests/runtime/acceptance-credentials.test.mjs
           tests/runtime/comparison-runner.test.mjs
           tests/runtime/comparison-cleanup.test.mjs
+          tests/runtime/comparison-scenario.test.mjs
           tests/runtime/settings-runner.test.mjs
           tests/runtime/settings-cleanup.test.mjs
           tests/runtime/policy-cleanup.test.mjs
+          tests/runtime/sso-credential-cleanup.test.mjs
+          tests/runtime/sso-package-entry.test.mjs
           tests/runtime/observability-fixture.test.mjs
           tests/runtime/observability-scenario.test.mjs
 

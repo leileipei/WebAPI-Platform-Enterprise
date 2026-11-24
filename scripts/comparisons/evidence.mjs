@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';import path from 'node:path';import fs from 'node:fs/promises';import {randomUUID} from 'node:crypto';
 import {sha} from '../settings/evidence.mjs';
 export {sha,assertNoSecrets,toolManifest,verifyToolManifest} from '../settings/evidence.mjs';
-export const secretNames=['password','postgres-password','node-a','node-b'];
+export const secretNames=['password','postgres-password','node-a','node-b','login-hmac'];
 export const requiredUiActions=['version-selection','generate','risk-filter','fragment-details','json-export','csv-export','strong-confirmation','review-record','wizard-handoff','release-summary','keyboard-focus','workspace-switch'];
 export const requiredScreenshots=['comparison','unknown','strong-confirmation','review-record','wizard-handoff','release-summary'];
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

@@ -12,7 +12,7 @@ const exec = promisify(execFile);
 const repository = path.resolve(import.meta.dirname, '../..');
 const owner = '532c3735-fd99-44f1-a599-f1fd7825fb05';
 const project = 'webapi-enterprise-e2e-comparisons-' + owner;
-const credentials = ['password', 'postgres-password', 'node-a', 'node-b', 'credential',
+const credentials = ['password', 'postgres-password', 'node-a', 'node-b', 'login-hmac', 'credential',
   'password-e2e-admin', 'password-e2e-reader', 'password-e2e-approver', 'password-e2e-security'];
 
 const writeJson = (file, value) => fs.writeFile(file, JSON.stringify(value), {mode: 0o600});
@@ -48,7 +48,7 @@ async function fixture(t) {
     import fs from 'node:fs/promises';
     import path from 'node:path';
     const dir = process.env.WEBAPI_E2E_DIRECTORY;
-    for (const name of ${JSON.stringify(credentials.slice(4))}) {
+    for (const name of ${JSON.stringify(credentials.slice(5))}) {
       await fs.writeFile(path.join(dir, name), '', {mode: 0o600});
     }
     await fs.writeFile(path.join(dir, 'context.json'), JSON.stringify({environmentId: process.env.WEBAPI_ENVIRONMENT_ID}), {mode: 0o600});
@@ -64,6 +64,7 @@ set -eu
 case "$1" in
   compose)
     case " $* " in
+      *' /app/migrator/WebApi.Migrator.dll '*) printf '%s\\n' "$@" > "$WEBAPI_E2E_DIRECTORY/migration-args";;
       *' down '*) printf 'down\\n' >> "$WEBAPI_E2E_DIRECTORY/down-attempts"; [ "$COMPARISON_FIXTURE" != 'scenario-and-down' ] && [ "$COMPARISON_FIXTURE" != 'down' ];;
       *' port '*) printf '127.0.0.1:1\\n';;
       *' up -d --wait postgres redis '*) [ "$COMPARISON_FIXTURE" != 'first-up' ];;
@@ -76,7 +77,10 @@ case "$1" in
     if [ "$2" = ls ] && [ "$COMPARISON_FIXTURE" = 'residual-network' ] && [ -e "$WEBAPI_E2E_DIRECTORY/down-attempts" ]; then printf 'remaining-network\\n'; fi
     if [ "$2" = inspect ]; then printf '{"com.docker.compose.project":"%s","com.webapi.comparisons.owner":"foreign"}\\n' "$WEBAPI_E2E_PROJECT"; fi;;
   volume)
-    if [ "$2" = inspect ]; then
+    if [ "$2" = ls ] && [ "$COMPARISON_FIXTURE" = foreign-evidence ]; then printf '%s_evidence\\n' "$WEBAPI_E2E_PROJECT"; fi
+    if [ "$2" = inspect ] && [ "\${5##*_}" = evidence ]; then
+      ${process.execPath} -e "const o=require(process.env.WEBAPI_E2E_DIRECTORY+'/overlay.json'), l=o.volumes.evidence.labels;if(process.env.COMPARISON_FIXTURE==='foreign-evidence')l['com.webapi.migration.evidence-nonce']='other';console.log(JSON.stringify({...l,'com.docker.compose.project':process.env.WEBAPI_E2E_PROJECT,'com.docker.compose.volume':'evidence'}))"
+    elif [ "$2" = inspect ]; then
       printf '{"com.docker.compose.project":"%s","com.webapi.comparisons.owner":"%s"}\\n' "$WEBAPI_E2E_PROJECT" "\${WEBAPI_E2E_PROJECT#webapi-enterprise-e2e-comparisons-}"
     fi;;
   run) exit 0;;
@@ -121,7 +125,34 @@ async function reviewFixture(t) {
   return {...f, directory, context, close: mode => f.cli(['--cleanup', directory], mode)};
 }
 
-test('normal comparison run measures all nine credentials after a single teardown', async t => {
+test('the migrator uses the E2E SDK settings and its own evidence mount while the server gets only its login secret', async t => {
+  const f = await fixture(t);
+  await freezeSource(f.root);
+  const result = await f.cli(['--revision', 'HEAD', '--review']);
+  assert.equal(result.code, 0, result.stderr);
+  const [project] = await fs.readdir(path.join(f.root, '.runtime'));
+  const directory = path.join(f.root, '.runtime', project);
+  const args = (await fs.readFile(path.join(directory, 'migration-args'), 'utf8')).trim().split('\n');
+  assert.deepEqual(args.slice(-4), ['sdk', '/app/migrator/WebApi.Migrator.dll', '--bootstrap', '--seed-catalog']);
+  const overlay = await readJson(path.join(directory, 'overlay.json'));
+  const migration = overlay.services.sdk, server = overlay.services['control-plane'];
+  assert.equal(migration.image, server.image);
+  assert.equal(migration.user, '10001:10001');
+  assert.equal(migration.environment.WEBAPI_BOOTSTRAP_PASSWORD_FILE, '/run/secrets/password');
+  assert.deepEqual(migration.secrets.sort(), ['password', 'postgres-password']);
+  assert.deepEqual(server.secrets.sort(), ['login-hmac', 'node-a', 'node-b', 'postgres-password']);
+  assert.equal(server.environment.Authentication__LoginProtection__HmacSecretFile, '/run/secrets/login-hmac');
+  const volumes = await fs.readFile(path.join(directory, 'volumes.yml'), 'utf8');
+  assert.match(volumes, /\n  sdk:\n    volumes: !override \[evidence:\/evidence\]/);
+  assert.match(volumes, /\n  control-plane:\n    volumes: !override \[\]/);
+  const key = path.join(directory, 'login-hmac');
+  assert.equal(Buffer.from(await fs.readFile(key, 'utf8'), 'base64').length, 32);
+  assert.equal((await fs.stat(key)).mode & 0o777, 0o600);
+  assert.equal((await f.cli(['--cleanup', directory])).code, 0);
+  assert.deepEqual(await remaining(directory), []);
+});
+
+test('normal comparison run measures every credential after a single teardown', async t => {
   const {root, output, cli} = await fixture(t);
   await freezeSource(root);
   const result = await cli(['--revision', 'HEAD']);
@@ -131,6 +162,19 @@ test('normal comparison run measures all nine credentials after a single teardow
   assert.deepEqual(await remaining(directory), []);
   assert.equal((await readJson(path.join(output, 'verification.json'))).cleanup.secretsRemaining, 0);
   assert.equal(await fs.readFile(path.join(directory, 'down-attempts'), 'utf8'), 'down\n');
+});
+
+test('a different evidence volume creation nonce protects the preexisting volume from setup and cleanup', async t => {
+  const f = await fixture(t);
+  await freezeSource(f.root);
+  const result = await f.cli(['--revision', 'HEAD'], 'foreign-evidence');
+  assert.notEqual(result.code, 0);
+  const [project] = await fs.readdir(path.join(f.root, '.runtime'));
+  const directory = path.join(f.root, '.runtime', project);
+  await assert.rejects(fs.access(path.join(directory, 'migration-args')), {code:'ENOENT'});
+  await assert.rejects(fs.access(path.join(directory, 'down-attempts')), {code:'ENOENT'});
+  assert.equal((await readJson(path.join(f.output, 'last-failure.json'))).cleanup.failed, true);
+  assert.deepEqual(await remaining(directory), []);
 });
 
 for (const [mode, expected] of [['first-write', /fixture credential write failed/], ['build', /fixture build failed/], ['first-up', /Isolated comparison command failed/],

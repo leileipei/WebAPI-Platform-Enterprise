@@ -1,5 +1,7 @@
 import fs from 'node:fs/promises';import path from 'node:path';import {LocalClient} from '../local-client.mjs';import {keycloakAdmin} from './scenario.mjs';import {composeFor,waitFor} from './fixture.mjs';
-const root=path.resolve(import.meta.dirname,'../..'),info=JSON.parse(await fs.readFile(root+'/.runtime/sso-review.json')),context=JSON.parse(await fs.readFile(info.directory+'/review-context.json')),admin=new LocalClient(context.endpoints.console);await admin.login('fixture-admin',await fs.readFile(context.directory+'/admin-password','utf8'));
+import {writeSsoCredential} from './owned-run.mjs';
+import {ownedReview,reviewContext} from './review.mjs';
+const root=path.resolve(import.meta.dirname,'../..'),{identity}=await ownedReview(root),context=await reviewContext(identity),admin=new LocalClient(context.endpoints.console);await admin.login('fixture-admin',await fs.readFile(context.directory+'/admin-password','utf8'));
 const action=process.argv[2],write=(url,body,revision,method='POST')=>admin.request(url,{method,body,headers:revision===undefined?undefined:{'If-Match':'"'+revision+'"'}});
 async function user(username){return(await admin.request('/users')).items.find(u=>u.username===username);}
 async function assign(username,roleIds){const current=await user(username);return write('/users/'+current.id+'/roles',{roleIds},current.revision,'PUT');}
@@ -30,7 +32,7 @@ if(action==='prepare'){
 }else if(action==='restore'){
  await assign('fixture-ui-admin',[platform.id]);await assign('fixture-sso',[platform.id]);console.log(JSON.stringify({restored:true}));
 }else if(action==='wrong-secret'){
- const secret=await fs.readFile(context.directory+'/client-secret','utf8');await fs.writeFile(context.directory+'/correct-secret',secret,{mode:0o600});await fs.writeFile(context.directory+'/client-secret',crypto.randomUUID(),{mode:0o600});const p=await admin.request('/settings/sso/providers/'+context.providerId);await write('/settings/sso/providers/'+p.id+'/rotate',{},p.revision);console.log(JSON.stringify({wrongFixtureSecretInstalled:true}));
+ const secret=await fs.readFile(context.directory+'/client-secret','utf8');await writeSsoCredential(context.directory,'correct-secret',secret);await fs.writeFile(context.directory+'/client-secret',crypto.randomUUID(),{mode:0o600});const p=await admin.request('/settings/sso/providers/'+context.providerId);await write('/settings/sso/providers/'+p.id+'/rotate',{},p.revision);console.log(JSON.stringify({wrongFixtureSecretInstalled:true}));
 }else if(action==='restore-secret'){
  await fs.writeFile(context.directory+'/client-secret',await fs.readFile(context.directory+'/correct-secret','utf8'),{mode:0o600});await fs.rm(context.directory+'/correct-secret');const p=await admin.request('/settings/sso/providers/'+context.providerId);await write('/settings/sso/providers/'+p.id+'/rotate',{},p.revision);console.log(JSON.stringify({fixtureSecretRestored:true}));
 }else if(action==='cookie-evidence'){
