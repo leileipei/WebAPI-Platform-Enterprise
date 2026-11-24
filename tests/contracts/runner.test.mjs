@@ -59,6 +59,10 @@ async function run(t, {fault = '', exit = 0, mode = 'domain', split = '0', args 
     const a = process.argv.slice(2), env = process.env, fault = env.FAULT;
     fs.appendFileSync(env.CAPTURE, JSON.stringify(a) + '\\n');
     const dir = env.WEBAPI_CONTRACT_TEST_DIRECTORY, owner = env.WEBAPI_CONTRACT_TEST_OWNER;
+    function replaceDirectory() {
+      fs.renameSync(dir, dir + '.original');
+      fs.mkdirSync(dir);
+    }
     if (['volume', 'network'].includes(a[0])) {
       if (a.at(-1) === 'fixture-external-seed') process.exit(fault === 'seed' ? 0 : 1);
       const project = env.WEBAPI_CONTRACT_TEST_PROJECT;
@@ -67,6 +71,7 @@ async function run(t, {fault = '', exit = 0, mode = 'domain', split = '0', args 
         if (a[0] === 'volume' && env.WEBAPI_CONTRACT_SPLIT_POSTGRES === '1') names.push('pg-security-test', 'pg-credential-test', 'pg-import-test');
         for (const name of names) console.log(project + '_' + name);
       } else if (a[1] === 'inspect') {
+        if (fault === 'replace-inspecting-network' && a[0] === 'network') replaceDirectory();
         const foreign = fault === 'foreign-' + a[0] || fault === 'foreign-group' && a.at(-1).endsWith('_pg-import-test');
         console.log(JSON.stringify({'com.docker.compose.project': project, 'com.webapi.contracts.owner': foreign ? 'foreign' : owner}));
       } else process.exit(93);
@@ -79,6 +84,7 @@ async function run(t, {fault = '', exit = 0, mode = 'domain', split = '0', args 
       if (fault === 'ps') process.exit(62);
       console.log('fixture-container');
     } else if (a.includes('down')) {
+      if (fault === 'replace-during-down') replaceDirectory();
       if (fault === 'down') process.exit(63);
       if (fault === 'signal-down') process.kill(process.ppid, 'SIGTERM');
     } else if (a.includes('run')) {
@@ -99,8 +105,7 @@ async function run(t, {fault = '', exit = 0, mode = 'domain', split = '0', args 
         fs.writeFileSync(destination, fault === 'corrupt' ? '{"owner":' : JSON.stringify(report));
       }
       if (fault === 'replace-directory') {
-        fs.renameSync(dir, dir + '.original');
-        fs.mkdirSync(dir);
+        replaceDirectory();
         fs.writeFileSync(path.join(dir, 'postgres-password'), 'foreign credential fixture');
         fs.writeFileSync(path.join(dir, 'completion.json'), 'foreign completion fixture');
       }
@@ -187,6 +192,17 @@ test('a replaced directory preserves replacement files and revokes the original 
   assert.equal(await fs.readFile(path.join(replacement, 'postgres-password'), 'utf8'), 'foreign credential fixture');
   assert.equal(await fs.readFile(path.join(replacement, 'completion.json'), 'utf8'), 'foreign completion fixture');
 });
+
+for (const fault of ['replace-inspecting-network', 'replace-during-down']) {
+  test(`a directory replaced during teardown is retained: ${fault}`, async t => {
+    const r = await run(t, {fault});
+    assert.notEqual(r.status, 0, r.stderr);
+    assert.equal(r.calls.some(a => a.includes('down')), fault === 'replace-during-down');
+    const original = r.directories.find(name => name.endsWith('.original'));
+    assert(original && r.directories.includes(original.slice(0, -'.original'.length)));
+    assert(!r.remaining.includes('postgres-password'));
+  });
+}
 
 for (const fault of ['', 'foreign']) {
   test(`the original failed SDK exit survives ${fault || 'successful'} cleanup`, async t => {

@@ -74,6 +74,7 @@ cleanup_docker(){
   done
   check_resources volume "${project_volumes[@]}" || return 1
   check_resources network default || return 1
+  same_directory || { echo 'Contract test directory identity changed before Docker teardown.' >&2; return 1; }
   compose down --volumes --remove-orphans >/dev/null
 }
 cleanup(){
@@ -100,7 +101,12 @@ cleanup(){
     cleanup_status=3
   else
     rm -f ./nuget-seed.yml ./network.json || cleanup_status=3
-    rmdir "$WEBAPI_CONTRACT_TEST_DIRECTORY" || cleanup_status=3
+    if same_directory; then
+      rmdir "$WEBAPI_CONTRACT_TEST_DIRECTORY" || cleanup_status=3
+    else
+      echo 'Contract test directory identity changed during Docker teardown; replacement retained.' >&2
+      cleanup_status=3
+    fi
   fi
   if [ "$prior" -ne 0 ]; then exit "$prior"; fi
   if [ "$signal_status" -ne 0 ]; then exit "$signal_status"; fi
