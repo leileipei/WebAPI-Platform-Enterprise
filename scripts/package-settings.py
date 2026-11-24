@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Fail closed on stale source, failed checks or unreviewed screenshots; package public artifacts only."""
 import argparse, hashlib, json, pathlib, re, sys, zipfile
+from acceptance_cleanup import verify_cleanup_receipt
 
 def require(condition, message):
     if not condition:
@@ -39,6 +40,7 @@ def validate(root, evidence):
     identity = sha((evidence / 'source-manifest.json').read_bytes())
     tools = load(evidence / 'tool-manifest.json')
     result = load(evidence / 'verification.json')
+    verify_cleanup_receipt(result, evidence)
     qa = load(evidence / 'ui/qa.json')
     regression = load(evidence / 'regression.json')
     require(re.fullmatch('[0-9a-f]{40}', source['baseCommit']), 'Invalid base commit')

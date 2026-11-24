@@ -47,6 +47,12 @@ jobs:
           tests/runtime/acceptance-context.test.mjs
           tests/runtime/project-counts-acceptance-guards.test.mjs
           tests/runtime/core-e2e-cleanup.test.mjs
+          tests/runtime/acceptance-credentials.test.mjs
+          tests/runtime/comparison-runner.test.mjs
+          tests/runtime/comparison-cleanup.test.mjs
+          tests/runtime/settings-runner.test.mjs
+          tests/runtime/settings-cleanup.test.mjs
+          tests/runtime/policy-cleanup.test.mjs
           tests/runtime/observability-fixture.test.mjs
           tests/runtime/observability-scenario.test.mjs
 
