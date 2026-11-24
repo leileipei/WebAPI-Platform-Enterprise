@@ -1,6 +1,6 @@
 {
-  "project": "webapi-enterprise-e2e-observability-6bb742be-dada-4af4-8a72-626f49d9f4c1",
-  "sourceRevision": "1ac508063797940eb105df7dad51baad9daf6c02",
+  "project": "webapi-enterprise-e2e-observability-ccb313e6-de19-4f36-8faf-353a24e2dc25",
+  "sourceRevision": "fe3fca1ea30bbf2b22ec2b3138c813b96cdab8c5",
   "complete": true,
   "classification": "disposable-real-three-source-production-assets-preview-no-hmr",
   "viewport": {
@@ -72,12 +72,12 @@
   "checks": [
     {
       "name": "metrics-real-samples-and-url-selection",
-      "samples": 483,
+      "samples": 468,
       "state": "Partial"
     },
     {
       "name": "api-drill-down-and-filtered-health",
-      "sampleCount": 483,
+      "sampleCount": 468,
       "healthState": "NotApplicable"
     },
     {
@@ -118,30 +118,30 @@
     }
   ],
   "screenshots": [
-    "1ac5080-28-real-source.png",
-    "1ac5080-29-real-api-source.png",
-    "1ac5080-30-real-access-logs.png",
-    "1ac5080-31-real-trace-waterfall.png",
-    "1ac5080-32-real-alerts.png",
-    "1ac5080-33-real-rules.png",
-    "1ac5080-33-real-rule-test.png",
-    "1ac5080-28-reader-before-revocation.png",
-    "1ac5080-29-reader-before-revocation.png",
-    "1ac5080-29-reader-after-revocation.png",
-    "1ac5080-28-reader-after-revocation.png"
+    "fe3fca1-28-real-source.png",
+    "fe3fca1-29-real-api-source.png",
+    "fe3fca1-30-real-access-logs.png",
+    "fe3fca1-31-real-trace-waterfall.png",
+    "fe3fca1-32-real-alerts.png",
+    "fe3fca1-33-real-rules.png",
+    "fe3fca1-33-real-rule-test.png",
+    "fe3fca1-28-reader-before-revocation.png",
+    "fe3fca1-29-reader-before-revocation.png",
+    "fe3fca1-28-reader-after-revocation.png",
+    "fe3fca1-29-reader-after-revocation.png"
   ],
   "screenshotSha256": {
-    "1ac5080-28-real-source.png": "f2d9ec292b42648873d1f721928b06f02205b5328ad41c5579388fe3f381022c",
-    "1ac5080-29-real-api-source.png": "85a7292f250dd28e096bb63c4ea11f7a831f9f858e31c00a4c7100718c7603cd",
-    "1ac5080-30-real-access-logs.png": "6a66252d75b6acbd6cef0cefeee488a92e5f6f15941208b88c2bd905e7362f6c",
-    "1ac5080-31-real-trace-waterfall.png": "831ae10f65ac7a6db1a40dec7f2104274b4792fa1fc4d73bbc98ed2047b11eeb",
-    "1ac5080-32-real-alerts.png": "e3a2365ca74b64089453d4a0bb05a7325e8583b17c09e264420ad25b4b7dd173",
-    "1ac5080-33-real-rules.png": "7d297f9c0723b6ca8f734e1b090521fc9147987870f9c619d3900a8e28db5805",
-    "1ac5080-33-real-rule-test.png": "ab82eb2b56951e462cd1dce1d1ec9ee78a2ed5c7351beab44e4e4c5ead06fb3a",
-    "1ac5080-28-reader-before-revocation.png": "cdca820968cc24c7c0300df9304278b8960b647fe4d5ef624798a229153e83a5",
-    "1ac5080-29-reader-before-revocation.png": "b310ac2da228e070ffef72d6b1b735bd5e3cb102617e7bc82d71f40594d4b6ad",
-    "1ac5080-29-reader-after-revocation.png": "e352f30b0602ae53fbb6229be054cbd2014df609b02c8704b0eed2ca8a43b8cb",
-    "1ac5080-28-reader-after-revocation.png": "6dedea0027ebd3834bea106330e8bac315e7c8d2a632d5bb75e11272b3ae6c50"
+    "fe3fca1-28-real-source.png": "aa3cfc70ced562af6e554520a4676c45cc454cc6a2c18c50f2cea3dbed543a55",
+    "fe3fca1-29-real-api-source.png": "1326e91e05a8d07c6afca7557160e035d7d290fb9ca67dd11ce8c0849e32903f",
+    "fe3fca1-30-real-access-logs.png": "3a1a386a72eb329854eb407a3768a80822324bb1c61dbe6381a47ce91851ca9e",
+    "fe3fca1-31-real-trace-waterfall.png": "ddeaf6efd3dc6a113056fa372b7eff78c8794950fc976c0b59ddffd7c0b8840c",
+    "fe3fca1-32-real-alerts.png": "1783281bbd3676cdd3a52c21e9fa08f1618fb7fd408e7c8688891a34e9b127fb",
+    "fe3fca1-33-real-rules.png": "472f76ff5c40e0749c343d89a13122ccbf2d7abed2f4a949e27fa42fd33a7fdc",
+    "fe3fca1-33-real-rule-test.png": "a819e6572f81ca76ad12b4936df1e69ea7b8fa510ece2b87b4e42e08cbd62bd5",
+    "fe3fca1-28-reader-before-revocation.png": "7412f1478fee7dbf86394b177f814b3eff1a9a33ceaa2c87c51768f1b11a82d3",
+    "fe3fca1-29-reader-before-revocation.png": "46ad2cf9156f1c1040224792e3dfe12913fa7b5514eee6c5d85c9d72b61a22c9",
+    "fe3fca1-28-reader-after-revocation.png": "f0e8f1941d27420a4f76e33b8e6438a72fb1db4fb470a9880068efd170a51dd6",
+    "fe3fca1-29-reader-after-revocation.png": "db6acd84ecac07ba061b91560f92ee6eab9b824c690173f6e7fb3783e04ece05"
   },
   "normalConsoleErrors": [],
   "normalHttpErrors": [],
@@ -160,8 +160,8 @@
     "automationBrowserClosed": true
   },
   "evidence": {
-    "browserReadbackSha256": "f0a853a53af813ec5a3dd4a710fdb750435d8357c85c21966c7980c7a3cd8ed0",
-    "fixtureRunnerCleanupSha256": "52bfefa64e9bfb537eaae299d6b7ed3f464e0efa79068084204802caa1065b6e",
-    "fixtureScriptCleanupSha256": "43fe6eb7249c18951fb3ec5ccdb906a232646f6646217382a5969e09382deb67"
+    "browserReadbackSha256": "27e2f67738aed1233a53d9134451de3a9abcf1e39cdf13329aaaa27c7a5f9bbc",
+    "fixtureRunnerCleanupSha256": "4f822a1bdbdb32d429f8b0188773b1f17f811880646869394a5abc03fc9fef59",
+    "fixtureScriptCleanupSha256": "98cddf0e2fd30180406647ef2a690dec4395364be15dc982d07ea326667f2b21"
   }
 }

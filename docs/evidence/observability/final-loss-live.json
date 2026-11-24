@@ -1,17 +1,17 @@
 {
   "complete": true,
-  "project": "webapi-enterprise-e2e-observability-6bb742be-dada-4af4-8a72-626f49d9f4c1",
+  "project": "webapi-enterprise-e2e-observability-ccb313e6-de19-4f36-8faf-353a24e2dc25",
   "classification": "real-gateway-collector-downstream-loss",
   "checks": [
     {
       "signal": "logs",
-      "startedAt": "2026-11-24T05:35:07.037Z",
+      "startedAt": "2026-11-24T07:20:48.639Z",
       "range": {
-        "organizationId": "7195e803-a48c-48d1-8ad2-d063515e3a51",
-        "projectId": "c740a37d-82bb-487d-8c73-43afc5e5cc6f",
-        "environmentId": "c991535c-1607-4156-bd94-f555eb9a36dc",
-        "start": "2026-11-24T05:34:47.251Z",
-        "end": "2026-11-24T05:35:47.251Z"
+        "organizationId": "d3d67bf5-9b1d-4ba5-b14c-e4aa8d7ce8d4",
+        "projectId": "913b92fd-43c1-4fcf-afbc-2ab750d17485",
+        "environmentId": "4fa388cd-2e15-42da-8a93-4c72d3dce11e",
+        "start": "2026-11-24T07:20:29.079Z",
+        "end": "2026-11-24T07:21:29.079Z"
       },
       "downstreamFailures": 6,
       "gatewayExportFailureDelta": 0,
@@ -21,15 +21,15 @@
     },
     {
       "signal": "traces",
-      "startedAt": "2026-11-24T05:36:00.912Z",
+      "startedAt": "2026-11-24T07:21:42.969Z",
       "range": {
-        "organizationId": "7195e803-a48c-48d1-8ad2-d063515e3a51",
-        "projectId": "c740a37d-82bb-487d-8c73-43afc5e5cc6f",
-        "environmentId": "c991535c-1607-4156-bd94-f555eb9a36dc",
-        "start": "2026-11-24T05:35:50.486Z",
-        "end": "2026-11-24T05:36:50.486Z"
+        "organizationId": "d3d67bf5-9b1d-4ba5-b14c-e4aa8d7ce8d4",
+        "projectId": "913b92fd-43c1-4fcf-afbc-2ab750d17485",
+        "environmentId": "4fa388cd-2e15-42da-8a93-4c72d3dce11e",
+        "start": "2026-11-24T07:21:32.822Z",
+        "end": "2026-11-24T07:22:32.822Z"
       },
-      "downstreamFailures": 12,
+      "downstreamFailures": 16,
       "gatewayExportFailureDelta": 0,
       "collectorUp": 1,
       "sourceState": "Partial",
@@ -39,11 +39,11 @@
       "signal": "logs",
       "shortCollectorStopSeconds": 8,
       "range": {
-        "organizationId": "7195e803-a48c-48d1-8ad2-d063515e3a51",
-        "projectId": "c740a37d-82bb-487d-8c73-43afc5e5cc6f",
-        "environmentId": "c991535c-1607-4156-bd94-f555eb9a36dc",
-        "start": "2026-11-24T05:36:17.385Z",
-        "end": "2026-11-24T05:37:17.385Z"
+        "organizationId": "d3d67bf5-9b1d-4ba5-b14c-e4aa8d7ce8d4",
+        "projectId": "913b92fd-43c1-4fcf-afbc-2ab750d17485",
+        "environmentId": "4fa388cd-2e15-42da-8a93-4c72d3dce11e",
+        "start": "2026-11-24T07:21:59.141Z",
+        "end": "2026-11-24T07:22:59.141Z"
       },
       "sourceState": "Partial",
       "reason": "known_logs_collection_gap"
@@ -56,7 +56,7 @@
     "volumesRemaining": 0,
     "networksRemaining": 0
   },
-  "sourceRevision": "1ac508063797940eb105df7dad51baad9daf6c02",
-  "rawLossSha256": "7b483a36575bef781308052b69ec6c4453dffe1d107b67895284e986c0011c2a",
-  "nativeCleanupSha256": "43fe6eb7249c18951fb3ec5ccdb906a232646f6646217382a5969e09382deb67"
+  "sourceRevision": "fe3fca1ea30bbf2b22ec2b3138c813b96cdab8c5",
+  "rawLossSha256": "ed7a12dca6f60c02cb70c09796162683984e4efe000fc0ba19bc76d8327584c8",
+  "nativeCleanupSha256": "98cddf0e2fd30180406647ef2a690dec4395364be15dc982d07ea326667f2b21"
 }
