@@ -156,3 +156,21 @@ test('a redirected fixture evidence directory cannot write in another project', 
  await assert.rejects(scenario, /evidence directory/i);
  assert.equal(fs.existsSync(path.join(firstDir, 'faults.json')), false);
 });
+test('account SDK stages its registered fault receipt in the private owner project', async t => {
+ const {stageSdkObservability} = await import('../../scripts/account-credential/sdk.mjs');
+ const source = fs.mkdtempSync(path.join(os.tmpdir(), 'sdk-observability-'));
+ t.after(() => fs.rmSync(source, {recursive:true, force:true}));
+ const projectName = 'webapi-enterprise-local-test-10000000-0000-4000-8000-000000000001';
+ const registration = {projectName, sourceRevision:'a'.repeat(40)};
+ const legacy = {project:projectName, complete:true, checks:[]};
+ const bytes = value => Buffer.from(JSON.stringify(value));
+ await assert.rejects(stageSdkObservability(source, bytes({...legacy, sourceRevision:'b'.repeat(40)}), registration));
+ await assert.rejects(stageSdkObservability(source, bytes({...legacy, project:'different-project'}), registration));
+ await stageSdkObservability(source, bytes(legacy), registration);
+ const target = path.join(source, '.runtime/e2e', projectName, 'observability-evidence/faults.json');
+ const staged = JSON.parse(fs.readFileSync(target, 'utf8'));
+ assert.deepEqual(staged.checks, legacy.checks);
+ assert.equal(staged.sourceRevision, registration.sourceRevision);
+ assert.equal(staged.project, projectName);
+ assert.equal(fs.existsSync(path.join(source, 'docs/evidence/observability/faults.json')), false);
+});

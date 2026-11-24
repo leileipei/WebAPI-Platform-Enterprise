@@ -24,19 +24,31 @@ public sealed class ObservabilityScenario : IAsyncDisposable
     {
         const string fixtureRoot = "/workspace/.runtime/e2e";
         const string prefix = "webapi-enterprise-e2e-observability-";
+        const string sdkPrefix = "webapi-enterprise-local-test-";
         var project = System.Environment.GetEnvironmentVariable("WEBAPI_E2E_PROJECT") ?? "";
-        Assert.True(project.StartsWith(prefix, StringComparison.Ordinal) &&
-            Guid.TryParseExact(project[prefix.Length..], "D", out _), "A dedicated observability project is required.");
+        var accountSdk = project.StartsWith(sdkPrefix, StringComparison.Ordinal);
+        var projectPrefix = accountSdk ? sdkPrefix : prefix;
+        Assert.True(project.StartsWith(projectPrefix, StringComparison.Ordinal) &&
+            Guid.TryParseExact(project[projectPrefix.Length..], "D", out _), "A dedicated fixture project is required.");
 
         var directory = Path.Combine(fixtureRoot, project);
-        var contextFile = Path.Combine(directory, "context.json");
+        var contextFile = accountSdk ? "/sdk-input/context.json" : Path.Combine(directory, "context.json");
         Assert.Equal(contextFile, System.Environment.GetEnvironmentVariable("WEBAPI_E2E_CONTEXT_FILE"));
         var evidenceDirectory = Path.Combine(directory, "observability-evidence");
         RequireOwnedPath("/workspace/.runtime", directory: true);
         RequireOwnedPath(fixtureRoot, directory: true);
         RequireOwnedPath(directory, directory: true);
+        if (accountSdk) RequireOwnedPath("/sdk-input", directory: true);
         RequireOwnedPath(contextFile, directory: false);
         RequireOwnedPath(evidenceDirectory, directory: true);
+        if (accountSdk)
+        {
+            using var context = JsonDocument.Parse(File.ReadAllBytes(contextFile));
+            var registration = context.RootElement;
+            Assert.Equal(project, registration.GetProperty("projectName").GetString());
+            Assert.Equal(System.Environment.GetEnvironmentVariable("WEBAPI_E2E_OWNER"), registration.GetProperty("ownerId").GetString());
+            Assert.Equal(System.Environment.GetEnvironmentVariable("WEBAPI_SOURCE_REVISION"), registration.GetProperty("sourceRevision").GetString());
+        }
         return (contextFile, evidenceDirectory, project);
     }
 

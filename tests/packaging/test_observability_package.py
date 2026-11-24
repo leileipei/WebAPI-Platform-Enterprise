@@ -21,6 +21,13 @@ RECEIPT = EVIDENCE + "verification.json"
 FAULT_OUTPUT = EVIDENCE + "faults-run-output.json"
 MANIFEST = "deliverables/manifest-observability.json"
 COLLECTOR = "src/WebApi.Infrastructure/Observability/CollectorSignalCoverage.cs"
+THREE_SOURCE_PROJECT = "webapi-enterprise-e2e-observability-00000000-0000-4000-8000-000000000001"
+FAULT_PROJECT = "webapi-enterprise-e2e-observability-00000000-0000-4000-8000-000000000002"
+BROWSER_PROJECT = "webapi-enterprise-e2e-observability-00000000-0000-4000-8000-000000000003"
+
+
+def passed_checks(*names):
+    return [{"name": name, "status": "passed"} for name in names]
 
 
 class ObservabilityPackageTests(unittest.TestCase):
@@ -46,14 +53,13 @@ class ObservabilityPackageTests(unittest.TestCase):
         self.write("console/node_modules/vite/bin/vite.js",
                    "const fs=require('node:fs'); fs.mkdirSync('dist'); "
                    "fs.copyFileSync('src/coverage.json','dist/index.html');")
-        shutil.copytree(ROOT / EVIDENCE, self.repo / EVIDENCE)
+        self.proof = self.seed_legacy_evidence()
         self.write(RECEIPT, {"complete": False})
         self.tested = self.commit("product and test inputs")
 
         fault = self.read(EVIDENCE + "fault-run.json")
         fault["sourceRevision"] = self.tested
         self.write(EVIDENCE + "fault-run.json", fault)
-        self.proof = json.loads((ROOT / RECEIPT).read_bytes())
         self.proof["sourceRevision"] = self.tested
         self.proof["baselineFaultEvidence"]["sourceRevision"] = self.tested[:9]
         self.proof["finalReview"]["reviewedRevision"] = self.tested
@@ -74,6 +80,60 @@ class ObservabilityPackageTests(unittest.TestCase):
         for constant, revision in (("LEGACY_DRAFT_REVISION", self.provisional), ("LEGACY_SEAL_REVISION", self.seal)):
             verifier = re.sub(rf'^{constant} = "[0-9a-f]+"$', f'{constant} = "{revision}"', verifier, flags=re.MULTILINE)
         self.write(verifier_path, verifier)
+
+    def seed_legacy_evidence(self):
+        # The synthetic history is independent of the current product's live evidence.
+        cleanup = {"exitCode": 0, "secretFilesRemaining": 0, "containersRemaining": 0, "volumesRemaining": 0}
+        loop = {"complete": True, "project": "fixture-loop"}
+        self.write(EVIDENCE + "loop.json", {**loop, "ordinaryRequestTraceComplete": True, "counterDelta": 8,
+                                          "logCount": 8, "spanCount": 16, "ordinaryRequestSpanCount": 2})
+        self.write(EVIDENCE + "rule-loop.json", {**loop, "checks": passed_checks(
+            "Actual60SecondCompleteCoverageAndEstimatedRates",
+            "ThreeActualMetricRulesTriggerAckSilenceRecoverAndAudit", "ActualYarpHealthyGaugeRecovers")})
+        self.write(EVIDENCE + "boundaries.json", {**loop, "checks": passed_checks(
+            "ActualSameTraceparentTwoEnvironmentsOnlyReturnCurrentEnvironmentSpans",
+            "RealLokiSingleNanosecondProviderLimitExplicitlyTruncated")})
+        faults = {"complete": True, "project": "fixture-faults", "checks": passed_checks(
+            "OldARequestAcrossBSwitchKeepsActualADestinationAndTelemetry",
+            "ActualApprovedRollbackSurvivesObservationStack", "lokiStopAndRecoveryKeepProxyAndApprovedPublishing",
+            "tempoStopAndRecoveryKeepProxyAndApprovedPublishing", "prometheusStopAndRecoveryKeepProxyAndApprovedPublishing",
+            "CollectorOutageQueueFullProxySuccessAndRealMiddleGap", "SingleNodeCollectionExpiryAndActualProcessRecovery",
+            "ActualWorkerKillPgLeaseExpiresSecondWorkerTakesOver", "ActualGatewayLkgRestartWithControlPlaneRedisOffline")}
+        self.write(EVIDENCE + "faults.json", faults)
+        self.write(EVIDENCE + "fault-run.json", {**faults, "command": "./scripts/check-observability.sh faults",
+                                               "exitCode": 0, "cleanup": cleanup})
+        self.write(EVIDENCE + "browser-qa.json", {
+            "complete": True, "project": "fixture-browser", "normalConsoleErrors": [], "checks": ["fixture"],
+            "pages": [{"page": page, "horizontalOverflow": False} for page in range(28, 34)],
+            "screenshots": ["fixture.png"],
+            "cleanup": {"remainingContainers": 0, "remainingVolumes": 0, "remainingSyntheticSecretFiles": 0,
+                        "complete": True},
+        })
+        self.write(EVIDENCE + "ui/fixture.png", "synthetic screenshot bytes")
+        repairs = {"complete": True, "project": "fixture-repairs", "cleanup": cleanup}
+        self.write(EVIDENCE + "final-loss-live.json", {**repairs, "checks": [
+            {"sourceState": "Partial", "reason": reason} for reason in
+            ("collector_logs_collection_gap", "collector_traces_collection_gap", "known_logs_collection_gap")]})
+        self.write(EVIDENCE + "final-permission-browser.json", {
+            **repairs, "red": {"resultsRetained": True}, "green": {"kpiCards": 0, "tables": 0},
+        })
+        self.write(EVIDENCE + "final-review.md", "Synthetic independent review.")
+        self.write(EVIDENCE + "execution-ledger.md", "Synthetic execution ledger.")
+        return {
+            **loop, "classification": "real-isolated-gateway-three-source", "mode": "e2e",
+            "checks": [{"name": name, "status": "passed", "evidence": name + ".json"}
+                       for name in ("loop", "rule-loop", "boundaries")],
+            "cleanup": cleanup, "criticalAcceptanceComplete": True, "exitCode": 0,
+            "command": "./scripts/check-observability.sh e2e",
+            "baselineFaultEvidence": {"file": "fault-run.json", "checks": len(faults["checks"]), "complete": True},
+            "browserEvidence": "browser-qa.json",
+            "finalReview": {
+                "independentReviews": 1, "repairValidationComplete": True, "typescriptAndProductionBuild": True,
+                "fullSuite": {"domain": 1, "integration": 1, "gateway": 1, "frontend": 1, "skipped": 0},
+                "realLossProof": "final-loss-live.json", "permissionProof": "final-permission-browser.json", "pending": [],
+            },
+            "archiveGate": {"verified": True, "provisionalSha256": "0" * 64, "files": 1},
+        }
 
     def git(self, *args):
         return subprocess.check_output(["git", *args], cwd=self.repo, text=True).strip()
@@ -115,19 +175,24 @@ class ObservabilityPackageTests(unittest.TestCase):
         draft = self.read(RECEIPT)
         draft["baselineFaultEvidence"].update(sourceRevision=self.tested, fixtureFile=Path(FAULT_OUTPUT).name)
         draft["cleanup"]["networksRemaining"] = 0
+        draft["project"] = THREE_SOURCE_PROJECT
         fault = self.read(EVIDENCE + "fault-run.json")
-        fault["project"] = "recorded-current-fault-project"
+        fault["project"] = FAULT_PROJECT
         fault["cleanup"]["networksRemaining"] = 0
         self.write(EVIDENCE + "fault-run.json", fault)
         output = self.read(EVIDENCE + "faults.json")
-        output["project"] = fault["project"]
+        output.update(project=fault["project"], sourceRevision=self.tested)
         self.write(FAULT_OUTPUT, output)
+        for name in ("loop.json", "rule-loop.json", "boundaries.json"):
+            path = EVIDENCE + name
+            record = self.read(path)
+            self.write(path, {**record, "sourceRevision": self.tested, "project": THREE_SOURCE_PROJECT})
         for name, key in (("browser-qa.json", "remainingNetworks"), ("final-loss-live.json", "networksRemaining"),
                           ("final-permission-browser.json", "networksRemaining")):
             path = EVIDENCE + name
             record = self.read(path)
             record["cleanup"][key] = 0
-            self.write(path, {**record, "sourceRevision": self.tested})
+            self.write(path, {**record, "sourceRevision": self.tested, "project": BROWSER_PROJECT})
         self.write(RECEIPT, draft)
         return self.commit("record new run")
 
@@ -339,6 +404,49 @@ class ObservabilityPackageTests(unittest.TestCase):
                     self.write(file, record)
                     draft = self.commit("record unconfirmed network cleanup")
                     self.package(self.tested, "--evidence-revision", draft, success=False)
+
+    def test_fresh_provisional_requires_matching_full_source_revision_in_raw_attachments(self):
+        good = self.prepare_fresh_provisional()
+        for path in (EVIDENCE + "loop.json", EVIDENCE + "rule-loop.json", EVIDENCE + "boundaries.json", FAULT_OUTPUT):
+            for value in (None, self.tested[:9], self.provisional):
+                with self.subTest(file=path, value=value):
+                    self.git("switch", "--detach", "-q", good)
+                    report = self.read(path)
+                    if value is None:
+                        del report["sourceRevision"]
+                    else:
+                        report["sourceRevision"] = value
+                    self.write(path, report)
+                    draft = self.commit("record a raw attachment without the exact tested revision")
+                    self.package(self.tested, "--evidence-revision", draft, success=False)
+
+    def test_fresh_provisional_requires_distinct_real_project_names_and_coherent_browser_records(self):
+        good = self.prepare_fresh_provisional()
+        three_source = (RECEIPT, EVIDENCE + "loop.json", EVIDENCE + "rule-loop.json", EVIDENCE + "boundaries.json")
+        faults = (EVIDENCE + "fault-run.json", FAULT_OUTPUT)
+        repairs = (EVIDENCE + "final-loss-live.json", EVIDENCE + "final-permission-browser.json")
+        browser = (EVIDENCE + "browser-qa.json", *repairs)
+        for paths, project in (
+            (three_source, "project-three-source"),
+            (faults, "project-faults"),
+            (browser, "project-browser"),
+            ((browser[0],), None),
+            (three_source, FAULT_PROJECT),
+            (three_source, BROWSER_PROJECT),
+            (faults, BROWSER_PROJECT),
+            (repairs, FAULT_PROJECT),
+        ):
+            with self.subTest(paths=paths, project=project):
+                self.git("switch", "--detach", "-q", good)
+                for path in paths:
+                    report = self.read(path)
+                    if project is None:
+                        del report["project"]
+                    else:
+                        report["project"] = project
+                    self.write(path, report)
+                draft = self.commit("record inconsistent or invalid project attribution")
+                self.package(self.tested, "--evidence-revision", draft, success=False)
 
     def test_separate_fresh_fault_output_can_be_sealed_after_independent_provisional_verification(self):
         draft = self.prepare_fresh_provisional()

@@ -16,6 +16,7 @@ BLOCKED = {".git", ".superpowers", ".runtime", ".secrets", "node_modules", "bin"
 CHECK_FILES = {"loop": "loop.json", "rule-loop": "rule-loop.json", "boundaries": "boundaries.json"}
 FAULT_FIXTURE = "faults.json"
 FAULT_OUTPUT = "faults-run-output.json"
+PROJECT_NAME = re.compile(r"webapi-enterprise-e2e-observability-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}")
 NETWORK_COUNTS = {
     "fault-run.json": "networksRemaining",
     "browser-qa.json": "remainingNetworks",
@@ -175,9 +176,11 @@ def same_inputs(tested, candidate, references):
     return all(path.decode() in outputs for path in changes.split(b"\0") if path)
 
 
-def closed_loop_passed(project, material):
+def closed_loop_passed(project, material, tested_revision):
     loop, rules, bounds = (document(material[EVIDENCE + name]) for name in CHECK_FILES.values())
-    return (all(p.get("complete") is True and p.get("project") == project for p in (loop, rules, bounds))
+    return (all(p.get("complete") is True and p.get("project") == project
+                and (tested_revision is None or p.get("sourceRevision") == tested_revision)
+                for p in (loop, rules, bounds))
             and loop.get("ordinaryRequestTraceComplete") is True and loop.get("counterDelta") == 8
             and loop.get("logCount") == 8 and loop.get("spanCount") == 16 and loop.get("ordinaryRequestSpanCount") == 2
             and green_checks(rules.get("checks"), RULE_CHECKS) and green_checks(bounds.get("checks"), BOUNDARY_CHECKS))
@@ -187,7 +190,8 @@ def faults_passed(baseline, material, output, tested):
     faults = document(material[EVIDENCE + "fault-run.json"])
     fixture = document(material[EVIDENCE + output])
     fault_revision = recorded_commit(baseline.get("sourceRevision"))
-    if "fixtureFile" in baseline and (output != FAULT_OUTPUT or baseline.get("sourceRevision") != tested):
+    if "fixtureFile" in baseline and (output != FAULT_OUTPUT or baseline.get("sourceRevision") != tested
+                                      or fixture.get("sourceRevision") != tested):
         return False
     return (baseline.get("file") == "fault-run.json" and baseline.get("complete") is True and fault_revision
             and recorded_commit(faults.get("sourceRevision")) == fault_revision
@@ -230,11 +234,17 @@ def current_identity_and_networks_passed(proof, review, material, tested):
     if (proof.get("sourceRevision") != tested or review.get("reviewedRevision") != tested
             or not zeros(proof.get("cleanup"), "networksRemaining")):
         return False
+    projects = {}
     for name, field in NETWORK_COUNTS.items():
         report = document(material[EVIDENCE + name])
         if report.get("sourceRevision") != tested or not zeros(report.get("cleanup"), field):
             return False
-    return True
+        projects[name] = report.get("project")
+    browser = projects["browser-qa.json"]
+    independent = (proof.get("project"), projects["fault-run.json"], browser)
+    return (all(isinstance(project, str) and PROJECT_NAME.fullmatch(project) for project in independent)
+            and len(set(independent)) == len(independent)
+            and projects["final-loss-live.json"] == projects["final-permission-browser.json"] == browser)
 
 
 def complete_run(proof, material, paths, tested):
@@ -258,7 +268,8 @@ def complete_run(proof, material, paths, tested):
             and zeros(suite, "skipped") and all(zeros(suite, k) for k in ("failed", "errors") if k in suite)
             and all(positive(suite.get(k)) for k in ("domain", "integration", "gateway", "frontend"))
             and proof.get("browserEvidence") == "browser-qa.json" and review.get("realLossProof") == "final-loss-live.json"
-            and review.get("permissionProof") == "final-permission-browser.json" and closed_loop_passed(project, material)
+            and review.get("permissionProof") == "final-permission-browser.json"
+            and closed_loop_passed(project, material, tested if output == FAULT_OUTPUT else None)
             and faults_passed(baseline, material, output, tested) and browser_passed(material, paths)
             and repairs_passed(material))
 
