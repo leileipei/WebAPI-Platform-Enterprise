@@ -46,6 +46,7 @@ jobs:
           tests/runtime/migration-evidence-inspection.test.mjs
           tests/runtime/acceptance-context.test.mjs
           tests/runtime/project-counts-acceptance-guards.test.mjs
+          tests/runtime/core-e2e-cleanup.test.mjs
           tests/runtime/observability-fixture.test.mjs
           tests/runtime/observability-scenario.test.mjs
 

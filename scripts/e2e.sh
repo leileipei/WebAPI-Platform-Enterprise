@@ -10,11 +10,20 @@ export WEBAPI_E2E_RELATIVE_DIR=".runtime/e2e/$WEBAPI_E2E_PROJECT"
 export WEBAPI_E2E_DIRECTORY="$PWD/$WEBAPI_E2E_RELATIVE_DIR"
 export WEBAPI_ENVIRONMENT_ID
 WEBAPI_ENVIRONMENT_ID=$("$NODE" -e 'console.log(crypto.randomUUID())')
-mkdir -p "$WEBAPI_E2E_DIRECTORY"; chmod 700 "$WEBAPI_E2E_DIRECTORY"
-"$NODE" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";for(const name of ["password","postgres-password","node-a","node-b"])fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/"+name,crypto.randomBytes(32).toString("base64url"),{mode:0o600});fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/login-hmac",crypto.randomBytes(32).toString("base64"),{mode:0o400});'
+mkdir -p .runtime/e2e
+mkdir -m 700 "$WEBAPI_E2E_DIRECTORY"
 compose(){ docker compose -f deploy/compose.e2e.yml "$@"; }
-cleanup(){ compose down --volumes --remove-orphans >/dev/null 2>&1; rm -f "$WEBAPI_E2E_DIRECTORY/password" "$WEBAPI_E2E_DIRECTORY/postgres-password" "$WEBAPI_E2E_DIRECTORY/node-a" "$WEBAPI_E2E_DIRECTORY/node-b" "$WEBAPI_E2E_DIRECTORY/credential" "$WEBAPI_E2E_DIRECTORY/login-hmac"; }
+cleanup() {
+  local run_status=$? cleanup_status=0
+  trap - EXIT
+  compose down --volumes --remove-orphans >/dev/null || cleanup_status=$?
+  rm -f -- "$WEBAPI_E2E_DIRECTORY"/{password,postgres-password,node-a,node-b,credential,login-hmac} \
+    "$WEBAPI_E2E_DIRECTORY"/password-e2e-{admin,reader,approver,security} || cleanup_status=$?
+  if (( run_status != 0 )); then exit "$run_status"; fi
+  exit "$cleanup_status"
+}
 trap cleanup EXIT
+"$NODE" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";for(const name of ["password","postgres-password","node-a","node-b"])fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/"+name,crypto.randomBytes(32).toString("base64url"),{mode:0o600});fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/login-hmac",crypto.randomBytes(32).toString("base64"),{mode:0o400});'
 # No persistent test identities survive the process; only this randomly named project's volumes are removed.
 compose up -d --wait postgres redis
 compose run --rm sdk bash -c 'chmod 700 /evidence && dotnet restore && dotnet restore --locked-mode && dotnet build -c Release --no-restore && dotnet src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.dll --bootstrap --seed-catalog'
