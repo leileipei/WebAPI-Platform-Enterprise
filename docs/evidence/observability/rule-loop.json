@@ -1,6 +1,6 @@
 {
   "complete": true,
-  "project": "webapi-enterprise-e2e-observability-dd68365c-2d42-4e68-8487-84df4ba36c89",
+  "project": "webapi-enterprise-e2e-observability-eb1b72fc-69f1-47ec-bcd4-a5e6f9485bef",
   "classification": "actual-business-gateway-three-source-and-independent-workers",
   "settings": {
     "intervalSeconds": 2,
@@ -11,28 +11,28 @@
     "queueCapacity": 64
   },
   "windowSeconds": 60,
-  "elapsedSeconds": 139,
+  "elapsedSeconds": 140,
   "checks": [
     {
       "name": "Actual60SecondCompleteCoverageAndEstimatedRates",
       "status": "passed",
-      "ratio": 0.33043478260869563,
+      "ratio": 0.3264556905172779,
       "ratioAbsoluteTolerance": 0.12,
-      "p95": 2273.0263157894733,
-      "samples": 119
+      "p95": 2275,
+      "samples": 117
     },
     {
       "name": "ThreeActualMetricRulesTriggerAckSilenceRecoverAndAudit",
       "status": "passed",
       "rules": [
         {
-          "eventId": "49ac6cf5-6e83-4424-a479-968ae98fdf8e",
-          "ruleId": "f8ff5a49-7591-4fca-a8ca-f7d9041ce815",
+          "eventId": "d20b6cc6-42ce-44ba-b64e-4b3981969096",
+          "ruleId": "54c2f4c2-7b8d-4515-b4b2-5d88ce2fd959",
           "definition": {
-            "organizationId": "b887ec92-32e6-4cea-acc9-66623bd2df63",
-            "projectId": "a256d8df-672e-4ca0-8dc6-70342fd9fa2b",
-            "environmentId": "4c755b10-5345-4b04-a35f-be34fb557317",
-            "name": "错误率持续告警 · mutr2qni",
+            "organizationId": "fcd97aef-f1da-4e5d-9f13-c538e69ad206",
+            "projectId": "ddc9189c-59ec-4f5b-9c8d-e4b861549495",
+            "environmentId": "ed48262c-6d2d-431c-9fdf-4edebf92addc",
+            "name": "错误率持续告警 · mwu25dzj",
             "metric": "error_5xx_ratio",
             "expression": "error_5xx_ratio > 0.05",
             "severity": "Warning",
@@ -43,14 +43,23 @@
             "windowSeconds": 60,
             "notification": {
               "inConsole": true,
-              "requestedChannels": []
+              "requestedChannels": [],
+              "externalEnabled": false,
+              "emailRecipients": [],
+              "notifyRecovery": true,
+              "retryPolicy": {
+                "maxAttempts": 5,
+                "baseDelaySeconds": 30,
+                "maxDelaySeconds": 900,
+                "expiresAfterMinutes": 1440
+              }
             }
           },
           "originalForSeconds": 300,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-10-04T11:41:09.69+00:00",
-          "startedAt": "2026-10-04T11:41:20.215385+00:00",
-          "resolvedAt": "2026-10-04T11:42:33.033962+00:00",
+          "conditionStartedAt": "2026-11-24T02:10:32.884+00:00",
+          "startedAt": "2026-11-24T02:10:44.280989+00:00",
+          "resolvedAt": "2026-11-24T02:11:58.493468+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -68,13 +77,13 @@
           "auditCount": 2
         },
         {
-          "eventId": "a555d7b0-f2b2-4900-82dc-c9a086ffd89a",
-          "ruleId": "8c7bb4ca-8218-4b04-a718-4613e6ac41f1",
+          "eventId": "8bba1934-3425-49d9-acc9-bb454dd4e102",
+          "ruleId": "d4f90514-c739-43c3-936c-1b9acb2ee34a",
           "definition": {
-            "organizationId": "b887ec92-32e6-4cea-acc9-66623bd2df63",
-            "projectId": "a256d8df-672e-4ca0-8dc6-70342fd9fa2b",
-            "environmentId": "4c755b10-5345-4b04-a35f-be34fb557317",
-            "name": "慢调用持续告警 · mutr2qoz",
+            "organizationId": "fcd97aef-f1da-4e5d-9f13-c538e69ad206",
+            "projectId": "ddc9189c-59ec-4f5b-9c8d-e4b861549495",
+            "environmentId": "ed48262c-6d2d-431c-9fdf-4edebf92addc",
+            "name": "慢调用持续告警 · mwu25e2e",
             "metric": "latency_p95_ms",
             "expression": "latency_p95_ms > 1000",
             "severity": "Warning",
@@ -85,14 +94,23 @@
             "windowSeconds": 60,
             "notification": {
               "inConsole": true,
-              "requestedChannels": []
+              "requestedChannels": [],
+              "externalEnabled": false,
+              "emailRecipients": [],
+              "notifyRecovery": true,
+              "retryPolicy": {
+                "maxAttempts": 5,
+                "baseDelaySeconds": 30,
+                "maxDelaySeconds": 900,
+                "expiresAfterMinutes": 1440
+              }
             }
           },
           "originalForSeconds": 600,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-10-04T11:41:09.69+00:00",
-          "startedAt": "2026-10-04T11:41:20.172283+00:00",
-          "resolvedAt": "2026-10-04T11:42:33.024695+00:00",
+          "conditionStartedAt": "2026-11-24T02:10:34.882+00:00",
+          "startedAt": "2026-11-24T02:10:46.475906+00:00",
+          "resolvedAt": "2026-11-24T02:11:58.507574+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -110,13 +128,13 @@
           "auditCount": 2
         },
         {
-          "eventId": "f058db7d-25c6-4553-8b47-b5f18400c0be",
-          "ruleId": "68ae5875-b92c-47ab-b61b-74f5c5347d60",
+          "eventId": "d8380cf9-fbfd-47c1-a5c2-01e3820471ef",
+          "ruleId": "15638a62-12e1-4708-8ba1-1f8df6bf6222",
           "definition": {
-            "organizationId": "b887ec92-32e6-4cea-acc9-66623bd2df63",
-            "projectId": "a256d8df-672e-4ca0-8dc6-70342fd9fa2b",
-            "environmentId": "4c755b10-5345-4b04-a35f-be34fb557317",
-            "name": "后端健康持续告警 · mutr2qpc",
+            "organizationId": "fcd97aef-f1da-4e5d-9f13-c538e69ad206",
+            "projectId": "ddc9189c-59ec-4f5b-9c8d-e4b861549495",
+            "environmentId": "ed48262c-6d2d-431c-9fdf-4edebf92addc",
+            "name": "后端健康持续告警 · mwu25e8o",
             "metric": "unhealthy_destinations",
             "expression": "unhealthy_destinations > 0",
             "severity": "Warning",
@@ -127,14 +145,23 @@
             "windowSeconds": 60,
             "notification": {
               "inConsole": true,
-              "requestedChannels": []
+              "requestedChannels": [],
+              "externalEnabled": false,
+              "emailRecipients": [],
+              "notifyRecovery": true,
+              "retryPolicy": {
+                "maxAttempts": 5,
+                "baseDelaySeconds": 30,
+                "maxDelaySeconds": 900,
+                "expiresAfterMinutes": 1440
+              }
             }
           },
           "originalForSeconds": 120,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-10-04T11:41:25.692+00:00",
-          "startedAt": "2026-10-04T11:41:38.607732+00:00",
-          "resolvedAt": "2026-10-04T11:41:48.873642+00:00",
+          "conditionStartedAt": "2026-11-24T02:10:50.882+00:00",
+          "startedAt": "2026-11-24T02:11:02.951249+00:00",
+          "resolvedAt": "2026-11-24T02:11:12.113403+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -154,5 +181,6 @@
       "status": "passed",
       "value": 0
     }
-  ]
+  ],
+  "sourceRevision": "1c016b53b17af531704a2bf4b08e0ec8d5795df1"
 }

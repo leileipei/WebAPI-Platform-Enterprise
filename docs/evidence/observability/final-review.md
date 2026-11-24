@@ -1,22 +1,34 @@
-# 可观测与告警最终审查
+# P1 三源可观测独立代码复审
 
-2026-10-04。一次独立全分支审查，基准 f08585773c744592cb8bb6a7e62a72b8a5a4827a，审查提交 7a72d30d6e6c8e85d11860e271874b0f2a04710c；随后由实施者完成同一修正阶段，无第二次独立复审。
+| 项目 | 记录 |
+| --- | --- |
+| 审查日期 | 2026-11-24 |
+| 受审产品提交 | `1c016b53b17af531704a2bf4b08e0ec8d5795df1` |
+| 比较基线 | `ca1b78f8926f998b43f9d48642b8bad675aae73b` |
+| 前次审查对象 | `faa8d043d5a1afb676833140b9447d3cf0fdf36b` 和 `5b280595015a22f9eccf2c23bb54921199dff0f4` |
+| 审查方式 | 独立只读代码审查，未参与产品改动。用固定 Git 树导出临时验证副本 |
+| 结论 | **代码复审通过，已关闭前次四项阻断及归属复核缺口。** |
 
-## 发现及处置
+## 核查结果
 
-|级别|实际问题|修正及失败→通过证据|
-|---|---|---|
-|Important|第一次丢失前计数器没有零基线，首次非零计数的increase可能为0|Gateway DiagnosticsHaveZeroBaselinesBeforeAnyLoss、FirstLossHasActualTimestampEvenBeforeCounterBaseline先失败后通过；三信号零基线与真实last_loss_timestamp；日志/Trace首次丢失覆盖4项回归先失败后通过；真实8秒Collector中断返回known_logs_collection_gap|
-|Important|Collector已经接收、下游异步重试最终失败，查询仍能宣称完整|增加内部8888诊断reader和Prometheus固定job，按信号查询send_failed/enqueue_failed/receiver_refused、首次非零序列与job中断；FirstLossAndCollectorDownstreamFailureCannotClaimComplete先失败后通过。实际Loki/Tempo停止42秒，网关失败增量0、Collector up=1、下游失败6/12，对应历史查询Partial，见final-loss-live.json|
-|Important|采集完整、RPS=0仍被当成Unknown，低流量不能触发、高流量不能恢复|ZeroRpsIsKnownAndRecoversHighThenTriggersLowTrafficRule先Unknown失败后通过；高流量实际PG事件Recovered、低流量新事件Open；比例和时延无样本仍Unknown|
-|Important|已打开的28/29页面没有周期性权限重验|生产产物无HMR、真实三源临时只读用户；另一会话撤销范围后52秒仍残留126/127样本为RED；加入30秒固定窗口自动重验与session.error门禁后，同条件撤销约9秒自动清除两页全部KPI和表格；见final-permission-browser.json及ui/final-metrics-revocation-red/green.png|
-|Important|API/应用监控将全环境的无关后端健康归因给选中资源|FilteredResourceDoesNotAttributeUnrelatedEnvironmentBackendHealth(api/app)两项先返回无关1而失败、后NotApplicable/null通过；节点不带环境后端列表，UI明确该维度暂不支持、健康格为—；1440px documentWidth=1440，见ui/final-api-health-scope.png|
-|Minor deferred|TraceProjection将数字webapi.config.version当GUID过滤，Span中不显示配置版本|延期。版本可从关联访问日志查看，不影响Trace范围隔离/瀑布；后续单独复现并修正，不扩大本次修正阶段。|
+| 事项 | 结果 |
+| --- | --- |
+| 运行隔离与原件保留 | 主闭环、规则、边界、故障、采集丢失及运行收尾写在各随机项目的私有目录。收尾只采用本项目及本产品提交的原始记录。真实旧证据路径和历史交付清单在本次产品差异中逐字节相同 |
+| 产品与项目绑定 | 原生命令在分配资源前检查已跟踪及未跟踪输入的 Git 状态。新格式核对主回执、审查、三份原始闭环附件、故障原始附件、故障汇总和三份浏览器相关记录的完整产品提交。闭环三附件同属 E2E 项目，故障原件同属故障项目，六页 QA、采集丢失和权限变化同属浏览器项目，三个项目彼此独立 |
+| 历史及新格式分流 | 旧格式仅接受固定历史预封及封存回执的原字节和同组附件。新格式使用单独故障附件，并复验预封回执、预封 ZIP 字节、摘要、文件数、路径集合及最终附件绑定。产品或测试输入发生变化时既有实测资格失效 |
+| 退出与清理 | 原生运行器同时记录容器、卷、网络和秘密文件结果。新格式各项目汇总记录均要求整数型零网络残留。旧封存回执仍用其原始格式复算 |
+| 既有 Account SDK 入口 | `local-test` 项目沿用原来的只读 context 和 prior 输入。宿主先检查产品、镜像、owner、项目以及 prior 原件摘要，再将故障数据与原摘要写入专用项目目录。C# 复核私有路径、context 的 owner/项目/产品以及故障数据的项目和完整产品提交。仓库证据和已注册的 prior 原字节完整保留 |
+| 回归夹具 | 测试套件自己生成合成历史、回执、截图替身及独立 Git 记录。切换正式文档到新验收证据后，回归门禁仍使用受控输入 |
 
-五项Review Focus均审查通过：200响应头后中断的Success=false；相同Trace跨环境投影；单纳秒截断；重命名保留logicRevision/Pending/抑制；旧lease token和禁用规则不得迟写。单纳秒大量关键词格式化存在显式503性能限制，未作为容量或SLA通过证据。
+## 验证日志
 
-## 验证范围
+| 记录 | 结果 |
+| --- | --- |
+| `reviewed-tree.log` | 固定树全量差异 20 个文件。Git whitespace 检查及历史原件路径相等检查通过 |
+| `syntax.log` | Node v24.22.3、Python 3.9.6。受影响 Bash 和 Node 入口语法检查通过 |
+| `node-tests.log` | 官方 Node 回归 11/11，通过项目和来源一致性、历史原件保留、脏检出拒绝、合法角色登录及审批、专用 SDK prior 故障数据暂存 |
+| `python-tests.log` | 官方 Python 验包回归 24/24，覆盖预封和封存、零清理、项目归属、完整提交绑定、旧规则兼容以及产品变更失效 |
+| `packaging-without-current-docs.log` | 从固定 Git 树单独导出验包模块及官方测试，省去当前 docs 树。预封至正式封存回归 1/1 |
+| `historical-git-provenance.log` | 真实旧正式源码 `7e81895c3fc2dfae41d5561692aa9fcfd78cabed` 复算为 `complete`。真实旧预封 `09746afd0acf497ce024cac88914d6a5185895fd` 复算为 `archive-verification-pending`。用继承的旧回执核对本候选得到 `source-inputs-changed`。每项对应 16 条证据引用 |
 
-最终完整组件回归：Domain49/49、Integration191/191、Gateway27/27，均0跳过；Frontend35/35、TypeScript和production build通过。修复专项真实服务结果与清理见两个final-*.json。Task14的三源闭环、原阈值三规则、九项故障、两环境同Trace、5001行截断、六页1440px及普通请求两Span事实保留在原证据，来源提交d34b697。最终代码完整三源闭环及交付包封存结果由verification.json和manifest-observability.json记录，未封存前complete=false。
-
-审查未将生产TLS/企业证书、HA/容量/SLA、7天实际持久化、AMD64实际运行和外部Email/Webhook/IM送达列为本机完成项。页面映射、文档和源码封装属于计划Task15，由最终门禁验证。完整决策及错判成本保存在execution-ledger.md。
+本报告验证固定产品树、现有历史 Git 证据和本地回归。真实旧 ZIP 的字节读回、本版本原生容器运行、浏览器截图、生产前端构建及正式 ZIP 的读回应以本轮主任务的各自日志为准。

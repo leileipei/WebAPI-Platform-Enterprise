@@ -1,0 +1,61 @@
+{
+  "complete": true,
+  "project": "webapi-enterprise-e2e-observability-e39a347a-d0ab-46f1-a354-d1eb0afdfe03",
+  "architecture": "Linux aarch64",
+  "settings": {
+    "intervalSeconds": 2,
+    "queryDelaySeconds": 5,
+    "leaseSeconds": 30,
+    "metricExportIntervalMs": 1000,
+    "traceSampleRatio": 1,
+    "queueCapacity": 64
+  },
+  "checks": [
+    {
+      "name": "OldARequestAcrossBSwitchKeepsActualADestinationAndTelemetry",
+      "status": "passed",
+      "destinationId": "f02aa4d5-0251-4457-9f45-928d9836c3ba",
+      "destinationBackend": "A",
+      "sequence": 2
+    },
+    {
+      "name": "ActualApprovedRollbackSurvivesObservationStack",
+      "status": "passed",
+      "sequence": 4
+    },
+    {
+      "name": "lokiStopAndRecoveryKeepProxyAndApprovedPublishing",
+      "status": "passed"
+    },
+    {
+      "name": "tempoStopAndRecoveryKeepProxyAndApprovedPublishing",
+      "status": "passed"
+    },
+    {
+      "name": "prometheusStopAndRecoveryKeepProxyAndApprovedPublishing",
+      "status": "passed"
+    },
+    {
+      "name": "CollectorOutageQueueFullProxySuccessAndRealMiddleGap",
+      "status": "passed",
+      "successfulBurstRequests": 200,
+      "windowSeconds": 69,
+      "reason": "time_window_coverage_incomplete"
+    },
+    {
+      "name": "SingleNodeCollectionExpiryAndActualProcessRecovery",
+      "status": "passed"
+    },
+    {
+      "name": "ActualWorkerKillPgLeaseExpiresSecondWorkerTakesOver",
+      "status": "passed",
+      "oldToken": 1,
+      "newToken": 2
+    },
+    {
+      "name": "ActualGatewayLkgRestartWithControlPlaneRedisOffline",
+      "status": "passed"
+    }
+  ],
+  "sourceRevision": "1c016b53b17af531704a2bf4b08e0ec8d5795df1"
+}

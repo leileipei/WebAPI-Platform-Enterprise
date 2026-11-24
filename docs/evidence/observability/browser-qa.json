@@ -1,81 +1,167 @@
 {
+  "project": "webapi-enterprise-e2e-observability-7a1cacf7-7332-4ffd-8173-98b68ab8e10c",
+  "sourceRevision": "1c016b53b17af531704a2bf4b08e0ec8d5795df1",
   "complete": true,
-  "classification": "actual-control-plane-postgresql-two-gateways-two-workers-prometheus-loki-tempo-production-assets-no-hmr",
-  "project": "webapi-enterprise-e2e-observability-69618f67-ef81-4f6f-9923-1eea36a88111",
+  "classification": "disposable-real-three-source-production-assets-preview-no-hmr",
   "viewport": {
     "width": 1440,
     "height": 1000
   },
+  "productionAssets": {
+    "indexSha256": "c64dd288b6def9c9e86c51aa0c2800ba9acbfddc90205dd0805ac858ed078c04",
+    "entryPath": "/assets/index-jE5RvZvg.js",
+    "bundleSha256": "3c6b67bb576396cc802480cea664d319b766578e558670da864f53d906e2a015",
+    "browserHostSha256": "0c6d31d7a4cda16f95f65e195516038d0afeabfda24e087a9984ba73842e88f7"
+  },
   "pages": [
     {
       "page": 28,
+      "pathname": "/observability/metrics",
       "viewportWidth": 1440,
       "documentScrollWidth": 1440,
-      "horizontalOverflow": false
+      "horizontalOverflow": false,
+      "status": 200,
+      "state": "Partial"
     },
     {
       "page": 29,
+      "pathname": "/observability/apis/:apiId",
       "viewportWidth": 1440,
       "documentScrollWidth": 1440,
-      "horizontalOverflow": false
+      "horizontalOverflow": false,
+      "status": 200,
+      "state": "Partial"
     },
     {
       "page": 30,
+      "pathname": "/observability/logs",
       "viewportWidth": 1440,
       "documentScrollWidth": 1440,
-      "horizontalOverflow": false
+      "horizontalOverflow": false,
+      "status": 200,
+      "state": "Partial"
     },
     {
       "page": 31,
+      "pathname": "/observability/traces",
       "viewportWidth": 1440,
       "documentScrollWidth": 1440,
-      "horizontalOverflow": false
+      "horizontalOverflow": false,
+      "status": 200,
+      "state": "Partial"
     },
     {
       "page": 32,
+      "pathname": "/observability/alerts",
       "viewportWidth": 1440,
       "documentScrollWidth": 1440,
-      "horizontalOverflow": false
+      "horizontalOverflow": false,
+      "status": 200,
+      "state": null
     },
     {
       "page": 33,
+      "pathname": "/observability/alert-rules",
       "viewportWidth": 1440,
       "documentScrollWidth": 1440,
-      "horizontalOverflow": false
+      "horizontalOverflow": false,
+      "status": 200,
+      "state": null
     }
   ],
-  "normalConsoleErrors": [],
-  "expectedFailureSessionSeparatelyRecorded": true,
   "checks": [
-    "Seven-trend selection and P95 ranking URL persistence",
-    "API metrics navigation retains API and scope",
-    "Real Loki cursor first 50 to next 50",
-    "Ordinary unsupplied traceparent real Server/Client spans and safe span detail",
-    "Tempo timeout clears old detail and recovered query reloads selected URL trace",
-    "Actual alert Ack write with retained rule revision",
-    "Real recovered event transition timeline and retired command buttons",
-    "Actual rule scope preview one environment and readonly healthy gauge zero without saving"
+    {
+      "name": "metrics-real-samples-and-url-selection",
+      "samples": 478,
+      "state": "Partial"
+    },
+    {
+      "name": "api-drill-down-and-filtered-health",
+      "sampleCount": 478,
+      "healthState": "NotApplicable"
+    },
+    {
+      "name": "loki-real-results-and-cursor",
+      "firstPage": 50,
+      "nextPage": 50,
+      "nextCursor": true
+    },
+    {
+      "name": "tempo-real-server-client-waterfall",
+      "traceCount": 50,
+      "spanCount": 2,
+      "kinds": [
+        "Server",
+        "Client"
+      ],
+      "correlatedWithDisplayedLog": true
+    },
+    {
+      "name": "alerts-real-list",
+      "rows": 3,
+      "readTimeline": {
+        "status": "Resolved",
+        "transitions": 2,
+        "recoveryObserved": true
+      }
+    },
+    {
+      "name": "rules-real-list",
+      "rows": 3,
+      "readonlyTest": {
+        "previewEnvironments": 1,
+        "evaluationState": "Known",
+        "condition": false,
+        "matches": 1,
+        "revisionUnchanged": true
+      }
+    }
   ],
   "screenshots": [
-    "28-real-source-partial.jpg",
-    "29-real-api-source.jpg",
-    "30-real-access-logs.jpg",
-    "31-real-trace-waterfall.jpg",
-    "32-real-alert-recovery.jpg",
-    "33-real-rules.jpg",
-    "33-real-rule-test.jpg"
+    "28-real-source.png",
+    "29-real-api-source.png",
+    "30-real-access-logs.png",
+    "31-real-trace-waterfall.png",
+    "32-real-alerts.png",
+    "33-real-rules.png",
+    "33-real-rule-test.png",
+    "28-reader-before-revocation.png",
+    "29-reader-before-revocation.png",
+    "29-reader-after-revocation.png",
+    "28-reader-after-revocation.png"
   ],
+  "screenshotSha256": {
+    "28-real-source.png": "2eaedd0b9be9fc119a434c1bbf39269a8391a4f6a97c7b58950a209efc993257",
+    "29-real-api-source.png": "0e8f4c7656ff488d451770a7d00899fb73381385dd541df4727e6cc5ba5c279c",
+    "30-real-access-logs.png": "69510babcf147f4924e41ed60e3bbcf95ccfbaf9e148c0ca0b9196a47ee8579f",
+    "31-real-trace-waterfall.png": "c22be93baa2a63e01b202deb94e6feb416aed7ef50620243a7137e5db5774ffa",
+    "32-real-alerts.png": "54bbe6bfc07a992373d303164be2ce51b1cfbc04e48253e5ef2e9b3801d8c35c",
+    "33-real-rules.png": "88f4879bbd459bf4182e61e3a94bac1388ca8f66a30cb76fac671c35df9d5007",
+    "33-real-rule-test.png": "29bcddeece73a58ab0189519ddffe59ccfde34e56532e9ba90843596e4a10c20",
+    "28-reader-before-revocation.png": "f83170d909da83286a4078152b564c270da1e78fa98d80f3aecae31523192a83",
+    "29-reader-before-revocation.png": "d96d7bbe0d6596ef8d77ec3cc8bf6b994f05ce9c397eee6f74f5718244f1ec5e",
+    "29-reader-after-revocation.png": "2eef059ff4d6eedebdd90496bc857920130f20702da4b4262b5bfab8c99fe313",
+    "28-reader-after-revocation.png": "a0b270c4f1a55352ea320e5a78283818b6ec3af4a0e931aff44289f8fb348943"
+  },
+  "normalConsoleErrors": [],
+  "normalHttpErrors": [],
+  "expectedFailureSessionSeparatelyRecorded": true,
   "limitations": [
-    "1h query includes uncollected history and is honestly Partial; real 60s complete coverage separately verified",
-    "Focused desktop UX verification; no full WCAG conformance claim"
+    "1440×1000 desktop only. Loki cursor, alert detail and rule read-only operations require corresponding live records.",
+    "Three-source fault injection, alert transition writes, rule mutation and production acceptance require their own evidence.",
+    "Historical permission failure is referenced by its archived evidence and was not recreated."
   ],
   "cleanup": {
     "complete": true,
     "remainingContainers": 0,
     "remainingVolumes": 0,
+    "remainingNetworks": 0,
     "remainingSyntheticSecretFiles": 0,
-    "previewStopped": true,
-    "viewportReset": true,
-    "method": "explicit Docker project-label and filename verification after browser holder exit127; browser checks succeeded independently"
+    "automationBrowserClosed": true
+  },
+  "evidence": {
+    "browserReadbackSha256": "7844409d8655ba59fe5cc603eda009428ad12dcef1ea8fcf17d8925f9604d7bb",
+    "fixtureRunnerCleanupSha256": "ba27a160ce11deb971777aeb32dc53026d4a72e9606c3455f8a317ae1442878b",
+    "fixtureScriptCleanupSha256": "061fa17f18504ff30ec244afa15a6e8b9b22e6d488d077fdf92d6c6c43eefa2c"
   }
 }
