@@ -173,3 +173,9 @@ Task 15: 修复源提交dbfc986实际完整e2e exit0，dd68365c原阈值三规�
 Task 15: Ruling: 不可变归档重建直接调用与归档package/lock相同的已安装TypeScript/Vite Node入口 — pnpm exec在迁移位置试图清除链接依赖目录，实际无TTY报错且未执行清除；不启用自动purge，锁文件不一致则拒绝封包 — 若错，需按归档锁文件重新安装依赖后重建，原工作区依赖和首期包保留。
 Task 15: 不可变源3d2e54a重新构建TS/Vite并逐文件对照归档，529文件ZIP testzip及SHA256通过、密钥/runtime/cache/.git排除；初次manifest acceptanceComplete=false。所有必需验收已通过后才封存verification.complete=true；完成metadata不改变已验证产品代码dbfc986。
 Task 15: complete (commits 7a72d30..ac5a115, tests: python3 scripts/verify-observability-delivery.py → Immutable source, static build, ZIP integrity, SHA256, required evidence and exclusions verified.)
+
+## 2026-11-24 三源验收重新封存
+
+被测产品 `1c016b53b17af531704a2bf4b08e0ec8d5795df1`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `b17545757be13e92530bf6fd9a6630557cebf48e`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4718 个归档条目，SHA-256 为 `a25b029c8fed9ba2d1859d3a572b2bcb8b212b82b37889a08395fc8b336451ca`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
