@@ -1,8 +1,8 @@
-import fs from 'node:fs/promises';import path from 'node:path';import {randomUUID} from 'node:crypto';import {execFile} from 'node:child_process';import {promisify} from 'node:util';import assert from 'node:assert/strict';import {buildPolicySource,verifyPolicySource} from '../policies/build-source.mjs';import {runSettingsScenario} from './scenario.mjs';import {assertNoSecrets,createPrivateWorkspace,toolManifest,verifyToolManifest,secretNames} from './evidence.mjs';
+import fs from 'node:fs/promises';import path from 'node:path';import {randomUUID} from 'node:crypto';import assert from 'node:assert/strict';import {buildPolicySource,verifyPolicySource} from '../policies/build-source.mjs';import {runSettingsScenario} from './scenario.mjs';import {assertNoSecrets,createPrivateWorkspace,toolManifest,verifyToolManifest,secretNames} from './evidence.mjs';
 import {writePrivate} from '../runtime/state.mjs';
+import {execFileAndWait} from '../runtime/exec-file.mjs';
 import {withAcceptanceSignals} from '../acceptance-credentials.mjs';
-import {cleanupSettingsRun,publishSettingsPointer,retireSettingsContext,withSettingsRecords,writePublicJson} from './cleanup.mjs';
-const exec=promisify(execFile);
+import {cleanupSettingsRun,settingsComposeArguments,publishSettingsPointer,retireSettingsContext,withSettingsRecords,writePublicJson} from './cleanup.mjs';
 export async function runSettingsAcceptance({root,retainForReview=false,signal}){
  const publicDirectory=path.join(root,'docs/evidence/settings');
  await fs.mkdir(publicDirectory,{recursive:true});
@@ -10,13 +10,14 @@ export async function runSettingsAcceptance({root,retainForReview=false,signal})
  let args=null,stage='workspace preparation',scenarioComplete=false;
  async function command(binary,argv,opts={}){
    const log=path.join(directory,'operations.log');
+   const options={cwd:root,env,signal,maxBuffer:32*1024*1024,...opts};
    try{
-     const response=await exec(binary,argv,{cwd:root,env,signal,maxBuffer:32*1024*1024,...opts});
+     const response=await execFileAndWait(binary,argv,options);
      if(response.stdout||response.stderr)await fs.appendFile(log,response.stdout+response.stderr);
      return response.stdout.trim();
    }catch(error){
+     options.signal?.throwIfAborted();
      await fs.appendFile(log,(error.stdout||'')+(error.stderr||''));
-     if(error.name==='AbortError'&&signal?.aborted)throw signal.reason;
      const message=binary+' '+argv.slice(0,3).join(' ')+' failed (see private operations.log)';
      throw Object.assign(Error(message),{settingsPublicMessage:message});
    }
@@ -44,7 +45,7 @@ export async function runSettingsAcceptance({root,retainForReview=false,signal})
  // Override bind mounts from old source runners; snapshots execute only the frozen image.
  const file=path.join(directory,'settings-overlay.yml');let yaml=JSON.stringify(overlay,null,2);await fs.writeFile(file,yaml);
  const volumeOverride=path.join(directory,'settings-volumes.yml');await fs.writeFile(volumeOverride,'services:\n'+Object.keys(overlay.services).filter(s=>['control-plane','worker','worker-b','backend-a','backend-b','console','gateway-a','gateway-b'].includes(s)).map(s=>`  ${s}:\n    volumes: !override ${s.startsWith('gateway')?`[lkg-${s.endsWith('a')?'a':'b'}:/lkg]`:(s==='control-plane'?`[evidence:/evidence,lpm:/lpm]`:'[]')}\n`).join('')+`  sdk:\n    working_dir: /workspace\n    volumes: !override ["${source.sourceDirectory}:/workspace", "${directory}:/settings-results", "webapi-enterprise-core-test_nuget-test:/root/.nuget/packages:ro"]\n`);
- const composeArgs=['compose','-p',project,'-f',path.join(source.sourceDirectory,'deploy/compose.e2e.yml'),'-f',path.join(source.sourceDirectory,'deploy/compose.observability.yml'),'-f',path.join(source.sourceDirectory,'deploy/compose.observability-e2e.yml'),'-f',file,'-f',volumeOverride];
+ const composeArgs=settingsComposeArguments(workspace);
  const environment={WEBAPI_E2E_PROJECT:project,WEBAPI_E2E_DIRECTORY:directory,WEBAPI_E2E_RELATIVE_DIR:env.WEBAPI_E2E_RELATIVE_DIR,WEBAPI_ENVIRONMENT_ID:env.WEBAPI_ENVIRONMENT_ID};
  await writePrivate(path.join(directory,'cleanup-context.json'),{...workspace,args:composeArgs,environment});
  await writePrivate(path.join(directory,'review-context.json'),{...workspace,args:composeArgs,environment});

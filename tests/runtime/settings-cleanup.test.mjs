@@ -40,10 +40,21 @@ const dir = process.env.WEBAPI_E2E_DIRECTORY, owner = project.slice('webapi-ente
 const mode = process.env.SETTINGS_DOCKER_RESULT || '';
 if (a[0] === 'ps' || a[0] === 'volume' && a[1] === 'ls') {
   if (mode === 'unavailable') process.exit(24);
+  if (a[0] === 'volume' && fs.existsSync(path.join(dir,'fixture-volume-present'))) {
+    const filter = a.at(-1), exact = project+'_evidence';
+    if (filter.startsWith('name=') || mode !== 'unlabelled-existing' && filter === 'label=com.webapi.settings.owner='+owner) console.log(exact);
+  }
   if (a[0] === 'ps' && mode === 'foreign') console.log('foreign');
   if (a[0] === 'ps' && mode === 'leftover') console.log('owned');
 } else if (a[0] === 'inspect' || a[0] === 'volume' && a[1] === 'inspect') {
-  console.log(JSON.stringify({'com.docker.compose.project':project,'com.webapi.settings.owner':mode === 'foreign' ? 'another-owner' : owner}));
+  if (a[0] === 'volume' && a.at(-1) === project+'_evidence' && fs.existsSync(path.join(dir,'fixture-volume-present'))) {
+    if (mode === 'unlabelled-existing') console.log('{}');
+    else if (mode === 'foreign-project' || mode === 'relabel-after-down' && fs.existsSync(path.join(dir,'fixture-down-called')))
+      console.log(JSON.stringify({'com.docker.compose.project':'another-project','com.webapi.settings.owner':owner}));
+    else console.log(JSON.stringify({'com.webapi.settings.owner':owner}));
+  } else console.log(JSON.stringify({'com.docker.compose.project':project,'com.webapi.settings.owner':mode === 'foreign' ? 'another-owner' : owner}));
+} else if (a[0] === 'volume' && a[1] === 'rm' && a.length === 3 && a[2] === project+'_evidence') {
+  fs.unlinkSync(path.join(dir,'fixture-volume-present'));
 } else if (a[0] === 'compose' && a.includes('down')) {
   fs.appendFileSync(path.join(dir, 'fixture-down-called'), 'down' + String.fromCharCode(10));
   if (mode === 'interrupt-down') setTimeout(() => process.exit(0), 750);
@@ -80,7 +91,16 @@ function addReview(root) {
   fs.writeFileSync(path.join(directory, 'password-e2e-unrelated'), 'keep');
   const info = {directory, project};
   write(path.join(directory, 'context.json'), {environmentId:'fixture'});
-  write(path.join(directory, 'review-context.json'), {...info, owner, args:['compose','-p',project],
+  const composeFiles = ['build/source/deploy/compose.e2e.yml','build/source/deploy/compose.observability.yml',
+    'build/source/deploy/compose.observability-e2e.yml','settings-overlay.yml','settings-volumes.yml'];
+  const args = ['compose','-p',project];
+  for (const name of composeFiles) {
+    const file = path.join(directory, name);
+    fs.mkdirSync(path.dirname(file), {recursive:true});
+    write(file, {services:{}});
+    args.push('-f', file);
+  }
+  write(path.join(directory, 'review-context.json'), {...info, owner, args,
     environment:{WEBAPI_E2E_PROJECT:project, WEBAPI_E2E_DIRECTORY:directory}});
   write(pointer(root), info);
   return info;
@@ -103,6 +123,15 @@ function addBuild(root) {
     for(const name of ${JSON.stringify(names.slice(7))}) fs.writeFileSync(path.join(dir,name),'${canary}');
     fs.writeFileSync(path.join(dir,'password-e2e-unrelated'),'keep');
     fs.writeFileSync(path.join(dir,'context.json'),JSON.stringify({environmentId:'fixture'}));
+    if(process.env.SETTINGS_DOCKER_RESULT==='interrupt-writer') {
+      process.on('SIGTERM',()=>setTimeout(()=>{
+        fs.writeFileSync(path.join(dir,'password-e2e-admin'),'late-fixture-placeholder');
+        fs.writeFileSync(path.join(dir,'fixture-writer-closed'),'');
+        process.exit(0);
+      }, 850));
+      fs.writeFileSync(path.join(dir,'fixture-prepare-wait'),'');
+      setTimeout(()=>process.exit(7),6000);
+    }
   `);
   fs.writeFileSync(path.join(root, 'scripts/settings/scenario.mjs'), `
     export async function runSettingsScenario(ctx) {
@@ -279,7 +308,7 @@ test('an indirect settings review pointer cannot authorize cleanup', t => {
   assert.deepEqual(remaining(active.directory), names);
 });
 
-for (const damage of ['unreadable review context', 'invalid Compose project', 'missing Compose arguments']) {
+for (const damage of ['unreadable review context', 'invalid Compose project', 'missing Compose arguments','truncated Compose arguments','an unrelated Compose overlay']) {
   test('settings cleanup measures credentials after ownership is confirmed despite ' + damage, t => {
     const root = fixture(t);
     addScripts(root);
@@ -289,7 +318,13 @@ for (const damage of ['unreadable review context', 'invalid Compose project', 'm
       write(path.join(directory, 'owner.json'), {project, owner});
       fs.writeFileSync(file, '{');
     } else {
-      write(file, {...original, args:damage === 'invalid Compose project' ? ['compose','-p','other-project'] : null});
+      const candidates = {
+        'invalid Compose project':['compose','-p','other-project'],
+        'missing Compose arguments':null,
+        'truncated Compose arguments':original.args.slice(0, 3),
+        'an unrelated Compose overlay':[...original.args.slice(0, -1), path.join(directory, 'other.yml')],
+      };
+      write(file, {...original, args:candidates[damage]});
     }
     const failed = cli(root, ['scripts/settings/cleanup.mjs']);
     assert.notEqual(failed.status, 0);
@@ -325,15 +360,15 @@ test('a legacy run with unreadable ownership evidence keeps all files', t => {
   assert.deepEqual(remaining(directory), names);
 });
 
-for (const kind of ['acceptance', 'review cleanup']) {
+for (const kind of ['acceptance', 'review cleanup', 'fixture writer']) {
   test('the settings ' + kind + ' CLI completes credential cleanup after a process signal', async t => {
-    const root = fixture(t), accept = kind === 'acceptance';
+    const root = fixture(t), accept = kind !== 'review cleanup';
     if (accept) addBuild(root);
     else addScripts(root);
     if (!accept) addReview(root);
     const child = spawn(process.execPath, ['scripts/settings/' + (accept ? 'acceptance' : 'cleanup') + '.mjs'], {
       cwd:root, stdio:'ignore', env:{...process.env, PATH:path.join(root, 'bin') + path.delimiter + process.env.PATH,
-        SETTINGS_DOCKER_RESULT:accept ? 'interrupt-up' : 'interrupt-down'},
+        SETTINGS_DOCKER_RESULT:kind === 'fixture writer' ? 'interrupt-writer' : accept ? 'interrupt-up' : 'interrupt-down'},
     });
     const exited = once(child, 'exit');
     t.after(() => { if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL'); });
@@ -344,7 +379,8 @@ for (const kind of ['acceptance', 'review cleanup']) {
         const project = fs.readdirSync(runtime).find(name => name.startsWith('webapi-enterprise-e2e-settings-'));
         if (project) {
           directory = path.join(runtime, project);
-          if (fs.existsSync(path.join(directory, accept ? 'fixture-up-ready' : 'fixture-down-called'))) break;
+          const ready = kind === 'fixture writer' ? 'fixture-prepare-wait' : accept ? 'fixture-up-ready' : 'fixture-down-called';
+          if (fs.existsSync(path.join(directory, ready))) break;
         }
       }
       assert.ok(Date.now() < deadline && child.exitCode === null && child.signalCode === null, 'CLI did not reach the signal point');
@@ -353,6 +389,13 @@ for (const kind of ['acceptance', 'review cleanup']) {
     assert.deepEqual(remaining(directory), names);
     child.kill(accept ? 'SIGINT' : 'SIGTERM');
     assert.deepEqual(await exited, [accept ? 130 : 143, null]);
+    if (kind === 'fixture writer') {
+      const end = Date.now() + 3000;
+      while (!fs.existsSync(path.join(directory, 'fixture-writer-closed'))) {
+        assert.ok(Date.now() < end, 'interrupted fixture writer failed to finish');
+        await new Promise(resolve => setTimeout(resolve, 25));
+      }
+    }
     assert.deepEqual(remaining(directory), []);
     const record = read(path.join(publicDir(root), accept ? 'last-failure.json' : 'cleanup.json'));
     if (accept) assert.equal(record.complete, false);
@@ -375,4 +418,37 @@ test('cancelling a settings scenario reaches its in-flight control-plane request
   });
   await assert.rejects(runSettingsScenario({...workspace, root, signal:controller.signal,
     endpoints:{control_plane:'http://127.0.0.1:1'}, context:{passwordFiles:{}}}), error => error === reason);
+});
+
+for (const mode of ['legacy-evidence','foreign-project','unlabelled-existing','relabel-after-down']) {
+  test('settings teardown protects the exact manually created volume on ' + mode, t => {
+    const root = fixture(t);
+    addScripts(root);
+    const {directory} = addReview(root), volume = path.join(directory, 'fixture-volume-present');
+    fs.writeFileSync(volume, '');
+    const result = cli(root, ['scripts/settings/cleanup.mjs'], mode);
+    if (mode === 'legacy-evidence') assert.equal(result.status, 0, result.stderr);
+    else assert.notEqual(result.status, 0);
+    assert.equal(fs.existsSync(volume), mode !== 'legacy-evidence');
+    assert.equal(fs.existsSync(path.join(directory, 'fixture-down-called')), ['legacy-evidence','relabel-after-down'].includes(mode));
+    const receipt = read(path.join(publicDir(root), 'cleanup.json'));
+    assert.equal(receipt.volumesRemaining, mode === 'legacy-evidence' ? 0 : 1);
+    assert.equal(Boolean(receipt.failed), mode !== 'legacy-evidence');
+    assert.equal(receipt.secretsRemaining, 0);
+    assert.deepEqual(remaining(directory), []);
+  });
+}
+
+test('an independent owner cannot override an explicitly conflicting settings teardown identity', t => {
+  const root = fixture(t);
+  addScripts(root);
+  const {directory, project} = addReview(root), file = path.join(directory, 'review-context.json');
+  const trusted = read(file);
+  write(path.join(directory, 'owner.json'), {project, owner:trusted.owner});
+  write(file, {...trusted, environment:{...trusted.environment, WEBAPI_E2E_PROJECT:'another-settings-project'}});
+  const result = cli(root, ['scripts/settings/cleanup.mjs']);
+  assert.notEqual(result.status, 0);
+  assert.deepEqual(remaining(directory), names);
+  assert.equal(fs.existsSync(path.join(directory, 'fixture-down-called')), false);
+  assert.ok(fs.existsSync(pointer(root)));
 });

@@ -64,6 +64,22 @@ test('an unverifiable directory gets an unknown count and its symlink target is 
   assert.deepEqual(await fs.readdir(other), ['password']);
 });
 
+test('a replacement at the same path cannot be cleared or counted as the original workspace', async t => {
+  const root = await workspace(t);
+  const run = path.join(root, 'run'), moved = path.join(root, 'renamed');
+  await fs.mkdir(run, {mode:0o700});
+  await fs.writeFile(path.join(run, 'password'), '');
+  const result = await cleanupAcceptanceRun(run, ['password'], async () => {
+    await fs.rename(run, moved);
+    await fs.mkdir(run, {mode:0o700});
+    await fs.writeFile(path.join(run, 'password'), '');
+    return {volumesRemaining:0};
+  });
+  assert.equal(result.failed, true);
+  assert.equal(result.secretsRemaining, null);
+  assert.deepEqual(await fs.readdir(run), ['password']);
+});
+
 for (const [name, code] of [['SIGINT', 130], ['SIGTERM', 143], ['SIGHUP', 129]]) {
   test(`a caught ${name} lets cleanup finish and preserves the signal exit status`, () => {
     const module = new URL('../../scripts/acceptance-credentials.mjs', import.meta.url);

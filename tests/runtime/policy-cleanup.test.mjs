@@ -48,6 +48,21 @@ function fixture(t) {
     for (const [index, name] of files.entries()) {
       fs.writeFileSync(path.join(dir, name), 'synthetic-private-' + name, {mode: 0o600});
       if (index === 1 && process.env.FIXTURE_RUN_SIGNAL) {
+        if (process.env.FIXTURE_LATE_WRITE) {
+          process.once('SIGTERM', () => {
+            const deadline = Date.now() + 1700;
+            const poll = setInterval(() => {
+              if (fs.existsSync(path.join(dir, name)) && Date.now() < deadline) return;
+              clearInterval(poll);
+              fs.writeFileSync(path.join(dir, 'password-e2e-approver'), 'synthetic late credential', {mode: 0o600});
+              fs.writeFileSync(path.join(dir, 'late-writer-finished'), '');
+              process.exit(0);
+            }, 10);
+          });
+          process.kill(process.ppid, process.env.FIXTURE_RUN_SIGNAL);
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          process.exit(80);
+        }
         process.kill(process.ppid, process.env.FIXTURE_RUN_SIGNAL);
         await new Promise(resolve => setTimeout(resolve, 200));
         process.exit(0);
@@ -89,12 +104,29 @@ if (args[0] === 'image' && args[1] === 'inspect') {
   console.log(JSON.stringify([{Id: 'fixture-image', Config: {Labels: {'com.webapi.policies.source-manifest': hash}}}]));
 } else if (args[0] === 'inspect' || (args[0] === 'volume' && args[1] === 'inspect')) {
   if (process.env.FIXTURE_FOREIGN_OWNER) labels['com.webapi.policies.owner'] = 'other-owner';
+  if (args.at(-1) === project + '_lpm' && process.env.FIXTURE_LEGACY_VOLUME) {
+    delete labels['com.docker.compose.project'];
+    if (process.env.FIXTURE_LEGACY_VOLUME === 'conflicting') labels['com.docker.compose.project'] = 'another-project';
+    if (process.env.FIXTURE_LEGACY_VOLUME === 'named-foreign' ||
+        process.env.FIXTURE_LEGACY_VOLUME === 'replaced' && fs.existsSync(down)) labels['com.webapi.policies.owner'] = 'other-owner';
+  }
   console.log(JSON.stringify(labels));
 } else if (args[0] === 'ps') {
   if (process.env.FIXTURE_FOREIGN_OWNER) console.log('foreign');
   if (process.env.FIXTURE_RESOURCES_REMAIN && fs.existsSync(down)) console.log('container-a\\ncontainer-b');
 } else if (args[0] === 'volume' && args[1] === 'ls') {
   if (process.env.FIXTURE_RESOURCES_REMAIN && fs.existsSync(down)) console.log(project + '_pg');
+  const legacy = process.env.FIXTURE_LEGACY_VOLUME;
+  if (legacy && !fs.existsSync(path.join(dir, 'volume-removed')) && (args.at(-1).startsWith('name=') ||
+    legacy !== 'named-foreign' && args.includes('label=com.webapi.policies.owner=' + owner))) console.log(project + '_lpm');
+} else if (args[0] === 'volume' && args[1] === 'rm') {
+  fs.appendFileSync(path.join(dir, 'volume-rm-attempts'), args.at(-1) + '\\n');
+  if (args.at(-1) !== project + '_lpm' || process.env.FIXTURE_LEGACY_VOLUME !== 'legacy') process.exit(46);
+  fs.writeFileSync(path.join(dir, 'volume-removed'), '');
+} else if (args[0] === 'volume' && args[1] === 'create' && process.env.FIXTURE_CHECK_CREATED_VOLUMES) {
+  const volume = args.at(-1).slice(project.length + 1);
+  if (!args.includes('com.docker.compose.project=' + project) || !args.includes('com.docker.compose.volume=' + volume)
+    || !args.includes('com.webapi.policies.owner=' + owner)) process.exit(45);
 } else if (args[0] === 'compose' && args.includes('port')) {
   console.log('127.0.0.1:12345');
 } else if (args[0] === 'compose' && args.includes('down')) {
@@ -130,7 +162,7 @@ if (args[0] === 'image' && args[1] === 'inspect') {
 
 test('policy E2E records measured cleanup and keeps unrelated evidence', t => {
   const f = fixture(t);
-  const run = f.run();
+  const run = f.run('e2e', {FIXTURE_CHECK_CREATED_VOLUMES: '1'});
   assert.equal(run.status, 0, run.stderr);
   const [dir] = f.runs();
   assert.deepEqual(remaining(dir), []);
@@ -184,6 +216,16 @@ test('SIGTERM during policy preparation reaps the child and returns 143 after cl
   assert.equal(fs.readFileSync(path.join(dir, 'down-attempts'), 'utf8'), 'attempt\n');
 });
 
+test('policy cleanup waits for a signalled credential writer to close before counting', t => {
+  const f = fixture(t);
+  const run = f.run('e2e', {FIXTURE_RUN_SIGNAL: 'SIGTERM', FIXTURE_LATE_WRITE: '1'});
+  const [dir] = f.runs();
+  assert.equal(run.status, 143);
+  assert.equal(fs.existsSync(path.join(dir, 'late-writer-finished')), true);
+  assert.deepEqual(remaining(dir), []);
+  assert.equal(readJson(path.join(f.evidence, 'last-failure.json')).cleanup.secretsRemaining, 0);
+});
+
 test('policy cancellation interrupts an in-flight scenario request', async t => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'policy-request-abort-'));
   t.after(() => fs.rmSync(directory, {recursive: true, force: true}));
@@ -225,6 +267,26 @@ for (const kind of ['secret', 'resources']) {
     assert.equal(failure.cleanup.volumesRemaining, kind === 'resources' ? 1 : 0);
     assert.equal(fs.readFileSync(path.join(dir, 'down-attempts'), 'utf8'), 'attempt\n');
     assert.equal(fs.existsSync(path.join(f.evidence, 'verification.json')), false);
+  });
+}
+
+for (const label of ['legacy', 'conflicting', 'stuck', 'replaced', 'named-foreign']) {
+  test(`policy teardown recognizes a ${label} owner-labelled HMAC volume`, t => {
+    const f = fixture(t);
+    const retained = f.run('browser');
+    assert.equal(retained.status, 0, retained.stderr);
+    const active = readJson(f.pointer);
+    const cleanup = f.run('cleanup', {FIXTURE_LEGACY_VOLUME: label});
+    if (label === 'legacy') assert.equal(cleanup.status, 0, cleanup.stderr);
+    else assert.notEqual(cleanup.status, 0);
+    assert.deepEqual(remaining(active.directory), []);
+    assert.equal(fs.existsSync(path.join(active.directory, 'down-attempts')), ['legacy', 'stuck', 'replaced'].includes(label));
+    assert.equal(fs.existsSync(path.join(active.directory, 'volume-rm-attempts')), ['legacy','stuck'].includes(label));
+    const receipt = readJson(path.join(f.evidence, 'cleanup.json'));
+    assert.equal(Boolean(receipt.failed), label !== 'legacy');
+    if (label === 'legacy') assert.equal(receipt.volumesRemaining, 0);
+    if (['stuck', 'replaced'].includes(label)) assert.equal(receipt.volumesRemaining, 1);
+    assert.equal(fs.existsSync(f.pointer), label !== 'legacy');
   });
 }
 

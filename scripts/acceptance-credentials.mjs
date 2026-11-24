@@ -1,7 +1,11 @@
 import fs from 'node:fs/promises';
+import {constants} from 'node:fs';
+import {execFile} from 'node:child_process';
 import path from 'node:path';
+import {promisify} from 'node:util';
 import {ownedDirectory} from './runtime/state.mjs';
 
+const exec = promisify(execFile);
 const rotatedPasswords = ['admin', 'reader', 'approver', 'security'].map(role => `password-e2e-${role}`);
 
 export async function withAcceptanceSignals(run) {
@@ -32,27 +36,63 @@ export async function withAcceptanceSignals(run) {
 
 export async function cleanupAcceptanceRun(directory, bootstrapNames, teardown) {
   const names = new Set([...bootstrapNames, 'credential', ...rotatedPasswords]);
-  let resources;
+  let handle, identity;
+  const unavailable = {failed:true, secretsRemaining:null, error:'Credential count unavailable'};
   try {
-    resources = await teardown();
+    directory = await ownedDirectory(directory);
+    handle = await fs.open(directory, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+    identity = await privateDirectoryId(handle);
   } catch {
-    resources = {failed: true, error: 'Resource cleanup failed'};
+    if (handle) await handle.close();
+    return unavailable;
   }
 
-  let secretsRemaining = null;
   try {
-    await ownedDirectory(directory);
-    // Compose can need these files even for down. Count what is left after every unlink has settled.
-    await Promise.allSettled(Array.from(names, name => fs.unlink(path.join(directory, name))));
-    secretsRemaining = (await fs.readdir(directory)).filter(name => names.has(name)).length;
-  } catch {
-    // An unreadable or unverified directory cannot provide a residual count.
-  }
+    let resources;
+    try {
+      resources = await teardown();
+    } catch {
+      resources = {failed:true, error:'Resource cleanup failed'};
+    }
 
-  const receipt = {...resources, secretsRemaining};
-  if (secretsRemaining !== 0) {
-    receipt.failed = true;
-    receipt.error ??= secretsRemaining === null ? 'Credential count unavailable' : 'Credential files remain';
+    try {
+      // Compose may read these files during down. Perform every unlink relative to a pinned
+      // working directory, so replacing the pathname cannot redirect a deletion.
+      const {stdout} = await exec(process.execPath, [import.meta.filename, '--unlink-credentials', identity, ...names], {cwd:directory});
+      const remaining = (await fs.readdir(directory)).filter(name => names.has(name)).length;
+      if (await privateDirectoryId(directory) !== identity || stdout.trim() !== String(remaining)) {
+        return {...resources, ...unavailable};
+      }
+      const receipt = {...resources, secretsRemaining:remaining};
+      if (remaining) {
+        receipt.failed = true;
+        receipt.error ??= 'Credential files remain';
+      }
+      return receipt;
+    } catch {
+      return {...resources, ...unavailable};
+    }
+  } finally {
+    await handle.close();
   }
-  return receipt;
+}
+
+async function privateDirectoryId(directory) {
+  const info = typeof directory === 'string'
+    ? await fs.lstat(directory, {bigint:true})
+    : await directory.stat({bigint:true});
+  if (!info.isDirectory() || info.uid !== BigInt(process.getuid()) || (info.mode & 0o077n)) {
+    throw Error('Invalid acceptance directory');
+  }
+  return `${info.dev}:${info.ino}`;
+}
+
+if (process.argv[1] === import.meta.filename && process.argv[2] === '--unlink-credentials') {
+  const [identity, ...names] = process.argv.slice(3);
+  if (await privateDirectoryId('.') !== identity || !names.every(name => /^[a-z][a-z0-9.-]*$/.test(name))) {
+    throw Error('Invalid acceptance cleanup input');
+  }
+  await Promise.allSettled(names.map(name => fs.unlink(name)));
+  const entries = await fs.readdir('.');
+  console.log(entries.filter(name => names.includes(name)).length);
 }

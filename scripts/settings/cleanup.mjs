@@ -68,51 +68,69 @@ export async function retireSettingsContext(root, workspace) {
   await fs.rm(path.join(workspace.directory, 'cleanup-context.json'), {force:true});
 }
 
-function validateComposeArgs(workspace, args) {
-  if (args === null) return;
-  assert(Array.isArray(args) && args[0] === 'compose' && args[1] === '-p' && args[2] === workspace.project,
-    'Owned compose arguments mismatch');
-  for (let i = 3; i < args.length; i += 2) {
-    const file = args[i + 1];
-    assert(args[i] === '-f' && typeof file === 'string' && path.isAbsolute(file)
-      && path.resolve(file).startsWith(workspace.directory + path.sep), 'Owned compose file mismatch');
-  }
+export function settingsComposeArguments({directory, project}) {
+  const deploy = path.join(directory, 'build/source/deploy');
+  return ['compose','-p',project,
+    '-f',path.join(deploy, 'compose.e2e.yml'),
+    '-f',path.join(deploy, 'compose.observability.yml'),
+    '-f',path.join(deploy, 'compose.observability-e2e.yml'),
+    '-f',path.join(directory, 'settings-overlay.yml'),
+    '-f',path.join(directory, 'settings-volumes.yml')];
 }
 
 export async function cleanupSettingsRun(root, workspace, args, docker) {
   await validateSettingsDirectory(root, workspace);
   return cleanupAcceptanceRun(workspace.directory, settingsCredentialFiles, async () => {
+    if (args === null) return {};
     try {
-      validateComposeArgs(workspace, args);
+      assert.deepEqual(args, settingsComposeArguments(workspace));
     } catch {
       return {failed:true, error:'Settings compose context could not be verified', containersRemaining:null, volumesRemaining:null};
     }
-    if (args === null) return {};
     const filter = 'label=com.docker.compose.project=' + workspace.project;
-    const kinds = [
-      {field:'containersRemaining', list:['ps','-aq','--filter',filter], inspect:['inspect','--format','{{json .Config.Labels}}']},
-      {field:'volumesRemaining', list:['volume','ls','-q','--filter',filter], inspect:['volume','inspect','--format','{{json .Labels}}']},
-    ];
-    const inventory = async kind => (await docker(kind.list)).split('\n').filter(Boolean);
+    const legacyVolumes = new Set(['evidence','lpm'].map(name => workspace.project + '_' + name));
+    const list = async (...argv) => (await docker(argv)).split('\n').filter(Boolean);
+    const containers = () => list('ps','-aq','--filter',filter);
+    const volumes = async () => {
+      const byProject = await list('volume','ls','-q','--filter',filter);
+      const byOwner = await list('volume','ls','-q','--filter','label=com.webapi.settings.owner=' + workspace.owner);
+      const byName = await list('volume','ls','-q','--filter','name=^' + workspace.project + '_(evidence|lpm)$');
+      return [...new Set([...byProject, ...byOwner, ...byName.filter(name => legacyVolumes.has(name))])];
+    };
+    const volumeLabels = async id => JSON.parse(await docker(['volume','inspect','--format','{{json .Labels}}',id]));
+    const isLegacyOwned = (id, labels) => legacyVolumes.has(id) && labels?.['com.webapi.settings.owner'] === workspace.owner
+      && labels['com.docker.compose.project'] === undefined;
     let failed = false;
     try {
-      for (const kind of kinds) {
-        for (const id of await inventory(kind)) {
-          validateOwnedResources(workspace, [JSON.parse(await docker([...kind.inspect, id]))]);
-        }
+      for (const id of await containers()) {
+        validateOwnedResources(workspace, [JSON.parse(await docker(['inspect','--format','{{json .Config.Labels}}',id]))]);
+      }
+      const legacy = new Set();
+      for (const id of await volumes()) {
+        const labels = await volumeLabels(id);
+        if (isLegacyOwned(id, labels)) legacy.add(id);
+        else validateOwnedResources(workspace, [labels]);
       }
       await docker([...args, 'down', '--volumes', '--remove-orphans']);
+      // Older settings runs created just these two volumes with only the owner label.
+      if (legacy.size) {
+        for (const id of await volumes()) {
+          if (!legacy.has(id)) continue;
+          assert(isLegacyOwned(id, await volumeLabels(id)), 'Owned settings volume changed');
+          await docker(['volume','rm',id]);
+        }
+      }
     } catch {
       failed = true;
     }
     const counts = {};
-    for (const kind of kinds) {
+    for (const [field, inventory] of [['containersRemaining', containers], ['volumesRemaining', volumes]]) {
       try {
-        counts[kind.field] = (await inventory(kind)).length;
+        counts[field] = (await inventory()).length;
       } catch {
-        counts[kind.field] = null;
+        counts[field] = null;
       }
-      if (counts[kind.field] !== 0) failed = true;
+      if (counts[field] !== 0) failed = true;
     }
     return failed ? {...counts, failed:true, error:'Settings Docker cleanup incomplete'} : counts;
   });
@@ -131,10 +149,18 @@ export async function cleanupSettingsReview(root, directory) {
   try {
     context = await optionalJson(path.join(info.directory, 'cleanup-context.json'), true)
       ?? await optionalJson(reviewFile(info.directory), true);
-    assert(context?.project === info.project && context.directory === info.directory && context.owner === workspace.owner,
-      'Owned review context mismatch');
   } catch (error) {
     if (!owner) throw error; // Legacy runs store their only independent identity in the review context.
+    context = null;
+  }
+  const claims = [[context?.project, workspace.project], [context?.directory, workspace.directory],
+    [context?.owner, workspace.owner], [context?.environment?.WEBAPI_E2E_PROJECT, workspace.project],
+    [context?.environment?.WEBAPI_E2E_DIRECTORY, workspace.directory]];
+  for (const [actual, expected] of claims) {
+    if (actual !== undefined) assert.equal(actual, expected, 'Conflicting settings teardown ownership');
+  }
+  if (!context?.project || !context.owner || !context.directory) {
+    assert(owner, 'Owned settings identity unavailable');
     context = null;
   }
   const args = context?.args === null && context.composeStarted !== false ? undefined : context?.args;

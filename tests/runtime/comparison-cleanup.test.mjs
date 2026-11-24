@@ -30,7 +30,7 @@ async function fixture(t) {
   }
   await fs.cp(path.join(repository, 'scripts/comparisons'), path.join(scripts, 'comparisons'), {recursive: true});
   // Keep ownership checks, evidence admission and credential cleanup on the real implementations.
-  for (const name of ['runtime/state.mjs', 'settings/evidence.mjs', 'acceptance-credentials.mjs']) {
+  for (const name of ['runtime/state.mjs', 'runtime/exec-file.mjs', 'settings/evidence.mjs', 'acceptance-credentials.mjs']) {
     const source = path.join(repository, 'scripts', name);
     await fs.writeFile(path.join(scripts, name), `export * from ${JSON.stringify(pathToFileURL(source).href)};\n`);
   }
@@ -84,7 +84,7 @@ case "$1" in
 esac\n`, {mode: 0o700});
   const start = (args, mode = '', nodeArgs = []) => exec(process.execPath,
     [...nodeArgs, path.join(scripts, 'comparisons/acceptance.mjs'), ...args],
-    {cwd: root, env: {...process.env, PATH: bin + path.delimiter + process.env.PATH, COMPARISON_FIXTURE: mode}});
+    {cwd: root, env: {...process.env, PATH: bin + path.delimiter + process.env.PATH, COMPARISON_FIXTURE: mode, COMPARISON_FIXTURE_ROOT: root}});
   const cli = async (...args) => {
     try {
       const {stdout, stderr} = await start(...args);
@@ -97,7 +97,9 @@ esac\n`, {mode: 0o700});
 }
 
 async function freezeSource(root) {
-  for (const args of [['init', '--quiet'], ['add', 'scripts', 'deploy'],
+  const sources = ['scripts', 'deploy'];
+  if (await fs.stat(path.join(root, 'console/package.json')).catch(() => null)) sources.push('console/package.json', 'console/pnpm-lock.yaml');
+  for (const args of [['init', '--quiet'], ['add', ...sources],
     ['-c', 'user.name=Fixture', '-c', 'user.email=test@invalid', '-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m', 'fixture']]) {
     await exec('git', args, {cwd: root});
   }
@@ -350,3 +352,51 @@ test('SIGTERM during fixture preparation revokes the comparison credentials befo
   assert.equal((await readJson(path.join(f.output, 'last-failure.json'))).cleanup.secretsRemaining, 0);
   assert.equal(await fs.readFile(path.join(directory, 'down-attempts'), 'utf8'), 'down\n');
 });
+
+for (const stage of ['tsc', 'vite', 'sdk', 'image']) {
+  test(`SIGTERM during the ${stage} build waits for the child and exits before credential creation`, async t => {
+    const f = await fixture(t);
+    const script = (phase, other = '') => `
+      const fs = require('node:fs'), path = require('node:path');
+      const root = process.env.COMPARISON_FIXTURE_ROOT;
+      if (process.env.COMPARISON_FIXTURE === (${phase})) {
+        process.on('SIGTERM', () => setTimeout(() => {
+          fs.writeFileSync(path.join(root, 'build-child-closed'), 'after SIGTERM');
+          process.exit(0);
+        }, 60));
+        fs.writeFileSync(path.join(root, 'build-ready'), '');
+        setTimeout(() => process.exit(68), 1600);
+      } else { ${other} }`;
+    const tsc = path.join(f.root, 'console/node_modules/typescript/bin/tsc');
+    const vite = path.join(f.root, 'console/node_modules/vite/bin/vite.js');
+    for (const file of [tsc, vite, path.join(f.root, 'deploy/runtime/Dockerfile')]) await fs.mkdir(path.dirname(file), {recursive: true});
+    await fs.writeFile(tsc, script("'tsc'"));
+    await fs.writeFile(vite, script("'vite'", "fs.mkdirSync('dist'); fs.writeFileSync('dist/index.html', 'fixture');"));
+    await fs.writeFile(path.join(f.root, 'bin/docker'), `#!${process.execPath}\n` + script("process.argv[2] === 'run' ? 'sdk' : process.argv[2] === 'build' ? 'image' : ''"));
+    await writeJson(path.join(f.root, 'console/package.json'), {});
+    await fs.writeFile(path.join(f.root, 'console/pnpm-lock.yaml'), 'fixture');
+    await fs.writeFile(path.join(f.root, 'deploy/runtime/Dockerfile'), 'FROM scratch');
+    const buildModule = pathToFileURL(path.join(repository, 'scripts/runtime/build.mjs')).href;
+    await fs.writeFile(path.join(f.root, 'scripts/runtime/build.mjs'), `export * from ${JSON.stringify(buildModule)};`);
+    await freezeSource(f.root);
+    const running = f.start(['--revision', 'HEAD'], stage);
+    const finished = running.then(() => 0, error => error.code);
+    t.after(() => { if (running.child.exitCode === null && running.child.signalCode === null) running.child.kill('SIGKILL'); });
+    const ready = path.join(f.root, 'build-ready'), until = Date.now() + 10000;
+    while (!await fs.stat(ready).catch(() => null)) {
+      assert.ok(Date.now() < until, `comparison did not reach ${stage}`);
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    const [project] = await fs.readdir(path.join(f.root, '.runtime'));
+    const directory = path.join(f.root, '.runtime', project);
+    const before = await remaining(directory);
+    assert.equal(running.child.kill('SIGTERM'), true);
+    assert.equal(await finished, 143);
+    assert.deepEqual(before, []);
+    assert.deepEqual(await remaining(directory), []);
+    const receipt = path.join(f.output, 'last-failure.json');
+    assert.equal((await readJson(receipt)).cleanup.secretsRemaining, 0);
+    assert.ok((await fs.stat(path.join(f.root, 'build-child-closed'))).mtimeMs <= (await fs.stat(receipt)).mtimeMs);
+    await assert.rejects(fs.access(path.join(directory, 'down-attempts')), {code: 'ENOENT'});
+  });
+}

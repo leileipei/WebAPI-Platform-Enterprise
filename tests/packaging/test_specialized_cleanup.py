@@ -28,6 +28,7 @@ class PolicyCleanupReceiptTests(unittest.TestCase):
                 ({'cleanup': {**clear, 'secretsRemaining': None}}, None),
                 ({'cleanup': {**clear, 'secretsRemaining': False}}, None),
                 ({'cleanup': {**clear, 'failed': True}}, None),
+                ({'cleanup': {**clear, 'project': 'different-run'}}, None),
                 ({'cleanup': clear}, {'project': 'run', **clear, 'secretsRemaining': 2}),
                 ({'review': {'project': 'run'}}, {'project': 'other', **clear}),
             ]

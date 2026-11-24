@@ -6,6 +6,8 @@ def verify_cleanup_receipt(result, evidence_directory):
     separate = evidence_directory / 'cleanup.json'
     if separate.is_file():
         record = json.loads(separate.read_text(encoding='utf-8'))
+        if not isinstance(record, dict):
+            raise ValueError('Invalid cleanup receipt')
         if result.get('project') and record.get('project') == result['project']:
             records.append(record)
 
@@ -14,6 +16,8 @@ def verify_cleanup_receipt(result, evidence_directory):
     for record in records:
         if not isinstance(record, dict) or record.get('failed', False) is not False:
             raise ValueError('Failed cleanup receipt')
+        if 'project' in record and record['project'] != result.get('project'):
+            raise ValueError('Mismatched cleanup receipt project')
         counts = ['secretsRemaining', 'containersRemaining', 'volumesRemaining']
         if 'networksRemaining' in record:
             counts.append('networksRemaining')
