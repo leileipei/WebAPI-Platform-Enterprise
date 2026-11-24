@@ -17,6 +17,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[2]
 EVIDENCE = "docs/evidence/observability/"
 RECEIPT = EVIDENCE + "verification.json"
+FAULT_OUTPUT = EVIDENCE + "faults-run-output.json"
 MANIFEST = "deliverables/manifest-observability.json"
 COLLECTOR = "src/WebApi.Infrastructure/Observability/CollectorSignalCoverage.cs"
 
@@ -98,8 +99,39 @@ class ObservabilityPackageTests(unittest.TestCase):
         if success:
             return self.read(MANIFEST)
 
-    def verify(self, success=True):
-        self.cli([sys.executable, "scripts/verify-observability-delivery.py"], success)
+    def verify(self, *args, success=True):
+        self.cli([sys.executable, "scripts/verify-observability-delivery.py", *args], success)
+
+    def prepare_fresh_provisional(self):
+        self.git("switch", "--detach", "-q", self.provisional)
+        draft = self.read(RECEIPT)
+        draft["baselineFaultEvidence"].update(sourceRevision=self.tested, fixtureFile=Path(FAULT_OUTPUT).name)
+        fault = self.read(EVIDENCE + "fault-run.json")
+        fault["project"] = "recorded-current-fault-project"
+        self.write(EVIDENCE + "fault-run.json", fault)
+        output = self.read(EVIDENCE + "faults.json")
+        output["project"] = fault["project"]
+        self.write(FAULT_OUTPUT, output)
+        for name in ("browser-qa.json", "final-loss-live.json", "final-permission-browser.json"):
+            path = EVIDENCE + name
+            record = self.read(path)
+            self.write(path, {**record, "sourceRevision": self.tested})
+        self.write(RECEIPT, draft)
+        return self.commit("record new run")
+
+    def prepare_fresh_seal(self, draft, manifest):
+        receipt = self.read(RECEIPT)
+        receipt["complete"] = True
+        receipt["finalReview"]["pending"] = []
+        receipt["archiveGate"] = {
+            "verified": True,
+            "productSourceRevision": self.tested,
+            "provisionalSourceRevision": self.tested,
+            "provisionalEvidenceRevision": draft,
+            "provisionalSha256": manifest["sha256"],
+            "files": manifest["files"],
+        }
+        return receipt
 
     def test_previous_manifest_keeps_a_complete_archive_after_another_publication(self):
         first = self.package(self.seal)
@@ -244,6 +276,7 @@ class ObservabilityPackageTests(unittest.TestCase):
 
     def test_an_archive_only_pending_gate_is_provisional(self):
         self.assertIs(self.package(self.provisional)["acceptanceComplete"], False)
+        self.verify("--provisional")
         self.verify(success=False)
         incomplete = copy.deepcopy(self.proof)
         incomplete["complete"] = False
@@ -253,6 +286,73 @@ class ObservabilityPackageTests(unittest.TestCase):
         self.proof["cleanup"]["secretFilesRemaining"] = 1
         self.write(RECEIPT, self.proof)
         self.package(self.commit("unclean fixture"), success=False)
+
+    def test_separate_fresh_fault_output_can_be_sealed_after_independent_provisional_verification(self):
+        draft = self.prepare_fresh_provisional()
+        provisional = self.package(self.tested, "--evidence-revision", draft)
+        self.assertIs(provisional["acceptanceComplete"], False)
+        self.verify(success=False)
+        self.verify("--provisional")
+        self.write(RECEIPT, self.prepare_fresh_seal(draft, provisional))
+        seal = self.commit("seal the verified package")
+        manifest = self.package(self.tested, "--evidence-revision", seal)
+        self.assertIs(manifest["acceptanceComplete"], True)
+        self.assertEqual(manifest["acceptanceEvidence"]["references"][FAULT_OUTPUT]["archivePath"],
+                         "package-evidence/" + FAULT_OUTPUT)
+        self.verify()
+        self.verify("--provisional", success=False)
+        out = self.repo / "deliverables"
+        (out / provisional["file"]).write_bytes((out / manifest["file"]).read_bytes())
+        self.verify(success=False)
+        (out / provisional["file"]).unlink()
+        self.verify(success=False)
+
+    def test_fresh_provisional_rejects_unbound_or_arbitrary_fault_evidence(self):
+        good = self.prepare_fresh_provisional()
+        for path, change in [
+            (RECEIPT, lambda p: p["baselineFaultEvidence"].update(fixtureFile="faults.json")),
+            (RECEIPT, lambda p: p["baselineFaultEvidence"].update(fixtureFile="../faults-run-output.json")),
+            (RECEIPT, lambda p: p["baselineFaultEvidence"].update(sourceRevision=self.tested[:9])),
+            (RECEIPT, lambda p: p["finalReview"].update(reviewedRevision=self.provisional)),
+            (EVIDENCE + "browser-qa.json", lambda p: p.update(sourceRevision=self.provisional)),
+            (EVIDENCE + "fault-run.json", lambda p: p.update(sourceRevision=self.provisional)),
+            (EVIDENCE + "loop.json", lambda p: p.update(counterDelta=7)),
+        ]:
+            with self.subTest(file=path, change=change.__code__.co_firstlineno):
+                self.git("switch", "--detach", "-q", good)
+                record = self.read(path)
+                change(record)
+                self.write(path, record)
+                draft = self.commit("contradict the new run")
+                self.package(self.tested, "--evidence-revision", draft, success=False)
+
+        self.git("switch", "--detach", "-q", good)
+        self.write(EVIDENCE + "faults.json", "changed tracked fixture")
+        draft = self.commit("change the original test input alongside the record")
+        self.package(self.tested, "--evidence-revision", draft, success=False)
+
+    def test_final_gate_cannot_edit_run_metadata_after_provisional_verification(self):
+        draft = self.prepare_fresh_provisional()
+        manifest = self.package(self.tested, "--evidence-revision", draft)
+        seal = self.prepare_fresh_seal(draft, manifest)
+        seal["architecture"] = "unobserved architecture"
+        self.write(RECEIPT, seal)
+        sealed = self.commit("change the already verified receipt")
+        final = self.package(self.tested, "--evidence-revision", sealed)
+        self.assertIs(final["acceptanceComplete"], False)
+        self.verify(success=False)
+
+    def test_final_gate_rejects_wrong_provisional_archive_digest_and_count(self):
+        draft = self.prepare_fresh_provisional()
+        manifest = self.package(self.tested, "--evidence-revision", draft)
+        for fields in ({"files": manifest["files"] + 1}, {"provisionalSha256": "0" * 64}):
+            with self.subTest(fields=fields):
+                self.git("switch", "--detach", "-q", draft)
+                receipt = self.prepare_fresh_seal(draft, manifest)
+                receipt["archiveGate"].update(fields)
+                self.write(RECEIPT, receipt)
+                seal = self.commit("claim a different archive")
+                self.package(self.tested, "--evidence-revision", seal, success=False)
 
     def test_incomplete_or_contradictory_sealed_evidence_cannot_qualify(self):
         for name, update in [

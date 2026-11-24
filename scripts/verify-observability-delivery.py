@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # coding: utf-8
-"""Verify a completed observability delivery against immutable Git source and receipts."""
+"""Verify an observability delivery against immutable Git source and receipts."""
+import argparse
 import json
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import zipfile
 
-from observability_delivery import ARCHIVE_STEM, BLOCKED, EVIDENCE, acceptance, git, production_static_files, recorded_commit, require, sha256, source_files
+from observability_delivery import (ARCHIVE_STEM, EVIDENCE, acceptance, git, production_static_files, recorded_commit,
+                                    require, sha256, source_files, verify_archive, verify_provisional_archive)
 
 
-def verify():
+def verify(provisional=False):
     out = Path('deliverables')
     manifest = json.loads((out / 'manifest-observability.json').read_bytes())
     source = recorded_commit(manifest.get('sourceRevision'))
@@ -24,8 +26,13 @@ def verify():
     source_blobs = source_files(source)
     material = source_blobs if source == evidence_revision else source_files(evidence_revision, EVIDENCE)
     evidence, attachments = acceptance(source, evidence_revision, material)
-    require(evidence['status'] == 'complete', 'Observability acceptance not established: ' + evidence['status'])
-    require(manifest.get('acceptanceComplete') is True, 'Manifest does not claim completed acceptance')
+    if provisional:
+        require(evidence['status'] == 'archive-verification-pending' and claimed is not None,
+                'Expected a provisional archive awaiting verification')
+        require(manifest.get('acceptanceComplete') is False, 'Provisional manifest claims completed acceptance')
+    else:
+        require(evidence['status'] == 'complete', 'Observability acceptance not established: ' + evidence['status'])
+        require(manifest.get('acceptanceComplete') is True, 'Manifest does not claim completed acceptance')
     require(claimed is None or claimed == evidence, 'Manifest provenance differs from the immutable evidence')
     require(all(manifest.get(k) is True for k in ('archiveIntegrityVerified', 'consoleBuiltFromImmutableSource',
                                                    'secretsExcluded')), 'Incomplete delivery manifest')
@@ -34,8 +41,6 @@ def verify():
     require(isinstance(manifest.get('sha256'), str) and len(manifest['sha256']) == 64
             and all(c in '0123456789abcdef' for c in manifest['sha256']), 'Invalid archive digest')
     require(manifest.get('file') == expected_filename, 'Unexpected archive name')
-    archive = out / manifest['file']
-    require(sha256(archive.read_bytes()) == manifest['sha256'], 'Archive SHA256 mismatch')
     static = manifest['staticFiles']
     require(isinstance(static, dict) and 'console/dist/index.html' in static and
             all(name.startswith('console/dist/') and '..' not in name.split('/') for name in static), 'Invalid static files')
@@ -48,22 +53,21 @@ def verify():
     if not sealed_legacy:
         expected = {name: sha256(data) for name, data in production_static_files(source_blobs).items()}
         require(static == expected, 'Static files differ from the reproducible production build')
-    with zipfile.ZipFile(archive) as z:
-        require(z.testzip() is None and len(z.infolist()) == manifest['files'], 'Invalid ZIP contents')
-        files = {'enterprise/' + name: content for name, content in source_blobs.items()}
-        files.update(attachments)
-        names = set(files) | {'enterprise/' + name for name in static}
-        require(len(names) == len(z.infolist()) and set(z.namelist()) == names, 'Unexpected or missing ZIP entries')
-        require(not any(BLOCKED.intersection(PurePosixPath(name).parts) for name in names), 'Excluded ZIP entry')
-        for name, content in files.items():
-            require(z.read(name) == content, f'ZIP differs from Git: {name}')
-        for name, digest in static.items():
-            require(sha256(z.read('enterprise/' + name)) == digest, f'Static file SHA256 mismatch: {name}')
-    print('Immutable source, static build, ZIP integrity, SHA256, required evidence and exclusions verified.')
+    files = {'enterprise/' + name: content for name, content in source_blobs.items()}
+    files.update(attachments)
+    verify_archive(out / manifest['file'], manifest['sha256'], manifest['files'], files, static)
+    if provisional:
+        print('Provisional archive verified. Acceptance remains pending until the receipt is sealed.')
+    else:
+        verify_provisional_archive(out, material, source_blobs, static)
+        print('Immutable source, static build, ZIP integrity, SHA256, required evidence and exclusions verified.')
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--provisional', action='store_true', help='Verify the archive before sealing the receipt')
+    args = parser.parse_args()
     try:
-        verify()
+        verify(args.provisional)
     except (KeyError, ValueError, OSError, zipfile.BadZipFile) as error:
         raise SystemExit(str(error))

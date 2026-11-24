@@ -39,6 +39,7 @@ try{
  // CP and Redis offline; actual gateway restart must use LKG without a source management shortcut.
  const expected=(await s.request(0)).value;s.compose('stop','worker','worker-b','control-plane','redis');
  try{s.compose('restart','gateway-a');await wait(()=>s.request(0),r=>r.status===200&&r.value.backendId===expected.backendId&&r.value.deploymentSequence===expected.deploymentSequence,30);await live(expected.backendId);}finally{s.compose('start','redis','control-plane','worker','worker-b');}
+ await s.reauthenticate();
  await wait(()=>s.admin.request('/environments/'+s.context.environmentId),()=>true,30);pass('ActualGatewayLkgRestartWithControlPlaneRedisOffline');
  fs.writeFileSync('docs/evidence/observability/faults.json',JSON.stringify({complete:true,project:s.project,architecture:'Linux '+s.compose('exec','-T','gateway-a','uname','-m').trim(),settings:s.settings,checks},null,2));
 }catch(e){fs.writeFileSync('docs/evidence/observability/faults.json',JSON.stringify({complete:false,project:s.project,checks,failure:e.message},null,2));throw e;}finally{try{s.compose('unpause','prometheus');}catch{}try{s.compose('start','collector','prometheus','loki','tempo','gateway-b','redis','control-plane','worker','worker-b');}catch{}try{await s.backend('/__test/release');}catch{}}

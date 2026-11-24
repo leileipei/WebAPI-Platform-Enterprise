@@ -3,7 +3,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 kind=${1:?e2e|faults|browser}; shift
 case "$kind" in e2e|faults|browser) ;; *) exit 2;; esac
-WEBAPI_OBS_NODE=${WEBAPI_NODE:-/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node}
+WEBAPI_OBS_NODE=${WEBAPI_NODE:-$(command -v node || true)}
+[ -x "$WEBAPI_OBS_NODE" ] || { echo 'Set WEBAPI_NODE to a Node 22+ executable.' >&2; exit 2; }
 export WEBAPI_E2E_PROJECT="webapi-enterprise-e2e-observability-$(uuidgen | tr '[:upper:]' '[:lower:]')"
 export WEBAPI_E2E_RELATIVE_DIR=".runtime/e2e/$WEBAPI_E2E_PROJECT"
 export WEBAPI_E2E_DIRECTORY="$PWD/$WEBAPI_E2E_RELATIVE_DIR"
@@ -11,10 +12,12 @@ export WEBAPI_ENVIRONMENT_ID
 WEBAPI_ENVIRONMENT_ID=$("$WEBAPI_OBS_NODE" -e 'console.log(crypto.randomUUID())')
 export WEBAPI_OBS_EXPECT_EMPTY=${WEBAPI_OBS_EXPECT_EMPTY:-false}
 export WEBAPI_OBS_SCENARIO=true
-mkdir -p "$WEBAPI_E2E_DIRECTORY"; chmod 700 "$WEBAPI_E2E_DIRECTORY"
-"$WEBAPI_OBS_NODE" --input-type=module -e 'import fs from "node:fs";import crypto from "node:crypto";for(const name of ["password","postgres-password","node-a","node-b","ip-hmac","cursor-key"])fs.writeFileSync(process.env.WEBAPI_E2E_DIRECTORY+"/"+name,crypto.randomBytes(32).toString(name==="ip-hmac"||name==="cursor-key"?"base64":"base64url"),{mode:0o600});'
-"$WEBAPI_OBS_NODE" scripts/observability-ports.mjs
-while IFS= read -r assignment; do export "$assignment"; done < "$WEBAPI_E2E_DIRECTORY/ports.env"
+export WEBAPI_OBS_MODE="$kind"
+export WEBAPI_SOURCE_REVISION
+WEBAPI_SOURCE_REVISION=$(git rev-parse --verify HEAD)
+umask 077
+mkdir -p "$PWD/.runtime/e2e"
+mkdir -m 700 "$WEBAPI_E2E_DIRECTORY"
 compose(){ docker compose -f deploy/compose.e2e.yml -f deploy/compose.observability.yml -f deploy/compose.observability-e2e.yml "$@"; }
 cleanup(){
  local result=$?; trap - EXIT
@@ -34,28 +37,31 @@ cleanup(){
   [ -n "$abandoned" ] || continue
   docker network rm "$abandoned" >/dev/null 2>&1 || result=1
  done < <(docker network ls -q --filter "label=com.docker.compose.project=$WEBAPI_E2E_PROJECT")
- rm -f "$WEBAPI_E2E_DIRECTORY/password" "$WEBAPI_E2E_DIRECTORY/postgres-password" "$WEBAPI_E2E_DIRECTORY/node-a" "$WEBAPI_E2E_DIRECTORY/node-b" "$WEBAPI_E2E_DIRECTORY/node-cross" "$WEBAPI_E2E_DIRECTORY/node-cross2" "$WEBAPI_E2E_DIRECTORY/ip-hmac" "$WEBAPI_E2E_DIRECTORY/cursor-key" "$WEBAPI_E2E_DIRECTORY/credential" "$WEBAPI_E2E_DIRECTORY/browser-cookie"
- local containers volumes leftover
+ local containers volumes networks leftover
  # Compose may leave an unused base lkg volume after the temporary override.
  while IFS= read -r leftover; do
   [ -n "$leftover" ] || continue
   case "$leftover" in
-   "${WEBAPI_E2E_PROJECT}_pg"|"${WEBAPI_E2E_PROJECT}_nuget"|"${WEBAPI_E2E_PROJECT}_lkg-a"|"${WEBAPI_E2E_PROJECT}_lkg-b"|"${WEBAPI_E2E_PROJECT}_lkg-cross"|"${WEBAPI_E2E_PROJECT}_lkg-cross2"|"${WEBAPI_E2E_PROJECT}_loki-data"|"${WEBAPI_E2E_PROJECT}_tempo-data"|"${WEBAPI_E2E_PROJECT}_prometheus-data") docker volume rm "$leftover" >/dev/null 2>&1 || result=1;;
+   "${WEBAPI_E2E_PROJECT}_pg"|"${WEBAPI_E2E_PROJECT}_nuget"|"${WEBAPI_E2E_PROJECT}_lkg-a"|"${WEBAPI_E2E_PROJECT}_lkg-b"|"${WEBAPI_E2E_PROJECT}_lkg-cross"|"${WEBAPI_E2E_PROJECT}_lkg-cross2"|"${WEBAPI_E2E_PROJECT}_loki-data"|"${WEBAPI_E2E_PROJECT}_tempo-data"|"${WEBAPI_E2E_PROJECT}_prometheus-data"|"${WEBAPI_E2E_PROJECT}_evidence") docker volume rm "$leftover" >/dev/null 2>&1 || result=1;;
    *) result=1;;
   esac
  done < <(docker volume ls -q --filter "label=com.docker.compose.project=$WEBAPI_E2E_PROJECT")
  containers=$(docker ps -aq --filter "label=com.docker.compose.project=$WEBAPI_E2E_PROJECT") || result=1
  volumes=$(docker volume ls -q --filter "label=com.docker.compose.project=$WEBAPI_E2E_PROJECT") || result=1
- [ -z "$containers$volumes" ] || result=1
- "$WEBAPI_OBS_NODE" scripts/observability-e2e.mjs cleanup "$result" "$(printf '%s' "$containers" | awk 'NF{n++}END{print n+0}')" "$(printf '%s' "$volumes" | awk 'NF{n++}END{print n+0}')" || result=1
+ networks=$(docker network ls -q --filter "label=com.docker.compose.project=$WEBAPI_E2E_PROJECT") || result=1
+ [ -z "$containers$volumes$networks" ] || result=1
+ "$WEBAPI_OBS_NODE" scripts/observability-e2e.mjs cleanup "$result" "$(printf '%s' "$containers" | awk 'NF{n++}END{print n+0}')" "$(printf '%s' "$volumes" | awk 'NF{n++}END{print n+0}')" "$(printf '%s' "$networks" | awk 'NF{n++}END{print n+0}')" || result=1
  exit "$result"
 }
 trap cleanup EXIT
+"$WEBAPI_OBS_NODE" scripts/observability-e2e.mjs init
+"$WEBAPI_OBS_NODE" scripts/observability-ports.mjs
+while IFS= read -r assignment; do export "$assignment"; done < "$WEBAPI_E2E_DIRECTORY/ports.env"
 compose create >/dev/null 2>&1
 # Only initialize the two random tmpfs source volumes as the existing smoke does.
 docker run --rm --user 0:0 --entrypoint bash -v "${WEBAPI_E2E_PROJECT}_loki-data:/obs-loki" -v "${WEBAPI_E2E_PROJECT}_tempo-data:/obs-tempo" mcr.microsoft.com/dotnet/sdk@sha256:e70cdb7f80b0348f5cb85f19a8f670fca061f033d57eed12fa003d58b0e06317 -c 'set -e; for volume in /obs-loki /obs-tempo; do test "$(df --block-size=1 --output=size "$volume" | tail -1)" -eq 1073741824; done; chown 10001:10001 /obs-loki /obs-tempo' >/dev/null
 compose up -d --wait postgres redis >/dev/null 2>&1
-compose run --rm sdk bash -c 'dotnet restore --locked-mode && dotnet build -c Release --no-restore && dotnet src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.dll --bootstrap --seed-catalog'
+compose run --rm sdk bash -c 'chmod 700 /evidence && dotnet restore --locked-mode && dotnet build -c Release --no-restore && dotnet src/WebApi.Migrator/bin/Release/net10.0/WebApi.Migrator.dll --bootstrap --seed-catalog'
 compose up -d collector prometheus loki tempo control-plane >/dev/null 2>&1
 endpoint(){ printf 'http://%s' "$(compose port "$1" "$2")"; }
 export WEBAPI_E2E_CONTROL_PLANE_URL

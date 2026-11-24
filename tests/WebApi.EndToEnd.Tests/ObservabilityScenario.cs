@@ -14,7 +14,7 @@ public sealed class ObservabilityScenario : IAsyncDisposable
     {
         var file=System.Environment.GetEnvironmentVariable("WEBAPI_E2E_CONTEXT_FILE");Assert.True(file is not null&&File.Exists(file),"Run check-observability.sh for a disposable fixture.");
         var s=new ObservabilityScenario{context=JsonDocument.Parse(await File.ReadAllTextAsync(file!)).RootElement.Clone()};s.core=await ExternalScenario.ConnectAsync();
-        await ExternalScenario.WriteAsync(s.api,"/auth/login",new{username="e2e-admin",password=await File.ReadAllTextAsync(s.context.GetProperty("passwordFile").GetString()!)});
+        await s.core.LoginAsync(s.api,"e2e-admin");
         s.credential=await File.ReadAllTextAsync(s.context.GetProperty("credentialFile").GetString()!);return s;
     }
     public Task<JsonElement> PublishAsync(string backend)=>core.PublishAsync(backend,"/orders/{**path}");

@@ -7,14 +7,17 @@ import shutil
 import tempfile
 import re
 import subprocess
+import zipfile
 
 
 EVIDENCE = "docs/evidence/observability/"
 RECEIPT = EVIDENCE + "verification.json"
 BLOCKED = {".git", ".superpowers", ".runtime", ".secrets", "node_modules", "bin", "obj", "TestResults", "deliverables"}
 CHECK_FILES = {"loop": "loop.json", "rule-loop": "rule-loop.json", "boundaries": "boundaries.json"}
-OTHER_FILES = ("faults.json", "fault-run.json", "browser-qa.json", "final-loss-live.json",
-               "final-permission-browser.json", "final-review.md")
+FAULT_FIXTURE = "faults.json"
+FAULT_OUTPUT = "faults-run-output.json"
+PRODUCT_RECORDS = ("browser-qa.json", "final-loss-live.json", "final-permission-browser.json")
+OTHER_FILES = ("fault-run.json", *PRODUCT_RECORDS, "final-review.md")
 RULE_CHECKS = {"Actual60SecondCompleteCoverageAndEstimatedRates",
                "ThreeActualMetricRulesTriggerAckSilenceRecoverAndAudit", "ActualYarpHealthyGaugeRecovers"}
 BOUNDARY_CHECKS = {"ActualSameTraceparentTwoEnvironmentsOnlyReturnCurrentEnvironmentSpans",
@@ -135,8 +138,15 @@ def green_checks(checks, required):
     return names.issuperset(required) and len(names) == len(checks)
 
 
-def reference_paths(material):
-    paths = [EVIDENCE + name for name in (*CHECK_FILES.values(), *OTHER_FILES)]
+def fault_file(proof):
+    baseline = proof.get("baselineFaultEvidence")
+    if isinstance(baseline, dict) and baseline.get("fixtureFile") == FAULT_OUTPUT:
+        return FAULT_OUTPUT
+    return FAULT_FIXTURE
+
+
+def reference_paths(proof, material):
+    paths = [EVIDENCE + name for name in (*CHECK_FILES.values(), fault_file(proof), *OTHER_FILES)]
     browser = document(material.get(EVIDENCE + "browser-qa.json"))
     screenshots = browser.get("screenshots")
     if (isinstance(screenshots, list) and all(isinstance(name, str) and re.fullmatch(r"[\w.-]+\.(?:jpg|png)", name)
@@ -150,7 +160,7 @@ def same_inputs(tested, candidate, references):
         return True
     # Everything is an input by default: tests, fixture data, build imports, dependencies and
     # deployment/harness scripts. faults.json is explicitly consumed by ObservabilityFaultTests.
-    outputs = set(references) - {EVIDENCE + "faults.json"}
+    outputs = set(references) - {EVIDENCE + FAULT_FIXTURE}
     outputs.update((RECEIPT, EVIDENCE + "execution-ledger.md", EVIDENCE + "verification-output.md",
                     "README.md", "docs/deployment/observability-runbook.md", "scripts/package-observability.py",
                     "scripts/verify-observability-delivery.py", "deliverables/manifest-observability.json"))
@@ -166,10 +176,13 @@ def closed_loop_passed(project, material):
             and green_checks(rules.get("checks"), RULE_CHECKS) and green_checks(bounds.get("checks"), BOUNDARY_CHECKS))
 
 
-def faults_passed(baseline, material):
+def faults_passed(baseline, material, output, tested):
     faults = document(material[EVIDENCE + "fault-run.json"])
-    fixture = document(material[EVIDENCE + "faults.json"])
+    fixture = document(material[EVIDENCE + output])
     fault_revision = recorded_commit(baseline.get("sourceRevision"))
+    if "fixtureFile" in baseline and (output != FAULT_OUTPUT or baseline.get("sourceRevision") != tested
+                                      or faults.get("sourceRevision") != tested):
+        return False
     return (baseline.get("file") == "fault-run.json" and baseline.get("complete") is True and fault_revision
             and recorded_commit(faults.get("sourceRevision")) == fault_revision
             and faults.get("command") == "./scripts/check-observability.sh faults" and zeros(faults, "exitCode")
@@ -207,11 +220,16 @@ def repairs_passed(material):
             and all(p.get("complete") is True and zeros(p.get("cleanup"), *CLEANUP) for p in (loss, permission)))
 
 
-def complete_run(proof, material, paths):
+def complete_run(proof, material, paths, tested):
     project = proof.get("project")
     review = proof.get("finalReview")
     baseline = proof.get("baselineFaultEvidence")
     if not isinstance(review, dict) or not isinstance(baseline, dict) or not all(material.get(path) for path in paths):
+        return False
+    output = fault_file(proof)
+    if output == FAULT_OUTPUT and (proof.get("sourceRevision") != tested or review.get("reviewedRevision") != tested
+                                    or any(document(material[EVIDENCE + name]).get("sourceRevision") != tested
+                                           for name in PRODUCT_RECORDS)):
         return False
     suite = review.get("fullSuite")
     checks = proof.get("checks")
@@ -226,22 +244,27 @@ def complete_run(proof, material, paths):
             and all(positive(suite.get(k)) for k in ("domain", "integration", "gateway", "frontend"))
             and proof.get("browserEvidence") == "browser-qa.json" and review.get("realLossProof") == "final-loss-live.json"
             and review.get("permissionProof") == "final-permission-browser.json" and closed_loop_passed(project, material)
-            and faults_passed(baseline, material) and browser_passed(material, paths) and repairs_passed(material))
+            and faults_passed(baseline, material, output, tested) and browser_passed(material, paths)
+            and repairs_passed(material))
 
 
-def eligibility(proof, source, tested, material, paths):
+def eligibility(proof, source, evidence, tested, material, paths):
     review = proof.get("finalReview", {})
+    fresh = fault_file(proof) == FAULT_OUTPUT
     if not zeros(proof.get("cleanup"), "secretFilesRemaining"):
         raise ValueError("Observability receipt lacks a zero remaining secret-file count")
     if not proof.get("complete"):
-        require(proof.get("complete") is False and proof.get("criticalAcceptanceComplete") is True
-                and isinstance(review, dict) and review.get("repairValidationComplete") is True
-                and review.get("pending") == ARCHIVE_PENDING, "Required acceptance is pending")
+        require(proof.get("complete") is False and isinstance(review, dict) and review.get("pending") == ARCHIVE_PENDING
+                and tested and complete_run(proof, material, paths, tested), "Required acceptance is pending")
+        require(same_inputs(tested, source, paths), "Provisional source inputs changed")
+        if fresh:
+            require(tested == source and "archiveGate" not in proof and same_inputs(tested, evidence, paths),
+                    "Invalid provisional evidence provenance")
         return "archive-verification-pending"
     if (proof.get("complete") is not True or not isinstance(review, dict) or review.get("pending") != []
-            or not tested or not complete_run(proof, material, paths)):
+            or not tested or not complete_run(proof, material, paths, tested)):
         return "incomplete-evidence"
-    if not same_inputs(tested, source, paths):
+    if (fresh and (tested != source or not same_inputs(tested, evidence, paths))) or not same_inputs(tested, source, paths):
         return "source-inputs-changed"
     gate = proof.get("archiveGate")
     if (not isinstance(gate, dict) or gate.get("verified") is not True or not positive(gate.get("files"))
@@ -249,7 +272,13 @@ def eligibility(proof, source, tested, material, paths):
             or not re.fullmatch(r"[0-9a-f]{64}", gate["provisionalSha256"])
             or recorded_commit(gate.get("productSourceRevision")) != tested):
         return "unverified-archive-gate"
-    provisional = recorded_commit(gate.get("provisionalSourceRevision"))
+    if fresh:
+        provisional = recorded_commit(gate.get("provisionalEvidenceRevision"))
+        if (gate.get("productSourceRevision") != tested or gate.get("provisionalSourceRevision") != tested
+                or not provisional or gate.get("provisionalEvidenceRevision") != provisional):
+            return "unverified-archive-gate"
+    else:
+        provisional = recorded_commit(gate.get("provisionalSourceRevision"))
     if not provisional or not same_inputs(tested, provisional, paths):
         return "unverified-archive-gate"
     # Sealing is a second commit. Bind the results to the immutable pre-seal run;
@@ -257,11 +286,17 @@ def eligibility(proof, source, tested, material, paths):
     previous = source_files(provisional, RECEIPT, *paths)
     draft = document(previous.get(RECEIPT))
     expected_review = {**review, "pending": ARCHIVE_PENDING}
-    if (draft.get("complete") is not False or draft.get("finalReview") != expected_review
-            or any(draft.get(k) != proof.get(k) for k in (
-                "sourceRevision", "project", "checks", "cleanup", "exitCode", "command", "classification", "mode",
-                "criticalAcceptanceComplete", "baselineFaultEvidence", "browserEvidence"))
-            or any(previous.get(path) != material[path] for path in paths)):
+    if fresh:
+        expected_draft = {key: value for key, value in proof.items() if key != "archiveGate"}
+        expected_draft.update(complete=False, finalReview=expected_review)
+        if draft.get("complete") is not False or draft != expected_draft or not complete_run(draft, previous, paths, tested):
+            return "unverified-archive-gate"
+    elif (draft.get("complete") is not False or draft.get("finalReview") != expected_review
+          or any(draft.get(k) != proof.get(k) for k in (
+              "sourceRevision", "project", "checks", "cleanup", "exitCode", "command", "classification", "mode",
+              "criticalAcceptanceComplete", "baselineFaultEvidence", "browserEvidence"))):
+        return "unverified-archive-gate"
+    if any(previous.get(path) != material[path] for path in paths):
         return "unverified-archive-gate"
     return "complete"
 
@@ -271,8 +306,8 @@ def acceptance(source, evidence, material):
     require(data, "Required observability receipt is missing")
     proof = document(data)
     tested = recorded_commit(proof.get("sourceRevision"))
-    paths = reference_paths(material)
-    status = eligibility(proof, source, tested, material, paths)
+    paths = reference_paths(proof, material)
+    status = eligibility(proof, source, evidence, tested, material, paths)
     prefix = "enterprise/" if source == evidence else "package-evidence/"
     refs = {name: {"archivePath": prefix + name, "sha256": sha256(material[name])}
             for name in paths if name in material}
@@ -282,3 +317,29 @@ def acceptance(source, evidence, material):
                 "status": status, "references": refs}
     attachments = {} if source == evidence else {prefix + name: material[name] for name in (RECEIPT, *refs)}
     return metadata, attachments
+
+
+def verify_archive(archive, digest, count, files, static):
+    require(sha256(archive.read_bytes()) == digest, "Archive SHA256 mismatch")
+    with zipfile.ZipFile(archive) as z:
+        require(z.testzip() is None and len(z.infolist()) == count, "Invalid ZIP contents")
+        names = set(files) | {"enterprise/" + name for name in static}
+        require(len(names) == len(z.infolist()) and set(z.namelist()) == names, "Unexpected or missing ZIP entries")
+        require(not any(BLOCKED.intersection(PurePosixPath(name).parts) for name in names), "Excluded ZIP entry")
+        for name, content in files.items():
+            require(z.read(name) == content, f"ZIP differs from Git: {name}")
+        for name, digest in static.items():
+            require(sha256(z.read("enterprise/" + name)) == digest, f"Static file SHA256 mismatch: {name}")
+
+
+def verify_provisional_archive(out, material, source, static):
+    proof = document(material[RECEIPT])
+    if fault_file(proof) != FAULT_OUTPUT:
+        return
+    gate = proof["archiveGate"]
+    paths = (RECEIPT, *reference_paths(proof, material))
+    draft = source_files(gate["provisionalEvidenceRevision"], *paths)
+    files = {"enterprise/" + name: data for name, data in source.items()}
+    files.update({"package-evidence/" + name: draft[name] for name in paths})
+    digest = gate["provisionalSha256"]
+    verify_archive(out / f"{ARCHIVE_STEM}-{digest}.zip", digest, gate["files"], files, static)

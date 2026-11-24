@@ -2,7 +2,8 @@
 # coding: utf-8
 """Immutable tracked source + rebuilt console. Keeps the core deliverable intact."""
 import argparse, hashlib, json, os, pathlib, tempfile, zipfile
-from observability_delivery import ARCHIVE_STEM, BLOCKED, EVIDENCE, acceptance, commit, require, source_files, production_static_files
+from observability_delivery import (ARCHIVE_STEM, BLOCKED, EVIDENCE, acceptance, commit, require, source_files,
+                                    production_static_files, verify_provisional_archive)
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('revision', help='Immutable source revision')
@@ -20,10 +21,13 @@ require(all(p in source for p in required), 'Required delivery material missing'
 material = source if evidence_revision == revision else source_files(evidence_revision, EVIDENCE)
 evidence, attachments = acceptance(revision, evidence_revision, material)
 static = production_static_files(source)
+static_hashes = {name: hashlib.sha256(content).hexdigest() for name, content in sorted(static.items())}
 files = {'enterprise/' + name: data for name, data in (source | static).items()}
 files.update(attachments)
 out = root / 'deliverables'
 out.mkdir(exist_ok=True)
+if evidence['status'] == 'complete':
+    verify_provisional_archive(out, material, source, static_hashes)
 # Publish immutable bytes before atomically switching the manifest. Earlier manifests
 # keep a readable archive even when different revisions finish packing concurrently.
 with tempfile.TemporaryDirectory(dir=out, prefix='.observability-') as temporary:
@@ -48,7 +52,7 @@ with tempfile.TemporaryDirectory(dir=out, prefix='.observability-') as temporary
                 'sha256': digest, 'files': len(files),
                 'secretsExcluded': True, 'archiveIntegrityVerified': True,
                 'consoleBuiltFromImmutableSource': True,
-                'staticFiles': {name: hashlib.sha256(content).hexdigest() for name, content in sorted(static.items())}}
+                'staticFiles': static_hashes}
     next_manifest = staging / 'manifest.json'
     next_manifest.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
     os.replace(next_manifest, out / 'manifest-observability.json')

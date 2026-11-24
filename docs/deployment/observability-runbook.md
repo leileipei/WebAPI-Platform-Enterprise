@@ -74,6 +74,10 @@ verification.json是最终门槛；fault-run.json保留独立完整故障项目�
 
 `deliverables/manifest-observability.json` 的 `sourceRevision` 标识打包源码。`acceptanceEvidence` 中，`revision` 是读取回执及附件的提交，`receiptRevision` 是最近一次修改该回执的提交，`testedSourceRevision` 是被测产品提交。清单列出回执、附件、静态文件和 ZIP 的 SHA256。打包器核对三源闭环、基线故障、浏览器、最终审查与封存前回执，并对照被测提交的产品代码、依赖、部署、测试脚本和夹具。仅补录封存记录可沿用同一产品的验收。
 
+重新验收时，在独立检出中分别保留 e2e、faults、browser 各随机项目的运行回执。每次收尾写入该项目目录的 `verification.json`。正式证据将本次故障场景产生的 `faults.json` 原字节另存为 `faults-run-output.json`，在 `baselineFaultEvidence.fixtureFile` 引用该附件。故障、浏览器、权限变化、采集丢失和独立审查记录都需要关联本次实测产品提交。
+
+完成实测和审查后，将这些证据提交为预封版本。用 `bash scripts/package.sh observability <产品提交> --evidence-revision <预封提交>` 生成包，运行 `python3 scripts/verify-observability-delivery.py --provisional` 独立读回。将实测的预封 ZIP 摘要、文件数、产品提交和预封证据提交写入最终回执，用最终证据提交重新打包，再运行默认验包命令。预封和正式两个按内容命名的 ZIP 应保存在同一交付目录，供默认验包入口复核。
+
 代码或测试输入改变后仍可取得归档，清单显示 `acceptanceComplete=false`。只待归档校验的临时包也保留此状态。另有验收项目待办或秘密文件清理未通过时，打包命令报错。运行 `python3 scripts/verify-observability-delivery.py` 核对完成包。校验器从本地 Git 对象重算验收结论，未验收、来源不符或文件损坏时返回非零。请在包含相关源提交和证据提交的仓库中执行。
 
 首期核心 ZIP、清单和 40 页原型保存在原交付记录中。按本手册重新生成临时夹具，或为目标部署显式提供真实配置。账号密码、业务库、依赖缓存和 `.git` 均在交付范围以外。
