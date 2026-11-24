@@ -1,4 +1,4 @@
-import fs from 'node:fs';import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {scenario,wait,sleep} from './observability-scenario.mjs';
+import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';import {scenario,wait,sleep} from './observability-scenario.mjs';
 const s=await scenario(),checks=[];
 const pass=(name,details={})=>{checks.push({name,status:'passed',...details});console.log(name+' passed.');};
 const live=async(expected)=>{for(let n=0;n<2;n++){const r=await s.request(n);assert.equal(r.status,200);if(expected)assert.equal(r.value.backendId,expected);}};
@@ -41,5 +41,5 @@ try{
  try{s.compose('restart','gateway-a');await wait(()=>s.request(0),r=>r.status===200&&r.value.backendId===expected.backendId&&r.value.deploymentSequence===expected.deploymentSequence,30);await live(expected.backendId);}finally{s.compose('start','redis','control-plane','worker','worker-b');}
  await s.reauthenticate();
  await wait(()=>s.admin.request('/environments/'+s.context.environmentId),()=>true,30);pass('ActualGatewayLkgRestartWithControlPlaneRedisOffline');
- fs.writeFileSync('docs/evidence/observability/faults.json',JSON.stringify({complete:true,project:s.project,architecture:'Linux '+s.compose('exec','-T','gateway-a','uname','-m').trim(),settings:s.settings,checks},null,2));
-}catch(e){fs.writeFileSync('docs/evidence/observability/faults.json',JSON.stringify({complete:false,project:s.project,checks,failure:e.message},null,2));throw e;}finally{try{s.compose('unpause','prometheus');}catch{}try{s.compose('start','collector','prometheus','loki','tempo','gateway-b','redis','control-plane','worker','worker-b');}catch{}try{await s.backend('/__test/release');}catch{}}
+ s.writeEvidence('faults.json',{complete:true,project:s.project,architecture:'Linux '+s.compose('exec','-T','gateway-a','uname','-m').trim(),settings:s.settings,checks});
+}catch(e){s.writeEvidence('faults.json',{complete:false,project:s.project,checks,failure:e.message});throw e;}finally{try{s.compose('unpause','prometheus');}catch{}try{s.compose('start','collector','prometheus','loki','tempo','gateway-b','redis','control-plane','worker','worker-b');}catch{}try{await s.backend('/__test/release');}catch{}}

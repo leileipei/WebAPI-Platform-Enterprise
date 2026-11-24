@@ -10,8 +10,8 @@ assert.equal(fs.realpathSync(directory),path.join(fs.realpathSync('.'),'.runtime
 const mode=process.argv[2];
 const revision=process.env.WEBAPI_SOURCE_REVISION;
 assert(/^[0-9a-f]{40}$/.test(revision),'A fixed source commit is required');
-const checkoutReceipt='docs/evidence/observability/verification.json';
 const runReceipt=path.join(directory,'verification.json');
+const evidenceDirectory=path.join(directory,'observability-evidence');
 const baseSecrets=['password','postgres-password','node-a','node-b','ip-hmac','cursor-key','login-hmac'];
 const users=['admin','reader','approver','security'];
 const secretNames=[...baseSecrets,...users.map(user=>'password-e2e-'+user),'node-cross','node-cross2','credential','browser-cookie'];
@@ -23,6 +23,7 @@ const save=(file,record)=>fs.writeFileSync(file,JSON.stringify(record,null,2)+'\
 const load=file=>fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):null;
 if(mode==='init'){
  fs.writeFileSync(runReceipt,JSON.stringify(startReceipt(),null,2)+'\n',{flag:'wx',mode:0o600});
+ fs.mkdirSync(evidenceDirectory,{mode:0o700});
  for(const name of baseSecrets){
   const base64=['ip-hmac','cursor-key','login-hmac'].includes(name);
   fs.writeFileSync(path.join(directory,name),randomBytes(32).toString(base64?'base64':'base64url'),{mode:name==='login-hmac'?0o400:0o600,flag:'wx'});
@@ -39,7 +40,7 @@ if(mode==='init'){
  }
  const current=load(runReceipt);
  assert.equal(current?.project,project);
- save(path.join(directory,'observability-context.json'),{project,endpoints,settings:{intervalSeconds:2,queryDelaySeconds:5,leaseSeconds:30,metricExportIntervalMs:1000,traceSampleRatio:1,queueCapacity:64}});
+ save(path.join(directory,'observability-context.json'),{project,sourceRevision:revision,endpoints,settings:{intervalSeconds:2,queryDelaySeconds:5,leaseSeconds:30,metricExportIntervalMs:1000,traceSampleRatio:1,queueCapacity:64}});
  save(runReceipt,{...current,endpoints});
  console.log('All three real sources ready; closed-loop assertions still required.');
 }else if(mode==='cleanup'){
@@ -56,13 +57,11 @@ if(mode==='init'){
  const checks=[];
  for(const name of ['loop','rule-loop','boundaries']){
   const file=name+'.json';
-  const observation=load(path.join('docs/evidence/observability',file));
-  if(observation?.project===project&&observation.complete===true)checks.push({name,status:'passed',evidence:file});
+  const observation=load(path.join(evidenceDirectory,file));
+  if(observation?.project===project&&observation.sourceRevision===revision&&observation.complete===true)checks.push({name,status:'passed',evidence:file});
  }
  const receipt={...current,checks,complete:false,criticalAcceptanceComplete:cleanup.exitCode===0&&['e2e','faults'].includes(observationMode)&&checks.length===3,exitCode:cleanup.exitCode,cleanup};
  save(runReceipt,receipt);
- // Preserve the last sealed receipt if the new project stopped before all three checks.
- if(receipt.criticalAcceptanceComplete)save(checkoutReceipt,receipt);
  if(cleanup.exitCode!==Number(process.argv[3]))process.exitCode=1;
 }else if(mode==='browser'){
  fs.writeFileSync(path.join(directory,'browser.wait'),'');

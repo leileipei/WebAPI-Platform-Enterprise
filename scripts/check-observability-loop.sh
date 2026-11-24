@@ -5,6 +5,10 @@ kind=${1:?e2e|faults|browser}; shift
 case "$kind" in e2e|faults|browser) ;; *) exit 2;; esac
 WEBAPI_OBS_NODE=${WEBAPI_NODE:-$(command -v node || true)}
 [ -x "$WEBAPI_OBS_NODE" ] || { echo 'Set WEBAPI_NODE to a Node 22+ executable.' >&2; exit 2; }
+if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
+  echo 'A fixed observability run requires a clean checkout.' >&2
+  exit 2
+fi
 export WEBAPI_E2E_PROJECT="webapi-enterprise-e2e-observability-$(uuidgen | tr '[:upper:]' '[:lower:]')"
 export WEBAPI_E2E_RELATIVE_DIR=".runtime/e2e/$WEBAPI_E2E_PROJECT"
 export WEBAPI_E2E_DIRECTORY="$PWD/$WEBAPI_E2E_RELATIVE_DIR"
@@ -89,11 +93,11 @@ if [ "$kind" = browser ]; then
  "$WEBAPI_OBS_NODE" scripts/observability-e2e.mjs browser
  while [ -f "$WEBAPI_E2E_DIRECTORY/browser.wait" ]; do sleep 2; done
 else
- compose run --rm -e WEBAPI_OBS_EXPECT_EMPTY sdk dotnet test tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj -c Release --filter FullyQualifiedName~ObservabilityLoopTests
+ compose run --rm -e WEBAPI_OBS_EXPECT_EMPTY -e WEBAPI_SOURCE_REVISION sdk dotnet test tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj -c Release --filter FullyQualifiedName~ObservabilityLoopTests
  if [ "${WEBAPI_OBS_ONLY_BOUNDARIES:-false}" != true ]; then "$WEBAPI_OBS_NODE" scripts/observability-rule-loop.mjs; fi
  "$WEBAPI_OBS_NODE" scripts/observability-boundaries.mjs
  if [ "$kind" = faults ]; then
   "$WEBAPI_OBS_NODE" scripts/observability-faults.mjs
-  compose run --rm sdk dotnet test tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj -c Release --filter FullyQualifiedName~ObservabilityFaultTests
+  compose run --rm -e WEBAPI_SOURCE_REVISION sdk dotnet test tests/WebApi.EndToEnd.Tests/WebApi.EndToEnd.Tests.csproj -c Release --filter FullyQualifiedName~ObservabilityFaultTests
  fi
 fi

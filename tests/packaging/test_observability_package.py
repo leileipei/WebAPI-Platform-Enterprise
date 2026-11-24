@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -39,7 +40,7 @@ class ObservabilityPackageTests(unittest.TestCase):
                      "docs/observability-data-dictionary.md", "docs/deployment/observability-runbook.md", COLLECTOR,
                      "console/package.json", "console/pnpm-lock.yaml"]:
             self.write(name, "fixture")
-        self.write(".gitignore", "/console/node_modules/\n/deliverables/\n__pycache__/\n")
+        self.write(".gitignore", "/console/node_modules/\n/deliverables/\n/scripts/observability_delivery.py\n__pycache__/\n")
         # CI runs packaging tests before installing the console. Only the build tools are fixtures.
         self.write("console/node_modules/typescript/bin/tsc", "process.exit(0)")
         self.write("console/node_modules/vite/bin/vite.js",
@@ -66,6 +67,13 @@ class ObservabilityPackageTests(unittest.TestCase):
                                          provisionalSourceRevision=self.provisional)
         self.write(RECEIPT, self.proof)
         self.seal = self.commit("seal archive gate")
+        # Pin this disposable history in the isolated verifier copy. The product tree
+        # never includes this copy, just as a newer verifier can read the original archive.
+        verifier_path = "scripts/observability_delivery.py"
+        verifier = (self.repo / verifier_path).read_text()
+        for constant, revision in (("LEGACY_DRAFT_REVISION", self.provisional), ("LEGACY_SEAL_REVISION", self.seal)):
+            verifier = re.sub(rf'^{constant} = "[0-9a-f]+"$', f'{constant} = "{revision}"', verifier, flags=re.MULTILINE)
+        self.write(verifier_path, verifier)
 
     def git(self, *args):
         return subprocess.check_output(["git", *args], cwd=self.repo, text=True).strip()
@@ -106,15 +114,19 @@ class ObservabilityPackageTests(unittest.TestCase):
         self.git("switch", "--detach", "-q", self.provisional)
         draft = self.read(RECEIPT)
         draft["baselineFaultEvidence"].update(sourceRevision=self.tested, fixtureFile=Path(FAULT_OUTPUT).name)
+        draft["cleanup"]["networksRemaining"] = 0
         fault = self.read(EVIDENCE + "fault-run.json")
         fault["project"] = "recorded-current-fault-project"
+        fault["cleanup"]["networksRemaining"] = 0
         self.write(EVIDENCE + "fault-run.json", fault)
         output = self.read(EVIDENCE + "faults.json")
         output["project"] = fault["project"]
         self.write(FAULT_OUTPUT, output)
-        for name in ("browser-qa.json", "final-loss-live.json", "final-permission-browser.json"):
+        for name, key in (("browser-qa.json", "remainingNetworks"), ("final-loss-live.json", "networksRemaining"),
+                          ("final-permission-browser.json", "networksRemaining")):
             path = EVIDENCE + name
             record = self.read(path)
+            record["cleanup"][key] = 0
             self.write(path, {**record, "sourceRevision": self.tested})
         self.write(RECEIPT, draft)
         return self.commit("record new run")
@@ -287,6 +299,47 @@ class ObservabilityPackageTests(unittest.TestCase):
         self.write(RECEIPT, self.proof)
         self.package(self.commit("unclean fixture"), success=False)
 
+    def test_unrecognized_legacy_draft_cannot_bypass_fresh_requirements(self):
+        self.git("switch", "--detach", "-q", self.provisional)
+        draft = self.read(RECEIPT)
+        draft["startedAt"] = "2026-11-24T00:00:00Z"
+        self.write(RECEIPT, draft)
+        revision = self.commit("prepare another legacy-style receipt")
+        self.package(self.tested, "--evidence-revision", revision, success=False)
+
+    def test_unrecognized_legacy_seal_cannot_bypass_fresh_requirements(self):
+        self.git("switch", "--detach", "-q", self.provisional)
+        draft = self.read(RECEIPT)
+        draft["startedAt"] = "2026-11-24T00:00:00Z"
+        self.write(RECEIPT, draft)
+        revision = self.commit("prepare another legacy-style receipt")
+        final = copy.deepcopy(self.proof)
+        final["startedAt"] = draft["startedAt"]
+        final["archiveGate"]["provisionalSourceRevision"] = revision
+        self.write(RECEIPT, final)
+        seal = self.commit("seal another legacy-style receipt")
+        manifest = self.package(self.tested, "--evidence-revision", seal)
+        self.assertIs(manifest["acceptanceComplete"], False)
+        self.verify(success=False)
+
+    def test_fresh_provisional_requires_exact_zero_networks_in_each_report(self):
+        good = self.prepare_fresh_provisional()
+        for file, key in [(RECEIPT, "networksRemaining"), (EVIDENCE + "fault-run.json", "networksRemaining"),
+                          (EVIDENCE + "browser-qa.json", "remainingNetworks"),
+                          (EVIDENCE + "final-loss-live.json", "networksRemaining"),
+                          (EVIDENCE + "final-permission-browser.json", "networksRemaining")]:
+            for value in (None, 1, False):
+                with self.subTest(file=file, value=value):
+                    self.git("switch", "--detach", "-q", good)
+                    record = self.read(file)
+                    if value is None:
+                        del record["cleanup"][key]
+                    else:
+                        record["cleanup"][key] = value
+                    self.write(file, record)
+                    draft = self.commit("record unconfirmed network cleanup")
+                    self.package(self.tested, "--evidence-revision", draft, success=False)
+
     def test_separate_fresh_fault_output_can_be_sealed_after_independent_provisional_verification(self):
         draft = self.prepare_fresh_provisional()
         provisional = self.package(self.tested, "--evidence-revision", draft)
@@ -305,6 +358,26 @@ class ObservabilityPackageTests(unittest.TestCase):
         (out / provisional["file"]).write_bytes((out / manifest["file"]).read_bytes())
         self.verify(success=False)
         (out / provisional["file"]).unlink()
+        self.verify(success=False)
+
+    def test_sealed_fresh_evidence_can_be_packaged_as_head_until_a_product_input_changes(self):
+        draft = self.prepare_fresh_provisional()
+        provisional = self.package(self.tested, "--evidence-revision", draft)
+        self.verify("--provisional")
+        self.write(RECEIPT, self.prepare_fresh_seal(draft, provisional))
+        sealed = self.commit("seal the verified package")
+        accepted = self.package("HEAD")
+        self.assertIs(accepted["acceptanceComplete"], True)
+        self.assertEqual(accepted["sourceRevision"], sealed)
+        self.assertEqual(accepted["acceptanceEvidence"]["testedSourceRevision"], self.tested)
+        self.assertEqual(accepted["acceptanceEvidence"]["archivePath"], "enterprise/" + RECEIPT)
+        self.verify()
+
+        self.write(COLLECTOR, "changed product after sealing")
+        self.commit("change product inputs")
+        stale = self.package("HEAD")
+        self.assertIs(stale["acceptanceComplete"], False)
+        self.assertEqual(stale["acceptanceEvidence"]["status"], "source-inputs-changed")
         self.verify(success=False)
 
     def test_fresh_provisional_rejects_unbound_or_arbitrary_fault_evidence(self):

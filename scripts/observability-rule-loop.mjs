@@ -1,4 +1,4 @@
-import fs from 'node:fs';import assert from 'node:assert/strict';import {scenario,wait,sleep} from './observability-scenario.mjs';
+import assert from 'node:assert/strict';import {scenario,wait,sleep} from './observability-scenario.mjs';
 export async function ruleLoop(s){
  const checks=[],started=Date.now();let pumping=true,mode='failure',pumpError;
  const pump=(async()=>{let node=0;while(pumping){try{for(const path of mode==='failure'?['/orders','/orders/__test/slow','/orders/__test/5xx']:['/orders']){const r=await s.request(node,path);assert.equal(r.status,path.endsWith('5xx')?503:200);}node=1-node;}catch(e){pumpError=e;}await sleep(300);}})();
@@ -19,8 +19,8 @@ export async function ruleLoop(s){
   checks.push({name:'ThreeActualMetricRulesTriggerAckSilenceRecoverAndAudit',status:'passed',rules:recovered});
   const current=await s.query('metrics');assert.equal(s.metric(current,'unhealthy_destinations').value,0);checks.push({name:'ActualYarpHealthyGaugeRecovers',status:'passed',value:0});
   for(const rule of rules)await s.admin.request('/observability/alert-rules/'+rule.id+'/disable',{method:'POST',headers:{'If-Match':`"${rule.revision}"`}});
-  fs.writeFileSync(s.directory+'/rules.json',JSON.stringify(rules.map(r=>({id:r.id,definition:r.definition})),null,2));
-  const evidence={complete:true,project:s.project,classification:'actual-business-gateway-three-source-and-independent-workers',settings:s.settings,windowSeconds:60,elapsedSeconds:Math.round((Date.now()-started)/1000),checks};fs.writeFileSync('docs/evidence/observability/rule-loop.json',JSON.stringify(evidence,null,2));console.log('Real continuous-rule and recovery checks passed.');return checks;
- }catch(e){fs.writeFileSync('docs/evidence/observability/rule-loop.json',JSON.stringify({complete:false,project:s.project,settings:s.settings,checks,failure:e.message},null,2));throw e;}finally{pumping=false;await pump;try{await s.backend('/__test/health/healthy');}catch{}}
+  s.writeEvidence('rules.json',rules.map(r=>({id:r.id,definition:r.definition})));
+  const evidence={complete:true,project:s.project,classification:'actual-business-gateway-three-source-and-independent-workers',settings:s.settings,windowSeconds:60,elapsedSeconds:Math.round((Date.now()-started)/1000),checks};s.writeEvidence('rule-loop.json',evidence);console.log('Real continuous-rule and recovery checks passed.');return checks;
+ }catch(e){s.writeEvidence('rule-loop.json',{complete:false,project:s.project,settings:s.settings,checks,failure:e.message});throw e;}finally{pumping=false;await pump;try{await s.backend('/__test/health/healthy');}catch{}}
 }
 if(process.argv[1]?.endsWith('observability-rule-loop.mjs'))await ruleLoop(await scenario());

@@ -16,8 +16,15 @@ BLOCKED = {".git", ".superpowers", ".runtime", ".secrets", "node_modules", "bin"
 CHECK_FILES = {"loop": "loop.json", "rule-loop": "rule-loop.json", "boundaries": "boundaries.json"}
 FAULT_FIXTURE = "faults.json"
 FAULT_OUTPUT = "faults-run-output.json"
-PRODUCT_RECORDS = ("browser-qa.json", "final-loss-live.json", "final-permission-browser.json")
-OTHER_FILES = ("fault-run.json", *PRODUCT_RECORDS, "final-review.md")
+NETWORK_COUNTS = {
+    "fault-run.json": "networksRemaining",
+    "browser-qa.json": "remainingNetworks",
+    "final-loss-live.json": "networksRemaining",
+    "final-permission-browser.json": "networksRemaining",
+}
+OTHER_FILES = (*NETWORK_COUNTS, "final-review.md")
+LEGACY_DRAFT_REVISION = "09746afd0acf497ce024cac88914d6a5185895fd"
+LEGACY_SEAL_REVISION = "ac5a115495e1df9ad0df6ebb4d0639bbeffed1a0"
 RULE_CHECKS = {"Actual60SecondCompleteCoverageAndEstimatedRates",
                "ThreeActualMetricRulesTriggerAckSilenceRecoverAndAudit", "ActualYarpHealthyGaugeRecovers"}
 BOUNDARY_CHECKS = {"ActualSameTraceparentTwoEnvironmentsOnlyReturnCurrentEnvironmentSpans",
@@ -180,8 +187,7 @@ def faults_passed(baseline, material, output, tested):
     faults = document(material[EVIDENCE + "fault-run.json"])
     fixture = document(material[EVIDENCE + output])
     fault_revision = recorded_commit(baseline.get("sourceRevision"))
-    if "fixtureFile" in baseline and (output != FAULT_OUTPUT or baseline.get("sourceRevision") != tested
-                                      or faults.get("sourceRevision") != tested):
+    if "fixtureFile" in baseline and (output != FAULT_OUTPUT or baseline.get("sourceRevision") != tested):
         return False
     return (baseline.get("file") == "fault-run.json" and baseline.get("complete") is True and fault_revision
             and recorded_commit(faults.get("sourceRevision")) == fault_revision
@@ -220,6 +226,17 @@ def repairs_passed(material):
             and all(p.get("complete") is True and zeros(p.get("cleanup"), *CLEANUP) for p in (loss, permission)))
 
 
+def current_identity_and_networks_passed(proof, review, material, tested):
+    if (proof.get("sourceRevision") != tested or review.get("reviewedRevision") != tested
+            or not zeros(proof.get("cleanup"), "networksRemaining")):
+        return False
+    for name, field in NETWORK_COUNTS.items():
+        report = document(material[EVIDENCE + name])
+        if report.get("sourceRevision") != tested or not zeros(report.get("cleanup"), field):
+            return False
+    return True
+
+
 def complete_run(proof, material, paths, tested):
     project = proof.get("project")
     review = proof.get("finalReview")
@@ -227,9 +244,7 @@ def complete_run(proof, material, paths, tested):
     if not isinstance(review, dict) or not isinstance(baseline, dict) or not all(material.get(path) for path in paths):
         return False
     output = fault_file(proof)
-    if output == FAULT_OUTPUT and (proof.get("sourceRevision") != tested or review.get("reviewedRevision") != tested
-                                    or any(document(material[EVIDENCE + name]).get("sourceRevision") != tested
-                                           for name in PRODUCT_RECORDS)):
+    if output == FAULT_OUTPUT and not current_identity_and_networks_passed(proof, review, material, tested):
         return False
     suite = review.get("fullSuite")
     checks = proof.get("checks")
@@ -248,6 +263,14 @@ def complete_run(proof, material, paths, tested):
             and repairs_passed(material))
 
 
+def matches_legacy_evidence(revision, material, paths):
+    if not recorded_commit(revision):
+        return False
+    paths = (RECEIPT, *paths)
+    original = source_files(revision, *paths)
+    return all(path in original and original[path] == material.get(path) for path in paths)
+
+
 def eligibility(proof, source, evidence, tested, material, paths):
     review = proof.get("finalReview", {})
     fresh = fault_file(proof) == FAULT_OUTPUT
@@ -260,11 +283,14 @@ def eligibility(proof, source, evidence, tested, material, paths):
         if fresh:
             require(tested == source and "archiveGate" not in proof and same_inputs(tested, evidence, paths),
                     "Invalid provisional evidence provenance")
+        else:
+            require(matches_legacy_evidence(LEGACY_DRAFT_REVISION, material, paths),
+                    "Unrecognized historical observability draft")
         return "archive-verification-pending"
     if (proof.get("complete") is not True or not isinstance(review, dict) or review.get("pending") != []
             or not tested or not complete_run(proof, material, paths, tested)):
         return "incomplete-evidence"
-    if (fresh and (tested != source or not same_inputs(tested, evidence, paths))) or not same_inputs(tested, source, paths):
+    if (fresh and not same_inputs(tested, evidence, paths)) or not same_inputs(tested, source, paths):
         return "source-inputs-changed"
     gate = proof.get("archiveGate")
     if (not isinstance(gate, dict) or gate.get("verified") is not True or not positive(gate.get("files"))
@@ -278,6 +304,8 @@ def eligibility(proof, source, evidence, tested, material, paths):
                 or not provisional or gate.get("provisionalEvidenceRevision") != provisional):
             return "unverified-archive-gate"
     else:
+        if not matches_legacy_evidence(LEGACY_SEAL_REVISION, material, paths):
+            return "unrecognized-legacy-evidence"
         provisional = recorded_commit(gate.get("provisionalSourceRevision"))
     if not provisional or not same_inputs(tested, provisional, paths):
         return "unverified-archive-gate"
@@ -332,13 +360,15 @@ def verify_archive(archive, digest, count, files, static):
             require(sha256(z.read("enterprise/" + name)) == digest, f"Static file SHA256 mismatch: {name}")
 
 
-def verify_provisional_archive(out, material, source, static):
+def verify_provisional_archive(out, material, static):
     proof = document(material[RECEIPT])
     if fault_file(proof) != FAULT_OUTPUT:
         return
     gate = proof["archiveGate"]
     paths = (RECEIPT, *reference_paths(proof, material))
     draft = source_files(gate["provisionalEvidenceRevision"], *paths)
+    # The tested source can differ in receipt bytes from an evidence-only final HEAD.
+    source = source_files(gate["provisionalSourceRevision"])
     files = {"enterprise/" + name: data for name, data in source.items()}
     files.update({"package-evidence/" + name: draft[name] for name in paths})
     digest = gate["provisionalSha256"]

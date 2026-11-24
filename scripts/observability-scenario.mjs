@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
+import {randomUUID} from 'node:crypto';
 import {LocalClient} from './local-client.mjs';
 
 const managementActors = ['e2e-admin', 'e2e-approver', 'e2e-security'];
@@ -24,7 +25,28 @@ export async function wait(action,condition,seconds=120){const until=Date.now()+
 export async function scenario(){
  const directory=process.env.WEBAPI_E2E_DIRECTORY,project=process.env.WEBAPI_E2E_PROJECT;
  assert(project?.startsWith('webapi-enterprise-e2e-observability-')&&directory&&path.basename(directory)===project);
+ assert(fs.lstatSync(directory).isDirectory(), 'Observability fixture directory must be a regular directory');
+ const evidenceDirectory = path.join(directory, 'observability-evidence');
+ fs.mkdirSync(evidenceDirectory, {mode:0o700, recursive:true});
+ function requireEvidenceDirectory() {
+  assert(fs.lstatSync(evidenceDirectory).isDirectory(), 'Observability evidence directory must be owned by this fixture');
+ }
+ requireEvidenceDirectory();
+ function writeEvidence(filename, evidence) {
+  assert(/^[a-z0-9-]+\.json$/.test(filename), 'Invalid observability evidence filename');
+  requireEvidenceDirectory();
+  const temporary = path.join(evidenceDirectory, '.'+randomUUID()+'.tmp');
+  const record=Array.isArray(evidence)?evidence:{...evidence,project,sourceRevision:runtime.sourceRevision};
+  fs.writeFileSync(temporary, JSON.stringify(record, null, 2), {flag:'wx', mode:0o600});
+  try {
+   fs.renameSync(temporary, path.join(evidenceDirectory, filename));
+  } finally {
+   fs.rmSync(temporary, {force:true});
+  }
+ }
  const context=JSON.parse(fs.readFileSync(directory+'/context.json')),runtime=JSON.parse(fs.readFileSync(directory+'/observability-context.json')),endpoints=runtime.endpoints,credential=fs.readFileSync(directory+'/credential','utf8');
+ assert.equal(runtime.project,project,'Observability endpoint manifest belongs to another project');
+ assert.match(runtime.sourceRevision,/^[a-f0-9]{40}$/,'Observability endpoint manifest must identify the tested commit');
  const clients = managementActors.map(() => new LocalClient(endpoints.control_plane));
  const [admin, approver, security] = clients;
  async function authenticateFixtureActor(client, username) {
@@ -139,5 +161,5 @@ export async function scenario(){
  const createRule=(name,metric,threshold,forSeconds=4)=>admin.request('/observability/alert-rules',{method:'POST',body:{...scope,name,metric,expression:metric+' > '+threshold,severity:'Warning',enabled:true,forSeconds,targetType:'Environment',targetId:null,windowSeconds:60,notification:{inConsole:true,requestedChannels:[]}}});
  const eventFor=async(rule)=>{const page=await query('alerts',{pageSize:100});return page.items.find(e=>e.ruleId===rule.id&&e.logicRevision===rule.logicRevision);};
  const action=async(event,kind,reason)=>{const current=await admin.request('/observability/alerts/'+event.id);return admin.request('/observability/alerts/'+event.id+'/'+kind.toLowerCase(),{method:'POST',headers:{'If-Match':`"${current.revision}"`},body:{kind,reason,...(kind==='Silence'?{durationSeconds:900}:{})}});};
- return {directory,project,context,endpoints,settings:runtime.settings,admin,clients,loginActor,reauthenticate,list,compose,sql,scope,range,query,request,backend,publish,approve,rollback,raw,metric,createRule,eventFor,action};
+ return {directory,project,evidenceDirectory,writeEvidence,context,endpoints,settings:runtime.settings,admin,clients,loginActor,reauthenticate,list,compose,sql,scope,range,query,request,backend,publish,approve,rollback,raw,metric,createRule,eventFor,action};
 }

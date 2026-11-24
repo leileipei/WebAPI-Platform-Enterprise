@@ -59,7 +59,7 @@ def verify(provisional=False):
     if provisional:
         print('Provisional archive verified. Acceptance remains pending until the receipt is sealed.')
     else:
-        verify_provisional_archive(out, material, source_blobs, static)
+        verify_provisional_archive(out, material, static)
         print('Immutable source, static build, ZIP integrity, SHA256, required evidence and exclusions verified.')
 
 

@@ -44,3 +44,43 @@ test('cleanup removes the four rotated test passwords and retains the previous p
  assert.equal(receipt.cleanup.secretFilesRemaining,0);
  assert.deepEqual(fs.readdirSync(f.dir),['verification.json']);
 });
+test('a passing run uses its own attachments and preserves the archived verification',t=>{
+ const f=fixture(t);f.run('init');
+ const sealed=JSON.stringify({project:'archived',complete:true});
+ fs.writeFileSync(path.join(f.docs,'verification.json'),sealed);
+ const evidence=path.join(f.dir,'observability-evidence');
+ fs.mkdirSync(evidence,{recursive:true});
+ for(const name of ['loop','rule-loop','boundaries']){
+  fs.writeFileSync(path.join(evidence,name+'.json'),JSON.stringify({project:f.project,sourceRevision:revision,complete:true}));
+  fs.writeFileSync(path.join(f.docs,name+'.json'),JSON.stringify({project:'archived',complete:true}));
+ }
+ f.run('cleanup','0','0','0','0');
+ const result=JSON.parse(fs.readFileSync(path.join(f.dir,'verification.json'),'utf8'));
+ assert.equal(result.criticalAcceptanceComplete,true);assert.equal(result.complete,false);
+ assert.deepEqual(result.checks.map(check=>check.name),['loop','rule-loop','boundaries']);
+ assert.equal(fs.readFileSync(path.join(f.docs,'verification.json'),'utf8'),sealed);
+ fs.writeFileSync(path.join(evidence,'loop.json'),JSON.stringify({project:f.project,sourceRevision:'c'.repeat(40),complete:true}));
+ f.run('cleanup','0','0','0','0');
+ assert.equal(JSON.parse(fs.readFileSync(path.join(f.dir,'verification.json'))).criticalAcceptanceComplete,false);
+});
+test('tracked and untracked product edits prevent a fixed-source run before resources are allocated',t=>{
+ const cwd=fs.mkdtempSync(path.join(os.tmpdir(),'webapi-obs-identity-'));
+ t.after(()=>fs.rmSync(cwd,{recursive:true,force:true}));
+ const scripts=path.join(cwd,'scripts');fs.mkdirSync(scripts);
+ const runner=path.join(scripts,'check-observability-loop.sh');
+ fs.copyFileSync(fileURLToPath(new URL('../../scripts/check-observability-loop.sh',import.meta.url)),runner);
+ const git=(...args)=>execFileSync('git',args,{cwd,stdio:'pipe'});
+ git('init','-q');git('add','scripts');
+ git('-c','user.name=Test','-c','user.email=fixture@localhost','commit','-qm','initial fixture');
+ const bin=fs.mkdtempSync(path.join(os.tmpdir(),'webapi-obs-cli-'));
+ t.after(()=>fs.rmSync(bin,{recursive:true,force:true}));
+ fs.writeFileSync(path.join(bin,'docker'),'#!/bin/sh\nexit 90\n',{mode:0o700});
+ const env={...process.env,PATH:bin+path.delimiter+process.env.PATH,WEBAPI_NODE:process.execPath};
+ for(const edit of ['untracked','tracked']){
+  if(edit==='untracked')fs.writeFileSync(path.join(cwd,'unexpected.cs'),'// fixture');
+  else {fs.unlinkSync(path.join(cwd,'unexpected.cs'));fs.appendFileSync(runner,'\n# changed\n');}
+  assert.throws(()=>execFileSync('bash',[runner,'e2e'],{cwd,env,stdio:'pipe'}),
+   error=>error.status===2&&error.stderr.toString().includes('clean checkout'));
+  assert.equal(fs.existsSync(path.join(cwd,'.runtime')),false);
+ }
+});

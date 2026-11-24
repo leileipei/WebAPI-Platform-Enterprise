@@ -27,7 +27,7 @@ files.update(attachments)
 out = root / 'deliverables'
 out.mkdir(exist_ok=True)
 if evidence['status'] == 'complete':
-    verify_provisional_archive(out, material, source, static_hashes)
+    verify_provisional_archive(out, material, static_hashes)
 # Publish immutable bytes before atomically switching the manifest. Earlier manifests
 # keep a readable archive even when different revisions finish packing concurrently.
 with tempfile.TemporaryDirectory(dir=out, prefix='.observability-') as temporary:

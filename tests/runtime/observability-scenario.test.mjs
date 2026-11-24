@@ -6,10 +6,11 @@ import test from 'node:test';
 import {scenario} from '../../scripts/observability-scenario.mjs';
 
 const fixtureActors = ['e2e-admin', 'e2e-approver', 'e2e-security', 'e2e-reader'];
+const sourceRevision = 'b'.repeat(40);
 
-function fixture(t, contextOverrides = {}) {
+function fixture(t, contextOverrides = {}, label = 'test') {
  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'observability-scenario-test-'));
- const project = 'webapi-enterprise-e2e-observability-test';
+ const project = 'webapi-enterprise-e2e-observability-'+label;
  const directory = path.join(root, project);
  fs.mkdirSync(directory);
  t.after(() => fs.rmSync(root, {recursive:true, force:true}));
@@ -29,7 +30,7 @@ function fixture(t, contextOverrides = {}) {
   environmentId:'env-1', apiId:'api-1', clusterId:'cluster-1', passwordFiles, ...contextOverrides,
  }));
  fs.writeFileSync(path.join(directory, 'observability-context.json'), JSON.stringify({
-  endpoints:{control_plane:'http://fixture.invalid'}, settings:{},
+  project,sourceRevision,endpoints:{control_plane:'http://fixture.invalid'},settings:{},
  }));
  return directory;
 }
@@ -121,4 +122,37 @@ test('release follows route pagination, frozen review preconditions and ordered 
  const release = await s.publish('B');
  assert.equal(release.state, 'Succeeded');
  assert.equal(release.targets.length, 2);
+});
+
+
+test('each observability project writes matching evidence locally without changing historical evidence', async (t) => {
+ const firstDir = fixture(t, {}, 'first');
+ mockServer(t, endpoint => assert.fail('Unexpected endpoint '+endpoint));
+ const first = await scenario();
+ const secondDir = fixture(t, {}, 'second');
+ const second = await scenario();
+ const historical = new URL('../../docs/evidence/observability/faults.json', import.meta.url);
+ const previous = fs.readFileSync(historical);
+
+ first.writeEvidence('faults.json', {project:first.project, complete:true});
+ second.writeEvidence('faults.json', {project:second.project, complete:false});
+ assert.equal(first.evidenceDirectory, path.join(firstDir, 'observability-evidence'));
+ assert.equal(second.evidenceDirectory, path.join(secondDir, 'observability-evidence'));
+ for (const [s, complete] of [[first, true], [second, false]]) {
+  const record = JSON.parse(fs.readFileSync(path.join(s.evidenceDirectory, 'faults.json'), 'utf8'));
+  assert.deepEqual(record, {project:s.project,complete,sourceRevision});
+ }
+ assert.deepEqual(fs.readFileSync(historical), previous);
+ assert.throws(() => second.writeEvidence('../faults.json', {}), /evidence filename/i);
+ assert.equal(fs.existsSync(path.join(secondDir, 'faults.json')), false);
+});
+
+test('a redirected fixture evidence directory cannot write in another project', async (t) => {
+ const firstDir = fixture(t, {}, 'existing');
+ const secondDir = fixture(t, {}, 'redirect');
+ fs.symlinkSync(firstDir, path.join(secondDir, 'observability-evidence'));
+ mockServer(t, endpoint => assert.fail('Unexpected endpoint '+endpoint));
+
+ await assert.rejects(scenario, /evidence directory/i);
+ assert.equal(fs.existsSync(path.join(firstDir, 'faults.json')), false);
 });

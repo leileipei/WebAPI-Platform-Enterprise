@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Xunit;
 namespace WebApi.EndToEnd.Tests;
 [Trait("Scenario","Observability")]
@@ -20,6 +19,8 @@ public sealed class ObservabilityLoopTests
         var plainTrace=plainLogs.GetProperty("data").GetProperty("items")[0].GetProperty("traceId").GetString()!;
         var plainDetail=await ObservabilityScenario.WaitForConditionAsync(()=>s.QueryAsync("/observability/traces/"+plainTrace+"?"+s.Range(start,DateTimeOffset.UtcNow)),x=>x.GetProperty("data").GetProperty("spans").GetArrayLength()==2);
         Assert.False(plainDetail.GetProperty("data").GetProperty("partialTrace").GetBoolean());
-        Directory.CreateDirectory("/workspace/docs/evidence/observability");await File.WriteAllTextAsync("/workspace/docs/evidence/observability/loop.json",JsonSerializer.Serialize(new{complete=true,project=System.Environment.GetEnvironmentVariable("WEBAPI_E2E_PROJECT"),source="actual-two-gateways-collector-prometheus-loki-tempo",counterDelta=counter-before,logCount=8,spanCount=16,ordinaryRequestSpanCount=2,ordinaryRequestTraceComplete=true,environmentId=s.EnvironmentId,traceId=trace},new JsonSerializerOptions{WriteIndented=true}));
+        var sourceRevision=System.Environment.GetEnvironmentVariable("WEBAPI_SOURCE_REVISION");
+        Assert.Matches("^[0-9a-f]{40}$",sourceRevision??"");
+        await s.WriteLoopEvidenceAsync(new{complete=true,project=s.Project,sourceRevision,source="actual-two-gateways-collector-prometheus-loki-tempo",counterDelta=counter-before,logCount=8,spanCount=16,ordinaryRequestSpanCount=2,ordinaryRequestTraceComplete=true,environmentId=s.EnvironmentId,traceId=trace});
     }
 }
