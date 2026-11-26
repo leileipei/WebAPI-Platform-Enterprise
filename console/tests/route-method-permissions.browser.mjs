@@ -155,7 +155,7 @@ try {
       }
       assert.equal(status,200);
       await dialog.waitFor({state:'detached'});
-      await page.getByRole('button',{name:'编辑授权 ' + target,exact:true}).waitFor();
+      await page.getByRole('button',{name:'编辑授权 ' + target,exact:true,disabled:false}).waitFor();
       const latest = commits.at(-1).changes[0];
       assert.equal(latest.permissionId,create ? undefined : permissionId);
       assert.equal(latest.revision,create ? undefined : scenario === 'stale-permission' ? 4 : 3);

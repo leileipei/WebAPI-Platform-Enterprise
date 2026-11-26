@@ -209,8 +209,20 @@ test('custom role copy and confirmed deletion preserve the source and use the di
  await dialog.getByRole('button',{name:'保存',exact:true}).click();
  const copied=row('角色副本');await copied.getByRole('button',{name:'删除角色'}).click();
  assert.equal(f.writes.length,1);
- await page.getByRole('alertdialog').getByRole('button',{name:'确认删除'}).click();
- await copied.waitFor({state:'hidden'});assert.equal(await source.count(),1);
+ const [deletion]=await Promise.all([
+  page.waitForResponse(response=>response.request().method()==='DELETE'&&new URL(response.url()).pathname==='/api/v1/roles/copy'),
+  page.waitForResponse(response=>{
+   const url=new URL(response.url());
+   return response.request().method()==='GET'&&url.pathname==='/api/v1/roles'&&url.searchParams.get('organizationId')===a&&
+    response.ok()&&f.writes.at(-1)?.endpoint==='/roles/copy';
+  }),
+  page.getByRole('alertdialog').getByRole('button',{name:'确认删除'}).click(),
+ ]);
+ assert.equal(deletion.status(),204);
+ await copied.waitFor({state:'hidden'});
+ await source.waitFor();
+ assert.equal(await source.count(),1);
+ assert.equal(await copied.count(),0);
  assert.deepEqual(f.writes.map(w=>[w.endpoint,w.tag]),[['/roles/alpha/copy','"1"'],['/roles/copy','"1"']]);
 });
 
