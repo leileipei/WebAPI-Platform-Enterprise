@@ -1,101 +1,101 @@
 {
   "schemaVersion": 3,
-  "file": "WebAPI_Enterprise_可观测与告警源码及验收-80b18a238206a95bc70bce2374290a41e23952849a8d8f23923b39582bba42b3.zip",
-  "sourceRevision": "ceb4bf884a79b7ba66001392ffa1bab8e7a59b14",
+  "file": "WebAPI_Enterprise_可观测与告警源码及验收-36bb9cbfda8fc2aa964f35027c59e03eadd2c4f8a75adbefe2ef1b0d84bd5689.zip",
+  "sourceRevision": "4e40db441264f4e87437454a5d928739d4278539",
   "acceptanceEvidence": {
-    "revision": "ceb4bf884a79b7ba66001392ffa1bab8e7a59b14",
-    "receiptRevision": "ceb4bf884a79b7ba66001392ffa1bab8e7a59b14",
-    "testedSourceRevision": "fe3fca1ea30bbf2b22ec2b3138c813b96cdab8c5",
+    "revision": "4e40db441264f4e87437454a5d928739d4278539",
+    "receiptRevision": "4e40db441264f4e87437454a5d928739d4278539",
+    "testedSourceRevision": "a73f26dfa052fcfbc40bf1f6ea5890642d21bb3c",
     "path": "docs/evidence/observability/verification.json",
     "archivePath": "enterprise/docs/evidence/observability/verification.json",
-    "sha256": "03fed08713725a92bfaf9b9b5c4a3085c76cb064b1990a977283ee1585596f18",
+    "sha256": "903793e17443311ec58d3c0d97484811f6d67ffd375ffd5beb6a2b6987cfa824",
     "status": "complete",
     "references": {
       "docs/evidence/observability/loop.json": {
         "archivePath": "enterprise/docs/evidence/observability/loop.json",
-        "sha256": "cf79732a78bfbd93d76d65c60e688b71bb41a4164e0a40c5b037ae7ce4d9921d"
+        "sha256": "1063e00c8d47e95c01f4015ba25053c87cd050a5cfa8b763d8cf24f5e047a027"
       },
       "docs/evidence/observability/rule-loop.json": {
         "archivePath": "enterprise/docs/evidence/observability/rule-loop.json",
-        "sha256": "18ecb9ed6a76f22f05f73bb4a9b26a38ca06319dbf5fb83fefdcfc2644584f4d"
+        "sha256": "bde3233e5f03b437fd21678793961061086f454a40f860a72ef05d5f1bfa9772"
       },
       "docs/evidence/observability/boundaries.json": {
         "archivePath": "enterprise/docs/evidence/observability/boundaries.json",
-        "sha256": "c64a184e9edd9dab43ae2347ac782a3ac64664d49c0f2f9eecf08f60346c1cb3"
+        "sha256": "c09ed240e78ceb17554621821453e9353a8710b8eb58d56c2485b05cf43cd9d2"
       },
       "docs/evidence/observability/faults-run-output.json": {
         "archivePath": "enterprise/docs/evidence/observability/faults-run-output.json",
-        "sha256": "2d83c02b0986ba54c30f981b3784de3d6a4744df537b07409bc40e8d57a847f2"
+        "sha256": "6dbf9a155a728e2317e9d7b8cc477f471d27f5fd3246c7b49f151f35f9fbe102"
       },
       "docs/evidence/observability/fault-run.json": {
         "archivePath": "enterprise/docs/evidence/observability/fault-run.json",
-        "sha256": "87e55174ab3beec2aa460fb25e7c0f7a2d0d29a79a0d82685d155cf1520d90a5"
+        "sha256": "08fafb420f388f7e5fbd089047e3a48543b9ad57c2dcb9573bb288dd6bc9be5a"
       },
       "docs/evidence/observability/browser-qa.json": {
         "archivePath": "enterprise/docs/evidence/observability/browser-qa.json",
-        "sha256": "f15bfc1fee70e2c5756a5d4e52526ec74b8128ea1ec8b03bc38c793af1f271ea"
+        "sha256": "36b6bbee5c4fb4f69da505a3b37327279af3ca33d29e3961c1ee93285c463752"
       },
       "docs/evidence/observability/final-loss-live.json": {
         "archivePath": "enterprise/docs/evidence/observability/final-loss-live.json",
-        "sha256": "bfd6029f6626a18b6b4b0b77eec5ec9acf9c5323992b4daaa11e1fb752f52152"
+        "sha256": "0b08355c8b9f7c5b7627b6fd1b5e2cfd5fde33168856baf090e2329163365809"
       },
       "docs/evidence/observability/final-permission-browser.json": {
         "archivePath": "enterprise/docs/evidence/observability/final-permission-browser.json",
-        "sha256": "8eda8d7fa3461627cf8c4a8b3a4534212e04ef171e2528ac21338c181186f5bb"
+        "sha256": "bfab60f067cae6ad6a8786f57fdcabfd8d6ef0d855e0be29bbf2ec7d5ebb40b0"
       },
       "docs/evidence/observability/final-review.md": {
         "archivePath": "enterprise/docs/evidence/observability/final-review.md",
-        "sha256": "13b65767b0c12641ba7678d23662cef0cdae3b393fc47728ce120b4a4ff3e4c3"
+        "sha256": "e2b6fd84e04cdb26297f0e3c49c110ed88901ae8cf5defc0fcdaf197d50ca50d"
       },
-      "docs/evidence/observability/ui/fe3fca1-28-real-source.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-28-real-source.png",
-        "sha256": "aa3cfc70ced562af6e554520a4676c45cc454cc6a2c18c50f2cea3dbed543a55"
+      "docs/evidence/observability/ui/a73f26d-28-real-source.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-28-real-source.png",
+        "sha256": "4f3377b57799456af72052d2da64ec7bfb8b43148651efa346f1256094c5c59c"
       },
-      "docs/evidence/observability/ui/fe3fca1-29-real-api-source.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-29-real-api-source.png",
-        "sha256": "1326e91e05a8d07c6afca7557160e035d7d290fb9ca67dd11ce8c0849e32903f"
+      "docs/evidence/observability/ui/a73f26d-29-real-api-source.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-29-real-api-source.png",
+        "sha256": "13c29d10e64f23444eaf688d40b90aab161e95f7e3384b6cc82e67b767041983"
       },
-      "docs/evidence/observability/ui/fe3fca1-30-real-access-logs.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-30-real-access-logs.png",
-        "sha256": "3a1a386a72eb329854eb407a3768a80822324bb1c61dbe6381a47ce91851ca9e"
+      "docs/evidence/observability/ui/a73f26d-30-real-access-logs.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-30-real-access-logs.png",
+        "sha256": "26079feb8cf83653458eea7fc95d403fa6f100b8043ba2760475976481cc51f3"
       },
-      "docs/evidence/observability/ui/fe3fca1-31-real-trace-waterfall.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-31-real-trace-waterfall.png",
-        "sha256": "ddeaf6efd3dc6a113056fa372b7eff78c8794950fc976c0b59ddffd7c0b8840c"
+      "docs/evidence/observability/ui/a73f26d-31-real-trace-waterfall.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-31-real-trace-waterfall.png",
+        "sha256": "8080bb6d258f3dc737f6a8d7eca9e1725047366fd2f68059beab8f7994f4dfaf"
       },
-      "docs/evidence/observability/ui/fe3fca1-32-real-alerts.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-32-real-alerts.png",
-        "sha256": "1783281bbd3676cdd3a52c21e9fa08f1618fb7fd408e7c8688891a34e9b127fb"
+      "docs/evidence/observability/ui/a73f26d-32-real-alerts.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-32-real-alerts.png",
+        "sha256": "5f4812fb25c3368d219280a63084418c4b49ae3f574d1ec8535ab560726dab11"
       },
-      "docs/evidence/observability/ui/fe3fca1-33-real-rules.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-33-real-rules.png",
-        "sha256": "472f76ff5c40e0749c343d89a13122ccbf2d7abed2f4a949e27fa42fd33a7fdc"
+      "docs/evidence/observability/ui/a73f26d-33-real-rules.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-33-real-rules.png",
+        "sha256": "4e7b1126e6cb418c41c9eb46bf0988196190851f32d3e4ab55a8b545d5e77e5d"
       },
-      "docs/evidence/observability/ui/fe3fca1-33-real-rule-test.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-33-real-rule-test.png",
-        "sha256": "a819e6572f81ca76ad12b4936df1e69ea7b8fa510ece2b87b4e42e08cbd62bd5"
+      "docs/evidence/observability/ui/a73f26d-33-real-rule-test.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-33-real-rule-test.png",
+        "sha256": "f21bf0cfd40068f8d38feb267c19c52c162344b899947135ad9e4f3ef3574022"
       },
-      "docs/evidence/observability/ui/fe3fca1-28-reader-before-revocation.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-28-reader-before-revocation.png",
-        "sha256": "7412f1478fee7dbf86394b177f814b3eff1a9a33ceaa2c87c51768f1b11a82d3"
+      "docs/evidence/observability/ui/a73f26d-28-reader-before-revocation.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-28-reader-before-revocation.png",
+        "sha256": "7922ea5bb3db491e0d5bd9ec17e0dacceb27dbab39f86d921e1076478e1df65a"
       },
-      "docs/evidence/observability/ui/fe3fca1-29-reader-before-revocation.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-29-reader-before-revocation.png",
-        "sha256": "46ad2cf9156f1c1040224792e3dfe12913fa7b5514eee6c5d85c9d72b61a22c9"
+      "docs/evidence/observability/ui/a73f26d-29-reader-before-revocation.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-29-reader-before-revocation.png",
+        "sha256": "02b263360ad5af691d279b05f24f96a1a83dee6b9df14f282d6903de44d6319d"
       },
-      "docs/evidence/observability/ui/fe3fca1-28-reader-after-revocation.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-28-reader-after-revocation.png",
-        "sha256": "f0e8f1941d27420a4f76e33b8e6438a72fb1db4fb470a9880068efd170a51dd6"
+      "docs/evidence/observability/ui/a73f26d-28-reader-after-revocation.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-28-reader-after-revocation.png",
+        "sha256": "2df6829a3ce3c2a10bdd8187b5293f852eda79f310ee9437703fa16a4adc159d"
       },
-      "docs/evidence/observability/ui/fe3fca1-29-reader-after-revocation.png": {
-        "archivePath": "enterprise/docs/evidence/observability/ui/fe3fca1-29-reader-after-revocation.png",
-        "sha256": "db6acd84ecac07ba061b91560f92ee6eab9b824c690173f6e7fb3783e04ece05"
+      "docs/evidence/observability/ui/a73f26d-29-reader-after-revocation.png": {
+        "archivePath": "enterprise/docs/evidence/observability/ui/a73f26d-29-reader-after-revocation.png",
+        "sha256": "7e1d2f00b0be62c941e89004f4e4bffd004df2ceaac802c2bf9c9aa59c855707"
       }
     }
   },
   "acceptanceComplete": true,
-  "sha256": "80b18a238206a95bc70bce2374290a41e23952849a8d8f23923b39582bba42b3",
-  "files": 4773,
+  "sha256": "36bb9cbfda8fc2aa964f35027c59e03eadd2c4f8a75adbefe2ef1b0d84bd5689",
+  "files": 4790,
   "secretsExcluded": true,
   "archiveIntegrityVerified": true,
   "consoleBuiltFromImmutableSource": true,

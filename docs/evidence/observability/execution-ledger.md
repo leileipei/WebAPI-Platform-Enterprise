@@ -197,3 +197,9 @@ Task 15: complete (commits 7a72d30..ac5a115, tests: python3 scripts/verify-obser
 被测产品 `fe3fca1ea30bbf2b22ec2b3138c813b96cdab8c5`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `ceb4bf884a79b7ba66001392ffa1bab8e7a59b14`，验收结果及全量回归计数见 [verification.json](verification.json)。
 
 正式源码与证据共 4773 个归档条目，SHA-256 为 `80b18a238206a95bc70bce2374290a41e23952849a8d8f23923b39582bba42b3`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-26 后端测试完成校验、契约资源清理与验收包发布修复后的可观测性验收
+
+被测产品 `a73f26dfa052fcfbc40bf1f6ea5890642d21bb3c`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `4e40db441264f4e87437454a5d928739d4278539`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4790 个归档条目，SHA-256 为 `36bb9cbfda8fc2aa964f35027c59e03eadd2c4f8a75adbefe2ef1b0d84bd5689`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
