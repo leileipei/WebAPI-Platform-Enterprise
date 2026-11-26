@@ -60,6 +60,7 @@ async function fillUser(form) {
 for (const [scenario, mode] of [['no business scope',undefined],['only read access in the selected organization','read']]) {
   test('platform user creation succeeds with '+scenario, async t => {
     const {page,f,create,form} = await openUsers(t,{mode});
+    if (mode) await page.getByRole('option',{name:organization.name}).waitFor({state:'attached'});
     await page.getByRole('cell',{name:'operator',exact:true}).waitFor();
     assert.equal(await page.getByRole('combobox',{name:'当前组织'}).inputValue(),mode ? 'org' : '');
     assert.equal(await create.isEnabled(),true);
