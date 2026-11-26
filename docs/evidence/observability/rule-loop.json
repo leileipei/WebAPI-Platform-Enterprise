@@ -1,6 +1,6 @@
 {
   "complete": true,
-  "project": "webapi-enterprise-e2e-observability-606e37c1-3770-4e35-80fa-49f83700117c",
+  "project": "webapi-enterprise-e2e-observability-cca38023-dc7a-4fb5-a368-9c7fc06f3dfa",
   "classification": "actual-business-gateway-three-source-and-independent-workers",
   "settings": {
     "intervalSeconds": 2,
@@ -11,12 +11,12 @@
     "queueCapacity": 64
   },
   "windowSeconds": 60,
-  "elapsedSeconds": 141,
+  "elapsedSeconds": 139,
   "checks": [
     {
       "name": "Actual60SecondCompleteCoverageAndEstimatedRates",
       "status": "passed",
-      "ratio": 0.3275315655671892,
+      "ratio": 0.32827591010577817,
       "ratioAbsoluteTolerance": 0.12,
       "p95": 2275,
       "samples": 117
@@ -26,13 +26,13 @@
       "status": "passed",
       "rules": [
         {
-          "eventId": "22bc7999-f33b-48c7-9db0-f1a090afad71",
-          "ruleId": "bffad7d5-4d2c-4660-9002-fb9bd43ca29a",
+          "eventId": "3f8dfbb1-4b98-485d-92dc-f567512360c2",
+          "ruleId": "e5a204bd-1fc9-4521-95f0-d7e0fe9e18d5",
           "definition": {
-            "organizationId": "3e946b23-fc60-4575-b344-0cf521d8bfed",
-            "projectId": "64ff477a-7528-47ff-8cec-262a09d9444d",
-            "environmentId": "3769cbd8-b4f8-41b9-a3b1-e8778b5548c2",
-            "name": "错误率持续告警 · mwxnvrs9",
+            "organizationId": "d364c7f5-8fac-4c62-9720-298734c4f691",
+            "projectId": "258c1e56-0fd6-4426-b9c1-5fbcc0bd6e12",
+            "environmentId": "e60d943c-476b-48e7-b2be-a5115ee41d5c",
+            "name": "错误率持续告警 · mwxqpixw",
             "metric": "error_5xx_ratio",
             "expression": "error_5xx_ratio > 0.05",
             "severity": "Warning",
@@ -57,9 +57,9 @@
           },
           "originalForSeconds": 300,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-11-26T14:42:14.086+00:00",
-          "startedAt": "2026-11-26T14:42:28.592704+00:00",
-          "resolvedAt": "2026-11-26T14:43:40.241677+00:00",
+          "conditionStartedAt": "2026-11-26T16:01:23.135+00:00",
+          "startedAt": "2026-11-26T16:01:34.597007+00:00",
+          "resolvedAt": "2026-11-26T16:02:46.068289+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -77,13 +77,13 @@
           "auditCount": 2
         },
         {
-          "eventId": "a335e4a1-13e6-40be-b37d-5bc9901492ee",
-          "ruleId": "0b0f5360-40b2-4272-9ed4-117b210f59c9",
+          "eventId": "2d7482a1-b22c-4044-81d3-b4dff236dbba",
+          "ruleId": "a501f466-d5e4-44f8-8e48-1ae283a424e9",
           "definition": {
-            "organizationId": "3e946b23-fc60-4575-b344-0cf521d8bfed",
-            "projectId": "64ff477a-7528-47ff-8cec-262a09d9444d",
-            "environmentId": "3769cbd8-b4f8-41b9-a3b1-e8778b5548c2",
-            "name": "慢调用持续告警 · mwxnvrtn",
+            "organizationId": "d364c7f5-8fac-4c62-9720-298734c4f691",
+            "projectId": "258c1e56-0fd6-4426-b9c1-5fbcc0bd6e12",
+            "environmentId": "e60d943c-476b-48e7-b2be-a5115ee41d5c",
+            "name": "慢调用持续告警 · mwxqpizj",
             "metric": "latency_p95_ms",
             "expression": "latency_p95_ms > 1000",
             "severity": "Warning",
@@ -108,9 +108,9 @@
           },
           "originalForSeconds": 600,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-11-26T14:42:14.086+00:00",
-          "startedAt": "2026-11-26T14:42:28.521815+00:00",
-          "resolvedAt": "2026-11-26T14:43:40.253509+00:00",
+          "conditionStartedAt": "2026-11-26T16:01:23.135+00:00",
+          "startedAt": "2026-11-26T16:01:34.653579+00:00",
+          "resolvedAt": "2026-11-26T16:02:46.072911+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -128,13 +128,13 @@
           "auditCount": 2
         },
         {
-          "eventId": "86c5895b-5339-4a2c-9966-e451bdb1b56d",
-          "ruleId": "ad17db17-638c-4adb-a8ff-6b786b14d630",
+          "eventId": "55992abe-68c7-44bd-9788-90c214845f0f",
+          "ruleId": "45a3fcee-46e9-4700-91d2-f77679eb9e8c",
           "definition": {
-            "organizationId": "3e946b23-fc60-4575-b344-0cf521d8bfed",
-            "projectId": "64ff477a-7528-47ff-8cec-262a09d9444d",
-            "environmentId": "3769cbd8-b4f8-41b9-a3b1-e8778b5548c2",
-            "name": "后端健康持续告警 · mwxnvru1",
+            "organizationId": "d364c7f5-8fac-4c62-9720-298734c4f691",
+            "projectId": "258c1e56-0fd6-4426-b9c1-5fbcc0bd6e12",
+            "environmentId": "e60d943c-476b-48e7-b2be-a5115ee41d5c",
+            "name": "后端健康持续告警 · mwxqpj01",
             "metric": "unhealthy_destinations",
             "expression": "unhealthy_destinations > 0",
             "severity": "Warning",
@@ -159,9 +159,9 @@
           },
           "originalForSeconds": 120,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-11-26T14:42:32.085+00:00",
-          "startedAt": "2026-11-26T14:42:44.845133+00:00",
-          "resolvedAt": "2026-11-26T14:42:55.004686+00:00",
+          "conditionStartedAt": "2026-11-26T16:01:39.134+00:00",
+          "startedAt": "2026-11-26T16:01:50.992343+00:00",
+          "resolvedAt": "2026-11-26T16:02:00.185969+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -182,5 +182,5 @@
       "value": 0
     }
   ],
-  "sourceRevision": "a73f26dfa052fcfbc40bf1f6ea5890642d21bb3c"
+  "sourceRevision": "f89d6490487fa6620092116ae24436b6f699e009"
 }
