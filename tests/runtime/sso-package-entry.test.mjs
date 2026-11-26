@@ -13,7 +13,7 @@ async function candidate(){
  const json=async(name,value)=>write(name,JSON.stringify(value,null,2)+'\n');
  await write('src/a.cs','reviewed source\n');await write('frozen-source/src/a.cs','reviewed source\n');
  const source={baseCommit:'f'.repeat(40),files:{'src/a.cs':hash('reviewed source\n')}};await json('docs/evidence/sso/source-manifest.json',source);await json('docs/evidence/sso/frozen-source-location.json',{directory:frozen});
- const scripts=[...backendTools,'scripts/check-console.sh','scripts/local-client.mjs','scripts/policies/build-source.mjs','scripts/package-sso.py'];const fileHashes={};
+ const scripts=[...backendTools,'scripts/check-console.sh','scripts/local-client.mjs','scripts/policies/build-source.mjs','scripts/package-sso.py','scripts/archive_publication.py'];const fileHashes={};
  for(const name of scripts){const data=await fs.readFile(root+'/'+name);await write(name,data);await write('frozen-tools/'+name,data);fileHashes[name]=hash(data);}
  await json('docs/evidence/sso/tool-manifest.json',{files:fileHashes});await json('docs/evidence/sso/frozen-tools-location.json',{directory:tools});
  const sourceManifestHash=hash(await fs.readFile(ev+'/source-manifest.json')),toolManifestHash=hash(await fs.readFile(ev+'/tool-manifest.json'));const bound={complete:true,sourceManifestHash,toolManifestHash};
@@ -23,6 +23,78 @@ async function candidate(){
  async function receipt(){await exec('python3',['-c',`import runpy,json,hashlib,pathlib; m=runpy.run_path('scripts/package-sso.py',run_name='fixture'); f=m['public_files'](); pathlib.Path('docs/evidence/sso/privacy-scan.json').write_text(json.dumps({'complete':True,'plaintextSecretsFound':0,'files':{k:hashlib.sha256(v).hexdigest() for k,v in f.items()}}))`],{cwd:dir});}
  await receipt();return {dir,ev,json,write,receipt};
 }
+
+async function ssoPublicationCandidate(t){
+ const c=await candidate();
+ t.after(()=>fs.rm(c.dir,{recursive:true,force:true}));
+ const publish=()=>exec('python3',['scripts/package-sso.py'],{cwd:c.dir});
+ const zip=path.join(c.dir,'deliverables','WebAPI_Enterprise_SSO_OIDC_20261005.zip');
+ return {...c,publish,zip};
+}
+
+const companions=['.manifest.json','.sha256'];
+for(const retained of [[companions[0]],[companions[1]],companions]){
+ test('SSO package preserves mismatched '+retained.join(' and ')+' when its ZIP is missing',async t=>{
+  const c=await ssoPublicationCandidate(t);
+  await c.publish();
+  const previous=new Map();
+  for(const suffix of companions){
+   if(retained.includes(suffix))previous.set(suffix,await fs.readFile(c.zip+suffix));
+   else await fs.unlink(c.zip+suffix);
+  }
+  await fs.unlink(c.zip);
+  await c.write('docs/deployment/sso-oidc-new-release.md','New reviewed release material\n');
+  await c.receipt();
+  const code=await c.publish().then(()=>0,error=>error.code);
+  const remaining=await fs.readdir(path.dirname(c.zip));
+  const intact=[];
+  for(const [suffix,bytes] of previous){
+   if(remaining.includes(path.basename(c.zip)+suffix)&&bytes.equals(await fs.readFile(c.zip+suffix)))intact.push(suffix);
+  }
+  assert.deepEqual({
+   rejected:Number.isInteger(code)&&code!==0,
+   retained:intact,
+   published:['',...companions].filter(suffix=>remaining.includes(path.basename(c.zip)+suffix)),
+  },{rejected:true,retained,published:retained});
+ });
+}
+
+test('SSO package restores the identical ZIP beside its matching manifest and checksum without rewriting them',async t=>{
+ const c=await ssoPublicationCandidate(t);
+ await c.publish();
+ const beforeZip=await fs.readFile(c.zip),previous=new Map();
+ const oldTime=new Date('2020-01-01T00:00:00Z');
+ for(const suffix of companions){
+  const file=c.zip+suffix;
+  await fs.utimes(file,oldTime,oldTime);
+  previous.set(suffix,{bytes:await fs.readFile(file),stat:await fs.stat(file,{bigint:true})});
+ }
+ await fs.unlink(c.zip);
+ await c.publish();
+ assert(beforeZip.equals(await fs.readFile(c.zip)),'Restored SSO ZIP bytes changed');
+ for(const [suffix,{bytes,stat}] of previous){
+  assert.deepEqual(await fs.readFile(c.zip+suffix),bytes);
+  const after=await fs.stat(c.zip+suffix,{bigint:true});
+  assert.deepEqual([after.dev,after.ino,after.mtimeNs],[stat.dev,stat.ino,stat.mtimeNs]);
+ }
+});
+
+test('concurrent SSO package calls publish one complete delivery and preserve the sealed files on retry',async t=>{
+ const c=await ssoPublicationCandidate(t);
+ const attempts=await Promise.allSettled([c.publish(),c.publish()]);
+ assert.equal(attempts.filter(result=>result.status==='fulfilled').length,1);
+ const failure=attempts.find(result=>result.status==='rejected').reason;
+ assert(Number.isInteger(failure.code)&&failure.code!==0);
+ const zipBytes=await fs.readFile(c.zip),manifest=await fs.readFile(c.zip+'.manifest.json'),checksum=await fs.readFile(c.zip+'.sha256');
+ const verified=JSON.parse((await exec('python3',['scripts/package-sso.py','--verify',c.zip],{cwd:c.dir})).stdout);
+ assert(verified.complete&&verified.zipCrcPassed&&verified.fileHashesPassed);
+ assert.equal(verified.sha256,hash(zipBytes));
+ assert.equal(checksum.toString().trim().split(/\s+/)[0],verified.sha256);
+ await assert.rejects(c.publish(),error=>Number.isInteger(error.code)&&error.code!==0);
+ assert.deepEqual(await fs.readFile(c.zip),zipBytes);
+ assert.deepEqual(await fs.readFile(c.zip+'.manifest.json'),manifest);
+ assert.deepEqual(await fs.readFile(c.zip+'.sha256'),checksum);
+});
 
 test('the SSO ZIP backend entry starts from its archived source beside the complete VSTest adapter',async t=>{
  const c=await candidate();

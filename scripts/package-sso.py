@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Freeze reviewed SSO source and public evidence, with explicit uncommitted provenance."""
-import argparse,hashlib,json,pathlib,zipfile,os,subprocess
+import argparse,hashlib,json,pathlib,zipfile,os,subprocess,tempfile
 ROOT=pathlib.Path(__file__).resolve().parent.parent
 sha=lambda data:hashlib.sha256(data).hexdigest()
 def read_json(path):return json.loads(path.read_text())
@@ -91,6 +91,7 @@ def scan_public(cleanup=False):
     receipt={'complete':True,'plaintextSecretsFound':0,'privateValuesChecked':len(secrets),'files':{name:sha(data) for name,data in sorted(files.items())}}
     (ROOT/'docs/evidence/sso/privacy-scan.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n');return {'complete':True,'plaintextSecretsFound':0,'publicFilesChecked':len(files),'privateValuesChecked':len(secrets)}
 def create_package():
+    from archive_publication import publish_archive
     ev=ROOT/'docs/evidence/sso';verification=read_json(ev/'verification.json');qa=read_json(ev/'ui/qa.json');review=read_json(ev/'independent-review.json');regression=read_json(ev/'regression.json');cleanup=read_json(ev/'cleanup.json');source=read_json(ev/'source-manifest.json')
     assert verification['complete'] and qa['complete'] and qa['visualReviewComplete'] and review['complete'] and review['blockingFindings']==0 and regression['complete']
     assert cleanup.get('failed',False) is False,'SSO resource or credential cleanup failed'
@@ -105,11 +106,23 @@ def create_package():
     files['docs/evidence/sso/privacy-scan.json']=(ev/'privacy-scan.json').read_bytes()
     manifest={'schemaVersion':1,'classification':'actual-uncommitted-build-source','baseCommit':source['baseCommit'],'sourceManifestHash':source_hash,'toolManifestHash':tool_hash,'image':verification['image'],'productionDeployment':False,'evidence':{name:True for name in ['realIdp','browser','visualReview','independentReview','regression','cleanup']},'files':{name:sha(data) for name,data in sorted(files.items())}}
     # Scan exact private fixture values before cleanup via a private, hash-only recorded scan receipt.
-    out=ROOT/'deliverables';out.mkdir(exist_ok=True);package=out/'WebAPI_Enterprise_SSO_OIDC_20261005.zip';assert not package.exists(),'Never overwrite a sealed delivery'
-    with zipfile.ZipFile(package,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as archive:
-        for name,data in sorted(files.items()):archive.writestr(name,data)
-        archive.writestr('delivery-manifest.json',json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
-    pathlib.Path(str(package)+'.manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n');pathlib.Path(str(package)+'.sha256').write_text(sha(package.read_bytes())+'  '+package.name+'\n')
-    result=validate_archive(package);(ev/'delivery-index.json').write_text(json.dumps({'packagePath':str(package),'sha256':result['sha256']},indent=2)+'\n');return result
+    out=ROOT/'deliverables'
+    out.mkdir(exist_ok=True)
+    package=out/'WebAPI_Enterprise_SSO_OIDC_20261005.zip'
+    manifest_text=json.dumps(manifest,ensure_ascii=False,indent=2)+'\n'
+    with tempfile.TemporaryDirectory(prefix='.sso-package-',dir=out) as temporary:
+        staged=pathlib.Path(temporary)/package.name
+        with zipfile.ZipFile(staged,'x') as archive:
+            for name,data in sorted(files.items()):
+                archive.writestr(zipfile.ZipInfo(name),data,zipfile.ZIP_DEFLATED,compresslevel=9)
+            archive.writestr(zipfile.ZipInfo('delivery-manifest.json'),manifest_text,zipfile.ZIP_DEFLATED,compresslevel=9)
+        companion=staged.with_name(staged.name+'.manifest.json')
+        checksum=staged.with_name(staged.name+'.sha256')
+        companion.write_text(manifest_text,encoding='utf-8')
+        checksum.write_text(sha(staged.read_bytes())+'  '+package.name+'\n',encoding='utf-8')
+        result=validate_archive(staged)
+        publish_archive(out,staged,[companion,checksum])
+    (ev/'delivery-index.json').write_text(json.dumps({'packagePath':str(package),'sha256':result['sha256']},indent=2)+'\n')
+    return result
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--verify',type=pathlib.Path);parser.add_argument('--scan',action='store_true');parser.add_argument('--cleanup-and-scan',action='store_true');args=parser.parse_args();print(json.dumps(validate_archive(args.verify) if args.verify else scan_public(cleanup=args.cleanup_and_scan) if args.scan or args.cleanup_and_scan else create_package(),ensure_ascii=False,indent=2))
