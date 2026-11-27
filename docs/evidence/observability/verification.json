@@ -1,8 +1,8 @@
 {
-  "complete": true,
-  "project": "webapi-enterprise-e2e-observability-cca38023-dc7a-4fb5-a368-9c7fc06f3dfa",
-  "sourceRevision": "f89d6490487fa6620092116ae24436b6f699e009",
-  "startedAt": "2026-11-26T15:59:01.751Z",
+  "complete": false,
+  "project": "webapi-enterprise-e2e-observability-80d3261e-5aaf-40f7-90c5-7871a2cdd0fc",
+  "sourceRevision": "de415066e7dd001584dd2491fcba5bfec65fb27a",
+  "startedAt": "2026-11-27T02:33:29.533Z",
   "classification": "real-isolated-gateway-three-source",
   "mode": "e2e",
   "command": "./scripts/check-observability.sh e2e",
@@ -31,16 +31,16 @@
     "networksRemaining": 0
   },
   "endpoints": {
-    "control_plane": "http://127.0.0.1:54809",
-    "collector": "http://127.0.0.1:54810",
-    "prometheus": "http://127.0.0.1:54811",
-    "loki": "http://127.0.0.1:54812",
-    "tempo": "http://127.0.0.1:54813",
-    "console": "http://127.0.0.1:54814",
-    "gateway_a": "http://127.0.0.1:54815",
-    "gateway_b": "http://127.0.0.1:54816",
-    "backend_a": "http://127.0.0.1:54817",
-    "backend_b": "http://127.0.0.1:54818"
+    "control_plane": "http://127.0.0.1:63100",
+    "collector": "http://127.0.0.1:63101",
+    "prometheus": "http://127.0.0.1:63102",
+    "loki": "http://127.0.0.1:63103",
+    "tempo": "http://127.0.0.1:63104",
+    "console": "http://127.0.0.1:63105",
+    "gateway_a": "http://127.0.0.1:63106",
+    "gateway_b": "http://127.0.0.1:63107",
+    "backend_a": "http://127.0.0.1:63108",
+    "backend_b": "http://127.0.0.1:63109"
   },
   "criticalAcceptanceComplete": true,
   "exitCode": 0,
@@ -48,35 +48,29 @@
   "baselineFaultEvidence": {
     "file": "fault-run.json",
     "fixtureFile": "faults-run-output.json",
-    "sourceRevision": "f89d6490487fa6620092116ae24436b6f699e009",
+    "sourceRevision": "de415066e7dd001584dd2491fcba5bfec65fb27a",
     "checks": 9,
     "complete": true
   },
   "browserEvidence": "browser-qa.json",
   "finalReview": {
-    "reviewedRevision": "f89d6490487fa6620092116ae24436b6f699e009",
-    "independentReviews": 1,
+    "reviewedRevision": "de415066e7dd001584dd2491fcba5bfec65fb27a",
+    "independentReviews": 2,
     "repairValidationComplete": true,
     "typescriptAndProductionBuild": true,
     "fullSuite": {
       "domain": 1436,
       "gateway": 641,
-      "integration": 2853,
-      "frontend": 1080,
+      "integration": 2870,
+      "frontend": 1106,
       "failed": 0,
       "skipped": 0
     },
     "realLossProof": "final-loss-live.json",
     "permissionProof": "final-permission-browser.json",
-    "pending": []
+    "pending": [
+      "immutable archive verification"
+    ]
   },
-  "nativeRunSha256": "2bd9996dceec7bdaa432afb17d4aadaa51654b7cf633061c53822d0288a7131b",
-  "archiveGate": {
-    "verified": true,
-    "productSourceRevision": "f89d6490487fa6620092116ae24436b6f699e009",
-    "provisionalSourceRevision": "f89d6490487fa6620092116ae24436b6f699e009",
-    "provisionalEvidenceRevision": "63c7d3acd1a4c7b03703313b5a49ab039df233a5",
-    "provisionalSha256": "38787a2af237bddf90d4714d80000436c4d3df9e9b70e33963223ad0187b3381",
-    "files": 4811
-  }
+  "nativeRunSha256": "5656fcf90519784c6d8d045c1e1e1c3dd7791e6acb722b003a6704cf75424655"
 }

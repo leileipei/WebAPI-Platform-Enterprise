@@ -1,6 +1,6 @@
 {
-  "project": "webapi-enterprise-e2e-observability-9b8dc5fb-32c1-4d57-ba29-277fcd1eefa4",
-  "sourceRevision": "f89d6490487fa6620092116ae24436b6f699e009",
+  "project": "webapi-enterprise-e2e-observability-58a8de76-1fc5-4f8c-a285-a9c4dc75ccdb",
+  "sourceRevision": "de415066e7dd001584dd2491fcba5bfec65fb27a",
   "complete": true,
   "classification": "disposable-real-three-source-production-assets-preview-no-hmr",
   "viewport": {
@@ -8,9 +8,9 @@
     "height": 1000
   },
   "productionAssets": {
-    "indexSha256": "c64dd288b6def9c9e86c51aa0c2800ba9acbfddc90205dd0805ac858ed078c04",
-    "entryPath": "/assets/index-jE5RvZvg.js",
-    "bundleSha256": "3c6b67bb576396cc802480cea664d319b766578e558670da864f53d906e2a015",
+    "indexSha256": "9711507c0eeee4a6774c135ce7e43c62af43364cf180134b0b8d6d0cf1d99085",
+    "entryPath": "/assets/index-Bm3bPcqa.js",
+    "bundleSha256": "5b42ae509af3a4a6ee5fea64d14db9253ea7f0051c3073098fed3ba3b40b8958",
     "browserHostSha256": "0c6d31d7a4cda16f95f65e195516038d0afeabfda24e087a9984ba73842e88f7"
   },
   "pages": [
@@ -72,12 +72,15 @@
   "checks": [
     {
       "name": "metrics-real-samples-and-url-selection",
-      "samples": 465,
-      "state": "Partial"
+      "samples": 467,
+      "state": "Partial",
+      "slowRankGroups": 0,
+      "windowReason": "time_window_coverage_incomplete",
+      "trafficRankGroups": 1
     },
     {
       "name": "api-drill-down-and-filtered-health",
-      "sampleCount": 465,
+      "sampleCount": 467,
       "healthState": "NotApplicable"
     },
     {
@@ -118,30 +121,30 @@
     }
   ],
   "screenshots": [
-    "f89d649-28-real-source.png",
-    "f89d649-29-real-api-source.png",
-    "f89d649-30-real-access-logs.png",
-    "f89d649-31-real-trace-waterfall.png",
-    "f89d649-32-real-alerts.png",
-    "f89d649-33-real-rules.png",
-    "f89d649-33-real-rule-test.png",
-    "f89d649-28-reader-before-revocation.png",
-    "f89d649-29-reader-before-revocation.png",
-    "f89d649-29-reader-after-revocation.png",
-    "f89d649-28-reader-after-revocation.png"
+    "de41506-28-real-source.png",
+    "de41506-29-real-api-source.png",
+    "de41506-30-real-access-logs.png",
+    "de41506-31-real-trace-waterfall.png",
+    "de41506-32-real-alerts.png",
+    "de41506-33-real-rules.png",
+    "de41506-33-real-rule-test.png",
+    "de41506-28-reader-before-revocation.png",
+    "de41506-29-reader-before-revocation.png",
+    "de41506-29-reader-after-revocation.png",
+    "de41506-28-reader-after-revocation.png"
   ],
   "screenshotSha256": {
-    "f89d649-28-real-source.png": "bd559c957c196021e60b57b01962bc3c1766e8f405dcfd4daeb15b58a7a1f267",
-    "f89d649-29-real-api-source.png": "6919a5c753b45f360292321c9b8b3c49c5c97754462ee52faf23e3dfa4621e02",
-    "f89d649-30-real-access-logs.png": "8cb0d7a05817f84f1ccbb2d2ff0b48681987fced8785752c024538a05b389969",
-    "f89d649-31-real-trace-waterfall.png": "b7d754ee1dd2b4112b11b00e9c72463e32b64a0e91618d26351907c7237d375f",
-    "f89d649-32-real-alerts.png": "170de8e1c48c2f9585260f24c7d9b6ced5653cb737ccd5f32c6e76c6a67a9534",
-    "f89d649-33-real-rules.png": "f4a7af8d689881a18cb95eb1f686a9ffa4492ce98c9f691bd83a456e38bf8f58",
-    "f89d649-33-real-rule-test.png": "b833a73e6ac986c4cc901ab0cb3ee3e7ea94a14a1d39dc8f37005ec9403a1731",
-    "f89d649-28-reader-before-revocation.png": "4d330fb3c72e371cbc8855cf167c5a680a15bd2d15fb0c34aa65118364f2a7e1",
-    "f89d649-29-reader-before-revocation.png": "b6fe04103efef591bda84ede51bd5d2e18922b6be4467b5a3393458fa8fba152",
-    "f89d649-29-reader-after-revocation.png": "b576f91824f8b81453f1d5996a5ba7128cdc228e3704b137154cf61b09dac77c",
-    "f89d649-28-reader-after-revocation.png": "2f9242121c118904f100136cb43445b8d54cd958297e887ca515362192d0d9a6"
+    "de41506-28-real-source.png": "0895ecadf27acdfb6d5bf4d865e887cad1fb8d8495b6b4de3dce5bc73408b400",
+    "de41506-29-real-api-source.png": "ec857b76fb40db946e469b2ffe1014a4e59d71d49397866040b074aa446e47d9",
+    "de41506-30-real-access-logs.png": "94b4bb757fd95b5b8229f4bdf99e473f564ab88761f992b1530c42d9cd5e3f69",
+    "de41506-31-real-trace-waterfall.png": "c2e53bc9fe1fa6f9d92797911435e4d29ac655ab1215c462ca83adab5974c27d",
+    "de41506-32-real-alerts.png": "ab358f8ef7738f4f761940919fe51aef47d40adab40f21cf2af41ef8bbfed3b5",
+    "de41506-33-real-rules.png": "e07ccdc16c762322e1e408b625c72436f48f07d876df968528f301dd410af616",
+    "de41506-33-real-rule-test.png": "e7d81bce34b78230cfceee54ead0ec8fb657eda6df9a5b2338445fa2d82a509b",
+    "de41506-28-reader-before-revocation.png": "0177fb59802acf484aec88e6a3c4c157b206ef0978e96c58273a463e17a4247c",
+    "de41506-29-reader-before-revocation.png": "30eb045329494ce93130f7bd61243f0bfc0dcb37078e38f75b6bd9aa4ed25a8e",
+    "de41506-29-reader-after-revocation.png": "e1e2aba789a2f281ae0455bcfc17a7ee1fecc378cfa1b41edaef1721206aa63b",
+    "de41506-28-reader-after-revocation.png": "de85118482f25f8c309392681fa15b2b6a8034a1cab6a17b45a9b3c67b873da0"
   },
   "normalConsoleErrors": [],
   "normalHttpErrors": [],
@@ -160,8 +163,8 @@
     "automationBrowserClosed": true
   },
   "evidence": {
-    "browserReadbackSha256": "74f6ccb78ea26f4ee994761457352af758a492f021619101aa771c3e073ad362",
-    "fixtureRunnerCleanupSha256": "4f72438955a2f91671501960befe4e72f0e5ceb3df1fe3689bb0c2e745e045f0",
-    "fixtureScriptCleanupSha256": "10d710cf004fd99f3ee470f094c4fa61d6177369e459f84d2b1600d1ec37b394"
+    "browserReadbackSha256": "3e846f1c29f2323017319f6cbe8f7edae72adea6a88f0a40a965a43c758ea8ed",
+    "fixtureRunnerCleanupSha256": "697f7f85ccf377da1486e4585e758d672231673db2616e728b84c2de872587d6",
+    "fixtureScriptCleanupSha256": "2ed9085ff74da1fb6fe98bce1624a5ece5df1d19de45cedf1d159d4b7c5a9ae2"
   }
 }

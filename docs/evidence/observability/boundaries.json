@@ -1,6 +1,6 @@
 {
   "complete": true,
-  "project": "webapi-enterprise-e2e-observability-cca38023-dc7a-4fb5-a368-9c7fc06f3dfa",
+  "project": "webapi-enterprise-e2e-observability-80d3261e-5aaf-40f7-90c5-7871a2cdd0fc",
   "checks": [
     {
       "name": "ActualSameTraceparentTwoEnvironmentsOnlyReturnCurrentEnvironmentSpans",
@@ -8,7 +8,7 @@
       "rawSpanCount": 4,
       "ownSpanCount": 2,
       "foreignSpanCount": 2,
-      "traceId": "f1204eaf522b448cb04e1cda95c1ce52"
+      "traceId": "430f425c62b0423b98a2d8f94f4cd5da"
     },
     {
       "name": "RealLokiSingleNanosecondProviderLimitExplicitlyTruncated",
@@ -18,5 +18,5 @@
       "returnedRows": 50
     }
   ],
-  "sourceRevision": "f89d6490487fa6620092116ae24436b6f699e009"
+  "sourceRevision": "de415066e7dd001584dd2491fcba5bfec65fb27a"
 }
