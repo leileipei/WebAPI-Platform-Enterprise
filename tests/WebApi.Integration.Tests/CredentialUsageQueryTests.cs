@@ -187,6 +187,34 @@ public sealed class CredentialUsageQueryTests
     {
         await using var f=new Fixture();await f.InitializeAsync(credentials:105);var first=await f.ReadAsync(f.Path(size:100));var second=await f.ReadAsync(f.Path(page:2,size:100));Assert.Equal(105,first.GetProperty("page").GetProperty("total").GetInt32());Assert.Equal(100,first.GetProperty("page").GetProperty("items").GetArrayLength());Assert.Equal(5,second.GetProperty("page").GetProperty("items").GetArrayLength());Assert.All(first.GetProperty("page").GetProperty("items").EnumerateArray(),x=>Assert.Equal(JsonValueKind.Null,x.GetProperty("visibleLastUsedAt").ValueKind));
     }
+    [Fact]
+    public async Task Selected_credentials_beyond_the_first_page_report_only_their_own_application_and_window_counts()
+    {
+        await using var f = new Fixture();
+        await f.InitializeAsync(credentials: 105);
+        await using var db = f.Api.Context();
+        var pair = await db.Set<ApplicationCredential>().Where(x => x.ApplicationId == f.Api.Application.Id)
+            .OrderBy(x => x.AccessKey).ThenBy(x => x.Id).Skip(100).Take(2).Select(x => x.Id).ToArrayAsync();
+        var otherApp = new ApplicationRecord { OrganizationId = f.Api.Organization.Id, ProjectId = f.Api.Project.Id, Code = "OTHER", Name = "其他应用" };
+        var otherKey = new ApplicationCredential { ApplicationId = otherApp.Id, OrganizationId = otherApp.OrganizationId,
+            AccessKey = "other-key", SecretHash = "fixture", SecretLast4 = "test", ValidFrom = f.From, ExpiresAt = f.To.AddDays(1) };
+        db.AddRange(otherApp, otherKey);
+        var start = f.To;
+        foreach (var (id, hour, count) in new[] { (pair[0], start, 107), (pair[1], start, 108), (pair[0], f.From, 99) })
+            db.Add(new CredentialUsageHourly { ApplicationId = f.Api.Application.Id, CredentialId = id, EnvironmentId = f.Api.Environment.Id,
+                HourStart = hour, Count = count, LastUsedAt = hour });
+        await db.SaveChangesAsync();
+
+        var path = f.Path(from: start, to: start.AddHours(1), environment: f.Api.Environment.Id);
+        var result = await f.ReadAsync(path + $"&credentialId={pair[1]}&credentialId={otherKey.Id}&credentialId={pair[0]}&credentialId={pair[0]}");
+        var page = result.GetProperty("page");
+        Assert.Equal(2, page.GetProperty("total").GetInt32());
+        Assert.Equal(pair, page.GetProperty("items").EnumerateArray().Select(x => x.GetProperty("credentialId").GetGuid()).ToArray());
+        Assert.Equal(new[] { "107", "108" }, page.GetProperty("items").EnumerateArray().Select(x => x.GetProperty("count").GetString()).ToArray());
+        Assert.All(page.GetProperty("items").EnumerateArray(), x => Assert.Equal("Partial", x.GetProperty("coverage").GetProperty("state").GetString()));
+        var missing = await f.ReadAsync(path + $"&credentialId={otherKey.Id}");
+        Assert.Empty(missing.GetProperty("page").GetProperty("items").EnumerateArray());
+    }
     [Theory][InlineData(50)][InlineData(100)]
     public async Task Page_query_count_and_fact_rows_are_bounded_without_per_credential_queries(int size)
     {
