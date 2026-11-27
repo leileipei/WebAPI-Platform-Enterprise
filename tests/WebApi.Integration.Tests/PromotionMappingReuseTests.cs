@@ -76,12 +76,23 @@ public sealed class PromotionMappingReuseTests
     public async Task OldUnpreparedMappingCanRecoverItsBoundCopyWithoutTouchingOtherPolicies()
     {
         await using var scenario = new PromotionScenario();
-        await scenario.InitializeAsync(timeout: true);
+        await scenario.InitializeAsync(timeout: true, configureSourceAuthentication: async api =>
+        {
+            await using var source = api.Context();
+            var route = await source.Set<ApiRoute>().SingleAsync();
+            var auth = new Policy { OrganizationId = api.Organization.Id, ProjectId = api.Project.Id,
+                Name = "Source authentication", Type = "authentication", Config = "{\"mode\":\"ApiKey\"}" };
+            source.Add(auth);
+            // A different policy type may use the same priority as the timeout policy.
+            source.Add(new RoutePolicyBinding { RouteId = route.Id, PolicyId = auth.Id, Priority = 7 });
+            await source.SaveChangesAsync();
+        });
         var first = await PromotionSubmissionTests.Prepared(scenario);
         await using var db = scenario.Api.Context();
         var row = await db.Set<ReleasePromotionMapping>().SingleAsync(r => r.PromotionId == scenario.PromotionId && r.Kind == "Route");
         var routeId = row.TargetRouteId!.Value;
-        var privateId = await db.Set<RoutePolicyBinding>().Where(b => b.RouteId == routeId).Select(b => b.PolicyId).SingleAsync();
+        var privateIds = await db.Set<RoutePolicyBinding>().Where(b => b.RouteId == routeId).Select(b => b.PolicyId).OrderBy(id => id).ToArrayAsync();
+        Assert.Equal(2, privateIds.Length);
         var mapping = scenario.Mapping(routeId);
         // The previous save implementation retained the route ID but discarded its preparation metadata.
         row.ParametersJson = JsonSerializer.Serialize(new { mapping = mapping.Routes[0], preparedRouteId = routeId }, CanonicalJson.Options);
@@ -97,7 +108,7 @@ public sealed class PromotionMappingReuseTests
         using var saved = await scenario.SaveAsync(mapping, RevisionTag.Format(first.Revision));
         saved.EnsureSuccessStatusCode();
         var candidate = await scenario.PrepareAsync();
-        Assert.Equal(privateId, Assert.Single(candidate.Policies).Id);
+        Assert.Equal(privateIds, candidate.Policies.Select(p => p.Id).Order());
         Assert.True(await db.Set<Policy>().AnyAsync(p => p.Id == unrelated.Id && p.Enabled && p.VersionNo == 1));
         Assert.True(await db.Set<RoutePolicyBinding>().AnyAsync(b => b.PolicyId == unrelated.Id && b.RouteId == otherRoute.Id));
         Assert.True(await db.Set<Policy>().AnyAsync(p => p.Id == scenario.TargetPolicyId && p.Enabled && p.VersionNo == 1));

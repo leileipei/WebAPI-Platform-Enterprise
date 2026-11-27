@@ -84,7 +84,7 @@ public sealed class PromotionCandidateBuilder(WebApiDbContext db,PromotionMappin
     slot=slot.Where(b=>state.PreparedRouteId==routeId && i<recorded.Count && b.Policy.Id==recorded[i]);
    else
     // Older saves retained only the prepared route. Reuse a matching copy only on its original binding.
-    slot=slot.Where(b=>state.PreparedRouteId==routeId && b.Policy.Name.StartsWith(prefix,StringComparison.Ordinal) &&
+    slot=slot.Where(b=>state.PreparedRouteId==routeId && b.Policy.Type==template.Type && b.Policy.Name.StartsWith(prefix,StringComparison.Ordinal) &&
      Guid.TryParseExact(b.Policy.Name.AsSpan(prefix.Length),"N",out _) && b.Policy.VersionNo==1);
    var matches=slot.ToArray();
    if(prepared && matches.Length!=1) throw new ApiException(409,"prepared_policy_binding_changed","晋级独立策略绑定已改变，需重新编辑映射。");
