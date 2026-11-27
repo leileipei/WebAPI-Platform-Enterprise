@@ -49,6 +49,35 @@ test('cold extraction acknowledges each completed archive and stops at an unread
   });
 });
 
+test('cache archive and seeded digest read failures stop extraction before the volume receipt',async t=>{
+  const scratch=await fs.mkdtemp(path.join(os.tmpdir(),'webapi-cold-digest-'));
+  t.after(()=>fs.rm(scratch,{recursive:true,force:true}));
+  const projectName='webapi-enterprise-local-test-'+randomUUID();
+  const ctx={directory:path.join(scratch,projectName),state:{projectName},release:{dependencyImages:{sdk:image}}};
+  const args=backup.restoreVolumeExtractionArgs(ctx,'/owned/input',['secrets-cache'],null);
+  // The reader stubs use different placeholders. No archive or cache secret is needed.
+  const readers=[
+    'tar() { printf "fixture input"; if [[ "$FAIL_AT" == tar ]]; then return 71; fi; }',
+    'sha256sum() {',
+    '  if [[ $# == 0 ]]; then',
+    '    cat >/dev/null; printf "archive-placeholder  -\\n"; if [[ "$FAIL_AT" == archive-hash ]]; then return 72; fi',
+    '  else',
+    '    printf "seeded-placeholder  -\\n"; if [[ "$FAIL_AT" == seeded-hash ]]; then return 73; fi',
+    '  fi',
+    '}'
+  ].join('\n');
+  const command=readers+'\n'+args.at(-1).replaceAll('/tmp/','"$SCRATCH"/');
+  const observed={};
+  for(const stage of ['tar','archive-hash','seeded-hash']){
+    await assert.rejects(promisify(execFile)('bash',['-c',command],{env:{...process.env,FAIL_AT:stage,SCRATCH:scratch}}),error=>{
+      observed[stage]=error.code;
+      assert(!error.stdout.split('\n').includes('secrets-cache'),stage);
+      return true;
+    });
+  }
+  assert.deepEqual(observed,{tar:71,'archive-hash':72,'seeded-hash':73});
+});
+
 test('backup and restore inspect archive semantics in a read-only, networkless verifier',async()=>{
   assert.equal(typeof backup.inspectMigrationEvidenceArchive,'function');
   const calls=[];
