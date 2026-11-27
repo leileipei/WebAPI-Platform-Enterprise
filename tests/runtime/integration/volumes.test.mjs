@@ -2,9 +2,10 @@ import test from'node:test';import assert from'node:assert/strict';import fs fro
 import{initializeState}from'../../../scripts/runtime/state.mjs';import{docker,inspectResources,assertOwnership}from'../../../scripts/runtime/docker.mjs';
 import {ensureCacheSecret,assertCacheSecretVolume} from '../../../scripts/gateway-policies/runtime-secrets.mjs';
 import {prepareMigrationEvidenceVolume, markMigrationEvidenceVolumeReady} from '../../../scripts/runtime/migration-evidence-volume.mjs';
-import {localReleaseFile} from './fixture.mjs';
+import {installationCleanupGuard, localReleaseFile, removeInstallationFixture} from './fixture.mjs';
 test('secretsReadableByNonRootAndNotWorldReadable; source volumes survive restart',async()=>{
  const project='webapi-enterprise-local-test-'+randomUUID(),directory=path.resolve('.runtime/tests/'+project);const state=await initializeState(directory,{projectName:project,bootstrapUsername:'volume-test-admin'});const input=path.join(directory,'secrets');await fs.mkdir(input,{mode:0o700});for(const name of ['postgres-password','node-a','node-b','ip-hmac','cursor-signing','login-protection-hmac','bootstrap-password'])await fs.writeFile(path.join(input,name),randomBytes(32).toString('base64'),{mode:0o600});
+ const recheck=await installationCleanupGuard(directory,state);
  const cache=await ensureCacheSecret(directory,state);
  const release=JSON.parse(await fs.readFile(process.env.WEBAPI_RUNTIME_TEST_RELEASE??localReleaseFile,'utf8'));const env={...process.env,WEBAPI_RUNTIME_PROJECT:project,WEBAPI_RUNTIME_OWNER:state.ownerId,WEBAPI_RUNTIME_IMAGE:release.imageId,WEBAPI_RUNTIME_SECRET_DIRECTORY:input,WEBAPI_RUNTIME_ENVIRONMENT_ID:randomUUID()};const files=['deploy/compose.runtime.yml','deploy/compose.runtime.gateways.yml'];
  const compose=async(...args)=>{assertOwnership(state,await inspectResources(state));return docker(['compose',...files.flatMap(f=>['-f',f]),...args],{env});};
@@ -24,5 +25,5 @@ test('secretsReadableByNonRootAndNotWorldReadable; source volumes survive restar
   console.error('Volume fixture retained for diagnosis: ' + directory);
   throw error;
  }
- assert.match(project,/^webapi-enterprise-local-test-[a-f0-9-]{36}$/);assertOwnership(state,await inspectResources(state));await compose('--profile','tools','down','--volumes','--remove-orphans');assert.equal((await inspectResources(state)).length,0);await fs.rm(directory,{recursive:true,force:true});
+ await removeInstallationFixture(directory,recheck,compose,true);
 });
