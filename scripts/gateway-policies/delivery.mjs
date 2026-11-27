@@ -1,3 +1,4 @@
+import { deliveryPostgres, deliveryTableRule } from './protected-tables.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -10,16 +11,14 @@ import {prepareContext} from '../runtime/context.mjs';
 import {createBackup} from '../runtime/acceptance-backup.mjs';
 import {backupIdp,idpContext,inspectIdpResources} from '../runtime/keycloak-demo.mjs';
 import {getRuntimeStatus} from '../runtime/status.mjs';
-import {inspectResources,assertOwnership,docker} from '../runtime/docker.mjs';
+import {inspectResources,docker} from '../runtime/docker.mjs';
 import {ContractClient} from '../contracts/scenario.mjs';
 import {canRestoreSoftware} from './recovery.mjs';
 import {readGatewayRecoverySnapshots} from './recovery-snapshots.mjs';
 const exec=promisify(execFile),hash=b=>createHash('sha256').update(b).digest('hex'),json=async file=>JSON.parse(await fs.readFile(file,'utf8'));
 const appNames=['control-plane','worker','console','gateway-a','gateway-b'];
-const dynamicColumns={gateway_nodes:['instance_id','app_version','status','last_heartbeat_at','metadata'],alert_evaluation_states:['phase','pending_since','last_evaluated_slot','last_success_at','last_condition','last_event_id','next_occurrence_no','evaluation_state','suppressed_at','lease_owner','lease_until','lease_token','revision'],alert_events:['status','message','resolved_at','last_observed_at','last_value','last_condition','evaluation_state','revision'],outbox_messages:['processed_at','lease_until','attempts']};
-const appendTables=new Set(['audit_logs','gateway_node_events','alert_event_transitions','alert_events','alert_evaluation_states','sso_provider_tests']);
-export async function deliverySql(state,query){const resources=await inspectResources(state);assertOwnership(state,resources);const pg=resources.find(r=>r.Kind==='container'&&r.Config?.Labels?.['com.docker.compose.service']==='postgres');assert(pg?.State.Running);return(await docker(['exec',pg.Id,'psql','-U','webapi','-d','webapi','-At','-v','ON_ERROR_STOP=1','-c',query])).stdout.trim();}
-export async function snapshotDeliveryTables(state){const tables=(await deliverySql(state,"select tablename from pg_tables where schemaname='public' order by tablename")).split('\n');const result={};for(const table of tables){assert(/^[a-zA-Z0-9_]+$/.test(table));const expression='to_jsonb(t)'+(dynamicColumns[table]?.length?" - ARRAY["+dynamicColumns[table].map(c=>"'"+c+"'").join(',')+"]::text[]":'');const rows=JSON.parse(await deliverySql(state,`select coalesce(json_agg(json_build_object('key',coalesce(to_jsonb(t)->>'id',to_jsonb(t)->>'MigrationId'),'row',(${expression})::text) order by coalesce(to_jsonb(t)->>'id',to_jsonb(t)->>'MigrationId')),'[]'::json) from "${table}" t`));result[table]={count:rows.length,mode:table==='sso_login_attempts'?'ephemeral':appendTables.has(table)?'append-preserve':'exact',ignoredColumns:dynamicColumns[table]??[],rows:Object.fromEntries(rows.map(r=>[r.key,hash(r.row)]))};}return result;}
+export async function deliverySql(state,query){const pg=await deliveryPostgres(state);return(await docker(['exec',pg.Id,'psql','-U','webapi','-d','webapi','-At','-v','ON_ERROR_STOP=1','-c',query])).stdout.trim();}
+export async function snapshotDeliveryTables(state){const tables=(await deliverySql(state,"select tablename from pg_tables where schemaname='public' order by tablename")).split('\n');const result={};for(const table of tables){assert(/^[a-zA-Z0-9_]+$/.test(table));const {mode,ignoredColumns}=deliveryTableRule(table);const expression='to_jsonb(t)'+(ignoredColumns.length?" - ARRAY["+ignoredColumns.map(c=>"'"+c+"'").join(',')+"]::text[]":'');const rows=JSON.parse(await deliverySql(state,`select coalesce(json_agg(json_build_object('key',coalesce(to_jsonb(t)->>'id',to_jsonb(t)->>'MigrationId'),'row',(${expression})::text) order by coalesce(to_jsonb(t)->>'id',to_jsonb(t)->>'MigrationId')),'[]'::json) from "${table}" t`));result[table]={count:rows.length,mode,ignoredColumns,rows:Object.fromEntries(rows.map(r=>[r.key,hash(r.row)]))};}return result;}
 export function assertDeliveryTables(before,after){assert.deepEqual(Object.keys(after),Object.keys(before),'Unexpected table change');for(const [table,b]of Object.entries(before)){const a=after[table];if(b.mode==='ephemeral')continue;if(b.mode==='exact')assert.deepEqual(a.rows,b.rows,'Business rows changed: '+table);else for(const [key,value]of Object.entries(b.rows))assert.equal(a.rows[key],value,'Existing row changed: '+table);}}
 async function fileFingerprint(file){const info=await fs.lstat(file);if(info.isSymbolicLink())return{kind:'symlink',sha256:hash(await fs.readlink(file))};assert(info.isFile());return{kind:'file',sha256:hash(await fs.readFile(file))};}
 async function git(directory,args){return(await exec('git',args,{cwd:directory,maxBuffer:16*1024*1024})).stdout.trim();}

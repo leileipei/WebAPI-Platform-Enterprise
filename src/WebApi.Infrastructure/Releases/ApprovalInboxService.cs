@@ -64,7 +64,10 @@ public sealed class ApprovalInboxService(WebApiDbContext db, ApprovalEligibility
         if (offset >= total) return new(new([], total, filter.Page, filter.PageSize), counts, filter);
         var page = await (from r in selected.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id).Skip((int)offset).Take(filter.PageSize)
             join applicant in db.Set<UserRecord>() on r.RequestedBy equals applicant.Id
-            let currentStep = db.Set<ApprovalTask>().Where(t => t.ReleaseId == r.Id && t.Status == "Pending").Min(t => (int?)t.StepOrder)
+            // Submission creates all seats up front, including seats never reached after rejection or cancellation.
+            let currentStep = r.Status == "WaitingApproval"
+                ? db.Set<ApprovalTask>().Where(t => t.ReleaseId == r.Id && t.Status == "Pending").Min(t => (int?)t.StepOrder)
+                : null
             select new InboxRow
             {
                 Id = r.Id, EnvironmentId = r.EnvironmentId, ReleaseNo = r.ReleaseNo, State = r.Status,

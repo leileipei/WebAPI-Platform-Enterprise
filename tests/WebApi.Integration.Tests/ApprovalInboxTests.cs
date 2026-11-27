@@ -26,6 +26,86 @@ public sealed class ApprovalInboxTests(ITestOutputHelper output)
     private static async Task<Guid> SubmittedAsync(ApiFixture api)
     { await api.InitializeAsync(); await api.SeedReleaseAsync(); using var login = await api.LoginAsync(); login.EnsureSuccessStatusCode(); return await api.CreateSubmittedReleaseAsync(); }
 
+    private static async Task<ApprovalInboxPageDto> InboxAsync(HttpClient client, string view) =>
+        (await client.GetFromJsonAsync<ApprovalInboxPageDto>($"/api/v1/approvals?view={view}"))!;
+
+    [Fact]
+    public async Task FirstStepRejectionEndsApprovalWithoutConsumingTheNextSeat()
+    {
+        await using var api = new ApiFixture();
+        var id = await SubmittedAsync(api);
+        var first = await api.NewReviewerAsync("ApiApprover");
+        var second = await api.NewReviewerAsync("SecurityReviewer");
+        var pending = await InboxAsync(first.Client, "PendingMine");
+        var firstSeat = Assert.Single(pending.Page.Items);
+        Assert.Equal(1, firstSeat.ApprovalEligibility.CurrentStepOrder);
+        Assert.True(firstSeat.ApprovalEligibility.CanAct);
+        Assert.Equal((0, 1), (firstSeat.ApprovedCount, firstSeat.RequiredCount));
+
+        using var reject = await ApiFixture.CommandAsync(first.Client, $"/api/v1/releases/{id}/reject", new { comment = "一级拒绝" });
+        reject.EnsureSuccessStatusCode();
+        var detail = (await first.Client.GetFromJsonAsync<ReleaseDto>($"/api/v1/releases/{id}"))!;
+        Assert.Equal("Rejected", detail.State);
+        Assert.Null(detail.ApprovalEligibility!.CurrentStepOrder);
+        Assert.False(detail.ApprovalEligibility.CanAct);
+        var rejected = Assert.Single(detail.ApprovalSteps, seat => seat.StepOrder == 1);
+        Assert.Equal("Rejected", rejected.Status);
+        Assert.Equal(first.User.Id, rejected.ActorId);
+        var untouched = Assert.Single(detail.ApprovalSteps, seat => seat.StepOrder == 2);
+        Assert.Equal("Pending", untouched.Status);
+        Assert.Null(untouched.ActorId);
+        Assert.Null(untouched.ActedAt);
+        Assert.Empty((await InboxAsync(second.Client, "PendingMine")).Page.Items);
+
+        foreach (var view in new[] { "HandledMine", "AllVisible" })
+        {
+            var history = await InboxAsync(first.Client, view);
+            Assert.Equal(new ApprovalInboxCounts(0, 1, 1), history.Counts);
+            var row = Assert.Single(history.Page.Items);
+            Assert.Equal(id, row.Id);
+            Assert.Equal("Rejected", row.State);
+            Assert.Null(row.ApprovalEligibility.CurrentStepOrder);
+            Assert.False(row.ApprovalEligibility.CanAct);
+            Assert.Equal((0, 2), (row.ApprovedCount, row.RequiredCount));
+        }
+    }
+
+    [Theory]
+    [InlineData("approve", "Ready", 2)]
+    [InlineData("cancel", "Cancelled", 1)]
+    public async Task SecondStepIsCurrentUntilApprovalEnds(string action, string finalState, int approvedVotes)
+    {
+        await using var api = new ApiFixture();
+        var id = await SubmittedAsync(api);
+        var first = await api.NewReviewerAsync("ApiApprover");
+        var second = await api.NewReviewerAsync("SecurityReviewer");
+        using var approve = await ApiFixture.CommandAsync(first.Client, $"/api/v1/releases/{id}/approve", new { comment = "一级通过" });
+        approve.EnsureSuccessStatusCode();
+
+        var handled = Assert.Single((await InboxAsync(first.Client, "HandledMine")).Page.Items);
+        Assert.Equal("WaitingApproval", handled.State);
+        Assert.Equal(2, handled.ApprovalEligibility.CurrentStepOrder);
+        Assert.False(handled.ApprovalEligibility.CanAct);
+        Assert.Equal((0, 1), (handled.ApprovedCount, handled.RequiredCount));
+        var pending = await InboxAsync(second.Client, "PendingMine");
+        Assert.Equal(new ApprovalInboxCounts(1, 0, 1), pending.Counts);
+        var current = Assert.Single(pending.Page.Items);
+        Assert.Equal(2, current.ApprovalEligibility.CurrentStepOrder);
+        Assert.True(current.ApprovalEligibility.CanAct);
+
+        using var finish = action == "approve"
+            ? await ApiFixture.CommandAsync(second.Client, $"/api/v1/releases/{id}/approve", new { comment = "二级通过" })
+            : await ApiFixture.CommandAsync(api.Client, $"/api/v1/releases/{id}/cancel");
+        finish.EnsureSuccessStatusCode();
+        var history = await InboxAsync(first.Client, "HandledMine");
+        Assert.Equal(new ApprovalInboxCounts(0, 1, 1), history.Counts);
+        var row = Assert.Single(history.Page.Items);
+        Assert.Equal(finalState, row.State);
+        Assert.Null(row.ApprovalEligibility.CurrentStepOrder);
+        Assert.False(row.ApprovalEligibility.CanAct);
+        Assert.Equal((approvedVotes, 2), (row.ApprovedCount, row.RequiredCount));
+    }
+
     // Filtering after Take(50) would lose the only actionable release, and seats must not duplicate rows.
     [Fact] public async Task MineOnSecondPageCountsBeforePagination()
     {

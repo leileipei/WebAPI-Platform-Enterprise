@@ -293,8 +293,14 @@ export function restoreVolumeExtractionArgs(ctx,target,volumes,frozen){
  const args=['run','--rm','--pull','never','--network','none','--read-only','--memory','256m','--cpus','1','--tmpfs','/tmp:rw,nosuid,nodev,noexec,size=67108864','--user','0:0','--mount',`type=bind,src=${target},dst=/backup,readonly`];
  if(frozen)args.push('--mount',`type=bind,src=${frozen.path},dst=/verified-migration-evidence.tar,readonly`);
  for(const name of volumes)args.push('--mount',`type=volume,src=${ctx.state.projectName}_${name},dst=/volumes/${name}`);
- args.push(ctx.release.dependencyImages.sdk,'bash','-c','set -e; for name in '+volumes.join(' ')+'; do if [ "$name" = migration-evidence ]; then test -z "$(ls -A /volumes/$name)"; tar -xf /verified-migration-evidence.tar -C /volumes/$name; elif [ "$name" = secrets-cache ]; then tar -xOf /backup/$name.tar ./cache-hmac | sha256sum | cut -d " " -f1 > /tmp/cache-archive.sha; sha256sum /volumes/$name/cache-hmac | cut -d " " -f1 > /tmp/cache-seeded.sha; cmp /tmp/cache-archive.sha /tmp/cache-seeded.sha; elif [ "$name" = notification-secrets ] || [ "$name" = notification-fixture-secrets ]; then mkdir /tmp/check-$name; tar -xf /backup/$name.tar -C /tmp/check-$name; diff -r /tmp/check-$name /volumes/$name; else test -z "$(ls -A /volumes/$name)"; tar -xf /backup/$name.tar -C /volumes/$name; fi; done');
+ args.push(ctx.release.dependencyImages.sdk,'bash','-c','set -e; for name in '+volumes.join(' ')+'; do if [ "$name" = migration-evidence ]; then test -z "$(ls -A /volumes/$name)"; tar -xf /verified-migration-evidence.tar -C /volumes/$name; elif [ "$name" = secrets-cache ]; then tar -xOf /backup/$name.tar ./cache-hmac | sha256sum | cut -d " " -f1 > /tmp/cache-archive.sha; sha256sum /volumes/$name/cache-hmac | cut -d " " -f1 > /tmp/cache-seeded.sha; cmp /tmp/cache-archive.sha /tmp/cache-seeded.sha; elif [ "$name" = notification-secrets ] || [ "$name" = notification-fixture-secrets ]; then mkdir /tmp/check-$name; tar -xf /backup/$name.tar -C /tmp/check-$name; diff -r /tmp/check-$name /volumes/$name; else test -z "$(ls -A /volumes/$name)"; tar -xf /backup/$name.tar -C /volumes/$name; fi; printf "%s\\n" "$name"; done');
  return args;
+}
+export function countRestoredVolumeArchives(output,volumes){
+ const completed=output.split('\n');
+ if(completed.pop()!==''||completed.length!==volumes.length||completed.some((name,index)=>name!==volumes[index]))
+  throw Error('Restore archive completion does not match the extraction scope');
+ return completed.length;
 }
 export async function coldBackup(ctx,target,options={}){
  validateFixture(ctx.state.projectName,ctx.directory);return createBackup(ctx,target,options);
@@ -363,10 +369,17 @@ export async function restoreColdBackup({target,projectName,directory,ports,noti
  if(JSON.stringify(restoreVolumeIdentities(state,await inspectResources(state),writableVolumes))!==JSON.stringify(volumeIdentities))throw Error('Restore target volume identity changed');
  const args=restoreVolumeExtractionArgs(ctx,target,volumes,frozen);
  if(frozen)await verifyFrozenMigrationEvidenceArchive(frozen);
- await docker(args,{maxOutputBytes:1024*1024});
+ const extraction=await docker(args,{maxOutputBytes:1024*1024});
+ const coldVolumesRestored=countRestoredVolumeArchives(extraction.stdout,volumes);
  if(frozen)await verifyFrozenMigrationEvidenceArchive(frozen);
  const verified=frozen?await verifyRestoredMigrationEvidence(ctx,frozen,evidenceInspection):null;
- if(notification){await docker(['run','--rm','--user','10001:10001','--label','com.docker.compose.project='+state.projectName,'--label','com.webapi.runtime.owner='+state.ownerId,'--mount','type=volume,src='+projectName+'_notification-fixture-data,dst=/var/fixture',release.imageId,'dotnet','/app/notification-fixture/WebApi.NotificationFixtureHost.dll','rebind-journal','/var/fixture',previous.ownerId,previous.projectName,state.ownerId,state.projectName]);}const usageRebind=usageCapability?await rebindRestoredUsage(ctx,previous.ownerId,usageInventory,usageCapability):null;if(frozen)await verifyFrozenMigrationEvidenceArchive(frozen);await verifyFrozenRestoreInputs(restoreInputs);const restoreComplete=await finishMigrationEvidenceRestore(directory,state,evidenceInspection,verified,{beforeFinish:()=>writeRestoreCompletion(directory,state,restoreIntent,restoreInputs.directory)});return{state,ctx,hashesVerified:true,restoreComplete,usageRebind,migrationEvidence:evidenceInspection,migrationContinuity:frozen?'Unknown':null,restoreInputs:restoreInputs.directory};
+ if(notification){await docker(['run','--rm','--user','10001:10001','--label','com.docker.compose.project='+state.projectName,'--label','com.webapi.runtime.owner='+state.ownerId,'--mount','type=volume,src='+projectName+'_notification-fixture-data,dst=/var/fixture',release.imageId,'dotnet','/app/notification-fixture/WebApi.NotificationFixtureHost.dll','rebind-journal','/var/fixture',previous.ownerId,previous.projectName,state.ownerId,state.projectName]);}
+ const usageRebind=usageCapability?await rebindRestoredUsage(ctx,previous.ownerId,usageInventory,usageCapability):null;
+ if(frozen)await verifyFrozenMigrationEvidenceArchive(frozen);
+ await verifyFrozenRestoreInputs(restoreInputs);
+ const restoreComplete=await finishMigrationEvidenceRestore(directory,state,evidenceInspection,verified,{beforeFinish:()=>writeRestoreCompletion(directory,state,restoreIntent,restoreInputs.directory)});
+ return {state,ctx,hashesVerified:true,restoreComplete,...(restoreComplete?{coldVolumesRestored}:{}),usageRebind,
+  migrationEvidence:evidenceInspection,migrationContinuity:frozen?'Unknown':null,restoreInputs:restoreInputs.directory};
  }catch(error){if(error&&typeof error==='object')try{error.retainedRestoreInputs=restoreInputs.directory;}catch{}throw error;}
  },{retainOnError:true});
 }
