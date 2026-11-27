@@ -6,7 +6,7 @@
 
 - [项目资料总目录](docs/README.md)：功能、源码、运维、验收与历史资料的统一入口。
 - [当前源码与验证状态](docs/deployment/current-project-status.md)：区分 GitHub 主干、本地修改、固定版本验证和实际安装。
-- 本轮已修复告警试算时间窗口、跨组织操作权限和本地安装帮助。回归结果与待验条件见[固定提交复查](docs/evidence/observability/final-review.md)及[逐项验收台账](docs/deployment/requirements-acceptance-current.json)。
+- 本轮已修复审批收件箱的终态步骤显示、网络保护快照和冷恢复回执。全量回归及尚待完成的验收见[固定提交复查](docs/evidence/observability/final-review.md)及[逐项验收台账](docs/deployment/requirements-acceptance-current.json)。
 - [运维与交付目录](docs/deployment/README.md)：按用途查找手册、阶段交付和历史安装记录。
 - [40 页能力映射](docs/console-coverage.md)与[逐项需求台账](docs/evidence/work-package4/requirements-status.md)：页面有入口不等于对应需求全部验收完成。
 

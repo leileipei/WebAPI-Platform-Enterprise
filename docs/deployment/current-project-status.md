@@ -1,5 +1,11 @@
 # 当前源码与验证状态
 
+## 2026-11-27 本地固定版本复查
+
+受测产品 `a9f7c19871eef83a50e3f43a17d2027b393bf92a` 完成 6121 项必跑回归。审批收件箱终态步骤、原环境网络保护采集和冷恢复回执均已修正。
+
+本地合并范围、现场待验条件及剩余功能问题见[本版复查](../evidence/observability/final-review.md)。40 页 454 项需求的逐项状态见[当前验收台账](requirements-acceptance-current.json)。
+
 ## 2026-11-21 API 授权矩阵隔离验收
 
 产品候选 `9f45b97` 完成原第 21 页 11 项隔离验收。API 与环境矩阵支持跨页选择、批量授权、有效期、撤权和旧版授权原子移动。所有矩阵变更有影响预览，生产环境需要确认。真实 HTTP 定向回归 34 通过，固定源码浏览器观察点和截图复核 14 通过。首批项目计数和本批合计 14 项隔离验收通过，其余 440 项待复验。分支全量和 GitHub 检查单列回执。[矩阵验收](../evidence/product-acceptance/2026-11-21-permission-matrix/README.md) · [当前逐项台账](requirements-acceptance-current.json)
