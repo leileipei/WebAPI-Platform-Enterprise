@@ -23,7 +23,8 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
         {
             // No transaction/governance lock is held during source I/O.
             var end=lease.Slot.AddSeconds(-settings.QueryDelaySeconds);
-            var trusted=await scopes.ObservationAsync(rule.OrganizationId,lease.EnvironmentId,ct,end);
+            var range = new TimeRange(end.AddSeconds(-rule.WindowSeconds), end);
+            var trusted = await scopes.ObservationAsync(rule.OrganizationId, lease.EnvironmentId, range, ct);
             var target = rule.TargetType switch
             {
                 "Api" => trusted.ApiNames.ContainsKey(rule.TargetId!.Value),
@@ -32,7 +33,7 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
             };
             if (target == true) try
             {
-                var response=await source.QueryAsync(trusted,new(end.AddSeconds(-rule.WindowSeconds),end),new(rule.TargetType=="Api"?rule.TargetId:null,null,rule.TargetType=="Destination"?rule.TargetId:null),ct);
+                var response=await source.QueryAsync(trusted,range,new(rule.TargetType=="Api"?rule.TargetId:null,null,rule.TargetType=="Destination"?rule.TargetId:null),ct);
                 var metric=response.Data?.Kpis.SingleOrDefault(x=>x.Metric==rule.Metric);var known=IsKnown(response,metric,rule.Metric);
                 input=new(lease.Slot,response.ObservedAt,known?metric!.Value:null,known?AlertExpressionParser.Compare(AlertExpressionParser.Parse(rule.Metric,rule.Expression),metric!.Value):null,known?SourceState.Available:response.SourceState);
             }

@@ -52,6 +52,7 @@ jobs:
           tests/contracts/runner.test.mjs
           tests/contracts/legacy-entry.test.mjs
           tests/runtime/restore-storage-budget.test.mjs
+          tests/runtime/restore-acceptance-entrypoints.test.mjs
           tests/runtime/restore-quota-provider.test.mjs
           tests/runtime/restore-completion-review.test.mjs
           tests/runtime/migration-evidence-inspection.test.mjs
@@ -61,6 +62,7 @@ jobs:
           tests/runtime/project-counts-acceptance-guards.test.mjs
           tests/runtime/core-e2e-cleanup.test.mjs
           tests/runtime/acceptance-credentials.test.mjs
+          tests/runtime/installation-admin.test.mjs
           tests/runtime/comparison-runner.test.mjs
           tests/runtime/comparison-cleanup.test.mjs
           tests/runtime/comparison-scenario.test.mjs

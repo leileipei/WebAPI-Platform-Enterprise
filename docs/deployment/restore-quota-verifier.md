@@ -8,20 +8,29 @@
 - 使用两个不同的本地 Unix socket。两者的所有路径组件均须真实且由 root 管理，父目录不得允许组或其他用户写入，socket 权限为 `0600` 或 `0660`。使用真实绝对路径，例如 `/run/webapi-recovery/docker.sock`，不要使用带符号链接的别名。入口固定 daemon socket 和路径身份，通过受保护通道读取 API，并以同一地址调用 Docker 和 Compose。验证服务必须核对 daemon 的实际进程和挂载命名空间。代理、转发及不能证明监听者身份的 socket 激活方式不受支持。[Docker CLI 的 daemon 选项](https://docs.docker.com/reference/cli/docker/#specify-daemon-host--h---host)
 - 当前协议支持 XFS 或 ext4 的文件系统项目硬配额。专用 daemon 的实际具名卷根 `<DockerRootDir>/volumes` 由同一个已启用继承的项目配额约束，并位于同一后备挂载下。部署方须隔离其他写入者、保护挂载和项目配置、保留验证服务证据，并核对内核及文件系统支持所需的唯一挂载 ID 和稳定文件句柄。源夹具、恢复副本及同项目卷元数据计入同一额度。固定容量块设备、软上限和应用日志配额不能直接作为此协议的项目硬配额。[Linux 内核系统调用手册](https://www.kernel.org/pub/linux/docs/man-pages/book/man-pages-6.17.pdf)
 
-仅在确认独立后端和批准本次持久验收后，使用批准的发布清单、路径及四项十进制正整数字节值。两个入口均进入原有的浏览器验收步骤。
+在获准的独立主机上，把本次核定的四项十进制正整数字节值和两个 socket 保存为 Bash 参数数组，供同一轮命令使用。
 
 ```bash
-./scripts/check-local-runtime.sh e2e \
-  --release-file "$ISOLATED_RELEASE_MANIFEST" \
-  --restore-quota-socket /run/webapi-recovery/quota.sock \
-  --restore-docker-socket /run/webapi-recovery/docker.sock \
-  --max-snapshot-bytes "$MAX_SNAPSHOT_BYTES" \
-  --min-host-free-bytes "$MIN_HOST_FREE_BYTES" \
-  --max-target-bytes "$MAX_TARGET_BYTES" \
+restore_args=(
+  --restore-quota-socket /run/webapi-recovery/quota.sock
+  --restore-docker-socket /run/webapi-recovery/docker.sock
+  --max-snapshot-bytes "$MAX_SNAPSHOT_BYTES"
+  --min-host-free-bytes "$MIN_HOST_FREE_BYTES"
+  --max-target-bytes "$MAX_TARGET_BYTES"
   --min-target-free-bytes "$MIN_TARGET_FREE_BYTES"
+)
 ```
 
-调用方可使用 `browser` 替换 `e2e`。省略 `--release-file` 时使用当前工作树的 `.runtime/local-build/release.json`。预算和 socket 无默认值。验收保留现场和报告，现有浏览器、恢复连续性与收尾检查仍决定最终结果。[运行与恢复手册](local-runtime-runbook.md#验收入口的区别)
+按本次验收范围选择对应的命令。`REVISION` 为完整的 40 位源码提交。Linux 上的浏览器场景还需配置 `WEBAPI_NODE_RUNTIME` 和 `WEBAPI_CHROMIUM_EXECUTABLE`。
+
+```bash
+./scripts/check-local-runtime.sh e2e --release-file "$ISOLATED_RELEASE_MANIFEST" "${restore_args[@]}"
+./scripts/check-promotion.sh e2e "$REVISION" "${restore_args[@]}"
+./scripts/check-pipeline.sh e2e "$REVISION" "${restore_args[@]}"
+node scripts/security/acceptance.mjs --revision "$REVISION" "${restore_args[@]}"
+```
+
+通用运行验收支持 `e2e` 和 `browser`，均执行浏览器步骤。省略 `--release-file` 时读取当前工作树的 `.runtime/local-build/release.json`。晋级的 `e2e`、`faults`、`browser` 都运行完整双环境场景。流水线的 `e2e` 运行故障与浏览器步骤，`faults`、`browser` 各运行相应步骤，三者都执行冷恢复。两套交付脚本的 `verify <证据目录>` 仅核验已有证据。安全场景在浏览器审查后用同一组恢复参数执行 `--finalize`，以便在对应的专用 daemon 核对归属并清理夹具。[运行与恢复手册](local-runtime-runbook.md#验收入口的区别)
 
 专用 daemon 未观测原 Docker 环境，报告将原环境保全标为 `Unknown`，因此隔离结果不足以完成包含原环境保全的签核。隔离恢复和浏览器证据仍会保存。模块调用方使用此适配器时，须在其 `withDocker` 作用域内执行整个恢复；脱离作用域的恢复在预检时阻断。
 

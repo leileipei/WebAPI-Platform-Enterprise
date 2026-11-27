@@ -65,7 +65,12 @@ bash scripts/check-contracts.sh integration -p:RestoreLockedMode=true
 bash scripts/check-contracts.sh gateway -p:RestoreLockedMode=true
 bash scripts/check-console.sh
 bash scripts/check-local-runtime.sh unit
-node scripts/security/acceptance.mjs --revision <本包完整40位固定提交>
+```
+
+在获准的 Linux 验收主机上按硬配额手册设置 Bash 数组 `restore_args`，提供本次批准的四项预算、独立验证 socket 和专用 Docker socket。预检通过后开始构建源夹具。[恢复参数与部署条件](restore-quota-verifier.md)
+
+```bash
+node scripts/security/acceptance.mjs --revision "$REVISION" "${restore_args[@]}"
 ```
 
 契约测试入口构建 RuntimeTool，设置 WEBAPI_RUNTIME_TOOL_DLL，独立 tar 源码、随机 owner 的 PostgreSQL/Redis 测试项目。只读使用 NuGet 种子，不清空已有 Redis。
@@ -74,11 +79,11 @@ node scripts/security/acceptance.mjs --revision <本包完整40位固定提交>
 
 浏览器 QA 必须覆盖安全配额编辑、预览、412 冲突、权限撤销、429/503 固定提示；截图不得出现密码、Cookie、API Key 或真实账号。私有 UI fixture 不能提交。审查 receipt 与 UI proof 均绑定同一个 sourceRevision，完成后执行：
 
-```sh
-node scripts/security/acceptance.mjs --finalize <本次owner专属fixture目录>
+```bash
+node scripts/security/acceptance.mjs --finalize "$FIXTURE_DIRECTORY" "${restore_args[@]}"
 ```
 
-该命令仅在所有证据齐全时清理本次资源并写公开 verification。源码回归、不可变镜像安装、实际 UI、4192 安装状态和生产验收分别标记。
+该命令在对应的专用 daemon 核对归属，所有证据齐全后清理本次资源并写公开 verification。已有夹具沿用原 Docker 上下文时仍可使用双参数的 `--finalize <夹具目录>`。源码回归、不可变镜像安装、实际 UI、4192 安装状态和生产验收分别标记。
 
 ## 7. 4192 升级准备与回退
 

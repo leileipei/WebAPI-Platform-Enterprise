@@ -8,5 +8,5 @@ case "$mode" in
  domain|integration|gateway) exec ./scripts/check-contracts.sh "$mode" "$@" ;;
  console) exec ./scripts/check-console.sh "$@" ;;
  e2e|faults|browser|verify) exec "$promotion_node" scripts/delivery/cli.mjs "$mode" "$@" ;;
- *) echo 'Usage: check-promotion.sh domain|integration|gateway|console|e2e|faults|browser|verify [revision or evidence-directory]' >&2; exit 2 ;;
+ *) echo 'Usage: check-promotion.sh domain|integration|gateway|console | e2e|faults|browser <full revision> <restore options> | verify <evidence-directory>' >&2; exit 2 ;;
 esac

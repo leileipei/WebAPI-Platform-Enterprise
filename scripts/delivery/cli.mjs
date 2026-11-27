@@ -1,8 +1,33 @@
-import fs from 'node:fs/promises';import path from 'node:path';import {randomUUID} from 'node:crypto';import {runPromotionScenario} from './promotion-scenario.mjs';import {validatePromotionProof} from './promotion-evidence.mjs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {runPromotionScenario} from './promotion-scenario.mjs';
+import {validatePromotionProof} from './promotion-evidence.mjs';
 import {readScenarioProof} from './scenario-evidence.mjs';
-const mode=process.argv[2],revision=process.argv[3];
-if(mode==='verify'){
- const directory=path.resolve(revision),proof=await readScenarioProof(directory),names=[...Object.keys(proof.build?.applications??{}),proof.backupRestore?.restoredReportPath,...(proof.screenshots??[]).map(s=>s.path)].filter(Boolean),files={};for(const name of names){if(path.isAbsolute(name)||name.split('/').includes('..'))throw Error('Invalid evidence path');files[name]=await fs.readFile(path.join(directory,name));}const result=validatePromotionProof(proof,files);console.log(JSON.stringify(result));if(!result.passed)process.exitCode=1;
-}else if(['e2e','faults','browser'].includes(mode)){
- const project='webapi-enterprise-local-test-'+randomUUID();try{await runPromotionScenario({sourceRevision:revision,directory:path.resolve('.runtime/tests/'+project),browser:true,nodeRuntime:process.env.WEBAPI_NODE_RUNTIME??'/Users/leo.cui/.cache/codex-runtimes/codex-primary-runtime/dependencies/node',chromiumExecutable:process.env.WEBAPI_CHROMIUM_EXECUTABLE??'/Users/leo.cui/Library/Caches/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-mac-arm64/chrome-headless-shell'});}catch(e){console.error(e.stack);process.exitCode=1;}
-}else throw Error('Unknown promotion check mode');
+import {runDeliveryCli} from './scenario-cli.mjs';
+
+async function verifyPromotionDirectory(directory){
+ const proof=await readScenarioProof(directory),files={};
+ const names=[...Object.keys(proof.build?.applications??{}),proof.backupRestore?.restoredReportPath,...(proof.screenshots??[]).map(s=>s.path)];
+ for(const name of names.filter(Boolean)){
+  if(path.isAbsolute(name)||name.split('/').includes('..'))throw Error('Invalid evidence path');
+  files[name]=await fs.readFile(path.join(directory,name));
+ }
+ return validatePromotionProof(proof,files);
+}
+
+export function promotionCli(args,deps={}){
+ return runDeliveryCli(args,{
+  verifyDirectory:deps.verifyDirectory??verifyPromotionDirectory,configureStorage:deps.configureStorage
+ },options=>(deps.runAcceptance??runPromotionScenario)({...options,browser:true}));
+}
+
+if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
+ try{
+  const result=await promotionCli(process.argv.slice(2));
+  if(process.argv[2]==='verify'){
+   console.log(JSON.stringify(result));
+   if(!result.passed)process.exitCode=1;
+  }
+ }catch(error){console.error(error.stack);process.exitCode=1;}
+}

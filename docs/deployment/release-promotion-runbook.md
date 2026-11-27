@@ -26,7 +26,7 @@
 
 ## 备份、恢复与升级
 
-当前平台恢复须提供 restoreBudget 四项正安全整数预算与真实硬配额 storageVerifier；默认工具无真实集成，缺失会阻断。目录、动态卷范围和迁移证据保留条件见[运行与恢复手册](local-runtime-runbook.md)。以下是维护范围要求，不代表当前恢复入口已可直接执行。
+平台冷恢复须提供四项正安全整数预算，并由独立硬配额验证服务实时核对目标。专用验收命令在创建夹具前验证两个 socket、目标身份、硬配额及容量。目录、动态卷范围和迁移证据保留条件见[运行与恢复手册](local-runtime-runbook.md)。
 
 维护升级先确认当前固定镜像和原数据，再冷备 PostgreSQL、受控报告、LKG、观测历史与私有配置卷。原 SSO、登录保护、缓存和通知凭证保持原值。数据库、报告文件及摘要关联必须一起恢复到新的隔离项目并实际登录下载核对，不以有压缩包代替恢复验证。
 
@@ -38,7 +38,7 @@
 
 配置 `WEBAPI_NODE` 和 `WEBAPI_PNPM` 为本机已安装运行时；浏览器验收还需 `WEBAPI_NODE_RUNTIME`、`WEBAPI_CHROMIUM_EXECUTABLE`。`scripts/check-promotion.sh domain|integration|gateway|console` 执行各回归。默认 Docker 网络池已满时，先核对空闲网段，再明确指定工具允许的私有 `WEBAPI_CONTRACT_TEST_SUBNET=10.251.x.0/24`（x 为 0–255 的整数），工具保留原默认且由 Docker 拒绝重叠，不清理他人的网络。
 
-`e2e|faults|browser <完整固定SHA>` 指向同一个双环境场景，设计范围包含真实浏览器、故障与受控报告冷备恢复。当前 [CLI](../../scripts/delivery/cli.mjs) 未传恢复预算/验证器，[场景入口](../../scripts/delivery/promotion-scenario.mjs)在启动工作前要求这些集成，因而包装命令目前会被阻断，不能作为可直接完成的验收步骤。固定源码构建与摘要、人工逐张1440/1280截图检查仍是资格要求。当前场景结束会保留源夹具及恢复副本供复核，将业务执行通过单独记录为 executionPassed，并保持 isolatedAcceptance=false、阶段 awaiting-retained-fixture-review；不能以进程成功代替最终验收。`verify <证据目录>` 校验已提供材料中的摘要、节点/请求/身份/验证/恢复与清理或受控证据保留记录，不代替真实配额集成、现场复核或清理。历史已封存的通过结果保留原版本身份。
+`scripts/check-promotion.sh e2e|faults|browser <完整固定SHA> <恢复参数>` 三个模式运行同一个双环境场景，覆盖浏览器、故障与受控报告冷备恢复。四项预算、独立验证服务 socket 和专用 Docker socket 均须显式提供。场景结束会保留源夹具及恢复副本供复核，业务执行通过单独记为 `executionPassed`。固定源码构建与摘要、人工逐张 1440/1280 截图检查仍是资格要求。审查前 `isolatedAcceptance=false`，阶段为 `awaiting-retained-fixture-review`。`verify <证据目录>` 独立读取已有材料，核对摘要、节点、请求、身份、恢复及资源保留记录。历史已封存的结果保留原版本身份。[命令与硬配额接入条件](restore-quota-verifier.md)
 
 隔离项目使用合成业务、验收账号和人工证据登记；本机 TLS 使用单独证书和代理。这能验证软件行为，不能替代企业 DNS/TLS/LB、企业上游、生产容量或 HA 验收。`sourceVerified`、`isolatedAcceptance`、`localInstalled`、`productionAcceptance` 分别记录，原4192实际升级并复验后才标本机已安装。
 

@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';import path from 'node:path';import assert from 'node:assert/strict';import {randomUUID,randomBytes,createHash} from 'node:crypto';import {fileURLToPath} from 'node:url';import {execFile} from 'node:child_process';import {promisify} from 'node:util';
-import {buildRelease} from '../runtime/build.mjs';import {initializeRuntime,operateRuntime,loadRelease} from '../runtime/lifecycle.mjs';import {prepareContext} from '../runtime/context.mjs';import {loadState,writePrivate,safeFile} from '../runtime/state.mjs';import {inspectResources,assertOwnership} from '../runtime/docker.mjs';import {freePorts,cleanupFixture} from '../runtime/acceptance.mjs';import {prepareScenario,until} from '../runtime/acceptance-scenario.mjs';import {coldBackup,restoreColdBackup} from '../runtime/acceptance-backup.mjs';import {resolveOwnedConsoleProxy,synchronizeConsoleProxyTrust} from './proxy-trust.mjs';import {getRuntimeStatus} from '../runtime/status.mjs';import {LocalClient} from '../local-client.mjs';import {validateFixture} from '../runtime/fixture-guard.mjs';
+import {buildRelease} from '../runtime/build.mjs';import {initializeRuntime,operateRuntime,loadRelease} from '../runtime/lifecycle.mjs';import {prepareContext} from '../runtime/context.mjs';import {loadState,writePrivate,safeFile} from '../runtime/state.mjs';import {inspectResources,assertOwnership,isLocalDockerEndpointBound} from '../runtime/docker.mjs';import {freePorts,cleanupFixture} from '../runtime/acceptance.mjs';import {prepareScenario,until} from '../runtime/acceptance-scenario.mjs';import {coldBackup,restoreColdBackup} from '../runtime/acceptance-backup.mjs';import {resolveOwnedConsoleProxy,synchronizeConsoleProxyTrust} from './proxy-trust.mjs';import {getRuntimeStatus} from '../runtime/status.mjs';import {LocalClient} from '../local-client.mjs';import {validateFixture} from '../runtime/fixture-guard.mjs';
 import {requireRestoreIntegration} from '../runtime/restore-storage-budget.mjs';
+import {withRestoreCliStorage} from '../runtime/restore-cli.mjs';
 const exec=promisify(execFile),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function finalizeSecurityAcceptance(proof){const required=['sharedBudget','audit','redisFailure','proxyRecreation','headerBoundary','backupRestore'];const missing=required.filter(k=>proof.checks?.[k]!==true);if(!/^[a-f0-9]{40}$/.test(proof.sourceRevision??''))missing.push('sourceRevision');if(!/^sha256:[a-f0-9]{64}$/.test(proof.imageId??''))missing.push('imageId');if(!proof.ui?.verified)missing.push('ui');if(!proof.review?.verified)missing.push('review');return{...proof,complete:missing.length===0,missing};}
 class AuthProbe{
@@ -20,6 +21,7 @@ export async function runSecurityAcceptance({revision,restoreBudget,storageVerif
  const definition=JSON.parse((await exec('git',['show',revision+':deploy/compose.runtime.yml'])).stdout);if(!definition.services?.['control-plane']?.environment?.Authentication__LoginProtection__HmacSecretFile)throw Error('Revision does not contain login protection deployment support.');
  const buildDirectory=path.resolve('.runtime/security-build/'+revision);const release=await buildRelease({revision,directory:buildDirectory,nugetSeedVolume:'webapi-enterprise-core-test_nuget-test'});
  const projectName='webapi-enterprise-local-test-'+randomUUID(),directory=path.resolve('.runtime/tests/'+projectName);let ctx;const proof={complete:false,sourceRevision:release.sourceRevision,imageId:release.imageId,projectName,checks:{},ui:{verified:false},review:{verified:false},classification:'isolated-local-security-acceptance',limitations:['Production TLS, real ingress proxies and enterprise infrastructure are not accepted here.']};
+ proof.dedicatedDocker=isLocalDockerEndpointBound();
  try{
   const state=await initializeRuntime({directory,projectName,ports:await freePorts(),bootstrapUsername:'security-qa-admin',releaseFile:path.join(buildDirectory,'release.json')});
   const scenario=await prepareScenario(directory,state,prepareContext);ctx=await prepareContext(directory,scenario.state,release);const published=await scenario.publish();assert.equal(published.state,'Succeeded');const credential=await fs.readFile(path.join(directory,'credential'),'utf8');await headerBoundary(scenario.state,credential);proof.checks.headerBoundary=true;
@@ -34,5 +36,47 @@ export async function runSecurityAcceptance({revision,restoreBudget,storageVerif
   await writePrivate(path.join(directory,'security-ui-fixture.json'),{sourceRevision:release.sourceRevision,consoleUrl:scenario.endpoint,username:scenario.state.bootstrapUsername,password:scenario.password,throttleUsername:user.username,faultUsername:faultUser.username});await persistProof(directory,proof);return{...finalizeSecurityAcceptance(proof),directory,consoleUrl:scenario.endpoint,retainedForUi:true};
  }catch(error){if(ctx)await persistProof(directory,{...proof,error:'Acceptance stage failed; inspect owned fixture logs.'});throw Object.assign(new Error('Security acceptance failed; owned fixture retained: '+projectName),{cause:error});}
 }
-async function finalizeDirectory(directory){const state=await loadState(directory);validateFixture(state.projectName,directory);const file=path.join(directory,'security-proof.json');await safeFile(file);const proof=JSON.parse(await fs.readFile(file,'utf8'));assert.equal(proof.projectName,state.projectName);const ui=JSON.parse(await fs.readFile(path.join(directory,'ui-proof.json'),'utf8')),review=JSON.parse(await fs.readFile(path.join(directory,'source-review.json'),'utf8'));assert.equal(ui.sourceRevision,proof.sourceRevision);assert.equal(review.sourceRevision,proof.sourceRevision);const result=finalizeSecurityAcceptance({...proof,ui,review});if(!result.complete)throw Error('Security acceptance evidence incomplete: '+result.missing.join(','));assertOwnership(state,await inspectResources(state));const release=await loadRelease(path.join(directory,'release.json'));result.cleanup=await cleanupFixture(directory,release);await fs.mkdir('docs/evidence/security-hardening',{recursive:true});await fs.writeFile('docs/evidence/security-hardening/verification.json',JSON.stringify(result,null,2)+'\n');return result;}
-if(process.argv[1]===fileURLToPath(import.meta.url)){try{const args=process.argv.slice(2);if(args[0]==='--finalize'&&args.length===2){const result=await finalizeDirectory(path.resolve(args[1]));console.log('Security acceptance complete='+result.complete);}else if(args[0]==='--revision'&&args.length===2){const result=await runSecurityAcceptance({revision:args[1]});console.log(JSON.stringify({complete:result.complete,sourceRevision:result.sourceRevision,directory:result.directory,consoleUrl:result.consoleUrl,missing:result.missing}));}else throw Error('Usage: acceptance.mjs --revision <full commit> | --finalize <owned fixture directory>');}catch(error){console.error(error.message);process.exitCode=1;}}
+async function finalizeDirectory(directory){
+ const state=await loadState(directory);
+ validateFixture(state.projectName,directory);
+ const file=path.join(directory,'security-proof.json');
+ await safeFile(file);
+ const proof=JSON.parse(await fs.readFile(file,'utf8'));
+ assert.equal(proof.projectName,state.projectName);
+ if(proof.dedicatedDocker&&!isLocalDockerEndpointBound())throw Error('Security review requires the original dedicated Docker restore options.');
+ const ui=JSON.parse(await fs.readFile(path.join(directory,'ui-proof.json'),'utf8'));
+ const review=JSON.parse(await fs.readFile(path.join(directory,'source-review.json'),'utf8'));
+ assert.equal(ui.sourceRevision,proof.sourceRevision);
+ assert.equal(review.sourceRevision,proof.sourceRevision);
+ const result=finalizeSecurityAcceptance({...proof,ui,review});
+ if(!result.complete)throw Error('Security acceptance evidence incomplete: '+result.missing.join(','));
+ const resources=await inspectResources(state);
+ assertOwnership(state,resources);
+ if(!resources.some(r=>r.Kind==='container'&&r.Config?.Labels?.['com.docker.compose.service']==='control-plane'&&r.Image===proof.imageId))
+  throw Error('Security acceptance control plane identity is unverified on the selected Docker daemon.');
+ const release=await loadRelease(path.join(directory,'release.json'));
+ result.cleanup=await cleanupFixture(directory,release);
+ await fs.mkdir('docs/evidence/security-hardening',{recursive:true});
+ await fs.writeFile('docs/evidence/security-hardening/verification.json',JSON.stringify(result,null,2)+'\n');
+ return result;
+}
+export async function securityAcceptanceCli(args,deps={}){
+ const [mode,value,...flags]=args;
+ if(mode==='--finalize'&&value){
+  const finalize=()=>(deps.finalizeDirectory??finalizeDirectory)(path.resolve(value));
+  return flags.length?withRestoreCliStorage(flags,finalize,{configureStorage:deps.configureStorage}):finalize();
+ }
+ if(mode!=='--revision'||!/^[a-f0-9]{40}$/.test(value??''))
+  throw Error('Usage: acceptance.mjs --revision <full commit> <restore options> | --finalize <owned fixture directory> [restore options]');
+ return withRestoreCliStorage(flags,storage=>(deps.runAcceptance??runSecurityAcceptance)({revision:value,...storage}),{
+  configureStorage:deps.configureStorage
+ });
+}
+
+if(process.argv[1]===fileURLToPath(import.meta.url)){
+ try{
+  const result=await securityAcceptanceCli(process.argv.slice(2));
+  if(process.argv[2]==='--finalize')console.log('Security acceptance complete='+result.complete);
+  else console.log(JSON.stringify({complete:result.complete,sourceRevision:result.sourceRevision,directory:result.directory,consoleUrl:result.consoleUrl,missing:result.missing}));
+ }catch(error){console.error(error.message);process.exitCode=1;}
+}

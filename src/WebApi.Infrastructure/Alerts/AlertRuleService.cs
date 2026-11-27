@@ -98,7 +98,7 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
         var r=Validate(input);var environments=await scopes.ResolveForActorAsync(actor,r,ct);var expression=AlertExpressionParser.Parse(r.Metric,r.Expression);var matches=new List<MetricGroupDto>();var conditions=new List<bool?>();var end=DateTimeOffset.UtcNow.AddSeconds(-30);var range=new TimeRange(end.AddSeconds(-r.WindowSeconds),end);
         foreach(var environment in environments)
         {
-            var trusted=await scopes.ObservationAsync(r.OrganizationId,environment,ct,end);
+            var trusted = await scopes.ObservationAsync(r.OrganizationId, environment, range, ct);
             ObservationEnvelope<MetricsDto> value;
             try{value=await source.QueryAsync(trusted,range,new(r.TargetType=="Api"?r.TargetId:null,null,r.TargetType=="Destination"?r.TargetId:null),ct);}
             catch(ApiException error)when(error.Status==503)

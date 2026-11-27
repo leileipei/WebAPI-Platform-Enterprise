@@ -10,6 +10,7 @@ using Microsoft.Extensions.Http;
 using WebApi.Contracts.Alerts;
 using WebApi.Contracts.Catalog;
 using WebApi.Contracts.Gateway;
+using WebApi.Contracts.Observability;
 using WebApi.Infrastructure.Alerts;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Integration.Tests.Support;
@@ -247,6 +248,82 @@ public sealed class AlertEvaluationTests
         await CheckEvent("Open", "Known", 1);
         await deployment.AckAsync(1, envelope);
         await CheckEvent("Resolved", "Known", 2);
+    }
+
+    [Fact]
+    public async Task TrafficRulesIncludeADeletedDestinationUntilItsRequestsLeaveTheWindow()
+    {
+        var handler = new AlertClockedMetricHandler();
+        await using var deployment = new DeploymentScenario();
+        await deployment.InitializeAsync(builder => ConfigureEvaluator(builder, handler));
+        var f = deployment.Api;
+        await ObservationTestSupport.GrantAsync(f, ["alert.rule.manage", "metrics.read"]);
+        using var added = await f.WriteAsync(HttpMethod.Post, $"/api/v1/clusters/{f.Cluster.Id}/destinations",
+            new SaveDestinationRequest("replica", "http://test-backend:8080/replica"));
+        added.EnsureSuccessStatusCode();
+        var target = (await added.Content.ReadFromJsonAsync<DestinationDto>())!;
+        var source = handler.Inner;
+        source.EnvironmentId = f.Environment.Id;
+        source.ApiId = f.Api.Id;
+        source.ApplicationId = f.Application.Id;
+        source.ClusterId = f.Cluster.Id;
+        source.DestinationId = target.Id;
+        source.ForeignEnvironmentId = Guid.NewGuid();
+        source.ExtraApiTraffic = [(Guid.NewGuid(), 1000, null)];
+        await deployment.PublishAsync();
+
+        var rule = new SaveAlertRuleRequest(f.Organization.Id, f.Project.Id, f.Environment.Id, "Traffic",
+            "request_rps", "request_rps > 0.01", "Warning", true, 0, "Environment", null, 3600, new(true, []));
+        using var saved = await f.WriteAsync(HttpMethod.Post, "/api/v1/observability/alert-rules", rule);
+        saved.EnsureSuccessStatusCode();
+        Assert.True(await Evaluate(f, await Next(f)));
+        await using var db = f.Context();
+        var open = await db.Set<AlertEvent>().AsNoTracking().SingleAsync();
+        Assert.Equal("Open", open.Status);
+
+        using var deleted = await f.WriteAsync(HttpMethod.Delete, $"/api/v1/destinations/{target.Id}", etag: added.Headers.ETag!.ToString());
+        deleted.EnsureSuccessStatusCode();
+        await deployment.PublishAsync();
+        var retiredAt = DateTimeOffset.UtcNow;
+        Assert.True(await Evaluate(f, await Next(f)));
+        var current = await db.Set<AlertEvent>().AsNoTracking().SingleAsync();
+        Assert.Equal(open.Id, current.Id);
+        Assert.Equal("Open", current.Status);
+        Assert.True(current.LastCondition);
+        Assert.Equal(1, await db.Set<AlertEventTransition>().CountAsync());
+
+        // The read-only endpoint queries 30 seconds behind real time. Its window must end after both removal ACKs.
+        await Task.Delay(TimeSpan.FromSeconds(31));
+        foreach (var definition in new[] { rule, rule with { TargetType = "Api", TargetId = f.Api.Id } })
+        {
+            using var test = await f.WriteAsync(HttpMethod.Post, "/api/v1/observability/alert-rules/test", definition);
+            test.EnsureSuccessStatusCode();
+            var result = (await test.Content.ReadFromJsonAsync<RuleTestDto>())!;
+            var tested = Assert.Single(Assert.Single(result.Matches).Values);
+            var end = source.End;
+            var start = end.AddSeconds(-definition.WindowSeconds);
+            Assert.InRange(retiredAt, start, end);
+            var apiFilter = definition.TargetId is Guid api ? $"&apiId={api}" : "";
+            using var metrics = await f.Client.GetAsync($"/api/v1/observability/metrics?organizationId={f.Organization.Id}&projectId={f.Project.Id}" +
+                $"&environmentId={f.Environment.Id}&start={Uri.EscapeDataString(start.ToString("O"))}&end={Uri.EscapeDataString(end.ToString("O"))}{apiFilter}");
+            metrics.EnsureSuccessStatusCode();
+            var observed = (await metrics.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+            var actual = Assert.Single(observed.Data!.Kpis, kpi => kpi.Metric == rule.Metric);
+            Assert.True(observed.Coverage.Complete);
+            Assert.Equal(200, actual.SampleCount);
+            Assert.Equal(200d / rule.WindowSeconds, actual.Value);
+            Assert.Equal(actual.Value, current.LastValue);
+            Assert.Equal(actual, tested);
+            Assert.Equal("Known", result.EvaluationState);
+            Assert.True(result.Condition);
+        }
+
+        source.ResetWindow = true;
+        Assert.True(await Evaluate(f, await Next(f)));
+        var recovered = await db.Set<AlertEvent>().AsNoTracking().SingleAsync();
+        Assert.Equal(open.Id, recovered.Id);
+        Assert.Equal("Recovered", recovered.ResolveReason);
+        Assert.Equal(2, await db.Set<AlertEventTransition>().CountAsync());
     }
 
     [Fact]

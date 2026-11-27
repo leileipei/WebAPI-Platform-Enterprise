@@ -1,7 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import {randomUUID,createHash} from 'node:crypto';
 import {initializeRuntime,operateRuntime} from '../../../scripts/runtime/lifecycle.mjs';import {prepareContext} from '../../../scripts/runtime/context.mjs';import {inspectResources,assertOwnership} from '../../../scripts/runtime/docker.mjs';import {freePorts} from '../../../scripts/runtime/acceptance.mjs';import {getRuntimeStatus} from '../../../scripts/runtime/status.mjs';import {resolveOwnedConsoleProxy,synchronizeConsoleProxyTrust} from '../../../scripts/security/proxy-trust.mjs';
+import {localReleaseFile} from './fixture.mjs';
 test('actual immutable Console recreation requires exact proxy registration without secret rotation',async()=>{
- const projectName='webapi-enterprise-local-test-'+randomUUID(),directory=path.resolve('.runtime/tests/'+projectName),releaseFile=path.resolve(process.env.WEBAPI_SECURITY_RELEASE_FILE??'.runtime/security-build/release.json');let ctx,passed=false;
+ const projectName='webapi-enterprise-local-test-'+randomUUID(),directory=path.resolve('.runtime/tests/'+projectName),releaseFile=path.resolve(process.env.WEBAPI_SECURITY_RELEASE_FILE??localReleaseFile);let ctx,passed=false;
  try{
   const state=await initializeRuntime({directory,projectName,ports:await freePorts(),bootstrapUsername:'security-proxy-fixture',releaseFile});
   const release=JSON.parse(await fs.readFile(releaseFile,'utf8'));ctx=await prepareContext(directory,state,release);assert.equal(ctx.securitySupported,true);

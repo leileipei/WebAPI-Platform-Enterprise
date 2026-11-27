@@ -52,15 +52,38 @@ static MigrationEvidenceArchiveInspection InspectionFromVerifiedDigest()
     return new MigrationEvidenceArchiveInspection(attempts, pending, hash);
 }
 
+const string usage = """
+    Usage: WebApi.Migrator [--bootstrap] [--seed-catalog]
+           WebApi.Migrator --run-sql
+           WebApi.Migrator --inspect-evidence-archive | --inspect-evidence-archive-stdin
+           WebApi.Migrator --verify-evidence-restore | --verify-evidence-restore-digest
+           WebApi.Migrator --help | -h
+
+    With no arguments, run the managed migration. Bootstrap and catalog seeding run after it.
+    """;
+if (args is ["--help" or "-h"])
+{
+    Console.WriteLine(usage);
+    return;
+}
+var managed = args.All(arg => arg is "--bootstrap" or "--seed-catalog")
+    && args.Distinct(StringComparer.Ordinal).Count() == args.Length;
+var sqlMode = args is ["--run-sql"];
+var inspectArchive = args is ["--inspect-evidence-archive"];
+var inspectStream = args is ["--inspect-evidence-archive-stdin"];
+var verifyRestore = args is ["--verify-evidence-restore"];
+var verifyDigest = args is ["--verify-evidence-restore-digest"];
+if (!(managed || sqlMode || inspectArchive || inspectStream || verifyRestore || verifyDigest))
+{
+    Console.Error.WriteLine(usage);
+    Environment.ExitCode = 2;
+    return;
+}
+
 try
 {
-    var inspectArchive = args.Contains("--inspect-evidence-archive", StringComparer.Ordinal);
-    var inspectStream = args.Contains("--inspect-evidence-archive-stdin", StringComparer.Ordinal);
-    var verifyRestore = args.Contains("--verify-evidence-restore", StringComparer.Ordinal);
-    var verifyDigest = args.Contains("--verify-evidence-restore-digest", StringComparer.Ordinal);
     if (inspectArchive || inspectStream || verifyRestore || verifyDigest)
     {
-        if (args.Length != 1) throw new InvalidOperationException("migration_evidence_archive_configuration_invalid");
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
         var inspected = verifyDigest ? InspectionFromVerifiedDigest() : inspectStream
             ? await InspectArchiveFromStandardInputAsync(deadline.Token) : await InspectArchiveFromEnvironmentAsync(deadline.Token);
@@ -79,11 +102,8 @@ try
         }
         return;
     }
-    var sqlMode = args.Contains("--run-sql", StringComparer.Ordinal);
     var bootstrapRequested = args.Contains("--bootstrap", StringComparer.Ordinal);
     var seedRequested = args.Contains("--seed-catalog", StringComparer.Ordinal);
-    if (sqlMode && (bootstrapRequested || seedRequested))
-        throw new InvalidOperationException("migration_sql_post_actions_not_supported");
     var journal = new MigrationEvidenceJournal(MigrationEvidenceOptions.FromEnvironment());
     MigrationAttemptResult result;
     if (sqlMode)
