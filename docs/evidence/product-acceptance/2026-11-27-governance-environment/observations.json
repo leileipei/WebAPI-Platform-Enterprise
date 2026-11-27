@@ -1,0 +1,87 @@
+{
+  "product": "af78d70b882bfb40eb1289a241e6a625fcb54896",
+  "sourceManifest": "7e2c1e6bda63e2890573cd8369f40a46c536a1ab2b5a21df62ea974e5a8332e0",
+  "startedWithEmptyDatabase": true,
+  "owner": "03162cc4-ac90-4250-8659-4a6e66a2758f",
+  "api": "real",
+  "checks": [
+    {
+      "id": "P01-C05",
+      "version": "0.1.0",
+      "deployment": "Development"
+    },
+    {
+      "id": "D18",
+      "role": "organization",
+      "createEnabled": false,
+      "ownSaveStatus": 200,
+      "editLayout": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "drawer": {
+          "x": 908,
+          "y": 0,
+          "width": 532,
+          "height": 900
+        }
+      }
+    },
+    {
+      "id": "P05-A03",
+      "emptyEnvironment": "6d4b3e4e-ac0f-4d53-8206-f2e852ebd96c",
+      "viewEnvironment": "b128ef1a-6c47-45de-9fd2-7e35a31b5511",
+      "version": 7,
+      "sequence": 12,
+      "mode": "ManagementViewNotRuntimePayload"
+    },
+    {
+      "id": "P05-C04",
+      "environment": "b128ef1a-6c47-45de-9fd2-7e35a31b5511",
+      "node": "aab1450a-8ca1-4ef4-ad2a-4d51a6a2c5b3",
+      "statusAfterUpdate": false,
+      "http": 200
+    },
+    {
+      "id": "P03-C02",
+      "createLayout": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "drawer": {
+          "x": 908,
+          "y": 0,
+          "width": 532,
+          "height": 900
+        }
+      },
+      "platformCreate": 200,
+      "editLayout": {
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "drawer": {
+          "x": 908,
+          "y": 0,
+          "width": 532,
+          "height": 900
+        }
+      }
+    }
+  ],
+  "screenshots": {
+    "login.png": "c2936c8025c76e7969c984d974b2e1f0602745deb8040c2d7c6c32bc48794b0a",
+    "organization-edit.png": "e4b49921f28574aa0e99bea6f893332ac06c999062466ac1d7d29c407dabd37b",
+    "environment-current.png": "a23b02c2786073c50592998ceac46fd210b70679f1c2db789d609f2f69c667bb",
+    "environment-bindings.png": "832fabd132b9566536d622efdd8db6c9f9e9084234f9d16c289bf701dddae767",
+    "organization-create.png": "9ebb5907fa2a0a58824ca8205d209edd73ad55ddd789820a7438d2bb5dbe06ca"
+  },
+  "staticFiles": {
+    "assets/index-BdvWQQI_.js": "d24ccae7d6e8671a71555f17e3c3006c5e197f638c25f525f09c418c0613acc0",
+    "assets/index-CYO-JoYa.css": "288602f5fe3d9ec945df26247b164d50e9f0f7f351f8ae6406ab2c6e806abaeb",
+    "index.html": "376f5730d19bbc810abd2c740061ca661b04c1384e5f354582e00b73fa5b0ee0"
+  }
+}
