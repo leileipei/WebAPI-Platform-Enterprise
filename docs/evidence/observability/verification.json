@@ -1,5 +1,5 @@
 {
-  "complete": false,
+  "complete": true,
   "project": "webapi-enterprise-e2e-observability-5d385261-cf4a-4bc1-8dcc-0c38c880462b",
   "sourceRevision": "a9f7c19871eef83a50e3f43a17d2027b393bf92a",
   "startedAt": "2026-11-27T08:06:26.455Z",
@@ -68,9 +68,15 @@
     },
     "realLossProof": "final-loss-live.json",
     "permissionProof": "final-permission-browser.json",
-    "pending": [
-      "immutable archive verification"
-    ]
+    "pending": []
   },
-  "nativeRunSha256": "7a17720d5543a71fbf37846c4413c74cf5616b30cd70d26a21c7a11c5e43afa8"
+  "nativeRunSha256": "7a17720d5543a71fbf37846c4413c74cf5616b30cd70d26a21c7a11c5e43afa8",
+  "archiveGate": {
+    "verified": true,
+    "productSourceRevision": "a9f7c19871eef83a50e3f43a17d2027b393bf92a",
+    "provisionalSourceRevision": "a9f7c19871eef83a50e3f43a17d2027b393bf92a",
+    "provisionalEvidenceRevision": "a78b100f7c0e64da97ca6281fe94671b335f9bfd",
+    "provisionalSha256": "848f65f71f7b0a2f12fb2fa0882d67c0efbf8e058183588238272c53a62a65cd",
+    "files": 4880
+  }
 }
