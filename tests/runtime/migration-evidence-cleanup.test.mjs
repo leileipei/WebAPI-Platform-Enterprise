@@ -1,13 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {cleanupFixture,validateAcceptance} from '../../scripts/runtime/acceptance.mjs';
 
+const parent=await fs.mkdtemp(path.join(await fs.realpath(tmpdir()),'webapi-evidence-cleanup-'));
+
 test('evidence-enabled acceptance stops only its containers and retains every volume and directory',async()=>{
  const projectName='webapi-enterprise-local-test-'+randomUUID(),ownerId=randomUUID();
- const directory=path.resolve('.superpowers/sdd/2026-11-04-migration-budget-trace/cleanup-fixtures',projectName);
+ const directory=path.join(parent,projectName);
  await fs.mkdir(path.join(directory,'secrets'),{recursive:true,mode:0o700});await fs.writeFile(path.join(directory,'secrets','synthetic'),'retained',{mode:0o600});
  console.log('retained-cleanup-fixture='+directory);
  const state={projectName,ownerId},labels={'com.docker.compose.project':projectName,'com.webapi.runtime.owner':ownerId};
@@ -23,7 +26,7 @@ test('evidence-enabled acceptance stops only its containers and retains every vo
 });
 
 test('an evidence-enabled fixture with a missing volume is preserved and never removed',async()=>{
- const projectName='webapi-enterprise-local-test-'+randomUUID(),ownerId=randomUUID(),directory=path.resolve('.superpowers/sdd/2026-11-04-migration-budget-trace/cleanup-fixtures',projectName),calls=[];
+ const projectName='webapi-enterprise-local-test-'+randomUUID(),ownerId=randomUUID(),directory=path.join(parent,projectName),calls=[];
  await fs.mkdir(directory,{recursive:true,mode:0o700});console.log('retained-cleanup-fixture='+directory);
  await assert.rejects(cleanupFixture(directory,null,{loadState:async()=>({projectName,ownerId}),inspectResources:async()=>[],loadRelease:async()=>({}),
   prepareContext:async()=>({migrationEvidenceSupported:true,compose:async(...args)=>calls.push(args)})}),/evidence|missing/i);
