@@ -1,14 +1,14 @@
 {
   "schemaVersion": 3,
-  "file": "WebAPI_Enterprise_可观测与告警源码及验收-19ce5c54283290399f16802f40a38b9fe31313268d3caa6e25b80ca24596c596.zip",
-  "sourceRevision": "c4dbabd9269f057f9ba55a28a078ac7a1b9e2e21",
+  "file": "WebAPI_Enterprise_可观测与告警源码及验收-b381350f64456ab1dce1b54e6014c966bcb9169c69be3eae6138e5aec89fa0b6.zip",
+  "sourceRevision": "334d053dfaa71273d8b95f38cebb9bf2f208fd2e",
   "acceptanceEvidence": {
-    "revision": "c4dbabd9269f057f9ba55a28a078ac7a1b9e2e21",
-    "receiptRevision": "c4dbabd9269f057f9ba55a28a078ac7a1b9e2e21",
+    "revision": "334d053dfaa71273d8b95f38cebb9bf2f208fd2e",
+    "receiptRevision": "334d053dfaa71273d8b95f38cebb9bf2f208fd2e",
     "testedSourceRevision": "abe59a91b638e31b095a18e9e463512ebbf67401",
     "path": "docs/evidence/observability/verification.json",
     "archivePath": "enterprise/docs/evidence/observability/verification.json",
-    "sha256": "3dfbf4b48161a9291f3339c1b8b24574c2347bd9c69c06001a69337adb321181",
+    "sha256": "9e1d243b1177ac443f65ad742466a2825cac45f98cd914eb1ff2e5e0727359d6",
     "status": "complete",
     "references": {
       "docs/evidence/observability/loop.json": {
@@ -45,7 +45,7 @@
       },
       "docs/evidence/observability/final-review.md": {
         "archivePath": "enterprise/docs/evidence/observability/final-review.md",
-        "sha256": "2f42ba4109657d94e35b33d0635f8ab5190cc7e6b2a14e5c3bde006bef2087e3"
+        "sha256": "90d9753235194128e9eea0a590f1da120c29f2059563af801fe67b81569cbdf4"
       },
       "docs/evidence/observability/ui/abe59a9-28-real-source.png": {
         "archivePath": "enterprise/docs/evidence/observability/ui/abe59a9-28-real-source.png",
@@ -94,7 +94,7 @@
     }
   },
   "acceptanceComplete": true,
-  "sha256": "19ce5c54283290399f16802f40a38b9fe31313268d3caa6e25b80ca24596c596",
+  "sha256": "b381350f64456ab1dce1b54e6014c966bcb9169c69be3eae6138e5aec89fa0b6",
   "files": 4857,
   "secretsExcluded": true,
   "archiveIntegrityVerified": true,
