@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Infrastructure.Gateway;
 using WebApi.Domain.Policies;
 using WebApi.Contracts.Common;
+using WebApi.Contracts.Gateway;
 using WebApi.Contracts.Releases;
 using WebApi.Contracts.Security;
 using WebApi.Infrastructure.Commands;
@@ -13,6 +14,21 @@ namespace WebApi.Infrastructure.Releases;
 public sealed class RollbackService(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,HistoricalSnapshotService history,PublishSettings publishSettings,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution,ReleaseCandidateBuilder candidates,SnapshotCompiler compiler)
 {
     private readonly GovernedRollbackCandidate governedRollback = new(history, candidates, compiler);
+
+    public async Task<SnapshotRollbackSource?> CurrentSourceAsync(Guid env,ActorContext actor,CancellationToken ct)
+    {
+        var scope=await scopes.EnvironmentAsync(env,ct);
+        if(!await auth.CanAsync(actor,"gateway.config.read",new("environment",env,scope),ct))throw ScopeResolver.Missing();
+        var source=await (from e in db.Set<EnvironmentRecord>() join r in db.Set<ReleaseRecord>() on e.Id equals r.EnvironmentId
+            where e.Id==env && r.DeploymentSequence>0 && r.DeploymentSequence==e.DeploymentSequence && r.ToConfigVersion==e.DesiredConfigVersion
+                && (r.Status=="Succeeded" || r.Status=="Failed")
+                && !db.Set<ReleaseRecord>().Any(active=>active.EnvironmentId==env&&(active.Status=="Building"||active.Status=="Publishing"))
+            select new SnapshotRollbackSource(r.Id,r.ToConfigVersion,e.DeploymentSequence)).SingleOrDefaultAsync(ct);
+        if(source is null||!await auth.CanAsync(actor,"release.rollback",new("release",source.ReleaseId,scope),ct))return null;
+        try{await deliveryExecution.RequireRecoverySourceAccessAsync(source.ReleaseId,actor,ct);}
+        catch(ApiException ex) when(ex.Status==404&&ex.Code=="resource_not_found"){return null;}
+        return source;
+    }
 
     public async Task<ReleaseDto> CreateAsync(Guid originalId,long target,ActorContext actor,CancellationToken ct=default)
     {

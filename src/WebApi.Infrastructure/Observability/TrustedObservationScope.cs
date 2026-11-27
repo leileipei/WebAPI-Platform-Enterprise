@@ -6,6 +6,8 @@ public sealed record TrustedObservationScope(Guid OrganizationId,Guid ProjectId,
     IReadOnlyList<ExpectedObservationNode> ExpectedNodes,IReadOnlyDictionary<Guid,string> ApiNames,
     IReadOnlyDictionary<Guid,ObservationApplication> Applications,IReadOnlyDictionary<Guid,ObservationDestination> Destinations,IReadOnlyDictionary<Guid,IReadOnlySet<Guid>>? PolicyIdsByEnvironment=null)
 {
+    internal DestinationMembership? Membership { get; init; }
+
     internal bool ContainsApplication(Guid environmentId, Guid applicationId) =>
         Applications.TryGetValue(applicationId, out var app) &&
         (app.SharedEnvironmentIds is null || app.SharedEnvironmentIds.Contains(environmentId));

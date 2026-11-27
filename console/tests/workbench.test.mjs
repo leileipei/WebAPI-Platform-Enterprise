@@ -18,7 +18,7 @@ test('workbench uses project API total and current environment 24h metrics with 
 });
 test('workbench checks project API permission independently from environment and skips denied reads',async()=>{
  assert.equal(typeof model.workbenchPlan,'function');assert.equal(typeof model.loadWorkbench,'function');
- const plan=model.workbenchPlan(scope,(code,s)=>code==='api.read'&&!s.environmentId,end);
+ const plan=model.workbenchPlan(scope,(code,s)=>code==='api.read'&&!s?.environmentId,end);
  assert.equal(plan.api.state,'loading');assert.equal(plan.metrics.state,'denied');
  assert.equal(plan.releases.state,'denied');
  const results=[];await model.loadWorkbench(plan,async path=>{assert.equal(path,'/projects/project/apis?page=1&pageSize=1');return {items:[],total:87,page:1,pageSize:1};},new AbortController().signal,(key,result)=>results.push([key,result]));
@@ -26,7 +26,7 @@ test('workbench checks project API permission independently from environment and
 });
 test('no workspace cannot trigger global or empty-id reads',()=>{
  assert.equal(typeof model.workbenchPlan,'function');
- assert.ok(Object.values(model.workbenchPlan({},()=>true,end)).every(x=>x.state==='empty'));
+ const {pending,...scoped}=model.workbenchPlan({},()=>true,end);assert.ok(Object.values(scoped).every(x=>x.state==='empty'));assert.equal(pending.path,'/approvals?view=PendingMine&page=1&pageSize=5');
 });
 let server;after(()=>new Promise(resolve=>server?server.close(resolve):resolve()));
 test('one failing source does not erase successful modules and HTTP access loss clears its data',async()=>{
@@ -49,4 +49,9 @@ test('missing, stale, unavailable and non-finite metrics cannot become healthy-l
  for(const state of ['Unavailable','Stale','NoData','NotApplicable'])assert.equal(model.workbenchMetric({state:'ready',data:{sourceState:state,data:{kpis:[{metric:'success_ratio',value:1,unit:'ratio',state:'Available'}]}}},'success_ratio'),null);
  assert.equal(model.workbenchMetric({state:'ready',data:{sourceState:'Partial',data:{kpis:[{metric:'success_ratio',value:.98,unit:'ratio',state:'Available'}]}}},'success_ratio').value,.98);
  assert.equal(model.workbenchMetric({state:'error'},'success_ratio'),null);
+});
+
+test('the personal queue queries all actionable releases for this actor independently of recent releases',()=>{
+ const plan=model.workbenchPlan(scope,code=>code==='release.read',end);
+ assert.equal(plan.pending?.path,'/approvals?view=PendingMine&page=1&pageSize=5');
 });

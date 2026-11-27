@@ -1,9 +1,8 @@
 import {notificationVolumes} from '../notifications/runtime-secrets.mjs';
 import fs from'node:fs/promises';import path from'node:path';import net from'node:net';import{randomUUID,createHash}from'node:crypto';import{fileURLToPath}from'node:url';import assert from'node:assert/strict';
-import {parseArgs} from 'node:util';
 import{RuntimeError,writePrivate,loadState}from'./state.mjs';import{initializeRuntime,operateRuntime,loadRelease}from'./lifecycle.mjs';import{prepareContext}from'./context.mjs';import{docker,inspectResources,assertOwnership,isLocalDockerEndpointBound}from'./docker.mjs';import{getRuntimeStatus}from'./status.mjs';import{prepareScenario,exerciseScenario,until,pause}from'./acceptance-scenario.mjs';import{coldBackup,restoreColdBackup,dataVolumes}from'./acceptance-backup.mjs';import{LocalClient}from'../local-client.mjs';
-import{requireRestoreIntegration,validateRestoreStorageBudget}from'./restore-storage-budget.mjs';
-import {configureRestoreStorage} from './restore-quota-provider.mjs';
+import{requireRestoreIntegration}from'./restore-storage-budget.mjs';
+import {withRestoreCliStorage} from './restore-cli.mjs';
 import{withRestoreTargetLock,cleanupDirectoryIdentity,assertCleanupDirectoryIdentity,cleanupParentWritable,assertTrustedRestoreParent}from'./restore-target-lock.mjs';
 import{assertRestoreComplete}from'../account-credential/clone-restore.mjs';
 import{scenarioFailure,scenarioFailureMessage,attachScenarioFailure,attachScenarioValue,collectScenarioFailure,describeScenarioFailures,withScenarioHandle}from'./scenario-failure.mjs';
@@ -62,9 +61,10 @@ export async function cleanupFixture(directory,fallbackRelease,deps={}){
 export async function prepareAcceptanceContext(directory,state,release){
  const ctx=await prepareContext(directory,state,release);
  const override=path.join(ctx.directory,'acceptance-override.json');
+ const alerts={Alerts__IntervalSeconds:'2',Alerts__QueryDelaySeconds:'5'};
  const services={
-  worker:{environment:{Alerts__IntervalSeconds:'2',Alerts__QueryDelaySeconds:'5'}},
-  'control-plane':{environment:{Observability__TraceSampleRatio:'1'}}
+  worker:{environment:alerts},
+  'control-plane':{environment:{...alerts,Observability__TraceSampleRatio:'1'}}
  };
  if(ctx.state.binding){
   for(const name of ['gateway-a','gateway-b']){
@@ -89,41 +89,21 @@ export async function runAcceptance({releaseManifest,directory,projectName,brows
   const cookie=[...scenario.admin.cookies].map(([k,v])=>k+'='+v).join('; ');const csrf=await scenario.admin.request('/auth/csrf');for(const headers of[{Cookie:cookie,Origin:scenario.endpoint},{Cookie:cookie,Origin:'https://foreign.invalid','X-CSRF-Token':csrf.token}]){const r=await fetch(scenario.endpoint+'/api/v1/auth/logout',{method:'POST',headers});assert.equal(r.status,403);}for(const node of[0,1])assert.equal((await scenario.request(node)).status,200);const current=await until(()=>getRuntimeStatus(state,{directory}),r=>r.nodes.length===2&&r.nodes.every(n=>n.fresh&&n.currentVersion>0),30);assert.ok(current.nodes.every(n=>prior.nodes.find(p=>p.name===n.name).instanceId!==n.instanceId));
   const historical=await scenario.admin.request('/observability/traces/'+proof.history.traceId+'?'+new URLSearchParams(proof.history.fixedRange));assert.ok(historical.data.spans.length>0);const logs=await scenario.admin.request('/observability/logs?'+new URLSearchParams({...proof.history.fixedRange,traceId:proof.history.traceId}));assert.ok(logs.data.items.some(i=>i.traceId===proof.history.traceId));assert.equal((await scenario.admin.request('/observability/alert-rules/'+proof.history.ruleId)).id,proof.history.ruleId);assert.equal((await scenario.admin.request('/observability/alerts/'+proof.history.eventId)).status,'Resolved');
   await ctx.compose('restart','redis');const nextRelease=await scenario.publish();assert.equal((await getRuntimeStatus(state,{directory})).phase,'Ready');proof.failure.redisPublishRecovered=true;proof.restart={passed:true,sameCookieAfterControlPlaneRecreate:true,csrfAndForeignOriginRejected:true,newInstances:true,currentAckAfterNewApprovedRelease:true,newReleaseId:nextRelease.id,sourceHistoryRetained:true,ruleEventRetained:true};
-  console.log('Acceptance: cold backup and fresh-project restore');const backup=path.join(directory,'backup');await coldBackup(ctx,backup);const restoredProject='webapi-enterprise-local-test-'+randomUUID();restoreDirectory=path.resolve('.runtime/tests/'+restoredProject);validateFixture(restoredProject,restoreDirectory);const restored=await restoreColdBackup({target:backup,projectName:restoredProject,directory:restoreDirectory,ports:await freePorts(),contextFactory,restoreBudget,storageVerifier});if(!restored.restoreComplete)throw Error('Restored migration evidence requires review');await operateRuntime('start',restored.state,{directory:restoreDirectory,prepareContext:contextFactory});const restoredClient=new LocalClient('http://127.0.0.1:'+restored.state.ports.console);await restoredClient.login(state.bootstrapUsername,scenario.password);assert.equal((await restoredClient.request('/environments/'+scenario.scope.environmentId)).id,scenario.scope.environmentId);assert.equal((await restoredClient.request('/observability/alert-rules/'+proof.history.ruleId)).id,proof.history.ruleId);const restoredEvent=await restoredClient.request('/observability/alerts/'+proof.history.eventId);assert.equal(restoredEvent.status,'Resolved');assert.ok(restoredEvent.transitions.some(t=>t.toStatus==='Ack'));const restoredTrace=await restoredClient.request('/observability/traces/'+proof.history.traceId+'?'+new URLSearchParams(proof.history.fixedRange));assert.ok(restoredTrace.data.spans.length>0);const restoredLog=await restoredClient.request('/observability/logs?'+new URLSearchParams({...proof.history.fixedRange,traceId:proof.history.traceId}));assert.ok(restoredLog.data.items.length>0);const credential=await fs.readFile(path.join(directory,'credential'),'utf8');for(const port of[restored.state.ports.gatewayA,restored.state.ports.gatewayB]){await until(async()=>{const r=await fetch('http://127.0.0.1:'+port+'/orders',{headers:{'X-API-Key':credential},signal:AbortSignal.timeout(10000)});await r.arrayBuffer();return r.status;},s=>s===200,30);}proof.backupRestore={passed:true,hashesVerified:restored.hashesVerified,pgLogicalDumpPresent:true,coldVolumesRestored:7,configurationRestored:true,sourceHistoryRestored:true,alertEventRestored:true,dualLkgTrafficRestored:true};proof.restoreCleanup={retainedForReview:true,directory:restoreDirectory};
+  console.log('Acceptance: cold backup and fresh-project restore');const backup=path.join(directory,'backup');await coldBackup(ctx,backup);const restoredProject='webapi-enterprise-local-test-'+randomUUID();restoreDirectory=path.resolve('.runtime/tests/'+restoredProject);validateFixture(restoredProject,restoreDirectory);const restored=await restoreColdBackup({target:backup,projectName:restoredProject,directory:restoreDirectory,ports:await freePorts(),contextFactory,restoreBudget,storageVerifier});if(!restored.restoreComplete)throw Error('Restored migration evidence requires review');await operateRuntime('start',restored.state,{directory:restoreDirectory,prepareContext:contextFactory});const restoredClient=new LocalClient('http://127.0.0.1:'+restored.state.ports.console);await restoredClient.login(state.bootstrapUsername,scenario.password);assert.equal((await restoredClient.request('/environments/'+scenario.scope.environmentId)).id,scenario.scope.environmentId);assert.equal((await restoredClient.request('/observability/alert-rules/'+proof.history.ruleId)).id,proof.history.ruleId);const restoredEvent=await restoredClient.request('/observability/alerts/'+proof.history.eventId);assert.equal(restoredEvent.status,'Resolved');assert.ok(restoredEvent.transitions.some(t=>t.toStatus==='Ack'));const restoredTrace=await restoredClient.request('/observability/traces/'+proof.history.traceId+'?'+new URLSearchParams(proof.history.fixedRange));assert.ok(restoredTrace.data.spans.length>0);const restoredLog=await restoredClient.request('/observability/logs?'+new URLSearchParams({...proof.history.fixedRange,traceId:proof.history.traceId}));assert.ok(restoredLog.data.items.length>0);const credential=await fs.readFile(path.join(directory,'credential'),'utf8');for(const port of[restored.state.ports.gatewayA,restored.state.ports.gatewayB]){await until(async()=>{const r=await fetch('http://127.0.0.1:'+port+'/orders',{headers:{'X-API-Key':credential},signal:AbortSignal.timeout(10000)});await r.arrayBuffer();return r.status;},s=>s===200,30);}
+  proof.backupRestore={passed:true,hashesVerified:restored.hashesVerified,pgLogicalDumpPresent:true,coldVolumesRestored:restored.coldVolumesRestored,
+   configurationRestored:true,sourceHistoryRestored:true,alertEventRestored:true,dualLkgTrafficRestored:true};
+  proof.restoreCleanup={retainedForReview:true,directory:restoreDirectory};
   await operateRuntime('start',state,{directory,prepareContext:contextFactory});await scenario.reauthenticate();if(browser){console.log('Browser QA ready: '+scenario.endpoint);await writePrivate(path.join(directory,'browser-ready.json'),{ready:true,...scenario.scope,consoleUrl:scenario.endpoint});const deadline=Date.now()+1800000;while(!(await fs.stat(path.join(directory,'browser.done')).catch(()=>null))){if(Date.now()>deadline)throw Error('Browser QA completion timed out');await pause(1000);}proof.ui=JSON.parse(await fs.readFile(path.join(directory,'ui-proof.json'),'utf8'));}else proof.ui={verified:false,reason:'CUA browser QA required'};
  }catch(e){failed=true;primaryError=scenarioFailure(e,proof);proof.failureReason=scenarioFailureMessage(primaryError);}
  finally{await finishRuntimeAcceptance({proof,failed,primaryError,directory,restoreDirectory,before,started,sampler,deps});}
  return finalizeAcceptance(proof);
 }
-const budgetOptions={
- maxSnapshotBytes:'max-snapshot-bytes',
- minHostFreeBytes:'min-host-free-bytes',
- maxTargetBytes:'max-target-bytes',
- minTargetFreeBytes:'min-target-free-bytes'
-};
-
 export async function runRuntimeAcceptanceCli(args,deps={}){
- const stringOptions=[...Object.values(budgetOptions),'restore-quota-socket','restore-docker-socket','release-file'];
- const {values,tokens}=parseArgs({args,tokens:true,options:{
-  ...Object.fromEntries(stringOptions.map(name=>[name,{type:'string'}])),browser:{type:'boolean'}
- }});
- const optionNames=tokens.filter(token=>token.kind==='option').map(token=>token.name);
- if(new Set(optionNames).size!==optionNames.length)throw Error('Duplicate runtime acceptance option.');
- const restoreBudget=validateRestoreStorageBudget(Object.fromEntries(Object.entries(budgetOptions).map(([key,flag])=>{
-  const value=values[flag];
-  return [key,/^[1-9][0-9]*$/.test(value??'')?Number(value):NaN];
- })));
- const quotaSocket=values['restore-quota-socket'],dockerSocket=values['restore-docker-socket'];
- if(!quotaSocket||!dockerSocket)throw Error('Restore target hard quota integration needs explicit verifier and Docker sockets.');
- const integration=await(deps.configureStorage??configureRestoreStorage)({restoreBudget,quotaSocket,dockerSocket});
- const projectName='webapi-enterprise-local-test-'+randomUUID(),directory=path.resolve('.runtime/tests',projectName);
- return integration.withDocker(async()=>{
+ return withRestoreCliStorage(args,async(storage,values)=>{
+  const projectName='webapi-enterprise-local-test-'+randomUUID(),directory=path.resolve('.runtime/tests',projectName);
   const releaseManifest=await(deps.loadRelease??loadRelease)(path.resolve(values['release-file']??'.runtime/local-build/release.json'));
-  return (deps.runAcceptance??runAcceptance)({
-   releaseManifest,projectName,directory,browser:values.browser??false,
-   restoreBudget:integration.restoreBudget,storageVerifier:integration.storageVerifier
-  });
- });
+  return (deps.runAcceptance??runAcceptance)({releaseManifest,projectName,directory,browser:values.browser??false,...storage});
+ },{configureStorage:deps.configureStorage,options:{'release-file':{type:'string'},browser:{type:'boolean'}}});
 }
 
 if(process.argv[1]===fileURLToPath(import.meta.url)){

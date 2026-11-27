@@ -6,6 +6,7 @@
 
 - [项目资料总目录](docs/README.md)：功能、源码、运维、验收与历史资料的统一入口。
 - [当前源码与验证状态](docs/deployment/current-project-status.md)：区分 GitHub 主干、本地修改、固定版本验证和实际安装。
+- 本轮已修复审批收件箱的终态步骤显示、网络保护快照和冷恢复回执。全量回归及尚待完成的验收见[固定提交复查](docs/evidence/observability/final-review.md)及[逐项验收台账](docs/deployment/requirements-acceptance-current.json)。
 - [运维与交付目录](docs/deployment/README.md)：按用途查找手册、阶段交付和历史安装记录。
 - [40 页能力映射](docs/console-coverage.md)与[逐项需求台账](docs/evidence/work-package4/requirements-status.md)：页面有入口不等于对应需求全部验收完成。
 
@@ -38,12 +39,16 @@ GitHub 主干与本地目录可能处于不同提交。阅读“当前”“已�
 
 后端优先执行 `bash scripts/check-contracts.sh domain`、`integration`、`gateway`。各次使用独立 owner、密码、数据库、依赖缓存和固定 SDK 镜像，退出时按归属清理自己的测试资源。旧 `scripts/check.sh` 使用固定测试项目，不应在共享环境并发运行。
 
+这些后端命令及系统设置、流量策略、SSO 的专用后端入口都核对本次 VSTest 完成记录，至少一项通过且零失败才返回成功。指定 `--filter` 后匹配到零项，或 SDK 返回成功但缺少完整记录时，入口返回 3。调用方可继续使用自己的 `--logger` 和 `--results-directory`。
+
 固定端口 E2E、故障演练、性能实验和持久环境维护各有独立入口。运行目录、秘密、数据库转储和依赖缓存均须保留在交付包之外。[运维目录](docs/deployment/README.md)
 
 运行 `bash scripts/package.sh` 会从当前 HEAD 提取交付源码，按该提交的锁文件重新构建前端，并在 `deliverables/` 写入 ZIP 和 `manifest.json`。需要交付历史版本时可传入源码提交，例如 `bash scripts/package.sh <源码提交>`。验收回执若保存在另一次提交，可追加 `--evidence-revision <回执提交>`。清单仅在回执通过校验且受测提交与打包提交一致时标记 `acceptanceComplete: true`。
 
 ## 能力边界
 
-源码包含组织/项目/环境、API 与契约、路由策略、应用凭证、审批发布、监控告警、SSO 和跨环境交付等实现。普通凭证轮换及撤销依赖再次审批发布；安全检查点/租约签发仍关闭，网关安全准入尚未接线，详见[安全操作说明](docs/deployment/credential-security-operations.md)。
+源码包含组织/项目/环境、API 与契约、路由策略、应用凭证、审批发布、监控告警、SSO 和跨环境交付等实现。普通双 Key 轮换通过两次审批发布，工作配置中的撤销在网关加载新发布的快照后生效。
+
+标准宿主默认关闭凭证治理。显式启用并取得所需独立见证后，控制面可签发环境检查点和绑定节点实例的安全租约。网关独立复验、持久化并上报当前证明，收到操作挑战时回报安全 ACK。缺少可信证据时签发仍可返回 `503 security_evidence_unavailable`。[凭证安全操作手册](docs/deployment/credential-security-operations.md#治理启用条件)
 
 本地或固定版本验证不等于新主干已安装，也不等于企业生产验收。目标环境的 TLS、HA、AMD64、容量/SLA、真实身份源与业务端点需要对应证据。

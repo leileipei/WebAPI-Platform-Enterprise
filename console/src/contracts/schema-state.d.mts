@@ -8,3 +8,5 @@ export function schemaDraftState(state:any,action:any):any;
 export function validationMatches(response:any,identity:Record<string,unknown>):boolean;
 export function validationContextMatches(previous:any,current:any):boolean;
 export function exampleOptions(definition:any):{name:string;json?:string;externalValue?:string;unverified?:boolean;unverifiedReason?:string}[];
+export function parameterSchemaType(document:unknown):string|undefined;
+export function canSelectParameterType(document:unknown):boolean;

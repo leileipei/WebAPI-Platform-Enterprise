@@ -1,36 +1,67 @@
 {
-  "project": "webapi-enterprise-e2e-observability-e81ec684-de30-4ea4-a62a-30b43c0fe27e",
-  "actorId": "f43be703-83e5-4430-91c6-04142f6e8931",
-  "at": "2026-10-04T11:34:23.269Z",
+  "project": "webapi-enterprise-e2e-observability-e5458234-1031-4d3c-a42d-6aae10eafd10",
+  "sourceRevision": "a9f7c19871eef83a50e3f43a17d2027b393bf92a",
   "complete": true,
-  "classification": "production-assets-real-source-preview-no-hmr",
+  "classification": "disposable-real-three-source-production-assets-preview-no-hmr",
   "red": {
     "observedAt": "2026-10-04T11:28:58.434Z",
     "revokedAt": "2026-10-04T11:28:06.063Z",
     "metricsSamples": 126,
     "apiSamples": 127,
-    "resultsRetained": true
+    "resultsRetained": true,
+    "recordType": "historical",
+    "source": "docs/evidence/observability/final-permission-browser.json",
+    "sourceSha256": "5dcc15636fa8074a7bebe819bce81e28875b0932b76ed9080e14a8d76f570de2",
+    "screenshotSha256": "58dd11d2672de253da44724dca9853cfd7855b537a2cbd095f0bd45a48c39dee",
+    "rerunForCurrentRevision": false,
+    "sourceGitRevision": "ac5a115495e1df9ad0df6ebb4d0639bbeffed1a0",
+    "project": "webapi-enterprise-e2e-observability-e81ec684-de30-4ea4-a62a-30b43c0fe27e"
   },
   "green": {
-    "metricsClearedAt": "2026-10-04T11:34:32.199Z",
-    "apiClearedAt": "2026-10-04T11:34:32.203Z",
+    "revokedAt": "2026-11-27T08:03:28.895Z",
+    "beforeSamples": [
+      470,
+      470
+    ],
+    "cleared": [
+      {
+        "page": 28,
+        "elapsedMs": 29523,
+        "clearedAt": "2026-11-27T08:03:58.418Z",
+        "kpiCards": 0,
+        "tables": 0,
+        "observedHttpStatuses": [
+          404
+        ]
+      },
+      {
+        "page": 29,
+        "elapsedMs": 29513,
+        "clearedAt": "2026-11-27T08:03:58.408Z",
+        "kpiCards": 0,
+        "tables": 0,
+        "observedHttpStatuses": [
+          404
+        ]
+      }
+    ],
+    "fixedEnd": "2026-11-27T08:03:18.934Z",
+    "automaticRequeryMilliseconds": 30000,
+    "noReload": true,
     "kpiCards": 0,
-    "tables": 0,
-    "fixedEnd": "2026-10-04T11:30:56.722Z",
-    "automaticRequeryMilliseconds": 30000
+    "tables": 0
   },
-  "healthFiltered": {
-    "metricState": "NotApplicable",
-    "value": null,
-    "uiLabel": "该维度暂不支持",
-    "nodeBackendCells": "—"
-  },
+  "readerRestored": true,
   "cleanup": {
     "exitCode": 0,
+    "secretFilesRemaining": 0,
     "containersRemaining": 0,
     "volumesRemaining": 0,
-    "networksRemaining": 0,
-    "secretFilesRemaining": 0
+    "networksRemaining": 0
   },
-  "cleanupCommand": "explicit exact-project compose down; original holder session unavailable"
+  "evidence": {
+    "browserReadbackSha256": "d13ec595295b2645970fd41da07fb25f927720b12629711e563983ac43eb4f81",
+    "fixtureRunnerCleanupSha256": "a79dc3afb6f999e9ef60390038b2b1dbf10724b6372dde99b128927fe6de1871",
+    "fixtureScriptCleanupSha256": "816f40c34355b2705b563129670896166fc08655d3bd0a6d089e7e744e004590"
+  }
 }

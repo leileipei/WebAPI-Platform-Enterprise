@@ -47,7 +47,8 @@ async function fixture(t, {entry='detail', permissions=allPermissions, mode='rea
     requests.push({resource,method,body,headers:req.headers()});
     const reply = (json,status=200) => route.fulfill({json,status});
     if (resource==='/auth/me') return reply({id:'actor',username:'user',displayName:'维护人员',authSource:'local',
-      permissions:state.permissions,scopes:[{scope:workspaces?{organizationId:api.organizationId}:{organizationId:api.organizationId,projectId:api.projectId},accessMode:state.mode},
+      permissions:state.permissions,rolePermissions:[{organizationId:api.organizationId,permissions:state.permissions}],
+      scopes:[{scope:workspaces?{organizationId:api.organizationId}:{organizationId:api.organizationId,projectId:api.projectId},accessMode:state.mode},
         {scope:{organizationId:'other'},accessMode:'read_write'}]});
     if (resource==='/auth/csrf') {
       if (state.csrfWait) await state.csrfWait;

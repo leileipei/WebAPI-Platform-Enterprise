@@ -1,0 +1,12 @@
+{
+  "product": "af78d70b882bfb40eb1289a241e6a625fcb54896",
+  "owner": "03162cc4-ac90-4250-8659-4a6e66a2758f",
+  "project": "webapi-product-counts-03162cc4-ac90-4250-8659-4a6e66a2758f",
+  "resources": {
+    "containers": 0,
+    "volumes": 0,
+    "networks": 0,
+    "credentialFiles": 0
+  },
+  "time": "2026-11-27T02:05:56.964558+00:00"
+}

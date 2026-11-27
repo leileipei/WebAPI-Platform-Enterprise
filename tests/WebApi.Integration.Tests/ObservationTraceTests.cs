@@ -1,3 +1,5 @@
+using WebApi.Gateway.Observability;
+using WebApi.Infrastructure.Observability;
 using System.Collections.Concurrent;using System.Globalization;using System.Net;using System.Net.Http.Json;using System.Text.Json;using Microsoft.AspNetCore.WebUtilities;using Microsoft.EntityFrameworkCore;using Microsoft.Extensions.DependencyInjection;using Microsoft.Extensions.Http;using WebApi.Contracts.Observability;using WebApi.Infrastructure.Persistence.Entities;using WebApi.Integration.Tests.Support;using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class ObservationTraceTests
@@ -111,6 +113,54 @@ public sealed class TraceProtocolHandler:HttpMessageHandler
 }
 public sealed class TraceProjectionBoundaryTests
 {
+    [Fact]
+    public void PublishedAndRolledBackSpansKeepTheConfigVersionAndTheirOwnDeploymentSequence()
+    {
+        const string traceId = "0123456789abcdef0123456789abcdef";
+        var env = Guid.NewGuid();
+        var route = Guid.NewGuid();
+        var start = DateTimeOffset.UtcNow;
+        var spans = new[] { 42L, 45L }.Select(sequence =>
+        {
+            var context = new RequestTelemetryContext
+                { EnvironmentId = env, ConfigVersion = 7, DeploymentSequence = sequence, RouteId = route };
+            return new { traceId, spanId = sequence.ToString("x16"), name = "gateway.request", kind = 2,
+                startTimeUnixNano = TelemetryAttributes.Nano(start),
+                endTimeUnixNano = TelemetryAttributes.Nano(start.AddMilliseconds(2)),
+                attributes = TelemetryAttributes.From(context) };
+        }).ToArray();
+        var payload = JsonSerializer.SerializeToElement(new { resourceSpans = new[] { new {
+            resource = new { attributes = new[] { TelemetryAttributes.Attribute("webapi.environment.id", env.ToString()) } },
+            scopeSpans = new[] { new { spans } }
+        } } });
+        var parsed = TempoTraceSource.Parse(payload, traceId);
+        Assert.False(parsed.Rejected);
+        var scope = new TrustedObservationScope(Guid.NewGuid(), Guid.NewGuid(),
+            [env], [], new Dictionary<Guid, string>(), new Dictionary<Guid, ObservationApplication>(),
+            new Dictionary<Guid, ObservationDestination>());
+        var detail = TraceProjection.Project(traceId, parsed.Spans, scope);
+        Assert.False(detail.PartialTrace);
+        Assert.Equal(new[] { "42", "45" }, detail.Spans.Select(s => s.Tags["webapi.deployment.sequence"]));
+        Assert.All(detail.Spans, s =>
+        {
+            Assert.Equal("7", s.Tags.GetValueOrDefault("webapi.config.version"));
+            Assert.Equal(route.ToString(), s.Tags["webapi.route.id"]);
+        });
+
+        var span = parsed.Spans[0];
+        foreach (var invalid in new[] { route.ToString(), "-1", "0", "None", "9223372036854775808" })
+        {
+            var invalidTags = new Dictionary<string, string>(span.Attributes)
+                { ["webapi.config.version"] = invalid, ["webapi.route.id"] = "7", ["webapi.api.version.id"] = "7" };
+            var projected = TraceProjection.Project(traceId, [span with { Attributes = invalidTags }], scope);
+            var tags = Assert.Single(projected.Spans).Tags;
+            Assert.DoesNotContain("webapi.config.version", tags.Keys);
+            Assert.DoesNotContain("webapi.route.id", tags.Keys);
+            Assert.DoesNotContain("webapi.api.version.id", tags.Keys);
+            Assert.Equal("42", tags["webapi.deployment.sequence"]);
+        }
+    }
+
     [Fact]public void CapturedTempo310ResponseProjectsRealServerClient()
     {
         using var document=JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"Fixtures/tempo-3.1.0-synthetic-trace.json")));var root=document.RootElement;var traceId=root.GetProperty("traceId").GetString()!;var env=root.GetProperty("environmentId").GetGuid();var api=root.GetProperty("apiId").GetGuid();var dest=root.GetProperty("destinationId").GetGuid();

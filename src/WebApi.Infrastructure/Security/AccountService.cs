@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Security;
+using WebApi.Domain.Security;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 namespace WebApi.Infrastructure.Security;
@@ -22,10 +23,24 @@ public sealed class AccountService(WebApiDbContext db,IPasswordHasher<UserRecord
     }
     public async Task<IdentityDto> IdentityAsync(Guid id,CancellationToken ct)
     {
-        var user=await db.Set<UserRecord>().AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id && x.Status=="Active",ct) ?? throw new ApiException(401,"inactive_session","会话已失效。");
-        if(user.MustChangePassword&&user.AuthSource=="local")return new(id,user.Username,user.DisplayName,[],[],user.AuthSource,true);
-        var permissions=await (from ur in db.Set<UserRole>() join rp in db.Set<RolePermission>() on ur.RoleId equals rp.RoleId join p in db.Set<Permission>() on rp.PermissionId equals p.Id where ur.UserId==id select p.Code).Distinct().ToArrayAsync(ct);
-        var scopes=await db.Set<UserProjectScope>().AsNoTracking().Where(x=>x.UserId==id).Select(x=>new ScopeGrantDto(new(x.OrganizationId,x.ProjectId,x.EnvironmentId),x.AccessMode)).ToArrayAsync(ct);
-        return new(id,user.Username,user.DisplayName,permissions,scopes,user.AuthSource,false);
+        var platformAdmins = AuthorizationService.PlatformAdministratorUserIds(db);
+        var user = await db.Set<UserRecord>().AsNoTracking().Where(u => u.Id == id && u.Status == "Active")
+            .Select(u => new { u.Username, u.DisplayName, u.AuthSource, u.MustChangePassword, PlatformAdmin = platformAdmins.Contains(u.Id) })
+            .SingleOrDefaultAsync(ct) ?? throw new ApiException(401,"inactive_session","会话已失效。");
+        if(user.MustChangePassword&&user.AuthSource=="local")return new(id,user.Username,user.DisplayName,[],[],user.AuthSource,true,[]);
+        var assigned = await (from membership in db.Set<UserRole>()
+                              join role in db.Set<Role>() on membership.RoleId equals role.Id
+                              join grant in db.Set<RolePermission>() on role.Id equals grant.RoleId
+                              join permission in db.Set<Permission>() on grant.PermissionId equals permission.Id
+                              where membership.UserId == id
+                              select new { role.OrganizationId, permission.Code }).Distinct().ToArrayAsync(ct);
+        var rolePermissions = assigned.GroupBy(item => item.OrganizationId).OrderBy(group => group.Key)
+            .Select(group => new OrganizationRolePermissionsDto(group.Key, group.Select(item => item.Code).Order(StringComparer.Ordinal).ToArray()))
+            .ToArray();
+        var permissions = assigned.Select(item => item.Code).Distinct().Order(StringComparer.Ordinal).ToArray();
+        var rows=await db.Set<UserProjectScope>().AsNoTracking().Where(x=>x.UserId==id).Select(x=>new
+            {x.OrganizationId,x.ProjectId,x.EnvironmentId,Mode=x.AccessMode==ScopeMatcher.OrganizationAdministratorWrite?"read_write":x.AccessMode}).Distinct().ToArrayAsync(ct);
+        var scopes=rows.Select(x=>new ScopeGrantDto(new(x.OrganizationId,x.ProjectId,x.EnvironmentId),x.Mode)).ToArray();
+        return new(id,user.Username,user.DisplayName,permissions,scopes,user.AuthSource,false,rolePermissions,user.PlatformAdmin);
     }
 }

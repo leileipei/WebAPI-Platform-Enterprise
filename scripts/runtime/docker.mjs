@@ -28,16 +28,17 @@ export async function docker(args,options={}){
  try{return await runDocker(['--host',host,...args],{...options,env});}
  finally{await endpoint.assertCurrent();}
 }
-function runDocker(args,{input,inputFd,env=process.env,cwd,allowFailure=false,maxOutputBytes,spawnProcess=spawn}={}){return new Promise((resolve,reject)=>{
+function runDocker(args,{input,inputFd,env=process.env,cwd,allowFailure=false,maxOutputBytes,spawnProcess=spawn,signal}={}){return new Promise((resolve,reject)=>{
+ if(signal?.aborted)return reject(signal.reason);
  if(!args.every(a=>typeof a==='string'))return reject(new RuntimeError('Docker arguments must be strings.'));
  if(inputFd!==undefined&&(!Number.isInteger(inputFd)||inputFd<0||input!==undefined))return reject(new RuntimeError('Invalid Docker input descriptor.',3));
  let bounded;try{bounded=maxOutputBytes===undefined?null:createBoundedDockerOutput(maxOutputBytes);}catch(error){return reject(error);}
- const child=spawnProcess('docker',args,{cwd,env,stdio:[inputFd??'pipe','pipe','pipe']});let stdout='',stderr='';
+ const child=spawnProcess('docker',args,{cwd,env,stdio:[inputFd??'pipe','pipe','pipe'],...(signal && {signal})});let stdout='',stderr='';
  if(!bounded){child.stdout.setEncoding('utf8');child.stderr.setEncoding('utf8');}
  child.stdout.on('data',b=>{if(bounded)bounded.push('stdout',b);else stdout+=b;});
  child.stderr.on('data',b=>{if(bounded)bounded.push('stderr',b);else stderr+=b;});
- child.on('error',()=>reject(new RuntimeError('Docker command unavailable.',3)));
- child.on('close',exitCode=>{const result=bounded?{...bounded.result(),exitCode}:{stdout,stderr,exitCode};
+ child.on('error',error=>{if(error.name!=='AbortError'||!signal?.aborted)reject(new RuntimeError('Docker command unavailable.',3));});
+ child.on('close',exitCode=>{if(signal?.aborted)return reject(signal.reason);const result=bounded?{...bounded.result(),exitCode}:{stdout,stderr,exitCode};
   if(result.outputTruncated)return reject(Object.assign(new RuntimeError('Docker output exceeded the capture limit; inspect the retained fixture.',3),{result}));
   if(exitCode!==0&&!allowFailure)reject(Object.assign(new RuntimeError('Docker operation failed; inspect the owned project before retry.',3),{result}));else resolve(result);});
  if(inputFd===undefined)child.stdin.end(input);

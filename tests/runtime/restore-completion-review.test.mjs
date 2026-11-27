@@ -1,7 +1,15 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import {randomUUID} from 'node:crypto';
+import {tmpdir} from 'node:os';
 import * as intent from '../../scripts/runtime/restore-intent.mjs';
-const root=path.resolve('.superpowers/sdd/restore-completion-review-fixtures');
-async function fixture(){await fs.mkdir(root,{recursive:true,mode:0o700});const parent=await fs.mkdtemp(path.join(root,'run-'));console.log('retained-completion-fixture='+parent);const projectName='webapi-enterprise-local-test-'+randomUUID(),directory=path.join(parent,projectName),ownerId=randomUUID(),proof={phase:'preflight',traceFormatVersion:2,projectName,directory,operationId:randomUUID()};const planned=await intent.createRestoreIntent(parent,proof),snapshot=await fs.mkdtemp(planned.snapshotPrefix);await fs.mkdir(directory,{mode:0o700});await fs.writeFile(path.join(directory,'owner.json'),JSON.stringify({schemaVersion:1,projectName,ownerId}),{mode:0o600});await intent.writeRestoreReference(directory,{ownerId,projectName},planned,snapshot);return{parent,projectName,directory,ownerId,planned,snapshot};}
+async function fixture(){
+ const parent=await fs.mkdtemp(path.join(await fs.realpath(tmpdir()),'webapi-restore-completion-'));
+ console.log('retained-completion-fixture='+parent);
+ const projectName='webapi-enterprise-local-test-'+randomUUID(),directory=path.join(parent,projectName),ownerId=randomUUID(),proof={phase:'preflight',traceFormatVersion:2,projectName,directory,operationId:randomUUID()};
+ const planned=await intent.createRestoreIntent(parent,proof),snapshot=await fs.mkdtemp(planned.snapshotPrefix);
+ await fs.mkdir(directory,{mode:0o700});await fs.writeFile(path.join(directory,'owner.json'),JSON.stringify({schemaVersion:1,projectName,ownerId}),{mode:0o600});
+ await intent.writeRestoreReference(directory,{ownerId,projectName},planned,snapshot);
+ return {parent,projectName,directory,ownerId,planned,snapshot};
+}
 test('review requires positive matching restore completion, not merely absence of pending state',async()=>{
  assert.equal(typeof intent.readCompletedRestoreEvidence,'function');const f=await fixture();await assert.rejects(intent.readCompletedRestoreEvidence(f.directory));await intent.writeRestoreCompletion(f.directory,{ownerId:f.ownerId,projectName:f.projectName},f.planned,f.snapshot);const evidence=await intent.readCompletedRestoreEvidence(f.directory);assert.equal(evidence.operationId,f.planned.operationId);assert.equal(evidence.ownerId,f.ownerId);assert.equal(evidence.snapshotDirectory,f.snapshot);assert.equal(evidence.trust,'LocalConsistencyOnly');
 });

@@ -25,6 +25,19 @@ test('bounded files reject zip, unsafe logical names, duplicates and oversized c
  const file=(name,content,size=new TextEncoder().encode(content).length)=>({name,size,text:async()=>content});assert.equal((await readImportFiles([file('types/a.yaml','type: string')]))[0].name,'types/a.yaml');
  for(const files of [[file('../a.json','{}')],[file('a.zip','{}')],[file('same.json','{}'),file('same.json','false')],[{name:'huge.json',size:3*1024*1024,text(){throw Error('must not read');}}]])await assert.rejects(readImportFiles(files));
 });
+test('a root file uses exactly one resource and subsequent selections share the bundle limit',async()=>{
+ const budget={maxResources:1,maxDocumentBytes:100,maxBundleBytes:200};
+ const root=new File(['{}'],'openapi.json'), attachment=new File(['{}'],'schema.json');
+ const files=await readImportFiles([root],budget,0);
+ assert.equal(files[0].content,'{}');
+ assert.deepEqual(previewRequest({...input,mode:'file',text:files[0].content,files:[]},budget).files,[]);
+ await assert.rejects(readImportFiles([attachment],budget,1),/数量/);
+ assert.throws(()=>previewRequest({...input,text:'{}',files},budget),/数量/);
+ const two={...budget,maxResources:2};
+ assert.equal((await readImportFiles([attachment],two,1)).length,1);
+ await assert.rejects(readImportFiles([attachment],two,2),/数量/);
+ assert.throws(()=>previewRequest({...input,text:'{}',files:[...files,...files]},two),/数量/);
+});
 test('403/412 and policy-change recovery preserve source and provide the correct re-preview boundary',()=>{
  const denied=recoverImportFailure(state(),{status:403});assert.equal(denied.preview,undefined);assert.equal(denied.input.text,input.text);assert.equal(denied.authorized,false);
  const stale=recoverImportFailure(state(),{status:412});assert.equal(stale.preview.previewId,'preview');assert.equal(stale.targets.length,1);assert.match(stale.recovery,/修订/);
@@ -35,4 +48,34 @@ test('a late preview cannot restore stale scope or overwrite a newer preview',()
  const preview=state().preview;const pending={...state(),requestSequence:2};assert.equal(importState.acceptImportPreview(pending,input,preview,1),pending);
  const changed={...pending,input:{...input,text:'changed'}};assert.equal(importState.acceptImportPreview(changed,input,preview,2),changed);
  const accepted=importState.acceptImportPreview({...pending,preview:undefined,targets:[]},input,preview,2);assert.equal(accepted.preview.previewId,'preview');assert.equal(accepted.targets.length,1);assert.equal(accepted.targets[0].operationId,'ok');
+});
+
+test('failed re-preview retains only selected supported operations of the same source and target scope',()=>{
+ const versionId='22222222-2222-4222-8222-222222222222', selected=state();
+ const operation={operationId:'second',suggestedCode:'SECOND',supported:true};
+ const cancelled={...operation,operationId:'cancelled'};
+ selected.preview.operations.push(operation,cancelled);
+ selected.targets=[mapImportTarget(selected.preview.operations[0],{existingVersionId:versionId,expectedRevision:3}),
+   mapImportTarget(operation,{newApiCode:'CUSTOM',newApiName:'自定义'})];
+ const failed=recoverImportFailure(recoverImportFailure(selected,{status:409}),{status:503});
+ const preview={...selected.preview,previewId:'retry',operations:[{...operation,supported:false},cancelled,selected.preview.operations[0]]};
+ const same=importState.acceptImportPreview({...failed,requestSequence:2},input,preview,2);
+ assert.deepEqual(same.targets,[selected.targets[0]]);
+ assert.equal(canCommitPreview(same,0),false);
+ for(const change of [{authority:'other'},{clusterId:'other'},{projectId:'other'},{environmentId:'other'},{text:'different'}]){
+  const changed={...input,...change}, reset=invalidatePreview(failed,changed);
+  const fresh=importState.acceptImportPreview({...reset,requestSequence:3},changed,preview,3);
+  assert.deepEqual(fresh.targets.map(t=>t.operationId),['cancelled','ok']);
+  assert.ok(fresh.targets.every(t=>!t.existingVersionId));
+ }
+});
+
+test('only an uncertain submission with the original scope, preview and payload can recover its receipt after expiry',()=>{
+ const staged=state(), past=Date.parse(staged.preview.expiresAt)+1;
+ const attempt={key:'original',identity:staged.identity,previewId:'preview',body:JSON.stringify({expectedBundleHash:'h',targets:staged.targets})};
+ const lost=recoverImportFailure({...staged,attempt},{status:503});
+ assert.equal(canCommitPreview(lost,past),true);
+ for(const changed of [{targets:[{...staged.targets[0],newApiName:'other'}]},{authorized:false},{attempt:{...attempt,previewId:'old'}},{attempt:undefined}])
+  assert.equal(canCommitPreview({...lost,...changed},past),false);
+ assert.equal(canCommitPreview(recoverImportFailure({...staged,attempt},{status:422}),past),false);
 });

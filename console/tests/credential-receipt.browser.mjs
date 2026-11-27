@@ -1,5 +1,6 @@
 // Run against a local build preview; API responses are controlled browser fixtures.
 // Real PostgreSQL/HTTP concurrency and authorization are covered by CredentialCreateReceiptTests.
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import fs from 'node:fs/promises';
@@ -25,7 +26,7 @@ try{
    await page.route('**/api/v1/**',async route=>{
     const request=route.request(),url=new URL(request.url()),endpoint=url.pathname.slice('/api/v1'.length);
     const reply=(body,status=200)=>route.fulfill({status,contentType:'application/json',headers:{'Cache-Control':'no-store'},body:JSON.stringify(body)});
-    if(endpoint==='/auth/me')return reply({id:'50000000-0000-0000-0000-000000000001',username:'receipt-review',displayName:'回执检查',authSource:'local',permissions:['app.read',...(authorized?['credential.manage']:[])],scopes:[{scope:{organizationId:org,projectId:project},accessMode:'read_write'}]});
+    if(endpoint==='/auth/me')return reply({id:'50000000-0000-0000-0000-000000000001',username:'receipt-review',displayName:'回执检查',authSource:'local',...organizationPermissions(org,['app.read',...(authorized?['credential.manage']:[])]),scopes:[{scope:{organizationId:org,projectId:project},accessMode:'read_write'}]});
     if(endpoint==='/auth/csrf')return reply({token:'fixture-csrf'});
     if(endpoint==='/scope-tree')return reply({organizations:[{id:org,name:'测试组织',status:'Active'}],projects:[{id:project,organizationId:org,name:'测试项目',status:'Active'}],environments:[]});
     if(endpoint===`/applications/${appId}`)return reply({application:{id:appId,organizationId:org,projectId:project,name:'回执测试应用',code:'RECEIPT',owner:'测试负责人',status:'Active',revision:credential?2:1},credentials:credential?[credential]:[],permissions:[],runningConfigVersions:{}});

@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {RouteCopy} from './RouteCopy';
 import {ApiAccessPanel} from '../environments/ApiAccessPanel';
 import {effectiveAuthentication,routePolicyPayload} from '../policies/advanced-policy-state.mjs';
 import {routeDefaultInput} from '../settings/state.mjs';
@@ -15,52 +16,72 @@ type RoutesProps={target?:RouteTarget;onChanged?:()=>void};
 type RouteCluster={id:string;name:string;status:string;projectId:string;environmentId:string};
 
 export function Routes({target,onChanged}:RoutesProps){
- const ws=useWorkspace(),{user}=useSession();
+ const ws=useWorkspace(),{user,can}=useSession();
  const [apiId,setApi]=useState('');
- const apis=useRemote<Page<Api>>(!target&&ws.projectId?`/projects/${ws.projectId}/apis`:null,0,true);
- const selectedApi=target?.api??(apis.data?.items.find(a=>a.id===apiId)||apis.data?.items[0]);
+ const canListApis=!!ws.projectId&&can('api.read',{organizationId:ws.organizationId,projectId:ws.projectId});
+ const apis=useRemote<Page<Api>>(!target&&canListApis?`/projects/${ws.projectId}/apis`:null,0,true);
+ const availableApis=canListApis?(apis.data?.items??[]).filter(a=>a.organizationId===ws.organizationId&&a.projectId===ws.projectId):[];
+ const selectedApi=target?.api??availableApis.find(a=>a.id===apiId)??availableApis[0];
  const path=ws.environmentId?`/environments/${ws.environmentId}/routes`:null;
  const list=usePaged(path&&target?path+'?'+new URLSearchParams({apiVersionId:target.version.id}):path);
- const identity=JSON.stringify([ws.organizationId,ws.projectId,ws.environmentId,selectedApi?.id,target?.version.id,user?.id,user?.permissions,user?.scopes]);
+ const identity=JSON.stringify([ws.organizationId,ws.projectId,ws.environmentId,target?.api.id??apiId,target?.version.id,user?.id,user?.permissions,user?.scopes]);
  return <RouteTable key={identity} api={selectedApi} target={target} list={list} onChanged={onChanged} selector={
-   target?<span>配置 API　{target.api.name}</span>:<label>配置 API <select aria-label="路由所属 API" value={selectedApi?.id||''} onChange={e=>{if(allowNavigation())setApi(e.target.value);}}>
-    <option value="">请选择 API</option>{apis.data?.items.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
+   target?<span>配置 API　{target.api.name}</span>:canListApis&&<label>配置 API <select aria-label="路由所属 API" value={selectedApi?.id||''} onChange={e=>{if(allowNavigation())setApi(e.target.value);}}>
+    <option value="">请选择 API</option>{availableApis.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}
    </select></label>
  }/>;
 }
 
 function RouteTable({api,target,selector,list,onChanged}:RoutesProps&{api?:Api;selector:React.ReactNode;list:ReturnType<typeof usePaged>}){
  const ws=useWorkspace(),{can}=useSession();
- const [edit,setEdit]=useState<any>(),[binding,setBinding]=useState<any>();
+ const [edit,setEdit]=useState<any>(),[binding,setBinding]=useState<any>(),[copy,setCopy]=useState<any>(),[copyNote,setCopyNote]=useState('');
  const [lifetime]=useState(()=>new AbortController());
  useEffect(()=>()=>lifetime.abort(),[lifetime]);
- const versions=useRemote<Version[]>(api&&!target?`/apis/${api.id}/versions`:null);
- const choices=target?[target.version]:versions.data||[];
- const clusters=useRemote<Page<RouteCluster>>(ws.environmentId?`/environments/${ws.environmentId}/clusters`:null,0,true);
+ const canReadVersions=!!api&&can('api.version.read',{organizationId:api.organizationId,projectId:api.projectId});
+ const versions=useRemote<Version[]>(api&&!target&&canReadVersions?`/apis/${api.id}/versions`:null);
+ const choices=target?[target.version]:(versions.data??[]).filter(v=>canReadVersions&&v.apiId===api?.id);
+ const keepVersion=!!edit?.id&&!target&&!choices.some(v=>v.id===edit.apiVersionId);
+ const canReadClusters=!!ws.environmentId&&can('cluster.read',ws.scope);
+ const clusters=useRemote<Page<RouteCluster>>(canReadClusters?`/environments/${ws.environmentId}/clusters`:null,0,true);
+ const clusterCatalogReady=canReadClusters&&!!clusters.data&&!clusters.loading&&!clusters.error;
+ const keepCluster=!!edit?.id&&!clusterCatalogReady;
  const clusterChoices=(clusters.data?.items??[]).filter(c=>c.environmentId===ws.environmentId&&c.projectId===ws.projectId&&
   (c.status==='Active'||(c.status==='Disabled'&&edit?.id&&c.id===edit.clusterId)));
- const firstActiveCluster=clusterChoices.find(c=>c.status==='Active');
+ const firstActiveCluster=clusterCatalogReady?clusterChoices.find(c=>c.status==='Active'):undefined;
  const currentClusterDisabled=clusterChoices.some(c=>c.status==='Disabled');
- const allowed=!!ws.environmentId&&can('route.write',ws.scope,true)&&(!target||can('api.version.read',{organizationId:target.api.organizationId,projectId:target.api.projectId}));
+ const allowed=!!ws.environmentId&&can('route.write',ws.scope,true)&&(!target||canReadVersions);
+ const canChangeAuthentication=can('policy.write',ws.scope,true);
  const defaults=useRemote<{timeoutMs:number;source:string}>(allowed?`/environments/${ws.environmentId}/route-defaults`:null);
- const matches=(row:any)=>!target||(row.apiVersionId===target.version.id&&row.environmentId===target.environmentId);
+ const matches=(row:any)=>row.environmentId===ws.environmentId&&(!target||(row.apiVersionId===target.version.id&&row.environmentId===target.environmentId));
  const rows=(list.data?.items||[]).filter(matches).map((row:any)=>({...row,authenticationLabel:effectiveAuthentication(row)}));
  const fields:Field[]=[
   {key:'routeName',label:'路由名称',required:true},
-  ...(!target?[{key:'apiVersionId',label:'API 版本',required:true,options:choices.map(v=>({value:v.id,label:v.version+' · '+v.status}))}]:[]),
+  ...(!target&&!keepVersion?[{key:'apiVersionId',label:'API 版本',required:true,options:choices.map(v=>({value:v.id,label:v.version+' · '+v.status}))}]:[]),
   {key:'path',label:'请求路径',required:true,help:'支持整段 {id} 与末尾 {*rest}，静态路由优先'},
   {key:'methodsText',label:'HTTP 方法',required:true,help:'多个方法以逗号分隔'},
-  {key:'clusterId',label:'后端集群',required:true,
+  ...(!keepCluster?[{key:'clusterId',label:'后端集群',required:true,
    options:clusterChoices.map(c=>({value:c.id,label:c.status==='Disabled'?c.name+'（已停用）':c.name})),
-   help:currentClusterDisabled?(edit.enabled?'当前集群已停用。可关闭路由，或选择启用的集群。':'当前集群已停用，请选择启用的集群。'):undefined},
+   help:currentClusterDisabled?(edit.enabled?'当前集群已停用。可关闭路由，或选择启用的集群。':'当前集群已停用，请选择启用的集群。'):undefined}]:[]),
   {key:'priority',label:'优先级',type:'number',required:true},
   {key:'timeoutMs',label:'基础超时 / 毫秒',type:'number',required:true,help:(edit?.id?'编辑保留原路由基础值':`新路由来源：${defaults.data?.source==='Saved'?'已保存平台默认':'兼容默认'}`)+'；显式值优先，启用的超时策略仍可覆盖'},
   {key:'enabled',label:'启用路由',type:'checkbox'},
-  ...(can('policy.write',ws.scope,true)?[{key:'authenticationSelection',label:'认证模式（显式替换）',options:[
+  ...(canChangeAuthentication?[{key:'authenticationSelection',label:'认证模式（显式替换）',options:[
     ...(edit?.effectiveAuthenticationMode==='JWT'?[{value:'JWT',label:'JWT · 保留当前绑定'}]:[]),
     {value:'ApiKey',label:'API Key'},{value:'Anonymous',label:'匿名'}
   ],help:'JWT 由认证策略绑定配置。选择其他模式将显式替换认证，须审批发布。'}]:[])
  ];
+ const retainedBindings=[
+  keepVersion&&`API 版本 ${edit.apiVersionId}`,
+  keepCluster&&`后端集群 ${edit.clusterId}${currentClusterDisabled?'（已停用）':''}`
+ ].filter(Boolean);
+ function maySave(value:Record<string,any>){
+  const validVersion=keepVersion?value.apiVersionId===edit.apiVersionId:choices.some(v=>v.id===value.apiVersionId);
+  const usableCluster=clusterChoices.some(c=>c.id===value.clusterId&&
+   (c.status==='Active'||(edit.enabled===true&&value.enabled===false)));
+  // A route supplies its current cluster ID. The server validates its status even when discovery is unavailable.
+  if(keepCluster)return validVersion&&value.clusterId===edit.clusterId&&(!clusters.data||usableCluster);
+  return validVersion&&clusterCatalogReady&&usableCluster;
+ }
  function changed(){
   if(lifetime.signal.aborted)return;
   list.reload();
@@ -68,7 +89,10 @@ function RouteTable({api,target,selector,list,onChanged}:RoutesProps&{api?:Api;s
  }
  async function latestRoute(id:string){
   const row=await apiRequest<any>(`/routes/${id}`,{signal:lifetime.signal});
-  if(!matches(row))throw Error('路由所属环境或 API 版本已变化，请关闭并刷新列表。');
+  if(row.id!==id||!matches(row))throw Error('路由所属环境或 API 版本已变化，请关闭并刷新列表。');
+  if(edit?.id===id&&(row.apiVersionId!==edit.apiVersionId||row.clusterId!==edit.clusterId||
+   effectiveAuthentication(row)!==effectiveAuthentication(edit)))
+   throw Error('路由绑定已变化，请关闭并刷新列表。');
   return row;
  }
  return <>
@@ -84,18 +108,20 @@ function RouteTable({api,target,selector,list,onChanged}:RoutesProps&{api?:Api;s
    <div className="filter-bar">{selector}<button className="btn" onClick={list.reload}>刷新</button></div>
    <Feedback {...defaults}/><Feedback {...list}/>
    <Table rows={rows} columns={[['routeName','路由'],['path','路径'],['methods','方法'],['authenticationLabel','有效认证'],['apiVersionId','版本 ID'],['priority','优先级'],['enabled','启用'],['revision','修订']]} actions={row=><>
-    <button className="text-btn" disabled={!allowed||!defaults.data||!choices.some(v=>v.id===row.apiVersionId)} title="请先选择该路由所属 API" onClick={()=>setEdit({...row,methodsText:row.methods.join(','),authenticationSelection:effectiveAuthentication(row)})}>编辑</button>
-    <button className="text-btn" disabled={!allowed||!can('policy.write',ws.scope,true)} onClick={()=>setBinding(row)}>策略绑定</button>
+    <button className="text-btn" disabled={!allowed} onClick={()=>setEdit({...row,methodsText:row.methods.join(','),authenticationSelection:effectiveAuthentication(row)})}>编辑</button>
+    <button className="text-btn" disabled={!can('route.read',ws.scope)||!ws.tree.environments.some(e=>e.projectId===ws.projectId&&e.id!==ws.environmentId&&can('route.write',{organizationId:ws.organizationId,projectId:ws.projectId,environmentId:e.id},true)&&can('cluster.read',{organizationId:ws.organizationId,projectId:ws.projectId,environmentId:e.id}))} onClick={()=>{setCopyNote('');setCopy(row);}}>复制到环境</button>
+    <button className="text-btn" disabled={!allowed||!canChangeAuthentication} onClick={()=>setBinding(row)}>策略绑定</button>
    </>}/>
    <Pagination remote={list}/>
   </div>
+  {copy&&<RouteCopy source={copy} close={()=>setCopy(undefined)} done={()=>{setCopy(undefined);setCopyNote('已在目标环境创建工作路由。');}}/>}{copyNote&&<p role="status">{copyNote}</p>}
   {api&&<ApiAccessPanel environmentId={ws.environmentId} apiId={api.id} versionId={target?.version.id} view="working"/>}
   {binding&&<RoutePolicyEditor route={binding} verifyTarget={target?async revision=>{
     const latest=await latestRoute(binding.id);
     if(latest.revision!==revision)throw new ApiError(412,'路由修订已变化，请核对最新绑定。');
    }:undefined} signal={lifetime.signal} close={()=>setBinding(undefined)} saved={()=>{setBinding(undefined);changed();}}/>}
   {edit&&<Editor explicitSubmitOnly allowed={allowed} title={edit.id?'编辑路由':'新建路由'} fields={fields} initial={edit}
-   maySave={value=>clusterChoices.some(c=>c.id===value.clusterId&&(c.status==='Active'||(edit.enabled===true&&value.enabled===false)))}
+   maySave={maySave} help={retainedBindings.length?`保留${retainedBindings.join('、')}。修改保存至工作配置，发布后生效。`:undefined}
    close={()=>setEdit(undefined)} loadLatest={edit.id?()=>latestRoute(edit.id):undefined} save={async(value,key,fresh)=>{
     if(!allowed||lifetime.signal.aborted)throw Error('当前范围没有路由写权限');
     const body=routePolicyPayload(value,edit.id?edit:undefined);

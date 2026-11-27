@@ -57,3 +57,14 @@ export function inboxReducer(state,event){
   default:return state;
  }
 }
+
+// Coalesce interval ticks while preserving an explicit refresh after an action.
+export function singleFlightInbox(load){
+ let busy=false,queued=false;
+ return async function poll(refresh=false){
+  if(busy){if(refresh)queued=true;return;}
+  busy=true;
+  try{do{queued=false;await load();}while(queued);}
+  finally{busy=false;}
+ };
+}

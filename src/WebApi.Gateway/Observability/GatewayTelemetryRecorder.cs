@@ -27,6 +27,14 @@ public sealed class GatewayTelemetryRecorder : IDisposable
         meter.CreateObservableGauge("webapi_telemetry_last_loss_timestamp_seconds",()=>tracker.LastLoss.Select(x=>new Measurement<double>(x.Value,new KeyValuePair<string,object?>("signal",x.Key))));
         meter.CreateObservableGauge("webapi_telemetry_last_export_success_timestamp_seconds",()=>tracker.LastSuccess.Select(x=>new Measurement<double>(x.Value,new KeyValuePair<string,object?>("signal",x.Key))));
         meter.CreateObservableGauge("webapi_destination_health",()=>health.Read().Select(x=>new Measurement<long>(x.Health switch{"Healthy"=>1,"Unhealthy"=>0,"Disabled"=>-2,_=>-1},new[]{new KeyValuePair<string,object?>("webapi.cluster.id",x.ClusterId.ToString()),new("webapi.destination.id",x.DestinationId.ToString())})));
+        meter.CreateObservableGauge("webapi_destination_health_component", () => health.Read().SelectMany(row =>
+            new[] { ("active", row.ActiveHealth), ("passive", row.PassiveHealth) }.Select(component =>
+                new Measurement<long>(component.Item2 switch { "Healthy" => 1, "Unhealthy" => 0, "Disabled" => -2, _ => -1 },
+                    new KeyValuePair<string,object?>[] { new("webapi.cluster.id",row.ClusterId.ToString()),
+                        new("webapi.destination.id",row.DestinationId.ToString()),new("webapi.health.component",component.Item1),
+                        new("webapi.node.instance",gateway.InstanceId.ToString()), new("webapi.deployment.sequence",row.Sequence.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                        new("webapi.runtime.cluster",row.RuntimeClusterId.ToString()),new("webapi.health.target",row.TargetFingerprint) }))));
+
     }
     public void Record(RequestTelemetryContext context)
     {

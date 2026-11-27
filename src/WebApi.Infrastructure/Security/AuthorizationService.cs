@@ -21,6 +21,12 @@ public sealed class AuthorizationService(WebApiDbContext db) : IAuthorizationSer
         where membership.UserId == actor.UserId && (role.OrganizationId == null || role.OrganizationId == scope.OrganizationId)
         select permission;
 
+    internal static IQueryable<Guid> PlatformAdministratorUserIds(WebApiDbContext db) =>
+        from membership in db.Set<UserRole>()
+        join role in db.Set<Role>() on membership.RoleId equals role.Id
+        where role.OrganizationId == null && role.IsSystem && role.Code == "PlatformAdmin"
+        select membership.UserId;
+
     private async Task RequireAsync(ActorContext actor, string permission, ResourceRef resource, bool allowArchivedEnvironment,
         CancellationToken cancellationToken)
     {
@@ -29,7 +35,7 @@ public sealed class AuthorizationService(WebApiDbContext db) : IAuthorizationSer
         if(!functional) throw new ApiException(403,"permission_denied","缺少操作权限。");
         if(resource.Scope.OrganizationId==Guid.Empty)
         {
-            if(!await (from ur in db.Set<UserRole>() join r in db.Set<Role>() on ur.RoleId equals r.Id where ur.UserId==actor.UserId && r.Code=="PlatformAdmin" && r.IsSystem && r.OrganizationId==null select r.Id).AnyAsync(cancellationToken))
+            if(!await PlatformAdministratorUserIds(db).ContainsAsync(actor.UserId,cancellationToken))
                 throw new ApiException(403,"platform_permission_required","需要平台管理权限。");
             return;
         }

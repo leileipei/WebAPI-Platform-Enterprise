@@ -4,6 +4,8 @@ using WebApi.Infrastructure.Persistence.Entities;
 namespace WebApi.Infrastructure.Governance;
 public static class PermissionCatalog
 {
+    // Custom role codes start with a letter or number. The reserved local role cannot collide with a tenant role.
+    internal const string ScopedOrganizationAdministrator = "_OrganizationAdmin";
     public const string CredentialRevoke = "credential.revoke";
     public const string CredentialGovernanceRecover = "credential.governance.recover";
     private static readonly string[] CredentialGovernancePermissions = [CredentialRevoke, CredentialGovernanceRecover];
@@ -42,6 +44,16 @@ public static class PermissionCatalog
             var assigned=await db.Set<RolePermission>().Where(r=>r.RoleId==role.Id).Select(r=>r.PermissionId).ToArrayAsync(ct);
             foreach(var permission in definition.Permissions) if(!assigned.Contains(permissions[permission].Id)) db.Add(new RolePermission {RoleId=role.Id,PermissionId=permissions[permission].Id});
         }
+        await db.SaveChangesAsync(ct);
+        var managed=db.Set<Role>().Where(role=>role.IsSystem && role.OrganizationId!=null && role.Code==ScopedOrganizationAdministrator);
+        var templatePermissions=from link in db.Set<RolePermission>() join role in db.Set<Role>() on link.RoleId equals role.Id
+                                where role.IsSystem && role.OrganizationId==null && role.Code=="OrganizationAdmin" select link.PermissionId;
+        var missing=await (from role in managed from permission in templatePermissions
+                           where !db.Set<RolePermission>().Any(link=>link.RoleId==role.Id && link.PermissionId==permission)
+                           select new{RoleId=role.Id,PermissionId=permission}).ToArrayAsync(ct);
+        db.AddRange(missing.Select(link=>new RolePermission{RoleId=link.RoleId,PermissionId=link.PermissionId}));
+        await db.Set<RolePermission>().Where(link=>managed.Any(role=>role.Id==link.RoleId)
+            && !templatePermissions.Contains(link.PermissionId)).ExecuteDeleteAsync(ct);
         await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
     }
 }

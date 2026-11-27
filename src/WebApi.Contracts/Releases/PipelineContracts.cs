@@ -13,10 +13,18 @@ public sealed record PipelineStageVerificationRequest(string ExpectedContextHash
 public sealed record PipelineAcceptanceRequest(string ExpectedContextHash,IReadOnlyList<Guid> VerificationIds);
 public sealed record PipelineActionRequest(string Comment="");
 public sealed record PipelineDto(Guid Id,Guid ProjectId,string Name,string Description,long Revision,string Status,string DefinitionVisibility,
-    PipelineDefinition? Draft,PipelineVersionDto? LatestVersion=null);
+    PipelineDefinition? Draft,PipelineVersionDto? LatestVersion=null)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public int? GatewayAckTimeoutSeconds { get; init; }
+}
 public sealed record PipelineVersionDto(Guid Id,Guid PipelineId,int VersionNo,string DefinitionHash,PipelineVersionContent? Content,
     DateTimeOffset CreatedAt,Guid CreatedBy);
-public sealed record PipelinePageDto<T>(IReadOnlyList<T> Items,int? Total,int Page,int Size,string Coverage);
+public sealed record PipelinePageDto<T>(IReadOnlyList<T> Items,int? Total,int Page,int Size,string Coverage)
+{
+    [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public int? GatewayAckTimeoutSeconds { get; init; }
+}
 public sealed record PipelineRunStageDto(Guid Id,Guid RunId,int StageOrder,Guid EnvironmentId,Guid? SourceStageId,Guid? StageArtifactId,
     string Status,long Revision,Guid? CurrentAttemptId,DateTimeOffset? ActivatedAt,DateTimeOffset? DeadlineAt,string ProfileHash,PipelineStageProfile? Profile);
 public sealed record PipelineRunDto(Guid Id,Guid ProjectId,Guid PipelineVersionId,string DefinitionHash,Guid? RootArtifactId,string? RootArtifactHash,
@@ -30,6 +38,7 @@ public sealed record PipelineRunEligibility(bool CanPause,bool CanResume,bool Ca
 public sealed record PipelineStageEligibility(bool CanPrepare,bool CanMaterialize,bool CanRecord,bool CanRequestAcceptance,bool CanReopen,bool CanCancelRun,IReadOnlyList<string> ReasonCodes,bool CanVerifyProduction=false);
 public sealed record PipelineAttemptDto(Guid Id,int AttemptNo,Guid? OriginAttemptId,string Status,DateTimeOffset ActivatedAt,DateTimeOffset DeadlineAt,Guid? ArtifactId,Guid? AcceptanceId,Guid? PromotionId,Guid? ActualReleaseId,long Revision);
 public sealed record PipelineEventDto(Guid Id,Guid? StageId,Guid? AttemptId,string? FromStatus,string ToStatus,string ReasonCode,Guid? ActorId,DateTimeOffset CreatedAt);
-public sealed record PipelineStageDto(Guid Id,Guid RunId,Guid ProjectId,int StageOrder,Guid EnvironmentId,string EnvironmentName,Guid? SourceStageId,Guid? StageArtifactId,string Status,string RunStatus,int CurrentStageOrder,long Revision,Guid? CurrentAttemptId,DateTimeOffset? ActivatedAt,DateTimeOffset? DeadlineAt,string ProfileHash,PipelineStageProfile Profile,Guid? FormalPromotionId,Guid? ActualReleaseId,string? ActualReleaseStatus,long? ActualConfigVersion,long? ActualDeploymentSequence,DateTimeOffset? AckDeadlineAt,IReadOnlyList<PromotionNodeState>? Nodes,IReadOnlyList<ReleaseVerificationDto> Verifications,TestAcceptanceDto? Acceptance,IReadOnlyList<PipelineAttemptDto> Attempts,IReadOnlyList<PipelineEventDto> Events,PipelineStageEligibility Eligibility,PipelineTraceDto Trace);
+public sealed record PipelineStageDto(Guid Id,Guid RunId,Guid ProjectId,int StageOrder,Guid EnvironmentId,string EnvironmentName,Guid? SourceStageId,Guid? StageArtifactId,string Status,string RunStatus,int CurrentStageOrder,long Revision,Guid? CurrentAttemptId,DateTimeOffset? ActivatedAt,DateTimeOffset? DeadlineAt,string ProfileHash,PipelineStageProfile Profile,Guid? FormalPromotionId,Guid? ActualReleaseId,string? ActualReleaseStatus,long? ActualConfigVersion,long? ActualDeploymentSequence,DateTimeOffset? AckDeadlineAt,IReadOnlyList<PromotionNodeState>? Nodes,IReadOnlyList<ReleaseVerificationDto> Verifications,TestAcceptanceDto? Acceptance,IReadOnlyList<PipelineAttemptDto> Attempts,IReadOnlyList<PipelineEventDto> Events,PipelineStageEligibility Eligibility,PipelineTraceDto Trace,PipelineRollbackDto? Rollback=null);
+public sealed record PipelineRollbackDto(Guid ReleaseId,long ConfigVersion,long? DeploymentSequence);
 public sealed record PipelineTraceDto(Guid? PipelineId,Guid? RunId,Guid StageId,int Order,string Visibility);
 public sealed record PipelineRunCounts(int Total,int Active,int Paused,int TimedOut,int Completed);

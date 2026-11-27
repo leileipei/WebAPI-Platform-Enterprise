@@ -12,7 +12,7 @@ const a='a', b='b';
 const organizations=[{id:a,name:'甲公司',status:'Active'},{id:b,name:'乙公司',status:'Active'}];
 const permission=(code)=>({code,name:code,module:code.split('.')[0]});
 const permissions=['role.manage','api.read','route.read','system.manage'];
-const role=(id,name,organizationId,isSystem=false,grants=['api.read'])=>({id,name,code:id,organizationId,isSystem,revision:1,permissions:grants});
+const role=(id,name,organizationId,isSystem=false,grants=['api.read'])=>({id,name,code:id,organizationId,isSystem,revision:1,permissions:grants,userCount:0});
 
 async function openDirectory(t,{path='/roles',platform=false,tree=organizations,managed=[a],mode='read_write',denyRoleReads=false}={}) {
   const page=await browser.newPage();
@@ -29,6 +29,8 @@ async function openDirectory(t,{path='/roles',platform=false,tree=organizations,
     if(!asset.startsWith('/api/v1/')) return route.fulfill({path:join(process.env.WEBAPI_CONSOLE_DIST,'index.html')});
     const endpoint=asset.slice(7);
     if(endpoint==='/auth/me'){f.identityReads++;return reply({id:'manager',username:'manager',displayName:'角色管理员',permissions:['role.manage','api.read','route.read'],
+      isPlatformAdministrator:f.platform,rolePermissions:[...(f.platform?[{organizationId:null,permissions:['role.manage']}]:[]),
+        ...f.managed.map(organizationId=>({organizationId,permissions:['role.manage','api.read','route.read']}))],
       scopes:organizations.map(o=>({scope:{organizationId:o.id},accessMode:f.mode}))});}
     if(endpoint==='/auth/csrf') return reply({token:'test-csrf'});
     if(endpoint==='/scope-tree') return reply({organizations:f.tree,projects:[],environments:[]});
@@ -45,6 +47,13 @@ async function openDirectory(t,{path='/roles',platform=false,tree=organizations,
       const body=req.postDataJSON(),item=role('created',body.name,body.organizationId,false,[]);
       item.code=body.code;
       f.writes.push({endpoint,body});f.roles.push(item);return reply(item);
+    }
+    if(req.method()==='POST'&&endpoint==='/roles/alpha/copy'){
+      const body=req.postDataJSON(),source=f.roles.find(r=>r.id==='alpha'),copy={...source,id:'copy',code:body.code,name:body.name,userCount:0};
+      f.writes.push({endpoint,body,tag:req.headers()['if-match']});f.roles.push(copy);return reply(copy);
+    }
+    if(req.method()==='DELETE'&&endpoint==='/roles/copy'){
+      f.writes.push({endpoint,tag:req.headers()['if-match']});f.roles=f.roles.filter(r=>r.id!=='copy');return route.fulfill({status:204});
     }
     if(req.method()==='PUT'&&endpoint.startsWith('/roles/')) {
       const [, , id, action]=endpoint.split('/'),r=f.roles.find(x=>x.id===id);
@@ -190,4 +199,40 @@ test('editing an organization role from the platform catalog checks its organiza
   assert.equal(await dialog.count(),0);
   assert.deepEqual(f.writes,[]);
   assert.ok(f.reads.at(-1).endpoint==='/permissions' && f.reads.at(-1).org===a);
+});
+
+
+test('custom role copy and confirmed deletion preserve the source and use the displayed revision',async t=>{
+ const {page,f,dialog,row}=await openDirectory(t);
+ const source=row('甲方角色');await source.getByRole('button',{name:'复制角色',exact:true}).click();
+ await dialog.getByLabel('编码').fill('copied');await dialog.getByLabel('名称').fill('角色副本');
+ await dialog.getByRole('button',{name:'保存',exact:true}).click();
+ const copied=row('角色副本');await copied.getByRole('button',{name:'删除角色'}).click();
+ assert.equal(f.writes.length,1);
+ const [deletion]=await Promise.all([
+  page.waitForResponse(response=>response.request().method()==='DELETE'&&new URL(response.url()).pathname==='/api/v1/roles/copy'),
+  page.waitForResponse(response=>{
+   const url=new URL(response.url());
+   return response.request().method()==='GET'&&url.pathname==='/api/v1/roles'&&url.searchParams.get('organizationId')===a&&
+    response.ok()&&f.writes.at(-1)?.endpoint==='/roles/copy';
+  }),
+  page.getByRole('alertdialog').getByRole('button',{name:'确认删除'}).click(),
+ ]);
+ assert.equal(deletion.status(),204);
+ await copied.waitFor({state:'hidden'});
+ await source.waitFor();
+ assert.equal(await source.count(),1);
+ assert.equal(await copied.count(),0);
+ assert.deepEqual(f.writes.map(w=>[w.endpoint,w.tag]),[['/roles/alpha/copy','"1"'],['/roles/copy','"1"']]);
+});
+
+test('platform role copy checks the row organization and every source permission there',async t=>{
+  const {page,f,row}=await openDirectory(t,{platform:true,managed:[a]});
+  await page.getByRole('combobox',{name:'角色管理范围'}).selectOption('platform');
+  await row('乙方角色').waitFor();
+  const copy=name=>row(name).getByRole('button',{name:'复制角色',exact:true});
+  assert.equal(await copy('乙方角色').count(),0);
+  assert.equal(await copy('保留既有授权').count(),0);
+  assert.equal(await copy('甲方角色').isEnabled(),true);
+  assert.deepEqual(f.writes,[]);
 });

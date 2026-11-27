@@ -1,6 +1,6 @@
 {
   "complete": true,
-  "project": "webapi-enterprise-e2e-observability-dd68365c-2d42-4e68-8487-84df4ba36c89",
+  "project": "webapi-enterprise-e2e-observability-5d385261-cf4a-4bc1-8dcc-0c38c880462b",
   "classification": "actual-business-gateway-three-source-and-independent-workers",
   "settings": {
     "intervalSeconds": 2,
@@ -11,28 +11,28 @@
     "queueCapacity": 64
   },
   "windowSeconds": 60,
-  "elapsedSeconds": 139,
+  "elapsedSeconds": 140,
   "checks": [
     {
       "name": "Actual60SecondCompleteCoverageAndEstimatedRates",
       "status": "passed",
-      "ratio": 0.33043478260869563,
+      "ratio": 0.3266799075203166,
       "ratioAbsoluteTolerance": 0.12,
-      "p95": 2273.0263157894733,
-      "samples": 119
+      "p95": 2275.0000000000005,
+      "samples": 117
     },
     {
       "name": "ThreeActualMetricRulesTriggerAckSilenceRecoverAndAudit",
       "status": "passed",
       "rules": [
         {
-          "eventId": "49ac6cf5-6e83-4424-a479-968ae98fdf8e",
-          "ruleId": "f8ff5a49-7591-4fca-a8ca-f7d9041ce815",
+          "eventId": "730f96cf-2c49-4357-a11e-6e2c5714b961",
+          "ruleId": "d097abb3-4700-45b4-b15a-6a13144c6ca9",
           "definition": {
-            "organizationId": "b887ec92-32e6-4cea-acc9-66623bd2df63",
-            "projectId": "a256d8df-672e-4ca0-8dc6-70342fd9fa2b",
-            "environmentId": "4c755b10-5345-4b04-a35f-be34fb557317",
-            "name": "错误率持续告警 · mutr2qni",
+            "organizationId": "4fea55c4-ccd5-4a0f-94f0-21d8c6ac4027",
+            "projectId": "0ee7adf4-cc0d-4224-916a-54475364b3c6",
+            "environmentId": "09055017-cbc3-492c-97e7-aac43e048b05",
+            "name": "错误率持续告警 · mwyp9d8l",
             "metric": "error_5xx_ratio",
             "expression": "error_5xx_ratio > 0.05",
             "severity": "Warning",
@@ -43,14 +43,23 @@
             "windowSeconds": 60,
             "notification": {
               "inConsole": true,
-              "requestedChannels": []
+              "requestedChannels": [],
+              "externalEnabled": false,
+              "emailRecipients": [],
+              "notifyRecovery": true,
+              "retryPolicy": {
+                "maxAttempts": 5,
+                "baseDelaySeconds": 30,
+                "maxDelaySeconds": 900,
+                "expiresAfterMinutes": 1440
+              }
             }
           },
           "originalForSeconds": 300,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-10-04T11:41:09.69+00:00",
-          "startedAt": "2026-10-04T11:41:20.215385+00:00",
-          "resolvedAt": "2026-10-04T11:42:33.033962+00:00",
+          "conditionStartedAt": "2026-11-27T08:08:34.539+00:00",
+          "startedAt": "2026-11-27T08:08:46.671417+00:00",
+          "resolvedAt": "2026-11-27T08:10:00.329787+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -68,13 +77,13 @@
           "auditCount": 2
         },
         {
-          "eventId": "a555d7b0-f2b2-4900-82dc-c9a086ffd89a",
-          "ruleId": "8c7bb4ca-8218-4b04-a718-4613e6ac41f1",
+          "eventId": "789a2226-c784-45ac-9c12-6e708d73d92b",
+          "ruleId": "9f74d1ef-8ee2-4190-91ae-50756104e73f",
           "definition": {
-            "organizationId": "b887ec92-32e6-4cea-acc9-66623bd2df63",
-            "projectId": "a256d8df-672e-4ca0-8dc6-70342fd9fa2b",
-            "environmentId": "4c755b10-5345-4b04-a35f-be34fb557317",
-            "name": "慢调用持续告警 · mutr2qoz",
+            "organizationId": "4fea55c4-ccd5-4a0f-94f0-21d8c6ac4027",
+            "projectId": "0ee7adf4-cc0d-4224-916a-54475364b3c6",
+            "environmentId": "09055017-cbc3-492c-97e7-aac43e048b05",
+            "name": "慢调用持续告警 · mwyp9da1",
             "metric": "latency_p95_ms",
             "expression": "latency_p95_ms > 1000",
             "severity": "Warning",
@@ -85,14 +94,23 @@
             "windowSeconds": 60,
             "notification": {
               "inConsole": true,
-              "requestedChannels": []
+              "requestedChannels": [],
+              "externalEnabled": false,
+              "emailRecipients": [],
+              "notifyRecovery": true,
+              "retryPolicy": {
+                "maxAttempts": 5,
+                "baseDelaySeconds": 30,
+                "maxDelaySeconds": 900,
+                "expiresAfterMinutes": 1440
+              }
             }
           },
           "originalForSeconds": 600,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-10-04T11:41:09.69+00:00",
-          "startedAt": "2026-10-04T11:41:20.172283+00:00",
-          "resolvedAt": "2026-10-04T11:42:33.024695+00:00",
+          "conditionStartedAt": "2026-11-27T08:08:34.539+00:00",
+          "startedAt": "2026-11-27T08:08:46.74107+00:00",
+          "resolvedAt": "2026-11-27T08:10:00.3188+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -110,13 +128,13 @@
           "auditCount": 2
         },
         {
-          "eventId": "f058db7d-25c6-4553-8b47-b5f18400c0be",
-          "ruleId": "68ae5875-b92c-47ab-b61b-74f5c5347d60",
+          "eventId": "8e22b916-38b3-4bc5-9f8d-dd23bb94699b",
+          "ruleId": "7d5af45b-65a1-4d15-a6fb-9d3aeaf0009a",
           "definition": {
-            "organizationId": "b887ec92-32e6-4cea-acc9-66623bd2df63",
-            "projectId": "a256d8df-672e-4ca0-8dc6-70342fd9fa2b",
-            "environmentId": "4c755b10-5345-4b04-a35f-be34fb557317",
-            "name": "后端健康持续告警 · mutr2qpc",
+            "organizationId": "4fea55c4-ccd5-4a0f-94f0-21d8c6ac4027",
+            "projectId": "0ee7adf4-cc0d-4224-916a-54475364b3c6",
+            "environmentId": "09055017-cbc3-492c-97e7-aac43e048b05",
+            "name": "后端健康持续告警 · mwyp9daf",
             "metric": "unhealthy_destinations",
             "expression": "unhealthy_destinations > 0",
             "severity": "Warning",
@@ -127,14 +145,23 @@
             "windowSeconds": 60,
             "notification": {
               "inConsole": true,
-              "requestedChannels": []
+              "requestedChannels": [],
+              "externalEnabled": false,
+              "emailRecipients": [],
+              "notifyRecovery": true,
+              "retryPolicy": {
+                "maxAttempts": 5,
+                "baseDelaySeconds": 30,
+                "maxDelaySeconds": 900,
+                "expiresAfterMinutes": 1440
+              }
             }
           },
           "originalForSeconds": 120,
           "e2eForSeconds": 4,
-          "conditionStartedAt": "2026-10-04T11:41:25.692+00:00",
-          "startedAt": "2026-10-04T11:41:38.607732+00:00",
-          "resolvedAt": "2026-10-04T11:41:48.873642+00:00",
+          "conditionStartedAt": "2026-11-27T08:08:50.542+00:00",
+          "startedAt": "2026-11-27T08:09:04.233707+00:00",
+          "resolvedAt": "2026-11-27T08:09:14.641416+00:00",
           "transitions": [
             {
               "toStatus": "Open",
@@ -154,5 +181,6 @@
       "status": "passed",
       "value": 0
     }
-  ]
+  ],
+  "sourceRevision": "a9f7c19871eef83a50e3f43a17d2027b393bf92a"
 }

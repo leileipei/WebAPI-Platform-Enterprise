@@ -244,11 +244,12 @@ public sealed class MigrationSqlTraceTests
             }
             await using var check = database.Context();
             if (!sqlEntry) await check.Database.MigrateAsync();
+            Assert.Equal(ReleasePublicationOutcomes.Id, (await check.Database.GetAppliedMigrationsAsync()).Last());
             fingerprints.Add(await check.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
             Console.WriteLine("receipt-schema-fingerprint=" + fingerprints[^1] + "; installer=" + (sqlEntry ? "Sql" : "EF"));
         }
         Assert.All(fingerprints, value => Assert.Equal(fingerprints[0], value));
-        Assert.True(GovernanceSchemaFingerprints.Expected.TryGetValue(FormalRotationDecisionProjection.Id, out var registered));
+        Assert.True(GovernanceSchemaFingerprints.Expected.TryGetValue(ReleasePublicationOutcomes.Id, out var registered));
         Assert.Equal(registered, fingerprints[0]);
         foreach (var database in databases) await database.DisposeAsync();
     }

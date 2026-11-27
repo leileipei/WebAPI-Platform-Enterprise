@@ -6,14 +6,14 @@ import {Status} from '../ui';
 import {ApprovalFilters} from '../approvals/ApprovalFilters';
 import {ApprovalActionDialog} from '../approvals/ApprovalActionDialog';
 import {approvalApi,type ApprovalFilter,type ApprovalItem} from '../approvals/api';
-import {parseApprovalQuery,approvalQuery,createInboxState,inboxReducer,approvalAuthority,approvalScope,approvalMayAct,switchApprovalView} from '../approvals/inbox-state.mjs';
+import {parseApprovalQuery,approvalQuery,createInboxState,inboxReducer,approvalAuthority,approvalScope,approvalMayAct,switchApprovalView,singleFlightInbox} from '../approvals/inbox-state.mjs';
 
 export function Approvals({search=''}:{search?:string}){
  const {user}=useSession(),workspace=useWorkspace(),authority=approvalAuthority(user);let filter:ApprovalFilter,invalid='';try{filter=parseApprovalQuery(search);}catch(e){filter=parseApprovalQuery('');invalid=(e as Error).message;}
  const query=approvalQuery(filter),[state,dispatch]=useReducer(inboxReducer,createInboxState(authority,filter)),request=useRef(0),reload=useRef<()=>void>(()=>{});
  useEffect(()=>{dispatch({type:'authority',authority});},[authority]);
  useEffect(()=>{dispatch({type:'filter',filter});},[query]);
- useEffect(()=>{if(invalid)return;const abort=new AbortController();const load=async()=>{if(document.hidden)return;const requestId=++request.current,epoch=state.epoch;dispatch({type:'request',authority,epoch,requestId});try{const payload=await approvalApi.list(query,abort.signal);if(!abort.signal.aborted)dispatch({type:'result',authority,epoch,requestId,payload});}catch(e){if(!abort.signal.aborted)dispatch({type:'request-error',authority,epoch,requestId,status:e instanceof ApiError?e.status:0,message:(e as Error).message});}};reload.current=()=>void load();void load();const timer=setInterval(()=>void load(),5000);document.addEventListener('visibilitychange',load);return()=>{abort.abort();clearInterval(timer);document.removeEventListener('visibilitychange',load);};},[query,authority,state.epoch,invalid]);
+ useEffect(()=>{if(invalid)return;const abort=new AbortController();const poll=singleFlightInbox(async()=>{if(abort.signal.aborted||document.hidden)return;const requestId=++request.current,epoch=state.epoch;dispatch({type:'request',authority,epoch,requestId});try{const payload=await approvalApi.list(query,abort.signal);if(!abort.signal.aborted)dispatch({type:'result',authority,epoch,requestId,payload});}catch(e){if(!abort.signal.aborted)dispatch({type:'request-error',authority,epoch,requestId,status:e instanceof ApiError?e.status:0,message:(e as Error).message});}});const load=()=>void poll();reload.current=()=>void poll(true);load();const timer=setInterval(()=>void load(),5000);document.addEventListener('visibilitychange',load);return()=>{abort.abort();clearInterval(timer);document.removeEventListener('visibilitychange',load);};},[query,authority,state.epoch,invalid]);
  const current=state.authority===authority&&approvalQuery(state.filter)===query&&!invalid,rows:ApprovalItem[]=current?state.rows:[],counts=current?state.counts:null,dialog=current?state.dialog:null;
  function change(next:ApprovalFilter){navigate('/approvals'+approvalQuery(next));}
  function details(item:ApprovalItem){workspace.selectScope(approvalScope(item),'/releases/'+item.id+'?returnTo='+encodeURIComponent('/approvals'+query));}

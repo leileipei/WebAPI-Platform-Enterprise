@@ -5,6 +5,7 @@ using WebApi.Contracts.Common;
 using WebApi.Contracts.Releases;
 using WebApi.Contracts.Security;
 using WebApi.Domain.Delivery.Pipelines;
+using WebApi.Domain.Security;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Governance;
@@ -125,7 +126,7 @@ public sealed class DeliveryGateContextResolver(WebApiDbContext db,ScopeResolver
   if(run.Status!="Active"||run.CurrentStageOrder!=stage.StageOrder||stage.CurrentAttemptId is not Guid attemptId)throw new ApiException(409,"pipeline_stage_not_writable","当前运行或阶段不允许新操作。");
   var attempt=await db.Set<ReleasePipelineStageAttempt>().AsNoTracking().SingleAsync(a=>a.Id==attemptId,ct);if(attempt.Status!="Active"||!PipelineStateRules.CanWrite(run.Status,queuedBuild&&stage.Status=="Deploying"?"ReadyToDeploy":stage.Status,attempt.DeadlineAt,DateTimeOffset.UtcNow))throw new ApiException(409,"pipeline_attempt_not_writable","当前阶段尝试已结束或超时，请重新办理。");
   var scope=await scopes.EnvironmentAsync(stage.EnvironmentId,ct);
-  if(!await db.Set<UserProjectScope>().AsNoTracking().AnyAsync(g=>g.UserId==actor.UserId&&g.OrganizationId==scope.OrganizationId&&(g.ProjectId==null||g.ProjectId==scope.ProjectId)&&(g.EnvironmentId==null||g.EnvironmentId==scope.EnvironmentId)&&g.AccessMode=="read_write",ct))throw new ApiException(403,"scope_denied","当前阶段需要该环境的写入范围。");
+  if(!await db.Set<UserProjectScope>().AsNoTracking().AnyAsync(g=>g.UserId==actor.UserId&&g.OrganizationId==scope.OrganizationId&&(g.ProjectId==null||g.ProjectId==scope.ProjectId)&&(g.EnvironmentId==null||g.EnvironmentId==scope.EnvironmentId)&&(g.AccessMode=="read_write"||g.AccessMode==ScopeMatcher.OrganizationAdministratorWrite),ct))throw new ApiException(403,"scope_denied","当前阶段需要该环境的写入范围。");
   // The command owns its functional permission: pipeline.run for advancement, or the
   // existing test/approval/verification permission for those independent duties.
   var environment=await db.Set<EnvironmentRecord>().AsNoTracking().SingleAsync(e=>e.Id==stage.EnvironmentId,ct);var profile=await ReadProfileAsync(stage,ct);if(environment.IsProduction!=profile.IsProduction)throw Changed();

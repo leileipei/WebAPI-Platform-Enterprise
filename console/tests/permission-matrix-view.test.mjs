@@ -13,6 +13,9 @@ test('all seeded codes have explicit Chinese labels and supported matrix columns
  assert.equal(codes.length,50);
  assert(codes.includes("release.test.record")&&codes.includes("release.test.accept")&&codes.includes("release.verify"));
  for(const code of codes){const display=describePermission({code,name:code,module:code.split('.')[0]});assert.match(display.label,/[\u4e00-\u9fff]/,code);assert.notEqual(display.column,'other',code);}
+ for(const [,code] of source.matchAll(/public const string Credential\w+ = "([^"]+)"/g)){
+   const display=describePermission({code,module:'credential'});assert.match(display.label,/[\u4e00-\u9fff]/,code);assert.equal(display.column,'manage');
+ }
 });
 test('read-only matrix exposes exact assignments and accessible disabled checkboxes',async()=>{
  server=await createServer({root:fileURLToPath(new URL('..',import.meta.url)),configFile:false,optimizeDeps:{noDiscovery:true,include:[]},server:{middlewareMode:true,hmr:false,ws:false},appType:'custom'});
@@ -34,4 +37,17 @@ test('the common editor can render matrix fields inside its disabled and unsaved
  assert.match(html,/<fieldset class="form-grid">[\s\S]*权限模块与功能矩阵[\s\S]*<\/fieldset>/);
  assert.match(html,/aria-label="查看 API · api.read"[^>]*checked=""/);
  assert.match(html,/class="dialog permission-dialog"/);
+});
+test('sensitive actions describe the exact operation and its enforced conditions',async()=>{
+ const {PermissionMatrix}=await server.ssrLoadModule('/src/governance/PermissionMatrix.tsx');
+ function item(code){
+   return renderToStaticMarkup(createElement(PermissionMatrix,{items:[{code,module:code.split('.')[0]}],value:{},readOnly:true})).split('class="permission-choice"').at(-1);
+ }
+ assert.match(item('pipeline.manage'),/敏感操作[\s\S]*project\.write/);
+ assert.match(item('credential.revoke'),/敏感操作[\s\S]*正式轮换[\s\S]*credential\.manage/);
+ assert.match(item('api.approve'),/敏感操作[\s\S]*api\.read[\s\S]*api\.version\.read[\s\S]*api\.schema\.read/);
+ assert.match(item('approval.act'),/敏感操作[\s\S]*审批角色/);
+ assert.match(item('role.manage'),/敏感操作[\s\S]*角色/);
+ assert.doesNotMatch(item('vendor.rollback'),/敏感操作|另需/);
+ assert.doesNotMatch(item('release.read'),/敏感操作|另需/);
 });

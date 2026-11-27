@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 namespace WebApi.Infrastructure.Observability;
 public sealed class ObservationSourceClient(IHttpClientFactory factory,ObservationSourceSettings settings)
@@ -7,10 +8,16 @@ public sealed class ObservationSourceClient(IHttpClientFactory factory,Observati
     {
         var sourceType=path.StartsWith("loki/",StringComparison.Ordinal)?"logs":path.StartsWith("api/traces",StringComparison.Ordinal)||path.StartsWith("api/v2/traces",StringComparison.Ordinal)||path.StartsWith("api/search",StringComparison.Ordinal)||path.StartsWith("api/v2/search",StringComparison.Ordinal)?"traces":"metrics";
         if(!settings.Enabled)throw ObservationSourceSettings.Unavailable(sourceType);
-        var uri=new Uri(endpoint.AbsoluteUri.TrimEnd('/')+"/"+path.TrimStart('/')+"?"+string.Join('&',query.Select(x=>Uri.EscapeDataString(x.Key)+"="+Uri.EscapeDataString(x.Value))));
         try
         {
-            using var request=new HttpRequestMessage(HttpMethod.Get,uri);
+            var address = endpoint.AbsoluteUri.TrimEnd('/') + "/" + path.TrimStart('/');
+            var parameters = string.Join('&', query.Select(x => Uri.EscapeDataString(x.Key) + "=" + Uri.EscapeDataString(x.Value)));
+            // Prometheus accepts the same parameters as a form when the allowlist would exceed a short request line.
+            const int shortUriLength = 4096;
+            var useForm = (path is "api/v1/query" or "api/v1/query_range") && address.Length + 1 + parameters.Length > shortUriLength;
+            using var request = useForm
+                ? new HttpRequestMessage(HttpMethod.Post, address) { Content = new StringContent(parameters, Encoding.UTF8, "application/x-www-form-urlencoded") }
+                : new HttpRequestMessage(HttpMethod.Get, address + "?" + parameters);
             if(settings.CredentialSecretFile is {Length:>0})request.Headers.Authorization=new AuthenticationHeaderValue("Bearer",File.ReadAllText(settings.CredentialSecretFile).Trim());
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var client=factory.CreateClient("observability");using var response=await client.SendAsync(request,HttpCompletionOption.ResponseHeadersRead,ct);

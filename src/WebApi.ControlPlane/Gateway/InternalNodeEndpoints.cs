@@ -13,9 +13,21 @@ public static class InternalNodeEndpoints
     {
         var g=app.MapGroup("/internal/v1/nodes").AllowAnonymous().AddEndpointFilter<RequestValidationFilter>();
         g.MapPost("/register",async(RegisterNodeRequest request,HttpContext ctx,NodeRegistry nodes,CancellationToken ct)=>Results.Ok(await nodes.RegisterAsync(request,Secret(ctx),ct)));
-        g.MapPost("/{id:guid}/heartbeat",async(Guid id,NodeHeartbeat request,HttpContext ctx,NodeIdentityService identities,NodeRegistry nodes,CancellationToken ct)=>{var identity=await identities.AuthenticateAsync(id,Secret(ctx),ct);await nodes.HeartbeatAsync(identity,request,ct);return Results.NoContent();});
+        g.MapPost("/{id:guid}/heartbeat",async(Guid id,NodeHeartbeat request,HttpContext ctx,NodeIdentityService identities,NodeRegistry nodes,CancellationToken ct)=>{var identity=await identities.AuthenticateAsync(id,Secret(ctx),ct);if(await nodes.HeartbeatAsync(identity,request,ct)) ctx.Response.Headers["X-WebApi-Pending-Operation"]="1";return Results.NoContent();});
         g.MapGet("/{id:guid}/desired",async(Guid id,Guid? instanceId,HttpContext ctx,NodeIdentityService identities,NodeRegistry nodes,CancellationToken ct)=>{var identity=await identities.AuthenticateAsync(id,Secret(ctx),ct);ctx.Response.Headers.CacheControl="no-store";var desired=await nodes.DesiredAsync(identity,ct,instanceId);return desired is null?Results.NoContent():Results.Ok(desired);});
         g.MapPost("/{id:guid}/ack",async(Guid id,NodeAck request,HttpContext ctx,NodeIdentityService identities,AckService acks,CancellationToken ct)=>{var identity=await identities.AuthenticateAsync(id,Secret(ctx),ct);return Results.Ok(await acks.RecordAsync(id,request,identity,ct));});
+        g.MapPost("/{id:guid}/operations/claim",async(Guid id,NodeOperationClaim request,HttpContext ctx,NodeIdentityService identities,GatewayOperationService operations,CancellationToken ct)=>
+        {
+            var identity=await identities.AuthenticateAsync(id,Secret(ctx),ct);
+            var operation=await operations.ClaimAsync(identity,request.InstanceId,ct);
+            return operation==null?Results.NoContent():Results.Ok(operation);
+        });
+        g.MapPost("/{id:guid}/operations/{operation:guid}/complete",async(Guid id,Guid operation,NodeOperationResult request,HttpContext ctx,NodeIdentityService identities,GatewayOperationService operations,CancellationToken ct)=>
+        {
+            var identity=await identities.AuthenticateAsync(id,Secret(ctx),ct);
+            await operations.CompleteAsync(identity,operation,request,ct);
+            return Results.NoContent();
+        });
         g.MapPost("/{id:guid}/security/material", async (Guid id, Guid instanceId, HttpContext ctx, NodeIdentityService identities, CancellationToken ct) =>
         {
             ctx.Response.Headers.CacheControl = "no-store";

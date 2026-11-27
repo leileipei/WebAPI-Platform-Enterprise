@@ -18,10 +18,11 @@ public sealed class PipelineScenario : IAsyncDisposable
     public Guid RootArtifactId => Source.Artifact.Id;
     public Guid[] Environments { get; private set; } = [];
     public PipelineDefinition Definition { get; private set; } = null!;
-    public async Task InitializeEnvironmentsAsync(int environmentCount=2,bool nonProductionApproval=false,Func<ApiFixture,Task>? beforePublish=null)
+    public async Task InitializeEnvironmentsAsync(int environmentCount=2,bool nonProductionApproval=false,Func<ApiFixture,Task>? beforePublish=null,
+        Action<Microsoft.AspNetCore.Builder.WebApplicationBuilder>? configure=null)
     {
         if(environmentCount is <2 or >8)throw new ArgumentOutOfRangeException(nameof(environmentCount));
-        await Source.InitializeAsync(canRecord:false,beforePublish:beforePublish is null?null:async api=>{await using(var db=api.Context())await PermissionCatalog.SeedAsync(db);await GrantAsync(api.User.Id,"policy.read","policy.write");await beforePublish(api);});
+        await Source.InitializeAsync(canRecord:false,configure:configure,beforePublish:beforePublish is null?null:async api=>{await using(var db=api.Context())await PermissionCatalog.SeedAsync(db);await GrantAsync(api.User.Id,"policy.read","policy.write");await beforePublish(api);});
         await using(var db=Api.Context())
         {
             var source=await db.Set<EnvironmentRecord>().SingleAsync();source.Code=environmentCount==2?"TEST":"DEV";

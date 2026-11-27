@@ -39,12 +39,13 @@ public sealed class MigrationBudgetTraceAcceptanceTests
 
     private static MigrationEvidenceJournal Journal(string directory) => new(new MigrationEvidenceOptions(directory, 8192, 16777216, 1048576));
 
-    private static Process StartMigrator(PostgresDatabase database, string evidence, bool sql)
+    private static Process StartMigrator(PostgresDatabase database, string evidence, bool sql, params string[] additionalArgs)
     {
         var settings = new NpgsqlConnectionStringBuilder(database.ConnectionString);
         var command = new ProcessStartInfo("dotnet") { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
         command.ArgumentList.Add(Migrator);
         if (sql) command.ArgumentList.Add("--run-sql");
+        foreach (var arg in additionalArgs) command.ArgumentList.Add(arg);
         command.Environment.Clear();
         command.Environment["PATH"] = Environment.GetEnvironmentVariable("PATH") ?? "";
         command.Environment["DOTNET_ROOT"] = Environment.GetEnvironmentVariable("DOTNET_ROOT") ?? "/usr/share/dotnet";
@@ -157,6 +158,33 @@ public sealed class MigrationBudgetTraceAcceptanceTests
         await using var receipt = new NpgsqlCommand("SELECT EXISTS(SELECT 1 FROM public.migration_validation_receipts WHERE attempt_id=@id)", connection);
         receipt.Parameters.AddWithValue("id", attempt);
         return (bool)(await receipt.ExecuteScalarAsync())!;
+    }
+
+    [Fact]
+    public async Task HelpAndInvalidArgumentsLeaveAnInitializedMigrationEnvironmentUntouched()
+    {
+        await using var database = await NewDatabaseAsync();
+        var evidence = NewEvidenceDirectory();
+        (string[] Arguments, int ExitCode)[] cases =
+        [
+            (["--help"], 0), (["-h"], 0), (["--unknown"], 2), (["unexpected-value"], 2),
+            (["--help", "--bootstrap"], 2), (["--bootstrap", "--bootstrap"], 2),
+            (["--seed-catalog", "unexpected-value"], 2), (["--run-sql", "--seed-catalog"], 2),
+            (["--inspect-evidence-archive-stdin", "--bootstrap"], 2)
+        ];
+        foreach (var (arguments, exitCode) in cases)
+        {
+            using var process = StartMigrator(database, evidence, false, arguments);
+            var result = await FinishAsync(process, TimeSpan.FromSeconds(30));
+            Assert.Equal(exitCode, result.ExitCode);
+            Assert.Contains("Usage: WebApi.Migrator", result.Output);
+            Assert.DoesNotContain("unexpected-value", result.Output);
+            Assert.Empty(Directory.EnumerateFileSystemEntries(evidence));
+        }
+        await using var db = database.Context();
+        Assert.True(await db.Database.SqlQueryRaw<bool>(
+            """SELECT to_regclass('public."__EFMigrationsHistory"') IS NULL AS "Value" """).SingleAsync());
+        Directory.Delete(evidence);
     }
 
     [Theory]

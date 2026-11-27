@@ -1,7 +1,8 @@
-import type {SsoState,SsoProvider,SsoDraft} from './contracts';
+import type {SsoState,SsoProvider,SsoDraft,SsoReadPurpose} from './contracts';
 export function createSsoState():SsoState;
 export function beginSsoRequest(state:SsoState,id:string|null):SsoState;
-export function applySsoResponse(state:SsoState,response:SsoProvider,epoch:number):SsoState;
+export function applySsoResponse(state:SsoState,response:SsoProvider,epoch:number,purpose?:SsoReadPurpose):SsoState;
+export function adoptSsoRevision(state:SsoState):SsoState;
 export function applySsoFailure(state:SsoState,status:number,epoch:number):SsoState;
 export function invalidateSsoState(state:SsoState):SsoState;
 export function ssoAuthorityKey(user:any):string;

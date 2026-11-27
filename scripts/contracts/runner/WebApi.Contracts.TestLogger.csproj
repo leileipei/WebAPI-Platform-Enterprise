@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.TestPlatform.ObjectModel" HintPath="$(MSBuildBinPath)/Microsoft.VisualStudio.TestPlatform.ObjectModel.dll" Private="false" />
+  </ItemGroup>
+</Project>

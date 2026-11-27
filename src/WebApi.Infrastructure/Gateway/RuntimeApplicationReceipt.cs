@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Gateway;
+using WebApi.Contracts.Runtime;
 using WebApi.Infrastructure.Persistence.Entities;
 namespace WebApi.Infrastructure.Gateway;
 
@@ -15,6 +16,23 @@ public static class RuntimeApplicationReceipt
     }
     public static string? Clear(string? metadata)
     {if(metadata is null) return null;var root=Read(metadata);root.Remove("runtimeApplication");return root.ToJsonString();}
+    internal static bool Matches(GatewayNode node, SnapshotEnvelope envelope)
+    {
+        if (node.Metadata is null) return false;
+        try
+        {
+            using var metadata = JsonDocument.Parse(node.Metadata);
+            return metadata.RootElement.TryGetProperty("runtimeApplication", out var receipt)
+                && receipt.GetProperty("schemaVersion").GetInt32() == 1
+                && receipt.GetProperty("instanceId").GetString() == node.InstanceId
+                && receipt.GetProperty("releaseId").GetString() == envelope.ReleaseId.ToString()
+                && receipt.GetProperty("configVersion").GetInt64() == envelope.ConfigVersion
+                && receipt.GetProperty("deploymentSequence").GetInt64() == envelope.DeploymentSequence
+                && receipt.GetProperty("payloadHash").GetString() == envelope.PayloadHash;
+        }
+        catch (Exception e) when (e is JsonException or InvalidOperationException or KeyNotFoundException or FormatException) { return false; }
+    }
+
     public static bool Record(GatewayNode node,NodeAck ack)
     {
         var root=Read(node.Metadata);var receipt=new JsonObject {

@@ -38,10 +38,21 @@ public sealed class PipelineProjectionService(WebApiDbContext db,DeliveryLockCoo
   if(PipelineStateRules.IsTerminal(run.Status))return;
   var stage=stages.Single(s=>s.StageOrder==run.CurrentStageOrder);if(stage.CurrentAttemptId is not Guid attemptId)return;
   var attempt=await db.Set<ReleasePipelineStageAttempt>().SingleAsync(a=>a.Id==attemptId&&a.RunStageId==stage.Id,ct);var now=clock.GetUtcNow();
+  var promotion=await PipelineAttemptFacts.FormalAsync(db,attempt,ct);
+  if(promotion?.Status=="RolledBack")
+  {
+   var rollback=await db.Set<ReleasePromotionEvent>().Where(e=>e.PromotionId==promotion.Id&&e.ToStatus=="RolledBack"&&e.ReleaseId!=null)
+       .OrderByDescending(e=>e.OccurredAt).ThenByDescending(e=>e.Id).Select(e=>e.ReleaseId).FirstOrDefaultAsync(ct);
+   var before=run.Status;
+   run.Status="Invalidated";run.CompletedAt=now;run.Revision++;
+   Change(stage,attempt,"Invalidated","stage_release_rolled_back",now,rollback);
+   attempt.Status="Invalidated";attempt.Revision++;
+   Event(run,stage,attempt,before,run.Status,"pipeline_release_rolled_back",now,rollback);
+   return;
+  }
   if(attempt.DeadlineAt<=now&&run.Status is "Active" or "Paused"){Stop(run,stage,attempt,"TimedOut","TimedOut","stage_wait_timeout",now);return;}
   if(run.Status!="Active"||attempt.Status!="Active")return;
   var profile=System.Text.Json.JsonSerializer.Deserialize<PipelineStageProfile>(stage.ProfileJson,CanonicalJson.Options)!;
-  var promotion=await PipelineAttemptFacts.FormalAsync(db,attempt,ct);
   ReleaseRecord? release=attempt.ActualReleaseId is Guid releaseId?await db.Set<ReleaseRecord>().SingleAsync(r=>r.Id==releaseId&&r.EnvironmentId==stage.EnvironmentId,ct):null;
   if((promotion?.Status=="Cancelled"||release?.Status=="Cancelled")&&release?.DeploymentSequence is not >0){Stop(run,stage,attempt,"Paused","Rejected","stage_candidate_cancelled",now);return;}
   if(promotion?.Status=="Rejected"||release?.Status=="Rejected"){Stop(run,stage,attempt,"Paused","Rejected","stage_approval_rejected",now);return;}
@@ -80,7 +91,7 @@ public sealed class PipelineProjectionService(WebApiDbContext db,DeliveryLockCoo
  {if(stage.Status==next)return;var before=stage.Status;stage.Status=next;stage.Revision++;db.Add(new ReleasePipelineEvent{RunId=stage.RunId,ProjectId=stage.ProjectId,StageId=stage.Id,AttemptId=attempt.Id,FromStatus=before,ToStatus=next,ReasonCode=reason,RelatedId=related,CreatedAt=now});}
  private void Stop(ReleasePipelineRun run,ReleasePipelineRunStage stage,ReleasePipelineStageAttempt attempt,string runStatus,string stageStatus,string reason,DateTimeOffset now)
  {var before=run.Status;run.Status=runStatus;run.Revision++;Change(stage,attempt,stageStatus,reason,now);attempt.Status=stageStatus;attempt.Revision++;Event(run,stage,attempt,before,runStatus,"pipeline_"+reason,now);}
- private void Event(ReleasePipelineRun run,ReleasePipelineRunStage stage,ReleasePipelineStageAttempt attempt,string from,string to,string reason,DateTimeOffset now)=>db.Add(new ReleasePipelineEvent{RunId=run.Id,ProjectId=run.ProjectId,StageId=stage.Id,AttemptId=attempt.Id,FromStatus=from,ToStatus=to,ReasonCode=reason,CreatedAt=now});
+ private void Event(ReleasePipelineRun run,ReleasePipelineRunStage stage,ReleasePipelineStageAttempt attempt,string from,string to,string reason,DateTimeOffset now,Guid? related=null)=>db.Add(new ReleasePipelineEvent{RunId=run.Id,ProjectId=run.ProjectId,StageId=stage.Id,AttemptId=attempt.Id,FromStatus=from,ToStatus=to,ReasonCode=reason,RelatedId=related,CreatedAt=now});
  internal static async Task RevokeWithinTransactionAsync(WebApiDbContext db,ReleaseTestAcceptance acceptance,Guid? actor,DateTimeOffset now,CancellationToken ct)
  {
   if(db.Database.CurrentTransaction is null)throw new InvalidOperationException("Revocation requires the caller transaction and project/environment locks.");

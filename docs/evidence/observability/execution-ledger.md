@@ -173,3 +173,65 @@ Task 15: 修复源提交dbfc986实际完整e2e exit0，dd68365c原阈值三规�
 Task 15: Ruling: 不可变归档重建直接调用与归档package/lock相同的已安装TypeScript/Vite Node入口 — pnpm exec在迁移位置试图清除链接依赖目录，实际无TTY报错且未执行清除；不启用自动purge，锁文件不一致则拒绝封包 — 若错，需按归档锁文件重新安装依赖后重建，原工作区依赖和首期包保留。
 Task 15: 不可变源3d2e54a重新构建TS/Vite并逐文件对照归档，529文件ZIP testzip及SHA256通过、密钥/runtime/cache/.git排除；初次manifest acceptanceComplete=false。所有必需验收已通过后才封存verification.complete=true；完成metadata不改变已验证产品代码dbfc986。
 Task 15: complete (commits 7a72d30..ac5a115, tests: python3 scripts/verify-observability-delivery.py → Immutable source, static build, ZIP integrity, SHA256, required evidence and exclusions verified.)
+
+## 2026-11-24 三源验收重新封存
+
+被测产品 `1c016b53b17af531704a2bf4b08e0ec8d5795df1`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `b17545757be13e92530bf6fd9a6630557cebf48e`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4718 个归档条目，SHA-256 为 `a25b029c8fed9ba2d1859d3a572b2bcb8b212b82b37889a08395fc8b336451ca`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-24 通用核心 E2E 清理修复后的三源验收
+
+被测产品 `9b20036e6c7b945da1990b18f115a1118d1737a6`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `2c80a8bd45e19f1d09fad761f28385211996ede1`，5,783 项全量回归均已通过。[验收回执](verification.json)
+
+正式源码与证据共 4730 个归档条目，SHA-256 为 `63052d361c46b8876e46b70e5a279ab4655ec734ce7e17946f916a4cc9bd2679`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-24 专用验收清理修复后的三源验收
+
+被测产品 `1ac508063797940eb105df7dad51baad9daf6c02`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `e459b51a6fe5a7cb1edfe27ed695fea1b87e21be`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4752 个归档条目，SHA-256 为 `459d1b1e20f1374145ba53ca3dbf63b7ef3dceea64ae54b7910c930b4b366693`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-24 四项 P2 修复后的可观测性验收
+
+被测产品 `fe3fca1ea30bbf2b22ec2b3138c813b96cdab8c5`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `ceb4bf884a79b7ba66001392ffa1bab8e7a59b14`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4773 个归档条目，SHA-256 为 `80b18a238206a95bc70bce2374290a41e23952849a8d8f23923b39582bba42b3`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-26 后端测试完成校验、契约资源清理与验收包发布修复后的可观测性验收
+
+被测产品 `a73f26dfa052fcfbc40bf1f6ea5890642d21bb3c`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `4e40db441264f4e87437454a5d928739d4278539`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4790 个归档条目，SHA-256 为 `36bb9cbfda8fc2aa964f35027c59e03eadd2c4f8a75adbefe2ef1b0d84bd5689`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-27 本地用户创建浏览器回归修复后的可观测性验收
+
+被测产品 `f89d6490487fa6620092116ae24436b6f699e009`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `6e7720f2c4ac19069c83ea59583ab5de04f2e4ee`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4801 个归档条目，SHA-256 为 `81c4245c53de3987f69a03b283687c98d4e387031f2d9a43a199fa8df8fe98ac`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-27 治理、交付与可观测性 P3 修复验收
+
+被测产品 `de415066e7dd001584dd2491fcba5bfec65fb27a`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `6d7acfcae05c3021e053e925aaadcbaf86834ce5`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4826 个归档条目，SHA-256 为 `cdfe9039f011e2a786b00337ffe28cc8762c5d9e71eff65d108730ea1c528d3b`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-27 告警、迁移与验收入口四项 P2 修复验收
+
+被测产品 `1ef76ca261536255caad68d6f1e8e6d921640f66`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `23486d0211771f2bd72a87b30cf2f46b82b4b051`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4843 个归档条目，SHA-256 为 `3b232de46db07de29ef3ae23073640e74f2bce123e160d10f21a3c5ed1ca2795`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-27 告警试算、组织操作权限与安装帮助回归
+
+被测产品 `abe59a91b638e31b095a18e9e463512ebbf67401`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `c4dbabd9269f057f9ba55a28a078ac7a1b9e2e21`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4857 个归档条目，SHA-256 为 `19ce5c54283290399f16802f40a38b9fe31313268d3caa6e25b80ca24596c596`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)
+
+两次网络策略专栈各自验证同一组 5,845 项回归的原始日志，每轮另外执行 10 个业务场景和 15 项浏览器操作。复核后的验收记录为 `334d053dfaa71273d8b95f38cebb9bf2f208fd2e`，正式 ZIP 的 SHA-256 为 `b381350f64456ab1dce1b54e6014c966bcb9169c69be3eae6138e5aec89fa0b6`。[正式清单](../../../deliverables/manifest-observability.json)
+
+## 2026-11-27 审批收件箱终态步骤与本地验收复核
+
+被测产品 `a9f7c19871eef83a50e3f43a17d2027b393bf92a`。业务闭环、故障、浏览器分别在独立项目执行。正式回执提交为 `ad62369af327cfc2178cf44b71eb7ecc9a9fa830`，验收结果及全量回归计数见 [verification.json](verification.json)。
+
+正式源码与证据共 4870 个归档条目，SHA-256 为 `d605780d88fbdb50fadef7e2aa077460b31fb717869f7093a85d4feb956ef5a1`。已通过正式验包器逐件回读，且复核了预封 ZIP 与独立生产构建。[交付清单](../../../deliverables/manifest-observability.json)

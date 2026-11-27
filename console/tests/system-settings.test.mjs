@@ -12,3 +12,17 @@ test('OriginsDraftKeepsNewlinesUntilCommandBoundary',async()=>{const {settingsCo
 test('PlatformSettingsShellDoesNotRemountForUnrelatedAuthority',async()=>{const {settingsShellAuthorityKey}=await import('../src/settings/state.mjs');const before={id:'actor',permissions:['system.manage'],scopes:[]},after={...before,permissions:['system.manage','audit.read'],scopes:[{scope:{organizationId:'organization'}}]};assert.equal(settingsShellAuthorityKey(before,'/settings/system'),settingsShellAuthorityKey(after,'/settings/system'));assert.notEqual(settingsShellAuthorityKey(before,'/apis'),settingsShellAuthorityKey(after,'/apis'));assert.notEqual(settingsShellAuthorityKey(before,'/settings/system'),settingsShellAuthorityKey({...after,id:'other'},'/settings/system'));});
 
 test("loginBudgetsSurviveDraftAndConflict",async()=>{const {settingsCommandValues}=await import("../src/settings/state.mjs");const state=applySettingsResponse(createSettingsState(),response,0);assert.equal(settingsCommandValues("security",state.values).loginAccountWindowSeconds,300);const dirty={...state,dirty:true,values:{...state.values,loginIpMaxAttempts:25}};assert.equal(applySettingsFailure(dirty,412).values.loginIpMaxAttempts,25);assert.equal(invalidateSettingsState(dirty).values,null);});
+
+test('refresh rebases edited fields and holds same-field conflicts until reviewed',()=>{
+ const baseline={group:'gateway',revision:4,fields:[],values:{defaultRouteTimeoutMs:30000,maxRequestBodyMb:16}};
+ const loaded=applySettingsResponse({...createSettingsState(),group:'gateway'},baseline,0);
+ const draft={...loaded,dirty:true,values:{...loaded.values,defaultRouteTimeoutMs:31000}};
+ const separate=applySettingsResponse(draft,{...baseline,revision:5,values:{defaultRouteTimeoutMs:30000,maxRequestBodyMb:32}},0);
+ assert.deepEqual(separate.values,{defaultRouteTimeoutMs:31000,maxRequestBodyMb:32});
+ assert.equal(separate.conflict,false);
+ const latest={...baseline,revision:6,values:{defaultRouteTimeoutMs:32000,maxRequestBodyMb:32}};
+ const overlap=applySettingsResponse(separate,latest,0);
+ assert.equal(overlap.conflict,true);assert.deepEqual(overlap.conflictFields,['defaultRouteTimeoutMs']);
+ assert.equal(applySettingsResponse(overlap,latest,0).conflict,true);
+ assert.equal(overlap.values.defaultRouteTimeoutMs,31000);
+});

@@ -8,11 +8,11 @@ import {describePermission, mayConfigurePermissions, type Permission} from './pe
 
 type Organization = {id:string; name:string};
 type Directories = {canManagePlatformRoles:boolean; organizations:Organization[]};
-type Role = {id:string; code:string; name:string; organizationId:string|null; isSystem:boolean; revision:number; permissions:string[]};
+type Role = {id:string; code:string; name:string; organizationId:string|null; isSystem:boolean; revision:number; permissions:string[]; userCount?:number};
 type PageKind = 'roles'|'permissions';
-type Draft = {kind:'role'; role?:Role}|{kind:'permissions'; role:Role};
+type Draft = {kind:'role'; role?:Role}|{kind:'permissions'|'copy'|'delete'; role:Role};
 const roleFields:Field[] = [{key:'code',label:'编码',required:true},{key:'name',label:'名称',required:true}];
-const roleColumns:[string,string][] = [['code','角色编码'],['name','角色名称'],['isSystem','系统角色'],['revision','修订']];
+const roleColumns:[string,string][] = [['code','角色编码'],['name','角色名称'],['isSystem','系统角色'],['permissionCount','权限数'],['userCount','用户数'],['revision','修订']];
 const dictionaryColumns:[string,string][] = [['code','权限编码'],['name','权限名称'],['module','模块'],['description','说明']];
 
 function directoryPath(kind:PageKind, organizationId:string|null) {
@@ -51,12 +51,13 @@ function Catalog({kind,scope,directories,refreshAccess}:{
   kind:PageKind; scope:string; directories:Organization[]; refreshAccess:()=>void;
 }) {
   const ws=useWorkspace();
+  const {canAct}=useSession();
   const organizationId=scope==='platform' ? null : scope;
   const rolePath=directoryPath('roles',organizationId);
   const roles=useRemote<Role[]>(scope && kind==='roles' ? rolePath : null,0,false,true);
   const dictionary=useRemote<Permission[]>(scope ? directoryPath('permissions',organizationId) : null,0,false,true);
   const [query,setQuery]=useState(''),[view,setView]=useState<string>(),[draft,setDraft]=useState<Draft>();
-  const [notice,setNotice]=useState('');
+  const [notice,setNotice]=useState(''),[deleting,setDeleting]=useState(false);
   const roleReady=!!scope && !roles.loading && !roles.error && Array.isArray(roles.data);
   const dictionaryReady=!!scope && !dictionary.loading && !dictionary.error && Array.isArray(dictionary.data);
   const currentRoles=roleReady ? roles.data! : [];
@@ -64,6 +65,13 @@ function Catalog({kind,scope,directories,refreshAccess}:{
   const currentRole=currentRoles.find(role=>role.id===view);
   const canEdit=(r:Role)=>roleReady && !r.isSystem && (r.organizationId===null
     ? scope==='platform' : directories.some(o=>o.id===r.organizationId));
+  function canCopy(role:Role) {
+    const target=role.organizationId===null?null:{organizationId:role.organizationId};
+    const hasDirectory=target?directories.some(org=>org.id===target.organizationId):scope==='platform';
+    return roleReady&&dictionaryReady&&hasDirectory&&canAct('role.manage',target)
+      &&role.permissions.every(code=>canAct(code,target)&&items.some(permission=>permission.code===code));
+  }
+  const copySource=draft?.kind==='copy'?currentRoles.find(role=>role.id===draft.role.id&&role.revision===draft.role.revision&&canCopy(role)):undefined;
   function saved() {
     setDraft(undefined);setView(undefined);
     roles.reload();dictionary.reload();refreshAccess();
@@ -72,7 +80,7 @@ function Catalog({kind,scope,directories,refreshAccess}:{
     setDraft(undefined);setNotice('角色修订已更新，请重新打开配置权限并核对最新授权。');
     roles.reload();dictionary.reload();
   }
-  const rows=kind==='roles' ? currentRoles.map(role=>({...role,scopeName:role.organizationId
+  const rows=kind==='roles' ? currentRoles.map(role=>({...role,permissionCount:role.permissions.length,scopeName:role.organizationId
     ? (ws.tree.organizations.find(o=>o.id===role.organizationId)?.name ?? directories.find(o=>o.id===role.organizationId)?.name ?? role.organizationId)
     : '平台'})) : items.map(p=>({...p,name:describePermission(p).label,module:describePermission(p).moduleLabel}));
   const filtered=rows.filter(row=>Object.values(row).some(value=>typeof value==='string' && value.toLowerCase().includes(query.trim().toLowerCase())));
@@ -87,6 +95,9 @@ function Catalog({kind,scope,directories,refreshAccess}:{
     {kind==='roles' && <Feedback {...roles}/>}<Feedback {...dictionary}/>
     <Table rows={filtered} columns={columns} actions={kind==='roles' ? (role:Role)=><>
       <button className="text-btn" disabled={!canEdit(role)} onClick={()=>setDraft({kind:'role',role})}>编辑</button>
+      {canCopy(role)&&<button className="text-btn" onClick={()=>setDraft({kind:'copy',role})}>复制角色</button>}
+      <button className="text-btn danger-text" disabled={!canEdit(role)||role.userCount!==0}
+        onClick={()=>{setNotice('');setDraft({kind:'delete',role});}}>删除角色</button>
       <button className="text-btn" disabled={!dictionaryReady} onClick={()=>setView(role.id)}>查看权限</button>
       <button className="text-btn" disabled={!canEdit(role)||!mayConfigurePermissions(role,items,dictionary)}
         onClick={()=>setDraft({kind:'permissions',role})}>配置权限</button>
@@ -100,6 +111,20 @@ function Catalog({kind,scope,directories,refreshAccess}:{
         当前字典外的已授予权限　{currentRole.permissions.filter(code=>!items.some(p=>p.code===code)).join('、')}
       </p>}
     </section>}
+    {copySource && <Editor title="复制角色" fields={roleFields} initial={{code:'',name:copySource.name+' 副本'}}
+      help={'复制 '+copySource.permissions.length+' 项权限，不分配用户。'} close={()=>setDraft(undefined)}
+      save={async(value,key)=>{
+       await apiRequest('/roles/'+copySource.id+'/copy',{method:'POST',body:{code:value.code,name:value.name,organizationId:copySource.organizationId},
+         etag:'"'+copySource.revision+'"',idempotencyKey:key});saved();
+      }}/>}
+    {roleReady && draft?.kind==='delete' && <section className="notice" role="alertdialog" aria-label="删除角色">
+      <p>确认删除未分配给用户的角色“{draft.role.name}”？</p>
+      <button className="btn" disabled={deleting} onClick={()=>setDraft(undefined)}>取消</button>
+      <button className="btn danger" disabled={deleting} onClick={async()=>{
+       setDeleting(true);try{await apiRequest('/roles/'+draft.role.id,{method:'DELETE',etag:'"'+draft.role.revision+'"',idempotencyKey:crypto.randomUUID()});saved();}
+       catch(error){setNotice((error as Error).message);setDraft(undefined);roles.reload();}
+       finally{setDeleting(false);}
+      }}>确认删除</button></section>}
     {roleReady && draft?.kind==='role' && <Editor title={draft.role?'编辑角色':'新建角色'} fields={roleFields}
       initial={draft.role ?? {}} close={()=>setDraft(undefined)}
       loadLatest={draft.role ? async()=>{

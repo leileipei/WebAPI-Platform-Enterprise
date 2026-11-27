@@ -1,3 +1,5 @@
+import { readProtectedTableMultisets } from '../gateway-policies/protected-tables.mjs';
+export { readProtectedTableMultisets };
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
@@ -139,7 +141,7 @@ export async function assertFixedNetworkSources(revision, { root = path.resolve(
 }
 export async function captureNetworkPolicyProtection({ main, originalDirectory }) {
     const { execFile } = await import('node:child_process'), { promisify } = await import('node:util'), exec = promisify(execFile);
-    const { snapshotDeliveryFiles, snapshotDeliveryTables } = await import('../gateway-policies/delivery.mjs');
+    const { snapshotDeliveryFiles } = await import('../gateway-policies/delivery.mjs');
     const state = await loadState(originalDirectory);
     assert.equal(state.projectName, 'webapi-enterprise-local');
     const release = await loadRelease(path.join(originalDirectory, 'release.json'));
@@ -163,22 +165,6 @@ export async function makeNetworkPolicyProtectionEvidence({ before, after, sourc
     }));
     const runtime = tables => ({ ...Object.fromEntries(Object.entries(before.runtime).filter(([key]) => key !== 'tables')), tables: stable(tables) });
     return { sourceRevision, imageId, ownerId, projectName, id: 'P3-12', actual: true, mainBefore: before.main, mainAfter: after.main, runtimeBefore: runtime(before.runtime.tables), runtimeAfter: runtime(after.runtime.tables), package2Paused: true, pauseReceipt, modelCoverage, pendingModelChanges: false };
-}
-export async function readProtectedTableMultisets(state) {
-    const { snapshotDeliveryTables, deliverySql } = await import('../gateway-policies/delivery.mjs'), { createHash } = await import('node:crypto');
-    const metadata = await snapshotDeliveryTables(state), tables = {};
-    for (const [table, info] of Object.entries(metadata)) {
-        assert(/^[a-zA-Z0-9_]+$/.test(table));
-        assert(info.ignoredColumns.every(c => /^[a-zA-Z0-9_]+$/.test(c)));
-        if (info.mode === 'ephemeral') {
-            tables[table] = { mode: info.mode, rowHashes: [] };
-            continue;
-        }
-        const expression = 'to_jsonb(t)' + (info.ignoredColumns.length ? " - ARRAY[" + info.ignoredColumns.map(c => "'" + c + "'").join(',') + "]::text[]" : '');
-        const rows = JSON.parse(await deliverySql(state, `SELECT coalesce(json_agg((${expression})::text ORDER BY (${expression})::text),'[]'::json) FROM "${table}" t`));
-        tables[table] = { mode: info.mode, rowHashes: rows.map(row => createHash('sha256').update(row).digest('hex')).sort() };
-    }
-    return tables;
 }
 export function assertProtectedTableMultisets(before, after) {
     assert.deepEqual(Object.keys(after).sort(), Object.keys(before).sort());

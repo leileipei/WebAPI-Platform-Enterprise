@@ -1,4 +1,5 @@
 // Run against a local Vite preview with a controlled API contract.
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 
@@ -54,7 +55,7 @@ try {
             [{scope:{organizationId,projectId},accessMode:'read_only'},
              {scope:{organizationId,projectId,environmentId:scenario === 'other-environment' ? otherEnvironmentId : environmentId},
                 accessMode:scenario === 'read-only' ? 'read_only' : 'read_write'}];
-          return reply({id:id(10), username:'rotation-review', displayName:'轮换检查', authSource:'local', permissions, scopes});
+          return reply({id:id(10), username:'rotation-review', displayName:'轮换检查', authSource:'local', ...organizationPermissions(organizationId,permissions), scopes});
         }
         if (endpoint === '/auth/csrf') return reply({token:'rotation-fixture-csrf'});
         if (endpoint === '/scope-tree') return reply({

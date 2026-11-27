@@ -48,3 +48,11 @@ test('result display is invalidated synchronously by raw, sample, authority or m
 test('unavailable source examples remain visible as unverified choices',()=>{
  const options=exampleOptions({examples:[{name:'Too large',unverifiedReason:'示例超过预算。'},{name:'Broken',unverifiedReason:'固定引用无法解析。'}]});assert.equal(options.length,2);assert.ok(options.every(x=>x.unverified));assert.equal(options[0].unverifiedReason,'示例超过预算。');
 });
+
+test('parameter type selection updates scalar schema while retaining annotated and referenced definitions', async()=>{
+ const {parameterSchemaType,canSelectParameterType}=await import('../src/contracts/schema-state.mjs');
+ assert.equal(canSelectParameterType({type:'string',description:'quantity'}),true);
+ assert.equal(parameterSchemaType({type:'integer'}),'integer');
+ for(const doc of [{$ref:'#/components/schemas/Q'},{oneOf:[{type:'integer'}]},{type:['string','null']},false,{type:'object',properties:{id:{type:'string'}}}])
+  assert.equal(canSelectParameterType(doc),false);
+});

@@ -28,7 +28,7 @@ browser输出本次observability-context.json位置，文件含各随机loopback
 |服务|配置|
 |---|---|
 |Gateway|Observability:Enabled=true；CollectorEndpoint；IpHmacSecretFile；TraceSampleRatio；可选CredentialSecretFile|
-|Control Plane|Enabled=true；PrometheusUrl/LokiUrl/TempoUrl；IpHmacSecretFile；CursorSigningSecretFile；TraceSampleRatio与Gateway一致；可选CredentialSecretFile|
+|Control Plane|Enabled=true；PrometheusUrl/LokiUrl/TempoUrl；IpHmacSecretFile；CursorSigningSecretFile；TraceSampleRatio与Gateway一致；Alerts:IntervalSeconds和QueryDelaySeconds与Worker一致；可选CredentialSecretFile|
 |Worker|Enabled=true与PrometheusUrl等源配置；Alerts:IntervalSeconds/QueryDelaySeconds/LeaseSeconds/MaxConcurrentEvaluations|
 |所有配置|JSON用冒号层级；环境变量用双下划线，例如Observability__Enabled|
 
@@ -37,6 +37,8 @@ IP HMAC与游标签名文件分别为至少32字节随机值的标准Base64文�
 默认Gateway队列2048、每批最多512、批等待1000ms、指标导出15000ms、根Trace采样0.1；合法QueueCapacity1–2048、BatchDelayMs10–5000、MetricExportIntervalMs100–60000、TraceSampleRatio0–1。指标和日志不随Trace采样削减；远端父节点采样决定仍有效。不能因100%本机采样声称每条企业日志均有Trace。
 
 默认Worker槽15秒、源查询延后30秒、租约30秒、并发4；合法范围分别1–60/0–120/15–120/1–16。多个Worker共用同一PG并使用一致设置；PG时钟决定slot与过期。业务发布/Outbox与告警评估/静默到期是独立循环。
+
+规则试算读取 PostgreSQL 当前评估槽，后台使用其认领的槽。两者均从槽起点减去查询延迟，再按规则窗口长度向前取数。本地运行时可通过 `Alerts__IntervalSeconds` 和 `Alerts__QueryDelaySeconds` 同时配置控制面及 Worker。
 
 ## 源异常、队列与覆盖
 
@@ -68,4 +70,16 @@ verification.json是最终门槛；fault-run.json保留独立完整故障项目�
 
 本机短E2E设置：窗口60/持续4秒/槽2秒/延后5秒/租约30秒/导出1秒/采样1/队列64；原阈值错误>0.05/P95>1000/健康>0保留。300/600/120秒原持续语义用领域时钟验证，未实际等长运行。在该次验收中，生产TLS/容量/SLA/HA/持久7天/AMD64/企业数据库备份恢复/企业端点/外部通知均未验收；后续本机通知验收不能提升为企业端点或生产验收。
 
-独立观测交付使用scripts/package.sh observability <不可变commit>。ZIP包含源码/锁文件/增量迁移/配置/中文手册/实际证据/同一提交重建的静态页面；manifest记录源提交、静态产物哈希、ZIP SHA256及排除项。原首期核心ZIP/manifest与40页原型保留。解压不含账号密码/业务库/依赖缓存/.git；按本手册重新生成临时夹具，或为目标部署显式提供真实配置。
+用 `bash scripts/package.sh observability <源码提交>` 打包。回执单独封存时，可加 `--evidence-revision <证据提交>`。ZIP 的 `enterprise/` 保存所选源码、锁文件、迁移、配置、手册、原有证据和用该提交重建的静态页面。单独指定的验收材料位于 `package-evidence/`。
+
+打包先在临时目录内生成和校验 ZIP，再以内容 SHA-256 命名归档，最后原子替换清单。下载端按同一份清单的 `file` 字段取包，旧清单仍可读取先前的完整版本。构建固定使用 production 模式。验包会从指定源码独立重建前端并对照全部静态文件，需提前安装对应锁文件的依赖。原版已封存清单可直接对照 Git 中的归档。
+
+`deliverables/manifest-observability.json` 的 `sourceRevision` 标识打包源码。`acceptanceEvidence` 中，`revision` 是读取回执及附件的提交，`receiptRevision` 是最近一次修改该回执的提交，`testedSourceRevision` 是被测产品提交。清单列出回执、附件、静态文件和 ZIP 的 SHA256。打包器核对三源闭环、基线故障、浏览器、最终审查与封存前回执，并对照被测提交的产品代码、依赖、部署、测试脚本和夹具。仅补录封存记录可沿用同一产品的验收。
+
+重新验收时，使用干净的独立检出，分别保留 e2e、faults、browser 各随机项目的运行回执。每次收尾写入该项目目录的 `verification.json`，原始场景结果保存在同目录的 `observability-evidence/`。正式证据将本次故障场景产生的 `faults.json` 原字节另存为 `faults-run-output.json`，在 `baselineFaultEvidence.fixtureFile` 引用该附件。故障、浏览器、权限变化、采集丢失和独立审查记录都需要关联本次实测产品提交。
+
+完成实测和审查后，将这些证据提交为预封版本。用 `bash scripts/package.sh observability <产品提交> --evidence-revision <预封提交>` 生成包，运行 `python3 scripts/verify-observability-delivery.py --provisional` 独立读回。将实测的预封 ZIP 摘要、文件数、产品提交和预封证据提交写入最终回执，用最终证据提交重新打包，再运行默认验包命令。预封和正式两个按内容命名的 ZIP 应保存在同一交付目录，供默认验包入口复核。
+
+代码或测试输入改变后仍可取得归档，清单显示 `acceptanceComplete=false`。只待归档校验的临时包也保留此状态。另有验收项目待办或秘密文件清理未通过时，打包命令报错。运行 `python3 scripts/verify-observability-delivery.py` 核对完成包。校验器从本地 Git 对象重算验收结论，未验收、来源不符或文件损坏时返回非零。请在包含相关源提交和证据提交的仓库中执行。
+
+首期核心 ZIP、清单和 40 页原型保存在原交付记录中。按本手册重新生成临时夹具，或为目标部署显式提供真实配置。账号密码、业务库、依赖缓存和 `.git` 均在交付范围以外。

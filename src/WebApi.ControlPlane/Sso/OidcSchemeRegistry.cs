@@ -19,6 +19,7 @@ public sealed class OidcSchemeRegistry(IServiceScopeFactory scopes,IAuthenticati
     IOptionsMonitorCache<OpenIdConnectOptions> cache,IEnumerable<IPostConfigureOptions<OpenIdConnectOptions>> postConfigure,
     IOidcMetadataClient metadata,ISsoSecretResolver secrets,IOptions<SsoOptions> settings,IHostEnvironment environment,TimeProvider clock,IHttpContextAccessor accessor,SsoSecretVersion secretVersion):IDisposable
 {
+    internal const string EntryOrganizationKey="ssoEntryOrganization";
     private readonly SemaphoreSlim gate=new(1,1);
     private sealed class Entry(DateTimeOffset touched,OpenIdConnectOptions options){public DateTimeOffset Touched=touched;public int Leases;public OpenIdConnectOptions Options=options;}
     private readonly Dictionary<string,Entry> registered=new(StringComparer.Ordinal);
@@ -122,8 +123,15 @@ public sealed class OidcSchemeRegistry(IServiceScopeFactory scopes,IAuthenticati
                     context.HandleResponse();Failure(context.HttpContext,"protocol_error");
                 },
                 OnAccessDenied=async context=>{
-                    if(TryAttempt(context.Properties,out var attempt,out _))await context.HttpContext.RequestServices.GetRequiredService<SsoLoginCoordinator>().FailPendingAsync(attempt,"cancelled",context.HttpContext.RequestAborted);
-                    context.HandleResponse();Failure(context.HttpContext,"cancelled");
+                    string? returnPath=null;
+                    Guid? organizationId=null;
+                    if(TryAttempt(context.Properties,out var attempt,out _))
+                    {
+                        var coordinator=context.HttpContext.RequestServices.GetRequiredService<SsoLoginCoordinator>();
+                        returnPath=await coordinator.CancelAsync(attempt,context.HttpContext.RequestAborted);
+                        if(context.Properties!.Items.TryGetValue(EntryOrganizationKey,out var entry)&&Guid.TryParseExact(entry,"D",out var id))organizationId=id;
+                    }
+                    context.HandleResponse();Failure(context.HttpContext,"cancelled",organizationId,returnPath);
                 }
             };
             foreach(var configure in postConfigure)configure.PostConfigure(name,options);
@@ -157,7 +165,16 @@ public sealed class OidcSchemeRegistry(IServiceScopeFactory scopes,IAuthenticati
         return properties is not null&&properties.Items.TryGetValue("ssoAttempt",out var id)&&Guid.TryParse(id,out attempt)&&
             properties.Items.TryGetValue("ssoRevision",out var value)&&long.TryParse(value,NumberStyles.None,CultureInfo.InvariantCulture,out revision)&&revision>0;
     }
-    public static void Failure(HttpContext context,string code)
-    {context.Response.StatusCode=303;context.Response.Headers.CacheControl="no-store";context.Response.Headers["Referrer-Policy"]="no-referrer";context.Response.Headers.Location="/login?ssoError="+code+"&traceId="+Uri.EscapeDataString(context.TraceIdentifier);}
+    public static void Failure(HttpContext context,string code,Guid? organizationId=null,string? returnPath=null)
+    {
+        var query=QueryString.Create("ssoError",code).Add("traceId",context.TraceIdentifier);
+        if(returnPath is not null&&SsoProviderValidator.IsSafeReturnPath(returnPath))
+        {
+            query=query.Add("returnPath",returnPath);
+            if(organizationId.HasValue)query=query.Add("organizationId",organizationId.Value.ToString());
+        }
+        context.Response.StatusCode=303;context.Response.Headers.CacheControl="no-store";context.Response.Headers["Referrer-Policy"]="no-referrer";
+        context.Response.Headers.Location="/login"+query;
+    }
     private static ApiException Unavailable()=>new(401,"sso_login_failed","企业登录未完成，请重试或联系管理员。");
 }

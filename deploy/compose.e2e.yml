@@ -10,6 +10,9 @@ x-app: &app
     WEBAPI_DB_HOST: postgres
     WEBAPI_DB_PASSWORD_FILE: /run/secrets/postgres-password
   secrets: [postgres-password]
+x-publish-environment: &publish-environment
+  <<: *base-env
+  Publish__AckTimeoutSeconds: '30'
 services:
   postgres:
     image: postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
@@ -43,7 +46,7 @@ services:
     <<: *app
     command: ['dotnet','src/WebApi.ControlPlane/bin/Release/net10.0/WebApi.ControlPlane.dll']
     environment:
-      <<: *base-env
+      <<: *publish-environment
       Nodes__Enrollments__0__EnvironmentId: ${WEBAPI_ENVIRONMENT_ID:?required}
       Nodes__Enrollments__0__NodeName: gateway-a
       Nodes__Enrollments__0__SecretFile: /run/secrets/node-a
@@ -61,9 +64,8 @@ services:
     <<: *app
     command: ['dotnet','src/WebApi.Worker/bin/Release/net10.0/WebApi.Worker.dll']
     environment:
-      <<: *base-env
+      <<: *publish-environment
       Redis__Connection: redis:6379,abortConnect=false
-      Publish__AckTimeoutSeconds: '30'
       Upstream__AllowedOrigins__0: http://backend-a:8080
       Upstream__AllowedOrigins__1: http://backend-b:8080
   backend-a:

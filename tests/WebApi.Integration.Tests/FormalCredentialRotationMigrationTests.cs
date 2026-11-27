@@ -40,8 +40,9 @@ public sealed class FormalCredentialRotationMigrationTests
             SELECT pg_catalog.to_regclass('public.formal_rotation_decisions') IS NOT NULL AS "Value"
             """).SingleAsync());
         Assert.False(db.Database.HasPendingModelChanges());
-        Assert.Equal(FormalRotationDecisionProjection.Id, (await db.Database.GetAppliedMigrationsAsync()).Last());
-        Assert.Equal(GovernanceSchemaFingerprints.Expected[FormalRotationDecisionProjection.Id],
+        Assert.Contains(FormalRotationDecisionProjection.Id, await db.Database.GetAppliedMigrationsAsync());
+        Assert.Equal(ReleasePublicationOutcomes.Id, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        Assert.Equal(GovernanceSchemaFingerprints.Expected[ReleasePublicationOutcomes.Id],
             await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
         Assert.Equal(scheduled.IntentHash, await db.Set<FormalCredentialRotation>()
             .Where(row => row.Id == scheduled.Id).Select(row => row.IntentHash).SingleAsync());
@@ -68,8 +69,12 @@ public sealed class FormalCredentialRotationMigrationTests
         Assert.Equal(PostgresErrorCodes.CheckViolation, downgrade.SqlState);
         Assert.Equal("formal_rotation_decision_down_blocked", downgrade.MessageText);
 
-        if (sqlEntry) await InstallUpgradeAsync(database, sqlEntry);
         Assert.Equal(FormalRotationDecisionProjection.Id, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        if (sqlEntry)
+        {
+            await InstallUpgradeAsync(database, sqlEntry);
+            Assert.Equal(ReleasePublicationOutcomes.Id, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        }
         var retained = await db.FormalRotationDecisions.AsNoTracking().SingleAsync();
         Assert.Equal((decision.Id, decision.ScheduleId, decision.Kind, decision.RecordedAt, decision.IntentHash),
             (retained.Id, retained.ScheduleId, retained.Kind, retained.RecordedAt, retained.IntentHash));
@@ -159,8 +164,8 @@ public sealed class FormalCredentialRotationMigrationTests
         Assert.True(await db.Database.SqlQueryRaw<bool>("""
             SELECT pg_catalog.to_regclass('public.formal_credential_rotations') IS NOT NULL AS "Value"
             """).SingleAsync());
-        Assert.Equal(FormalRotationDecisionProjection.Id, (await db.Database.GetAppliedMigrationsAsync()).Last());
-        Assert.Equal(GovernanceSchemaFingerprints.Expected[FormalRotationDecisionProjection.Id],
+        Assert.Equal(ReleasePublicationOutcomes.Id, (await db.Database.GetAppliedMigrationsAsync()).Last());
+        Assert.Equal(GovernanceSchemaFingerprints.Expected[ReleasePublicationOutcomes.Id],
             await db.Database.SqlQueryRaw<string>(GovernanceSchemaFingerprints.Query).SingleAsync());
         Assert.Equal(2, await db.Set<ApplicationCredential>().CountAsync(key => key.EnvironmentId == scheduled.EnvironmentId));
         db.Add(scheduled);

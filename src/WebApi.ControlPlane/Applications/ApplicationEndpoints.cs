@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using WebApi.Contracts.CredentialUsage;
 using WebApi.Infrastructure.CredentialUsage;
 using WebApi.Contracts.Applications;
@@ -11,7 +12,7 @@ public static class ApplicationEndpoints
     public static void MapApplications(this WebApplication app)
     {
         var g=app.MapGroup("/api/v1").RequireAuthorization().AddEndpointFilter<RequestValidationFilter>();
-        g.MapGet("/applications",async(HttpContext ctx,ApplicationService service,int? page,int? pageSize,CancellationToken ct)=>Results.Ok(await service.ListAsync(ctx.Actor(),page??1,pageSize??50,ct)));
+        g.MapGet("/applications",async(HttpContext ctx,ApplicationService service,Guid? organizationId,int? page,int? pageSize,CancellationToken ct)=>Results.Ok(await service.ListAsync(ctx.Actor(),page??1,pageSize??50,ct,organizationId)));
         g.MapPost("/applications",async(SaveApplicationRequest request,HttpContext ctx,ApplicationService service,CancellationToken ct)=>GovernanceEndpoints.Command(ctx,await service.CreateAsync(request,ctx.Actor(),ct)));
         g.MapGet("/applications/{id:guid}",async(Guid id,HttpContext ctx,ApplicationService service,CancellationToken ct)=>{var value=await service.DetailAsync(id,ctx.Actor(),ct);ctx.Response.Headers.ETag=RevisionTag.Format(value.Application.Revision);return Results.Ok(value);});
         g.MapPut("/applications/{id:guid}",async(Guid id,SaveApplicationRequest request,HttpContext ctx,ApplicationService service,CancellationToken ct)=>GovernanceEndpoints.Command(ctx,await service.SaveAsync(id,request,ctx.Request.Headers.IfMatch,ctx.Actor(),ct)));
@@ -23,10 +24,11 @@ public static class ApplicationEndpoints
             return Results.Ok(await query.ReadAsync(id,environmentId,new UsageWindow(from??end.AddHours(-24),end),ctx.Actor(),ct));
         });
         g.MapGet("/applications/{id:guid}/audit",async(Guid id,HttpContext ctx,ApplicationAuditQuery query,int? page,int? pageSize,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await query.ReadAsync(id,page??1,pageSize??50,ctx.Actor(),ct));});
-        g.MapGet("/applications/{id:guid}/credential-usage",async(Guid id,HttpContext ctx,CredentialUsageQuery query,TimeProvider clock,Guid? environmentId,DateTimeOffset? from,DateTimeOffset? to,int? page,int? pageSize,CancellationToken ct)=>
+        g.MapGet("/applications/{id:guid}/credential-usage",async(Guid id,HttpContext ctx,CredentialUsageQuery query,TimeProvider clock,
+            Guid? environmentId,DateTimeOffset? from,DateTimeOffset? to,int? page,int? pageSize,[FromQuery(Name = "credentialId")] Guid[]? credentialIds,CancellationToken ct)=>
         {
             var now=clock.GetUtcNow();var end=to??new DateTimeOffset(now.Year,now.Month,now.Day,now.Hour,0,0,TimeSpan.Zero);ctx.Response.Headers.CacheControl="no-store";
-            return Results.Ok(await query.ReadAsync(id,environmentId,new UsageWindow(from??end.AddHours(-24),end),page??1,pageSize??50,ctx.Actor(),ct));
+            return Results.Ok(await query.ReadAsync(id,environmentId,new UsageWindow(from??end.AddHours(-24),end),page??1,pageSize??50,ctx.Actor(),ct,credentialIds));
         });
         g.MapGet("/applications/{id:guid}/credentials",async(Guid id,HttpContext ctx,ApplicationService service,CancellationToken ct)=>Results.Ok((await service.DetailAsync(id,ctx.Actor(),ct)).Credentials));
         g.MapPost("/applications/{id:guid}/credentials",async(Guid id,CredentialCreateRequest request,HttpContext ctx,CredentialCreateReceiptService service,CommandRequestContext command,CancellationToken ct)=>{ctx.Response.Headers.CacheControl="no-store";return Results.Ok(await service.CreateAsync(id,request,command,ctx.Actor(),ct));});

@@ -2,6 +2,7 @@ using WebApi.Infrastructure.Comparisons;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Releases;
 using WebApi.Contracts.Runtime;
@@ -23,6 +24,17 @@ public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSecond
 {
     public int EffectiveMinimumNodes => Math.Max(2,MinimumNodes);
     public bool EnablesGovernanceSnapshot24(Guid environmentId) => GovernanceSnapshot24Environments?.Contains(environmentId) == true;
+    private bool AckTimeoutConfigured { get; init; }
+    public int? ConfiguredAckTimeoutSeconds => AckTimeoutConfigured ? AckTimeoutSeconds : null;
+
+    public static PublishSettings Read(IConfiguration configuration, IReadOnlySet<Guid>? governanceEnvironments = null)
+    {
+        var settings = new PublishSettings(GovernanceSnapshot24Environments: governanceEnvironments);
+        if (configuration["Publish:AckTimeoutSeconds"] is not string value) return settings;
+        if (!int.TryParse(value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var seconds) || seconds <= 0)
+            throw new InvalidOperationException("Publish:AckTimeoutSeconds must be a positive integer.");
+        return settings with { AckTimeoutSeconds = seconds, AckTimeoutConfigured = true };
+    }
 }
 public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution,ReleaseCandidateBuilder candidates,GatewayPolicyDeploymentRules? deployment=null)
 {
@@ -196,8 +208,9 @@ public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService a
             if(!historicalDelivery) {var config=new GatewayConfigVersion {EnvironmentId=env.Id,VersionNo=next,Status="Publishing",CreatedBy=publisher,SnapshotHash=compiled.Hash};config.SnapshotKey=$"environment/{env.Id}/snapshot/{next}";db.Add(config);db.Add(new GatewayConfigSnapshot {ConfigVersionId=config.Id,PayloadBytes=compiled.Payload.ToArray(),Payload=Encoding.UTF8.GetString(compiled.Payload.Span),SizeBytes=compiled.Size});}
             env.DeploymentSequence=checked(env.DeploymentSequence+1);env.DesiredConfigVersion=next;r.ToConfigVersion=next;r.DeploymentSequence=env.DeploymentSequence;r.Status="Publishing";r.DeadlineAt=DateTimeOffset.UtcNow.AddSeconds(settings.AckTimeoutSeconds);
             if(!historicalDelivery)FrozenContractSource.Capture(db,r,frozen);
+            if(r.ReleaseType=="retry")ReleaseVersionPublication.CaptureItems(db,r,frozen);
             foreach(var node in nodes) {db.Add(new ReleaseTarget {ReleaseId=r.Id,NodeId=node.Id,InstanceId=node.InstanceId});node.TargetConfigVersion=next;}
-            foreach(var v in frozen.Versions) {var version=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==v.Version.Id,ct);version.SealedAt??=DateTimeOffset.UtcNow;version.Status="Publishing";}
+            foreach(var v in frozen.Versions) {var version=await db.Set<ApiVersion>().SingleAsync(x=>x.Id==v.Version.Id,ct);if(version.Status!="Retired"){version.SealedAt??=DateTimeOffset.UtcNow;version.Status="Publishing";}}
             var message=new OutboxMessage {EnvironmentId=env.Id,ReleaseId=r.Id,DeploymentSequence=env.DeploymentSequence,EventType="desired_config"};message.Payload=JsonSerializer.Serialize(new DeploymentEvent(message.Id,env.Id,env.DeploymentSequence,r.Id,next),CanonicalJson.Options);db.Add(message);
             Audit(r,scope,"release.snapshot.persisted",new {configVersion=next,deploymentSequence=env.DeploymentSequence,payloadHash=compiled.Hash,targetCount=nodes.Length});
         }

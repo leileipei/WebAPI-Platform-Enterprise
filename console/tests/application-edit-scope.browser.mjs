@@ -30,12 +30,12 @@ async function openApplications(t, {path = detailPath, projectId = null, omitPro
     if (pathname.startsWith('/assets/')) return route.fulfill({path:join(dist,pathname.slice(1))});
     if ([listPath, detailPath].includes(pathname)) return route.fulfill({path:join(dist,'index.html')});
     if (pathname === '/api/v1/auth/me') return reply({id:id(6), username:'tester', displayName:'测试用户',
-      authSource:'local', permissions:['app.read','app.write'],
+      authSource:'local', permissions:['app.read','app.write'],rolePermissions:[{organizationId:org,permissions:['app.write']}],
       scopes:[{scope:{organizationId:org,projectId:grantProjectId},accessMode:'read_write'}]});
     if (pathname === '/api/v1/auth/csrf') return reply({token:'test-csrf-token'});
     if (pathname === '/api/v1/scope-tree') return reply({organizations:[{id:org,name:'组织',status:'Active'}],
-      projects:withProjects?[{id:selectedProject,organizationId:org,name:'当前项目'},
-        {id:appProject,organizationId:org,name:'应用项目'}]:[],
+      projects:withProjects?[{id:selectedProject,organizationId:org,name:'当前项目',status:'Active'},
+        {id:appProject,organizationId:org,name:'应用项目',status:'Active'}]:[],
       environments:withProjects?[{id:environmentId,projectId:selectedProject,name:'测试环境'}]:[]});
     if (pathname === `/api/v1${detailPath}/credential-usage`) return reply({coverage:{state:'Unknown',
       coverageStart:null,completeThrough:null,missingNodes:[],gaps:[],reason:'BrowserFixture'},

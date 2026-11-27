@@ -1,3 +1,4 @@
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {join} from 'node:path';
@@ -24,7 +25,7 @@ function credential(n, validFrom, expiresAt, status = 'Active') {
     revision:1, activation:'WorkingConfiguration'};
 }
 
-async function openCredentials(t, credentials, {list = false, usageStatus = 200, readOnly = false, timezoneId} = {}) {
+async function openCredentials(t, credentials, {list = false, usageStatus = 200, readOnly = false, timezoneId, environments = [], usagePage} = {}) {
   const page = await browser.newPage({timezoneId});
   t.after(() => page.close());
   page.setDefaultTimeout(5000);
@@ -38,14 +39,15 @@ async function openCredentials(t, credentials, {list = false, usageStatus = 200,
     if (path.startsWith('/assets/')) return route.fulfill({path:join(dist,path.slice(1))});
     if (path === '/applications' || path === detailPath) return route.fulfill({path:join(dist,'index.html')});
     if (path === '/api/v1/auth/me') return reply({id:id(4), username:'fixture-user', displayName:'测试用户',
-      authSource:'local', permissions:readOnly ? ['app.read'] : ['app.read','credential.manage'],
+      authSource:'local', ...organizationPermissions(org,readOnly ? ['app.read'] : ['app.read','credential.manage']),
       scopes:[{scope:{organizationId:org,projectId:project}, accessMode:readOnly ? 'read_only' : 'read_write'}]});
     if (path === '/api/v1/scope-tree') return reply({organizations:[{id:org,name:'测试组织',status:'Active'}],
-      projects:[{id:project,organizationId:org,name:'测试项目',status:'Active'}], environments:[]});
+      projects:[{id:project,organizationId:org,name:'测试项目',status:'Active'}], environments});
     if (path === '/api/v1/applications') return reply({items:[application],total:1,page:1,pageSize:50});
     if (path === '/api/v1' + detailPath) return reply({application,credentials,permissions:[],runningConfigVersions:{}});
     if (path === '/api/v1' + detailPath + '/credential-usage') {
       if (usageStatus !== 200) return reply({detail:'统计暂不可用'},usageStatus);
+      if (usagePage) return reply(usagePage(new URL(route.request().url()).searchParams));
       return reply({window:{from:past,to:now.toISOString()},visibleEnvironmentIds:[],coverage,
         page:{items:credentials.map(row => ({credentialId:row.id,accessKeyLast4:row.accessKey.slice(-4),
           count:null,lastObservedAt:null,visibleLastUsedAt:null,coverage})),total:credentials.length,page:1,pageSize:50}});
@@ -61,6 +63,49 @@ async function openCredentials(t, credentials, {list = false, usageStatus = 200,
   const status = key => row(key).getByRole('cell').nth(1);
   return {page,row,status,errors};
 }
+
+test('ordinary rotation reads the selected pair beyond 100 and refreshes their usage when the key or environment changes', async t => {
+  const credentials = Array.from({length:105}, (_, i) => credential(1000+i,past,future));
+  const [old,replacement,another] = credentials.slice(100);
+  const counts = new Map([[old.id,'107'],[replacement.id,'108'],[another.id,'109']]);
+  const environments = ['A','B'].map((name, i) => ({id:id(201+i), projectId:project, name, status:'Active'}));
+  function usagePage(params) {
+    const page = Number(params.get('page') ?? 1), pageSize = Number(params.get('pageSize') ?? 50);
+    const selected = params.getAll('credentialId'), environment = params.get('environmentId');
+    const keys = selected.length ? credentials.filter(key => selected.includes(key.id)) : credentials;
+    const source = environment === environments[0].id ? {...coverage,state:'Partial'} : coverage;
+    const items = keys.slice((page-1)*pageSize, page*pageSize).map(key => ({credentialId:key.id,
+      count:source.state === 'Partial' ? counts.get(key.id) ?? '0' : null, coverage:source}));
+    return {window:{from:params.get('from'),to:params.get('to')},visibleEnvironmentIds:environment ? [environment] : [],
+      coverage:source,page:{items,total:keys.length,page,pageSize}};
+  }
+  const {page,row,errors} = await openCredentials(t,credentials,{environments,usagePage});
+  const next = page.getByRole('button',{name:'下一页'});
+  await next.click();
+  await row(credentials[50]).waitFor();
+  await next.click();
+  await row(old).getByRole('button',{name:'轮换',exact:true}).click();
+  const wizard = page.getByRole('region',{name:'凭证轮换向导'});
+  const environment = wizard.getByRole('combobox',{name:'轮换目标环境'});
+  const newKey = wizard.getByRole('combobox',{name:'轮换新凭证'});
+  const values = wizard.locator('dd');
+  await environment.selectOption(environments[0].id);
+  await values.nth(0).filter({hasText:'至少 107（已采集，数据不完整）'}).waitFor();
+  await newKey.selectOption(replacement.id);
+  await values.nth(1).filter({hasText:'至少 108（已采集，数据不完整）'}).waitFor();
+  await newKey.selectOption(another.id);
+  await values.nth(1).filter({hasText:'至少 109（已采集，数据不完整）'}).waitFor();
+  const nextUsage = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname.endsWith('/credential-usage') && url.searchParams.get('environmentId') === environments[1].id;
+  });
+  await environment.selectOption(environments[1].id);
+  const requested = new URL((await nextUsage).url()).searchParams;
+  assert.deepEqual(requested.getAll('credentialId').sort(), [old.id,another.id].sort());
+  await values.nth(0).filter({hasText:'尚无可用采集（来源未知）'}).waitFor();
+  assert.deepEqual(await values.allTextContents(),Array(2).fill('尚无可用采集（来源未知）'));
+  assert.deepEqual(errors,[]);
+});
 
 test('application list opens distinguishable credential windows while keeping edit, revoke and key masking semantics', async t => {
   const pending = credential(11,future,'2026-11-24T04:00:00Z');

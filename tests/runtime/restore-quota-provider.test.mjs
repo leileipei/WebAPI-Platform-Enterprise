@@ -200,6 +200,32 @@ test('independent service attaches a distinct live witness to probe, preflight, 
  for(const request of f.requests)assert.deepEqual(request.budget,restoreBudget);
 });
 
+test('specialized CLIs bind all restore phases to their supplied synthetic Unix services',async t=>{
+ const {promotionCli}=await import('../../scripts/delivery/cli.mjs');
+ const {pipelineCli}=await import('../../scripts/delivery/pipeline-cli.mjs');
+ const {securityAcceptanceCli}=await import('../../scripts/security/acceptance.mjs');
+ const f=await syntheticFixture(t),modes=['e2e','faults','browser'];
+ const flags=[...budgetArguments,'--restore-quota-socket',f.quotaSocket,'--restore-docker-socket',f.dockerSocket];
+ const deps={
+  configureStorage:options=>f.connect(options),
+  async runAcceptance({restoreBudget:budget,storageVerifier:provider}){
+   const scope={provider,budget,projectName:f.projectName,directory:f.directory,volumeNames:f.volumeNames};
+   const identity={ownerId:f.ownerId,volumeIdentities:f.volumeIdentities};
+   const first=await requireRestoreStorageProof({...scope,phase:'preflight'});
+   const initialized=await requireRestoreStorageProof({...scope,...identity,phase:'before-initialization',previous:first});
+   return requireRestoreStorageProof({...scope,...identity,phase:'before-extraction',previous:initialized});
+  }
+ };
+ for(const [cli,commands] of [[promotionCli,modes],[pipelineCli,modes],[securityAcceptanceCli,['--revision']]]){
+  for(const mode of commands){
+   const start=f.requests.length;
+   const result=await cli([mode,'a'.repeat(40),...flags],deps);
+   assert.equal(result.quotaBytes,restoreBudget.maxTargetBytes);
+   assert.deepEqual(f.requests.slice(start).map(request=>request.phase),['probe','preflight','before-initialization','before-extraction']);
+  }
+ }
+});
+
 test('a detached verifier cannot authorize a restore outside its own pinned Docker scope',async t=>{
  const f=await syntheticFixture(t),integration=await f.connect(),other=await f.connect();
  const preflight=()=>requireRestoreStorageProof({

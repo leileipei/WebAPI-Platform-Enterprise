@@ -1,6 +1,17 @@
 import fs from 'node:fs/promises';import path from 'node:path';import assert from 'node:assert/strict';import {execFile} from 'node:child_process';import {promisify} from 'node:util';import {createHash} from 'node:crypto';
 import {docker} from '../runtime/docker.mjs';import {ownedDirectory,writePrivate} from '../runtime/state.mjs';import {readOwnedRuntime,readPrivateArtifact,validateSdkInput} from './scenario.mjs';import {assertFixedAccountSources} from './fixed-source.mjs';import {parseSuiteLog} from '../gateway-policies/evidence.mjs';
 const exec=promisify(execFile),digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+export async function stageSdkObservability(source, bytes, {projectName, sourceRevision}) {
+ const fault = JSON.parse(bytes);
+ assert.match(projectName, /^webapi-enterprise-local-test-[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/);
+ assert.match(sourceRevision, /^[a-f0-9]{40}$/);
+ assert.equal(fault.project, projectName);
+ if (Object.hasOwn(fault, 'sourceRevision')) assert.equal(fault.sourceRevision, sourceRevision);
+ const directory = path.join(source, '.runtime', 'e2e', projectName, 'observability-evidence');
+ await fs.mkdir(directory, {recursive:true, mode:0o700});
+ // The caller has checked these original bytes against this owner's fixed-source prior manifest.
+ await writePrivate(path.join(directory, 'faults.json'), {...fault, sourceRevision, registeredArtifactSha256:digest(bytes)});
+}
 export async function runSdkEndToEnd({revision,imageId,directory,fixtureDirectory}){
  const root=path.resolve(import.meta.dirname,'../..');const sourceManifest=await assertFixedAccountSources(revision,{root});const {state,release}=await readOwnedRuntime({revision,imageId,fixtureDirectory});await ownedDirectory(directory);
  const context=JSON.parse(await readPrivateArtifact(fixtureDirectory,'sdk-context.json'));const prior=JSON.parse(await readPrivateArtifact(fixtureDirectory,'sdk-prior-manifest.json'));for(const input of [context,prior])for(const name of ['sourceRevision','imageId','ownerId','projectName'])assert.equal(input[name],name==='sourceRevision'?revision:name==='imageId'?imageId:state[name]);
@@ -15,7 +26,8 @@ export async function runSdkEndToEnd({revision,imageId,directory,fixtureDirector
   assert(Array.isArray(entry.artifacts)&&entry.artifacts.length>0);const destination=path.join(previous,name);await fs.mkdir(destination,{mode:0o700});
   for(const item of entry.artifacts){assert(typeof item.output==='string'&&!path.isAbsolute(item.output)&&item.output.split('/').every(p=>p&&p!=='.'&&p!=='..'));const bytes=await readPrivateArtifact(fixtureDirectory,item.input);assert.equal(digest(bytes),item.sha256);await fs.mkdir(path.dirname(path.join(destination,item.output)),{recursive:true,mode:0o700});await fs.writeFile(path.join(destination,item.output),bytes,{mode:0o600});}
  }
- const faults=path.join(previous,'observability-faults','faults.json');await fs.mkdir(path.join(source,'docs/evidence/observability'),{recursive:true});await fs.copyFile(faults,path.join(source,'docs/evidence/observability/faults.json'));
+ const faults=await fs.readFile(path.join(previous,'observability-faults','faults.json'));
+ await stageSdkObservability(source,faults,prior);
  for(const file of [source,input,previous])assert(!/[,\r\n\0]/.test(file),'Unsafe Docker mount path');
  const args=['run','--rm','--cpus','4','--memory','4g','--label','com.docker.compose.project='+state.projectName,'--label','com.webapi.runtime.owner='+state.ownerId,'--network',state.projectName+'_default','--mount','type=bind,src='+source+',dst=/workspace','--mount','type=bind,src='+input+',dst=/sdk-input,readonly','--mount','type=bind,src='+previous+',dst=/sdk-prior,readonly','--mount','type=volume,src=webapi-enterprise-core-test_nuget-test,dst=/nuget-seed,readonly','--workdir','/workspace'];
  const env={WEBAPI_E2E_CONTEXT_FILE:'/sdk-input/context.json',WEBAPI_E2E_OWNER:state.ownerId,WEBAPI_SOURCE_REVISION:revision,WEBAPI_E2E_PROJECT:state.projectName,WEBAPI_SSO_RESULT_DIRECTORY:'/sdk-prior/sso',WEBAPI_SETTINGS_RESULT_DIRECTORY:'/sdk-prior/settings',WEBAPI_POLICY_RESULT_DIRECTORY:'/sdk-prior/policies',WEBAPI_NETWORK_POLICY_RESULT_DIRECTORY:'/sdk-prior/network-policies'};for(const[name,value]of Object.entries(env))args.push('--env',name+'='+value);

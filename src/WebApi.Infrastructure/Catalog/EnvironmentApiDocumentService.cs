@@ -21,7 +21,7 @@ public sealed class EnvironmentApiDocumentService(EnvironmentApiAddressService a
         if(selection.Versions.Count!=1||selection.Routes.Count==0)throw Mapping();var version=selection.Versions.Single();
         if(version.Version.OpenapiDocument is null)throw new ApiException(409,"contract_document_unavailable","所选版本尚无可映射的 OpenAPI 契约。");
         var current=await db.Set<ApiVersion>().AsNoTracking().SingleAsync(x=>x.Id==version.Version.Id,ct);
-        if(view==AccessView.Running&&current.Revision!=version.Version.Revision)throw new ApiException(422,"historical_contract_changed","运行契约来源修订与冻结版本不一致。");
+        if(view==AccessView.Running&&!CatalogService.MatchesFrozenContract(current,version.Version))throw new ApiException(422,"historical_contract_changed","运行契约来源修订与冻结版本不一致。");
         var state=await sources.LoadAsync(current,ct);
         var definitions=version.Parameters.Select(x=>new MaintainedDefinition(x.Id,"parameter",x.Name,x.Schema??JsonSerializer.Serialize(new{type=x.DataType}),false)).Concat(version.Schemas.Select(x=>new MaintainedDefinition(x.Id,"schema",x.Name,x.SchemaJson,x.SchemaType=="component"))).ToArray();
         var graph=sources.BuildGraph(state,definitions,ct);var sourceRoot=graph.Bundle.Documents.Single(x=>x.Source.LogicalUri==graph.Bundle.RootUri).Root as JsonObject??throw Mapping();

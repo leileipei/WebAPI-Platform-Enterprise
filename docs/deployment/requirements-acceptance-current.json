@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "reviewedMainRevision": "1ead23c6f8f2778f1547264533622a759962b729",
-  "updatedAt": "2026-11-21T14:49:19.159612+00:00",
+  "updatedAt": "2026-11-27T02:05:56.964558+00:00",
   "historicalLedger": {
     "path": "docs/evidence/work-package4/requirements-closeout.json",
     "sha256": "402b624830beb4c9bad746f2b90a920c0fc7501f0cf4456397521bf2cba60e66",
@@ -16,8 +16,8 @@
   },
   "countingRule": "分批保留固定产品版本、原需求 ID 与实际证据。浏览器观察、测试和重复运行不累计为需求数。历史状态独立保留。",
   "currentStatusCounts": {
-    "隔离验收通过": 14,
-    "待复验": 440
+    "隔离验收通过": 18,
+    "待复验": 436
   },
   "batches": [
     {
@@ -169,6 +169,19 @@
         "P15-S02",
         "P15-P01"
       ]
+    },
+    {
+      "id": "B08",
+      "name": "登录标识、组织抽屉与环境治理",
+      "status": "隔离验收通过",
+      "requirementIds": [
+        "P01-C05",
+        "P03-C02",
+        "P05-A03",
+        "P05-C04"
+      ],
+      "productRevision": "af78d70b882bfb40eb1289a241e6a625fcb54896",
+      "evidenceRef": "docs/evidence/product-acceptance/2026-11-27-governance-environment/README.md"
     }
   ],
   "candidateScopePendingConfirmation": [
@@ -245,11 +258,17 @@
       "historicalStatus": "缺失",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P01-C05",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "af78d70b882bfb40eb1289a241e6a625fcb54896",
+        "verifiedAt": "2026-11-27T02:05:56.964558+00:00",
+        "scenarioIds": [
+          "P01-C05"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/README.md",
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/observations.json",
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/login.png"
+        ]
       }
     },
     {
@@ -665,11 +684,18 @@
       "historicalStatus": "部分",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P03-C02",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "af78d70b882bfb40eb1289a241e6a625fcb54896",
+        "verifiedAt": "2026-11-27T02:05:56.964558+00:00",
+        "scenarioIds": [
+          "P03-C02"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/README.md",
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/observations.json",
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/organization-create.png",
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/organization-edit.png"
+        ]
       }
     },
     {
@@ -1130,11 +1156,17 @@
       "historicalStatus": "部分",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P05-C04",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "af78d70b882bfb40eb1289a241e6a625fcb54896",
+        "verifiedAt": "2026-11-27T02:05:56.964558+00:00",
+        "scenarioIds": [
+          "P05-C04"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/README.md",
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/observations.json",
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/environment-bindings.png"
+        ]
       }
     },
     {
@@ -1190,11 +1222,17 @@
       "historicalStatus": "待复验",
       "historicalRecordRef": "docs/evidence/work-package4/requirements-closeout.json#P05-A03",
       "currentAcceptance": {
-        "status": "待复验",
-        "productRevision": null,
-        "verifiedAt": null,
-        "scenarioIds": [],
-        "evidenceRefs": []
+        "status": "隔离验收通过",
+        "productRevision": "af78d70b882bfb40eb1289a241e6a625fcb54896",
+        "verifiedAt": "2026-11-27T02:05:56.964558+00:00",
+        "scenarioIds": [
+          "P05-A03"
+        ],
+        "evidenceRefs": [
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/README.md",
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/observations.json",
+          "docs/evidence/product-acceptance/2026-11-27-governance-environment/environment-current.png"
+        ]
       }
     },
     {

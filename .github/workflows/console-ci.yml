@@ -22,7 +22,7 @@ jobs:
   console:
     name: console
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -38,14 +38,45 @@ jobs:
           node-version: '24.22.1'
           package-manager-cache: false
 
-      - name: Test runtime acceptance and restore safeguards
+      - name: Ensure POSIX ACL tools for restore tests
+        run: |
+          if [[ ! -x /usr/bin/getfacl ]]; then
+            sudo apt-get update
+            sudo apt-get install --yes --no-install-recommends acl
+          fi
+          /usr/bin/getfacl --version
+
+      - name: Test acceptance runners and restore safeguards
         run: >-
           node --test
+          tests/contracts/runner.test.mjs
+          tests/contracts/legacy-entry.test.mjs
           tests/runtime/restore-storage-budget.test.mjs
+          tests/runtime/restore-acceptance-entrypoints.test.mjs
           tests/runtime/restore-quota-provider.test.mjs
+          tests/runtime/restore-completion-review.test.mjs
           tests/runtime/migration-evidence-inspection.test.mjs
+          tests/runtime/migration-evidence-freeze.test.mjs
+          tests/runtime/migration-evidence-cleanup.test.mjs
           tests/runtime/acceptance-context.test.mjs
+          tests/runtime/deployment.test.mjs
           tests/runtime/project-counts-acceptance-guards.test.mjs
+          tests/runtime/core-e2e-cleanup.test.mjs
+          tests/runtime/acceptance-credentials.test.mjs
+          tests/runtime/installation-admin.test.mjs
+          tests/runtime/local-runtime-cli.test.mjs
+          tests/runtime/comparison-runner.test.mjs
+          tests/runtime/comparison-cleanup.test.mjs
+          tests/runtime/comparison-scenario.test.mjs
+          tests/runtime/settings-runner.test.mjs
+          tests/runtime/settings-cleanup.test.mjs
+          tests/runtime/policy-cleanup.test.mjs
+          tests/runtime/policy-runner.test.mjs
+          tests/runtime/policy-source.test.mjs
+          tests/runtime/sso-credential-cleanup.test.mjs
+          tests/runtime/sso-package-entry.test.mjs
+          tests/runtime/observability-fixture.test.mjs
+          tests/runtime/observability-scenario.test.mjs
 
       - name: Install pnpm
         run: npm install --global pnpm@11.25.0 --ignore-scripts --no-audit --no-fund
@@ -58,3 +89,11 @@ jobs:
 
       - name: Test and build console
         run: bash scripts/check-console.sh
+
+      - name: Install pinned browser test tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/webapi-browser" --no-save --ignore-scripts --no-audit --no-fund playwright@1.62.1
+          "$RUNNER_TEMP/webapi-browser/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Test all browser flows against the production build
+        run: WEBAPI_PLAYWRIGHT_PACKAGE="$RUNNER_TEMP/webapi-browser/node_modules/playwright/package.json" node scripts/check-console-browser.mjs

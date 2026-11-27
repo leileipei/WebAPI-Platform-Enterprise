@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import hashlib,json,struct,zlib
 from pathlib import Path
+from acceptance_cleanup import verify_cleanup_receipt
 root=Path(__file__).resolve().parents[1]
 evidence=root/'docs/evidence/policies'
 def sha(b):return hashlib.sha256(b).hexdigest()
@@ -13,7 +14,9 @@ def png(path):
   at+=size+12
   if kind==b'IEND':break
  assert at==len(data);w,h,_,color,*_=dimensions;decoded=zlib.decompress(raw);assert len(decoded)==h*(1+w*(4 if color==6 else 3));assert any(decoded);return w,h
-v=json.loads((evidence/'verification.json').read_text());assert v['complete'];manifest=(evidence/'source-manifest.json').read_bytes();source=json.loads(manifest);assert sha(manifest)==v['image']['sourceManifestHash'];assert source['baseCommit']==v['image']['baseCommit'];assert v['image']['imageDigest'].startswith('sha256:')
+v=json.loads((evidence/'verification.json').read_text());assert v['complete']
+verify_cleanup_receipt(v,evidence)
+manifest=(evidence/'source-manifest.json').read_bytes();source=json.loads(manifest);assert sha(manifest)==v['image']['sourceManifestHash'];assert source['baseCommit']==v['image']['baseCommit'];assert v['image']['imageDigest'].startswith('sha256:')
 for name,expected in source['files'].items():
  p=root/name;assert p.is_file(),name;assert sha(p.read_bytes())==expected,name;assert not any(part in ['.secrets','.runtime','node_modules','bin','obj','.git'] for part in p.parts)
 assert len(v['finalRelease']['targets'])==2 and all(t['acknowledged'] for t in v['finalRelease']['targets']);assert v['finalStatus']==200

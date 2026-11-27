@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Releases;
 namespace WebApi.Infrastructure.Gateway;
 public sealed class ReleaseTimeoutService(WebApiDbContext db,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution)
 {
@@ -14,6 +15,7 @@ public sealed class ReleaseTimeoutService(WebApiDbContext db,WebApi.Infrastructu
     internal static async Task FailAsync(WebApiDbContext db,ReleaseRecord r,string code,CancellationToken ct)
     {
         r.Status="Failed";r.FailureCode=code;r.CompletedAt=DateTimeOffset.UtcNow;var config=await db.Set<GatewayConfigVersion>().SingleAsync(v=>v.EnvironmentId==r.EnvironmentId&&v.VersionNo==r.ToConfigVersion,ct);config.Status="Failed";
+        await ReleaseVersionPublication.RecordOutcomeAsync(db,r,ct);
         var project=await db.Set<EnvironmentRecord>().Where(e=>e.Id==r.EnvironmentId).Select(e=>e.ProjectId).SingleAsync(ct);var org=await db.Set<Project>().Where(p=>p.Id==project).Select(p=>p.OrganizationId).SingleAsync(ct);
         db.Add(new AuditLog {EnvironmentId=r.EnvironmentId,ProjectId=project,OrganizationId=org,UserId=r.PublishRequestedBy,Action="release.failed",ResourceType="ReleaseRecord",ResourceId=r.Id.ToString(),TraceId=r.PublishTraceId,AfterJson=JsonSerializer.Serialize(new {error=code,configVersion=r.ToConfigVersion,deploymentSequence=r.DeploymentSequence})});await db.SaveChangesAsync(ct);
     }

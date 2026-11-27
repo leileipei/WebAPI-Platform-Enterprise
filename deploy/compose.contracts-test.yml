@@ -10,6 +10,17 @@ services:
       - ..:/workspace:ro
     labels:
       com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
+volumes:
+  pg-test:
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
+  nuget-test:
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
+networks:
+  default:
+    labels:
+      com.webapi.contracts.owner: ${WEBAPI_CONTRACT_TEST_OWNER:?required}
 secrets:
   postgres-password:
     file: ${WEBAPI_CONTRACT_TEST_DIRECTORY:?required}/postgres-password

@@ -26,7 +26,7 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
     }
     private static string Tag(GatewayNode n)=>$"\"{n.InstanceId}:{n.Enabled}\"";
     private static GatewayNodeDto Dto(GatewayNode n,EnvironmentRecord env)=>Dto(n,env.DesiredConfigVersion,env.DeploymentSequence);
-    private static GatewayNodeDto Dto(GatewayNode n,long? desiredVersion,long deploymentSequence)=>new(n.Id,n.EnvironmentId,n.NodeName,n.InstanceId,n.AppVersion,n.Enabled,n.Status,n.LastHeartbeatAt is null||n.LastHeartbeatAt<DateTimeOffset.UtcNow.AddSeconds(-120),n.CurrentConfigVersion,n.CurrentDeploymentSequence,n.TargetConfigVersion,n.LastHeartbeatAt,Tag(n),desiredVersion,deploymentSequence,SnapshotSchemaCapabilities.Read(n));
+    private static GatewayNodeDto Dto(GatewayNode n,long? desiredVersion,long deploymentSequence)=>new(n.Id,n.EnvironmentId,n.NodeName,n.InstanceId,n.AppVersion,n.Enabled,n.Status,n.LastHeartbeatAt is null||n.LastHeartbeatAt<DateTimeOffset.UtcNow.AddSeconds(-120),n.CurrentConfigVersion,n.CurrentDeploymentSequence,n.TargetConfigVersion,n.LastHeartbeatAt,Tag(n),desiredVersion,deploymentSequence,SnapshotSchemaCapabilities.Read(n),NodeDiagnosticReport.Read(n));
     public async Task<PageResult<GatewayNodeDto>> NodesAsync(Guid env,ActorContext actor,int page=1,int size=50,CancellationToken ct=default)
     {
         await RequireReadScopeAsync(env,"gateway.read",actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
@@ -48,7 +48,23 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
         return new(events,total,page,size);
     }
     public async Task<ManagementSnapshot> SnapshotAsync(Guid env,long version,ActorContext actor,CancellationToken ct=default)
-    {await RequireReadAsync(env,"gateway.config.read",actor,ct);var artifact=await history.ReadAsync(env,version,ct);var s=artifact.Snapshot;return new(s.SchemaVersion,s.EnvironmentId,s.ConfigVersion,s.GeneratedAt,s.Routes,s.Clusters,s.Policies,s.Applications.Select(a=>new ManagementApplication(a.Id,a.Status,a.Credentials.Select(k=>new ManagementCredential(k.Id,k.AccessKey,k.Status,k.ValidFrom,k.ExpiresAt)).ToArray(),a.Permissions)).ToArray());}
+    {
+        await RequireReadAsync(env,"gateway.config.read",actor,ct);
+        return await ReadManagementSnapshotAsync(env,version,ct);
+    }
+    public async Task<CurrentManagementSnapshot> CurrentSnapshotAsync(Guid env,ActorContext actor,CancellationToken ct=default)
+    {
+        var environment=await RequireReadAsync(env,"gateway.config.read",actor,ct);
+        var snapshot=environment.DesiredConfigVersion is long version?await ReadManagementSnapshotAsync(env,version,ct):null;
+        return new(environment.DeploymentSequence,snapshot);
+    }
+    private async Task<ManagementSnapshot> ReadManagementSnapshotAsync(Guid env,long version,CancellationToken ct)
+    {
+        var s=(await history.ReadAsync(env,version,ct)).Snapshot;
+        var applications=s.Applications.Select(a=>new ManagementApplication(a.Id,a.Status,a.Credentials
+            .Select(k=>new ManagementCredential(k.Id,k.AccessKey,k.Status,k.ValidFrom,k.ExpiresAt)).ToArray(),a.Permissions)).ToArray();
+        return new(s.SchemaVersion,s.EnvironmentId,s.ConfigVersion,s.GeneratedAt,s.Routes,s.Clusters,s.Policies,applications);
+    }
     public async Task<PageResult<SnapshotInfo>> SnapshotsAsync(Guid env,ActorContext actor,int page=1,int size=50,CancellationToken ct=default)
     {
         await RequireReadScopeAsync(env,"gateway.config.read",actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);
@@ -81,6 +97,7 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
                 if(enabled&&!SnapshotSchemaCapabilities.SupportsGovernanceAtFloor(node,"2.4")&&
                     await GlobalCredentialPublicationGuard.RequiresGovernance24Async(db,node.EnvironmentId,token))
                     throw new ApiException(409,"gateway_security_capability_required","当前环境要求节点声明兼容的快照和安全协议能力。");
+                if(!enabled) await GatewayOperationService.CancelAsync(db,node.Id,token);
                 node.Enabled=enabled;
                 db.Add(new GatewayNodeEvent{GatewayNodeId=node.Id,EventType=enabled?"usage.node.enabled":"usage.node.disabled",
                     Message=enabled?"节点采集来源启用":"节点采集来源停用",Detail=System.Text.Json.JsonSerializer.Serialize(new{instanceId=node.InstanceId})});

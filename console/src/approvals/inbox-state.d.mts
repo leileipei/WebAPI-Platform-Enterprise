@@ -22,3 +22,5 @@ export function safeApprovalReturnTo(value:unknown):string|null;
 export function switchApprovalView(filter:ApprovalFilter,view:string):ApprovalFilter;
 export function createInboxState(authority:string,filter:ApprovalFilter):any;
 export function inboxReducer(state:any,event:any):any;
+
+export function singleFlightInbox(load:()=>Promise<void>):(refresh?:boolean)=>Promise<void>;

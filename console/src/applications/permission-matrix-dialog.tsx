@@ -3,6 +3,7 @@ import {apiRequest,ApiError} from '../api/client';
 import {withPage} from '../api/paging.mjs';
 import {recoveryFocusTarget,tabFocusTarget} from '../editor-focus.mjs';
 import {Feedback,useRemote,useUnsaved} from '../ui';
+import {ScopeRetry,useWorkspace} from '../Shell';
 import {
   matchesMatrixPreview,matrixChange,matrixLegacyMoveCells,matrixPageSize,permissionWindow,toLocalInput
 } from './permission-matrix-model.mjs';
@@ -28,6 +29,7 @@ export function PermissionMatrixDialog({basePath,applicationId,projectId,draft,c
   close:()=>void; applied:(receipt:MatrixReceipt)=>void; accessLost:()=>void; targetsChanged:()=>void; restoreFocus:()=>void;
 }) {
   const {action} = draft;
+  const {scopeReady} = useWorkspace();
   const [cells,setCells] = useState(draft.cells);
   const [modeEdits,setModeEdits] = useState<Record<string,MatrixMode>>({});
   const [methodEdits,setMethodEdits] = useState<Record<string,RouteMethodGrant[]>>({});
@@ -76,7 +78,7 @@ export function PermissionMatrixDialog({basePath,applicationId,projectId,draft,c
     return methodEdits[keyForCell(cell)] ?? cell.grant?.routeMethods ?? [];
   }
 
-  const canPreview = !busy && !revisionRequired && !discard && (!needsStart || !!startValue) && (!moving || !!legacyMove) &&
+  const canPreview = scopeReady && !busy && !revisionRequired && !discard && (!needsStart || !!startValue) && (!moving || !!legacyMove) &&
     (action !== 'SetWindow' || editStart || editEnd) && (action !== 'Save' || cells.every(cell => {
       const mode = modeFor(cell);
       if (!allowedModes(cell).includes(mode)) return false;
@@ -228,7 +230,7 @@ export function PermissionMatrixDialog({basePath,applicationId,projectId,draft,c
   }
 
   function commit() {
-    if (busy || discard || !confirmable || requiresProduction && !confirmProduction) return;
+    if (!scopeReady || busy || discard || !confirmable || requiresProduction && !confirmProduction) return;
     const attempt = pending ?? {
       body:{...confirmable.request,previewToken:confirmable.impact.previewToken,confirmProduction},
       key:crypto.randomUUID()
@@ -358,11 +360,12 @@ export function PermissionMatrixDialog({basePath,applicationId,projectId,draft,c
       {revisionRequired && <button type="button" className="btn" disabled={busy || discard} onClick={acceptLatestRevision}>读取最新授权修订</button>}
       {confirmable ? <>
         {!pending && <button type="button" className="btn" disabled={busy || discard} onClick={resetPreview}>返回编辑</button>}
-        <button type="button" className="btn primary" disabled={busy || discard || requiresProduction && !confirmProduction} onClick={commit}>
+        <button type="button" className="btn primary" disabled={!scopeReady || busy || discard || requiresProduction && !confirmProduction} onClick={commit}>
           {pending ? '核对提交结果' : '提交工作配置'}
         </button>
       </> : <button type="button" className="btn primary" disabled={!canPreview} onClick={preview}>预览影响</button>}
       {busy && <span role="status">正在等待服务端响应…</span>}
+      <ScopeRetry/>
     </footer>
   </div></div>;
 }

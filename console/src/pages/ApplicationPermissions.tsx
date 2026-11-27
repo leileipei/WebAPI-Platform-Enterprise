@@ -42,6 +42,7 @@ export function ApplicationPermissions({application,reload}:{application:Applica
 function ProjectPermissionMatrix({applicationId,projectId,reloadApplication}:{
   applicationId:string; projectId:string; reloadApplication:()=>void;
 }) {
+  const {scopeReady} = useWorkspace();
   const [page,setPage] = useState(1);
   const [selected,setSelected] = useState(new Map<string,MatrixCell>());
   const [draft,setDraft] = useState<MatrixDraft>();
@@ -57,7 +58,7 @@ function ProjectPermissionMatrix({applicationId,projectId,reloadApplication}:{
   const picked = [...selected.values()];
   const legacyMove = matrixLegacyMoveCells(picked);
   const readingAfterWrite = !!receipt && !remote.error && remote.data === receipt.previousData;
-  const blocked = remote.loading || !data || !!draft || readingAfterWrite;
+  const blocked = !scopeReady || remote.loading || !data || !!draft || readingAfterWrite;
 
   function clearAccess() {
     setSelected(new Map());

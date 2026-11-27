@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Security;
+using WebApi.Domain.Security;
 using WebApi.Contracts.Common;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
@@ -53,6 +54,6 @@ public sealed class CollectionAuthorizationQuery(WebApiDbContext db)
             && db.Set<UserProjectScope>().Any(grant => grant.UserId == actor.UserId && grant.OrganizationId == scope.OrganizationId
                 && (grant.ProjectId == null || grant.ProjectId == scope.ProjectId)
                 && (grant.EnvironmentId == null || grant.EnvironmentId == scope.EnvironmentId)
-                && (read || grant.AccessMode == "read_write")));
+                && (read || grant.AccessMode == "read_write" || grant.AccessMode == ScopeMatcher.OrganizationAdministratorWrite)));
     }
 }

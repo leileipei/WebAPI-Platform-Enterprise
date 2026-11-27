@@ -17,15 +17,22 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
         if(rule is null||!rule.Enabled||rule.LogicRevision!=lease.LogicRevision)return false;
         var before=await db.Set<AlertEvaluationState>().AsNoTracking().SingleOrDefaultAsync(x=>x.RuleId==lease.RuleId&&x.LogicRevision==lease.LogicRevision&&x.EnvironmentId==lease.EnvironmentId&&x.ResourceKey==lease.ResourceKey,ct);
         if(before is null||before.LeaseToken!=lease.Token||before.LeaseUntil is null||before.LeaseUntil<=await AlertEvaluationLeaseStore.DatabaseTimeAsync(db,ct))return false;
-        var active=(await scopes.ResolveForSystemAsync(rule,ct)).Contains(lease.EnvironmentId);var retired=!await TargetExistsAsync(rule,ct);
+        var active=(await scopes.ResolveForSystemAsync(rule,ct)).Contains(lease.EnvironmentId);
         var input=new EvaluationInput(lease.Slot,null,null,null,SourceState.Unavailable);
-        if(active&&!retired&&rule.Revision==lease.RuleRevision)
+        if(active&&rule.Revision==lease.RuleRevision)
         {
             // No transaction/governance lock is held during source I/O.
-            var trusted=await scopes.ObservationAsync(rule.OrganizationId,lease.EnvironmentId,ct);var end=lease.Slot.AddSeconds(-settings.QueryDelaySeconds);
-            try
+            var range = settings.QueryRange(lease.Slot, rule.WindowSeconds);
+            var trusted = await scopes.ObservationAsync(rule.OrganizationId, lease.EnvironmentId, range, ct);
+            var target = rule.TargetType switch
             {
-                var response=await source.QueryAsync(trusted,new(end.AddSeconds(-rule.WindowSeconds),end),new(rule.TargetType=="Api"?rule.TargetId:null,null,rule.TargetType=="Destination"?rule.TargetId:null),ct);
+                "Api" => trusted.ApiNames.ContainsKey(rule.TargetId!.Value),
+                "Destination" => trusted.Membership!.TargetExists(lease.EnvironmentId, rule.TargetId!.Value),
+                _ => true
+            };
+            if (target == true) try
+            {
+                var response=await source.QueryAsync(trusted,range,new(rule.TargetType=="Api"?rule.TargetId:null,null,rule.TargetType=="Destination"?rule.TargetId:null),ct);
                 var metric=response.Data?.Kpis.SingleOrDefault(x=>x.Metric==rule.Metric);var known=IsKnown(response,metric,rule.Metric);
                 input=new(lease.Slot,response.ObservedAt,known?metric!.Value:null,known?AlertExpressionParser.Compare(AlertExpressionParser.Parse(rule.Metric,rule.Expression),metric!.Value):null,known?SourceState.Available:response.SourceState);
             }
@@ -42,7 +49,10 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
             // A rename invalidates the result but must not strand Pending behind the old lease.
             state.LeaseOwner=null;state.LeaseUntil=null;state.Revision++;await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);return false;
         }
-        active=(await scopes.ResolveForSystemAsync(current,ct)).Contains(state.EnvironmentId);retired=!await TargetExistsAsync(current,ct);
+        active=(await scopes.ResolveForSystemAsync(current,ct)).Contains(state.EnvironmentId);
+        var exists = active ? await TargetExistsAsync(current, now, ct) : null;
+        var retired = exists == false;
+        if (exists is null) input = new(lease.Slot, null, null, null, SourceState.Unavailable);
         var alert=await db.Set<AlertEvent>().FromSqlInterpolated($"SELECT * FROM alert_events WHERE rule_id={current.Id} AND environment_id={state.EnvironmentId} AND resource_key={state.ResourceKey} AND status <> 'Resolved' FOR UPDATE").SingleOrDefaultAsync(ct);
         var correlation=$"alert:{current.Id:N}:{lease.Token}";
         if(!active||retired)
@@ -80,11 +90,13 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
         await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);return true;
     }
     internal static bool IsKnown(ObservationEnvelope<MetricsDto> response,MetricValueDto? metric,string metricName)=>response.Coverage.Complete&&metric?.Value is double value&&double.IsFinite(value)&&(response.SourceState==SourceState.Available||(response.SourceState==SourceState.NoData&&metricName is "unhealthy_destinations" or "request_rps"));
-    internal async Task<bool> TargetExistsAsync(AlertRule rule,CancellationToken ct)
+    private async Task<bool?> TargetExistsAsync(AlertRule rule, DateTimeOffset now, CancellationToken ct)
     {
         if(rule.TargetType=="Environment")return true;
         if(rule.TargetType=="Api")return await db.Set<Api>().AnyAsync(x=>x.Id==rule.TargetId&&x.ProjectId==rule.ProjectId&&x.OrganizationId==rule.OrganizationId,ct);
-        return await(from d in db.Set<UpstreamDestination>() join c in db.Set<UpstreamCluster>() on d.ClusterId equals c.Id where d.Id==rule.TargetId&&c.ProjectId==rule.ProjectId&&c.EnvironmentId==rule.EnvironmentId select d.Id).AnyAsync(ct);
+        var membership = await AppliedDestinationQuery.ReadAsync(db, rule.OrganizationId, rule.ProjectId!.Value,
+            [rule.EnvironmentId!.Value], now, ct, includeNames: false);
+        return membership.TargetExists(rule.EnvironmentId.Value, rule.TargetId!.Value);
     }
     private async Task ResolveAsync(AlertEvent alert,string reason,DateTimeOffset now,string correlation,CancellationToken ct)
     {

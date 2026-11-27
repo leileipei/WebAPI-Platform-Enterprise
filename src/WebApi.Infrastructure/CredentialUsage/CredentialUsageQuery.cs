@@ -15,7 +15,7 @@ namespace WebApi.Infrastructure.CredentialUsage;
 public sealed class CredentialUsageQuery(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,CollectionAuthorizationQuery visibility,UsageCoverageReader coverage,CredentialUsageRetentionOptions options,TimeProvider clock)
 {
     private sealed record Totals(Guid CredentialId,string Count,DateTimeOffset LastObservedAt);
-    public async Task<CredentialUsagePage> ReadAsync(Guid applicationId,Guid? environmentId,UsageWindow window,int page,int pageSize,ActorContext actor,CancellationToken ct=default)
+    public async Task<CredentialUsagePage> ReadAsync(Guid applicationId,Guid? environmentId,UsageWindow window,int page,int pageSize,ActorContext actor,CancellationToken ct=default,Guid[]? credentialIds=null)
     {
         // Counts and their completeness proof must describe the same database snapshot.
         // Reuse a compatible caller transaction without taking ownership of its lifetime.
@@ -27,7 +27,10 @@ public sealed class CredentialUsageQuery(WebApiDbContext db,AuthorizationService
         if(environmentId is Guid only)environments=[only];
         window=new(window.From.ToUniversalTime(),window.To.ToUniversalTime());var now=clock.GetUtcNow();
         if(page<1||page>1000000||pageSize<1||pageSize>100||window.From>=window.To||window.From!=UsageCoverageReader.Floor(window.From)||window.To!=UsageCoverageReader.Floor(window.To)||window.To-window.From>TimeSpan.FromDays(30)||window.From<UsageCoverageReader.Floor(now.AddDays(-options.RetentionDays))||window.To>UsageCoverageReader.Floor(now).AddHours(1))throw new ApiException(422,"invalid_usage_window","统计窗口必须为UTC整点、在保留期内且不超过30天；分页范围不合法。");
-        var credentials=db.Set<ApplicationCredential>().AsNoTracking().Where(x=>x.ApplicationId==applicationId);var total=await credentials.CountAsync(ct);
+        var credentials=db.Set<ApplicationCredential>().AsNoTracking().Where(x=>x.ApplicationId==applicationId);
+        if (credentialIds is { Length: > 0 })
+            credentials = credentials.Where(x => credentialIds.Contains(x.Id));
+        var total=await credentials.CountAsync(ct);
         var rows=await credentials.OrderBy(x=>x.AccessKey).ThenBy(x=>x.Id).Skip((page-1)*pageSize).Take(pageSize).Select(x=>new{x.Id,x.AccessKey}).ToArrayAsync(ct);var ids=rows.Select(x=>x.Id).ToArray();
         var facts=ids.Length==0||environments.Length==0?[]:await db.Database.SqlQuery<Totals>($"SELECT credential_id AS \"CredentialId\",SUM(count::numeric)::text AS \"Count\",MAX(last_used_at) AS \"LastObservedAt\" FROM credential_usage_hourly WHERE application_id={applicationId} AND credential_id=ANY({ids}) AND environment_id=ANY({environments}) AND hour_start>={window.From} AND hour_start<{window.To} GROUP BY credential_id").ToArrayAsync(ct);
         var visibleLast=await LastUsedCoreAsync(applicationId,ids,environments,ct);var source=await coverage.ReadAsync(environments,window,ct);

@@ -98,7 +98,14 @@ public sealed class PipelineReadService(WebApiDbContext db,ScopeResolver scopes,
   var events=await db.Set<ReleasePipelineEvent>().AsNoTracking().Where(e=>e.StageId==id&&e.RunId==run.Id).OrderByDescending(e=>e.CreatedAt).ThenBy(e=>e.Id).Take(100).Select(e=>new PipelineEventDto(e.Id,e.StageId,e.AttemptId,e.FromStatus,e.ToStatus,e.ReasonCode,e.ActorId,e.CreatedAt)).ToArrayAsync(token);
   var eligibility=await EligibilityAsync(run,stage,current,formal,actual,profile,access,actor,token);var trace=await TraceCoreAsync(stage,run,access,actor,token);
   var acceptanceDto=accepted is null?null:await evidence!.AcceptanceViewAsync(accepted,actor,token);
-  return new PipelineStageDto(stage.Id,run.Id,run.ProjectId,stage.StageOrder,stage.EnvironmentId,environment.Name,stage.SourceStageId,stage.StageArtifactId,stage.Status,run.Status,run.CurrentStageOrder,stage.Revision,stage.CurrentAttemptId,current?.ActivatedAt,current?.DeadlineAt,stage.ProfileHash,profile,formal?.Id,actual?.Id,actual?.Status,actual?.ToConfigVersion,actual?.DeploymentSequence,actual?.DeadlineAt,nodes,facts.Select(ReleaseVerificationService.View).ToArray(),acceptanceDto,attempts.Select(a=>new PipelineAttemptDto(a.Id,a.AttemptNo,a.OriginAttemptId,a.Status,a.ActivatedAt,a.DeadlineAt,a.ArtifactId,a.AcceptanceId,a.PromotionId,a.ActualReleaseId,a.Revision)).ToArray(),events,eligibility,trace);
+  PipelineRollbackDto? rollback=null;
+  if(formal?.Status=="RolledBack")
+   rollback=await (from e in db.Set<ReleasePromotionEvent>().AsNoTracking()
+                   join r in db.Set<ReleaseRecord>() on e.ReleaseId equals (Guid?)r.Id
+                   where e.PromotionId==formal.Id && e.ToStatus=="RolledBack" && r.EnvironmentId==stage.EnvironmentId
+                   orderby e.OccurredAt descending,e.Id descending
+                   select new PipelineRollbackDto(r.Id,r.ToConfigVersion,r.DeploymentSequence)).FirstOrDefaultAsync(token);
+  return new PipelineStageDto(stage.Id,run.Id,run.ProjectId,stage.StageOrder,stage.EnvironmentId,environment.Name,stage.SourceStageId,stage.StageArtifactId,stage.Status,run.Status,run.CurrentStageOrder,stage.Revision,stage.CurrentAttemptId,current?.ActivatedAt,current?.DeadlineAt,stage.ProfileHash,profile,formal?.Id,actual?.Id,actual?.Status,actual?.ToConfigVersion,actual?.DeploymentSequence,actual?.DeadlineAt,nodes,facts.Select(ReleaseVerificationService.View).ToArray(),acceptanceDto,attempts.Select(a=>new PipelineAttemptDto(a.Id,a.AttemptNo,a.OriginAttemptId,a.Status,a.ActivatedAt,a.DeadlineAt,a.ArtifactId,a.AcceptanceId,a.PromotionId,a.ActualReleaseId,a.Revision)).ToArray(),events,eligibility,trace,rollback);
  },actor,ct);
  private async Task RequireStageArtifactsAsync(ReleasePipelineRunStage stage,ActorContext actor,CancellationToken ct)
  {if(stage.StageArtifactId is Guid own)await artifacts!.GetAsync(own,actor,ct);if(stage.SourceStageId is Guid source){var previous=await db.Set<ReleasePipelineRunStage>().AsNoTracking().SingleAsync(p=>p.Id==source&&p.RunId==stage.RunId,ct);if(previous.StageArtifactId is Guid id)await artifacts!.GetAsync(id,actor,ct);}}

@@ -1,4 +1,5 @@
 // Run with a loopback console build and the same explicit browser paths as the other browser fixtures.
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {test,after} from 'node:test';
@@ -36,7 +37,7 @@ async function fixture(t) {
     requests.push({path,method,body,etag,query:url.searchParams});
     const reply=(value,status=200)=>r.fulfill({status,json:value});
     const paged=(items,size=50)=>{const n=Number(url.searchParams.get('page')||1);return reply({items:items.slice((n-1)*size,n*size),total:items.length,page:n,pageSize:size});};
-    if(path==='/auth/me')return reply({id:'tester',username:'fixture',displayName:'向导测试',authSource:'local',permissions:state.permissions||['api.read','api.version.read','api.version.write','environment.read','route.read','route.write','policy.write','release.read','release.create'],scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
+    if(path==='/auth/me')return reply({id:'tester',username:'fixture',displayName:'向导测试',authSource:'local',...organizationPermissions('org',state.permissions||['api.read','api.version.read','api.version.write','environment.read','route.read','route.write','cluster.read','policy.write','release.read','release.create']),scopes:state.scopes??[{scope:{organizationId:'org'},accessMode:'read_write'}]});
     if(path==='/auth/csrf')return reply({token:'synthetic'});
     if(path==='/scope-tree')return reply({organizations:[{id:'org',name:'组织'}],projects:[{id:project,organizationId:'org',name:'选定项目'},{id:foreign,organizationId:'org',name:'其他项目'}],environments:state.noEnvironments?[]:[{id:env,projectId:project,name:'预发'},{id:alt,projectId:project,name:'联调'},{id:'foreign-env',projectId:foreign,name:'其他环境'}]});
     for(const api of apis){
@@ -59,7 +60,10 @@ async function fixture(t) {
         return reply(vv);
       }
     }
-    if(path==='/projects/'+project+'/apis')return paged(apis,1);
+    if(path==='/projects/'+project+'/apis'){
+      if(state.catalogDelay)await state.catalogDelay.promise;
+      return state.catalogDenied?reply({detail:'项目目录不可读'},404):paged(apis,1);
+    }
     if(path==='/projects/'+foreign+'/apis')return paged([]);
     if(path==='/projects/'+foreign+'/api-groups')return reply([]);
     if(path==='/projects/'+project+'/policies')return paged([{id:'selected-policy',type:'timeout',projectId:project,name:'超时策略',enabled:true}]);
@@ -67,8 +71,11 @@ async function fixture(t) {
     for(const e of [env,alt,'foreign-env']){
       const prefix='/environments/'+e;
       if(path===prefix)return reply({id:e,desiredConfigVersion:9});
-      if(path===prefix+'/clusters')return paged(state.clusters?.[e]??[cluster(e)]);
-      if(path===prefix+'/route-defaults')return reply({timeoutMs:2500,source:'Saved'});
+      if(path===prefix+'/clusters'){
+        if(state.clusterDelay)await state.clusterDelay.promise;
+        return state.clusterStatus?reply({detail:'集群目录不可用'},state.clusterStatus):paged(state.clusters?.[e]??[cluster(e)]);
+      }
+      if(path===prefix+'/route-defaults')return state.defaultsUnavailable?reply({detail:'新建默认值暂不可用'},503):reply({timeoutMs:2500,source:'Saved'});
       if(path===prefix+'/routes'&&method==='GET'){
         const target=url.searchParams.get('apiVersionId');
         const items=state.rows.filter(item=>item.environmentId===e&&(!target||item.apiVersionId===target));
@@ -249,6 +256,193 @@ test('standalone routes retain the API and version selectors and environment pag
   assert.equal(await version.inputValue(),v1);
   await version.selectOption(v2);
   assert.equal(await version.inputValue(),v2);
+});
+
+function environmentEditor(state,{readClusters=false}={}){
+  state.permissions=['environment.read','api.read','api.version.read','route.read','route.write',...(readClusters?['cluster.read']:[])];
+  state.scopes=[{scope:{organizationId:'org',projectId:project,environmentId:env},accessMode:'read_write'},
+    {scope:{organizationId:'org',projectId:project,environmentId:alt},accessMode:'read_only'}];
+  state.catalogDenied=true;
+  state.clusterStatus=readClusters?undefined:404;
+  const selected={...row('selected-second',v2),effectiveAuthenticationMode:'JWT',requireApiKey:false};
+  state.rows=[selected,row('other-environment',v2,alt)];
+  return selected;
+}
+
+for(const readClusters of [true,false]){
+  test('an environment route writer edits existing bindings with '+(readClusters?'only environment discovery':'no cluster discovery'),async t=>{
+    const {page,requests,state,writes}=await fixture(t);
+    const selected=environmentEditor(state,{readClusters});
+    state.defaultsUnavailable=true;
+    await page.goto(new URL('/routes',base).href);
+    const route=routeRow(page,selected.id),editor=dialog(page);
+    await route.waitFor();
+    assert.equal(await button(route,'编辑').isEnabled(),true,'环境写权限应可编辑当前路由');
+    assert.equal(await button(page,'＋ 新建路由').isDisabled(),true);
+    assert.equal(await button(route,'策略绑定').isDisabled(),true);
+    await button(route,'编辑').click();
+    assert.equal(await editor.getByRole('combobox',{name:'API 版本'}).count(),0);
+    assert.equal(await editor.getByRole('combobox',{name:'认证模式',exact:false}).count(),0);
+    if(!readClusters)assert.equal(await editor.getByRole('combobox',{name:'后端集群'}).count(),0);
+    await editor.getByLabel('基础超时',{exact:false}).fill('7100');
+    await editor.getByRole('checkbox',{name:'启用路由'}).uncheck();
+    await button(editor,'保存').click();
+    await editor.waitFor({state:'hidden'});
+    const [update]=writes();
+    assert.equal(writes().length,1);
+    assert.deepEqual([update.method,update.path,update.etag],['PUT','/routes/selected-second','"7"']);
+    assert.deepEqual(update.body,{id:'selected-second',apiVersionId:v2,routeName:'selected-second',path:'/selected-second',
+      methods:['GET'],clusterId:'staging-cluster',priority:100,enabled:false,timeoutMs:7100,requireApiKey:false});
+    assert.equal(requests.some(r=>r.path==='/projects/project/apis'||r.path.endsWith('/versions')),false);
+    assert.equal(requests.some(r=>r.path==='/environments/staging/clusters'),readClusters);
+    await page.getByRole('combobox',{name:'当前环境'}).selectOption(alt);
+    const other=routeRow(page,'other-environment');
+    await other.waitFor();
+    assert.equal(await button(other,'编辑').isDisabled(),true);
+  });
+}
+
+for(const discovery of ['pending','503']){
+  test('a route writer keeps the existing cluster while cluster discovery is '+discovery,async t=>{
+    const {page,state,writes}=await fixture(t);
+    const selected=environmentEditor(state,{readClusters:true});
+    const delayed=Promise.withResolvers();
+    if(discovery==='pending')state.clusterDelay=delayed;
+    else state.clusterStatus=503;
+    try{
+      const inventory=discovery==='pending'?page.waitForRequest(r=>r.url().includes('/clusters?')):
+        page.waitForResponse(r=>r.url().includes('/clusters?')&&r.status()===503);
+      await page.goto(new URL('/routes',base).href,{waitUntil:'domcontentloaded'});
+      await inventory;
+      const editor=dialog(page);
+      await button(routeRow(page,selected.id),'编辑').click();
+      await editor.getByLabel('基础超时',{exact:false}).fill('4300');
+      assert.equal(await button(editor,'保存').isEnabled(),true,'原绑定可直接交由服务端校验');
+      assert.equal(await editor.getByRole('combobox',{name:'后端集群'}).count(),0);
+      await button(editor,'保存').click();
+      await editor.waitFor({state:'hidden'});
+      const [update]=writes();
+      assert.deepEqual([update.body.clusterId,update.body.timeoutMs,update.etag],['staging-cluster',4300,'"7"']);
+      assert.equal(await button(page,'＋ 新建路由').isDisabled(),true);
+    }finally{delayed.resolve();}
+  });
+}
+
+for(const status of ['Disabled','missing']){
+  test('late cluster discovery validates a '+status+' binding before saving the draft',async t=>{
+    const {page,state,writes}=await fixture(t);
+    const selected=environmentEditor(state,{readClusters:true}),delayed=Promise.withResolvers();
+    state.clusterDelay=delayed;
+    state.clusters={[env]:[cluster(env,'replacement'),...(status==='Disabled'?[cluster(env,selected.clusterId,status)]:[])]};
+    try{
+      await page.goto(new URL('/routes',base).href,{waitUntil:'domcontentloaded'});
+      const editor=dialog(page),save=button(editor,'保存'),backend=editor.getByRole('combobox',{name:'后端集群'});
+      await button(routeRow(page,selected.id),'编辑').click();
+      await editor.getByLabel('基础超时',{exact:false}).fill('4400');
+      assert.equal(await save.isEnabled(),true,'目录读取完成前只保留原集群');
+      delayed.resolve();
+      await backend.getByRole('option',{name:'replacement'}).waitFor({state:'attached'});
+      assert.equal(await save.isDisabled(),true,'不能自动改用列表中的第一个启用集群');
+      await editor.getByRole('checkbox',{name:'启用路由'}).uncheck();
+      if(status==='missing'){
+        assert.equal(await save.isDisabled(),true);
+        await backend.selectOption('replacement');
+      }
+      await save.click();
+      await editor.waitFor({state:'hidden'});
+      assert.deepEqual(writes().map(r=>[r.body.clusterId,r.body.enabled,r.body.timeoutMs]),
+        [[status==='Disabled'?'staging-cluster':'replacement',false,4400]]);
+    }finally{delayed.resolve();}
+  });
+}
+
+test('a late cluster directory cannot resurrect an old route binding on conflict',async t=>{
+  const {page,state,writes}=await fixture(t);
+  const selected=environmentEditor(state,{readClusters:true}),delayed=Promise.withResolvers();
+  state.clusterDelay=delayed;
+  state.clusters={[env]:[cluster(env),cluster(env,'replacement')]};
+  try{
+    await page.goto(new URL('/routes',base).href,{waitUntil:'domcontentloaded'});
+    const editor=dialog(page);
+    await button(routeRow(page,selected.id),'编辑').click();
+    await editor.getByLabel('基础超时',{exact:false}).fill('4500');
+    selected.clusterId='replacement';
+    selected.revision=8;
+    delayed.resolve();
+    await editor.getByRole('option',{name:'replacement'}).waitFor({state:'attached'});
+    await button(editor,'保存').click();
+    await button(editor,'查看最新内容').click();
+    await editor.getByRole('alert').filter({hasText:'请关闭并刷新列表'}).waitFor();
+    assert.equal(await button(editor,'保持我的输入，采用最新修订').count(),0);
+    assert.deepEqual(writes().map(r=>[r.etag,r.body.clusterId]),[['"7"','staging-cluster']]);
+    assert.equal(selected.clusterId,'replacement');
+  }finally{delayed.resolve();}
+});
+
+test('delayed project discovery preserves a standalone basic edit on a different API',async t=>{
+  const {page,state,writes}=await fixture(t);
+  state.rows=[row('selected-second',v2)];
+  const catalog=Promise.withResolvers();
+  state.catalogDelay=catalog;
+  try{
+    await page.goto(new URL('/routes',base).href,{waitUntil:'domcontentloaded'});
+    const route=routeRow(page,'selected-second'),editor=dialog(page);
+    await route.waitFor();
+    assert.equal(await button(route,'编辑').isEnabled(),true,'已读的路由可先编辑基本字段');
+    await button(route,'编辑').click();
+    await editor.getByLabel('路由名称',{exact:false}).fill('保留输入');
+    catalog.resolve();
+    await page.getByRole('combobox',{name:'路由所属 API'}).getByRole('option',{name:'乙 API'}).waitFor({state:'attached'});
+    await page.waitForLoadState('networkidle');
+    assert.equal(await editor.getByLabel('路由名称',{exact:false}).inputValue(),'保留输入');
+    assert.equal(await editor.getByRole('combobox',{name:'API 版本'}).count(),0);
+    await button(editor,'保存').click();
+    await editor.waitFor({state:'hidden'});
+    assert.equal(writes()[0].body.apiVersionId,v2);
+  }finally{catalog.resolve();}
+});
+
+test('an environment edit reviews a conflict and cannot reapply a replaced binding using a newer revision',async t=>{
+  const {page,state,writes}=await fixture(t);
+  const selected=environmentEditor(state);
+  await page.goto(new URL('/routes',base).href);
+  const route=routeRow(page,selected.id),editor=dialog(page);
+  await route.waitFor();
+  assert.equal(await button(route,'编辑').isEnabled(),true,'可在环境中打开已有路由');
+  await button(route,'编辑').click();
+  await editor.getByLabel('基础超时',{exact:false}).fill('9800');
+  selected.revision=8;
+  await button(editor,'保存').click();
+  await button(editor,'查看最新内容').click();
+  await button(editor,'保持我的输入，采用最新修订').click();
+  selected.apiVersionId=v1;
+  selected.revision=9;
+  await button(editor,'保存').click();
+  await button(editor,'查看最新内容').click();
+  await editor.getByRole('alert').filter({hasText:'请关闭并刷新列表'}).waitFor();
+  assert.equal(await button(editor,'保持我的输入，采用最新修订').count(),0);
+  assert.equal(await button(editor,'保存').isDisabled(),true);
+  assert.deepEqual(writes().map(r=>[r.etag,r.body.apiVersionId,r.body.timeoutMs]),[['"7"',v2,9800],['"8"',v2,9800]]);
+  assert.equal(selected.apiVersionId,v1);
+});
+
+test('a standalone editor with the owning API selected can replace its version, active cluster and authentication',async t=>{
+  const {page,state,writes}=await fixture(t);
+  state.rows=[row('selected-second',v2)];
+  state.clusters={[env]:[cluster(env),cluster(env,'replacement')]};
+  await page.goto(new URL('/routes',base).href);
+  await page.getByRole('combobox',{name:'路由所属 API'}).selectOption(apiB);
+  await page.waitForLoadState('networkidle');
+  await button(routeRow(page,'selected-second'),'编辑').click();
+  const editor=dialog(page);
+  await editor.getByLabel('API 版本',{exact:false}).selectOption(v1);
+  await editor.getByLabel('后端集群',{exact:false}).selectOption('replacement');
+  await editor.getByLabel('认证模式',{exact:false}).selectOption('Anonymous');
+  await button(editor,'保存').click();
+  await editor.waitFor({state:'hidden'});
+  const [update]=writes();
+  assert.deepEqual([update.etag,update.body.apiVersionId,update.body.clusterId,update.body.authenticationChange,update.body.requireApiKey],
+    ['"7"',v1,'replacement','Anonymous',false]);
 });
 
 test('a route on a disabled cluster can be switched off in place and needs an active cluster to restart',async t=>{

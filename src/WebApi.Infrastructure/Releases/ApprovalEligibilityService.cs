@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Releases;
 using WebApi.Contracts.Security;
+using WebApi.Domain.Delivery.Pipelines;
 using WebApi.Domain.Releases;
+using WebApi.Domain.Security;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 using WebApi.Infrastructure.Security;
@@ -30,14 +32,14 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
             join environment in db.Set<EnvironmentRecord>() on release.EnvironmentId equals environment.Id
             where ids.Contains(release.Id)&&promotion.TargetReleaseId==release.Id&&promotion.GateOrigin=="PipelineRunStage"&&environment.IsProduction&&run.CreatedBy==actor.UserId
             select release.Id).ToArrayAsync(ct)).ToHashSet();
-        var actionable=(await QueryActionableReleaseIds(actor,[releases[0].EnvironmentId]).Where(id=>ids.Contains(id)).ToArrayAsync(ct)).ToHashSet();
+        var seats=await QueryQualifiedSeats(actor,[releases[0].EnvironmentId]).Where(s=>ids.Contains(s.ReleaseId)).ToDictionaryAsync(s=>s.ReleaseId,ct);
         return releases.ToDictionary(r=>r.Id,r=>{
             if(r.Status!="WaitingApproval")return new ApprovalEligibility(false,null,"invalid_release_state");
             steps.TryGetValue(r.Id,out var step);
             if(r.RequestedBy==actor.UserId)return new(false,step,"self_approval");
             if(pipelineCreators.Contains(r.Id))return new(false,step,"pipeline_run_creator_approval");
             if(used.Contains(r.Id))return new(false,step,"independent_approval_required");
-            var canAct=actionable.Contains(r.Id);return new(canAct,step,canAct?null:"approval_role_required");
+            return Decision(seats.GetValueOrDefault(r.Id),step);
         });
     }
 
@@ -50,8 +52,8 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
         if (release.RequestedBy == actor.UserId) return new(false, step, "self_approval");
         if(await IsPipelineRunCreatorAsync(release,actor.UserId,ct))return new(false,step,"pipeline_run_creator_approval");
         if (await HasUsedSeatAsync(release.Id, actor.UserId, ct)) return new(false, step, "independent_approval_required");
-        var canAct = await QueryActionableReleaseIds(actor, [release.EnvironmentId]).AnyAsync(id => id == release.Id, ct);
-        return new(canAct, step, canAct ? null : "approval_role_required");
+        var seat = await QueryQualifiedSeats(actor, [release.EnvironmentId]).SingleOrDefaultAsync(s => s.ReleaseId == release.Id, ct);
+        return Decision(seat,step);
     }
 
     // Called by the command executor while the governance lock is held. Read permission
@@ -63,7 +65,7 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
         if (release.RequestedBy == actor.UserId) throw new ApiException(403, "self_approval", "申请人不能审批自己的申请。");
         if(await IsPipelineRunCreatorAsync(release,actor.UserId,ct))throw new ApiException(403,"pipeline_run_creator_approval","运行创建人不能通过委托办理审批自己的生产交付。");
         if (await HasUsedSeatAsync(release.Id, actor.UserId, ct)) throw new ApiException(403, "independent_approval_required", "同一人不能再次占用审批步骤。");
-        if (!await QueryActionableReleaseIds(actor, [release.EnvironmentId]).AnyAsync(id => id == release.Id, ct))
+        if (!await QueryQualifiedSeats(actor, [release.EnvironmentId]).AnyAsync(s => s.ReleaseId == release.Id, ct))
             throw new ApiException(403, "approval_role_required", "用户不属于当前审批角色。");
         return await db.Set<ApprovalTask>().Where(t => t.ReleaseId == release.Id && t.Status == "Pending")
             .OrderBy(t => t.StepOrder).ThenBy(t => t.Id).FirstAsync(ct);
@@ -80,16 +82,73 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
     // PostgreSQL expands the frozen policy, not the current mutable flow template.
     // This remains composable: the inbox intersects it with readable releases before
     // counting/paging; no actionable IDs are materialized in memory.
-    internal IQueryable<Guid> QueryActionableReleaseIds(ActorContext actor, IReadOnlyList<Guid> visibleEnvironmentIds)
+    internal IQueryable<Guid> QueryActionableReleaseIds(ActorContext actor, IReadOnlyList<Guid> visibleEnvironmentIds) =>
+        QueryQualifiedSeats(actor,visibleEnvironmentIds).Where(s=>s.PipelineWritable).Select(s=>s.ReleaseId);
+
+    private sealed class QualifiedSeat
+    {
+        public Guid ReleaseId { get; set; }
+        public bool PipelineWritable { get; set; }
+    }
+
+    private static ApprovalEligibility Decision(QualifiedSeat? seat,int? step) => seat switch
+    {
+        null => new(false,step,"approval_role_required"),
+        { PipelineWritable: false } => new(false,step,"pipeline_stage_not_writable"),
+        _ => new(true,step,null)
+    };
+
+    private IQueryable<QualifiedSeat> QueryQualifiedSeats(ActorContext actor, IReadOnlyList<Guid> visibleEnvironmentIds)
     {
         var environments = visibleEnvironmentIds.ToArray();
+        var writableStages = PipelineStateRules.WritableStageStatuses.ToArray();
         string[] deliveryReadCodes = ["release.read", "environment.read", "route.read", "api.read", "api.version.read", "api.schema.read"];
-        return db.Database.SqlQuery<Guid>($"""
-            SELECT r.id AS "Value"
+        // Project the live pipeline checks shared by approval and rejection before inbox counting.
+        // Commands still revalidate their full gate under the delivery locks and return its specific error.
+        return db.Database.SqlQuery<QualifiedSeat>($"""
+            SELECT r.id AS "ReleaseId",
+              CASE WHEN gate.gate_origin = 'PipelineRunStage' THEN COALESCE(
+                gate.target_release_id = r.id AND gate.target_environment_id = e.id
+                AND run.status = 'Active' AND run.current_stage_order = stage.stage_order
+                AND stage.environment_id = e.id AND stage.project_id = project.id
+                AND stage.status = ANY({writableStages}) AND attempt.status = 'Active'
+                AND attempt.actual_release_id = r.id AND attempt.deadline_at > CURRENT_TIMESTAMP
+                AND stage.profile_json->'isProduction' = to_jsonb(e.is_production)
+                AND EXISTS (
+                  SELECT 1 FROM project_delivery_policies policy
+                  WHERE policy.project_id = project.id AND policy.organization_id = organization.id
+                    AND policy.mode = 'PipelineRequired' AND policy.active_pipeline_version_id = run.pipeline_version_id
+                    AND policy.revision = run.policy_revision)
+                AND EXISTS (
+                  SELECT 1 FROM release_pipeline_run_stages source_stage
+                  JOIN release_pipeline_stage_attempts passed ON passed.id = source_stage.current_attempt_id
+                    AND passed.run_stage_id = source_stage.id AND passed.run_id = run.id AND passed.status = 'Passed'
+                  JOIN release_test_acceptances acceptance ON acceptance.id = passed.acceptance_id
+                    AND acceptance.pipeline_run_stage_id = source_stage.id AND acceptance.stage_attempt_id = passed.id
+                  WHERE source_stage.id = stage.source_stage_id AND source_stage.run_id = run.id
+                    AND source_stage.project_id = project.id AND source_stage.stage_order = stage.stage_order - 1
+                    AND source_stage.status = 'Passed' AND source_stage.stage_artifact_id = gate.artifact_id
+                    AND passed.artifact_id = gate.artifact_id AND acceptance.artifact_id = gate.artifact_id
+                    AND acceptance.id = gate.acceptance_id AND acceptance.status = 'Accepted')
+                AND EXISTS (
+                  SELECT 1 FROM approval_flows flow
+                  WHERE flow.id::text = stage.profile_json->'approval'->>'flowId' AND flow.organization_id = organization.id
+                    AND flow.enabled AND flow.revision::text = stage.profile_json->'approval'->>'flowRevision'
+                    AND (NOT e.is_production OR e.release_policy_id = flow.id)
+                    AND stage.profile_json->'approval'->'rules' = (
+                      SELECT jsonb_agg(jsonb_build_object('stepOrder',s.step_order,'roleCode',s.role_code,
+                        'requiredCount',s.required_count) ORDER BY s.step_order)
+                      FROM approval_steps s WHERE s.flow_id = flow.id)), false)
+              ELSE true END AS "PipelineWritable"
             FROM release_records r
             JOIN environments e ON e.id = r.environment_id
             JOIN projects project ON project.id = e.project_id
             JOIN organizations organization ON organization.id = project.organization_id
+            LEFT JOIN release_promotions gate ON gate.id = r.promotion_id
+            LEFT JOIN release_pipeline_run_stages stage ON gate.gate_origin = 'PipelineRunStage' AND stage.id = gate.pipeline_run_stage_id
+            LEFT JOIN release_pipeline_runs run ON run.id = stage.run_id AND run.project_id = stage.project_id
+            LEFT JOIN release_pipeline_stage_attempts attempt ON attempt.id = stage.current_attempt_id AND attempt.run_stage_id = stage.id
+              AND attempt.run_id = run.id AND attempt.environment_id = stage.environment_id
             WHERE r.environment_id = ANY({environments})
               AND r.status = 'WaitingApproval' AND r.requested_by <> {actor.UserId}
               AND e.status = 'Active' AND project.status = 'Active' AND organization.status = 'Active'
@@ -100,7 +159,7 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
                   AND grant_scope.organization_id = organization.id
                   AND (grant_scope.project_id IS NULL OR grant_scope.project_id = project.id)
                   AND (grant_scope.environment_id IS NULL OR grant_scope.environment_id = e.id)
-                  AND grant_scope.access_mode = 'read_write')
+                  AND grant_scope.access_mode IN ('read_write', {ScopeMatcher.OrganizationAdministratorWrite}))
               AND EXISTS (
                 SELECT 1 FROM user_roles ur
                 JOIN roles role ON role.id = ur.role_id
@@ -131,12 +190,7 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
                     JOIN role_permissions rp ON rp.role_id = role.id JOIN permissions permission ON permission.id = rp.permission_id
                     WHERE ur.user_id = {actor.UserId} AND permission.code = 'policy.read'
                       AND (role.organization_id IS NULL OR role.organization_id = source_org.id)))))
-              AND NOT EXISTS (
-                SELECT 1 FROM release_promotions pipeline_promotion
-                JOIN release_pipeline_run_stages pipeline_stage ON pipeline_stage.id = pipeline_promotion.pipeline_run_stage_id
-                JOIN release_pipeline_runs pipeline_run ON pipeline_run.id = pipeline_stage.run_id
-                WHERE pipeline_promotion.id = r.promotion_id AND pipeline_promotion.gate_origin = 'PipelineRunStage'
-                  AND e.is_production AND pipeline_run.created_by = {actor.UserId})
+              AND (NOT e.is_production OR run.created_by IS DISTINCT FROM {actor.UserId})
               AND NOT EXISTS (
                 SELECT 1 FROM approval_tasks used_seat WHERE used_seat.release_id = r.id
                   AND used_seat.status = 'Approved' AND used_seat.assignee_user_id = {actor.UserId})
@@ -150,6 +204,8 @@ public sealed class ApprovalEligibilityService(WebApiDbContext db, Authorization
                   WHERE ur.user_id = {actor.UserId}
                     AND (role.organization_id IS NULL OR role.organization_id = organization.id)
                     AND (role.code = frozen_rule->>'roleCode'
+                      OR (role.code = {WebApi.Infrastructure.Governance.PermissionCatalog.ScopedOrganizationAdministrator}
+                        AND role.is_system AND role.organization_id = organization.id AND frozen_rule->>'roleCode' = 'OrganizationAdmin')
                       OR (role.code = 'PlatformAdmin' AND role.is_system AND role.organization_id IS NULL))))
             """);
     }

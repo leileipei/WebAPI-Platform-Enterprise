@@ -40,9 +40,12 @@ async function fixture(t, options={}) {
     const path = pathname.slice('/api/v1'.length), body = request.postDataJSON();
     requests.push({method,path,body,etag:request.headers()['if-match']});
     const reply = (json,status=200) => route.fulfill({json,status});
-    if (path==='/auth/me') return reply({id:'operator',username:'test',displayName:'测试用户',
-      permissions:state.permissions??['cluster.read','cluster.write'],scopes:state.grants??tree.organizations.map(org=>({
-        scope:{organizationId:org.id},accessMode:'read_write'}))});
+    if (path==='/auth/me') {
+      const permissions=state.permissions??['cluster.read','cluster.write'];
+      return reply({id:'operator',username:'test',displayName:'测试用户',permissions,
+        rolePermissions:tree.organizations.map(org=>({organizationId:org.id,permissions})),
+        scopes:state.grants??tree.organizations.map(org=>({scope:{organizationId:org.id},accessMode:'read_write'}))});
+    }
     if (path==='/auth/csrf') return reply({token:'test-csrf'});
     if (path==='/scope-tree') return state.treeFailure?reply({detail:'范围暂不可用'},503):reply(state.tree??tree);
     const [,resource,id,collection] = path.split('/');
@@ -342,4 +345,39 @@ test('a list edit and create use the selected environment and ignore foreign row
   await page.getByRole('cell',{name:'验收环境实例'}).waitFor();
   assert.equal(await page.getByRole('cell',{name:'开发环境实例'}).count(),0);
   assert.deepEqual(writes().map(r=>[r.method,r.path]),[['PUT','/clusters/qa-cluster'],['POST','/environments/qa/clusters']]);
+});
+
+test('operator copies a cluster and reads its route, health components and probe result',async t=>{
+  const {page,open,clusters}=await fixture(t);
+  const row=clusters[0],destination=row.destinations[0];
+  row.routeCount=1;row.healthyDestinationCount=1;row.routes=[{id:'orders',name:'订单路由',path:'/orders',enabled:true}];
+  destination.activeHealth='Healthy';destination.passiveHealth='Disabled';
+  let copyRequest,probeRequest;
+  await page.route('**/api/v1/clusters/'+row.id+'/copy',route=>{
+    copyRequest={etag:route.request().headers()['if-match'],body:route.request().postDataJSON()};
+    const copy={...row,id:'copy',name:copyRequest.body.name};clusters.push(copy);
+    return route.fulfill({json:copy});
+  });
+  const result={id:'probe-a',state:'Queued',nodeId:'node',instanceId:'instance'};
+  await page.route('**/api/v1/clusters/'+row.id+'/destinations/'+destination.id+'/probe',route=>{
+    probeRequest={etag:route.request().headers()['if-match'],body:route.request().postData()};
+    return route.fulfill({status:202,json:result});
+  });
+  await page.route('**/api/v1/clusters/'+row.id+'/probes/probe-a',route=>route.fulfill({
+    json:{...result,state:'Completed',outcome:'healthy',httpStatus:200,durationMs:9}}));
+  await open('/clusters');
+  await page.getByRole('columnheader',{name:'健康实例数'}).waitFor();
+  await button(page,'复制').first().click();
+  const dialog=page.getByRole('dialog',{name:'复制集群'});
+  await dialog.getByLabel('新集群名称').fill('开发副本');
+  await button(dialog,'保存').click();
+  await page.getByRole('cell',{name:'开发副本',exact:true}).waitFor();
+  assert.deepEqual(copyRequest,{etag:'"7"',body:{name:'开发副本'}});
+  await open('/clusters/'+row.id);
+  await page.getByRole('cell',{name:'订单路由'}).waitFor();
+  await page.getByRole('cell',{name:'健康',exact:true}).waitFor();
+  await page.getByRole('cell',{name:'未启用',exact:true}).waitFor();
+  await button(page,'立即探测').click();
+  await page.getByText('探测成功 · HTTP 200 · 9 ms').waitFor();
+  assert.deepEqual(probeRequest,{etag:'"4"',body:null});
 });

@@ -1,11 +1,82 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
 import * as backup from '../../scripts/runtime/acceptance-backup.mjs';
 
 const image='sha256:'+'a'.repeat(64),hash='b'.repeat(64),contentHash='c'.repeat(64),openInput=async()=>({fd:123,close:async()=>{}});
+
+test('cold extraction acknowledges each completed archive and stops at an unreadable archive',async t=>{
+  const exec=promisify(execFile);
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'webapi-cold-volume-count-'));
+  t.after(()=>fs.rm(root,{recursive:true,force:true}));
+  const projectName='webapi-enterprise-local-test-'+randomUUID();
+  const archives=path.join(root,'archives'),seed=path.join(root,'seed');
+  await fs.mkdir(archives);
+  await fs.mkdir(seed);
+  await fs.writeFile(path.join(seed,'payload'),'verified archive payload');
+  const template=path.join(root,'seed.tar');
+  await exec('tar',['-cf',template,'-C',seed,'.']);
+  const legacy=[...backup.dataVolumes],extended=[...legacy,'verification-reports'];
+  for(const name of extended)await fs.copyFile(template,path.join(archives,name+'.tar'));
+  const ctx={directory:path.join(root,projectName),state:{projectName},release:{dependencyImages:{sdk:image}}};
+  async function extract(names) {
+    const volumes=await fs.mkdtemp(path.join(root,'volumes-'));
+    for(const name of [...names,'bootstrap-password'])await fs.mkdir(path.join(volumes,name));
+    const args=backup.restoreVolumeExtractionArgs(ctx,archives,names,null);
+    // Execute the production archive loop against private ordinary directories.
+    const command=args.at(-1).replaceAll('/backup/','"$ARCHIVES"/').replaceAll('/volumes/','"$VOLUMES"/');
+    const {stdout}=await exec('bash',['-c',command],{env:{...process.env,ARCHIVES:archives,VOLUMES:volumes}});
+    for(const name of names)assert.equal(await fs.readFile(path.join(volumes,name,'payload'),'utf8'),'verified archive payload');
+    assert.deepEqual(await fs.readdir(path.join(volumes,'bootstrap-password')),[]);
+    return stdout;
+  }
+  for(const [names,expectedCount] of [[legacy,7],[extended,8]]){
+    const output=await extract(names);
+    assert.equal(backup.countRestoredVolumeArchives(output,names),expectedCount);
+    assert.throws(()=>backup.countRestoredVolumeArchives(output,[...names,'bootstrap-password']),/extraction scope/i);
+  }
+  await fs.writeFile(path.join(archives,'verification-reports.tar'),'invalid archive');
+  await assert.rejects(extract(extended),error=>{
+    assert.notEqual(error.code,0);
+    assert.deepEqual(error.stdout.trimEnd().split('\n'),legacy);
+    assert.throws(()=>backup.countRestoredVolumeArchives(error.stdout,extended),/extraction scope/i);
+    return true;
+  });
+});
+
+test('cache archive and seeded digest read failures stop extraction before the volume receipt',async t=>{
+  const scratch=await fs.mkdtemp(path.join(os.tmpdir(),'webapi-cold-digest-'));
+  t.after(()=>fs.rm(scratch,{recursive:true,force:true}));
+  const projectName='webapi-enterprise-local-test-'+randomUUID();
+  const ctx={directory:path.join(scratch,projectName),state:{projectName},release:{dependencyImages:{sdk:image}}};
+  const args=backup.restoreVolumeExtractionArgs(ctx,'/owned/input',['secrets-cache'],null);
+  // The reader stubs use different placeholders. No archive or cache secret is needed.
+  const readers=[
+    'tar() { printf "fixture input"; if [[ "$FAIL_AT" == tar ]]; then return 71; fi; }',
+    'sha256sum() {',
+    '  if [[ $# == 0 ]]; then',
+    '    cat >/dev/null; printf "archive-placeholder  -\\n"; if [[ "$FAIL_AT" == archive-hash ]]; then return 72; fi',
+    '  else',
+    '    printf "seeded-placeholder  -\\n"; if [[ "$FAIL_AT" == seeded-hash ]]; then return 73; fi',
+    '  fi',
+    '}'
+  ].join('\n');
+  const command=readers+'\n'+args.at(-1).replaceAll('/tmp/','"$SCRATCH"/');
+  const observed={};
+  for(const stage of ['tar','archive-hash','seeded-hash']){
+    await assert.rejects(promisify(execFile)('bash',['-c',command],{env:{...process.env,FAIL_AT:stage,SCRATCH:scratch}}),error=>{
+      observed[stage]=error.code;
+      assert(!error.stdout.split('\n').includes('secrets-cache'),stage);
+      return true;
+    });
+  }
+  assert.deepEqual(observed,{tar:71,'archive-hash':72,'seeded-hash':73});
+});
 
 test('backup and restore inspect archive semantics in a read-only, networkless verifier',async()=>{
   assert.equal(typeof backup.inspectMigrationEvidenceArchive,'function');

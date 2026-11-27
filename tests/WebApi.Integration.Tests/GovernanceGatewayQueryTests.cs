@@ -162,6 +162,39 @@ public sealed class GovernanceGatewayQueryTests(ITestOutputHelper output)
         Assert.Equal(404,(await Assert.ThrowsAsync<ApiException>(()=>Read())).Status);
     }
     [Fact]
+    public async Task CurrentSnapshotUsesTheEnvironmentsDesiredVersionAndHonorsReadScope()
+    {
+        await using var f=new Fixture();
+        await f.InitializeAsync();
+        await f.AddSnapshotsAsync(credential:true);
+        using var login=await f.Api.LoginAsync();
+        login.EnsureSuccessStatusCode();
+        var path=$"/api/v1/environments/{f.Api.Environment.Id}/snapshots/current";
+        using var current=await f.Api.Client.GetAsync(path);
+        current.EnsureSuccessStatusCode();
+        Assert.True(current.Headers.CacheControl?.NoStore);
+        using var document=JsonDocument.Parse(await current.Content.ReadAsStringAsync());
+        var data=document.RootElement;
+        Assert.Equal(23,data.GetProperty("deploymentSequence").GetInt64());
+        var view=data.GetProperty("snapshot");
+        Assert.Equal(7,view.GetProperty("configVersion").GetInt64());
+        Assert.Equal(f.Api.Environment.Id,view.GetProperty("environmentId").GetGuid());
+        Assert.Equal("ManagementViewNotRuntimePayload",view.GetProperty("exportType").GetString());
+        Assert.DoesNotContain("\"hash\"",view.GetRawText());
+
+        await using var db=f.Api.Context();
+        await db.Set<EnvironmentRecord>().Where(e=>e.Id==f.Api.Environment.Id)
+            .ExecuteUpdateAsync(s=>s.SetProperty(e=>e.DesiredConfigVersion,(long?)null));
+        using var empty=await f.Api.Client.GetAsync(path);
+        empty.EnsureSuccessStatusCode();
+        using var emptyData=JsonDocument.Parse(await empty.Content.ReadAsStringAsync());
+        Assert.Equal(JsonValueKind.Null,emptyData.RootElement.GetProperty("snapshot").ValueKind);
+        await db.Set<UserProjectScope>().Where(g=>g.UserId==f.Actor.UserId).ExecuteDeleteAsync();
+        using var denied=await f.Api.Client.GetAsync(path);
+        Assert.Equal(System.Net.HttpStatusCode.NotFound,denied.StatusCode);
+    }
+
+    [Fact]
     public async Task ManagementSnapshotStillRedactsCredentialHashesAndDetectsCorruption()
     {
         await using var f=new Fixture();await f.InitializeAsync();await f.AddSnapshotsAsync(credential:true);using var scope=f.Api.Services();var service=scope.ServiceProvider.GetRequiredService<GatewayReadService>();

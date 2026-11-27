@@ -10,11 +10,83 @@ public sealed class ObservabilityScenario : IAsyncDisposable
     private readonly HttpClient source=new(){BaseAddress=new("http://prometheus:9090")};
     public Guid EnvironmentId=>context.GetProperty("environmentId").GetGuid();public Guid ApiId=>context.GetProperty("apiId").GetGuid();
     public string Scope=>$"organizationId={context.GetProperty("organizationId").GetString()}&projectId={context.GetProperty("projectId").GetString()}&environmentId={EnvironmentId}";
+    public string Project { get; private init; } = "";
+    private string EvidenceDirectory { get; init; } = "";
+
+    private static void RequireOwnedPath(string path, bool directory)
+    {
+        var attributes = File.GetAttributes(path);
+        Assert.False(attributes.HasFlag(FileAttributes.ReparsePoint), "Observability fixture paths cannot be symbolic links.");
+        Assert.Equal(directory, attributes.HasFlag(FileAttributes.Directory));
+    }
+
+    private static (string ContextFile, string EvidenceDirectory, string Project) CurrentRun()
+    {
+        const string fixtureRoot = "/workspace/.runtime/e2e";
+        const string prefix = "webapi-enterprise-e2e-observability-";
+        const string sdkPrefix = "webapi-enterprise-local-test-";
+        var project = System.Environment.GetEnvironmentVariable("WEBAPI_E2E_PROJECT") ?? "";
+        var accountSdk = project.StartsWith(sdkPrefix, StringComparison.Ordinal);
+        var projectPrefix = accountSdk ? sdkPrefix : prefix;
+        Assert.True(project.StartsWith(projectPrefix, StringComparison.Ordinal) &&
+            Guid.TryParseExact(project[projectPrefix.Length..], "D", out _), "A dedicated fixture project is required.");
+
+        var directory = Path.Combine(fixtureRoot, project);
+        var contextFile = accountSdk ? "/sdk-input/context.json" : Path.Combine(directory, "context.json");
+        Assert.Equal(contextFile, System.Environment.GetEnvironmentVariable("WEBAPI_E2E_CONTEXT_FILE"));
+        var evidenceDirectory = Path.Combine(directory, "observability-evidence");
+        RequireOwnedPath("/workspace/.runtime", directory: true);
+        RequireOwnedPath(fixtureRoot, directory: true);
+        RequireOwnedPath(directory, directory: true);
+        if (accountSdk) RequireOwnedPath("/sdk-input", directory: true);
+        RequireOwnedPath(contextFile, directory: false);
+        RequireOwnedPath(evidenceDirectory, directory: true);
+        if (accountSdk)
+        {
+            using var context = JsonDocument.Parse(File.ReadAllBytes(contextFile));
+            var registration = context.RootElement;
+            Assert.Equal(project, registration.GetProperty("projectName").GetString());
+            Assert.Equal(System.Environment.GetEnvironmentVariable("WEBAPI_E2E_OWNER"), registration.GetProperty("ownerId").GetString());
+            Assert.Equal(System.Environment.GetEnvironmentVariable("WEBAPI_SOURCE_REVISION"), registration.GetProperty("sourceRevision").GetString());
+        }
+        return (contextFile, evidenceDirectory, project);
+    }
+
+    internal static async Task<JsonDocument> ReadCurrentFaultEvidenceAsync()
+    {
+        var run = CurrentRun();
+        var file = Path.Combine(run.EvidenceDirectory, "faults.json");
+        RequireOwnedPath(file, directory: false);
+        return JsonDocument.Parse(await File.ReadAllTextAsync(file));
+    }
+
+    public async Task WriteLoopEvidenceAsync(object evidence)
+    {
+        RequireOwnedPath(EvidenceDirectory, directory: true);
+        var temporary = Path.Combine(EvidenceDirectory, $".loop-{Guid.NewGuid():N}.tmp");
+        try
+        {
+            await using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write))
+                await JsonSerializer.SerializeAsync(stream, evidence, new JsonSerializerOptions { WriteIndented = true });
+            File.Move(temporary, Path.Combine(EvidenceDirectory, "loop.json"), overwrite: true);
+        }
+        finally
+        {
+            File.Delete(temporary);
+        }
+    }
+
     public static async Task<ObservabilityScenario> CreateAsync()
     {
-        var file=System.Environment.GetEnvironmentVariable("WEBAPI_E2E_CONTEXT_FILE");Assert.True(file is not null&&File.Exists(file),"Run check-observability.sh for a disposable fixture.");
-        var s=new ObservabilityScenario{context=JsonDocument.Parse(await File.ReadAllTextAsync(file!)).RootElement.Clone()};s.core=await ExternalScenario.ConnectAsync();
-        await ExternalScenario.WriteAsync(s.api,"/auth/login",new{username="e2e-admin",password=await File.ReadAllTextAsync(s.context.GetProperty("passwordFile").GetString()!)});
+        var run = CurrentRun();
+        using var fixture = JsonDocument.Parse(await File.ReadAllTextAsync(run.ContextFile));
+        var s = new ObservabilityScenario {
+            context = fixture.RootElement.Clone(),
+            Project = run.Project,
+            EvidenceDirectory = run.EvidenceDirectory
+        };
+        s.core = await ExternalScenario.ConnectAsync();
+        await s.core.LoginAsync(s.api,"e2e-admin");
         s.credential=await File.ReadAllTextAsync(s.context.GetProperty("credentialFile").GetString()!);return s;
     }
     public Task<JsonElement> PublishAsync(string backend)=>core.PublishAsync(backend,"/orders/{**path}");

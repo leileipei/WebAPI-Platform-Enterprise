@@ -8,7 +8,6 @@ using WebApi.Contracts.Policies;
 namespace WebApi.Domain.Runtime;
 public static class SnapshotValidator
 {
-    private static readonly string[] methods=["GET","POST","PUT","PATCH","DELETE","HEAD","OPTIONS"];
     private static ApiException Invalid(string message)=>new(422,"invalid_snapshot",message);
     public static void Validate(RuntimeSnapshot snapshot,Guid expectedEnvironment)
     {
@@ -28,7 +27,7 @@ public static class SnapshotValidator
         {
             if(snapshot.SchemaVersion is not ("2.2" or "2.3" or "2.4")&&route.AuthenticationMode is not null) throw Invalid("旧协议不支持认证模式字段。");
             if(route.AuthenticationMode is {} mode && (!Enum.IsDefined(mode)||(mode==AuthenticationMode.ApiKey)!=route.RequireApiKey)) throw Invalid("认证模式与API Key折叠字段不一致。");
-            if(route.Id==Guid.Empty||route.ApiId==Guid.Empty||route.ApiVersionId==Guid.Empty||!clusters.ContainsKey(route.ClusterId)||route.TimeoutMs is <1 or >300000||route.Methods is null||route.Methods.Count==0||route.Methods.Any(m=>!methods.Contains(m))||route.PolicyBindings?.Any(b=>b is null)==true) throw Invalid("路由身份、方法、超时或Cluster引用不合法。");var shape=RouteNormalizer.Normalize(route.Path);
+            if(route.Id==Guid.Empty||route.ApiId==Guid.Empty||route.ApiVersionId==Guid.Empty||!clusters.ContainsKey(route.ClusterId)||route.TimeoutMs is <1 or >300000||route.Methods is null||route.Methods.Count==0||route.Methods.Any(m=>!RouteHttpMethods.Supported.Contains(m))||route.PolicyBindings?.Any(b=>b is null)==true) throw Invalid("路由身份、方法、超时或Cluster引用不合法。");var shape=RouteNormalizer.Normalize(route.Path);
             foreach(var method in route.Methods) if(!keys.Add(method+":"+shape)) throw Invalid("Runtime存在同形方法路径冲突。");
         }
         foreach(var c in snapshot.Clusters)

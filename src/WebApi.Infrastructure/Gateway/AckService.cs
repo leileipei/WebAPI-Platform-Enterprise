@@ -19,7 +19,7 @@ public sealed class AckService(WebApiDbContext db,NodeIdentityService identities
         if(nodeId!=identity.NodeId) throw NodeIdentityService.Denied();await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);var initial=await db.Set<ReleaseRecord>().AsNoTracking().SingleOrDefaultAsync(r=>r.Id==ack.ReleaseId&&r.EnvironmentId==identity.EnvironmentId,ct)??throw new ApiException(409,"ack_release_mismatch","确认不属于该环境发布。");await deliveryExecution.LockReleaseAsync(initial,ct);
         var node=await identities.RevalidateAsync(identity,ack.InstanceId,ct);var r=await db.Set<ReleaseRecord>().SingleOrDefaultAsync(r=>r.Id==ack.ReleaseId&&r.EnvironmentId==identity.EnvironmentId,ct)??throw new ApiException(409,"ack_release_mismatch","确认不属于该环境发布。");
         var target=await db.Set<ReleaseTarget>().SingleOrDefaultAsync(t=>t.ReleaseId==r.Id&&t.NodeId==nodeId,ct);var config=await db.Set<GatewayConfigVersion>().SingleOrDefaultAsync(v=>v.EnvironmentId==r.EnvironmentId&&v.VersionNo==r.ToConfigVersion,ct);
-        if(target is null||ack.ConfigVersion!=r.ToConfigVersion||ack.DeploymentSequence!=r.DeploymentSequence||config?.SnapshotHash!=ack.PayloadHash) throw new ApiException(409,"ack_target_mismatch","实例、版本、序列或摘要不匹配冻结目标。");
+        if(ack.ConfigVersion!=r.ToConfigVersion||ack.DeploymentSequence!=r.DeploymentSequence||config?.SnapshotHash!=ack.PayloadHash) throw new ApiException(409,"ack_target_mismatch","实例、版本、序列或摘要不匹配冻结目标。");
         if(ack.Success)
         {
             var artifact=await db.Set<GatewayConfigSnapshot>().Where(s=>s.ConfigVersionId==config!.Id).Select(s=>new{s.PayloadBytes,s.SizeBytes}).SingleAsync(ct);
@@ -32,7 +32,7 @@ public sealed class AckService(WebApiDbContext db,NodeIdentityService identities
                 await RequireCurrentSecurityAsync(node,ack.InstanceId,ct);
         }
         if(ack.AppliedAt.Offset!=TimeSpan.Zero||ack.AppliedAt>DateTimeOffset.UtcNow.AddMinutes(5)||ack.AppliedAt<r.CreatedAt.AddMinutes(-5)||ack.Success&&ack.ErrorCode is not null||!ack.Success&&(ack.ErrorCode is null||!errorCodes.Contains(ack.ErrorCode))) throw new ApiException(422,"invalid_ack","确认时间或错误代码不合法。");
-        if(target.InstanceId!=ack.InstanceId.ToString())
+        if(target?.InstanceId!=ack.InstanceId.ToString())
         {
             var env=await db.Set<EnvironmentRecord>().SingleAsync(e=>e.Id==identity.EnvironmentId,ct);
             if(!ack.Success||r.Status!="Succeeded"||config!.Status!="Published"||env.Status!="Active"||env.DesiredConfigVersion!=ack.ConfigVersion||env.DeploymentSequence!=ack.DeploymentSequence)
@@ -58,9 +58,7 @@ public sealed class AckService(WebApiDbContext db,NodeIdentityService identities
         else if(r.Status=="Publishing"&&await db.Set<GatewayAck>().CountAsync(a=>a.ReleaseId==r.Id&&a.Success,ct)==await db.Set<ReleaseTarget>().CountAsync(t=>t.ReleaseId==r.Id,ct))
         {
             r.Status="Succeeded";r.CompletedAt=DateTimeOffset.UtcNow;config!.Status="Published";config.PublishedAt=DateTimeOffset.UtcNow;
-            if(r.ReleaseType=="rollback"&&r.RollbackOf is Guid originalId) {var original=await db.Set<ReleaseRecord>().SingleAsync(x=>x.Id==originalId,ct);if(original.Status=="Succeeded") original.Status="RolledBack";}
-            var candidate=JsonSerializer.Deserialize<FrozenReleaseCandidate>(r.CandidateBytes!,CanonicalJson.Options)!;
-            foreach(var id in candidate.VersionIds) {var version=await db.Set<ApiVersion>().SingleAsync(v=>v.Id==id,ct);version.Status="Published";version.SealedAt??=DateTimeOffset.UtcNow;}
+            await ReleaseVersionPublication.RecordOutcomeAsync(db,r,ct);
             var project=await db.Set<EnvironmentRecord>().Where(e=>e.Id==r.EnvironmentId).Select(e=>e.ProjectId).SingleAsync(ct);var org=await db.Set<Project>().Where(p=>p.Id==project).Select(p=>p.OrganizationId).SingleAsync(ct);
             db.Add(new AuditLog {EnvironmentId=r.EnvironmentId,ProjectId=project,OrganizationId=org,UserId=r.PublishRequestedBy,Action="release.succeeded",ResourceType="ReleaseRecord",ResourceId=r.Id.ToString(),TraceId=r.PublishTraceId,AfterJson=JsonSerializer.Serialize(new {configVersion=r.ToConfigVersion,deploymentSequence=r.DeploymentSequence})});
         }

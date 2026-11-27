@@ -1,5 +1,9 @@
 # 当前需求追溯与交付缺口复核
 
+## 2026-11-27 登录、组织与环境治理隔离验收
+
+产品提交 `af78d70` 完成 P01-C05、P03-C02、P05-A03 和 P05-C04 的真实控制面和浏览器复验。454 项原需求中，当前有 18 项已通过固定版本的隔离验收，436 项待复验。原型页码、原文、历史结论与前两批资格均可逐项追溯。[本批操作和截图](../evidence/product-acceptance/2026-11-27-governance-environment/README.md) · [逐项台账](requirements-acceptance-current.json)
+
 ## 2026-11-21 API 授权矩阵隔离验收
 
 原第 21 页 11 个 ID 在固定产品候选 `9f45b97` 逐项更新。34 项真实 HTTP 回归和 14 个浏览器观察点支撑矩阵、范围、有效期、批量选择、影响预览、授权、撤权、生产确认、过期和权限。读取规则修正覆盖应用详情和旧授权列表，旧版移动保留原授权 ID。原历史的部分、缺失和待复验状态仍按当时的源码与结果记录。[矩阵验收](../evidence/product-acceptance/2026-11-21-permission-matrix/README.md) · [当前逐项台账](requirements-acceptance-current.json)

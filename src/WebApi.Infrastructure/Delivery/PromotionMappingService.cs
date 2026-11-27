@@ -26,14 +26,51 @@ public sealed class PromotionMappingService(WebApiDbContext db,ScopeResolver sco
    await LockAsync(initial,token);var p=await db.Set<ReleasePromotion>().SingleAsync(p=>p.Id==id,token);var artifact=await RequireAsync(p,actor,token);
    return await idempotency.ExecuteAsync(new(actor.UserId,scope,"promotion.mapping.save",requestContext.IdempotencyKey),CanonicalJson.Serialize(new{id,request,etag}),async inner=>{
     RevisionTag.Require(etag,p.Revision);if(p.Status!="Draft")throw NotDraft();await ValidateAsync(p,artifact.Content,request,actor,inner);
-    var previous=await db.Set<ReleasePromotionMapping>().Where(m=>m.PromotionId==id).ToArrayAsync(inner);var next=new List<ReleasePromotionMapping>();
-    foreach(var route in request.Routes){var old=previous.SingleOrDefault(m=>m.Kind=="Route"&&m.ResourceKey==route.ArtifactRouteKey);var state=old is null?null:Read<PromotionRouteState>(old.ParametersJson);var row=old??New(p,"Route",route.ArtifactRouteKey);row.ClusterId=route.ClusterId;row.TargetRouteId=route.TargetRouteId??state?.PreparedRouteId;row.ParametersJson=Json(new PromotionRouteState(route,state?.PreparedRouteId));row.Revision=p.MappingRevision+1;next.Add(row);if(old is null)db.Add(row);}
-    foreach(var app in request.Applications){var key=app.ApplicationId.ToString("N");var old=previous.SingleOrDefault(m=>m.Kind=="Application"&&m.ResourceKey==key);var row=old??New(p,"Application",key);row.ApplicationId=app.ApplicationId;row.ParametersJson=Json(app);row.Revision=p.MappingRevision+1;next.Add(row);if(old is null)db.Add(row);}
-    db.RemoveRange(previous.Where(m=>!next.Contains(m)));p.MappingRevision++;p.Revision++;p.CandidateHash=null;p.PrecheckJson=null;p.ResourceRevisionsJson="[]";
+    var previous=await db.Set<ReleasePromotionMapping>().Where(m=>m.PromotionId==id).ToArrayAsync(inner);
+    var remaining=previous.ToDictionary(m=>(m.Kind,m.ResourceKey));
+    var revision=p.MappingRevision+1;
+    var changed=false;
+    foreach(var route in request.Routes)
+    {
+     remaining.Remove(("Route",route.ArtifactRouteKey),out var old);
+     var state=old is null?null:Read<PromotionRouteState>(old.ParametersJson);
+     if(state is not null && SameRoute(state.Mapping,route)) continue;
+     var row=old??New(p,"Route",route.ArtifactRouteKey);
+     row.ClusterId=route.ClusterId;
+     row.TargetRouteId=route.TargetRouteId??state?.PreparedRouteId;
+     row.ParametersJson=Json(state is null?new PromotionRouteState(route):state with {Mapping=route});
+     row.Revision=revision;
+     if(old is null) db.Add(row);
+     changed=true;
+    }
+    foreach(var app in request.Applications)
+    {
+     var key=app.ApplicationId.ToString("N");
+     remaining.Remove(("Application",key),out var old);
+     if(old is not null && SameApplication(Read<PromotionApplicationMapping>(old.ParametersJson),app)) continue;
+     var row=old??New(p,"Application",key);
+     row.ApplicationId=app.ApplicationId;
+     row.ParametersJson=Json(app);
+     row.Revision=revision;
+     if(old is null) db.Add(row);
+     changed=true;
+    }
+    if(changed || remaining.Count>0 || p.MappingRevision==0)
+    {
+     db.RemoveRange(remaining.Values);
+     p.MappingRevision=revision;p.Revision++;p.CandidateHash=null;p.PrecheckJson=null;p.ResourceRevisionsJson="[]";
+    }
     return new CommandResult<PromotionDto>(View(p,artifact.ArtifactHash,request),RevisionTag.Format(p.Revision));
    },token);
   },ct);
  }
+ private static bool SameRoute(PromotionRouteMapping old,PromotionRouteMapping next) =>
+  old.ArtifactRouteKey==next.ArtifactRouteKey && old.TargetRouteId==next.TargetRouteId && old.ClusterId==next.ClusterId &&
+  old.TimeoutMs==next.TimeoutMs && old.Policies.OrderBy(p=>p.Type,StringComparer.Ordinal).ThenBy(p=>p.Priority)
+   .SequenceEqual(next.Policies.OrderBy(p=>p.Type,StringComparer.Ordinal).ThenBy(p=>p.Priority));
+ private static bool SameApplication(PromotionApplicationMapping old,PromotionApplicationMapping next) =>
+  old.ApplicationId==next.ApplicationId && old.ConfirmSharedCredentialImpact==next.ConfirmSharedCredentialImpact &&
+  old.CredentialIds.Order().SequenceEqual(next.CredentialIds.Order()) && old.AuthorizationIds.Order().SequenceEqual(next.AuthorizationIds.Order());
  internal async Task<ReleaseArtifactDto> RequireAsync(ReleasePromotion p,ActorContext actor,CancellationToken ct)
  {
   var artifact=await artifacts.GetAsync(p.ArtifactId,actor,ct);var target=await scopes.EnvironmentAsync(p.TargetEnvironmentId,ct);

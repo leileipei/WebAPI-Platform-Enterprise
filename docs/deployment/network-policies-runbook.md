@@ -20,6 +20,8 @@ IP空AllowList不允许保存；明确的空DenyList表示允许所有已知客�
 
 固定提交后使用现有`buildRelease({revision,directory,root,nodePath,nugetSeedVolume})`构建同一镜像。由`verifyNetworkPolicySuites`归档该固定提交并运行domain/integration/gateway/console/runtime五组完整测试；runtime额外包含network-policies实际C#夹具。不能用工作区日志替换固定源详细日志。
 
+启动专栈初始化驱动时使用 `node --env-file=tests/runtime/integration/migration.env <初始化驱动>`，为新建的独立数据库显式提供仓库的迁移事务及证据预算。
+
 独立项目目录必须以`webapi-enterprise-local-test-<新UUID>`命名；用`initializeNetworkPolicyFixture`初始化全新数据库，自动选择随机端口。禁止既有目录、受保护端口与恢复4192数据。调用前工作区源必须与固定提交一致。固定测试收据目录由`fixed-suites-pointer.json`明确记录，文件权限0600；场景开始会复验收据/原日志SHA/详细通过数。
 
 Docker默认地址池耗尽时，先只读检查所有IPAM分配，再用现有`WEBAPI_CONTRACT_TEST_SUBNET=10.251.x.0/24`测试选项及`WEBAPI_RUNTIME_TEST_NETWORK_POOL=10.248`独立运行池。不能清理他人的网络。Backend/Keycloak夹具只在本轮独立owner网络中启动，默认行为保持兼容。
@@ -38,6 +40,10 @@ await initializeNetworkPolicyFixture({revision,imageId,cloneDirectory,releaseFil
 ```
 
 执行`scenario.mjs <revision> <imageId> <cloneDirectory> <fixtureDirectory>`。fixtureDirectory必须不存在。源TEST与目标PROD各有两个Gateway进程，控制面/Worker/Console及四个Gateway必须使用同一imageId。驱动必须真实核对响应、回显正文、计数、缓存、重试、配额、冻结、旧协议门禁、原Hash历史回滚及晋级；不能把未执行动作标actual。
+
+P3-07 还需要本地正式兼容镜像 `webapi-enterprise-runtime:9cef7cfe728ddbb98f19e7b645fda8d23eceb227`。可以通过 `WEBAPI_NETWORK_POLICY_LEGACY_GATEWAY_IMAGE` 指定该源码构建的不可变 `sha256:` 镜像 ID。场景在启动后端前核对本地镜像、修订标签和运行用户。镜像缺失时，使用同一 `buildRelease` 构建该修订后重新发起专栈。
+
+兼容阶段只重建本次 UUID 项目的 gateway-b，为旧进程提供独立的临时 LKG 存储。读到其新实例实际登记的 2.0–2.2 能力后，从正常发布入口验证 409 和 `gateway_schema_unsupported`。无论发布观察是否成功，驱动均尝试恢复本轮固定镜像并回读其 Ready 新实例，在专栈私有目录写入 `legacy-gateway-recovery-*.json`。恢复失败时保留现场并报告失败。
 
 ## QA与证据
 
@@ -65,7 +71,7 @@ E2E缺材料必须失败，不能skip。正式验收读取内部身份、HTTP、
 6. 提交环境发布申请，核对冻结的策略修订、两方向正文规则、大小限制及对外Schema/示例。由不同账号完成独立审批；核对两个当前Gateway实例的成功ACK，再通过真实请求检查结果。不能以“保存成功”或单个ACK代替运行验收。
 7. TEST晋级到PROD时，选择已经独立测试验收的制品，逐项明确目标Route、Cluster、环境参数策略、目标应用凭证和API授权。Transform两方向规则、方法/状态和字节上限整体冻结。目标两级审批及双节点ACK后仍需独立生产验证；本轮受控HTTPS入口验证并未配置企业DNS/TLS/LB。
 8. 在访问日志中查看CORS/IP/Transform决策、固定原因和实际JSON操作数，再由TraceId打开真实Server/Client调用链。GET请求可以只有响应JSON操作，不能推断请求JSON也执行过。范围窗口大于新节点实际采集覆盖时，页面会显示“数据覆盖不完整”；缩短窗口并核对来源，不能把Partial当作Available。
-9. 回滚沿用发布中心的独立回滚申请及审批流程，核对更高部署序列、当前实例ACK和原快照字节Hash。2.0/2.1/2.2历史快照不补写新字段；2.3需要完整能力声明。本轮旧节点测试是能力声明门禁，未安装旧版二进制。
+9. 回滚沿用发布中心的独立回滚申请及审批流程，核对更高部署序列、当前实例ACK和原快照字节Hash。2.0/2.1/2.2历史快照不补写新字段；2.3需要完整能力声明。P3-07 在独立项目内临时运行真实的旧版 gateway-b，读取它自然登记的协议能力及发布接口错误码。
 
 截图、操作记录、固定日志和严格验收Hash见交付索引。公开实例仅含固定合成夹具，不包含真实业务正文、密码或调用凭证。发生412时保留输入，先查看最新修订，再明确采用或放弃；切换项目/预览方向会取消旧预览并清空样例结果。
 
