@@ -38,6 +38,14 @@ jobs:
           node-version: '24.22.1'
           package-manager-cache: false
 
+      - name: Ensure POSIX ACL tools for restore tests
+        run: |
+          if [[ ! -x /usr/bin/getfacl ]]; then
+            sudo apt-get update
+            sudo apt-get install --yes --no-install-recommends acl
+          fi
+          /usr/bin/getfacl --version
+
       - name: Test acceptance runners and restore safeguards
         run: >-
           node --test
@@ -45,7 +53,10 @@ jobs:
           tests/contracts/legacy-entry.test.mjs
           tests/runtime/restore-storage-budget.test.mjs
           tests/runtime/restore-quota-provider.test.mjs
+          tests/runtime/restore-completion-review.test.mjs
           tests/runtime/migration-evidence-inspection.test.mjs
+          tests/runtime/migration-evidence-freeze.test.mjs
+          tests/runtime/migration-evidence-cleanup.test.mjs
           tests/runtime/acceptance-context.test.mjs
           tests/runtime/project-counts-acceptance-guards.test.mjs
           tests/runtime/core-e2e-cleanup.test.mjs

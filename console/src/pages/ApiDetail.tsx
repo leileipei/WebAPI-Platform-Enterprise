@@ -1,6 +1,7 @@
 import {ApiOverview} from './ApiOverview';
 import {ApiAccessPanel} from '../environments/ApiAccessPanel';
-import {useEffect,useState} from 'react';import {apiRequest} from '../api/client';import {apiDetailPath,apiInWorkspace,isEditableVersion,type ApiDetail,type Version} from '../api/catalog';import {useWorkspace,Link,allowNavigation} from '../Shell';import {useSession} from '../auth/SessionProvider';import {Editor,Table,Feedback,Details,type Field} from '../ui';import {apiFields} from './ApiCatalog';import {SchemaEditor} from './SchemaEditor';
+import {useEffect,useLayoutEffect,useRef,useState} from 'react';import {apiRequest} from '../api/client';import {apiDetailPath,apiInWorkspace,isEditableVersion,type ApiDetail,type Version} from '../api/catalog';import {useWorkspace,Link,allowNavigation} from '../Shell';import {useSession} from '../auth/SessionProvider';import {Editor,Table,Feedback,type Field} from '../ui';import {apiFields} from './ApiCatalog';import {SchemaEditor} from './SchemaEditor';
+import {saveCsvBlob as downloadBlob} from '../observability/browser-actions.mjs';
 import {ProjectApi,type ProjectApiRemote} from './ProjectApi';
 const versionMetadataFields:Field[]=[{key:'version',label:'版本号',required:true},{key:'changeType',label:'变更类型',options:['compatible','breaking','unknown'].map(value=>({value,label:value}))}];
 export const versionFields:Field[]=[...versionMetadataFields,{key:'openapiDocument',label:'OpenAPI 文档 JSON',type:'textarea'},{key:'openapiSource',label:'原始文档',type:'textarea'},{key:'sourceFormat',label:'原文格式',options:[{value:'json',label:'JSON'},{value:'yaml',label:'YAML'}]}];
@@ -41,6 +42,52 @@ function VersionTimeline({versions}:{versions:Version[]}){
   </li>)}</ol>}
   {undated.length>0&&<p className="muted">版本 {undated.join('、')} 的创建和封存时间未记录。</p>}
   {!versions.length&&<p className="muted">暂无版本记录。</p>}
+ </section>;
+}
+
+function VersionOpenApi({version}:{version:Version}){
+ const active=useRef<AbortController|null>(null);
+ const [busy,setBusy]=useState(false),[revalidating,setRevalidating]=useState(false),[error,setError]=useState('');
+ useLayoutEffect(()=>{
+  function invalidate(){active.current?.abort();setRevalidating(true);}
+  window.addEventListener('permission-refresh',invalidate);
+  window.addEventListener('session-expired',invalidate);
+  return ()=>{
+   active.current?.abort();
+   window.removeEventListener('permission-refresh',invalidate);
+   window.removeEventListener('session-expired',invalidate);
+  };
+ },[]);
+ async function download(representation:'source'|'json'){
+  if(active.current||revalidating)return;
+  const controller=new AbortController();
+  active.current=controller;
+  setBusy(true);setError('');
+  try{
+   const response=await apiRequest<Response>(`/versions/${encodeURIComponent(version.id)}/openapi?representation=${representation}`,{
+    responseType:'response',signal:controller.signal,isCurrentRead:()=>!controller.signal.aborted
+   });
+   const type=response.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase();
+   if(type!=='application/json'&&!(representation==='source'&&type==='application/yaml'))throw Error('版本文档返回了意外的格式。');
+   const blob=await response.blob();
+   if(controller.signal.aborted)return;
+   const suffix=representation==='json'?'normalized.json':type==='application/yaml'?'source.yaml':'source.json';
+   downloadBlob(blob,`openapi-${version.id}.${suffix}`);
+  }catch(cause){
+   if(!controller.signal.aborted)setError((cause as Error).message);
+  }finally{
+   active.current=null;
+   if(!controller.signal.aborted)setBusy(false);
+  }
+ }
+ const document=version.openapiSource||version.openapiDocument;
+ return <section aria-label="版本 OpenAPI 文档" aria-busy={busy}>
+  {document?<><div className="filter-bar">
+   {version.openapiSource&&<button className="btn" disabled={busy||revalidating} onClick={()=>void download('source')}>下载版本原文</button>}
+   {version.openapiDocument&&<button className="btn" disabled={busy||revalidating} onClick={()=>void download('json')}>下载规范化 JSON</button>}
+   {busy&&!revalidating&&<span role="status">正在下载版本文档…</span>}
+  </div><pre className="code">{document}</pre></>:<p className="empty">尚未保存 OpenAPI 文档</p>}
+  {error&&<p className="error" role="alert">{error}</p>}
  </section>;
 }
 
@@ -92,6 +139,7 @@ return <><div className="breadcrumb"><Link to="/apis">API 目录</Link> / 详情
    <div className="filter-bar"><button className="btn primary" disabled={!mayWriteVersions} onClick={()=>setEdit({kind:'new-version'})}>＋ 新建版本</button></div>
    <Table rows={d.versions} columns={[['version','版本号'],['status','状态'],['changeType','变更类型'],['revision','修订'],['sealedAt','封存时间']]} actions={row=><>
     <button className="text-btn" disabled={!canSelect(row)} onClick={()=>{if(chooseVersion(row))setTab('parameters');}}>定义</button>
+    {detailReadable&&readable&&row.apiId===id&&<button className="text-btn" disabled={!canSelect(row)} onClick={()=>{if(chooseVersion(row))setTab('openapi');}}>查看 OpenAPI</button>}
     {!wizard&&<button className="text-btn" disabled={!mayWriteVersions||['Publishing','Retired'].includes(row.status)} onClick={()=>setRetiring(row)}>废弃版本</button>}
     <button className="text-btn" disabled={!mayWriteVersions||!canSelect(row)||!isEditableVersion(row)}
      onClick={()=>{if(chooseVersion(row))setEdit({kind:'version',versionId:row.id,revision:row.revision,readable,initial:versionInput(row,readable)});}}>编辑</button>
@@ -101,7 +149,7 @@ return <><div className="breadcrumb"><Link to="/apis">API 目录</Link> / 详情
    {!wizard&&<div className="filter-bar"><label>API 版本 <select value={v.id} onChange={e=>{if(allowNavigation())setSelected(e.target.value);}}>
     {d.versions.map(x=><option key={x.id} value={x.id}>{x.version} · {x.status}</option>)}
    </select></label></div>}
-   {tab==='openapi'?(detailReadable&&(readable&&v.apiId===id?<Details value={v.openapiSource||v.openapiDocument||'尚未保存 OpenAPI 文档'}/>:<p className="notice">缺少此 API 的契约读取权限。</p>)):
+   {tab==='openapi'?(detailReadable&&(readable&&v.apiId===id?<VersionOpenApi key={v.id+'-'+v.revision} version={v}/>:<p className="notice">缺少此 API 的契约读取权限。</p>)):
     <SchemaEditor key={v.id+tab} version={v} kind={tab as 'parameters'|'schemas'} detail={d} checking={!detailReadable} readOnly={remote.readOnly} reloadVersion={reloadVersion}/>}
  </>:<div className="empty">请先创建 API 版本</div>}
  </div></>}

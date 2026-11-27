@@ -5,7 +5,7 @@ import {join} from 'node:path';
 const {chromium}=createRequire(process.env.WEBAPI_PLAYWRIGHT_PACKAGE)('playwright');
 const dist=process.env.WEBAPI_CONSOLE_DIST;
 const id=n=>'b1d36ce4-90eb-4052-8ed1-'+String(n).padStart(12,'0');
-const org={id:id(1),name:'甲组织'},project={id:id(2),organizationId:org.id,name:'甲项目'},environment={id:id(3),projectId:project.id,name:'开发环境'};
+const org={id:id(1),name:'甲组织',status:'Active'},project={id:id(2),organizationId:org.id,name:'甲项目',status:'Active'},environment={id:id(3),projectId:project.id,name:'开发环境',status:'Active'};
 const tree={organizations:[org],projects:[project],environments:[environment]};
 const user={id:id(4),username:'operator',displayName:'当前人员',permissions:['user.manage','scope.manage','release.read','organization.read','project.read','project.write','organization.write'],
   isPlatformAdministrator:true,rolePermissions:[{organizationId:null,permissions:['user.manage','scope.manage','project.write','organization.write']}],
@@ -89,11 +89,12 @@ test('a platform administrator can create an organization and cancel a changed d
 
 test('environment rows read their own current snapshot and open the selected gateway identity',async t=>{
  const other={...environment,id:id(61),name:'验收环境',desiredConfigVersion:7},empty={...environment,name:'空环境',desiredConfigVersion:null};
+ const inactive={...other,id:id(65),name:'已停用环境',status:'Disabled'};
  const node={id:id(62),environmentId:other.id,nodeName:'验收网关',enabled:false,eTag:'"4"'},calls=[];
  const permissions=['gateway.read','gateway.config.read','gateway.operate','environment.read'];
  const actor={...user,permissions,rolePermissions:[{organizationId:org.id,permissions}]};
  const page=await fixture(t,(path,url,route,reply)=>{
-  if(path==='/projects/'+project.id+'/environments')return reply(pageOf([empty,other]));
+  if(path==='/projects/'+project.id+'/environments')return reply(pageOf([empty,other,inactive]));
   calls.push(path);
   if(path==='/environments/'+empty.id+'/snapshots/current')return reply({deploymentSequence:0,snapshot:null});
   if(path==='/environments/'+other.id+'/snapshots/current')return reply({deploymentSequence:9,snapshot:{environmentId:other.id,configVersion:8,schemaVersion:'2.1',routes:[],clusters:[],policies:[],applications:[]}});
@@ -101,9 +102,12 @@ test('environment rows read their own current snapshot and open the selected gat
   if(path==='/gateway-nodes/'+node.id)return reply(node);
   if(path==='/gateway-nodes/'+node.id+'/events')return reply(pageOf([]));
   throw Error('Unexpected environment read '+path);
- },actor,{...tree,environments:[empty,other]});
+ },actor,{...tree,environments:[empty,other,inactive]});
  await page.goto('http://127.0.0.1/environments');
  const emptyRow=page.getByRole('row',{name:/空环境/}),otherRow=page.getByRole('row',{name:/验收环境/});
+ const inactiveRow=page.getByRole('row',{name:/已停用环境/});await inactiveRow.waitFor();
+ assert.equal(await inactiveRow.getByRole('button',{name:'查看当前快照'}).isDisabled(),true);
+ assert.equal(await inactiveRow.getByRole('button',{name:'Gateway 绑定'}).isDisabled(),true);
  await emptyRow.getByRole('button',{name:'查看当前快照'}).click();
  await page.getByText('此环境尚未下发配置快照。').waitFor();
  assert.deepEqual(calls,['/environments/'+empty.id+'/snapshots/current']);
@@ -118,6 +122,23 @@ test('environment rows read their own current snapshot and open the selected gat
  await page.getByRole('heading',{name:'验收网关'}).waitFor();
  assert.equal(await page.evaluate(()=>localStorage.getItem('core-environment')),other.id);
  assert.equal(await page.getByRole('button',{name:'编辑身份状态'}).isEnabled(),true);
+});
+
+test('project and environment write actions require a role granting the operation in the selected organization',async t=>{
+ const permissions=['organization.read','project.read','environment.read','project.write','environment.write'];
+ const identity={...user,permissions,isPlatformAdministrator:false,rolePermissions:[
+  {organizationId:org.id,permissions:permissions.filter(p=>p.endsWith('.read'))},
+  {organizationId:id(65),permissions}]};
+ const page=await fixture(t,(path,url,route,reply)=>{
+  if(path==='/organizations/'+org.id+'/projects')return reply(pageOf([project]));
+  if(path==='/projects/'+project.id+'/environments')return reply(pageOf([environment]));
+  throw Error('Unexpected scoped request '+path);
+ },identity);
+ for(const [kind,name] of [['projects',project.name],['environments',environment.name]]){
+  await page.goto('http://127.0.0.1/'+kind);const row=page.getByRole('row',{name:new RegExp(name)});await row.waitFor();
+  assert.equal(await page.getByRole('button',{name:'＋ 新建'}).isDisabled(),true);
+  assert.equal(await row.getByRole('button',{name:'编辑'}).isDisabled(),true);
+ }
 });
 
 test('a scope editor reads only its target in a directory of 10000 users',async t=>{

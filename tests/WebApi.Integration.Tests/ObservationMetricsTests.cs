@@ -753,6 +753,27 @@ public sealed class ObservationMetricsTests
         Assert.Equal("200",group.Key);Assert.Equal("HTTP 200",group.Name);Assert.Equal(200,Assert.Single(group.Values,x=>x.Metric=="request_count").Value);Assert.Null(Assert.Single(group.Values,x=>x.Metric=="latency_p95_ms").Value);
     }
 
+    [Theory]
+    [InlineData("None")]
+    [InlineData("0")]
+    public async Task StatusGroupingNamesRequestsWithoutAResponseAndPreservesTheirCounts(string noResponseCode)
+    {
+        var source = new MetricProtocolHandler { ExtraStatusTraffic = [(noResponseCode, "ClientAborted", 10), ("503", "Completed", 5)] };
+        await using var fixture = await FixtureAsync(source);
+        using var response = await fixture.Client.GetAsync(Url(fixture, source, suffix: "&groupBy=Status"));
+        response.EnsureSuccessStatusCode();
+        var body = (await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!;
+        var groups = body.Data!.Groups.ToDictionary(group => group.Key);
+        Assert.Equal(3, body.Data.TotalGroups);
+        Assert.Equal("未发送响应状态", groups[noResponseCode].Name);
+        Assert.Equal(10, Assert.Single(groups[noResponseCode].Values, value => value.Metric == "request_count").Value);
+        Assert.Equal(10, Assert.Single(groups[noResponseCode].Values, value => value.Metric == "cancelled_count").Value);
+        Assert.Equal("HTTP 200", groups["200"].Name);
+        Assert.Equal("HTTP 503", groups["503"].Name);
+        Assert.Equal(215, Value(body, "request_count").Value);
+        Assert.Equal(5, Value(body, "error_5xx_count").Value);
+    }
+
 }
 
 public sealed record RangeTrafficSample(Guid Environment, string Api, string Application, string Destination, int Rate);
@@ -760,6 +781,7 @@ public sealed record RangeTrafficSample(Guid Environment, string Api, string App
 public sealed class MetricProtocolHandler : HttpMessageHandler
 {
     public (Guid ApiId, int Requests, int? HistogramSamples)[] ExtraApiTraffic = [];
+    public (string Code, string Outcome, int Requests)[] ExtraStatusTraffic = [];
     public (string Node, Guid Destination, int Value)[]? HealthSamples { get; set; }
     public Guid? UnhealthyDestinationId,UnhealthyClusterId;public Guid EnvironmentId,ApiId,ApplicationId,DestinationId,ClusterId;
     public Guid? ForeignEnvironmentId,SecondApiId,PolicyId;
@@ -875,6 +897,15 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
         }
         else if(query.Contains("dropped_total",StringComparison.Ordinal)||query.Contains("export_failures_total",StringComparison.Ordinal)){}
         else if(query.Contains("webapi_gateway_requests_total",StringComparison.Ordinal)){Add(Labels(),ResetWindow?6:200);if(SecondApiId is Guid second){var fast=Labels();fast["webapi_api_id"]=second.ToString();Add(fast,400);}if(ForeignEnvironmentId is Guid foreign){var labels=Labels();labels["webapi_environment_id"]=foreign.ToString();Add(labels,999999);}}
+        if (!range && query.Contains("webapi_gateway_requests_total", StringComparison.Ordinal))
+            foreach (var extra in ExtraStatusTraffic)
+            {
+                var labels = Labels();
+                labels["http_response_status_code"] = extra.Code;
+                labels["webapi_outcome"] = extra.Outcome;
+                labels["webapi_success"] = "false";
+                Add(labels, extra.Requests);
+            }
         if (!range && query.Contains("webapi_gateway_requests_total", StringComparison.Ordinal))
             foreach (var extra in ExtraApiTraffic)
             {

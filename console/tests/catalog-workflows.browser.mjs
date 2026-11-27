@@ -1,5 +1,6 @@
 // Run node --test with WEBAPI_CONSOLE_DIST, WEBAPI_PLAYWRIGHT_PACKAGE and WEBAPI_CHROMIUM_EXECUTABLE.
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {join} from 'node:path';
 import {after,before,test} from 'node:test';
@@ -18,7 +19,7 @@ let browser;
 before(async()=>{browser=await chromium.launch({executablePath:process.env.WEBAPI_CHROMIUM_EXECUTABLE});});
 after(async()=>{await browser?.close();});
 
-async function fixture(t,permissions,handle){
+async function fixture(t,permissions,handle,detail={}){
   const page=await browser.newPage(),errors=[],unexpected=[];
   page.setDefaultTimeout(5000);
   page.on('pageerror',error=>errors.push(error.message));
@@ -36,14 +37,126 @@ async function fixture(t,permissions,handle){
     if(path==='/scope-tree')return reply({organizations:[{id:org,name:'组织'}],
       projects:[{id:project,organizationId:org,name:'项目'}],environments:[{id:env,projectId:project,name:'测试环境'}]});
     if(path==='/apis/'+apiId)return reply({api:{id:apiId,projectId:project,organizationId:org,code:'orders',name:'订单 API'},
-      versions,workingRevision:3,runningConfigVersion:{[env]:2},canReadVersions:true});
-    if(await handle({path,url,req:route.request(),reply})===false){
+      versions,workingRevision:3,runningConfigVersion:{[env]:2},canReadVersions:true,...detail});
+    if(await handle({path,url,req:route.request(),reply,
+      file:(body,contentType)=>route.fulfill({body,contentType})})===false){
       unexpected.push(route.request().method()+' '+path);
       return reply({detail:'未配置的测试请求'},500);
     }
   });
   return page;
 }
+
+const yamlSource='openapi: 3.1.0\n# 保留原本的注释和换行\ninfo: {title: Orders, version: "1"}\npaths: {}\n';
+const normalized='{"openapi":"3.1.0","info":{"title":"Orders","version":"1"},"paths":{},"x-id":9007199254740993}';
+const contractVersions=[
+  {...versions[0],sourceFormat:'yaml',openapiSource:yamlSource,openapiDocument:normalized},
+  {...versions[1],sourceFormat:'json',openapiSource:normalized,openapiDocument:normalized},
+  {...versions[2],openapiDocument:normalized},
+  {...versions[2],id:'empty',version:'0.8'}
+];
+
+async function readDownload(page,control){
+  const [download]=await Promise.all([page.waitForEvent('download'),control.click()]);
+  return {name:download.suggestedFilename(),content:await readFile(await download.path(),'utf8')};
+}
+
+test('a version reader downloads the stored YAML and normalized JSON without an environment entry',async t=>{
+  const requests=[];
+  const page=await fixture(t,['api.read','api.version.read','environment.read'],async({path,url,reply,file})=>{
+    if(path.endsWith('/access-addresses'))return reply({configured:false,routes:[]});
+    if(!['/versions/old/openapi','/versions/new/openapi'].includes(path))return false;
+    const representation=url.searchParams.get('representation');
+    requests.push(path+'?representation='+representation);
+    return path==='/versions/old/openapi'&&representation==='source'?file(yamlSource,'application/yaml; charset=utf-8'):file(normalized,'application/json');
+  },{versions:contractVersions,canReadSchemas:false});
+  await page.goto(origin+'/apis/'+apiId);
+  const row=page.getByRole('row').filter({has:page.getByRole('cell',{name:'1.0',exact:true})});
+  await button(row,'查看 OpenAPI').click();
+  assert.equal(await button(page,'下载环境 OpenAPI 文档').isDisabled(),true);
+  const panel=page.getByRole('region',{name:'版本 OpenAPI 文档'});
+  const raw=await readDownload(page,button(panel,'下载版本原文'));
+  const json=await readDownload(page,button(panel,'下载规范化 JSON'));
+  assert.deepEqual([raw,json],[{name:'openapi-old.source.yaml',content:yamlSource},{name:'openapi-old.normalized.json',content:normalized}]);
+  await page.getByRole('combobox',{name:/^API 版本/}).selectOption('new');
+  const rawJson=await readDownload(page,button(panel,'下载版本原文'));
+  assert.deepEqual(rawJson,{name:'openapi-new.source.json',content:normalized});
+  assert.deepEqual(requests,['/versions/old/openapi?representation=source','/versions/old/openapi?representation=json','/versions/new/openapi?representation=source']);
+  t.diagnostic(JSON.stringify({requests,files:[raw.name,json.name,rawJson.name],originalBytes:Buffer.byteLength(raw.content),normalizedBytes:Buffer.byteLength(json.content)}));
+});
+
+test('changing version or revoking contract read aborts old file requests',async t=>{
+  const permissions=['api.read','api.schema.read'];
+  const waits={old:Promise.withResolvers(),new:Promise.withResolvers()},downloads=[];
+  const page=await fixture(t,permissions,async({path,url,file})=>{
+    const version=/^\/versions\/(old|new)\/openapi$/.exec(path)?.[1];
+    if(!version)return false;
+    if(url.searchParams.get('representation')==='source')await waits[version].promise;
+    return file(normalized,'application/json');
+  },{versions:contractVersions,canReadVersions:false,canReadSchemas:true});
+  await page.addInitScript(()=>{
+    window.versionDownloadAborts=[];
+    const fetcher=window.fetch;
+    window.fetch=(input,options)=>{
+      if(String(input).includes('/openapi?representation='))options?.signal?.addEventListener('abort',()=>window.versionDownloadAborts.push(String(input)),{once:true});
+      return fetcher(input,options);
+    };
+  });
+  page.on('download',download=>downloads.push(download.suggestedFilename()));
+  try{
+    await page.goto(origin+'/apis/'+apiId);
+    await button(page,'OpenAPI').click();
+    const panel=page.getByRole('region',{name:'版本 OpenAPI 文档'}),select=page.getByRole('combobox',{name:/^API 版本/});
+    async function start(version){
+      await Promise.all([page.waitForRequest(req=>req.url().endsWith('/versions/'+version+'/openapi?representation=source')),
+        button(panel,'下载版本原文').click()]);
+    }
+    await start('old');
+    await select.selectOption('new');
+    await page.waitForFunction(()=>window.versionDownloadAborts.length===1);
+    waits.old.resolve();
+    const result=await readDownload(page,button(panel,'下载规范化 JSON'));
+    assert.deepEqual(result,{name:'openapi-new.normalized.json',content:normalized});
+    await start('new');
+    permissions.splice(permissions.indexOf('api.schema.read'),1);
+    await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/api/v1/apis/'+apiId),
+      page.evaluate(()=>window.dispatchEvent(new Event('permission-refresh')))]);
+    await page.waitForFunction(()=>window.versionDownloadAborts.length===2);
+    waits.new.resolve();
+    const denied=page.getByText('缺少此 API 的契约读取权限。');
+    await page.getByRole('cell',{name:'1.0',exact:true}).or(denied).first().waitFor();
+    if(!await denied.isVisible())await button(page,'OpenAPI').click();
+    await denied.waitFor();
+    await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
+    assert.equal(await button(page,'下载版本原文').count(),0);
+    assert.deepEqual(downloads,['openapi-new.normalized.json']);
+    t.diagnostic(JSON.stringify({aborted:await page.evaluate(()=>window.versionDownloadAborts),downloads}));
+  }finally{waits.old.resolve();waits.new.resolve();}
+});
+
+test('legacy JSON, empty versions and server-denied contract reads expose only recorded documents',async t=>{
+  const detail={versions:contractVersions,canReadSchemas:true,canReadVersions:false},requests=[];
+  const page=await fixture(t,['api.read','api.schema.read'],async({path,url,file})=>{
+    if(path!=='/versions/legacy/openapi')return false;
+    requests.push(url.searchParams.get('representation'));
+    return file(normalized,'application/json');
+  },detail);
+  await page.goto(origin+'/apis/'+apiId);await button(page,'OpenAPI').click();
+  const select=page.getByRole('combobox',{name:/^API 版本/});
+  await select.selectOption('legacy');
+  assert.equal(await button(page,'下载版本原文').count(),0);
+  assert.deepEqual(await readDownload(page,button(page,'下载规范化 JSON')),{name:'openapi-legacy.normalized.json',content:normalized});
+  await select.selectOption('empty');
+  await page.getByText('尚未保存 OpenAPI 文档').waitFor();
+  assert.equal(await button(page,'下载规范化 JSON').count(),0);
+  await select.selectOption('old');
+  detail.canReadSchemas=false;
+  await button(page,'刷新会话与权限').click();
+  await page.getByText('缺少此 API 的契约读取权限。').waitFor();
+  assert.equal(await button(page,'下载版本原文').count(),0);
+  assert.equal(await button(page,'下载规范化 JSON').count(),0);
+  assert.deepEqual(requests,['json']);
+});
 
 test('an environment download belongs to its selected view across late responses',async t=>{
   const waits={running:Promise.withResolvers(),working:Promise.withResolvers()};

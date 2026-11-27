@@ -67,7 +67,9 @@ public sealed class PrometheusMetricSource(ObservationSourceClient client,Observ
             var key=filter.GroupBy switch{"Api"=>"webapi_api_id","Application"=>"webapi_application_id","Status"=>"http_response_status_code",_=>"webapi_destination_id"};
             foreach(var grouping in requests.GroupBy(x=>x.Labels.GetValueOrDefault(key)??"Unknown"))
             {
-                var name=filter.GroupBy=="Status"?(grouping.Key=="0"?"未发送响应状态":"HTTP "+grouping.Key):Name(scope,filter.GroupBy,grouping.Key);
+                var name = filter.GroupBy == "Status"
+                    ? (grouping.Key is "None" or "0" ? "未发送响应状态" : "HTTP " + grouping.Key)
+                    : Name(scope, filter.GroupBy, grouping.Key);
                 groups.Add(new(grouping.Key,name,Values(grouping.ToArray(),filter.GroupBy=="Status"?[]:histogram.Where(x=>x.Labels.GetValueOrDefault(key)==grouping.Key).ToArray(),seconds,null,missing,observed.State).Concat(PolicyValues([],missing,observed.State,false)).ToArray()));
             }
         }
