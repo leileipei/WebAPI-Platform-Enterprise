@@ -1,8 +1,8 @@
 {
-  "complete": true,
-  "project": "webapi-enterprise-e2e-observability-949b69da-39eb-457b-ad49-1c704fe7887f",
-  "sourceRevision": "abe59a91b638e31b095a18e9e463512ebbf67401",
-  "startedAt": "2026-11-27T05:46:38.944Z",
+  "complete": false,
+  "project": "webapi-enterprise-e2e-observability-5d385261-cf4a-4bc1-8dcc-0c38c880462b",
+  "sourceRevision": "a9f7c19871eef83a50e3f43a17d2027b393bf92a",
+  "startedAt": "2026-11-27T08:06:26.455Z",
   "classification": "real-isolated-gateway-three-source",
   "mode": "e2e",
   "command": "./scripts/check-observability.sh e2e",
@@ -31,16 +31,16 @@
     "networksRemaining": 0
   },
   "endpoints": {
-    "control_plane": "http://127.0.0.1:49889",
-    "collector": "http://127.0.0.1:49890",
-    "prometheus": "http://127.0.0.1:49891",
-    "loki": "http://127.0.0.1:49892",
-    "tempo": "http://127.0.0.1:49893",
-    "console": "http://127.0.0.1:49894",
-    "gateway_a": "http://127.0.0.1:49895",
-    "gateway_b": "http://127.0.0.1:49896",
-    "backend_a": "http://127.0.0.1:49897",
-    "backend_b": "http://127.0.0.1:49898"
+    "control_plane": "http://127.0.0.1:53854",
+    "collector": "http://127.0.0.1:53855",
+    "prometheus": "http://127.0.0.1:53856",
+    "loki": "http://127.0.0.1:53857",
+    "tempo": "http://127.0.0.1:53858",
+    "console": "http://127.0.0.1:53859",
+    "gateway_a": "http://127.0.0.1:53860",
+    "gateway_b": "http://127.0.0.1:53861",
+    "backend_a": "http://127.0.0.1:53862",
+    "backend_b": "http://127.0.0.1:53863"
   },
   "criticalAcceptanceComplete": true,
   "exitCode": 0,
@@ -48,35 +48,29 @@
   "baselineFaultEvidence": {
     "file": "fault-run.json",
     "fixtureFile": "faults-run-output.json",
-    "sourceRevision": "abe59a91b638e31b095a18e9e463512ebbf67401",
+    "sourceRevision": "a9f7c19871eef83a50e3f43a17d2027b393bf92a",
     "checks": 9,
     "complete": true
   },
   "browserEvidence": "browser-qa.json",
   "finalReview": {
-    "reviewedRevision": "abe59a91b638e31b095a18e9e463512ebbf67401",
+    "reviewedRevision": "a9f7c19871eef83a50e3f43a17d2027b393bf92a",
     "independentReviews": 2,
     "repairValidationComplete": true,
     "typescriptAndProductionBuild": true,
     "fullSuite": {
       "domain": 1436,
       "gateway": 641,
-      "integration": 2874,
-      "frontend": 1165,
+      "integration": 2877,
+      "frontend": 1167,
       "failed": 0,
       "skipped": 0
     },
     "realLossProof": "final-loss-live.json",
     "permissionProof": "final-permission-browser.json",
-    "pending": []
+    "pending": [
+      "immutable archive verification"
+    ]
   },
-  "nativeRunSha256": "b6ae4256bc6877ea90578e4999bf145cb52b0aca9447922d4213091f4408cbc2",
-  "archiveGate": {
-    "verified": true,
-    "productSourceRevision": "abe59a91b638e31b095a18e9e463512ebbf67401",
-    "provisionalSourceRevision": "abe59a91b638e31b095a18e9e463512ebbf67401",
-    "provisionalEvidenceRevision": "a417853f6cb8ca367019ce1a9357c594ddaf362a",
-    "provisionalSha256": "199a58920b4ac631d80d2563381543bc45df2e2e2407cb98cab28fabf2c4791b",
-    "files": 4867
-  }
+  "nativeRunSha256": "7a17720d5543a71fbf37846c4413c74cf5616b30cd70d26a21c7a11c5e43afa8"
 }

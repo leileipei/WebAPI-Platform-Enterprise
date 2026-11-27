@@ -1,13 +1,13 @@
 {
   "complete": true,
-  "project": "webapi-enterprise-e2e-observability-949b69da-39eb-457b-ad49-1c704fe7887f",
-  "sourceRevision": "abe59a91b638e31b095a18e9e463512ebbf67401",
+  "project": "webapi-enterprise-e2e-observability-5d385261-cf4a-4bc1-8dcc-0c38c880462b",
+  "sourceRevision": "a9f7c19871eef83a50e3f43a17d2027b393bf92a",
   "source": "actual-two-gateways-collector-prometheus-loki-tempo",
   "counterDelta": 8,
   "logCount": 8,
   "spanCount": 16,
   "ordinaryRequestSpanCount": 2,
   "ordinaryRequestTraceComplete": true,
-  "environmentId": "35df4e06-b96b-4ef4-80a3-4f768bc97ae4",
-  "traceId": "17795a53be434e47a655cf37262eeaf2"
+  "environmentId": "09055017-cbc3-492c-97e7-aac43e048b05",
+  "traceId": "e27c3efa4977485096a2d71ef2bfeb80"
 }
