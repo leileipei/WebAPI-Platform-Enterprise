@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,7 @@ public sealed class ObservationMetricsTests
     private static async Task<ApiFixture> FixtureAsync(MetricProtocolHandler source,int nodes=1)
     {
         var fixture=new ApiFixture();await fixture.InitializeAsync(b=>{
-            b.Configuration["Observability:Enabled"]="true";b.Configuration["Observability:PrometheusUrl"]="http://metric-source.invalid:9090";
+            b.Configuration["Observability:Enabled"]="true";b.Configuration["Observability:PrometheusUrl"]="http://metric-source.invalid:9090/metrics-proxy";
             b.Services.PostConfigure<HttpClientFactoryOptions>("observability",o=>o.HttpMessageHandlerBuilderActions.Add(builder=>builder.PrimaryHandler=source));
         });await fixture.SeedConsumerAsync();await ObservationTestSupport.GrantAsync(fixture,["metrics.read"]);using var login=await fixture.LoginAsync();login.EnsureSuccessStatusCode();
         await using var db=fixture.Context();for(var n=0;n<nodes;n++)db.Add(new GatewayNode{EnvironmentId=fixture.Environment.Id,NodeName="node-"+n,Enabled=true});await db.SaveChangesAsync();
@@ -445,6 +446,43 @@ public sealed class ObservationMetricsTests
         Assert.Equal(s.Api.Id.ToString(),(await Query("latency_p95_ms")).Data!.Groups[0].Key);
         Assert.Equal(s.Api.Id.ToString(),(await Query("latency_p99_ms")).Data!.Groups[0].Key);
     }
+
+    [Theory]
+    [InlineData("latency_p95_ms")]
+    [InlineData("latency_p99_ms")]
+    public async Task SlowApiRankingCountsOnlyMeasuredGroupsBeforePaging(string percentile)
+    {
+        var source = new MetricProtocolHandler();
+        await using var fixture = await FixtureAsync(source);
+        Api Api(string code) => new() { OrganizationId = fixture.Organization.Id, ProjectId = fixture.Project.Id,
+            Code = code, Name = code, OwnerUserId = fixture.User.Id, LifecycleStatus = "Active" };
+        var fast = Api("FAST");
+        var idle = Api("IDLE");
+        var noHistogram = Api("NO_HISTOGRAM");
+        var staleHistogram = Api("STALE_HISTOGRAM");
+        await using (var db = fixture.Context())
+        {
+            db.AddRange(fast, idle, noHistogram, staleHistogram);
+            await db.SaveChangesAsync();
+        }
+        source.SecondApiId = fast.Id;
+        source.ExtraApiTraffic = [(idle.Id, 0, 0), (noHistogram.Id, 7, null), (staleHistogram.Id, 0, 10)];
+
+        async Task<MetricsDto> Page(string sort, int page)
+        {
+            using var response = await fixture.Client.GetAsync(Url(fixture, source,
+                suffix: $"&groupBy=Api&sortBy={sort}&page={page}&pageSize=1"));
+            response.EnsureSuccessStatusCode();
+            return (await response.Content.ReadFromJsonAsync<ObservationEnvelope<MetricsDto>>())!.Data!;
+        }
+        var first = await Page(percentile, 1);
+        Assert.Equal(2, first.TotalGroups);
+        Assert.Equal(fixture.Api.Id.ToString(), Assert.Single(first.Groups).Key);
+        var second = await Page(percentile, 2);
+        Assert.Equal(fast.Id.ToString(), Assert.Single(second.Groups).Key);
+        Assert.Empty((await Page(percentile, 3)).Groups);
+        Assert.Equal(5, (await Page("request_count", 1)).TotalGroups);
+    }
     [Fact] public async Task MiddleCollectionGapCannotClaimCompleteEvenWithFreshEndpoints()
     {
         var source=new MetricProtocolHandler{MiddleGap=true};await using var s=await FixtureAsync(source);
@@ -464,8 +502,12 @@ public sealed class ObservationMetricsTests
         foreach(var metric in new[]{"request_rps","success_ratio","error_4xx_ratio","error_5xx_ratio","latency_p50_ms","latency_p95_ms","latency_p99_ms"})Assert.NotEmpty(body.Data!.Trends[metric]);
         Assert.All(body.Data!.Trends["success_ratio"],x=>Assert.Equal(1,x.Value));Assert.All(body.Data.Trends["error_4xx_ratio"],x=>Assert.Equal(0,x.Value));
     }
-    [Fact]
-    public async Task LongRangeTrendsStayAvailableWithManyApplications()
+    [Theory]
+    [InlineData(1)]
+    [InlineData(65)]
+    [InlineData(129)]
+    [InlineData(2048)]
+    public async Task LongRangeTrendsStayAvailableWithManyApplications(int applicationCount)
     {
         var source = new MetricProtocolHandler { WindowHours = 24 * 7 };
         await using var fixture = await FixtureAsync(source);
@@ -474,8 +516,9 @@ public sealed class ObservationMetricsTests
         var metrics = services.ServiceProvider.GetRequiredService<PrometheusMetricSource>();
         var scope = await resolver.ResolveAsync(new(fixture.User.Id, "many-apps"), "metrics.read",
             new(fixture.Organization.Id, fixture.Project.Id, fixture.Environment.Id, false), null, null, null, default);
-        var authorized = Enumerable.Range(0, 99).Select(_ => Guid.NewGuid()).Append(source.ApplicationId).ToArray();
-        source.RangeApplications = [.. authorized, Guid.NewGuid()];
+        var authorized = Enumerable.Range(1, applicationCount - 1).Select(_ => Guid.NewGuid()).Append(source.ApplicationId).ToArray();
+        source.RangeTraffic = authorized.Append(Guid.NewGuid()).Select(app => new RangeTrafficSample(
+            source.EnvironmentId, source.ApiId.ToString(), app.ToString(), source.DestinationId.ToString(), 1)).ToArray();
         scope = scope with { Applications = authorized.ToDictionary(id => id, _ => new ObservationApplication("Application", null)) };
 
         var result = await metrics.QueryAsync(scope, new(source.Start, source.End), new(null, null, null), default);
@@ -484,18 +527,21 @@ public sealed class ObservationMetricsTests
         var traffic = result.Data!.Trends["request_rps"];
         Assert.NotEmpty(traffic);
         Assert.All(traffic, point => Assert.Equal((double)authorized.Length, point.Value));
-        Assert.All(result.Data.Trends["latency_p95_ms"], point => Assert.NotNull(point.Value));
+        Assert.All(result.Data.Trends["latency_p95_ms"], point => Assert.Equal(95d, point.Value!.Value, 8));
         Assert.NotEmpty(result.Data.Trends["latency_p95_ms"]);
+        Assert.Equal(11, source.Requests.Count(request => request.AbsolutePath == "/metrics-proxy/api/v1/query"));
+        Assert.Equal(3, source.Requests.Count(request => request.AbsolutePath == "/metrics-proxy/api/v1/query_range"));
+        Assert.Equal(14, source.Requests.Count);
     }
 
     [Fact]
-    public async Task EnvironmentTrendQueriesCanMakeProgressTogetherWithinTheSharedDeadline()
+    public async Task TrendQueriesPreserveEnvironmentResourcePairsWithinTheSharedDeadline()
     {
         var simultaneous = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var pending = 0;
         var source = new MetricProtocolHandler
         {
-            BeforeLatencyRange = async token =>
+            BeforeTrafficRange = async token =>
             {
                 if (Interlocked.Increment(ref pending) == 2) simultaneous.TrySetResult();
                 await simultaneous.Task.WaitAsync(TimeSpan.FromSeconds(3), token);
@@ -507,18 +553,79 @@ public sealed class ObservationMetricsTests
         var metrics = services.ServiceProvider.GetRequiredService<PrometheusMetricSource>();
         var scope = await resolver.ResolveAsync(new(fixture.User.Id, "parallel-trends"), "metrics.read",
             new(fixture.Organization.Id, fixture.Project.Id, fixture.Environment.Id, false), null, null, null, default);
-        scope = scope with { EnvironmentIds = [fixture.Environment.Id, Guid.NewGuid()] };
+        var first = fixture.Environment.Id;
+        var second = Guid.NewGuid();
+        var secondApp = Guid.NewGuid();
+        var secondDestination = Guid.NewGuid();
+        source.PeerHeartbeat = (second, 2);
+        scope = scope with
+        {
+            EnvironmentIds = [first, second],
+            ExpectedNodes = [.. scope.ExpectedNodes, new(second, "node-0")],
+            Applications = new Dictionary<Guid, ObservationApplication>
+            {
+                [source.ApplicationId] = new("Payments", new HashSet<Guid> { first }),
+                [secondApp] = new("Payments", new HashSet<Guid> { second })
+            },
+            Destinations = new Dictionary<Guid, ObservationDestination>
+            {
+                [source.DestinationId] = new(source.DestinationId, source.ClusterId, first, "Backend", true),
+                [secondDestination] = new(secondDestination, Guid.NewGuid(), second, "Backend", true)
+            }
+        };
+        var api = source.ApiId.ToString();
+        var firstApp = source.ApplicationId.ToString();
+        var firstTarget = source.DestinationId.ToString();
+        source.RangeTraffic =
+        [
+            new(first, api, firstApp, firstTarget, 1), new(second, api, secondApp.ToString(), secondDestination.ToString(), 2),
+            new(first, "Unmatched", "Anonymous", "None", 4), new(second, api, "Unknown", "None", 8),
+            new(second, api, firstApp, secondDestination.ToString(), 100),
+            new(first, api, firstApp, secondDestination.ToString(), 100),
+            new(first, Guid.NewGuid().ToString(), firstApp, firstTarget, 100), new(Guid.NewGuid(), api, firstApp, firstTarget, 100)
+        ];
 
         var result = await metrics.QueryAsync(scope, new(source.Start, source.End), new(null, null, null), default);
 
         Assert.Equal(2, pending);
-        Assert.NotEmpty(result.Data!.Trends["latency_p95_ms"]);
+        Assert.True(result.Coverage.Complete);
+        var rates = result.Data!.Trends["request_rps"];
+        Assert.NotEmpty(rates);
+        Assert.All(rates, point => Assert.Equal(15d, point.Value));
+        Assert.NotEmpty(result.Data.Trends["latency_p95_ms"]);
+        Assert.Equal(14, source.Requests.Count);
+        var filtered = await metrics.QueryAsync(scope, new(source.Start, source.End),
+            new(source.ApiId, secondApp, secondDestination), default);
+        Assert.NotEmpty(filtered.Data!.Trends["request_rps"]);
+        Assert.All(filtered.Data.Trends["request_rps"], point => Assert.Equal(2d, point.Value));
+        Assert.Equal(28, source.Requests.Count);
     }
 
     [Fact] public async Task SourceFailureReturns503()
     {
         var source=new MetricProtocolHandler{Status=503};await using var s=await FixtureAsync(source);using var response=await s.Client.GetAsync(Url(s,source));Assert.Equal(HttpStatusCode.ServiceUnavailable,response.StatusCode);
         var body=await response.Content.ReadFromJsonAsync<JsonElement>();Assert.Equal("observability_source_unavailable",body.GetProperty("code").GetString());Assert.DoesNotContain("metric-source.invalid",body.GetRawText());
+    }
+    [Theory]
+    [InlineData("bytes")]
+    [InlineData("rows")]
+    [InlineData("points")]
+    public async Task TrafficTrendResponsesOverBudgetRemainUnavailable(string limit)
+    {
+        var source = new MetricProtocolHandler();
+        await using var fixture = await FixtureAsync(source);
+        source.LatencyRangeContent = () =>
+        {
+            if (limit == "bytes") return new ByteArrayContent(new byte[8 * 1024 * 1024 + 1]);
+            var point = new object[] { source.Start.AddSeconds(30).ToUnixTimeSeconds(), "1" };
+            var series = new { metric = new { le = "+Inf" }, values = Enumerable.Repeat(point, limit == "points" ? 601 : 1) };
+            return JsonContent.Create(new { status = "success", data = new
+            {
+                resultType = "matrix", result = Enumerable.Repeat(series, limit == "rows" ? 10001 : 1)
+            } });
+        };
+        using var response = await fixture.Client.GetAsync(Url(fixture, source));
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
     }
     [Fact] public async Task ProjectAllRevocationRejectsRatherThanReturningEmptySuccess()
     {
@@ -648,8 +755,11 @@ public sealed class ObservationMetricsTests
 
 }
 
+public sealed record RangeTrafficSample(Guid Environment, string Api, string Application, string Destination, int Rate);
+
 public sealed class MetricProtocolHandler : HttpMessageHandler
 {
+    public (Guid ApiId, int Requests, int? HistogramSamples)[] ExtraApiTraffic = [];
     public (string Node, Guid Destination, int Value)[]? HealthSamples { get; set; }
     public Guid? UnhealthyDestinationId,UnhealthyClusterId;public Guid EnvironmentId,ApiId,ApplicationId,DestinationId,ClusterId;
     public Guid? ForeignEnvironmentId,SecondApiId,PolicyId;
@@ -659,32 +769,45 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
     public int Status=200;
     public DateTimeOffset End {get;set;}=DateTimeOffset.UtcNow.AddSeconds(-1);
     public int WindowHours = 1;
-    public Guid[] RangeApplications = [];
-    public Func<CancellationToken, Task>? BeforeLatencyRange;
+    public RangeTrafficSample[] RangeTraffic = [];
+    public Func<CancellationToken, Task>? BeforeTrafficRange;
+    public Func<HttpContent>? LatencyRangeContent;
     public DateTimeOffset Start=>End.AddHours(-WindowHours);
     public ConcurrentQueue<Uri> Requests {get;}=new();
-    private HttpResponseMessage ManyApplications(string query, bool histogram)
+    private HttpResponseMessage ScopedTraffic(string query, bool histogram)
     {
-        var apps = RangeApplications.Where(id => !query.Contains("webapi_application_id=~", StringComparison.Ordinal)
-            || query.Contains(id.ToString(), StringComparison.Ordinal)).ToArray();
-        var groupsByApp = query[..query.IndexOf(')')].Contains("webapi_application_id", StringComparison.Ordinal);
+        // The fixture evaluates literal ID alternatives independently for each metric selector.
+        var selectors = Regex.Matches(query, @"\{([^{}]+)\}").Select(selector =>
+            Regex.Matches(selector.Groups[1].Value, @"(\w+)=~?""([^""]*)""")
+                .ToDictionary(label => label.Groups[1].Value, label => label.Groups[2].Value.Split('|').ToHashSet())).ToArray();
+        var selected = RangeTraffic.Where(sample => selectors.Any(selector =>
+            Allowed(selector, "webapi_environment_id", sample.Environment.ToString()) && Allowed(selector, "webapi_api_id", sample.Api) &&
+            Allowed(selector, "webapi_application_id", sample.Application) && Allowed(selector, "webapi_destination_id", sample.Destination))).ToArray();
+        var groupsBy = query[..query.IndexOf(')')];
+        var groupsByApp = groupsBy.Contains("webapi_application_id", StringComparison.Ordinal);
         const int responseLimit = 8 * 1024 * 1024;
-        if (histogram && groupsByApp && apps.Length * 14 * 599 * 20 > responseLimit)
+        if (histogram && groupsByApp && selected.Length * 14 * 599 * 20 > responseLimit)
             return new(HttpStatusCode.OK) { Content = new ByteArrayContent(new byte[responseLimit + 1]) };
 
         var points = new[] { Start.AddSeconds(30).ToUnixTimeSeconds(), End.AddSeconds(-1).ToUnixTimeSeconds() };
         var rows = new List<object>();
-        var labels = new Dictionary<string, string> { ["webapi_environment_id"] = EnvironmentId.ToString() };
-        if (histogram)
+        foreach (var group in selected.GroupBy(row => groupsBy.Contains("webapi_environment_id", StringComparison.Ordinal) ? row.Environment.ToString() : null))
         {
-            foreach (var boundary in new[] { "0.1", "+Inf" })
-                Add(new(labels) { ["le"] = boundary });
-        }
-        else
-        {
-            labels["webapi_success"] = "true";
-            labels["http_response_status_code"] = "200";
-            Add(labels);
+            var labels = new Dictionary<string, string>();
+            if (group.Key is not null) labels.Add("webapi_environment_id", group.Key);
+            var rate = group.Sum(row => row.Rate);
+            if (histogram)
+            {
+                foreach (var boundary in new[] { "0.1", "+Inf" })
+                    Add(new(labels) { ["le"] = boundary }, rate);
+            }
+            else
+            {
+                labels["webapi_success"] = "true";
+                labels["webapi_outcome"] = "Completed";
+                labels["http_response_status_code"] = "200";
+                Add(labels, rate);
+            }
         }
         return new(HttpStatusCode.OK) { Content = JsonContent.Create(new
         {
@@ -692,24 +815,30 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
             data = new { resultType = "matrix", result = rows }
         }) };
 
-        void Add(Dictionary<string, string> metric)
-        {
-            if (apps.Length != 0)
-                rows.Add(new { metric, values = points.Select(point => new object[] { point, apps.Length.ToString(CultureInfo.InvariantCulture) }) });
-        }
+        static bool Allowed(Dictionary<string, HashSet<string>> selector, string name, string value) =>
+            !selector.TryGetValue(name, out var allowed) || allowed.Contains(value);
+        void Add(Dictionary<string, string> metric, int rate) =>
+            rows.Add(new { metric, values = points.Select(point => new object[] { point, rate.ToString(CultureInfo.InvariantCulture) }) });
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken ct)
     {
-        Requests.Enqueue(request.RequestUri!);var query=QueryHelpers.ParseQuery(request.RequestUri!.Query)["query"].ToString();
-        var range = request.RequestUri.AbsolutePath.EndsWith("query_range", StringComparison.Ordinal);
-        if (range && BeforeLatencyRange is not null && query.Contains("webapi_gateway_request_duration_seconds_bucket", StringComparison.Ordinal))
-            await BeforeLatencyRange(ct);
-        if (RangeApplications.Length != 0 && range)
+        var uri = request.RequestUri!;
+        Requests.Enqueue(uri);
+        var parameters = request.Method == HttpMethod.Post &&
+            request.Content?.Headers.ContentType?.MediaType == "application/x-www-form-urlencoded"
+            ? await request.Content.ReadAsStringAsync(ct) : uri.Query;
+        var query=QueryHelpers.ParseQuery(parameters)["query"].ToString();
+        var range = uri.AbsolutePath.EndsWith("query_range", StringComparison.Ordinal);
+        if (range)
         {
             var histogram = query.Contains("webapi_gateway_request_duration_seconds_bucket", StringComparison.Ordinal);
             if (histogram || query.Contains("webapi_gateway_requests_total", StringComparison.Ordinal))
-                return ManyApplications(query, histogram);
+            {
+                if (BeforeTrafficRange is not null) await BeforeTrafficRange(ct);
+                if (histogram && LatencyRangeContent is not null) return new(HttpStatusCode.OK) { Content = LatencyRangeContent() };
+                if (RangeTraffic.Length != 0) return ScopedTraffic(query, histogram);
+            }
         }
         var rows=new List<object>();Dictionary<string,string> Labels(string? node=null)=>new(){["webapi_environment_id"]=EnvironmentId.ToString(),["service_instance_id"]=node??DefaultNodeName,["webapi_api_id"]=ApiId.ToString(),["webapi_application_id"]=ApplicationId.ToString(),["webapi_destination_id"]=NoDestination?"None":DestinationId.ToString(),["webapi_cluster_id"]=ClusterId.ToString(),["http_response_status_code"]="200",["webapi_outcome"]="Completed",["webapi_success"]="true"};
         var stamp=End.ToUnixTimeMilliseconds()/1000d;
@@ -746,7 +875,23 @@ public sealed class MetricProtocolHandler : HttpMessageHandler
         }
         else if(query.Contains("dropped_total",StringComparison.Ordinal)||query.Contains("export_failures_total",StringComparison.Ordinal)){}
         else if(query.Contains("webapi_gateway_requests_total",StringComparison.Ordinal)){Add(Labels(),ResetWindow?6:200);if(SecondApiId is Guid second){var fast=Labels();fast["webapi_api_id"]=second.ToString();Add(fast,400);}if(ForeignEnvironmentId is Guid foreign){var labels=Labels();labels["webapi_environment_id"]=foreign.ToString();Add(labels,999999);}}
-        if(request.RequestUri.AbsolutePath.EndsWith("query_range",StringComparison.Ordinal))
+        if (!range && query.Contains("webapi_gateway_requests_total", StringComparison.Ordinal))
+            foreach (var extra in ExtraApiTraffic)
+            {
+                var labels = Labels();
+                labels["webapi_api_id"] = extra.ApiId.ToString();
+                Add(labels, extra.Requests);
+            }
+        if (!range && query.Contains("webapi_gateway_request_duration_seconds_bucket", StringComparison.Ordinal))
+            foreach (var extra in ExtraApiTraffic.Where(x => x.HistogramSamples.HasValue))
+                foreach (var boundary in new[] { "0.1", "+Inf" })
+                {
+                    var labels = Labels();
+                    labels["webapi_api_id"] = extra.ApiId.ToString();
+                    labels["le"] = boundary;
+                    Add(labels, extra.HistogramSamples!.Value);
+                }
+        if(range)
         {var matrix=rows.Select(row=>JsonSerializer.SerializeToElement(row)).Select(row=>new{metric=row.GetProperty("metric"),values=new[]{new object[]{Start.AddSeconds(30).ToUnixTimeMilliseconds()/1000d,"0.5"},new object[]{End.AddSeconds(-1).ToUnixTimeMilliseconds()/1000d,"1"}}});return new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="matrix",result=matrix}})};}
         return new HttpResponseMessage((HttpStatusCode)Status){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=rows}})};
     }

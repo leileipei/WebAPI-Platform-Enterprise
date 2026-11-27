@@ -48,7 +48,23 @@ public sealed class GatewayReadService(WebApiDbContext db,AuthorizationService a
         return new(events,total,page,size);
     }
     public async Task<ManagementSnapshot> SnapshotAsync(Guid env,long version,ActorContext actor,CancellationToken ct=default)
-    {await RequireReadAsync(env,"gateway.config.read",actor,ct);var artifact=await history.ReadAsync(env,version,ct);var s=artifact.Snapshot;return new(s.SchemaVersion,s.EnvironmentId,s.ConfigVersion,s.GeneratedAt,s.Routes,s.Clusters,s.Policies,s.Applications.Select(a=>new ManagementApplication(a.Id,a.Status,a.Credentials.Select(k=>new ManagementCredential(k.Id,k.AccessKey,k.Status,k.ValidFrom,k.ExpiresAt)).ToArray(),a.Permissions)).ToArray());}
+    {
+        await RequireReadAsync(env,"gateway.config.read",actor,ct);
+        return await ReadManagementSnapshotAsync(env,version,ct);
+    }
+    public async Task<CurrentManagementSnapshot> CurrentSnapshotAsync(Guid env,ActorContext actor,CancellationToken ct=default)
+    {
+        var environment=await RequireReadAsync(env,"gateway.config.read",actor,ct);
+        var snapshot=environment.DesiredConfigVersion is long version?await ReadManagementSnapshotAsync(env,version,ct):null;
+        return new(environment.DeploymentSequence,snapshot);
+    }
+    private async Task<ManagementSnapshot> ReadManagementSnapshotAsync(Guid env,long version,CancellationToken ct)
+    {
+        var s=(await history.ReadAsync(env,version,ct)).Snapshot;
+        var applications=s.Applications.Select(a=>new ManagementApplication(a.Id,a.Status,a.Credentials
+            .Select(k=>new ManagementCredential(k.Id,k.AccessKey,k.Status,k.ValidFrom,k.ExpiresAt)).ToArray(),a.Permissions)).ToArray();
+        return new(s.SchemaVersion,s.EnvironmentId,s.ConfigVersion,s.GeneratedAt,s.Routes,s.Clusters,s.Policies,applications);
+    }
     public async Task<PageResult<SnapshotInfo>> SnapshotsAsync(Guid env,ActorContext actor,int page=1,int size=50,CancellationToken ct=default)
     {
         await RequireReadScopeAsync(env,"gateway.config.read",actor,ct);page=Math.Clamp(page,1,1000000);size=Math.Clamp(size,1,100);

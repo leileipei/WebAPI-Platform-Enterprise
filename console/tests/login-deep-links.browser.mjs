@@ -3,6 +3,7 @@ import {after,before,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {join} from 'node:path';
+import {readFileSync} from 'node:fs';
 
 const {chromium}=createRequire(process.env.WEBAPI_PLAYWRIGHT_PACKAGE)('playwright');
 const dist=process.env.WEBAPI_CONSOLE_DIST, origin='http://127.0.0.1';
@@ -13,7 +14,7 @@ let browser;
 before(async()=>{browser=await chromium.launch({executablePath:process.env.WEBAPI_CHROMIUM_EXECUTABLE});});
 after(async()=>{await browser?.close();});
 
-async function loginPage(t,entry,{mustChangePassword=false}={}){
+async function loginPage(t,entry,{mustChangePassword=false,deployment='Acceptance-East'}={}){
  const page=await browser.newPage();
  t.after(()=>page.close());
  const user={id:'reader',username:'reader',displayName:'测试读者',authSource:'local',mustChangePassword,
@@ -27,6 +28,7 @@ async function loginPage(t,entry,{mustChangePassword=false}={}){
   const reply=(json,status=200)=>route.fulfill({status,json});
   const endpoint=path.slice('/api/v1'.length);
   if(endpoint==='/auth/me')return signedIn?reply(user):reply({detail:'请登录'},401);
+  if(endpoint==='/auth/deployment')return deployment?reply({environment:deployment}):reply({},503);
   if(endpoint==='/auth/csrf')return reply({token:'fixture-csrf'});
   if(endpoint==='/auth/sso/providers')return reply([{id:providerId,name:'企业测试登录',isDefault:true}]);
   if(endpoint==='/auth/login'&&request.method()==='POST'){signedIn=true;return reply(user);}
@@ -56,6 +58,20 @@ async function localLogin(page){
  await page.getByLabel('密码',{exact:true}).fill('temporary-fixture-password');
  await page.getByRole('button',{name:'登录',exact:true}).click();
 }
+
+test('login identifies the built console and running deployment independently of the selected business environment',async t=>{
+ const page=await loginPage(t,'/login?environment=Production');
+ const version=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version;
+ await page.getByText('控制台版本 '+version,{exact:true}).waitFor({timeout:3000});
+ await page.getByText('部署环境 Acceptance-East',{exact:true}).waitFor({timeout:3000});
+});
+
+test('unavailable deployment identity leaves the local login usable',async t=>{
+ const page=await loginPage(t,'/dashboard',{deployment:null});
+ await page.getByText('部署环境暂不可用',{exact:true}).waitFor({timeout:3000});
+ await localLogin(page);
+ await page.getByRole('heading',{name:'企业工作台',exact:true}).waitFor();
+});
 
 async function assertDestination(page,path,heading){
  await page.getByRole('main').waitFor();

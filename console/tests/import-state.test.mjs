@@ -25,6 +25,19 @@ test('bounded files reject zip, unsafe logical names, duplicates and oversized c
  const file=(name,content,size=new TextEncoder().encode(content).length)=>({name,size,text:async()=>content});assert.equal((await readImportFiles([file('types/a.yaml','type: string')]))[0].name,'types/a.yaml');
  for(const files of [[file('../a.json','{}')],[file('a.zip','{}')],[file('same.json','{}'),file('same.json','false')],[{name:'huge.json',size:3*1024*1024,text(){throw Error('must not read');}}]])await assert.rejects(readImportFiles(files));
 });
+test('a root file uses exactly one resource and subsequent selections share the bundle limit',async()=>{
+ const budget={maxResources:1,maxDocumentBytes:100,maxBundleBytes:200};
+ const root=new File(['{}'],'openapi.json'), attachment=new File(['{}'],'schema.json');
+ const files=await readImportFiles([root],budget,0);
+ assert.equal(files[0].content,'{}');
+ assert.deepEqual(previewRequest({...input,mode:'file',text:files[0].content,files:[]},budget).files,[]);
+ await assert.rejects(readImportFiles([attachment],budget,1),/数量/);
+ assert.throws(()=>previewRequest({...input,text:'{}',files},budget),/数量/);
+ const two={...budget,maxResources:2};
+ assert.equal((await readImportFiles([attachment],two,1)).length,1);
+ await assert.rejects(readImportFiles([attachment],two,2),/数量/);
+ assert.throws(()=>previewRequest({...input,text:'{}',files:[...files,...files]},two),/数量/);
+});
 test('403/412 and policy-change recovery preserve source and provide the correct re-preview boundary',()=>{
  const denied=recoverImportFailure(state(),{status:403});assert.equal(denied.preview,undefined);assert.equal(denied.input.text,input.text);assert.equal(denied.authorized,false);
  const stale=recoverImportFailure(state(),{status:412});assert.equal(stale.preview.previewId,'preview');assert.equal(stale.targets.length,1);assert.match(stale.recovery,/修订/);

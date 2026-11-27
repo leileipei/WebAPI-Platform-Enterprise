@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -10,6 +12,22 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class PersistentSessionTests
 {
+    [Fact] public async Task AnonymousDeploymentIdentityReturnsOnlyTheRunningEnvironment()
+    {
+        await using var api = new ApiFixture();
+        await api.InitializeAsync();
+        using var scope = api.Services();
+        var environment = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>().EnvironmentName;
+        using var anonymous = new HttpClient { BaseAddress = api.Client.BaseAddress };
+        using var response = await anonymous.GetAsync("/api/v1/auth/deployment");
+        response.EnsureSuccessStatusCode();
+        Assert.True(response.Headers.CacheControl?.NoStore);
+        var data = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var property = Assert.Single(data.EnumerateObject());
+        Assert.Equal("environment",property.Name);
+        Assert.Equal(environment,property.Value.GetString());
+    }
+
     [Fact] public async Task ConfiguredCookieNamesPreserveLegacySessionNamespace()
     {
         await using var api=new ApiFixture();await api.InitializeAsync(b=>{b.Configuration["Authentication:CookieName"]="WebApi.Local.Test.Session";b.Configuration["Antiforgery:CookieName"]="WebApi.Local.Test.Csrf";});

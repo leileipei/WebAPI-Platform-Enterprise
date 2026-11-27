@@ -1,5 +1,5 @@
 const bytes=text=>new TextEncoder().encode(text??'').length;
-const limits={maxDocumentBytes:2*1024*1024,maxBundleBytes:4*1024*1024,maxResources:16};
+export const defaultFileLimits={maxDocumentBytes:2*1024*1024,maxBundleBytes:4*1024*1024,maxResources:16};
 function active(input){return {mode:input.mode,format:input.format??'auto',sourceText:input.mode==='url'?undefined:input.text,sourceUrl:input.mode==='url'?input.url:undefined,files:input.mode==='url'?undefined:(input.files??[]).map(({name,content,format})=>({name,content,format}))};}
 export function importIdentity(input){return JSON.stringify([input.projectId,input.environmentId,input.clusterId,input.authority,input.policyRevision,active(input)]);}
 function savedMapping(state){
@@ -52,7 +52,7 @@ export function mapImportTarget(operation,target){
  return result;
 }
 function safeName(name){if(typeof name!=='string'||!name||name.length>2048||name!==name.trim()||/[\\:%?#\x00-\x1f\x7f]/.test(name)||name.startsWith('/')||name.split('/').some(x=>!x||x==='.'||x==='..'))throw new Error('文件名须为安全的相对逻辑路径。');if(!/\.(json|ya?ml)$/i.test(name))throw new Error('仅接收 JSON / YAML 文件，不接收 ZIP。');}
-export function previewRequest(input,budget=limits){
+export function previewRequest(input,budget=defaultFileLimits){
  if(!['text','file','url'].includes(input.mode))throw new Error('请选择来源方式。');
  const request={projectId:input.projectId,environmentId:input.environmentId,clusterId:input.clusterId,format:input.format??'auto'};
  if(input.mode==='url'){let url;try{url=new URL(input.url);}catch{throw new Error('来源 URL 无效。');}if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.search||url.hash)throw new Error('URL 仅允许 HTTP(S)，不得含凭据、查询串或根片段。');return {...request,sourceUrl:input.url};}
@@ -61,8 +61,10 @@ export function previewRequest(input,budget=limits){
  for(const file of files){safeName(file.name);if(seen.has(file.name))throw new Error('附带文件逻辑名称重复。');seen.add(file.name);const length=bytes(file.content);if(length>budget.maxDocumentBytes)throw new Error('附带文件超过单份字节预算。');total+=length;}
  if(total>budget.maxBundleBytes)throw new Error('根文档与附带文件超过总字节预算。');return {...request,sourceText:input.text,files};
 }
-export async function readImportFiles(files,budget=limits){
- const list=Array.from(files),seen=new Set();if(list.length>=budget.maxResources)throw new Error('附带文件数量超过预算。');let total=0;
+export async function readImportFiles(files,budget=defaultFileLimits,otherResources=1){
+ const list=Array.from(files),seen=new Set();
+ if(list.length+otherResources>budget.maxResources)throw new Error('根文档与附带文件数量超过预算。');
+ let total=0;
  for(const file of list){safeName(file.webkitRelativePath||file.name);const name=file.webkitRelativePath||file.name;if(seen.has(name))throw new Error('文件逻辑名称重复。');seen.add(name);if(file.size>budget.maxDocumentBytes)throw new Error('文件超过单份字节预算。');total+=file.size;}
  if(total>budget.maxBundleBytes)throw new Error('文件超过总字节预算。');const result=[];total=0;
  for(const file of list){const content=await file.text();const length=bytes(content);if(length>budget.maxDocumentBytes||(total+=length)>budget.maxBundleBytes)throw new Error('文件原文超过字节预算。');const name=file.webkitRelativePath||file.name;result.push({name,content,format:/\.json$/i.test(name)?'json':'yaml'});}return result;

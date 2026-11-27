@@ -2,13 +2,57 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using WebApi.Contracts.Releases;
 using WebApi.Infrastructure.Persistence.Entities;
+using WebApi.Infrastructure.Releases;
 using WebApi.Integration.Tests.Support;
+using WebApi.Worker;
 using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class PipelineDefinitionTests
 {
+    [Fact]
+    public async Task DefinitionAndEmptyDirectoryReportTheConfiguredWorkerAckWindow()
+    {
+        await using var scenario = new PipelineScenario();
+        await scenario.InitializeEnvironmentsAsync(configure: b => b.Configuration["Publish:AckTimeoutSeconds"] = "30");
+        var page = await scenario.Creator.GetFromJsonAsync<JsonElement>($"/api/v1/projects/{scenario.Api.Project.Id}/release-pipelines");
+        Assert.Empty(page.GetProperty("items").EnumerateArray());
+        Assert.True(page.TryGetProperty("gatewayAckTimeoutSeconds", out var listed), "The directory must include the configured ACK window before the first draft.");
+        Assert.Equal(30, listed.GetInt32());
+        var draft = await DraftAsync(scenario);
+        var detail = await scenario.Creator.GetFromJsonAsync<JsonElement>($"/api/v1/release-pipelines/{draft.Id}");
+        Assert.Equal(30, detail.GetProperty("gatewayAckTimeoutSeconds").GetInt32());
+
+        var release = await scenario.Source.Deployment.ReadyAsync();
+        using var queued = await ApiFixture.CommandAsync(scenario.Creator, $"/api/v1/releases/{release}/publish");
+        queued.EnsureSuccessStatusCode();
+        using var worker = WorkerApp.Build(["--environment", "Development"], b =>
+        {
+            b.Configuration["ConnectionStrings:WebApi"] = scenario.Api.Database.ConnectionString;
+            b.Configuration["Publish:AckTimeoutSeconds"] = "30";
+        });
+        using var scope = worker.Services.CreateScope();
+        var earliest = DateTimeOffset.UtcNow.AddSeconds(30).AddMilliseconds(-1);
+        Assert.True(await scope.ServiceProvider.GetRequiredService<PublishCoordinator>().BuildNextAsync());
+        var latest = DateTimeOffset.UtcNow.AddSeconds(30);
+        await using var db = scenario.Api.Context();
+        var built = await db.Set<ReleaseRecord>().SingleAsync(r => r.Id == release);
+        Assert.Equal("Publishing", built.Status);
+        Assert.InRange(built.DeadlineAt!.Value, earliest, latest);
+    }
+
+    [Fact]
+    public async Task DefinitionDoesNotGuessTheWindowOfAnIndependentlyConfiguredWorker()
+    {
+        await using var scenario = new PipelineScenario();
+        await scenario.InitializeEnvironmentsAsync();
+        var draft = await DraftAsync(scenario);
+        var detail = await scenario.Creator.GetFromJsonAsync<JsonElement>($"/api/v1/release-pipelines/{draft.Id}");
+        Assert.False(detail.TryGetProperty("gatewayAckTimeoutSeconds", out var window) && window.ValueKind == JsonValueKind.Number);
+    }
+
     internal static async Task<(Guid Id,long Revision)> DraftAsync(PipelineScenario s)
     {
         using var created=await ApiFixture.CommandAsync(s.Creator,$"/api/v1/projects/{s.Api.Project.Id}/release-pipelines",s.Definition);

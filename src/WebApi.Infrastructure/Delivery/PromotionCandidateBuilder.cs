@@ -5,6 +5,7 @@ using WebApi.Contracts.Releases;
 using WebApi.Contracts.Security;
 using WebApi.Contracts.Runtime;
 using WebApi.Domain.Delivery;
+using WebApi.Domain.Policies;
 using WebApi.Domain.Routing;
 using WebApi.Infrastructure.Governance;
 using WebApi.Infrastructure.Persistence;
@@ -28,14 +29,11 @@ public sealed class PromotionCandidateBuilder(WebApiDbContext db,PromotionMappin
    var route=id is Guid existing?await mapping.RequireMatchingRouteAsync(existing,promotion,frozen,actor,ct):new ApiRoute{EnvironmentId=env.Id};var normalized=RouteNormalizer.Normalize(frozen.Path);RouteNormalizer.MatchOrder(frozen.Path,frozen.Priority);
    if(frozen.Enabled&&await db.Set<RouteMethod>().AnyAsync(m=>m.EnvironmentId==env.Id&&m.NormalizedPath==normalized&&frozen.Methods.Contains(m.Method)&&m.RouteId!=route.Id,ct))throw new ApiException(409,"route_conflict","目标存在同形方法路径的启用路由。");
    var methods=frozen.Methods.Order(StringComparer.Ordinal).ToArray();
-   var prepared=state.PreparedRevision==promotion.MappingRevision&&state.PrivatePolicyIds is not null;
-   var replacingBindings=id.HasValue&&!prepared&&(frozen.Policies.Count>0||await db.Set<RoutePolicyBinding>().AnyAsync(b=>b.RouteId==route.Id,ct));
-   var changed=replacingBindings||route.NormalizedPath!=normalized||!route.Methods.SequenceEqual(methods)||route.ApiVersionId!=frozen.VersionId||route.Path!=frozen.Path||route.Priority!=frozen.Priority||route.ClusterId!=target.ClusterId||route.TimeoutMs!=target.TimeoutMs||route.Enabled!=frozen.Enabled;
+   var (privateIds,bindingsChanged)=await PreparePoliciesAsync(promotion,row,state,route.Id,frozen,sourcePolicyRevisions,actor,ct);
+   var changed=bindingsChanged||route.NormalizedPath!=normalized||!route.Methods.SequenceEqual(methods)||route.ApiVersionId!=frozen.VersionId||route.Path!=frozen.Path||route.Priority!=frozen.Priority||route.ClusterId!=target.ClusterId||route.TimeoutMs!=target.TimeoutMs||route.Enabled!=frozen.Enabled;
    if(id is null){route.RouteName="Promotion-"+frozen.Key[..12];db.Add(route);}else if(changed)route.Revision++;
    route.ApiVersionId=frozen.VersionId;route.Path=frozen.Path;route.NormalizedPath=normalized;route.Methods=methods;route.ClusterId=target.ClusterId;route.Priority=frozen.Priority;route.TimeoutMs=target.TimeoutMs;route.Enabled=frozen.Enabled;if(changed)route.UpdatedAt=DateTimeOffset.UtcNow;
-   await RouteService.ReplaceMethodsAsync(db,route,ct);var privateIds=new List<Guid>();
-   if(state.PreparedRevision==promotion.MappingRevision&&state.PrivatePolicyIds is not null){if(state.PrivatePolicyIds.Count!=frozen.Policies.Count)throw PromotionMappingService.Invalid();var actualBindings=await db.Set<RoutePolicyBinding>().Where(b=>b.RouteId==route.Id).ToArrayAsync(ct);if(actualBindings.Length!=frozen.Policies.Count||frozen.Policies.Where((template,index)=>!actualBindings.Any(b=>b.PolicyId==state.PrivatePolicyIds[index]&&b.Priority==template.Priority)).Any())throw new ApiException(409,"prepared_policy_binding_changed","晋级独立策略绑定已改变，需重新编辑映射。");for(var i=0;i<frozen.Policies.Count;i++){var template=frozen.Policies[i];var selected=target.Policies.Single(p=>p.Type==template.Type&&p.Priority==template.Priority);var config=await mapping.ResolvePolicyAsync(promotion,template,selected,actor,ct);var policy=await db.Set<Policy>().SingleOrDefaultAsync(p=>p.Id==state.PrivatePolicyIds[i]&&p.OrganizationId==promotion.OrganizationId&&p.ProjectId==promotion.ProjectId,ct)??throw PromotionMappingService.Invalid();if(!policy.Enabled||policy.Type!=template.Type||WebApi.Domain.Policies.PolicyConfigurationValidator.Normalize(policy.Type,policy.Config)!=config||await db.Set<RoutePolicyBinding>().AnyAsync(b=>b.PolicyId==policy.Id&&b.RouteId!=route.Id,ct))throw new ApiException(409,"prepared_policy_changed","晋级独立策略已被更改或共享，需重新编辑映射。 ");privateIds.Add(policy.Id);if(selected.TargetPolicyId is Guid selectedId)sourcePolicyRevisions.Add(new("policy",selectedId,selected.TargetPolicyRevision!.Value));}}
-   else{db.RemoveRange(await db.Set<RoutePolicyBinding>().Where(b=>b.RouteId==route.Id).ToArrayAsync(ct));foreach(var template in frozen.Policies){var selected=target.Policies.Single(p=>p.Type==template.Type&&p.Priority==template.Priority);var config=await mapping.ResolvePolicyAsync(promotion,template,selected,actor,ct);var policy=new Policy{OrganizationId=promotion.OrganizationId,ProjectId=promotion.ProjectId,Name="Promotion-"+promotion.Id.ToString("N")+"-"+Guid.NewGuid().ToString("N"),Type=template.Type,Config=config};db.Add(policy);db.Add(new RoutePolicyBinding{RouteId=route.Id,PolicyId=policy.Id,Priority=template.Priority});privateIds.Add(policy.Id);if(selected.TargetPolicyId is Guid selectedId)sourcePolicyRevisions.Add(new("policy",selectedId,selected.TargetPolicyRevision!.Value));}}
+   await RouteService.ReplaceMethodsAsync(db,route,ct);
    // The deferred governance trigger reconciles route authentication_mode with
    // the effective binding mode at commit; apply the same rule inside the
    // transaction so the precheck candidate matches the committed row and the
@@ -58,4 +56,57 @@ public sealed class PromotionCandidateBuilder(WebApiDbContext db,PromotionMappin
   db.Add(new ReleasePromotionEvent{OrganizationId=promotion.OrganizationId,ProjectId=promotion.ProjectId,EnvironmentId=env.Id,PromotionId=promotion.Id,Phase="Mapping",FromStatus=promotion.Status,ToStatus=promotion.Status,ReasonCode="target_candidate_prepared",ActorId=actor.UserId});
   return new(candidate,revisions,hash,promotion.MappingRevision,promotion.BaselineConfigVersion,new(env.AccessAddressRevision,env.GatewayPublicUrl,env.GatewayInternalUrl,env.BasePath),selection.Impact,snapshotSchemaVersion);
  }
+
+ private async Task<(List<Guid> PolicyIds,bool Changed)> PreparePoliciesAsync(ReleasePromotion promotion,ReleasePromotionMapping row,
+  PromotionRouteState state,Guid routeId,ArtifactRoute frozen,List<ResourceRevision> sourceRevisions,ActorContext actor,CancellationToken ct)
+ {
+  var bound=await (from binding in db.Set<RoutePolicyBinding>() join policy in db.Set<Policy>() on binding.PolicyId equals policy.Id
+   where binding.RouteId==routeId select new {Binding=binding,Policy=policy}).ToArrayAsync(ct);
+  var boundIds=bound.Select(b=>b.Policy.Id).ToArray();
+  var shared=await db.Set<RoutePolicyBinding>().Where(b=>b.RouteId!=routeId&&boundIds.Contains(b.PolicyId)).Select(b=>b.PolicyId).ToHashSetAsync(ct);
+  var recorded=state.PrivatePolicyIds;
+  var prepared=recorded is not null && state.PreparedRevision>=row.Revision && state.PreparedRevision<=promotion.MappingRevision;
+  if(prepared && (state.PreparedRouteId!=routeId || recorded!.Count!=frozen.Policies.Count || bound.Length!=recorded.Count))
+   throw new ApiException(409,"prepared_policy_binding_changed","晋级独立策略绑定已改变，需重新编辑映射。");
+
+  var privateIds=new List<Guid>();
+  var prefix=$"Promotion-{promotion.Id:N}-";
+  var selectedIds=state.Mapping.Policies.Where(p=>p.TargetPolicyId.HasValue).Select(p=>p.TargetPolicyId!.Value).ToHashSet();
+  var changed=false;
+  for(var i=0;i<frozen.Policies.Count;i++)
+  {
+   var template=frozen.Policies[i];
+   var selected=state.Mapping.Policies.Single(p=>p.Type==template.Type && p.Priority==template.Priority);
+   var config=await mapping.ResolvePolicyAsync(promotion,template,selected,actor,ct);
+   if(selected.TargetPolicyId is Guid sourceId) sourceRevisions.Add(new("policy",sourceId,selected.TargetPolicyRevision!.Value));
+   var slot=bound.Where(b=>b.Binding.Priority==template.Priority);
+   if(recorded is not null)
+    slot=slot.Where(b=>state.PreparedRouteId==routeId && i<recorded.Count && b.Policy.Id==recorded[i]);
+   else
+    // Older saves retained only the prepared route. Reuse a matching copy only on its original binding.
+    slot=slot.Where(b=>state.PreparedRouteId==routeId && b.Policy.Name.StartsWith(prefix,StringComparison.Ordinal) &&
+     Guid.TryParseExact(b.Policy.Name.AsSpan(prefix.Length),"N",out _) && b.Policy.VersionNo==1);
+   var matches=slot.ToArray();
+   if(prepared && matches.Length!=1) throw new ApiException(409,"prepared_policy_binding_changed","晋级独立策略绑定已改变，需重新编辑映射。");
+   var existing=matches.Length==1?matches[0].Policy:null;
+   if(existing is not null && existing.OrganizationId==promotion.OrganizationId && existing.ProjectId==promotion.ProjectId &&
+    existing.Enabled && existing.Type==template.Type && !shared.Contains(existing.Id) && !selectedIds.Contains(existing.Id) &&
+    PolicyConfigurationValidator.Normalize(existing.Type,existing.Config)==config)
+   {
+    privateIds.Add(existing.Id);
+    continue;
+   }
+   if(prepared) throw new ApiException(409,"prepared_policy_changed","晋级独立策略已被更改或共享，需重新编辑映射。");
+   var copy=new Policy{OrganizationId=promotion.OrganizationId,ProjectId=promotion.ProjectId,Name=prefix+Guid.NewGuid().ToString("N"),Type=template.Type,Config=config};
+   db.Add(copy);
+   db.Add(new RoutePolicyBinding{RouteId=routeId,PolicyId=copy.Id,Priority=template.Priority});
+   privateIds.Add(copy.Id);
+   changed=true;
+  }
+  var keep=privateIds.ToHashSet();
+  var removed=bound.Where(b=>!keep.Contains(b.Policy.Id)).Select(b=>b.Binding).ToArray();
+  db.RemoveRange(removed);
+  return (privateIds,changed||removed.Length>0);
+ }
+
 }

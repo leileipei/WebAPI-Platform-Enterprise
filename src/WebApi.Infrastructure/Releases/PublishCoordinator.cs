@@ -2,6 +2,7 @@ using WebApi.Infrastructure.Comparisons;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using WebApi.Contracts.Common;
 using WebApi.Contracts.Releases;
 using WebApi.Contracts.Runtime;
@@ -23,6 +24,17 @@ public sealed record PublishSettings(int MinimumNodes=2,int HeartbeatGraceSecond
 {
     public int EffectiveMinimumNodes => Math.Max(2,MinimumNodes);
     public bool EnablesGovernanceSnapshot24(Guid environmentId) => GovernanceSnapshot24Environments?.Contains(environmentId) == true;
+    private bool AckTimeoutConfigured { get; init; }
+    public int? ConfiguredAckTimeoutSeconds => AckTimeoutConfigured ? AckTimeoutSeconds : null;
+
+    public static PublishSettings Read(IConfiguration configuration, IReadOnlySet<Guid>? governanceEnvironments = null)
+    {
+        var settings = new PublishSettings(GovernanceSnapshot24Environments: governanceEnvironments);
+        if (configuration["Publish:AckTimeoutSeconds"] is not string value) return settings;
+        if (!int.TryParse(value, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var seconds) || seconds <= 0)
+            throw new InvalidOperationException("Publish:AckTimeoutSeconds must be a positive integer.");
+        return settings with { AckTimeoutSeconds = seconds, AckTimeoutConfigured = true };
+    }
 }
 public sealed class PublishCoordinator(WebApiDbContext db,AuthorizationService auth,ScopeResolver scopes,AuditedCommandExecutor commands,IdempotentCommandExecutor idempotency,CommandRequestContext requestContext,ReleaseService releases,SnapshotCompiler compiler,PublishSettings settings,HistoricalSnapshotService history,VersionRiskReviewService reviews,ReleaseAccessContextService accessContexts,WebApi.Infrastructure.Delivery.PromotionExecutionService deliveryExecution,ReleaseCandidateBuilder candidates,GatewayPolicyDeploymentRules? deployment=null)
 {

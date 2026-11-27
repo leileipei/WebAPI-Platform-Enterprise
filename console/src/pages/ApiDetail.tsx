@@ -20,6 +20,30 @@ export function ApiDetailPage({id}:{id:string}){
  return <ProjectApi id={id} allowDirectRead>{remote=><ApiDetailContent id={remote.data.api.id} remote={remote}/>}</ProjectApi>;
 }
 
+function VersionTimeline({versions}:{versions:Version[]}){
+ const events:{key:string;title:string;dateTime:string;time:number}[]=[];
+ const undated:string[]=[];
+ for(const version of versions){
+  const previousCount=events.length;
+  for(const [label,dateTime] of [['封存版本',version.sealedAt],['创建版本',version.createdAt]] as const){
+   if(!dateTime)continue;
+   const time=Date.parse(dateTime);
+   if(Number.isFinite(time))events.push({key:version.id+label,title:label+' '+version.version,dateTime,time});
+  }
+  if(events.length===previousCount)undated.push(version.version);
+ }
+ events.sort((a,b)=>b.time-a.time);
+ return <section aria-label="版本时间线">
+  <h3 className="section-title">版本时间线</h3>
+  {events.length>0&&<ol className="alert-timeline">{events.map(event=><li key={event.key}>
+   <time dateTime={event.dateTime}>{new Date(event.time).toLocaleString('zh-CN',{hour12:false})}</time>
+   <strong>{event.title}</strong>
+  </li>)}</ol>}
+  {undated.length>0&&<p className="muted">版本 {undated.join('、')} 的创建和封存时间未记录。</p>}
+  {!versions.length&&<p className="muted">暂无版本记录。</p>}
+ </section>;
+}
+
 export function ApiDetailContent({id,remote,wizard}:{id:string;remote:ProjectApiRemote;wizard?:WizardVersion}){
  const ws=useWorkspace(),{can}=useSession();
  const [tab,setTab]=useState('versions'),[selected,setSelected]=useState('');
@@ -72,6 +96,7 @@ return <><div className="breadcrumb"><Link to="/apis">API 目录</Link> / 详情
     <button className="text-btn" disabled={!mayWriteVersions||!canSelect(row)||!isEditableVersion(row)}
      onClick={()=>{if(chooseVersion(row))setEdit({kind:'version',versionId:row.id,revision:row.revision,readable,initial:versionInput(row,readable)});}}>编辑</button>
    </>}/>
+   <VersionTimeline versions={d.versions}/>
  </>:v?<>
    {!wizard&&<div className="filter-bar"><label>API 版本 <select value={v.id} onChange={e=>{if(allowNavigation())setSelected(e.target.value);}}>
     {d.versions.map(x=><option key={x.id} value={x.id}>{x.version} · {x.status}</option>)}

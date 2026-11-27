@@ -12,6 +12,7 @@ const definitions={
  'policy.read':['查看策略','read'],'policy.write':['维护策略','configure'],
  'app.read':['查看应用','read'],'app.write':['维护应用','configure'],
  'credential.manage':['管理应用凭证','manage'],'app.permission.manage':['管理应用 API 授权','manage'],
+ 'credential.revoke':['撤销应用凭证','manage'],'credential.governance.recover':['恢复凭证治理操作','manage'],
  'pipeline.read':['查看发布流水线','read'],'pipeline.manage':['管理流水线定义与门禁','manage'],'pipeline.run':['执行流水线阶段','release'],
  'release.read':['查看发布','read'],'release.create':['创建发布','configure'],
  'release.test.record':['登记来源测试','configure'],'release.test.accept':['独立测试验收','release'],'release.verify':['登记生产验证','release'],

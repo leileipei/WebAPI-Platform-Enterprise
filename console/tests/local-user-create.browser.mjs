@@ -28,6 +28,7 @@ async function openUsers(t, {mode, permissions=['user.manage'], platform=true, d
       ? reply({id:operator.id, username:operator.username, displayName:operator.displayName, authSource:'local',
         permissions:f.permissions, scopes, mustChangePassword:false}) : reply({detail:'会话已失效'}, f.meStatus);
     if (path === '/api/v1/auth/sso/providers') return reply([]);
+    if (path === '/api/v1/auth/deployment') return reply({environment:'Test'});
     if (path === '/api/v1/auth/csrf') return reply({token:'local-fixture-csrf'});
     if (path === '/api/v1/scope-tree') return reply({organizations:mode ? [organization] : [],projects:[],environments:[]});
     if (path === '/api/v1/users') {

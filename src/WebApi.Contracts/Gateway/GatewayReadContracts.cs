@@ -7,4 +7,5 @@ public sealed record ManagementApplication(Guid Id,string Status,IReadOnlyList<M
 public sealed record ManagementSnapshot(string SchemaVersion,Guid EnvironmentId,long ConfigVersion,DateTimeOffset GeneratedAt,IReadOnlyList<RuntimeRoute> Routes,IReadOnlyList<RuntimeCluster> Clusters,IReadOnlyList<RuntimePolicy> Policies,IReadOnlyList<ManagementApplication> Applications,string ExportType="ManagementViewNotRuntimePayload");
 public sealed record SnapshotInfo(long ConfigVersion,string PayloadHash,long SizeBytes,DateTimeOffset CreatedAt,string Status,Guid? LatestReleaseId,long? LatestDeploymentSequence,string? LatestDeploymentState);
 public sealed record SnapshotRollbackSource(Guid ReleaseId,long ConfigVersion,long DeploymentSequence);
+public sealed record CurrentManagementSnapshot(long DeploymentSequence,ManagementSnapshot? Snapshot);
 public sealed record SetNodeEnabledRequest(bool Enabled);

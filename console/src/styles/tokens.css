@@ -102,3 +102,7 @@ fieldset.form-grid{border:0;padding:0;margin:0;min-width:0}.form-grid .checkline
  .access-matrix-window,.access-matrix-comparison{grid-template-columns:minmax(0,1fr)}
  .access-matrix-comparison section+section{border-left:0;border-top:1px solid var(--border);padding:12px 0 0}
 }
+
+.editor-drawer.overlay{justify-content:flex-end;align-items:stretch;padding:0}
+.editor-drawer>.dialog{border-radius:0;width:min(38rem,100%);max-height:none;height:100%;overscroll-behavior:contain}
+.login-deployment{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:20px;color:var(--muted);font-size:12px}

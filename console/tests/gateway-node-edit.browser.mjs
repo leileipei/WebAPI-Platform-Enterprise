@@ -46,6 +46,7 @@ async function fixture(t){
     if(path==='/scope-tree')return reply(state.tree);
     if(path==='/auth/csrf')return reply({token:'fixture-csrf'});
     if(path==='/auth/sso/providers')return reply([]);
+    if(path==='/auth/deployment')return reply({environment:'Test'});
     const [resource,id,action]=path.slice(1).toLowerCase().split('/');
     if(resource==='environments' && action==='gateway-nodes'){
       const items=Object.values(nodes).filter(row=>row.environmentId===id);

@@ -44,9 +44,7 @@ public static class CredentialGovernanceServiceRegistration
         foreach (var entry in section.GetSection("Environments").GetChildren())
             if (!Guid.TryParse(entry.Value, out var id) || id == Guid.Empty || !environments.Add(id))
                 throw new InvalidOperationException("Credential governance requires a valid, unique environment allowlist.");
-        services.TryAddSingleton(new PublishSettings(
-            AckTimeoutSeconds: int.Parse(configuration["Publish:AckTimeoutSeconds"] ?? "120", System.Globalization.CultureInfo.InvariantCulture),
-            GovernanceSnapshot24Environments: environments.ToFrozenSet()));
+        services.TryAddSingleton(PublishSettings.Read(configuration, environments.ToFrozenSet()));
         // Capture a single boot configuration for the journal, all signed sources and signing rules.
         // Reloading one provider independently could mix different journal generations in one process.
         var captured = ReadConfiguredOptions(section);

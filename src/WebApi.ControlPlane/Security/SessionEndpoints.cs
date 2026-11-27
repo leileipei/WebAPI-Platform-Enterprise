@@ -29,6 +29,11 @@ public static class SessionEndpoints
     public static void MapSessions(this WebApplication app)
     {
         var group=app.MapGroup("/api/v1/auth").AddEndpointFilter<RequestValidationFilter>();
+        group.MapGet("/deployment", (HttpContext context, IWebHostEnvironment host) =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            return Results.Ok(new { environment = host.EnvironmentName });
+        }).AllowAnonymous();
         group.MapGet("/csrf",(HttpContext ctx,IAntiforgery antiforgery)=> {ctx.Response.Headers.CacheControl="no-store";return Results.Ok(new { token=antiforgery.GetAndStoreTokens(ctx).RequestToken });}).AllowAnonymous();
         group.MapPost("/login",async (LoginRequest request,HttpContext ctx,AccountService accounts,WebApiDbContext db,SystemSettingsReader settings,Microsoft.AspNetCore.Identity.IPasswordHasher<UserRecord> hasher,PlatformSessionIssuer issuer,ILoginRateStore rates,LoginKeyHasher keys,IAuthenticationAuditGate auditGate,IAuthenticationAuditWriter audit,IAuthenticationDiagnosticSink diagnostics,CancellationToken ct)=> {
             using var loginDiagnostic=AuthenticationDiagnostics.Start(diagnostics,AuthenticationDiagnosticPhase.ServerLogin);

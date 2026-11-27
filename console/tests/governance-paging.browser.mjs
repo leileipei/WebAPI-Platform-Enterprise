@@ -15,19 +15,110 @@ const pageOf=(items,total=items.length)=>({items,total,page:1,pageSize:50});
 let browser;
 before(async()=>{browser=await chromium.launch({executablePath:process.env.WEBAPI_CHROMIUM_EXECUTABLE});});
 after(async()=>browser?.close());
-async function fixture(t,handler,identity=user){
+async function fixture(t,handler,identity=user,scopeTree=tree){
  const page=await browser.newPage();page.setDefaultTimeout(5000);t.after(()=>page.close());
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url());
   if(!url.pathname.startsWith('/api/v1/'))return route.fulfill({path:join(dist,url.pathname.startsWith('/assets/')?url.pathname.slice(1):'index.html')});
   const path=url.pathname.slice(7);const reply=json=>route.fulfill({json});
   if(path==='/auth/me')return reply(identity);
-  if(path==='/scope-tree')return reply(tree);
+  if(path==='/scope-tree')return reply(scopeTree);
   if(path==='/auth/csrf')return reply({token:'fixture'});
   return handler(path,url,route,reply);
  });
  return page;
 }
+
+async function checkDrawer(page,dialog) {
+ await dialog.waitFor();
+ const box=await dialog.boundingBox(),viewport=page.viewportSize();
+ assert.ok(box&&viewport);
+ assert.ok(Math.abs(box.x+box.width-viewport.width)<=1,'drawer aligned with right edge');
+ assert.ok(box.y<=1&&Math.abs(box.height-viewport.height)<=1,'drawer spans viewport height');
+}
+
+test('organization write stays in its granting organization and opens a right drawer',async t=>{
+ const second={id:id(51),code:'OTHER',name:'只读组织'},first={...org,code:'OWN',revision:3,status:'Active'};
+ const identity={...user,isPlatformAdministrator:false,rolePermissions:[{organizationId:org.id,permissions:user.permissions}],
+  scopes:[org,second].map(({id})=>({scope:{organizationId:id},accessMode:'read_write'}))};
+ const writes=[];
+ const page=await fixture(t,(path,url,route,reply)=>{
+  if(path==='/organizations'&&route.request().method()==='GET')return reply(pageOf([first,second]));
+  writes.push([route.request().method(),path,route.request().headers()['if-match']]);return reply(first);
+ },identity,{...tree,organizations:[org,second]});
+ await page.setViewportSize({width:1440,height:900});
+ await page.goto('http://127.0.0.1/organizations');
+ const row=page.getByRole('row',{name:/甲组织/});
+ await row.waitFor();
+ assert.equal(await page.getByRole('button',{name:'＋ 新建'}).isDisabled(),true);
+ assert.equal(await page.getByRole('row',{name:/只读组织/}).getByRole('button',{name:'编辑'}).isDisabled(),true);
+ await row.getByRole('button',{name:'编辑'}).click();
+ const drawer=page.getByRole('dialog',{name:'编辑组织管理'});
+ await checkDrawer(page,drawer);
+ await drawer.getByLabel('名称').fill('修改名称');
+ await drawer.getByRole('button',{name:'保存',exact:true}).click();
+ await drawer.waitFor({state:'hidden'});
+ assert.deepEqual(writes,[['PUT','/organizations/'+org.id,'"3"']]);
+});
+
+test('a platform administrator can create an organization and cancel a changed drawer from the keyboard',async t=>{
+ const writes=[];
+ const page=await fixture(t,(path,url,route,reply)=>{
+  assert.equal(path,'/organizations');
+  if(route.request().method()==='GET')return reply(pageOf([org]));
+  writes.push(route.request().method());return reply({...org,id:id(52)});
+ });
+ await page.setViewportSize({width:1440,height:900});
+ await page.goto('http://127.0.0.1/organizations');
+ const create=page.getByRole('button',{name:'＋ 新建'}),drawer=page.getByRole('dialog',{name:'新建组织管理'});
+ await create.click();await checkDrawer(page,drawer);
+ await drawer.getByLabel('编码').fill('NEW');
+ await page.keyboard.press('Escape');
+ await drawer.getByRole('button',{name:'确认放弃'}).click();
+ await drawer.waitFor({state:'hidden'});
+ assert.equal(await create.evaluate(el=>el===document.activeElement),true);
+ assert.deepEqual(writes,[]);
+ await page.setViewportSize({width:390,height:800});
+ await create.click();await checkDrawer(page,drawer);
+ await drawer.getByLabel('编码').fill('NEW');
+ await drawer.getByLabel('名称').fill('新组织');
+ await drawer.getByRole('button',{name:'保存',exact:true}).click();
+ await drawer.waitFor({state:'hidden'});
+ assert.deepEqual(writes,['POST']);
+});
+
+test('environment rows read their own current snapshot and open the selected gateway identity',async t=>{
+ const other={...environment,id:id(61),name:'验收环境',desiredConfigVersion:7},empty={...environment,name:'空环境',desiredConfigVersion:null};
+ const node={id:id(62),environmentId:other.id,nodeName:'验收网关',enabled:false,eTag:'"4"'},calls=[];
+ const permissions=['gateway.read','gateway.config.read','gateway.operate','environment.read'];
+ const actor={...user,permissions,rolePermissions:[{organizationId:org.id,permissions}]};
+ const page=await fixture(t,(path,url,route,reply)=>{
+  if(path==='/projects/'+project.id+'/environments')return reply(pageOf([empty,other]));
+  calls.push(path);
+  if(path==='/environments/'+empty.id+'/snapshots/current')return reply({deploymentSequence:0,snapshot:null});
+  if(path==='/environments/'+other.id+'/snapshots/current')return reply({deploymentSequence:9,snapshot:{environmentId:other.id,configVersion:8,schemaVersion:'2.1',routes:[],clusters:[],policies:[],applications:[]}});
+  if(path==='/environments/'+other.id+'/gateway-nodes')return reply(pageOf([node]));
+  if(path==='/gateway-nodes/'+node.id)return reply(node);
+  if(path==='/gateway-nodes/'+node.id+'/events')return reply(pageOf([]));
+  throw Error('Unexpected environment read '+path);
+ },actor,{...tree,environments:[empty,other]});
+ await page.goto('http://127.0.0.1/environments');
+ const emptyRow=page.getByRole('row',{name:/空环境/}),otherRow=page.getByRole('row',{name:/验收环境/});
+ await emptyRow.getByRole('button',{name:'查看当前快照'}).click();
+ await page.getByText('此环境尚未下发配置快照。').waitFor();
+ assert.deepEqual(calls,['/environments/'+empty.id+'/snapshots/current']);
+ await otherRow.getByRole('button',{name:'查看当前快照'}).click();
+ await page.getByText(/"schemaVersion": "2.1"/).waitFor();
+ await page.getByText('目标配置版本 8 · 下发序列 9').waitFor();
+ assert.deepEqual(calls,['/environments/'+empty.id+'/snapshots/current','/environments/'+other.id+'/snapshots/current']);
+ await otherRow.getByRole('button',{name:'Gateway 绑定'}).click();
+ const binding=page.getByRole('region',{name:/验收环境.*Gateway 绑定/});
+ await binding.getByText('验收网关').waitFor();
+ await binding.getByRole('button',{name:'管理节点身份'}).click();
+ await page.getByRole('heading',{name:'验收网关'}).waitFor();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('core-environment')),other.id);
+ assert.equal(await page.getByRole('button',{name:'编辑身份状态'}).isEnabled(),true);
+});
 
 test('a scope editor reads only its target in a directory of 10000 users',async t=>{
  let lists=0;const targetReads=[];
