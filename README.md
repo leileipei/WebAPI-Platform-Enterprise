@@ -6,6 +6,7 @@
 
 - [项目资料总目录](docs/README.md)：功能、源码、运维、验收与历史资料的统一入口。
 - [当前源码与验证状态](docs/deployment/current-project-status.md)：区分 GitHub 主干、本地修改、固定版本验证和实际安装。
+- 2026-11-27 的本地复查覆盖 14 项 P3 修复，记录了仍可复现的缺陷、现场条件及隔离验收进度。[固定提交复查](docs/evidence/observability/final-review.md) · [逐项验收台账](docs/deployment/requirements-acceptance-current.json)
 - [运维与交付目录](docs/deployment/README.md)：按用途查找手册、阶段交付和历史安装记录。
 - [40 页能力映射](docs/console-coverage.md)与[逐项需求台账](docs/evidence/work-package4/requirements-status.md)：页面有入口不等于对应需求全部验收完成。
 
