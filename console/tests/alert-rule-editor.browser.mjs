@@ -1,4 +1,5 @@
 // Run against the production bundle with WEBAPI_CONSOLE_DIST, WEBAPI_PLAYWRIGHT_PACKAGE and WEBAPI_CHROMIUM_EXECUTABLE.
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {join} from 'node:path';
@@ -42,7 +43,7 @@ async function fixture(t) {
     if(!pathname.startsWith('/api/v1/'))return route.fulfill({path:join(dist,'index.html')});
     const path=pathname.slice('/api/v1'.length);
     if(path==='/auth/me')return reply({id:'operator',username:'operator',displayName:'值班员',
-      permissions:['alert.rule.manage','alert.read'],scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
+      ...organizationPermissions('org',['alert.rule.manage','alert.read']),scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
     if(path==='/scope-tree')return reply({organizations:[{id:'org',name:'组织'}],
       projects:[{id:'project',organizationId:'org',name:'项目'}],
       environments:[{id:'dev',projectId:'project',name:'开发'},{id:'qa',projectId:'project',name:'验收'}]});

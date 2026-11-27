@@ -95,7 +95,9 @@ public sealed class AlertRuleService(WebApiDbContext db,AlertRuleScopeResolver s
     private static string Unit(string metric)=>metric switch{"request_rps"=>"requests/s","error_5xx_ratio"=>"ratio","latency_p95_ms"=>"ms",_=>"destinations"};
     public async Task<RuleTestDto> TestAsync(ActorContext actor,SaveAlertRuleRequest input,CancellationToken ct)
     {
-        var r=Validate(input);var environments=await scopes.ResolveForActorAsync(actor,r,ct);var expression=AlertExpressionParser.Parse(r.Metric,r.Expression);var matches=new List<MetricGroupDto>();var conditions=new List<bool?>();var end=DateTimeOffset.UtcNow.AddSeconds(-30);var range=new TimeRange(end.AddSeconds(-r.WindowSeconds),end);
+        var r=Validate(input);var environments=await scopes.ResolveForActorAsync(actor,r,ct);var expression=AlertExpressionParser.Parse(r.Metric,r.Expression);var matches=new List<MetricGroupDto>();var conditions=new List<bool?>();
+        var now = await AlertEvaluationLeaseStore.DatabaseTimeAsync(db, ct);
+        var range = settings.QueryRange(settings.SlotAt(now), r.WindowSeconds);
         foreach(var environment in environments)
         {
             var trusted = await scopes.ObservationAsync(r.OrganizationId, environment, range, ct);

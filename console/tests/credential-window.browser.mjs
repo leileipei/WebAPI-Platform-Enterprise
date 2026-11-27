@@ -1,3 +1,4 @@
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {join} from 'node:path';
@@ -38,7 +39,7 @@ async function openCredentials(t, credentials, {list = false, usageStatus = 200,
     if (path.startsWith('/assets/')) return route.fulfill({path:join(dist,path.slice(1))});
     if (path === '/applications' || path === detailPath) return route.fulfill({path:join(dist,'index.html')});
     if (path === '/api/v1/auth/me') return reply({id:id(4), username:'fixture-user', displayName:'测试用户',
-      authSource:'local', permissions:readOnly ? ['app.read'] : ['app.read','credential.manage'],
+      authSource:'local', ...organizationPermissions(org,readOnly ? ['app.read'] : ['app.read','credential.manage']),
       scopes:[{scope:{organizationId:org,projectId:project}, accessMode:readOnly ? 'read_only' : 'read_write'}]});
     if (path === '/api/v1/scope-tree') return reply({organizations:[{id:org,name:'测试组织',status:'Active'}],
       projects:[{id:project,organizationId:org,name:'测试项目',status:'Active'}], environments:[]});

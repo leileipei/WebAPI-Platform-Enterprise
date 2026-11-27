@@ -1,4 +1,5 @@
 // Run against an explicitly started loopback preview and synthetic API responses.
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 
@@ -38,7 +39,7 @@ try {
         const request = route.request(), url = new URL(request.url()), endpoint = url.pathname.slice('/api/v1'.length);
         const reply = (body,status=200) => route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
         if (endpoint === '/auth/me') return reply({id:id(8),username:'permissions-review',displayName:'授权检查',
-          authSource:'local', permissions:['app.read','api.read','environment.read','route.read','app.permission.manage'],scopes:[{scope:{organizationId:org,projectId:project},accessMode:'read_write'}]});
+          authSource:'local', ...organizationPermissions(org,['app.read','api.read','environment.read','route.read','app.permission.manage']),scopes:[{scope:{organizationId:org,projectId:project},accessMode:'read_write'}]});
         if (endpoint === '/auth/csrf') return reply({token:'permission-csrf'});
         if (endpoint === '/scope-tree') return reply({organizations:[{id:org,name:'组织'}],
           projects:[{id:project,organizationId:org,name:'项目'}],environments:[{id:environment,projectId:project,name:'目标环境'}]});

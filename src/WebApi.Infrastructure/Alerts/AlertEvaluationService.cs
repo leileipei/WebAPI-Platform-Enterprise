@@ -22,8 +22,7 @@ public sealed class AlertEvaluationService(WebApiDbContext db,AlertRuleScopeReso
         if(active&&rule.Revision==lease.RuleRevision)
         {
             // No transaction/governance lock is held during source I/O.
-            var end=lease.Slot.AddSeconds(-settings.QueryDelaySeconds);
-            var range = new TimeRange(end.AddSeconds(-rule.WindowSeconds), end);
+            var range = settings.QueryRange(lease.Slot, rule.WindowSeconds);
             var trusted = await scopes.ObservationAsync(rule.OrganizationId, lease.EnvironmentId, range, ct);
             var target = rule.TargetType switch
             {

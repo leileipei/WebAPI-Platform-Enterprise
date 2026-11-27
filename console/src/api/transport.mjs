@@ -1,11 +1,16 @@
 import {loginRetryAfterSeconds} from "../auth/login-protection.mjs";
 export class ApiError extends Error { constructor(status,detail,traceId,issues=[],code,retryAfterSeconds){super(detail);this.status=status;this.traceId=traceId;this.issues=Array.isArray(issues)?issues:[];this.code=code;this.retryAfterSeconds=retryAfterSeconds;} }
-let token;
+let token,writeEpoch=0;
+export function invalidatePendingWrites(){writeEpoch++;}
 export function clearCsrfToken(){token=undefined;}
 export async function refreshCsrfToken(){clearCsrfToken();const res=await fetch('/api/v1/auth/csrf',{credentials:'same-origin',cache:'no-store'});if(!res.ok)throw new ApiError(res.status,'无法获取登录安全令牌');token=(await res.json()).token;return token;}
 export async function apiRequest(path,options={}){
  const method=options.method||'GET',write=!['GET','HEAD'].includes(method);
- if(write&&!token)await refreshCsrfToken();
+ if(write&&!token){
+  const epoch=writeEpoch;
+  await refreshCsrfToken();
+  if(epoch!==writeEpoch&&!path.startsWith('/auth/'))throw new DOMException('会话权限已变化，请重新核对后提交。','AbortError');
+ }
  const headers={Accept:'application/json',...(write?{'Content-Type':'application/json','X-CSRF-Token':token,'Idempotency-Key':options.idempotencyKey||crypto.randomUUID()}:{}),...(options.etag?{'If-Match':options.etag}:{}),...options.headers};
  const response=await fetch('/api/v1'+path,{method,credentials:'same-origin',cache:'no-store',headers,body:options.body===undefined?undefined:JSON.stringify(options.body),signal:options.signal});
  if(!response.ok){

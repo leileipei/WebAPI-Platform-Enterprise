@@ -27,6 +27,6 @@ export function settingsSemanticKey(group,values,etag){return JSON.stringify(can
 export function settingsTestMessage(result){if(result.testKind!=='StructuralOnly')throw Error('配置测试结果类型不符合当前能力。');return '结构校验通过；未解析 SecretRef，未连接 SMTP/Webhook，未发送通知。';}
 export function routeDefaultInput(input,defaults){return input.touched?input.timeoutMs:defaults.timeoutMs;}
 export function settingsCommandValues(group,values){return group==='security'&&typeof values.allowedOrigins==='string'?{...values,allowedOrigins:values.allowedOrigins.split(/\r?\n/).map(s=>s.trim()).filter(Boolean)}:values;}
-export function settingsShellAuthorityKey(user,path){return path==='/settings/sso'?ssoAuthorityKey(user):path==='/settings/system'?user.id:JSON.stringify([user.id,user.permissions,user.scopes]);}
+export function settingsShellAuthorityKey(user,path){return path==='/settings/sso'?ssoAuthorityKey(user):path==='/settings/system'?user.id:JSON.stringify([user.id,user.permissions,user.scopes,user.rolePermissions]);}
 
 export function settingsGroupFromSearch(search){const tabs=new URLSearchParams(search).getAll('tab');return tabs.length===1&&['security','release','gateway','audit','notification'].includes(tabs[0])?tabs[0]:'security';}

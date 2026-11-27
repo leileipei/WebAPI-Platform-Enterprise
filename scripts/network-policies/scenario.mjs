@@ -12,7 +12,7 @@ import { loadState, writePrivate, safeFile, ownedDirectory } from '../runtime/st
 import { loadRelease } from '../runtime/lifecycle.mjs';
 import { prepareContext } from '../runtime/context.mjs';
 import { validateFixture } from '../runtime/fixture-guard.mjs';
-import { docker, inspectResources } from '../runtime/docker.mjs';
+import { docker, inspectResources, assertOwnership } from '../runtime/docker.mjs';
 import { prepareScenario, until } from '../runtime/acceptance-scenario.mjs';
 import { ContractClient } from '../contracts/scenario.mjs';
 import { prepareNetworkBackend, assertNetworkOwners, validateFixedNetworkSuites, assertFixedNetworkSources } from './fixtures.mjs';
@@ -123,6 +123,72 @@ export async function observeNetworkPolicyRequest(client, window, request) {
         v.sourceState === 'Available' && v.data?.kpis?.some(k => k.metric === 'request_count' && Number.isFinite(k.value) && k.value > 0), 120);
     return { logs, trace, metrics, requestId, traceId };
 }
+// This released gateway natively advertises 2.0–2.2 during its own registration and heartbeats.
+const legacyGatewayRevision = '9cef7cfe728ddbb98f19e7b645fda8d23eceb227';
+export async function resolveLegacyGatewayImage(supplied = process.env.WEBAPI_NETWORK_POLICY_LEGACY_GATEWAY_IMAGE, run = docker) {
+    if (supplied !== undefined) assert.match(supplied, /^sha256:[a-f0-9]{64}$/, 'Expected an immutable local legacy gateway image ID');
+    const reference = supplied ?? 'webapi-enterprise-runtime:' + legacyGatewayRevision;
+    const lookup = await run(['image', 'inspect', reference], {allowFailure: true});
+    assert.equal(lookup.exitCode, 0, 'Build and load the local compatibility gateway release ' + legacyGatewayRevision);
+    const [image] = JSON.parse(lookup.stdout);
+    assert.match(image.Id, /^sha256:[a-f0-9]{64}$/);
+    if (supplied) assert.equal(image.Id, supplied);
+    assert.equal(image.Os, 'linux');
+    assert.equal(image.Config.User, '10001:10001');
+    assert.equal(image.Config.Labels?.['org.opencontainers.image.revision'], legacyGatewayRevision);
+    return image.Id;
+}
+export async function withLegacyNetworkGateway({ctx, legacyImageId, readNode, check, inventory = inspectResources}) {
+    const {state, directory, release} = ctx;
+    validateFixture(state.projectName, directory);
+    await ownedDirectory(directory);
+    assert.match(legacyImageId, /^sha256:[a-f0-9]{64}$/);
+    assert.match(release.imageId, /^sha256:[a-f0-9]{64}$/);
+    assert.notEqual(legacyImageId, release.imageId);
+    async function verifyRunningImage(imageId) {
+        const resources = await inventory(state);
+        assertOwnership(state, resources);
+        const gateways = resources.filter(r => r.Kind === 'container' && r.Config?.Labels?.['com.docker.compose.service'] === 'gateway-b');
+        assert.equal(gateways.length, 1, 'Expected one owned gateway-b');
+        assert(gateways[0].State.Running && gateways[0].Image === imageId, 'Unexpected running gateway-b image');
+    }
+    await verifyRunningImage(release.imageId);
+    const before = await readNode();
+    assert(before?.supportedSnapshotSchemas?.includes('2.3'), 'Expected a current registered gateway-b');
+    const attempt = randomUUID();
+    const overlay = path.join(directory, 'legacy-gateway-' + attempt + '.json');
+    const recovery = path.join(directory, 'legacy-gateway-recovery-' + attempt + '.json');
+    const identity = {sourceRevision:release.sourceRevision, imageId:release.imageId, ownerId:state.ownerId, projectName:state.projectName, legacyImageId};
+    // A private tmpfs keeps the old process away from the current gateway’s last-known-good volume.
+    await fs.writeFile(overlay, JSON.stringify({services:{'gateway-b':{image:legacyImageId, volumes:[{type:'tmpfs',target:'/lkg',tmpfs:{mode:0o1777,size:67108864}}]}}}), {flag:'wx',mode:0o600});
+    const recreate = ['up', '-d', '--no-deps', '--force-recreate', '--pull=never', 'gateway-b'];
+    const sameNode = n => n?.id === before.id && typeof n.instanceId === 'string' && n.instanceId !== before.instanceId;
+    let result, legacyNode, restoredNode, primaryError;
+    await writePrivate(recovery, {...identity, status:'started'});
+    try {
+        await ctx.compose('-f', overlay, ...recreate);
+        await verifyRunningImage(legacyImageId);
+        legacyNode = await until(readNode, n => sameNode(n) &&
+            n.supportedSnapshotSchemas?.join(',') === '2.0,2.1,2.2', 90);
+        result = await check();
+    } catch (error) {
+        primaryError = error;
+        throw error;
+    } finally {
+        try {
+            await ctx.compose(...recreate);
+            await verifyRunningImage(release.imageId);
+            restoredNode = await until(readNode, n => sameNode(n) && n.instanceId !== legacyNode?.instanceId &&
+                n.status === 'Ready' && n.supportedSnapshotSchemas?.includes('2.3'), 90);
+            await writePrivate(recovery, {...identity, status:'restored', checkPassed:!primaryError, instanceId:restoredNode.instanceId});
+        } catch (restoreError) {
+            await writePrivate(recovery, {...identity, status:'recovery_failed', checkPassed:!primaryError});
+            if (primaryError) throw new AggregateError([primaryError, restoreError], 'Compatibility check and gateway-b recovery both failed');
+            throw restoreError;
+        }
+    }
+    return {result, legacySourceRevision: legacyGatewayRevision, legacyImageId, legacyNode, restoredImageId: release.imageId, restoredNode};
+}
 export async function runNetworkPolicyScenario({ revision, imageId, cloneDirectory, fixtureDirectory }) {
     await assertFixedNetworkSources(revision);
     let state = await assertNetworkOwners({ cloneDirectory });
@@ -137,6 +203,7 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     await safeFile(path.join(cloneDirectory, 'fixed-suites-pointer.json'));
     const suitePointer = JSON.parse(await fs.readFile(path.join(cloneDirectory, 'fixed-suites-pointer.json')));
     const fixedSuites = await validateFixedNetworkSuites(suitePointer.directory, revision);
+    const legacyImageId = await resolveLegacyGatewayImage();
     const backend = await prepareNetworkBackend({ revision, imageId, cloneDirectory, fixtureDirectory });
     const contextFactory = (directory, current) => prepareContext(directory, current, release);
     const s = await prepareScenario(cloneDirectory, state, contextFactory, { fixtureAllowedOrigins: ['http://backend-a:8080', 'http://backend-b:8080', backend.backendOrigin, backend.backendOriginB] });
@@ -350,28 +417,18 @@ export async function runNetworkPolicyScenario({ revision, imageId, cloneDirecto
     assert.notEqual(workingConfig, frozenConfig);
     for (const reviewer of s.reviewers)
         await reviewer.request('/releases/' + frozen.id + '/approve', { method: 'POST', body: { comment: '核对提交时已冻结的修订，工作修订已变更' } });
-    const nodes = await admin.request('/environments/' + scope.environmentId + '/gateway-nodes');
-    const nodeB = nodes.items.find(n => n.nodeName === 'local-gateway-b');
-    await ctx.compose('stop', 'gateway-b');
-    try {
-        const resources = await inspectResources(state), cp = resources.find(r => r.Kind === 'container' && r.Config?.Labels?.['com.docker.compose.service'] === 'control-plane'), bSecret = (await docker(['exec', cp.Id, 'cat', '/run/secrets/node-b'])).stdout.trim();
-        const raw = JSON.stringify({ instanceId: nodeB.instanceId, configVersion: nodeB.currentConfigVersion, deploymentSequence: nodeB.currentDeploymentSequence, status: 'Ready', supportedSnapshotSchemas: ['2.0', '2.1', '2.2'] });
-        const command = ['curl', '-sS', '-o', '/tmp/network-heartbeat-result', '-w', '%{http_code}', '-X', 'POST', '-H', 'Content-Type: application/json', '-H', 'Authorization: Bearer ' + bSecret, '--data-binary', raw, 'http://127.0.0.1:8080/internal/v1/nodes/' + nodeB.id + '/heartbeat'];
-        // Runtime image may have no curl: use the fixed SDK on this owner's network, never the host/public proxy.
-        const heartbeat = await docker(['run', '--rm', '--label', 'com.webapi.runtime.owner=' + state.ownerId, '--network', state.projectName + '_default', release.dependencyImages.sdk, ...command.map(x => x.replace('http://127.0.0.1:8080/', 'http://control-plane:8080/'))]);
-        assert.equal(heartbeat.stdout.trim(), '204');
-        const gate = await management(admin, '/releases/' + frozen.id + '/publish', { method: 'POST' });
+    const readNode = async () => (await admin.request('/environments/' + scope.environmentId + '/gateway-nodes')).items.find(n => n.nodeName === 'local-gateway-b');
+    const compatibility = await withLegacyNetworkGateway({ctx, legacyImageId, readNode, check: async () => {
+        const gate = await management(admin, '/releases/' + frozen.id + '/publish', {method:'POST'});
         assert.equal(gate.status, 409);
-        await writePrivate(path.join(fixtureDirectory, 'old-node-gate.json'), { status: gate.status, beforeNode: nodeB });
-    }
-    finally {
-        await ctx.compose('start', 'gateway-b');
-    }
-    await until(() => admin.request('/environments/' + scope.environmentId + '/gateway-nodes'), p => p.items.find(n => n.id === nodeB.id)?.supportedSnapshotSchemas?.includes('2.3'), 90);
+        assert.equal(gate.value?.code, 'gateway_schema_unsupported');
+        return gate.status;
+    }});
+    await writePrivate(path.join(fixtureDirectory, 'old-node-gate.json'), compatibility);
     await admin.request('/releases/' + frozen.id + '/publish', { method: 'POST' });
     const frozenPublished = latest = await done(frozen.id), frozenBytes = await payload(frozenPublished.targetConfigVersion), frozenSnapshot = JSON.parse(frozenBytes), currentNodes = (await admin.request('/environments/' + scope.environmentId + '/gateway-nodes')).items;
     const ackRows = JSON.parse(await sql(`SELECT coalesce(json_agg(json_build_object('nodeId',node_id,'instanceId',instance_id,'configVersion',config_version,'deploymentSequence',deployment_sequence,'snapshotHash',payload_hash,'success',success)),'[]') FROM gateway_acks WHERE release_id='${frozenPublished.id}'`));
-    await record('P3-07', { release: frozenPublished, nodes: currentNodes, acks: ackRows, snapshotHash: digest(frozenBytes), frozenConfig, publishedConfig: frozenSnapshot.policies.find(p => p.type === 'transform').config, workingConfig, oldNodeStatus: 409 });
+    await record('P3-07', { release: frozenPublished, nodes: currentNodes, acks: ackRows, snapshotHash: digest(frozenBytes), frozenConfig, publishedConfig: frozenSnapshot.policies.find(p => p.type === 'transform').config, workingConfig, oldNodeStatus: compatibility.result, legacyGateway: compatibility });
     const rollbackHistories = [];
     for (const h of histories) {
         const r = await approve(await admin.request('/releases/' + latest.id + '/rollback', { method: 'POST', body: { targetConfigVersion: h.release.targetConfigVersion } }));

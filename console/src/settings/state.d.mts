@@ -8,6 +8,6 @@ export function settingsSemanticKey(group:string,values:SettingsInputValues,etag
 export function settingsTestMessage(result:{testKind:string}):string;
 export function routeDefaultInput(input:{timeoutMs:number;touched:boolean},defaults:{timeoutMs:number}):number;
 export function settingsCommandValues(group:string,values:SettingsInputValues):SettingsInputValues;
-export function settingsShellAuthorityKey(user:{id:string;permissions:string[];scopes:unknown[]},path:string):string;
+export function settingsShellAuthorityKey(user:{id:string;permissions:string[];scopes:unknown[];rolePermissions?:unknown[]},path:string):string;
 
 export function settingsGroupFromSearch(search:string):string;

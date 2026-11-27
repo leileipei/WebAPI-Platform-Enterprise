@@ -30,8 +30,11 @@ try {
         const req = route.request(), url = new URL(req.url()), path = url.pathname.slice('/api/v1'.length);
         requests.push({path,method:req.method(),body:req.postDataJSON()});
         const reply = (body,status=200) => route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
-        if (path === '/auth/me') return reply({id:id(7),displayName:'开发员',permissions:['api.create','route.write','cluster.read'],
-          scopes:[{scope:{organizationId:org},accessMode:'read_write'}]});
+        if (path === '/auth/me') {
+          const permissions=['api.create','route.write','cluster.read'];
+          return reply({id:id(7),displayName:'开发员',permissions,rolePermissions:[{organizationId:org,permissions}],
+            scopes:[{scope:{organizationId:org},accessMode:'read_write'}]});
+        }
         if (path === '/auth/csrf') return reply({token:'fixture'});
         if (path === '/scope-tree') {
           if (scenario==='delayed-workspace-with-default-policy') await scopeResponse;

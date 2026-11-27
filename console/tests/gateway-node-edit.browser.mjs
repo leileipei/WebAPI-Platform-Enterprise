@@ -1,4 +1,5 @@
 // Run against the built console with WEBAPI_CONSOLE_DIST, WEBAPI_PLAYWRIGHT_PACKAGE and WEBAPI_CHROMIUM_EXECUTABLE.
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {join} from 'node:path';
@@ -42,7 +43,7 @@ async function fixture(t){
     if(!pathname.startsWith('/api/v1/'))return route.fulfill({path:join(dist,'index.html')});
     const path=pathname.slice('/api/v1'.length),reply=(json,status=200)=>route.fulfill({json,status});
     if(path==='/auth/me')return reply({id:'operator',username:'operator',displayName:'测试运维',
-      permissions:state.permissions,scopes:state.grants});
+      ...organizationPermissions('org',state.permissions),scopes:state.grants});
     if(path==='/scope-tree')return reply(state.tree);
     if(path==='/auth/csrf')return reply({token:'fixture-csrf'});
     if(path==='/auth/sso/providers')return reply([]);

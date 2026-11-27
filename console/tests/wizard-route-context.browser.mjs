@@ -1,4 +1,5 @@
 // Run with a loopback console build and the same explicit browser paths as the other browser fixtures.
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {test,after} from 'node:test';
@@ -36,7 +37,7 @@ async function fixture(t) {
     requests.push({path,method,body,etag,query:url.searchParams});
     const reply=(value,status=200)=>r.fulfill({status,json:value});
     const paged=(items,size=50)=>{const n=Number(url.searchParams.get('page')||1);return reply({items:items.slice((n-1)*size,n*size),total:items.length,page:n,pageSize:size});};
-    if(path==='/auth/me')return reply({id:'tester',username:'fixture',displayName:'向导测试',authSource:'local',permissions:state.permissions||['api.read','api.version.read','api.version.write','environment.read','route.read','route.write','cluster.read','policy.write','release.read','release.create'],scopes:state.scopes??[{scope:{organizationId:'org'},accessMode:'read_write'}]});
+    if(path==='/auth/me')return reply({id:'tester',username:'fixture',displayName:'向导测试',authSource:'local',...organizationPermissions('org',state.permissions||['api.read','api.version.read','api.version.write','environment.read','route.read','route.write','cluster.read','policy.write','release.read','release.create']),scopes:state.scopes??[{scope:{organizationId:'org'},accessMode:'read_write'}]});
     if(path==='/auth/csrf')return reply({token:'synthetic'});
     if(path==='/scope-tree')return reply({organizations:[{id:'org',name:'组织'}],projects:[{id:project,organizationId:'org',name:'选定项目'},{id:foreign,organizationId:'org',name:'其他项目'}],environments:state.noEnvironments?[]:[{id:env,projectId:project,name:'预发'},{id:alt,projectId:project,name:'联调'},{id:'foreign-env',projectId:foreign,name:'其他环境'}]});
     for(const api of apis){

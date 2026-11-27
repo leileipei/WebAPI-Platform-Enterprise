@@ -37,7 +37,8 @@ async function fixture(t,{selected=orgA,sharedWithoutProjects=false,detailWait,s
     else writes.push({method,path,body:request.postDataJSON(),etag:request.headers()['if-match']});
     if (path==='/auth/me') return reply({id:id(11),username:'operator',displayName:'业务管理员',authSource:'local',
       permissions:['app.read','app.write','credential.manage','api.read','app.permission.manage'],
-      rolePermissions:writableOrganizations.map(organizationId=>({organizationId,permissions:['app.write']})),
+      rolePermissions:organizations.map(({id:organizationId})=>({organizationId,permissions:['app.read','api.read',
+        ...(writableOrganizations.includes(organizationId)?['app.write','credential.manage','app.permission.manage']:[])]})),
       scopes:organizations.map(o=>({scope:{organizationId:o.id},accessMode:'read_write'}))});
     if (path==='/auth/csrf') return reply({token:'test-csrf'});
     if (path==='/scope-tree') {

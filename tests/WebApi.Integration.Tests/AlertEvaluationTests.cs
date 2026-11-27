@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using WebApi.Contracts.Alerts;
@@ -18,19 +19,25 @@ using Xunit;
 namespace WebApi.Integration.Tests;
 public sealed class AlertEvaluationTests
 {
-    private static void ConfigureEvaluator(Microsoft.AspNetCore.Builder.WebApplicationBuilder builder, AlertClockedMetricHandler handler)
+    private static void ConfigureMetrics(IConfiguration configuration, IServiceCollection services,
+        AlertClockedMetricHandler handler, int? queryDelaySeconds)
     {
-        builder.Configuration["Observability:Enabled"] = "true";
-        builder.Services.PostConfigure<HttpClientFactoryOptions>("observability",
+        configuration["Observability:Enabled"] = "true";
+        configuration["Alerts:IntervalSeconds"] = "1";
+        configuration["Alerts:QueryDelaySeconds"] = queryDelaySeconds?.ToString(CultureInfo.InvariantCulture);
+        services.PostConfigure<HttpClientFactoryOptions>("observability",
             options => options.HttpMessageHandlerBuilderActions.Add(client => client.PrimaryHandler = handler));
-        builder.Services.AddSingleton(new AlertEvaluationSettings(IntervalSeconds: 1, QueryDelaySeconds: 0));
+    }
+    private static void ConfigureEvaluator(Microsoft.AspNetCore.Builder.WebApplicationBuilder builder, AlertClockedMetricHandler handler, int? queryDelaySeconds=0)
+    {
+        ConfigureMetrics(builder.Configuration, builder.Services, handler, queryDelaySeconds);
         builder.Services.AddScoped<AlertEvaluationLeaseStore>();
         builder.Services.AddScoped<AlertEvaluationService>();
     }
-    private static async Task<(ApiFixture Fixture,AlertClockedMetricHandler Handler,Guid Rule)> Setup(string target="Environment",int duration=0)
+    private static async Task<(ApiFixture Fixture,AlertClockedMetricHandler Handler,Guid Rule)> Setup(string target="Environment",int duration=0,int? queryDelaySeconds=0)
     {
         var handler=new AlertClockedMetricHandler();var fixture=new ApiFixture();
-        await fixture.InitializeAsync(builder=>ConfigureEvaluator(builder,handler));
+        await fixture.InitializeAsync(builder=>ConfigureEvaluator(builder,handler,queryDelaySeconds));
         await fixture.SeedCatalogAsync();await ObservationTestSupport.GrantAsync(fixture,["alert.rule.manage"]);
         await using(var db=fixture.Context()){fixture.Application.OrganizationId=fixture.Organization.Id;fixture.Application.ProjectId=fixture.Project.Id;db.Add(fixture.Application);db.AddRange(new GatewayNode{EnvironmentId=fixture.Environment.Id,NodeName="node-0"},new GatewayNode{EnvironmentId=fixture.Environment.Id,NodeName="node-1"});await db.SaveChangesAsync();}
         handler.Inner.EnvironmentId=fixture.Environment.Id;handler.Inner.ApiId=fixture.Api.Id;handler.Inner.ApplicationId=fixture.Application.Id;handler.Inner.DestinationId=fixture.Destination.Id;handler.Inner.ClusterId=fixture.Cluster.Id;
@@ -54,6 +61,49 @@ public sealed class AlertEvaluationTests
     {
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(3));var slot=initialSlot??await Slot(f,deadline.Token);
         while(true){var leases=await Claim(f,slot,owner,deadline.Token);if(leases.Count>0)return leases;await Task.Delay(10,deadline.Token);slot=await Slot(f,deadline.Token);}
+    }
+    [Theory]
+    [InlineData(5, 5, 200, true)]
+    [InlineData(null, 30, 6, false)]
+    public async Task RuleTestAndWorkerUseTheConfiguredQueryDelay(int? configuredDelay, int expectedDelay,
+        int expectedSamples, bool expectedCondition)
+    {
+        var setup = await Setup(queryDelaySeconds: configuredDelay);
+        await using var f = setup.Fixture;
+        using var get = await f.Client.GetAsync($"/api/v1/observability/alert-rules/{setup.Rule}");
+        get.EnsureSuccessStatusCode();
+        var definition = (await get.Content.ReadFromJsonAsync<AlertRuleDto>())!.Definition;
+        using var worker = WorkerApp.Build(["--environment", "Development"], builder =>
+        {
+            builder.Configuration["ConnectionStrings:WebApi"] = f.Database.ConnectionString;
+            ConfigureMetrics(builder.Configuration, builder.Services, setup.Handler, configuredDelay);
+            builder.Logging.ClearProviders();
+        });
+
+        var lease = Assert.Single(await ClaimCurrent(f, "query-delay"));
+        setup.Handler.TrafficIncreaseAt = lease.Slot.AddSeconds(-15);
+        using var test = await f.WriteAsync(HttpMethod.Post, "/api/v1/observability/alert-rules/test", definition);
+        test.EnsureSuccessStatusCode();
+        var result = (await test.Content.ReadFromJsonAsync<RuleTestDto>())!;
+        var tested = Assert.Single(Assert.Single(result.Matches).Values);
+        var previewEnd = setup.Handler.Inner.End;
+        var afterPreview = await Slot(f);
+
+        using var scope = worker.Services.CreateScope();
+        var evaluator = scope.ServiceProvider.GetRequiredService<AlertEvaluationService>();
+        Assert.True(await evaluator.EvaluateAsync(lease, default));
+        var workerEnd = setup.Handler.Inner.End;
+        await using var db = f.Context();
+        var state = await db.Set<AlertEvaluationState>().SingleAsync();
+        Assert.Equal("Known", state.EvaluationState);
+        Assert.Equal(expectedCondition, state.LastCondition);
+        Assert.Equal(expectedCondition, await db.Set<AlertEvent>().AnyAsync(e => e.Status == "Open"));
+        Assert.Equal(lease.Slot.AddSeconds(-expectedDelay), workerEnd);
+        Assert.Equal("Known", result.EvaluationState);
+        Assert.Equal(expectedCondition, result.Condition);
+        Assert.Equal(expectedSamples, tested.SampleCount);
+        Assert.InRange(previewEnd, lease.Slot.AddSeconds(-expectedDelay), afterPreview.AddSeconds(-expectedDelay));
+        Assert.Equal(TimeSpan.Zero, previewEnd - DateTimeOffset.FromUnixTimeSeconds(previewEnd.ToUnixTimeSeconds()));
     }
     [Fact] public async Task ConcurrentLeaseHelperReacquiresAnExpiredSlot()
     {
@@ -292,8 +342,6 @@ public sealed class AlertEvaluationTests
         Assert.True(current.LastCondition);
         Assert.Equal(1, await db.Set<AlertEventTransition>().CountAsync());
 
-        // The read-only endpoint queries 30 seconds behind real time. Its window must end after both removal ACKs.
-        await Task.Delay(TimeSpan.FromSeconds(31));
         foreach (var definition in new[] { rule, rule with { TargetType = "Api", TargetId = f.Api.Id } })
         {
             using var test = await f.WriteAsync(HttpMethod.Post, "/api/v1/observability/alert-rules/test", definition);
@@ -444,6 +492,7 @@ public sealed class AlertEvaluationTests
 public sealed class AlertClockedMetricHandler:HttpMessageHandler
 {
     public MetricProtocolHandler Inner {get;}=new();
+    public DateTimeOffset? TrafficIncreaseAt { get; set; }
     public bool HealthOnly {get;set;}
     public bool PauseFirst {get;set;}
     public TaskCompletionSource<bool> Entered {get;}=new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -458,6 +507,7 @@ public sealed class AlertClockedMetricHandler:HttpMessageHandler
     private Task<HttpResponseMessage> Respond(HttpRequestMessage request,CancellationToken ct)
     {
         var query=QueryHelpers.ParseQuery(request.RequestUri!.Query);var text=query.ContainsKey("time")?query["time"].ToString():query["end"].ToString();Inner.End=DateTimeOffset.UnixEpoch.AddSeconds(double.Parse(text,CultureInfo.InvariantCulture));
+        if (TrafficIncreaseAt is { } increaseAt) Inner.ResetWindow = Inner.End < increaseAt;
         if(HealthOnly&&query["query"].ToString().Contains("webapi_gateway_requests_total",StringComparison.Ordinal))return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=JsonContent.Create(new{status="success",data=new{resultType=request.RequestUri.AbsolutePath.EndsWith("query_range",StringComparison.Ordinal)?"matrix":"vector",result=Array.Empty<object>()}})});
         if(HealthOnly&&query["query"].ToString().Contains("webapi_destination_health",StringComparison.Ordinal))return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=JsonContent.Create(new{status="success",data=new{resultType="vector",result=new[]{new{metric=new{webapi_environment_id=Inner.EnvironmentId.ToString(),webapi_destination_id=Inner.DestinationId.ToString(),service_instance_id="node-0"},value=new object[]{Inner.End.ToUnixTimeSeconds(),"0"}}}}})});
         return new HttpMessageInvoker(Inner,false).SendAsync(request,ct);

@@ -1,4 +1,5 @@
 // The built console uses only local assets and synthetic API responses.
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {after,before,test} from 'node:test';
 import {createRequire} from 'node:module';
@@ -33,7 +34,7 @@ async function fixture(t){
     if(!path.startsWith('/api/v1/'))return route.fulfill({path:join(dist,'index.html')});
     const endpoint=path.slice('/api/v1'.length),reply=(json,status=200)=>route.fulfill({status,json});
     if(endpoint==='/auth/me')return reply({id:'reviewer',username:'reviewer',displayName:'测试审批人',authSource:'local',
-      permissions:state.permissions,scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
+      ...organizationPermissions('org',state.permissions),scopes:[{scope:{organizationId:'org'},accessMode:'read_write'}]});
     if(endpoint==='/auth/csrf')return reply({token:'fixture-csrf'});
     if(endpoint==='/scope-tree')return reply({organizations:[{id:'org',name:'组织'}],
       projects:[{id:'project',organizationId:'org',name:'项目'}],environments:state.showEnvironments?[{id:'env',projectId:'project',name:'环境'}]:[]});

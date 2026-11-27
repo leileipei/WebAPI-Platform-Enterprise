@@ -31,9 +31,11 @@ async function fixture(t,firstFailure) {
     if(url.pathname.startsWith('/assets/')) return route.fulfill({path:join(dist,url.pathname.slice(1))});
     if(!url.pathname.startsWith('/api/v1/')) return route.fulfill({path:join(dist,'index.html')});
     const path=url.pathname.slice('/api/v1'.length), reply=json=>route.fulfill({json});
-    if(path==='/auth/me') return reply({id:id(8),displayName:'导入员',username:'importer',authSource:'local',
-      permissions:['api.create','route.write','cluster.read','project.read'],
-      scopes:[{scope:{organizationId:org},accessMode:'read_write'}]});
+    if(path==='/auth/me') {
+      const permissions=['api.create','route.write','cluster.read','project.read'];
+      return reply({id:id(8),displayName:'导入员',username:'importer',authSource:'local',permissions,
+        rolePermissions:[{organizationId:org,permissions}],scopes:[{scope:{organizationId:org},accessMode:'read_write'}]});
+    }
     if(path==='/auth/csrf') return reply({token:'fixture'});
     if(path==='/scope-tree') return reply({organizations:[{id:org,name:'组织'}],projects:[{id:project,organizationId:org,name:'项目'}],
       environments:[{id:environment,projectId:project,name:'开发环境'}]});

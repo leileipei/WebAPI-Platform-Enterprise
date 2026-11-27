@@ -1,4 +1,5 @@
 // Run against a built console with WEBAPI_CONSOLE_DIST, WEBAPI_PLAYWRIGHT_PACKAGE and WEBAPI_CHROMIUM_EXECUTABLE.
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {join} from 'node:path';
@@ -37,7 +38,7 @@ async function openReview(t,references=[ref(r1)],availableRoutes=routes,entryId=
     if(!path.startsWith('/api/v1/'))return route.fulfill({path:join(dist,'index.html')});
     const sub=path.slice('/api/v1'.length), pageNumber=Number(url.searchParams.get('page')||1);
     const reply=(json,status=200)=>route.fulfill({json,status});
-    if(sub==='/auth/me')return reply({id:id(8),username:'editor',displayName:'发布员',permissions:['policy.read','route.read','api.read','api.version.read','release.create'],
+    if(sub==='/auth/me')return reply({id:id(8),username:'editor',displayName:'发布员',...organizationPermissions(org,['policy.read','route.read','api.read','api.version.read','release.create']),
       scopes:[{scope:{organizationId:org},accessMode:'read_write'}]});
     if(sub==='/scope-tree')return reply({organizations:[{id:org,name:'组织'}],projects:[{id:project,name:'项目',organizationId:org}],
       environments:[{id:env,name:'测试',projectId:project}]});

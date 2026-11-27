@@ -40,9 +40,12 @@ async function fixture(t, options={}) {
     const path = pathname.slice('/api/v1'.length), body = request.postDataJSON();
     requests.push({method,path,body,etag:request.headers()['if-match']});
     const reply = (json,status=200) => route.fulfill({json,status});
-    if (path==='/auth/me') return reply({id:'operator',username:'test',displayName:'测试用户',
-      permissions:state.permissions??['cluster.read','cluster.write'],scopes:state.grants??tree.organizations.map(org=>({
-        scope:{organizationId:org.id},accessMode:'read_write'}))});
+    if (path==='/auth/me') {
+      const permissions=state.permissions??['cluster.read','cluster.write'];
+      return reply({id:'operator',username:'test',displayName:'测试用户',permissions,
+        rolePermissions:tree.organizations.map(org=>({organizationId:org.id,permissions})),
+        scopes:state.grants??tree.organizations.map(org=>({scope:{organizationId:org.id},accessMode:'read_write'}))});
+    }
     if (path==='/auth/csrf') return reply({token:'test-csrf'});
     if (path==='/scope-tree') return state.treeFailure?reply({detail:'范围暂不可用'},503):reply(state.tree??tree);
     const [,resource,id,collection] = path.split('/');

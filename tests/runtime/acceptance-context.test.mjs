@@ -41,4 +41,8 @@ test('acceptance initialization does not add gateway services before an environm
     const ctx = await prepareAcceptanceContext(directory, state, release);
     const override = JSON.parse(await fs.readFile(ctx.files.at(-1), 'utf8'));
     assert.deepEqual(Object.keys(override.services).sort(), ['control-plane', 'worker']);
+    for (const service of ['control-plane', 'worker']) {
+        assert.equal(override.services[service].environment.Alerts__IntervalSeconds, '2');
+        assert.equal(override.services[service].environment.Alerts__QueryDelaySeconds, '5');
+    }
 });

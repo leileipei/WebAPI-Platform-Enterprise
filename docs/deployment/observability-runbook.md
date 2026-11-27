@@ -28,7 +28,7 @@ browser输出本次observability-context.json位置，文件含各随机loopback
 |服务|配置|
 |---|---|
 |Gateway|Observability:Enabled=true；CollectorEndpoint；IpHmacSecretFile；TraceSampleRatio；可选CredentialSecretFile|
-|Control Plane|Enabled=true；PrometheusUrl/LokiUrl/TempoUrl；IpHmacSecretFile；CursorSigningSecretFile；TraceSampleRatio与Gateway一致；可选CredentialSecretFile|
+|Control Plane|Enabled=true；PrometheusUrl/LokiUrl/TempoUrl；IpHmacSecretFile；CursorSigningSecretFile；TraceSampleRatio与Gateway一致；Alerts:IntervalSeconds和QueryDelaySeconds与Worker一致；可选CredentialSecretFile|
 |Worker|Enabled=true与PrometheusUrl等源配置；Alerts:IntervalSeconds/QueryDelaySeconds/LeaseSeconds/MaxConcurrentEvaluations|
 |所有配置|JSON用冒号层级；环境变量用双下划线，例如Observability__Enabled|
 
@@ -37,6 +37,8 @@ IP HMAC与游标签名文件分别为至少32字节随机值的标准Base64文�
 默认Gateway队列2048、每批最多512、批等待1000ms、指标导出15000ms、根Trace采样0.1；合法QueueCapacity1–2048、BatchDelayMs10–5000、MetricExportIntervalMs100–60000、TraceSampleRatio0–1。指标和日志不随Trace采样削减；远端父节点采样决定仍有效。不能因100%本机采样声称每条企业日志均有Trace。
 
 默认Worker槽15秒、源查询延后30秒、租约30秒、并发4；合法范围分别1–60/0–120/15–120/1–16。多个Worker共用同一PG并使用一致设置；PG时钟决定slot与过期。业务发布/Outbox与告警评估/静默到期是独立循环。
+
+规则试算读取 PostgreSQL 当前评估槽，后台使用其认领的槽。两者均从槽起点减去查询延迟，再按规则窗口长度向前取数。本地运行时可通过 `Alerts__IntervalSeconds` 和 `Alerts__QueryDelaySeconds` 同时配置控制面及 Worker。
 
 ## 源异常、队列与覆盖
 

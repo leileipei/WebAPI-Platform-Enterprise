@@ -31,7 +31,7 @@ async function fixture(t,permissions,handle,detail={}){
     if(!url.pathname.startsWith('/api/v1/'))return route.fulfill({path:join(dist,'index.html')});
     const path=url.pathname.slice('/api/v1'.length);
     const reply=(json,status=200)=>route.fulfill({json,status});
-    if(path==='/auth/me')return reply({id:'operator',username:'operator',displayName:'工程师',permissions,
+    if(path==='/auth/me')return reply({id:'operator',username:'operator',displayName:'工程师',permissions,rolePermissions:[{organizationId:org,permissions}],
       scopes:[{scope:{organizationId:org},accessMode:'read_write'}]});
     if(path==='/auth/csrf')return reply({token:'fixture'});
     if(path==='/scope-tree')return reply({organizations:[{id:org,name:'组织'}],

@@ -59,10 +59,12 @@ jobs:
           tests/runtime/migration-evidence-freeze.test.mjs
           tests/runtime/migration-evidence-cleanup.test.mjs
           tests/runtime/acceptance-context.test.mjs
+          tests/runtime/deployment.test.mjs
           tests/runtime/project-counts-acceptance-guards.test.mjs
           tests/runtime/core-e2e-cleanup.test.mjs
           tests/runtime/acceptance-credentials.test.mjs
           tests/runtime/installation-admin.test.mjs
+          tests/runtime/local-runtime-cli.test.mjs
           tests/runtime/comparison-runner.test.mjs
           tests/runtime/comparison-cleanup.test.mjs
           tests/runtime/comparison-scenario.test.mjs

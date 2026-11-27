@@ -1,3 +1,4 @@
+import {organizationPermissions} from './identity-fixture.mjs';
 import {after,before,test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
@@ -24,7 +25,7 @@ async function open(t,path,timeout) {
     if(!path.startsWith('/api/v1/'))return route.fulfill({path:join(process.env.WEBAPI_CONSOLE_DIST,'index.html')});
     const reply=body=>route.fulfill({json:body});
     switch(path.slice(7)) {
-      case '/auth/me':return reply({id:'u',username:'manager',displayName:'管理员',permissions,scopes:[{scope:{organizationId:'org',projectId:'project'},accessMode:'read_write'}]});
+      case '/auth/me':return reply({id:'u',username:'manager',displayName:'管理员',...organizationPermissions('org',permissions),scopes:[{scope:{organizationId:'org',projectId:'project'},accessMode:'read_write'}]});
       case '/auth/csrf':return reply({token:'test-csrf'});
       case '/scope-tree':return reply({organizations:[{id:'org',name:'组织'}],projects:[{id:'project',organizationId:'org',name:'项目'}],environments:envs});
       case '/projects/project/release-pipelines':return reply({items:[],page:1,size:50,total:0,coverage:'Full',gatewayAckTimeoutSeconds:timeout});

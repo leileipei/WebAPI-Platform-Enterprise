@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using WebApi.Contracts.Observability;
 using WebApi.Infrastructure.Persistence;
 using WebApi.Infrastructure.Persistence.Entities;
 namespace WebApi.Infrastructure.Alerts;
@@ -11,18 +12,25 @@ public sealed record AlertEvaluationSettings(int IntervalSeconds=15,int QueryDel
         var settings=new AlertEvaluationSettings(Get("IntervalSeconds",15),Get("QueryDelaySeconds",30),Get("LeaseSeconds",30),Get("MaxConcurrentEvaluations",4));
         if(settings.IntervalSeconds is <1 or >60||settings.QueryDelaySeconds is <0 or >120||settings.LeaseSeconds is <15 or >120||settings.MaxConcurrentEvaluations is <1 or >16)throw new InvalidOperationException("Invalid alert evaluation settings.");return settings;
     }
+    internal DateTimeOffset SlotAt(DateTimeOffset time) =>
+        DateTimeOffset.FromUnixTimeSeconds(time.ToUnixTimeSeconds() / IntervalSeconds * IntervalSeconds);
+
+    internal TimeRange QueryRange(DateTimeOffset slot, int windowSeconds)
+    {
+        var end = slot.AddSeconds(-QueryDelaySeconds);
+        return new TimeRange(end.AddSeconds(-windowSeconds), end);
+    }
 }
 public sealed record EvaluationLease(Guid RuleId,long RuleRevision,long LogicRevision,Guid EnvironmentId,string ResourceKey,DateTimeOffset Slot,long Token,DateTimeOffset LeaseUntil);
 public sealed class AlertEvaluationLeaseStore(WebApiDbContext db,AlertRuleScopeResolver scopes,AlertEvaluationSettings settings)
 {
     internal static Task<DateTimeOffset> DatabaseTimeAsync(WebApiDbContext db,CancellationToken ct)=>db.Database.SqlQueryRaw<DateTimeOffset>("SELECT clock_timestamp() AS \"Value\"").SingleAsync(ct);
-    private DateTimeOffset Floor(DateTimeOffset time)=>DateTimeOffset.FromUnixTimeSeconds(time.ToUnixTimeSeconds()/settings.IntervalSeconds*settings.IntervalSeconds);
-    public async Task<DateTimeOffset> CurrentSlotAsync(CancellationToken ct)=>Floor(await DatabaseTimeAsync(db,ct));
+    public async Task<DateTimeOffset> CurrentSlotAsync(CancellationToken ct)=>settings.SlotAt(await DatabaseTimeAsync(db,ct));
     public async Task<IReadOnlyList<EvaluationLease>> ClaimAsync(DateTimeOffset slot,string owner,CancellationToken ct)
     {
         if(string.IsNullOrWhiteSpace(owner)||owner.Length>128)throw new ArgumentException("Invalid lease owner.");
         await using var tx=await db.Database.BeginTransactionAsync(ct);await db.Database.ExecuteSqlRawAsync("SELECT pg_catalog.pg_advisory_xact_lock(8901202)",ct);
-        var now=await DatabaseTimeAsync(db,ct);if(slot!=Floor(now)){await tx.CommitAsync(ct);return [];}
+        var now=await DatabaseTimeAsync(db,ct);if(slot!=settings.SlotAt(now)){await tx.CommitAsync(ct);return [];}
         // Seed missing current-logic keys from persisted rules, not from existing occurrences.
         var rules=await db.Set<AlertRule>().FromSqlRaw("SELECT * FROM alert_rules WHERE enabled ORDER BY id FOR UPDATE").ToArrayAsync(ct);
         foreach(var rule in rules)

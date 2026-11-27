@@ -61,9 +61,10 @@ export async function cleanupFixture(directory,fallbackRelease,deps={}){
 export async function prepareAcceptanceContext(directory,state,release){
  const ctx=await prepareContext(directory,state,release);
  const override=path.join(ctx.directory,'acceptance-override.json');
+ const alerts={Alerts__IntervalSeconds:'2',Alerts__QueryDelaySeconds:'5'};
  const services={
-  worker:{environment:{Alerts__IntervalSeconds:'2',Alerts__QueryDelaySeconds:'5'}},
-  'control-plane':{environment:{Observability__TraceSampleRatio:'1'}}
+  worker:{environment:alerts},
+  'control-plane':{environment:{...alerts,Observability__TraceSampleRatio:'1'}}
  };
  if(ctx.state.binding){
   for(const name of ['gateway-a','gateway-b']){

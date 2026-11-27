@@ -1,3 +1,4 @@
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {after,before,test} from 'node:test';
 import {createRequire} from 'node:module';
@@ -19,7 +20,7 @@ async function fixture(t,write){
     if(url.pathname.startsWith('/assets/'))return route.fulfill({path:join(dist,url.pathname.slice(1))});
     if(!url.pathname.startsWith('/api/v1/'))return route.fulfill({path:join(dist,'index.html')});
     reads.push(path);
-    if(path==='/auth/me')return reply({id:'operator',displayName:'环境管理员',permissions:['gateway.config.read','release.read',...(write?['release.rollback']:[])],scopes:[{scope:{organizationId:'org'},accessMode:write?'read_write':'read_only'}]});
+    if(path==='/auth/me')return reply({id:'operator',displayName:'环境管理员',...organizationPermissions('org',['gateway.config.read','release.read',...(write?['release.rollback']:[])]),scopes:[{scope:{organizationId:'org'},accessMode:write?'read_write':'read_only'}]});
     if(path==='/scope-tree')return reply(tree);
     if(path==='/auth/csrf')return reply({token:'fixture'});
     if(path===snapshotPath){const n=Number(url.searchParams.get('page')||1);return reply({items:[row(n===1?7:2)],page:n,pageSize:1,total:2});}

@@ -37,6 +37,8 @@ export function Clusters({id}:{id?:string}) {
   const listRows:Cluster[]=readable ? (list.data?.items??[]).filter(inWorkspace) : [];
   const destinations=cluster?.destinations?.filter(row=>!!row.id && row.clusterId===cluster.id)??[];
   const writable=ws.scopeReady && !!ws.environmentId && can('cluster.write',ws.scope,true);
+  const [lifetime]=useState(()=>new AbortController());
+  useEffect(()=>()=>lifetime.abort(),[lifetime]);
   const rowsWritable=writable && !remote.loading && !remote.error;
   const detailWritable=rowsWritable && !!matchingWorkspace;
 
@@ -59,7 +61,7 @@ export function Clusters({id}:{id?:string}) {
   async function loadLatest(target:EditTarget) {
     if (!target.row || !maySave(target)) throw Error('当前范围无法编辑此对象。');
     const clusterId=target.type==='cluster'?target.row.id:target.clusterId;
-    const latest=await apiRequest<Cluster>('/clusters/'+clusterId);
+    const latest=await apiRequest<Cluster>('/clusters/'+clusterId,{signal:lifetime.signal});
     if (latest.id!==clusterId || !inWorkspace(latest)) throw Error('无法在当前环境核实集群归属。');
     if (target.type==='cluster') return latest;
     const destination=latest.destinations?.find(row=>row.id===target.row?.id && row.clusterId===clusterId);
@@ -74,17 +76,17 @@ export function Clusters({id}:{id?:string}) {
       : (target.row?'/destinations/'+target.row.id:'/clusters/'+target.clusterId+'/destinations');
     await apiRequest(path,{method:target.row?'PUT':'POST',
       body:target.type==='destination'?{...value,metadata:value.metadata||null}:value,
-      etag:target.row?'"'+(revision??target.row.revision)+'"':undefined,idempotencyKey:key});
-    remote.reload();
+      etag:target.row?'"'+(revision??target.row.revision)+'"':undefined,idempotencyKey:key,signal:lifetime.signal});
+    if(!lifetime.signal.aborted)remote.reload();
   }
 
   async function probeDestination(row:Destination){
     if(!cluster || !detailWritable || probing)return;
     setProbing(true);setActionError('');
     try{
-      const operation=await apiRequest<GatewayOperation>('/clusters/'+cluster.id+'/destinations/'+row.id+'/probe',{method:'POST',etag:'"'+row.revision+'"'});
-      setProbe({clusterId:cluster.id,operation});
-    }catch(e){setActionError(e instanceof Error?e.message:'无法立即探测');}finally{setProbing(false);}
+      const operation=await apiRequest<GatewayOperation>('/clusters/'+cluster.id+'/destinations/'+row.id+'/probe',{method:'POST',etag:'"'+row.revision+'"',signal:lifetime.signal});
+      if(!lifetime.signal.aborted)setProbe({clusterId:cluster.id,operation});
+    }catch(e){if(!lifetime.signal.aborted)setActionError(e instanceof Error?e.message:'无法立即探测');}finally{setProbing(false);}
   }
 
   return <>
@@ -121,7 +123,8 @@ export function Clusters({id}:{id?:string}) {
       help="复制工作配置和实例，保存后可编辑并发布" loadLatest={()=>loadLatest({type:'cluster',environmentId:copy.environmentId,row:copy})}
       save={async(value,key,fresh)=>{
         if(!rowsWritable || id || !inWorkspace(copy))throw Error('当前范围无法复制此集群。');
-        await apiRequest('/clusters/'+copy.id+'/copy',{method:'POST',body:{name:value.name},etag:'"'+(fresh?.revision??copy.revision)+'"',idempotencyKey:key});list.reload();
+        await apiRequest('/clusters/'+copy.id+'/copy',{method:'POST',body:{name:value.name},etag:'"'+(fresh?.revision??copy.revision)+'"',idempotencyKey:key,signal:lifetime.signal});
+        if(!lifetime.signal.aborted)list.reload();
       }}/>}
     {edit && <Editor title={edit.type==='cluster'?'集群配置':'Destination 配置'} fields={edit.type==='cluster'?clusterFields:destinationFields}
       initial={edit.row??(edit.type==='cluster'?newCluster:newDestination)} allowed={maySave(edit)} close={()=>setEdit(undefined)}

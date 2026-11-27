@@ -1,6 +1,15 @@
 import test from'node:test';import assert from'node:assert/strict';import {execFileSync}from'node:child_process';
 const env={...process.env,WEBAPI_RUNTIME_PROJECT:'webapi-enterprise-local-test-11111111-1111-4111-8111-111111111111',WEBAPI_RUNTIME_OWNER:'22222222-2222-4222-8222-222222222222',WEBAPI_RUNTIME_IMAGE:'sha256:'+'a'.repeat(64),WEBAPI_RUNTIME_SECRET_DIRECTORY:'/tmp/webapi-runtime-test-input',WEBAPI_RUNTIME_BOOTSTRAP_USERNAME:'test-admin',WEBAPI_RUNTIME_ENVIRONMENT_ID:'33333333-3333-4333-8333-333333333333'};
-function config(bound=true,tools=false){const files=['deploy/compose.runtime.yml',...(bound?['deploy/compose.runtime.gateways.yml']:[])];return JSON.parse(execFileSync('docker',['compose',...(tools?['--profile','tools']:[]),...files.flatMap(f=>['-f',f]),'config','--format','json'],{env,encoding:'utf8'}));}
+function config(bound=true,tools=false,overrides={}){const files=['deploy/compose.runtime.yml',...(bound?['deploy/compose.runtime.gateways.yml']:[])];return JSON.parse(execFileSync('docker',['compose',...(tools?['--profile','tools']:[]),...files.flatMap(f=>['-f',f]),'config','--format','json'],{env:{...env,...overrides},encoding:'utf8'}));}
+test('control plane and worker share the alert interval and query delay', () => {
+  for (const [interval, delay] of [['', ''], ['2', '5']]) {
+    const rendered = config(false, false, {Alerts__IntervalSeconds: interval, Alerts__QueryDelaySeconds: delay});
+    for (const service of ['control-plane', 'worker']) {
+      assert.equal(rendered.services[service].environment.Alerts__IntervalSeconds, interval || '15');
+      assert.equal(rendered.services[service].environment.Alerts__QueryDelaySeconds, delay || '30');
+    }
+  }
+});
 test('onlyThreeLoopbackPortsPublished',()=>{const c=config();const ports=Object.values(c.services).flatMap(s=>s.ports??[]);assert.equal(ports.length,3);assert.deepEqual(ports.map(p=>Number(p.published)).sort(),[4192,4196,4197]);for(const p of ports)assert.equal(p.host_ip,'127.0.0.1');});
 test('unconfiguredRenderHasNoGatewayIdRequirement',()=>{const c=config(false);assert.equal(c.services['gateway-a'],undefined);assert.equal(c.services['control-plane'].environment.Upstream__RequireExplicitAllowedOrigins,'true');});
 test('runtimeSourcesUsePersistentVolumesNotTmpfs',()=>{const c=config();for(const name of ['loki-data','tempo-data','prometheus-data','pg','lkg-a','lkg-b','dp-keys'])assert.equal(c.volumes[name].driver_opts,undefined);});

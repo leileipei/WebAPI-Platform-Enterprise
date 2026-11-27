@@ -1,3 +1,4 @@
+import {organizationPermissions} from './identity-fixture.mjs';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {join} from 'node:path';
@@ -28,7 +29,7 @@ async function fixture(t,perms=permissions){
   const path=url.pathname.slice(7),method=req.method(),reply=json=>route.fulfill({json});
   seen.push({path,method,query:Object.fromEntries(url.searchParams),body:req.postDataJSON(),tag:req.headers()['if-match']});
   const data=(items,total=items.length,page=1)=>({items,total,page,pageSize:50});
-  if(path==='/auth/me')return reply({id:owner,displayName:'仓储负责人',permissions:perms,scopes:[{scope:{organizationId:org},accessMode:'read_write'}]});
+  if(path==='/auth/me')return reply({id:owner,displayName:'仓储负责人',...organizationPermissions(org,perms),scopes:[{scope:{organizationId:org},accessMode:'read_write'}]});
   if(path==='/scope-tree')return reply({organizations:[{id:org,name:'测试组织'}],projects:[{id:project,organizationId:org,name:'库存项目'}],environments:[{id:env,projectId:project,name:'开发环境'},{id:other,projectId:project,name:'目标环境'}]});
   if(path==='/auth/csrf')return reply({token:'test'});
   if(path.endsWith('/api-groups'))return reply([]);

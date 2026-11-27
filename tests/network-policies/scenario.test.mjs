@@ -443,3 +443,50 @@ test('production entry never disables certificate verification or overwrites an 
         assert.equal((await fs.stat(path.join(directory, 'network-entry.key'))).mode & 0o077, 0);
     } finally { if (entry) await entry.close(); if (otherEntry) await otherEntry.close(); await new Promise(resolve => server.close(resolve)); await fs.rm(directory, { recursive: true, force: true }); await fs.rm(otherDirectory, { recursive: true, force: true }); }
 });
+
+test('legacy compatibility gate restores the current gateway after the real-node check fails', async t => {
+    const projectName = 'webapi-enterprise-local-test-' + randomUUID();
+    const parent = await fs.mkdtemp(path.join(os.tmpdir(), 'network-legacy-test-'));
+    t.after(() => fs.rm(parent, { recursive: true, force: true }));
+    const directory = path.join(parent, projectName);
+    await fs.mkdir(directory, {mode: 0o700});
+    const current = 'sha256:' + 'a'.repeat(64), legacy = 'sha256:' + 'b'.repeat(64);
+    const ownerId = randomUUID(), nodeId = randomUUID(), originalInstance = randomUUID();
+    const calls = [];
+    let imageId = current, instanceId = originalInstance;
+    const ctx = {directory, state: {projectName, ownerId}, release: {imageId: current}, compose: async (...args) => {
+        calls.push(args); imageId = args.includes('-f') ? legacy : current; instanceId = randomUUID();
+    }};
+    const readNode = async () => ({id:nodeId, instanceId, status:'Ready', supportedSnapshotSchemas:imageId===current?['2.0','2.1','2.2','2.3']:['2.0','2.1','2.2']});
+    const inventory = async () => [{Kind:'container', Image:imageId, State:{Running:true}, Config:{Labels:{'com.docker.compose.project':projectName,'com.webapi.runtime.owner':ownerId,'com.docker.compose.service':'gateway-b'}}}];
+    const options = {ctx, legacyImageId:legacy, readNode, check:async()=>{throw Error('release observation failed');}, inventory};
+    assert.equal(typeof scenario.withLegacyNetworkGateway,'function');
+    await assert.rejects(scenario.withLegacyNetworkGateway(options), /release observation failed/);
+    assert.equal(calls.length,2); assert(calls.every(args=>args.at(-1)==='gateway-b' && args.includes('--no-deps')));
+    assert.equal(imageId,current);
+    const recoveryFile=(await fs.readdir(directory)).find(f=>f.startsWith('legacy-gateway-recovery-'));
+    const recovery=JSON.parse(await fs.readFile(path.join(directory,recoveryFile)));
+    assert.equal(recovery.status,'restored');assert.equal(recovery.checkPassed,false);
+    const receipt=await scenario.withLegacyNetworkGateway({...options,check:async()=>409});
+    assert.equal(receipt.result,409);assert.equal(receipt.legacyImageId,legacy);assert.equal(receipt.restoredImageId,current);
+    assert.deepEqual(receipt.legacyNode.supportedSnapshotSchemas,['2.0','2.1','2.2']);assert.notEqual(receipt.legacyNode.instanceId,receipt.restoredNode.instanceId);
+    const before=calls.length;
+    await assert.rejects(scenario.withLegacyNetworkGateway({...options,ctx:{...ctx,state:{...ctx.state,projectName:'webapi-enterprise-local'}}}),/disposable/i);
+    assert.equal(calls.length,before);
+    await assert.rejects(scenario.withLegacyNetworkGateway({...options,inventory:async()=>[]}),/gateway-b/);
+    assert.equal(calls.length,before);
+    const broken={...ctx,compose:(...args)=>{if(!args.includes('-f'))throw Error('restore failed');return ctx.compose(...args);}};
+    await assert.rejects(scenario.withLegacyNetworkGateway({...options,ctx:broken}),e=>e instanceof AggregateError && e.errors.map(x=>x.message).join(',')==='release observation failed,restore failed');
+});
+
+
+test('legacy gateway preflight accepts only the pinned local revision and immutable input', async () => {
+    const revision='9cef7cfe728ddbb98f19e7b645fda8d23eceb227', id='sha256:'+'c'.repeat(64);
+    const image={Id:id, Os:'linux', Config:{User:'10001:10001', Labels:{'org.opencontainers.image.revision':revision}}};
+    const inspect=async args=>{assert.deepEqual(args,['image','inspect',id]);return {exitCode:0,stdout:JSON.stringify([image])};};
+    assert.equal(await scenario.resolveLegacyGatewayImage(id,inspect),id);
+    await assert.rejects(scenario.resolveLegacyGatewayImage('unfixed-tag',inspect),/immutable/);
+    await assert.rejects(scenario.resolveLegacyGatewayImage(id,async()=>({exitCode:1})),/Build and load/);
+    image.Config.Labels['org.opencontainers.image.revision']='f'.repeat(40);
+    await assert.rejects(scenario.resolveLegacyGatewayImage(id,inspect));
+});

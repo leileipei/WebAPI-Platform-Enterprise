@@ -11,7 +11,7 @@ namespace WebApi.Integration.Tests;
 public sealed class AlertRuleTests
 {
     private static SaveAlertRuleRequest Definition(ApiFixture f,bool wide=false)=>new(f.Organization.Id,wide?null:f.Project.Id,wide?null:f.Environment.Id,"Errors","error_5xx_ratio","error_5xx_ratio > 0.05","Critical",true,300,"Environment",null,300,new(true,[]));
-    private static async Task<ApiFixture> Fixture(MetricProtocolHandler? handler=null)
+    private static async Task<ApiFixture> Fixture(HttpMessageHandler? handler=null)
     {
         var f=new ApiFixture();await f.InitializeAsync(builder=>{if(handler is not null){builder.Configuration["Observability:Enabled"]="true";builder.Services.PostConfigure<HttpClientFactoryOptions>("observability",o=>o.HttpMessageHandlerBuilderActions.Add(b=>b.PrimaryHandler=handler));}});
         await f.SeedCatalogAsync();await ObservationTestSupport.GrantAsync(f,["alert.rule.manage"]);using var login=await f.LoginAsync();login.EnsureSuccessStatusCode();return f;
@@ -100,7 +100,14 @@ public sealed class AlertRuleTests
     }
     [Fact] public async Task LiveTestWorksWithoutMetricsPermissionOrIdempotencyKey()
     {
-        var handler=new MetricProtocolHandler();await using var f=await Fixture(handler);handler.EnvironmentId=f.Environment.Id;handler.ApiId=f.Api.Id;handler.DestinationId=f.Destination.Id;handler.ApplicationId=f.Application.Id;handler.ClusterId=f.Cluster.Id;
+        var handler = new AlertClockedMetricHandler();
+        await using var f = await Fixture(handler);
+        var source = handler.Inner;
+        source.EnvironmentId = f.Environment.Id;
+        source.ApiId = f.Api.Id;
+        source.DestinationId = f.Destination.Id;
+        source.ApplicationId = f.Application.Id;
+        source.ClusterId = f.Cluster.Id;
         int audits;await using(var db=f.Context()){f.Application.OrganizationId=f.Organization.Id;f.Application.ProjectId=f.Project.Id;db.Add(f.Application);db.AddRange(new GatewayNode{EnvironmentId=f.Environment.Id,NodeName="node-0"},new GatewayNode{EnvironmentId=f.Environment.Id,NodeName="node-1"});await db.SaveChangesAsync();audits=await db.Set<AuditLog>().CountAsync();Assert.False(await db.Set<Permission>().AnyAsync(x=>x.Code=="metrics.read"));}
         using var request=new HttpRequestMessage(HttpMethod.Post,"/api/v1/observability/alert-rules/test"){Content=JsonContent.Create(Definition(f) with{Metric="request_rps",Expression="request_rps > 0"})};request.Headers.Add("X-CSRF-Token",await f.CsrfAsync());using var result=await f.Client.SendAsync(request);result.EnsureSuccessStatusCode();var value=(await result.Content.ReadFromJsonAsync<RuleTestDto>())!;Assert.Equal("Known",value.EvaluationState);Assert.True(value.Condition);Assert.InRange(value.Matches.Single().Values.Single().Value!.Value,0.66,0.67);
         await using var read=f.Context();Assert.Equal(0,await read.Set<AlertRule>().CountAsync());Assert.Equal(0,await read.Set<AlertEvent>().CountAsync());Assert.Equal(audits,await read.Set<AuditLog>().CountAsync());Assert.Equal(0,await read.Set<OutboxMessage>().CountAsync());
