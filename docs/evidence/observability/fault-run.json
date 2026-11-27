@@ -1,6 +1,6 @@
 {
   "complete": true,
-  "project": "webapi-enterprise-e2e-observability-a305d1f8-611a-4132-8805-5c24ff261538",
+  "project": "webapi-enterprise-e2e-observability-ce563e04-cfc0-4a80-93e1-af5511506e49",
   "architecture": "Linux aarch64",
   "settings": {
     "intervalSeconds": 2,
@@ -14,7 +14,7 @@
     {
       "name": "OldARequestAcrossBSwitchKeepsActualADestinationAndTelemetry",
       "status": "passed",
-      "destinationId": "67d1ca14-48ae-4a97-a5fe-65ed06c1defa",
+      "destinationId": "0ee9d5ab-017e-4e1c-8613-81ee778ab614",
       "destinationBackend": "A",
       "sequence": 2
     },
@@ -39,7 +39,7 @@
       "name": "CollectorOutageQueueFullProxySuccessAndRealMiddleGap",
       "status": "passed",
       "successfulBurstRequests": 200,
-      "windowSeconds": 68,
+      "windowSeconds": 67,
       "reason": "time_window_coverage_incomplete"
     },
     {
@@ -57,7 +57,7 @@
       "status": "passed"
     }
   ],
-  "sourceRevision": "de415066e7dd001584dd2491fcba5bfec65fb27a",
+  "sourceRevision": "1ef76ca261536255caad68d6f1e8e6d921640f66",
   "command": "./scripts/check-observability.sh faults",
   "exitCode": 0,
   "cleanup": {
@@ -67,6 +67,6 @@
     "volumesRemaining": 0,
     "networksRemaining": 0
   },
-  "nativeReceiptSha256": "ffb4b06d3b8f82bcfeb058aed01b3bc1a368d466180642aefea2c76285cd3909",
-  "originalFaultOutputSha256": "324e7cfb769f9adc9a03233523ac27714a0252e7e787e686c24576663a2ee318"
+  "nativeReceiptSha256": "3e483fafc39dbd78768705a4ced8f18bdb13a90f759129ca054bedcb8a3ed481",
+  "originalFaultOutputSha256": "ae8198933acaf865a3c6908acd5d51728828caf47d1c49e401c5741de2448e14"
 }
