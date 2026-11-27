@@ -1,6 +1,6 @@
 {
-  "project": "webapi-enterprise-e2e-observability-093af5b1-68b7-4ac6-b6ae-238e6842ab15",
-  "sourceRevision": "1ef76ca261536255caad68d6f1e8e6d921640f66",
+  "project": "webapi-enterprise-e2e-observability-7e6c1de0-6d79-4cf1-9a36-42fb72bc2821",
+  "sourceRevision": "abe59a91b638e31b095a18e9e463512ebbf67401",
   "complete": true,
   "classification": "disposable-real-three-source-production-assets-preview-no-hmr",
   "viewport": {
@@ -8,9 +8,9 @@
     "height": 1000
   },
   "productionAssets": {
-    "indexSha256": "9711507c0eeee4a6774c135ce7e43c62af43364cf180134b0b8d6d0cf1d99085",
-    "entryPath": "/assets/index-Bm3bPcqa.js",
-    "bundleSha256": "5b42ae509af3a4a6ee5fea64d14db9253ea7f0051c3073098fed3ba3b40b8958",
+    "indexSha256": "6b62c702fdf69e07b8fa26cedb5d69112d0fd007c84c21839ddd3873a5dd7ad8",
+    "entryPath": "/assets/index-D4azwN62.js",
+    "bundleSha256": "733160a0a1c036f8c3b46fa1c36b1e0b83c151b5c21f7878861f69fe5d8690c1",
     "browserHostSha256": "0c6d31d7a4cda16f95f65e195516038d0afeabfda24e087a9984ba73842e88f7"
   },
   "pages": [
@@ -72,7 +72,7 @@
   "checks": [
     {
       "name": "metrics-real-samples-and-url-selection",
-      "samples": 468,
+      "samples": 469,
       "state": "Partial",
       "slowRankGroups": 0,
       "windowReason": "time_window_coverage_incomplete",
@@ -80,7 +80,7 @@
     },
     {
       "name": "api-drill-down-and-filtered-health",
-      "sampleCount": 468,
+      "sampleCount": 469,
       "healthState": "NotApplicable"
     },
     {
@@ -121,30 +121,30 @@
     }
   ],
   "screenshots": [
-    "1ef76ca-28-real-source.png",
-    "1ef76ca-29-real-api-source.png",
-    "1ef76ca-30-real-access-logs.png",
-    "1ef76ca-31-real-trace-waterfall.png",
-    "1ef76ca-32-real-alerts.png",
-    "1ef76ca-33-real-rules.png",
-    "1ef76ca-33-real-rule-test.png",
-    "1ef76ca-28-reader-before-revocation.png",
-    "1ef76ca-29-reader-before-revocation.png",
-    "1ef76ca-28-reader-after-revocation.png",
-    "1ef76ca-29-reader-after-revocation.png"
+    "abe59a9-28-real-source.png",
+    "abe59a9-29-real-api-source.png",
+    "abe59a9-30-real-access-logs.png",
+    "abe59a9-31-real-trace-waterfall.png",
+    "abe59a9-32-real-alerts.png",
+    "abe59a9-33-real-rules.png",
+    "abe59a9-33-real-rule-test.png",
+    "abe59a9-28-reader-before-revocation.png",
+    "abe59a9-29-reader-before-revocation.png",
+    "abe59a9-28-reader-after-revocation.png",
+    "abe59a9-29-reader-after-revocation.png"
   ],
   "screenshotSha256": {
-    "1ef76ca-28-real-source.png": "28c74b4a175d5ecdabd7af6c29ebe677084f3e8853ad81dec5e45dfa73151178",
-    "1ef76ca-29-real-api-source.png": "30644d4e60bfbe2c0a5cb3c045840edbe0e89246711b2956ce324592b2014981",
-    "1ef76ca-30-real-access-logs.png": "f8b7b73772c8dea91ff54c54eb1be21175a171b5c3d2587c59a6e997b2d1f337",
-    "1ef76ca-31-real-trace-waterfall.png": "f244bc9db15599b37dceb959c1fd99b0dfbabc51986a97dc4f0feb0bf95ffe59",
-    "1ef76ca-32-real-alerts.png": "760c38d61df527ce46e5cbe3be0a618e06e3ab5f776824611bac22a6cb9c2d10",
-    "1ef76ca-33-real-rules.png": "ea7099d00970cb9dfb6351d6d081b04874a697ce9cfa5d76ed91618498c14d12",
-    "1ef76ca-33-real-rule-test.png": "5bb63201908640993c958e98cfe7702b7bfa4c929015edd638fa2e85a47f2173",
-    "1ef76ca-28-reader-before-revocation.png": "b798c2f7983013b3131b8f34ac6f0f66e222c40100f95759390e96f2eec674d9",
-    "1ef76ca-29-reader-before-revocation.png": "b007070a20907e492f0383cdf81b201b916ea91c40ddd60bbfacc7f334fe9bc2",
-    "1ef76ca-28-reader-after-revocation.png": "3ad922e1809444c6b44c54820ab877a55d5fa3dd00e60c6ba52a6f63b68baa63",
-    "1ef76ca-29-reader-after-revocation.png": "8bc239d9410c3a43357423893851bf1fd3d512184c310741e025ac655ad3d4d7"
+    "abe59a9-28-real-source.png": "3e31c2ca3f2c8901dc9756cdcfb0ca93f2e7d6d3543925fd98e712eae929af2c",
+    "abe59a9-29-real-api-source.png": "9a68b07935e83ffc19961f27819ccb9e7af1b3131c7a5093eb9a7c1f7ff9dca6",
+    "abe59a9-30-real-access-logs.png": "e79b4ba85cf8efcf1b047e490194cd6b0d468d48b4af2f1dc8abfcbdbd38ca28",
+    "abe59a9-31-real-trace-waterfall.png": "46afbb62f2afd66471215d198d02076ff656493bf22c4556a97697273515ebfd",
+    "abe59a9-32-real-alerts.png": "4ad3bc17a61fd5c4eaad52461992de9540295a82696a839f6635a604a6efd54a",
+    "abe59a9-33-real-rules.png": "3f3e6f3323948cc660cd8cf0dbe19c1e7df8a51e31a291dff6d0f563de9369e8",
+    "abe59a9-33-real-rule-test.png": "1e0e0933ce2e17ed7b3f322008dcc97e67f13bb7a2570f349a88f3b84784eee3",
+    "abe59a9-28-reader-before-revocation.png": "c1f4a15f7701cbfdfb990b8571babde4f540fe54669c1a53e6ea1ade430afc28",
+    "abe59a9-29-reader-before-revocation.png": "99d416025f2c8e7a0651ca0f68698785c6705746c5c0bd39f23b9b6cc13a054b",
+    "abe59a9-28-reader-after-revocation.png": "d380d6125dfe127d47abd510ae30a4318a3e13050e4446c6ded097f8059dddbe",
+    "abe59a9-29-reader-after-revocation.png": "745949b288d3837185c5523b5182580c5796249f90dbb88cad413608dfbe1ef6"
   },
   "normalConsoleErrors": [],
   "normalHttpErrors": [],
@@ -163,8 +163,8 @@
     "automationBrowserClosed": true
   },
   "evidence": {
-    "browserReadbackSha256": "be16ebab0741a195517d6c2007bbd6d9499bf8b3140714a7902487ebc9167fe3",
-    "fixtureRunnerCleanupSha256": "6a3109ddfba719debd725c95c858e2f9f7c64231a1f33c4ed19aba85c2a51148",
-    "fixtureScriptCleanupSha256": "661fadcdc7c4a6efc0d88c6d3f8a882ae2321b7dabe8d21bae283476feb9b224"
+    "browserReadbackSha256": "aaf1a3b53bacabdf90fe44d04a1e077af68b8fa474112aa055a0bed445b40896",
+    "fixtureRunnerCleanupSha256": "c696d97fd48576bd5ff196144cab812dcac8eb8b36413c825fca1b78802213b7",
+    "fixtureScriptCleanupSha256": "f325a3cb5e5374da6eb866d203fa32c6e617e04436210fb0f34c814796cfc2c6"
   }
 }

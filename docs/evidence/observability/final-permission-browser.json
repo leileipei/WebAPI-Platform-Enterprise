@@ -1,6 +1,6 @@
 {
-  "project": "webapi-enterprise-e2e-observability-093af5b1-68b7-4ac6-b6ae-238e6842ab15",
-  "sourceRevision": "1ef76ca261536255caad68d6f1e8e6d921640f66",
+  "project": "webapi-enterprise-e2e-observability-7e6c1de0-6d79-4cf1-9a36-42fb72bc2821",
+  "sourceRevision": "abe59a91b638e31b095a18e9e463512ebbf67401",
   "complete": true,
   "classification": "disposable-real-three-source-production-assets-preview-no-hmr",
   "red": {
@@ -18,16 +18,16 @@
     "project": "webapi-enterprise-e2e-observability-e81ec684-de30-4ea4-a62a-30b43c0fe27e"
   },
   "green": {
-    "revokedAt": "2026-11-27T04:21:02.757Z",
+    "revokedAt": "2026-11-27T05:43:42.132Z",
     "beforeSamples": [
-      468,
-      468
+      469,
+      469
     ],
     "cleared": [
       {
         "page": 28,
-        "elapsedMs": 29505,
-        "clearedAt": "2026-11-27T04:21:32.262Z",
+        "elapsedMs": 29564,
+        "clearedAt": "2026-11-27T05:44:11.696Z",
         "kpiCards": 0,
         "tables": 0,
         "observedHttpStatuses": [
@@ -36,8 +36,8 @@
       },
       {
         "page": 29,
-        "elapsedMs": 29505,
-        "clearedAt": "2026-11-27T04:21:32.262Z",
+        "elapsedMs": 29568,
+        "clearedAt": "2026-11-27T05:44:11.700Z",
         "kpiCards": 0,
         "tables": 0,
         "observedHttpStatuses": [
@@ -45,7 +45,7 @@
         ]
       }
     ],
-    "fixedEnd": "2026-11-27T04:20:52.605Z",
+    "fixedEnd": "2026-11-27T05:43:33.087Z",
     "automaticRequeryMilliseconds": 30000,
     "noReload": true,
     "kpiCards": 0,
@@ -60,8 +60,8 @@
     "networksRemaining": 0
   },
   "evidence": {
-    "browserReadbackSha256": "be16ebab0741a195517d6c2007bbd6d9499bf8b3140714a7902487ebc9167fe3",
-    "fixtureRunnerCleanupSha256": "6a3109ddfba719debd725c95c858e2f9f7c64231a1f33c4ed19aba85c2a51148",
-    "fixtureScriptCleanupSha256": "661fadcdc7c4a6efc0d88c6d3f8a882ae2321b7dabe8d21bae283476feb9b224"
+    "browserReadbackSha256": "aaf1a3b53bacabdf90fe44d04a1e077af68b8fa474112aa055a0bed445b40896",
+    "fixtureRunnerCleanupSha256": "c696d97fd48576bd5ff196144cab812dcac8eb8b36413c825fca1b78802213b7",
+    "fixtureScriptCleanupSha256": "f325a3cb5e5374da6eb866d203fa32c6e617e04436210fb0f34c814796cfc2c6"
   }
 }
